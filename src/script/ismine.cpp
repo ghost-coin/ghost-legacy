@@ -87,6 +87,7 @@ isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey, bool& 
 
     CKeyID keyID;
 
+    isminetype mine = ISMINE_NO;
     switch (whichType)
     {
     case TX_NONSTANDARD:
@@ -99,7 +100,8 @@ isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey, bool& 
             isInvalid = true;
             return ISMINE_NO;
         }
-        return keystore.IsMine(keyID);
+        if ((mine = keystore.IsMine(keyID)))
+            return mine;
         //if (keystore.HaveKey(keyID))
         //    return ISMINE_SPENDABLE;
         break;
@@ -133,7 +135,8 @@ isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey, bool& 
                 return ISMINE_NO;
             }
         }
-        return keystore.IsMine(keyID);
+        if ((mine = keystore.IsMine(keyID)))
+            return mine;
         //if (keystore.HaveKey(keyID))
         //    return ISMINE_SPENDABLE;
         break;
