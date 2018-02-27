@@ -1705,7 +1705,6 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                 {
                     vchAmount.resize(33);
                     memcpy(vchAmount.data(), coin.commitment.data, 33);
-                    vchAmount.resize(33);
                 };
 
                 // Verify signature
