@@ -30,7 +30,7 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
         addr = 'pcwP4hTtaMb7n4urszBTsgxWLdNLU4yNGz'
         nodes[1].importaddress(addr, addr, True)
 
-        ro = nodes[1].getaddressinfo(addr)
+        ro = nodes[1].validateaddress(addr)
         assert(ro['ismine'] == False)
         assert(ro['iswatchonly'] == True)
 
