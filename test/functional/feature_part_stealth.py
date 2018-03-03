@@ -194,6 +194,23 @@ class StealthTest(ParticlTestFramework):
         flat = json.dumps(nodes[0].filteraddresses())
         assert(sx1_b32 in flat and sx2_b32 in flat)
 
+        ro = nodes[1].createrawtransaction([], {sx1_b32:0.1})
+        ro = nodes[1].fundrawtransaction(ro)
+        ro = nodes[1].signrawtransactionwithwallet(ro['hex'])
+        assert(ro['complete'] == True)
+        txnHash = nodes[1].sendrawtransaction(ro['hex'])
+        txnHashes.append(txnHash)
+
+        assert(self.wait_for_mempool(nodes[0], txnHash))
+
+        ro = nodes[0].filtertransactions({ 'use_bech32': True })
+        assert(ro[0]['outputs'][0]['stealth_address'] == sx1_b32)
+
+
+
+
+
+
 
         #assert(False)
         #print(json.dumps(ro, indent=4, default=self.jsonDecimal))
