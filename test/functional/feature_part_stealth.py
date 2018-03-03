@@ -196,7 +196,7 @@ class StealthTest(ParticlTestFramework):
 
         ro = nodes[1].createrawtransaction([], {sx1_b32:0.1})
         ro = nodes[1].fundrawtransaction(ro)
-        ro = nodes[1].signrawtransactionwithwallet(ro['hex'])
+        ro = nodes[1].signrawtransaction(ro['hex'])
         assert(ro['complete'] == True)
         txnHash = nodes[1].sendrawtransaction(ro['hex'])
         txnHashes.append(txnHash)
