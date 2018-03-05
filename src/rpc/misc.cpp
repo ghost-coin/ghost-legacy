@@ -298,21 +298,22 @@ UniValue validateaddress(const JSONRPCRequest& request)
             if (dest.type() == typeid(CKeyID))
             {
                 CKeyID idk;
-                CEKAKey ak;
+                const CEKAKey *pak = nullptr;
+                const CEKASCKey *pasc = nullptr;
                 CExtKeyAccount *pa = nullptr;
                 bool isInvalid;
-                mine = phdw->IsMine(scriptPubKey, idk, ak, pa, isInvalid);
+                mine = phdw->IsMine(scriptPubKey, idk, pak, pasc, pa, isInvalid);
 
-                if (pa && ak.nParent > 0 && ak.nParent < pa->vExtKeys.size())
+                if (pa && pak)
                 {
-                    CStoredExtKey *sek = pa->GetChain(ak.nParent);
+                    CStoredExtKey *sek = pa->GetChain(pak->nParent);
                     if (sek)
                     {
                         ret.pushKV("from_ext_address_id", sek->GetIDString58());
                         std::string sPath;
                         std::vector<uint32_t> vPath;
                         AppendChainPath(sek, vPath);
-                        vPath.push_back(ak.nKey);
+                        vPath.push_back(pak->nKey);
                         PathToString(vPath, sPath);
                         ret.pushKV("path", sPath);
                     } else
@@ -324,7 +325,7 @@ UniValue validateaddress(const JSONRPCRequest& request)
                     CStealthAddress sx;
                     idk = boost::get<CKeyID>(dest);
                     if (phdw->GetStealthLinked(idk, sx))
-                    ret.pushKV("from_stealth_address", sx.Encoded());
+                        ret.pushKV("from_stealth_address", sx.Encoded());
                 };
             } else
             {
