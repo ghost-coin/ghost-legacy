@@ -132,7 +132,7 @@ class USBDeviceTest(ParticlTestFramework):
         hwsxaddr2 = nodes[1].devicegetnewstealthaddress('lbl2 4bits', '4', '0xaaaa', True)
         assert(hwsxaddr2 == 'tps1qqpewyspjp93axk82zahx5xfjyprpvypfgnp95n9aynxxw3w0qs63acpq0s5z2rwk0raczg8jszl9qy5stncud76ahr5etn9hqmp30e3e86w2qqypgh9sgv0')
 
-        ro = nodes[1].getaddressinfo(hwsxaddr2)
+        ro = nodes[1].validateaddress(hwsxaddr2)
         assert(ro['prefix_num_bits'] == 4)
         assert(ro['prefix_bitfield'] == '0x000a')
         assert(ro['isondevice'] == True)
