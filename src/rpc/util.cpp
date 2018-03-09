@@ -66,3 +66,14 @@ CScript CreateMultisigRedeemscript(const int required, const std::vector<CPubKey
 
     return result;
 }
+
+bool GetBool(const UniValue &uv)
+{
+    if (uv.isBool())
+        return uv.get_bool();
+    std::string s = uv.get_str();
+    bool rv;
+    if (!part::GetStringBool(s, rv))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Not a bool value.");
+    return rv;
+};
