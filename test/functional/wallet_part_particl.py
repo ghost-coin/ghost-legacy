@@ -340,8 +340,8 @@ class WalletParticlTest(ParticlTestFramework):
 
         for i in range(0, 5):
             addr = nodes[2].getnewaddress()
-            ro = nodes[2].keyinfo(addr)
-            assert(ro['public_key'] == testPubkeys[i])
+            ro = nodes[2].validateaddress(addr)
+            assert(ro['pubkey'] == testPubkeys[i])
 
 
         ro = nodes[2].getnewstealthaddress('testLabel')
@@ -385,8 +385,8 @@ class WalletParticlTest(ParticlTestFramework):
         ro2 = nodes[2].extkey('key', 'pparszNetDqyrvZksLHJkwJGwJ1r9JCcEyLeHatLjerxRuD3qhdTdrdo2mE6e1ewfd25EtiwzsECooU5YwhAzRN63iFid6v5AQn9N5oE9wfBYehn', 'true')
         assert(ro == ro2)
 
-        ro = nodes[2].keyinfo('pparszNetDqyrvZksLHJkwJGwJ1r9JCcEyLeHatLjerxRuD3qhdTdrdo2mE6e1ewfd25EtiwzsECooU5YwhAzRN63iFid6v5AQn9N5oE9wfBYehn')
-        assert(ro['owned'] == 'true')
+        ro = nodes[2].validateaddress('pparszNetDqyrvZksLHJkwJGwJ1r9JCcEyLeHatLjerxRuD3qhdTdrdo2mE6e1ewfd25EtiwzsECooU5YwhAzRN63iFid6v5AQn9N5oE9wfBYehn')
+        assert(ro['ismine'] == True)
 
         ro = nodes[2].getwalletinfo()
         assert(ro['total_balance'] == 0)
