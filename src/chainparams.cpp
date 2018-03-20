@@ -510,9 +510,9 @@ public:
         assert(genesis.hashWitnessMerkleRoot == uint256S("0x619e94a7f9f04c8a1d018eb8bcd9c42d3c23171ebed8f351872256e36959d66c"));
 
         // Note that of those with the service bits flag, most only support a subset of possible options
-        vSeeds.emplace_back("mainnet-seed.particl.io", true);
-        vSeeds.emplace_back("dnsseed-mainnet.particl.io", true);
-        vSeeds.emplace_back("mainnet.particl.io", true);
+        vSeeds.emplace_back("mainnet-seed.particl.io");
+        vSeeds.emplace_back("dnsseed-mainnet.particl.io");
+        vSeeds.emplace_back("mainnet.particl.io");
 
 
         vDevFundSettings.emplace_back(0,
@@ -663,8 +663,8 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
-        vSeeds.emplace_back("testnet-seed.particl.io", true);
-        vSeeds.emplace_back("dnsseed-testnet.particl.io", true);
+        vSeeds.emplace_back("testnet-seed.particl.io");
+        vSeeds.emplace_back("dnsseed-testnet.particl.io");
 
         vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("rTvv9vsbu269mjYYEecPYinDG8Bt7D86qD", 10, 60)));
 
