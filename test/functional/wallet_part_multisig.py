@@ -129,7 +129,6 @@ class MultiSigTest(ParticlTestFramework):
         msAddr256 = ro
         ro = nodes[0].validateaddress(msAddr256);
         assert(ro['isscript'] == True)
-        print(json.dumps(ro, indent=4, default=self.jsonDecimal))
 
         ro = nodes[0].addmultisigaddress(2, v, "", True, True)
         msAddr256 = ro

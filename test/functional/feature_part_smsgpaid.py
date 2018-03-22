@@ -128,9 +128,9 @@ class SmsgPaidTest(ParticlTestFramework):
         for i in range(5):
             try:
                 ro = nodes[1].smsg(msgid)
-                assert(ro['location'] == 'inbox')
+                assert(ro['location'] == 'outbox')
                 break
-            except:
+            except Exception as e:
                 time.sleep(1)
         assert(ro['text'] == text_3)
         assert(ro['addressfrom'] == address1)
@@ -201,16 +201,6 @@ class SmsgPaidTest(ParticlTestFramework):
                 time.sleep(1)
         assert(msg == bytes.fromhex(ro['hex'][:-2]))
 
-
-
-
-
-
-
-
-
-        #assert(False)
-        #print(json.dumps(ro, indent=4, default=self.jsonDecimal))
 
 if __name__ == '__main__':
     SmsgPaidTest().main()
