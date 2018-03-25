@@ -604,5 +604,11 @@ class WalletParticlTest(ParticlTestFramework):
         #print(json.dumps(ro, indent=4, default=self.jsonDecimal))
 
 
+        ro = nodes[2].listaddressgroupings()
+        assert(len(ro) == 5)
+
+
+
+
 if __name__ == '__main__':
     WalletParticlTest().main()
