@@ -322,6 +322,7 @@ UniValue validateaddress(const JSONRPCRequest& request)
                         ret.pushKV("error", "Unknown chain.");
                     };
                 } else
+                if (dest.type() == typeid(CKeyID))
                 {
                     CStealthAddress sx;
                     idk = boost::get<CKeyID>(dest);
