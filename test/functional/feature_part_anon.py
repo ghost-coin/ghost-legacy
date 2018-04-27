@@ -62,7 +62,9 @@ class AnonTest(ParticlTestFramework):
             txnHash = nodes[0].sendparttoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 p->a')
             txnHashes.append(txnHash)
 
-        assert(self.wait_for_mempool(nodes[1], txnHash))
+        for h in txnHashes:
+            self.log.info(h) # debug
+            assert(self.wait_for_mempool(nodes[1], h))
 
 
         ro = nodes[1].listtransactions()
@@ -126,8 +128,15 @@ class AnonTest(ParticlTestFramework):
         txnHashes = [txnHash,]
 
 
-        #assert(False)
-        #print(json.dumps(ro, indent=4, default=self.jsonDecimal))
+        # Test lockunspent
+        unspent = nodes[1].listunspentanon()
+        assert(nodes[1].lockunspent(False, [unspent[0]]) == True)
+        unspentCheck = nodes[1].listunspentanon()
+        assert(len(unspentCheck) < len(unspent))
+        assert(nodes[1].lockunspent(True, [unspent[0]]) == True)
+        unspentCheck = nodes[1].listunspentanon()
+        assert(len(unspentCheck) == len(unspent))
+
 
 if __name__ == '__main__':
     AnonTest().main()
