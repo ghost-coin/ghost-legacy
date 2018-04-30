@@ -11328,9 +11328,7 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
                     };
                 };
 
-                bool fSpendableIn = true;
-                bool fNeedHardwareKey = false;
-                vCoins.emplace_back(&twi->second, r.n, nDepth, fSpendableIn, true, true, true, fNeedHardwareKey, false);
+                vCoins.emplace_back(&twi->second, r.n, nDepth, true, true, true);
             };
         };
     }
