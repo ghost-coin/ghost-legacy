@@ -758,8 +758,8 @@ UniValue smsginbox(const JSONRPCRequest &request)
             "{\n"
             "  \"msgid\": \"str\"                    (string) The message identifier\n"
             "  \"version\": \"str\"                  (string) The message version\n"
-            "  \"received\": \"str\"                 (string) Formatted time the message was received\n"
-            "  \"sent\": \"str\"                     (string) Formatted time the message was sent\n"
+            "  \"received\": \"time\"                (string) Time the message was received\n"
+            "  \"sent\": \"time\"                    (string) Time the message was sent\n"
             "  \"from\": \"str\"                     (string) Address the message was sent from\n"
             "  \"to\": \"str\"                       (string) Address the message was sent to\n"
             "  \"text\": \"str\"                     (string) Message text\n"
@@ -782,8 +782,6 @@ UniValue smsginbox(const JSONRPCRequest &request)
             throw std::runtime_error("Could not open DB.");
 
         uint32_t nMessages = 0;
-        char cbuf[256];
-
         std::string sPrefix("im");
         uint8_t chKey[30];
 
@@ -839,8 +837,8 @@ UniValue smsginbox(const JSONRPCRequest &request)
                             part::stringsMatchI(sText, filter, 3)))
                         continue;
 
-                    objM.pushKV("received", part::GetTimeString(smsgStored.timeReceived, cbuf, sizeof(cbuf)));
-                    objM.pushKV("sent", part::GetTimeString(msg.timestamp, cbuf, sizeof(cbuf)));
+                    PushTime(objM, "received", smsgStored.timeReceived);
+                    PushTime(objM, "sent", msg.timestamp);
                     objM.pushKV("from", msg.sFromAddress);
                     objM.pushKV("to", sAddrTo);
                     objM.pushKV("text", sText);
@@ -892,7 +890,7 @@ UniValue smsgoutbox(const JSONRPCRequest &request)
             "{\n"
             "  \"msgid\": \"str\"                    (string) The message identifier\n"
             "  \"version\": \"str\"                  (string) The message version\n"
-            "  \"sent\": \"str\"                     (string) Formatted time the message was sent\n"
+            "  \"sent\": \"time\"                    (string) Time the message was sent\n"
             "  \"from\": \"str\"                     (string) Address the message was sent from\n"
             "  \"to\": \"str\"                       (string) Address the message was sent to\n"
             "  \"text\": \"str\"                     (string) Message text\n"
@@ -920,7 +918,6 @@ UniValue smsgoutbox(const JSONRPCRequest &request)
             throw std::runtime_error("Could not open DB.");
 
         uint32_t nMessages = 0;
-        char cbuf[256];
 
         if (mode == "clear")
         {
@@ -966,7 +963,7 @@ UniValue smsgoutbox(const JSONRPCRequest &request)
                             part::stringsMatchI(sText, filter, 3)))
                         continue;
 
-                    objM.pushKV("sent", part::GetTimeString(msg.timestamp, cbuf, sizeof(cbuf)));
+                    PushTime(objM, "sent", msg.timestamp);
                     objM.pushKV("from", msg.sFromAddress);
                     objM.pushKV("to", sAddrTo);
                     objM.pushKV("text", sText);
@@ -1040,7 +1037,7 @@ UniValue smsgbuckets(const JSONRPCRequest &request)
 
                 UniValue objM(UniValue::VOBJ);
                 objM.pushKV("bucket", sBucket);
-                objM.pushKV("time", part::GetTimeString(it->first, cbuf, sizeof(cbuf)));
+                PushTime(objM, "time", it->first);
                 objM.pushKV("no. messages", strprintf("%u", tokenSet.size()));
                 objM.pushKV("active messages", strprintf("%u", nActiveMessages));
                 objM.pushKV("hash", sHash);
@@ -1365,7 +1362,7 @@ UniValue smsgview(const JSONRPCRequest &request)
                         sTo += " (" + lblTo + ")";
 
                     UniValue objM(UniValue::VOBJ);
-                    objM.pushKV("sent", part::GetTimeString(msg.timestamp, cbuf, sizeof(cbuf)));
+                    PushTime(objM, "sent", msg.timestamp);
                     objM.pushKV("from", sFrom);
                     objM.pushKV("to", sTo);
                     objM.pushKV("text", std::string((char*)&msg.vchMessage[0]));
