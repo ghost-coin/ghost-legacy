@@ -3817,10 +3817,10 @@ UniValue listunspent(const JSONRPCRequest& request)
             entry.push_back(Pair("amount", ValueFromAmount(nValue)));
         };
 
-        entry.pushKV("confirmations", out.nDepth);
-        entry.pushKV("spendable", out.fSpendable);
-        entry.pushKV("solvable", out.fSolvable);
-        entry.pushKV("safe", out.fSafe);
+        entry.push_back(Pair("confirmations", out.nDepth));
+        entry.push_back(Pair("spendable", out.fSpendable));
+        entry.push_back(Pair("solvable", out.fSolvable));
+        entry.push_back(Pair("safe", out.fSafe));
 
         if (IsHDWallet(pwallet))
         {
@@ -3834,7 +3834,7 @@ UniValue listunspent(const JSONRPCRequest& request)
                     || (mine & ISMINE_HARDWARE_DEVICE))
                     fStakeable = false;
             };
-            entry.pushKV("stakeable", fStakeable);
+            entry.push_back(Pair("stakeable", fStakeable));
         };
 
         if (fIncludeImmature)
