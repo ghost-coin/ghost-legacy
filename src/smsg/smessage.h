@@ -1,17 +1,18 @@
 // Copyright (c) 2014-2016 The ShadowCoin developers
-// Copyright (c) 2017 The Particl Core developers
+// Copyright (c) 2017-2018 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef SEC_MESSAGE_H
-#define SEC_MESSAGE_H
+#ifndef PARTICL_SMSG_SMESSAGE_H
+#define PARTICL_SMSG_SMESSAGE_H
 
-#include <net.h>
 #include <base58.h>
+#include <net.h>
 #include <serialize.h>
 #include <ui_interface.h>
 #include <lz4/lz4.h>
 #include <smsg/keystore.h>
+
 
 class CWallet;
 
@@ -19,7 +20,7 @@ namespace smsg
 {
 
 enum SecureMessageCodes {
-    SMSG_NO_ERROR           = 0,
+    SMSG_NO_ERROR = 0,
     SMSG_GENERAL_ERROR,
     SMSG_UNKNOWN_VERSION,
     SMSG_INVALID_ADDRESS,
@@ -51,6 +52,7 @@ enum SecureMessageCodes {
     SMSG_COMPRESS_FAILED,
     SMSG_ENCRYPT_FAILED,
     SMSG_FUND_FAILED,
+    SMSG_PURGED_MSG,
 };
 
 const unsigned int SMSG_HDR_LEN        = 104;               // length of unencrypted header, 4 + 2 + 1 + 8 + 16 + 33 + 32 + 4 + 4
@@ -74,7 +76,7 @@ const unsigned int SMSG_MAX_MSG_BYTES  = 4096;              // the user input pa
 const unsigned int SMSG_MAX_AMSG_BYTES = 512;               // the user input part (ANON)
 const unsigned int SMSG_MAX_MSG_BYTES_PAID = 512 * 1024;    // the user input part (Paid)
 
-// max size of payload worst case compression
+// Max size of payload worst case compression
 const unsigned int SMSG_MAX_MSG_WORST = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES+SMSG_PL_HDR_LEN);
 const unsigned int SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES_PAID+SMSG_PL_HDR_LEN);
 
@@ -84,21 +86,19 @@ static const int MIN_SMSG_PROTO_VERSION = 90007;
 const CAmount nFundingTxnFeePerK = 200000;
 const CAmount nMsgFeePerKPerDay =   50000;
 
-#define SMSG_MASK_UNREAD            (1 << 0)
+#define SMSG_MASK_UNREAD (1 << 0)
+
 class SecMsgStored;
 
 // Inbox db changed, called with lock cs_smsgDB held.
-extern boost::signals2::signal<void (SecMsgStored& inboxHdr)> NotifySecMsgInboxChanged;
+extern boost::signals2::signal<void (SecMsgStored &inboxHdr)> NotifySecMsgInboxChanged;
 
 // Outbox db changed, called with lock cs_smsgDB held.
-extern boost::signals2::signal<void (SecMsgStored& outboxHdr)> NotifySecMsgOutboxChanged;
+extern boost::signals2::signal<void (SecMsgStored &outboxHdr)> NotifySecMsgOutboxChanged;
 
 // Wallet unlocked, called after all messages received while locked have been processed.
 extern boost::signals2::signal<void ()> NotifySecMsgWalletUnlocked;
 
-class SecMsgBucket;
-class SecMsgAddress;
-class SecMsgOptions;
 
 uint32_t SMSGGetSecondsInDay();
 
@@ -124,7 +124,6 @@ public:
 
             nonce[0] = nDaysRetention;
         };
-
     };
     ~SecureMessage()
     {
@@ -143,7 +142,7 @@ public:
     bool IsPaidVersion() const
     {
         return version[0] == 3;
-    }
+    };
 
     bool GetFundingTxid(uint256 &txid) const
     {
@@ -155,23 +154,23 @@ public:
     uint8_t *data()
     {
         return &hash[0];
-    }
+    };
 
     const uint8_t *data() const
     {
         return &hash[0];
-    }
+    };
 
-    uint8_t  hash[4] = {0, 0, 0, 0};
-    uint8_t  version[2] = {2, 1};
-    uint8_t  flags = 0;
-    int64_t  timestamp = 0;
-    uint8_t  iv[16];
-    uint8_t  cpkR[33];
-    uint8_t  mac[32];
-    uint8_t  nonce[4] = {0, 0, 0, 0}; // nDaysRetention when paid message
+    uint8_t hash[4] = {0, 0, 0, 0};
+    uint8_t version[2] = {2, 1};
+    uint8_t flags = 0;
+    int64_t timestamp = 0;
+    uint8_t iv[16];
+    uint8_t cpkR[33];
+    uint8_t mac[32];
+    uint8_t nonce[4] = {0, 0, 0, 0}; // nDaysRetention when paid message
     uint32_t nPayload = 0;
-    uint8_t* pPayload = nullptr;
+    uint8_t *pPayload = nullptr;
 };
 #pragma pack(pop)
 
@@ -188,19 +187,18 @@ public:
 class SecMsgToken
 {
 public:
+    SecMsgToken() {};
     SecMsgToken(int64_t ts, const uint8_t *p, int np, long int o, uint8_t ttl_)
     {
         timestamp = ts;
 
-        if (np < 8) // payload will always be > 8, just make sure
+        if (np < 8)
             memset(sample, 0, 8);
         else
             memcpy(sample, p, 8);
         offset = o;
         ttl = ttl_;
     };
-
-    SecMsgToken() {};
 
     bool operator <(const SecMsgToken &y) const
     {
@@ -209,10 +207,50 @@ public:
         return timestamp < y.timestamp;
     };
 
+    std::string ToString() const;
+
     int64_t timestamp;
     uint8_t sample[8];    // first 8 bytes of payload
     int64_t offset;       // offset
-    uint8_t ttl;          // days
+    mutable uint8_t ttl;  // days
+};
+
+class SecMsgPurged // Purged token marker
+{
+public:
+    SecMsgPurged() {};
+    SecMsgPurged(int64_t ts, int64_t tp)
+    {
+        timestamp = ts;
+        memset(sample, 0, 8);
+        timepurged = tp;
+    };
+
+    bool operator <(const SecMsgPurged &y) const
+    {
+        if (timestamp == y.timestamp)
+            return memcmp(sample, y.sample, 8) < 0;
+        return timestamp < y.timestamp;
+    };
+
+    template<typename Stream>
+    void Serialize(Stream &s) const
+    {
+        s << timestamp;
+        s.write((char*)&sample[0], 33);
+        s << timepurged;
+    };
+    template <typename Stream>
+    void Unserialize(Stream& s)
+    {
+        s >> timestamp;
+        s.read((char*)&sample[0], 33);
+        s >> timepurged;
+    };
+
+    int64_t timestamp;
+    uint8_t sample[8];
+    int64_t timepurged;
 };
 
 class SecMsgBucket
@@ -240,18 +278,6 @@ public:
     std::set<SecMsgToken> setTokens;
 };
 
-class CBitcoinAddress_B : public CBitcoinAddress
-{
-public:
-    uint8_t getVersion()
-    {
-        // TODO: fix
-        if (vchVersion.size() > 0)
-            return vchVersion[0];
-        return 0;
-    };
-};
-
 class SecMsgAddress
 {
 public:
@@ -263,9 +289,9 @@ public:
         fReceiveAnon    = receiveAnon;
     };
 
-    CKeyID      address;
-    bool        fReceiveEnabled;
-    bool        fReceiveAnon;
+    CKeyID address;
+    bool fReceiveEnabled;
+    bool fReceiveAnon;
 
     size_t GetSerializeSize(int nType, int nVersion) const
     {
@@ -329,7 +355,7 @@ public:
         s << vchMessage;
     };
     template <typename Stream>
-    void Unserialize(Stream& s)
+    void Unserialize(Stream &s)
     {
         s >> timeReceived;
         s >> status;
@@ -348,6 +374,7 @@ class CSMSG
 {
 public:
     int BuildBucketSet();
+    int BuildPurgedSets();
     int AddWalletAddresses();
     int LoadKeyStore();
 
@@ -378,7 +405,6 @@ public:
     int GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut);
     int GetLocalPublicKey(const std::string &strAddress, std::string &strPublicKey);
 
-    //int AddAddress(CKeyID &address, CPubKey &publicKey); // TODO: necessary?
     int AddAddress(std::string &address, std::string &publicKey);
     int AddLocalAddress(const std::string &sAddress);
     int ImportPrivkey(const CBitcoinSecret &vchSecret, const std::string &sLabel);
@@ -388,13 +414,18 @@ public:
 
     int ReadSmsgKey(const CKeyID &idk, CKey &key);
 
-    int Retrieve(SecMsgToken &token, std::vector<uint8_t> &vchData);
+    int Retrieve(const SecMsgToken &token, std::vector<uint8_t> &vchData);
+    int Remove(const SecMsgToken &token);
 
     int Receive(CNode *pfrom, std::vector<uint8_t> &vchData);
 
+    int CheckPurged(const SecureMessage *psmsg, const uint8_t *pPayload);
+
     int StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
     int Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool fHashBucket);
-    int Store(const SecureMessage& smsg, bool fHashBucket);
+    int Store(const SecureMessage &smsg, bool fHashBucket);
+
+    int Purge(std::vector<uint8_t> &vMsgId, std::string &sError);
 
     int Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         SecureMessage &smsg, std::string &sError, bool fPaid=false,
@@ -404,6 +435,7 @@ public:
     int HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t nPayload, uint160 &hash);
     int FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee);
 
+    std::vector<uint8_t> GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload);
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);
 
     int Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
@@ -417,19 +449,22 @@ public:
     int Decrypt(bool fTestOnly, const CKeyID &address, const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, MessageData &msg);
     int Decrypt(bool fTestOnly, const CKeyID &address, const SecureMessage &smsg, MessageData &msg);
 
-    CCriticalSection cs_smsg;            // all except inbox and outbox
+    CCriticalSection cs_smsg; // all except inbox and outbox
 
     SecMsgKeyStore keyStore;
     std::map<int64_t, SecMsgBucket> buckets;
     std::vector<SecMsgAddress> addresses;
+    std::set<SecMsgPurged> setPurged;
+    std::set<int64_t> setPurgedTimestamps;
     SecMsgOptions options;
     CWallet *pwallet = nullptr;
 
+    int64_t nLastProcessedPurged = 0;
 };
 
 } // namespace smsg
 
 extern smsg::CSMSG smsgModule;
 
-#endif // SEC_MESSAGE_H
+#endif // PARTICL_SMSG_SMESSAGE_H
 

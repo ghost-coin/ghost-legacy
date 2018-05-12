@@ -134,6 +134,14 @@ public:
     bool GetKeyID(CKeyID &keyID, CChainParams::Base58Type prefix) const;
     bool GetIndexKey(uint256 &hashBytes, int &type) const;
     bool IsScript() const;
+
+    uint8_t getVersion()
+    {
+        // TODO: fix
+        if (vchVersion.size() > 0)
+            return vchVersion[0];
+        return 0;
+    };
 };
 
 /**

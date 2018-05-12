@@ -73,7 +73,7 @@ class ParticlTestFramework(BitcoinTestFramework):
         for i in range(30):
             time.sleep(0.5)
             ro = nodes[nodeA].smsgbuckets()
-            if ro['total']['messages'] == str(nMessages):
+            if ro['total']['messages'] == nMessages:
                 fPass = True
                 break
         assert(fPass)
@@ -82,7 +82,7 @@ class ParticlTestFramework(BitcoinTestFramework):
         for i in range(30):
             time.sleep(0.5)
             ro = nodes[nodeB].smsgbuckets()
-            if ro['total']['messages'] == str(nMessages):
+            if ro['total']['messages'] == nMessages:
                 fPass = True
                 break
         assert(fPass)

@@ -1,5 +1,5 @@
-// Copyright (c) 2014 The ShadowCoin developers
-// Copyright (c) 2017 The Particl developers
+// Copyright (c) 2014-2016 The ShadowCoin developers
+// Copyright (c) 2017-2018 The Particl developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -22,13 +22,13 @@
 
 #include <univalue.h>
 
-void EnsureSMSGIsEnabled()
+static void EnsureSMSGIsEnabled()
 {
     if (!smsg::fSecMsgEnabled)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Secure messaging is disabled.");
 };
 
-UniValue smsgenable(const JSONRPCRequest &request)
+static UniValue smsgenable(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 0)
         throw std::runtime_error(
@@ -36,7 +36,7 @@ UniValue smsgenable(const JSONRPCRequest &request)
             "Enable secure messaging.");
 
     if (smsg::fSecMsgEnabled)
-        throw std::runtime_error("Secure messaging is already enabled.");
+        throw JSONRPCError(RPC_MISC_ERROR, "Secure messaging is already enabled.");
 
     UniValue result(UniValue::VOBJ);
 
@@ -51,7 +51,7 @@ UniValue smsgenable(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsgdisable(const JSONRPCRequest &request)
+static UniValue smsgdisable(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 0)
         throw std::runtime_error(
@@ -59,7 +59,7 @@ UniValue smsgdisable(const JSONRPCRequest &request)
             "Disable secure messaging.");
 
     if (!smsg::fSecMsgEnabled)
-        throw std::runtime_error("Secure messaging is already disabled.");
+        throw JSONRPCError(RPC_MISC_ERROR, "Secure messaging is already disabled.");
 
     UniValue result;
     result.pushKV("result", (smsgModule.Disable() ? "Disabled secure messaging." : "Failed to disable secure messaging."));
@@ -67,7 +67,7 @@ UniValue smsgdisable(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsgoptions(const JSONRPCRequest &request)
+static UniValue smsgoptions(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 3)
         throw std::runtime_error(
@@ -180,7 +180,7 @@ UniValue smsgoptions(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsglocalkeys(const JSONRPCRequest &request)
+static UniValue smsglocalkeys(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 3)
         throw std::runtime_error(
@@ -291,9 +291,9 @@ UniValue smsglocalkeys(const JSONRPCRequest &request)
         CKeyID keyID;
         CBitcoinAddress coinAddress(addr);
         if (!coinAddress.IsValid())
-            throw std::runtime_error("Invalid address.");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address.");
         if (!coinAddress.GetKeyID(keyID))
-            throw std::runtime_error("Invalid address.");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address.");
 
         if (!smsgModule.SetWalletAddressOption(keyID, "receive", fValue)
             && !smsgModule.SetSmsgAddressOption(keyID, "receive", fValue))
@@ -330,9 +330,9 @@ UniValue smsglocalkeys(const JSONRPCRequest &request)
         CKeyID keyID;
         CBitcoinAddress coinAddress(addr);
         if (!coinAddress.IsValid())
-            throw std::runtime_error("Invalid address.");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address.");
         if (!coinAddress.GetKeyID(keyID))
-            throw std::runtime_error("Invalid address.");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address.");
 
         if (!smsgModule.SetWalletAddressOption(keyID, "anon", fValue)
             && !smsgModule.SetSmsgAddressOption(keyID, "anon", fValue))
@@ -352,7 +352,7 @@ UniValue smsglocalkeys(const JSONRPCRequest &request)
     {
 #ifdef ENABLE_WALLET
         if (!smsgModule.pwallet)
-            throw std::runtime_error("No wallet.");
+            throw JSONRPCError(RPC_MISC_ERROR, "No wallet.");
         uint32_t nKeys = 0;
         UniValue keys(UniValue::VOBJ);
 
@@ -394,7 +394,7 @@ UniValue smsglocalkeys(const JSONRPCRequest &request)
         result.pushKV("keys", keys);
         result.pushKV("result", strprintf("%u", nKeys));
 #else
-        throw std::runtime_error("No wallet.");
+        throw JSONRPCError(RPC_MISC_ERROR, "No wallet.");
 #endif
     } else
     {
@@ -405,7 +405,7 @@ UniValue smsglocalkeys(const JSONRPCRequest &request)
     return result;
 };
 
-UniValue smsgscanchain(const JSONRPCRequest &request)
+static UniValue smsgscanchain(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 0)
         throw std::runtime_error(
@@ -425,7 +425,7 @@ UniValue smsgscanchain(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsgscanbuckets(const JSONRPCRequest &request)
+static UniValue smsgscanbuckets(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 0)
         throw std::runtime_error(
@@ -438,7 +438,7 @@ UniValue smsgscanbuckets(const JSONRPCRequest &request)
 #ifdef ENABLE_WALLET
     if (smsgModule.pwallet && smsgModule.pwallet->IsLocked()
         && smsgModule.addresses.size() > 0)
-        throw std::runtime_error("Wallet is locked.");
+        throw JSONRPCError(RPC_MISC_ERROR, "Wallet is locked.");
 #endif
 
     UniValue result(UniValue::VOBJ);
@@ -453,7 +453,7 @@ UniValue smsgscanbuckets(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsgaddaddress(const JSONRPCRequest &request)
+static UniValue smsgaddaddress(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 2)
         throw std::runtime_error(
@@ -479,7 +479,7 @@ UniValue smsgaddaddress(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
+static UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
@@ -505,7 +505,7 @@ UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsgimportprivkey(const JSONRPCRequest &request)
+static UniValue smsgimportprivkey(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
@@ -542,7 +542,7 @@ UniValue smsgimportprivkey(const JSONRPCRequest &request)
     return NullUniValue;
 }
 
-UniValue smsggetpubkey(const JSONRPCRequest &request)
+static UniValue smsggetpubkey(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
@@ -611,7 +611,7 @@ UniValue smsggetpubkey(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsgsend(const JSONRPCRequest &request)
+static UniValue smsgsend(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 8)
         throw std::runtime_error(
@@ -671,14 +671,10 @@ UniValue smsgsend(const JSONRPCRequest &request)
 
     CKeyID kiFrom, kiTo;
     CBitcoinAddress coinAddress(addrFrom);
-    if (!coinAddress.IsValid())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid from address.");
-    if (!coinAddress.GetKeyID(kiFrom))
+    if (!coinAddress.IsValid() || !coinAddress.GetKeyID(kiFrom))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid from address.");
     coinAddress.SetString(addrTo);
-    if (!coinAddress.IsValid())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid to address.");
-    if (!coinAddress.GetKeyID(kiTo))
+    if (!coinAddress.IsValid() || !coinAddress.GetKeyID(kiTo))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid to address.");
 
 
@@ -695,6 +691,7 @@ UniValue smsgsend(const JSONRPCRequest &request)
 
         if (!fTestFee)
             result.pushKV("msgid", HexStr(smsgModule.GetMsgID(smsgOut)));
+
         if (fPaid)
         {
             if (!fTestFee)
@@ -710,12 +707,12 @@ UniValue smsgsend(const JSONRPCRequest &request)
     return result;
 }
 
-UniValue smsgsendanon(const JSONRPCRequest &request)
+static UniValue smsgsendanon(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 2)
         throw std::runtime_error(
             "smsgsendanon \"address_to\" \"message\"\n"
-            "Send an anonymous encrypted message to addrTo.");
+            "DEPRECATED. Send an anonymous encrypted message to addrTo.");
 
     EnsureSMSGIsEnabled();
 
@@ -724,10 +721,8 @@ UniValue smsgsendanon(const JSONRPCRequest &request)
 
     CKeyID kiFrom, kiTo;
     CBitcoinAddress coinAddress(addrTo);
-    if (!coinAddress.IsValid())
-        throw std::runtime_error("Invalid to address.");
-    if (!coinAddress.GetKeyID(kiTo))
-        throw std::runtime_error("Invalid to address.");
+    if (!coinAddress.IsValid() || !coinAddress.GetKeyID(kiTo))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid to address.");
 
     UniValue result(UniValue::VOBJ);
     std::string sError;
@@ -738,13 +733,14 @@ UniValue smsgsendanon(const JSONRPCRequest &request)
         result.pushKV("error", sError);
     } else
     {
+        result.pushKV("msgid", HexStr(smsgModule.GetMsgID(smsgOut)));
         result.pushKV("result", "Sent.");
     };
 
     return result;
 }
 
-UniValue smsginbox(const JSONRPCRequest &request)
+static UniValue smsginbox(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
@@ -760,6 +756,7 @@ UniValue smsginbox(const JSONRPCRequest &request)
             "  \"version\": \"str\"                  (string) The message version\n"
             "  \"received\": \"time\"                (string) Time the message was received\n"
             "  \"sent\": \"time\"                    (string) Time the message was sent\n"
+            "  \"daysretention\": int              (int) Number of days message will stay in the network for\n"
             "  \"from\": \"str\"                     (string) Address the message was sent from\n"
             "  \"to\": \"str\"                       (string) Address the message was sent to\n"
             "  \"text\": \"str\"                     (string) Message text\n"
@@ -839,6 +836,8 @@ UniValue smsginbox(const JSONRPCRequest &request)
 
                     PushTime(objM, "received", smsgStored.timeReceived);
                     PushTime(objM, "sent", msg.timestamp);
+                    uint32_t nDaysRetention = psmsg->IsPaidVersion() ? psmsg->nonce[0] : 2;
+                    objM.pushKV("daysretention", (int)nDaysRetention);
                     objM.pushKV("from", msg.sFromAddress);
                     objM.pushKV("to", sAddrTo);
                     objM.pushKV("text", sText);
@@ -876,7 +875,7 @@ UniValue smsginbox(const JSONRPCRequest &request)
     return result;
 };
 
-UniValue smsgoutbox(const JSONRPCRequest &request)
+static UniValue smsgoutbox(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
@@ -993,7 +992,7 @@ UniValue smsgoutbox(const JSONRPCRequest &request)
 };
 
 
-UniValue smsgbuckets(const JSONRPCRequest &request)
+static UniValue smsgbuckets(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
@@ -1068,14 +1067,12 @@ UniValue smsgbuckets(const JSONRPCRequest &request)
             };
         }; // cs_smsg
 
-        std::string snBuckets = std::to_string(nBuckets);
-        std::string snMessages = std::to_string(nMessages);
-
         UniValue objM(UniValue::VOBJ);
-        objM.pushKV("buckets", arrBuckets);
-        objM.pushKV("numbuckets", snBuckets);
-        objM.pushKV("messages", snMessages);
+        objM.pushKV("numbuckets", (int)nBuckets);
+        objM.pushKV("numpurged", (int)smsgModule.setPurged.size());
+        objM.pushKV("messages", (int)nMessages);
         objM.pushKV("size", part::BytesReadable(nBytes));
+        result.pushKV("buckets", arrBuckets);
         result.pushKV("total", objM);
 
     } else
@@ -1122,7 +1119,7 @@ static bool sortMsgDesc(const std::pair<int64_t, UniValue> &a, const std::pair<i
     return a.first > b.first;
 };
 
-UniValue smsgview(const JSONRPCRequest &request)
+static UniValue smsgview(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 6)
         throw std::runtime_error(
@@ -1138,7 +1135,7 @@ UniValue smsgview(const JSONRPCRequest &request)
 
 #ifdef ENABLE_WALLET
     if (smsgModule.pwallet->IsLocked())
-        throw std::runtime_error("Wallet is locked.");
+        throw JSONRPCError(RPC_MISC_ERROR, "Wallet is locked.");
 
     char cbuf[256];
     bool fMatchAll = false;
@@ -1216,22 +1213,22 @@ UniValue smsgview(const JSONRPCRequest &request)
         if (sTemp == "-from")
         {
             if (i >= request.params.size()-1)
-                throw std::runtime_error("Argument required for: " + sTemp);
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Argument required for: " + sTemp);
             i++;
             sTemp = request.params[i].get_str();
             tFrom = part::strToEpoch(sTemp.c_str());
             if (tFrom < 0)
-                throw std::runtime_error("from format error: " + std::string(strerror(errno)));
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "from format error: " + std::string(strerror(errno)));
         } else
         if (sTemp == "-to")
         {
             if (i >= request.params.size()-1)
-                throw std::runtime_error("Argument required for: " + sTemp);
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Argument required for: " + sTemp);
             i++;
             sTemp = request.params[i].get_str();
             tTo = part::strToEpoch(sTemp.c_str());
             if (tTo < 0)
-                throw std::runtime_error("to format error: " + std::string(strerror(errno)));
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "to format error: " + std::string(strerror(errno)));
         } else
         if (sTemp == "asc")
         {
@@ -1242,14 +1239,14 @@ UniValue smsgview(const JSONRPCRequest &request)
             fDesc = true;
         } else
         {
-            throw std::runtime_error("Unknown parameter: " + sTemp);
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown parameter: " + sTemp);
         };
 
         i++;
     };
 
     if (!fMatchAll && vMatchAddress.size() < 1)
-        throw std::runtime_error("No address found.");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "No address found.");
 
     UniValue result(UniValue::VOBJ);
 
@@ -1370,7 +1367,7 @@ UniValue smsgview(const JSONRPCRequest &request)
                     vMessages.push_back(std::make_pair(msg.timestamp, objM));
                 } else
                 {
-                    LogPrintf("%s: SecureMsgDecrypt failed, %s.", __func__, HexStr(chKey, chKey+18).c_str());
+                    LogPrintf("%s: SecureMsgDecrypt failed, %s.\n", __func__, HexStr(chKey, chKey+18).c_str());
                 };
             };
             delete it;
@@ -1401,12 +1398,12 @@ UniValue smsgview(const JSONRPCRequest &request)
         result.pushKV("to", part::GetTimeString(tTo, cbuf, sizeof(cbuf)));
 #else
     UniValue result(UniValue::VOBJ);
-    throw std::runtime_error("No wallet.");
+    throw JSONRPCError(RPC_MISC_ERROR, "No wallet.");
 #endif
     return result;
 }
 
-UniValue smsgone(const JSONRPCRequest &request)
+static UniValue smsgone(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
@@ -1563,7 +1560,36 @@ UniValue smsgone(const JSONRPCRequest &request)
     return result;
 }
 
+static UniValue smsgpurge(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 1)
+        throw std::runtime_error(
+            "smsgpurge \"msgid\"\n"
+            "Purge smsg by msgid.\n"
+            "\nArguments:\n"
+            "1. \"msgid\"              (string, required) The id of the message to purge.\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("smsgpurge", "\"msgid\"")
+            + HelpExampleRpc("smsgpurge", "\"msgid\""));
 
+    EnsureSMSGIsEnabled();
+
+    if (!request.params[0].isStr())
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "msgid must be a string.");
+
+    std::string sMsgId = request.params[0].get_str();
+
+    if (!IsHex(sMsgId) || sMsgId.size() != 56)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "msgid must be 28 bytes in hex string.");
+    std::vector<uint8_t> vMsgId = ParseHex(sMsgId.c_str());
+
+    std::string sError;
+    if (smsg::SMSG_NO_ERROR != smsgModule.Purge(vMsgId, sError))
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Error: " + sError);
+
+    return NullUniValue;
+}
 
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
@@ -1585,6 +1611,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgbuckets",            &smsgbuckets,            {"mode"} },
     { "smsg",               "smsgview",               &smsgview,               {}},
     { "smsg",               "smsg",                   &smsgone,                {"msgid","options"}},
+    { "smsg",               "smsgpurge",              &smsgpurge,              {"msgid"}},
 };
 
 void RegisterSmsgRPCCommands(CRPCTable &tableRPC)
