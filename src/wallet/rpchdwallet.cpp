@@ -5565,7 +5565,7 @@ UniValue rewindchain(const JSONRPCRequest &request)
         throw std::runtime_error(
             "rewindchain ( height )\n"
             + HelpRequiringPassphrase(pwallet) +
-            "height default - last known rct index.\n");
+            "height default - tip_height-1.\n");
 
     ObserveSafeMode();
     EnsureWalletIsUnlocked(pwallet);
@@ -5586,20 +5586,12 @@ UniValue rewindchain(const JSONRPCRequest &request)
 
     int nBlocks = 0;
 
-    int nStartHeight = request.params[0].isNum() ? request.params[0].get_int() : pindexState->nHeight;
-    result.pushKV("start_height", nStartHeight);
+    int nToHeight = request.params[0].isNum() ? request.params[0].get_int() : pindexState->nHeight - 1;
+    result.pushKV("to_height", nToHeight);
 
-    int nLastRCTCheckpointHeight = ((nStartHeight-1) / 250) * 250;
-
-    int64_t nLastRCTOutput = 0;
-    if (!pblocktree->ReadRCTOutputCheckpoint(nLastRCTCheckpointHeight, nLastRCTOutput))
-        throw JSONRPCError(RPC_MISC_ERROR, "ReadRCTOutputCheckpoint failed, suggest reindex.");
-
-    result.pushKV("rct_checkpoint_height", nLastRCTCheckpointHeight);
-    result.pushKV("last_rct_output", (int)nLastRCTOutput);
 
     std::string sError;
-    if (!RewindToCheckpoint(nLastRCTCheckpointHeight, nBlocks, sError))
+    if (!RewindToCheckpoint(nToHeight, nBlocks, sError))
         result.pushKV("error", sError);
 
     result.pushKV("nBlocks", nBlocks);

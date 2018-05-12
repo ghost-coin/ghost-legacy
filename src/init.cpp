@@ -321,15 +321,9 @@ static void registerSignalHandler(int signal, void(*handler)(int))
 #else
 BOOL WINAPI ConsoleHandler(DWORD dwType)
 {
-    switch(dwType)
-    {
-        case CTRL_C_EVENT:
-            HandleSIGTERM(1);
-            return TRUE;
-        default:
-            break;
-    }
-    return FALSE;
+    fRequestShutdown = true;
+    Sleep(INFINITE);
+    return true;
 }
 #endif
 
@@ -1526,6 +1520,7 @@ bool AppInitMain()
     LogPrintf("* Using %.1fMiB for chain state database\n", nCoinDBCache * (1.0 / 1024 / 1024));
     LogPrintf("* Using %.1fMiB for in-memory UTXO set (plus up to %.1fMiB of unused mempool space)\n", nCoinCacheUsage * (1.0 / 1024 / 1024), nMempoolSizeMax * (1.0 / 1024 / 1024));
 
+
     bool fLoaded = false;
     while (!fLoaded && !fRequestShutdown) {
         bool fReset = fReindex;
@@ -1544,6 +1539,15 @@ bool AppInitMain()
                 // fails if it's still open from the previous loop. Close it first:
                 pblocktree.reset();
                 pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
+
+                // Automatically start reindexing if necessary
+                if (!fReset && TryAutoReindex())
+                {
+                    fReindex = true;
+                    fReset = true;
+                    pblocktree.reset();
+                    pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
+                };
 
                 if (fReset) {
                     pblocktree->WriteReindexing(true);
