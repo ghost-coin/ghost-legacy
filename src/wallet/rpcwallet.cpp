@@ -3175,7 +3175,7 @@ UniValue lockunspent(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
             "lockunspent unlock ([{\"txid\":\"txid\",\"vout\":n},...])\n"
             "\nUpdates list of temporarily unspendable outputs.\n"
@@ -3195,7 +3195,7 @@ UniValue lockunspent(const JSONRPCRequest& request)
             "       }\n"
             "       ,...\n"
             "     ]\n"
-
+            "3. permanent         (boolean, optional, default = false) If true the lock/s are recorded in the wallet database and restored at startup.\n"
             "\nResult:\n"
             "true|false    (boolean) Whether the command was successful or not\n"
 
@@ -3308,10 +3308,16 @@ UniValue lockunspent(const JSONRPCRequest& request)
         outputs.push_back(outpt);
     }
 
+    bool fPermanent = false;
+    if (!request.params[2].isNull()) {
+        RPCTypeCheckArgument(request.params[2], UniValue::VBOOL);
+        fPermanent = request.params[2].get_bool();
+    }
+
     // Atomically set (un)locked status for the outputs.
     for (const COutPoint& outpt : outputs) {
         if (fUnlock) pwallet->UnlockCoin(outpt);
-        else pwallet->LockCoin(outpt);
+        else pwallet->LockCoin(outpt, fPermanent);
     }
 
     return true;
@@ -4384,7 +4390,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "listtransactions",         &listtransactions,         {"account","count","skip","include_watchonly"} },
     { "wallet",             "listunspent",              &listunspent,              {"minconf","maxconf","addresses","include_unsafe","query_options"} },
     { "wallet",             "listwallets",              &listwallets,              {} },
-    { "wallet",             "lockunspent",              &lockunspent,              {"unlock","transactions"} },
+    { "wallet",             "lockunspent",              &lockunspent,              {"unlock","transactions","permanent"} },
     { "wallet",             "move",                     &movecmd,                  {"fromaccount","toaccount","amount","minconf","comment"} },
     //{ "wallet",             "sendfrom",                 &sendfrom,                 {"fromaccount","toaddress","amount","minconf","comment","comment_to"} },
     { "wallet",             "sendmany",                 &sendmany,                 {"fromaccount","amounts","minconf","comment","subtractfeefrom","replaceable","conf_target","estimate_mode"} },
