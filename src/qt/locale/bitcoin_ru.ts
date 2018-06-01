@@ -63,7 +63,7 @@
     </message>
     <message>
         <source>These are your Bitcoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Это ваши адреса Particl для отправки платежей. Всегда проверяйте сумму и адрес получателя перед отправкой перевода.</translation>
+        <translation>Это ваши адреса Particl для отправки платежей. Всегда проверяйте количество и адрес получателя перед отправкой перевода.</translation>
     </message>
     <message>
         <source>These are your Particl addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
@@ -182,7 +182,11 @@
         <source>IP/Netmask</source>
         <translation>IP/Маска подсети</translation>
     </message>
-    </context>
+    <message>
+        <source>Banned Until</source>
+        <translation>Заблокировано до</translation>
+    </message>
+</context>
 <context>
     <name>BitcoinGUI</name>
     <message>
@@ -410,6 +414,10 @@
     <message>
         <source>Cannot downgrade wallet</source>
         <translation>Не удаётся понизить версию электронного кошелька</translation>
+    </message>
+    <message>
+        <source>Done loading</source>
+        <translation>Загрузка завершена</translation>
     </message>
     </context>
 </TS>
