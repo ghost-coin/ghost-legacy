@@ -43,7 +43,6 @@ extern bool fPrintToConsole;
 extern void noui_connect();
 extern bool fParticlMode;
 
-
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticlModeIn)
 {
     fParticlMode = fParticlModeIn;
