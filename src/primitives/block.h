@@ -70,9 +70,8 @@ public:
 
     uint256 GetHash() const;
 
-    bool IsParticlVersion()
+    bool IsParticlVersion() const
     {
-        // NOTE: Be very careful matching the version here: qa tests can fail silently
         return this->nVersion == PARTICL_BLOCK_VERSION;
     }
 
