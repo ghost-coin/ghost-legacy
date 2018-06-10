@@ -58,7 +58,7 @@ void ListDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
                 || cur_dev->product_id != type.nProductId)
                 continue;
 
-            if (type.type == USBDEVICE_LEDGER_NANO_S)
+            if (type.type == USBDEVICE_LEDGER_NANO_S && cur_dev->interface_number == 0)
                 vDevices.push_back(std::unique_ptr<CUSBDevice>(new CLedgerDevice(&type, cur_dev->path, (char*)cur_dev->serial_number, cur_dev->interface_number)));
         };
         cur_dev = cur_dev->next;

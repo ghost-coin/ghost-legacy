@@ -197,6 +197,12 @@ void WalletModel::waitingForDevice(bool fComplete)
     };
 };
 
+void WalletModel::startRescan()
+{
+    std::thread t(CallRPCVoid, "rescanblockchain 0", wallet->GetName());
+    t.detach();
+};
+
 void WalletModel::checkBalanceChanged()
 {
     CAmount newBalance = 0;
@@ -744,12 +750,17 @@ bool WalletModel::isSpent(const COutPoint& outpoint) const
     return wallet->IsSpent(outpoint.hash, outpoint.n);
 }
 
-bool WalletModel::tryCallRpc(const QString &sCommand, UniValue &rv) const
+bool WalletModel::tryCallRpc(const QString &sCommand, UniValue &rv, bool returnError) const
 {
     try {
         rv = CallRPC(sCommand.toStdString(), wallet->GetName());
     } catch (UniValue& objError)
     {
+        if (returnError)
+        {
+            rv = objError;
+            return false;
+        };
         try { // Nice formatting for standard-format error
             int code = find_value(objError, "code").get_int();
             std::string message = find_value(objError, "message").get_str();
@@ -762,7 +773,14 @@ bool WalletModel::tryCallRpc(const QString &sCommand, UniValue &rv) const
         };
     } catch (const std::exception& e)
     {
-        warningBox(tr("Wallet Model"), QString::fromStdString(e.what()));
+        if (returnError)
+        {
+            rv = UniValue(UniValue::VOBJ);
+            rv.pushKV("Error", e.what());
+        } else
+        {
+            warningBox(tr("Wallet Model"), QString::fromStdString(e.what()));
+        };
         return false;
     };
 

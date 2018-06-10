@@ -11,6 +11,11 @@
 
 #include <support/events.h>
 
+void CallRPCVoid(std::string args, std::string wallet)
+{
+    CallRPC(args, wallet);
+    return;
+};
 
 UniValue CallRPC(std::string args, std::string wallet)
 {

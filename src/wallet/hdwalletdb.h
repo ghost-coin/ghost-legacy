@@ -274,7 +274,6 @@ public:
     {
         // Read at cursor
         Dbt datKey;
-        memset(&datKey, 0, sizeof(datKey));
         if (fFlags == DB_SET || fFlags == DB_SET_RANGE || fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE)
         {
             datKey.set_data(&ssKey[0]);
@@ -282,7 +281,6 @@ public:
         }
 
         Dbt datValue;
-        memset(&datValue, 0, sizeof(datValue));
         if (fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE)
         {
             datValue.set_data(&ssValue[0]);
@@ -317,7 +315,6 @@ public:
     {
         // Read key at cursor
         Dbt datKey;
-        memset(&datKey, 0, sizeof(datKey));
         if (fFlags == DB_SET || fFlags == DB_SET_RANGE)
         {
             datKey.set_data(&ssKey[0]);
@@ -326,7 +323,6 @@ public:
         datKey.set_flags(DB_DBT_MALLOC);
 
         Dbt datValue;
-        memset(&datValue, 0, sizeof(datValue));
         datValue.set_flags(DB_DBT_PARTIAL); // don't read data, dlen and doff are 0 after memset
 
         int ret = pcursor->get(&datKey, &datValue, fFlags);

@@ -241,7 +241,7 @@ public:
 
     void checkBalanceChanged();
 
-    bool tryCallRpc(const QString &sCommand, UniValue &rv) const;
+    bool tryCallRpc(const QString &sCommand, UniValue &rv, bool returnError=false) const;
     void warningBox(QString heading, QString msg) const;
 
     int getDefaultConfirmTarget() const;
@@ -323,6 +323,8 @@ public Q_SLOTS:
     // Waiting for hardware device
     void waitingForDevice(bool fCompleted);
 
+    // Rescan blockchain for transactions
+    void startRescan();
 };
 
 #endif // BITCOIN_QT_WALLETMODEL_H

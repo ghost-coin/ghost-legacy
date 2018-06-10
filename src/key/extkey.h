@@ -899,5 +899,7 @@ int AppendPath(const CStoredExtKey *pc, std::vector<uint32_t> &vPath);
 std::string HDAccIDToString(const CKeyID &id);
 std::string HDKeyIDToString(const CKeyID &id);
 
+std::string GetDefaultAccountPath();
+
 #endif // EXT_KEY_H
 

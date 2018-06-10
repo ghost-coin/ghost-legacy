@@ -12,6 +12,7 @@
 
 class JSONRPCRequest;
 
+void CallRPCVoid(std::string args, std::string wallet="");
 UniValue CallRPC(std::string args, std::string wallet="");
 
 void AddUri(JSONRPCRequest &request, std::string wallet);
