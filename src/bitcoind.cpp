@@ -44,12 +44,9 @@
 
 void WaitForShutdown()
 {
-    bool fShutdown = ShutdownRequested();
-    // Tell the main threads to shutdown.
-    while (!fShutdown)
+    while (!ShutdownRequestedMainThread())
     {
         MilliSleep(200);
-        fShutdown = ShutdownRequested();
     }
     Interrupt();
 }
@@ -176,6 +173,12 @@ bool AppInit(int argc, char* argv[])
             // If locking the data directory failed, exit immediately
             return false;
         }
+
+#ifdef WIN32
+        if (CreateMessageWindow() != 0)
+            return false;
+#endif
+
         fRet = AppInitMain();
     }
     catch (const std::exception& e) {
