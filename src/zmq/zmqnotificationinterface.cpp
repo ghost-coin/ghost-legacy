@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2017 The Bitcoin Core developers
+// Copyright (c) 2015-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -94,6 +94,15 @@ CZMQNotificationInterface::~CZMQNotificationInterface()
     {
         delete *i;
     }
+}
+
+std::list<const CZMQAbstractNotifier*> CZMQNotificationInterface::GetActiveNotifiers() const
+{
+    std::list<const CZMQAbstractNotifier*> result;
+    for (const auto* n : notifiers) {
+        result.push_back(n);
+    }
+    return result;
 }
 
 CZMQNotificationInterface* CZMQNotificationInterface::Create()
@@ -289,33 +298,28 @@ void CZMQNotificationInterface::BlockDisconnected(const std::shared_ptr<const CB
 void CZMQNotificationInterface::TransactionAddedToWallet(const std::string &sWalletName, const CTransactionRef& ptx)
 {
     const CTransaction& tx = *ptx;
-    for (auto i = notifiers.begin(); i!=notifiers.end(); )
-    {
+    for (auto i = notifiers.begin(); i!=notifiers.end(); ) {
         CZMQAbstractNotifier *notifier = *i;
-        if (notifier->NotifyTransaction(sWalletName, tx))
-        {
+        if (notifier->NotifyTransaction(sWalletName, tx)) {
             i++;
-        } else
-        {
+        } else {
             notifier->Shutdown();
             i = notifiers.erase(i);
         }
     }
-};
+}
 
 void CZMQNotificationInterface::NewSecureMessage(const smsg::SecureMessage *psmsg, const uint160 &hash)
 {
-    for (std::list<CZMQAbstractNotifier*>::iterator i = notifiers.begin(); i!=notifiers.end(); )
-    {
+    for (std::list<CZMQAbstractNotifier*>::iterator i = notifiers.begin(); i!=notifiers.end(); ) {
         CZMQAbstractNotifier *notifier = *i;
-        if (notifier->NotifySecureMessage(psmsg, hash))
-        {
+        if (notifier->NotifySecureMessage(psmsg, hash)) {
             i++;
-        }
-        else
-        {
+        } else {
             notifier->Shutdown();
             i = notifiers.erase(i);
         }
     }
-};
+}
+
+CZMQNotificationInterface* g_zmq_notification_interface = nullptr;

@@ -102,6 +102,8 @@ The `validateaddress` RPC output has been extended with a few new fields, and su
    `getmempoolentry` when verbosity is set to `true` with sub-fields `ancestor`, `base`, `modified`
    and `descendant` denominated in BTC. This new field deprecates previous fee fields, such as
    `fee`, `modifiedfee`, `ancestorfee` and `descendantfee`.
+- The new RPC `getzmqnotifications` returns information about active ZMQ
+  notifications.
 
 External wallet files
 ---------------------

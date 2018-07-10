@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2017 The Bitcoin Core developers
+// Copyright (c) 2015-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -23,6 +23,8 @@ class CZMQNotificationInterface final : public CValidationInterface
 {
 public:
     virtual ~CZMQNotificationInterface();
+
+    std::list<const CZMQAbstractNotifier*> GetActiveNotifiers() const;
 
     static CZMQNotificationInterface* Create();
 
@@ -51,5 +53,7 @@ private:
     std::atomic_bool zapActive;
     std::vector<CSubNet> vWhitelistedRange;
 };
+
+extern CZMQNotificationInterface* g_zmq_notification_interface;
 
 #endif // BITCOIN_ZMQ_ZMQNOTIFICATIONINTERFACE_H
