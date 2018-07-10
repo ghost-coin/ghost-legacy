@@ -56,6 +56,10 @@ if ENABLE_AVX2
 LIBPARTICL_CRYPTO_AVX2 = crypto/libparticl_crypto_avx2.a
 LIBPARTICL_CRYPTO += $(LIBPARTICL_CRYPTO_AVX2)
 endif
+if ENABLE_SHANI
+LIBPARTICL_CRYPTO_SHANI = crypto/libparticl_crypto_shani.a
+LIBPARTICL_CRYPTO += $(LIBPARTICL_CRYPTO_SHANI)
+endif
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
@@ -392,6 +396,12 @@ crypto_libparticl_crypto_avx2_a_CPPFLAGS = $(AM_CPPFLAGS)
 crypto_libparticl_crypto_avx2_a_CXXFLAGS += $(AVX2_CXXFLAGS)
 crypto_libparticl_crypto_avx2_a_CPPFLAGS += -DENABLE_AVX2
 crypto_libparticl_crypto_avx2_a_SOURCES = crypto/sha256_avx2.cpp
+
+crypto_libparticl_crypto_shani_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+crypto_libparticl_crypto_shani_a_CPPFLAGS = $(AM_CPPFLAGS)
+crypto_libparticl_crypto_shani_a_CXXFLAGS += $(SHANI_CXXFLAGS)
+crypto_libparticl_crypto_shani_a_CPPFLAGS += -DENABLE_SHANI
+crypto_libparticl_crypto_shani_a_SOURCES = crypto/sha256_shani.cpp
 
 # consensus: shared between all executables that validate any consensus rules.
 libparticl_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
