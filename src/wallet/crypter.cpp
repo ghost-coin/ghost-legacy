@@ -143,7 +143,6 @@ static bool DecryptKey(const CKeyingMaterial& vMasterKey, const std::vector<unsi
 
 bool CCryptoKeyStore::SetCrypted()
 {
-
     LOCK(cs_KeyStore);
     if (fUseCrypto)
         return true;

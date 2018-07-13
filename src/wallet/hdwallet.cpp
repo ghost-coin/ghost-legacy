@@ -981,18 +981,19 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase)
 {
     LogPrint(BCLog::HDWALLET, "%s, %s\n", __func__, GetName());
 
-    if (!IsCrypted())
+    if (!IsCrypted()) {
         return error("%s, %s: Wallet is not encrypted.\n", __func__, GetName());
+    }
 
     bool fWasUnlocked = false;
     CKeyingMaterial vMasterKeyOld;
-    if (!IsLocked())
-    {
+    if (!IsLocked()) {
         LogPrint(BCLog::HDWALLET, "%s, %s: Wallet is already unlocked.\n", __func__, GetName());
         // Possibly unlocked for staking
         fWasUnlocked = true;
+        LOCK(cs_KeyStore);
         vMasterKeyOld = vMasterKey;
-    };
+    }
 
     CCrypter crypter;
     CKeyingMaterial vMasterKeyNew;
@@ -1002,29 +1003,33 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase)
     {
         bool fFoundKey = false;
         LOCK2(cs_main, cs_wallet);
-        for (const auto &pMasterKey : mapMasterKeys)
-        {
-            if (!crypter.SetKeyFromPassphrase(strWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod))
+        for (const auto &pMasterKey : mapMasterKeys) {
+            if (!crypter.SetKeyFromPassphrase(strWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod)) {
                 return false;
-            if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, vMasterKeyNew))
+            }
+            if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, vMasterKeyNew)) {
                 continue; // try another master key
-            if (!CCryptoKeyStore::Unlock(vMasterKeyNew))
+            }
+            if (!CCryptoKeyStore::Unlock(vMasterKeyNew)) {
                 return false;
-            if (0 != ExtKeyUnlock(vMasterKeyNew))
-            {
-                if (fWasUnlocked)
+            }
+            if (0 != ExtKeyUnlock(vMasterKeyNew)) {
+                if (fWasUnlocked) {
                     CCryptoKeyStore::Unlock(vMasterKeyOld);
+                }
                 return false;
             }
             fFoundKey = true;
             break;
-        };
+        }
 
-        if (!fFoundKey)
+        if (!fFoundKey) {
             return false;
+        }
 
-        if (fWasUnlocked)
+        if (fWasUnlocked) {
             return true;
+        }
 
         ProcessLockedStealthOutputs();
         ProcessLockedBlindedOutputs();

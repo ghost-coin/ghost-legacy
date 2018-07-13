@@ -4553,21 +4553,25 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
+    }
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
-    if (!request.fSkipBlock)
+    if (!request.fSkipBlock) {
         pwallet->BlockUntilSyncedToCurrentChain();
+    }
 
     EnsureWalletIsUnlocked(pwallet);
 
-    if (pwallet->GetBroadcastTransactions() && !g_connman)
+    if (pwallet->GetBroadcastTransactions() && !g_connman) {
         throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
+    }
 
-    if (typeOut == OUTPUT_RINGCT && Params().NetworkID() == "main")
+    if (typeOut == OUTPUT_RINGCT && Params().NetworkID() == "main") {
         throw std::runtime_error("Disabled on mainnet.");
+    }
 
     CAmount nTotal = 0;
 
@@ -4579,123 +4583,137 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     size_t nTestFeeOfs = 99;
     size_t nCoinControlOfs = 99;
 
-    if (request.params[0].isArray())
-    {
+    if (request.params[0].isArray()) {
         const UniValue &outputs = request.params[0].get_array();
 
-        for (size_t k = 0; k < outputs.size(); ++k)
-        {
-            if (!outputs[k].isObject())
+        for (size_t k = 0; k < outputs.size(); ++k) {
+            if (!outputs[k].isObject()) {
                 throw JSONRPCError(RPC_TYPE_ERROR, "Not an object");
+            }
             const UniValue &obj = outputs[k].get_obj();
 
             std::string sAddress;
             CAmount nAmount;
 
-            if (obj.exists("address"))
+            if (obj.exists("address")) {
                 sAddress = obj["address"].get_str();
-            else
+            } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Must provide an address.");
+            }
 
             CBitcoinAddress address(sAddress);
 
             if (typeOut == OUTPUT_RINGCT
-                && !address.IsValidStealthAddress())
+                && !address.IsValidStealthAddress()) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl stealth address");
+            }
 
-            if (!obj.exists("script") && !address.IsValid())
+            if (!obj.exists("script") && !address.IsValid()) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+            }
 
-            if (obj.exists("amount"))
+            if (obj.exists("amount")) {
                 nAmount = AmountFromValue(obj["amount"]);
-            else
+            } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Must provide an amount.");
+            }
 
-            if (nAmount <= 0)
+            if (nAmount <= 0) {
                 throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+            }
             nTotal += nAmount;
 
             bool fSubtractFeeFromAmount = false;
-            if (obj.exists("subfee"))
+            if (obj.exists("subfee")) {
                 fSubtractFeeFromAmount = obj["subfee"].get_bool();
+            }
 
             std::string sNarr;
-            if (obj.exists("narr"))
+            if (obj.exists("narr")) {
                 sNarr = obj["narr"].get_str();
+            }
 
-            if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sError))
+            if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sError)) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("AddOutput failed: %s.", sError));
+            }
 
-            if (obj.exists("script"))
-            {
+            if (obj.exists("script")) {
                 CTempRecipient &r = vecSend.back();
 
-                if (sAddress != "script")
+                if (sAddress != "script") {
                     JSONRPCError(RPC_INVALID_PARAMETER, "Address parameter must be 'script' to set script explicitly.");
+                }
 
                 std::string sScript = obj["script"].get_str();
                 std::vector<uint8_t> scriptData = ParseHex(sScript);
                 r.scriptPubKey = CScript(scriptData.begin(), scriptData.end());
                 r.fScriptSet = true;
 
-                if (typeOut != OUTPUT_STANDARD)
+                if (typeOut != OUTPUT_STANDARD) {
                     throw std::runtime_error("TODO: Currently setting a script only works for standard outputs.");
-            };
-        };
+                }
+            }
+        }
         nCommentOfs = 1;
         nRingSizeOfs = 3;
         nTestFeeOfs = 5;
         nCoinControlOfs = 6;
-    } else
-    {
+    } else {
         std::string sAddress = request.params[0].get_str();
         CBitcoinAddress address(sAddress);
 
         if (typeOut == OUTPUT_RINGCT
-            && !address.IsValidStealthAddress())
+            && !address.IsValidStealthAddress()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl stealth address");
+        }
 
-        if (!address.IsValid())
+        if (!address.IsValid()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+        }
 
         CAmount nAmount = AmountFromValue(request.params[1]);
-        if (nAmount <= 0)
+        if (nAmount <= 0) {
             throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+        }
         nTotal += nAmount;
 
         bool fSubtractFeeFromAmount = false;
-        if (request.params.size() > 4)
+        if (request.params.size() > 4) {
             fSubtractFeeFromAmount = request.params[4].get_bool();
+        }
 
         std::string sNarr;
-        if (request.params.size() > 5)
-        {
+        if (request.params.size() > 5) {
             sNarr = request.params[5].get_str();
-            if (sNarr.length() > 24)
+            if (sNarr.length() > 24) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Narration can range from 1 to 24 characters.");
-        };
+            }
+        }
 
-        if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sError))
+        if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sError)) {
             throw JSONRPCError(RPC_MISC_ERROR, strprintf("AddOutput failed: %s.", sError));
-    };
+        }
+    }
 
-    switch (typeIn)
-    {
+    switch (typeIn) {
         case OUTPUT_STANDARD:
-            if (nTotal > pwallet->GetBalance())
+            if (nTotal > pwallet->GetBalance()) {
                 throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
+            }
             break;
         case OUTPUT_CT:
-            if (nTotal > pwallet->GetBlindBalance())
+            if (nTotal > pwallet->GetBlindBalance()) {
                 throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient blinded funds");
+            }
             break;
         case OUTPUT_RINGCT:
-            if (nTotal > pwallet->GetAnonBalance())
+            if (nTotal > pwallet->GetAnonBalance()) {
                 throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient anon funds");
+            }
             break;
         default:
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unknown input type: %d.", typeIn));
-    };
+    }
 
     // Wallet comments
     CTransactionRef tx_new;
@@ -4703,85 +4721,77 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     CTransactionRecord rtx;
 
     size_t nv = nCommentOfs;
-    if (request.params.size() > nv && !request.params[nv].isNull())
-    {
+    if (request.params.size() > nv && !request.params[nv].isNull()) {
         std::string s = request.params[nv].get_str();
         part::TrimQuotes(s);
-        if (!s.empty())
-        {
+        if (!s.empty()) {
             std::vector<uint8_t> v(s.begin(), s.end());
             wtx.mapValue["comment"] = s;
             rtx.mapValue[RTXVT_COMMENT] = v;
-        };
-    };
+        }
+    }
     nv++;
-    if (request.params.size() > nv && !request.params[nv].isNull())
-    {
+    if (request.params.size() > nv && !request.params[nv].isNull()) {
         std::string s = request.params[nv].get_str();
         part::TrimQuotes(s);
-        if (!s.empty())
-        {
+        if (!s.empty()) {
             std::vector<uint8_t> v(s.begin(), s.end());
             wtx.mapValue["to"] = s;
             rtx.mapValue[RTXVT_TO] = v;
-        };
-    };
+        }
+    }
 
     nv = nRingSizeOfs;
     size_t nRingSize = 4; // TODO: default size?
-    if (request.params.size() > nv)
+    if (request.params.size() > nv) {
         nRingSize = request.params[nv].get_int();
+    }
     nv++;
     size_t nInputsPerSig = 64;
-    if (request.params.size() > nv)
+    if (request.params.size() > nv) {
         nInputsPerSig = request.params[nv].get_int();
+    }
 
     bool fShowHex = false;
+    bool fShowFee = false;
     bool fCheckFeeOnly = false;
     nv = nTestFeeOfs;
-    if (request.params.size() > nv)
+    if (request.params.size() > nv) {
         fCheckFeeOnly = request.params[nv].get_bool();
-
+    }
 
     CCoinControl coincontrol;
 
     nv = nCoinControlOfs;
     if (request.params.size() > nv
-        && request.params[nv].isObject())
-    {
+        && request.params[nv].isObject()) {
         const UniValue &uvCoinControl = request.params[nv].get_obj();
 
-        if (uvCoinControl.exists("changeaddress"))
-        {
+        if (uvCoinControl.exists("changeaddress")) {
             std::string sChangeAddress = uvCoinControl["changeaddress"].get_str();
 
             // Check for script
             bool fHaveScript = false;
-            if (IsHex(sChangeAddress))
-            {
+            if (IsHex(sChangeAddress)) {
                 std::vector<uint8_t> vScript = ParseHex(sChangeAddress);
                 CScript script(vScript.begin(), vScript.end());
 
                 txnouttype whichType;
-                if (IsStandard(script, whichType))
-                {
+                if (IsStandard(script, whichType)) {
                     coincontrol.scriptChange = script;
                     fHaveScript = true;
-                };
-            };
+                }
+            }
 
-            if (!fHaveScript)
-            {
+            if (!fHaveScript) {
                 CBitcoinAddress addrChange(sChangeAddress);
                 coincontrol.destChange = addrChange.Get();
-            };
-        };
+            }
+        }
 
         const UniValue &uvInputs = uvCoinControl["inputs"];
-        if (uvInputs.isArray())
-        {
-            for (size_t i = 0; i < uvInputs.size(); ++i)
-            {
+        if (uvInputs.isArray()) {
+            for (size_t i = 0; i < uvInputs.size(); ++i) {
                 const UniValue &uvi = uvInputs[i];
                 RPCTypeCheckObj(uvi,
                 {
@@ -4791,50 +4801,51 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
                 COutPoint op(uint256S(uvi["tx"].get_str()), uvi["n"].get_int());
                 coincontrol.setSelected.insert(op);
-            };
-        };
+            }
+        }
 
-        if (uvCoinControl.exists("feeRate") && uvCoinControl.exists("estimate_mode"))
+        if (uvCoinControl.exists("feeRate") && uvCoinControl.exists("estimate_mode")) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot specify both estimate_mode and feeRate");
-        if (uvCoinControl.exists("feeRate") && uvCoinControl.exists("conf_target"))
+        }
+        if (uvCoinControl.exists("feeRate") && uvCoinControl.exists("conf_target")) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot specify both conf_target and feeRate");
+        }
 
-        if (uvCoinControl.exists("replaceable"))
-        {
+        if (uvCoinControl.exists("replaceable")) {
             if (!uvCoinControl["replaceable"].isBool())
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Replaceable parameter must be boolean.");
             coincontrol.m_signal_bip125_rbf = uvCoinControl["replaceable"].get_bool();
-        };
+        }
 
-        if (uvCoinControl.exists("conf_target"))
-        {
+        if (uvCoinControl.exists("conf_target")) {
             if (!uvCoinControl["conf_target"].isNum())
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "conf_target parameter must be numeric.");
             coincontrol.m_confirm_target = ParseConfirmTarget(uvCoinControl["conf_target"]);
-        };
+        }
 
-        if (uvCoinControl.exists("estimate_mode"))
-        {
+        if (uvCoinControl.exists("estimate_mode")) {
             if (!uvCoinControl["estimate_mode"].isStr())
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "estimate_mode parameter must be a string.");
             if (!FeeModeFromString(uvCoinControl["estimate_mode"].get_str(), coincontrol.m_fee_mode))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid estimate_mode parameter");
-        };
+        }
 
-        if (uvCoinControl.exists("feeRate"))
-        {
+        if (uvCoinControl.exists("feeRate")) {
             coincontrol.m_feerate = CFeeRate(AmountFromValue(uvCoinControl["feeRate"]));
             coincontrol.fOverrideFeeRate = true;
-        };
+        }
 
-        if (uvCoinControl["debug"].isBool() && uvCoinControl["debug"].get_bool() == true)
+        if (uvCoinControl["debug"].isBool() && uvCoinControl["debug"].get_bool() == true) {
             fShowHex = true;
-    };
+        }
+        if (uvCoinControl["show_fee"].isBool() && uvCoinControl["show_fee"].get_bool() == true) {
+            fShowFee = true;
+        }
+    }
 
 
     CAmount nFeeRet = 0;
-    switch (typeIn)
-    {
+    switch (typeIn) {
         case OUTPUT_STANDARD:
             if (0 != pwallet->AddStandardInputs(wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError))
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddStandardInputs failed: %s.", sError));
@@ -4849,66 +4860,65 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             break;
         default:
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unknown input type: %d.", typeIn));
-    };
+    }
 
-    if (fCheckFeeOnly)
-    {
-        UniValue result(UniValue::VOBJ);
+    UniValue result(UniValue::VOBJ);
+    if (fCheckFeeOnly || fShowFee) {
         result.pushKV("fee", ValueFromAmount(nFeeRet));
         result.pushKV("bytes", (int)GetVirtualTransactionSize(*(wtx.tx)));
         result.pushKV("need_hwdevice", UniValue(coincontrol.fNeedHardwareKey ? true : false));
 
-        if (fShowHex)
-        {
+        if (fShowHex) {
             std::string strHex = EncodeHexTx(*(wtx.tx), RPCSerializationFlags());
             result.pushKV("hex", strHex);
-        };
+        }
 
         UniValue objChangedOutputs(UniValue::VOBJ);
         std::map<std::string, CAmount> mapChanged; // Blinded outputs are split, join the values for display
-        for (const auto &r : vecSend)
-        {
+        for (const auto &r : vecSend) {
             if (!r.fChange
-                && r.nAmount != r.nAmountSelected)
-            {
+                && r.nAmount != r.nAmountSelected) {
                 std::string sAddr = CBitcoinAddress(r.address).ToString();
 
-                if (mapChanged.count(sAddr))
+                if (mapChanged.count(sAddr)) {
                     mapChanged[sAddr] += r.nAmount;
-                else
+                } else {
                     mapChanged[sAddr] = r.nAmount;
-            };
-        };
+                }
+            }
+        }
 
-        for (const auto &v : mapChanged)
+        for (const auto &v : mapChanged) {
             objChangedOutputs.pushKV(v.first, v.second);
+        }
 
         result.pushKV("outputs_fee", objChangedOutputs);
-        return result;
-    };
+        if (fCheckFeeOnly) {
+            return result;
+        }
+    }
 
     // Store sent narrations
-    for (const auto &r : vecSend)
-    {
+    for (const auto &r : vecSend) {
         if (r.nType != OUTPUT_STANDARD
             || r.sNarration.size() < 1)
             continue;
         std::string sKey = strprintf("n%d", r.n);
         wtx.mapValue[sKey] = r.sNarration;
-    };
+    }
 
     CValidationState state;
     CReserveKey reservekey(pwallet);
-    if (typeIn == OUTPUT_STANDARD && typeOut == OUTPUT_STANDARD)
-    {
+    if (typeIn == OUTPUT_STANDARD && typeOut == OUTPUT_STANDARD) {
         std::string sFromAccount = "";
-        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, sFromAccount, reservekey, g_connman.get(), state))
+        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, sFromAccount, reservekey, g_connman.get(), state)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
-    } else
-    {
-        if (!pwallet->CommitTransaction(wtx, rtx, reservekey, g_connman.get(), state))
+        }
+    } else {
+        if (!pwallet->CommitTransaction(wtx, rtx, reservekey, g_connman.get(), state)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
-    };
+        }
+    }
 
     /*
     UniValue vErrors(UniValue::VARR);
@@ -4927,7 +4937,12 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     pwallet->PostProcessTempRecipients(vecSend);
 
-    return wtx.GetHash().GetHex();
+    if (fShowFee) {
+        result.pushKV("txid", wtx.GetHash().GetHex());
+        return result;
+    } else {
+        return wtx.GetHash().GetHex();
+    }
 }
 
 static const char *TypeToWord(OutputTypes type)
