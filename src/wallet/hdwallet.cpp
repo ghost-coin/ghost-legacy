@@ -8383,9 +8383,6 @@ bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::
             }
         }
 
-        // Track how many getdata requests our transaction gets
-        mapRequestCount[wtxNew.GetHash()] = 0;
-
         if (fBroadcastTransactions)
         {
             // Broadcast
@@ -8419,9 +8416,6 @@ bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx,
         LogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
 
         AddToRecord(rtx, *wtxNew.tx, nullptr, -1);
-
-        // Track how many getdata requests our transaction gets
-        mapRequestCount[wtxNew.GetHash()] = 0;
 
         if (fBroadcastTransactions)
         {
@@ -10167,44 +10161,6 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
     ClearCachedBalances();
 
     return true;
-};
-
-int CHDWallet::GetRequestCount(const uint256 &hash, const CTransactionRecord &rtx)
-{
-    // Returns -1 if it wasn't being tracked
-    int nRequests = -1;
-    {
-        LOCK(cs_wallet);
-        if (rtx.IsCoinBase() || rtx.IsCoinStake())
-        {
-            // Generated block
-            if (!rtx.HashUnset())
-            {
-                std::map<uint256, int>::const_iterator mi = mapRequestCount.find(rtx.blockHash);
-                if (mi != mapRequestCount.end())
-                    nRequests = (*mi).second;
-            }
-        } else
-        {
-            // Did anyone request this transaction?
-            std::map<uint256, int>::const_iterator mi = mapRequestCount.find(hash);
-            if (mi != mapRequestCount.end())
-            {
-                nRequests = (*mi).second;
-
-                // How about the block it's in?
-                if (nRequests == 0 && !rtx.HashUnset())
-                {
-                    std::map<uint256, int>::const_iterator _mi = mapRequestCount.find(rtx.blockHash);
-                    if (_mi != mapRequestCount.end())
-                        nRequests = (*_mi).second;
-                    else
-                        nRequests = 1; // If it's in someone else's block it must have got out
-                };
-            };
-        };
-    }
-    return nRequests;
 };
 
 std::vector<uint256> CHDWallet::ResendRecordTransactionsBefore(int64_t nTime, CConnman *connman)

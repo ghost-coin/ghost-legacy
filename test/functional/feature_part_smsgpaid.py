@@ -8,6 +8,7 @@ from test_framework.test_particl import isclose, getIndexAtProperty
 from test_framework.util import *
 import binascii
 
+
 class SmsgPaidTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -283,11 +284,6 @@ class SmsgPaidTest(ParticlTestFramework):
         ro = nodes[0].smsgbuckets()
         assert(int(ro['total']['numpurged']) == 1)
         assert(int(ro['buckets'][0]['no. messages']) == int(ro['buckets'][0]['active messages']) + 1)
-
-
-
-
-
 
 
 if __name__ == '__main__':

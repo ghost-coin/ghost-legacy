@@ -1323,9 +1323,6 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
             if (!push) {
                 vNotFound.push_back(inv);
             }
-
-            // Track requests for our stuff.
-            GetMainSignals().Inventory(inv.hash);
         }
     } // release cs_main
 
@@ -2038,9 +2035,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     pfrom->AskFor(inv);
                 }
             }
-
-            // Track requests for our stuff
-            GetMainSignals().Inventory(inv.hash);
         }
     }
 
