@@ -2270,7 +2270,7 @@ bool CHDWallet::IsTrusted(const uint256 &txhash, const uint256 &blockhash, int n
 };
 
 
-CAmount CHDWallet::GetBalance() const
+CAmount CHDWallet::GetBalance(const isminefilter& filter, const int min_depth) const
 {
     CAmount nBalance = 0;
 
@@ -2280,21 +2280,25 @@ CAmount CHDWallet::GetBalance() const
     {
         const auto &txhash = ri.first;
         const auto &rtx = ri.second;
-        if (!IsTrusted(txhash, rtx.blockHash, rtx.nIndex))
+        if (!IsTrusted(txhash, rtx.blockHash, rtx.nIndex)
+            || GetDepthInMainChain(rtx.blockHash, rtx.nIndex) < min_depth)
             continue;
 
         for (const auto &r : rtx.vout)
         {
             if (r.nType == OUTPUT_STANDARD
-                && r.nFlags & ORF_OWNED && !IsSpent(txhash, r.n))
+                && (((filter & ISMINE_SPENDABLE) && (r.nFlags & ORF_OWNED))
+                    || ((filter & ISMINE_WATCH_ONLY) && (r.nFlags & ORF_OWN_WATCH)))
+                && !IsSpent(txhash, r.n))
                 nBalance += r.nValue;
         };
+
 
         if (!MoneyRange(nBalance))
             throw std::runtime_error(std::string(__func__) + ": value out of range");
     };
 
-    nBalance += CWallet::GetBalance();
+    nBalance += CWallet::GetBalance(filter, min_depth);
     return nBalance;
 };
 
@@ -2333,7 +2337,7 @@ CAmount CHDWallet::GetSpendableBalance() const
             continue;
         }
         nBalance += wtx.GetAvailableCredit();
-        if (wtx.GetAvailableWatchOnlyCredit() > 0) {
+        if (wtx.GetAvailableCredit(true, ISMINE_WATCH_ONLY) > 0) {
             for (unsigned int i = 0; i < wtx.tx->GetNumVOuts(); i++) {
                 if (!IsSpent(wtx.GetHash(), i)) {
                     nBalance += GetCredit(wtx.tx->vpout[i].get(), ISMINE_WATCH_COLDSTAKE);
@@ -2538,13 +2542,13 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
         if (wtx.IsTrusted())
         {
             bal.nPart += wtx.GetAvailableCredit();
-            bal.nPartWatchOnly += wtx.GetAvailableWatchOnlyCredit();
+            bal.nPartWatchOnly += wtx.GetAvailableCredit(true, ISMINE_WATCH_ONLY);
         } else
         {
             if (wtx.GetDepthInMainChain() == 0 && wtx.InMempool())
             {
                 bal.nPartUnconf += wtx.GetAvailableCredit();
-                bal.nPartWatchOnlyUnconf += wtx.GetAvailableWatchOnlyCredit();
+                bal.nPartWatchOnlyUnconf += wtx.GetAvailableCredit(true, ISMINE_WATCH_ONLY);
             };
         };
     };

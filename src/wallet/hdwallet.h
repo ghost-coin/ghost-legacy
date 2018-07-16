@@ -461,7 +461,7 @@ public:
     bool InMempool(const uint256 &hash) const;
     bool IsTrusted(const uint256 &hash, const uint256 &blockhash, int nIndex = 0) const;
 
-    CAmount GetBalance() const override;
+    CAmount GetBalance(const isminefilter& filter=ISMINE_SPENDABLE, const int min_depth=0) const override;
     CAmount GetSpendableBalance() const;        // Includes watch_only_cs balance
     CAmount GetUnconfirmedBalance() const override;
     CAmount GetBlindBalance();

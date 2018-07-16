@@ -6,6 +6,8 @@
 #include <chainparams.h>
 #include <init.h>
 #include <net.h>
+#include <scheduler.h>
+#include <outputtype.h>
 #include <util.h>
 #include <utilmoneystr.h>
 #include <validation.h>
