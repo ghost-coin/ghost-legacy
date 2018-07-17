@@ -474,12 +474,12 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     {
         pDevice->Close();
         UniValue entry(UniValue::VOBJ);
-        entry.push_back(Pair("error", pDevice->sError));
+        entry.pushKV("error", pDevice->sError);
         vErrors.push_back(entry);
         UniValue result(UniValue::VOBJ);
-        result.push_back(Pair("hex", EncodeHexTx(mtx)));
+        result.pushKV("hex", EncodeHexTx(mtx));
         if (!vErrors.empty()) {
-            result.push_back(Pair("errors", vErrors));
+            result.pushKV("errors", vErrors);
         }
         return result;
     };
@@ -511,7 +511,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
 
             if (!pDevice->sError.empty()) {
                 UniValue entry(UniValue::VOBJ);
-                entry.push_back(Pair("error", pDevice->sError));
+                entry.pushKV("error", pDevice->sError);
                 vErrors.push_back(entry);
             }
         }
@@ -535,10 +535,10 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     bool fComplete = vErrors.empty();
 
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("hex", EncodeHexTx(mtx)));
-    result.push_back(Pair("complete", fComplete));
+    result.pushKV("hex", EncodeHexTx(mtx));
+    result.pushKV("complete", fComplete);
     if (!vErrors.empty()) {
-        result.push_back(Pair("errors", vErrors));
+        result.pushKV("errors", vErrors);
     }
 
     return result;

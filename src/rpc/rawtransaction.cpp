@@ -42,99 +42,90 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                       int nHeight = 0, int nConfirmations = 0, int nBlockTime = 0)
 {
     uint256 txid = tx.GetHash();
-    entry.push_back(Pair("txid", txid.GetHex()));
-    entry.push_back(Pair("hash", tx.GetWitnessHash().GetHex()));
-    entry.push_back(Pair("size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
-    entry.push_back(Pair("vsize", (int)::GetVirtualTransactionSize(tx)));
-    entry.push_back(Pair("version", tx.nVersion));
-    entry.push_back(Pair("locktime", (int64_t)tx.nLockTime));
+    entry.pushKV("txid", txid.GetHex());
+    entry.pushKV("hash", tx.GetWitnessHash().GetHex());
+    entry.pushKV("size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION));
+    entry.pushKV("vsize", (int)::GetVirtualTransactionSize(tx));
+    entry.pushKV("version", tx.nVersion);
+    entry.pushKV("locktime", (int64_t)tx.nLockTime);
 
     UniValue vin(UniValue::VARR);
-    for (const auto &txin : tx.vin)
-    {
+    for (const auto &txin : tx.vin) {
         UniValue in(UniValue::VOBJ);
-        if (tx.IsCoinBase())
-        {
-            in.push_back(Pair("coinbase", HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
+        if (tx.IsCoinBase()) {
+            in.pushKV("coinbase", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
         } else
-        if (txin.IsAnonInput())
-        {
-            in.push_back(Pair("type", "anon"));
-            in.push_back(Pair("valueSat", -1));
+        if (txin.IsAnonInput()) {
+            in.pushKV("type", "anon");
+            in.pushKV("valueSat", -1);
             uint32_t nSigInputs, nSigRingSize;
             txin.GetAnonInfo(nSigInputs, nSigRingSize);
-            in.push_back(Pair("num_inputs", (int)nSigInputs));
-            in.push_back(Pair("ring_size", (int)nSigRingSize));
-        } else
-        {
-            in.push_back(Pair("txid", txin.prevout.hash.GetHex()));
-            in.push_back(Pair("vout", (int64_t)txin.prevout.n));
+            in.pushKV("num_inputs", (int)nSigInputs);
+            in.pushKV("ring_size", (int)nSigRingSize);
+        } else {
+            in.pushKV("txid", txin.prevout.hash.GetHex());
+            in.pushKV("vout", (int64_t)txin.prevout.n);
             UniValue o(UniValue::VOBJ);
-            o.push_back(Pair("asm", ScriptToAsmStr(txin.scriptSig, true)));
-            o.push_back(Pair("hex", HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
-            in.push_back(Pair("scriptSig", o));
+            o.pushKV("asm", ScriptToAsmStr(txin.scriptSig, true));
+            o.pushKV("hex", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
+            in.pushKV("scriptSig", o);
             // Add address and value info if spentindex enabled
             CSpentIndexValue spentInfo;
             CSpentIndexKey spentKey(txin.prevout.hash, txin.prevout.n);
             if (GetSpentIndex(spentKey, spentInfo)) {
-                in.push_back(Pair("type", spentInfo.satoshis == -1 ? "blind" : "standard"));
-                in.push_back(Pair("value", ValueFromAmount(spentInfo.satoshis)));
-                in.push_back(Pair("valueSat", spentInfo.satoshis));
+                in.pushKV("type", spentInfo.satoshis == -1 ? "blind" : "standard");
+                in.pushKV("value", ValueFromAmount(spentInfo.satoshis));
+                in.pushKV("valueSat", spentInfo.satoshis);
 
                 if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS) {
-                    in.push_back(Pair("address", CBitcoinAddress(CKeyID(*((uint160*)&spentInfo.addressHash))).ToString()));
+                    in.pushKV("address", CBitcoinAddress(CKeyID(*((uint160*)&spentInfo.addressHash))).ToString());
                 } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS)  {
-                    in.push_back(Pair("address", CBitcoinAddress(CScriptID(*((uint160*)&spentInfo.addressHash))).ToString()));
+                    in.pushKV("address", CBitcoinAddress(CScriptID(*((uint160*)&spentInfo.addressHash))).ToString());
                 } else if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS_256)  {
-                    in.push_back(Pair("address", CBitcoinAddress(CKeyID256(spentInfo.addressHash)).ToString()));
+                    in.pushKV("address", CBitcoinAddress(CKeyID256(spentInfo.addressHash)).ToString());
                 } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS_256)  {
-                    in.push_back(Pair("address", CBitcoinAddress(CScriptID256(spentInfo.addressHash)).ToString()));
+                    in.pushKV("address", CBitcoinAddress(CScriptID256(spentInfo.addressHash)).ToString());
                 }
             }
-        };
+        }
 
-        if (tx.HasWitness())
-        {
-            if (!txin.scriptWitness.IsNull())
-            {
+        if (tx.HasWitness()) {
+            if (!txin.scriptWitness.IsNull()) {
                 UniValue txinwitness(UniValue::VARR);
-                for (unsigned int j = 0; j < txin.scriptWitness.stack.size(); j++)
-                {
+                for (unsigned int j = 0; j < txin.scriptWitness.stack.size(); j++) {
                     std::vector<unsigned char> item = txin.scriptWitness.stack[j];
                     txinwitness.push_back(HexStr(item.begin(), item.end()));
-                };
-                in.push_back(Pair("txinwitness", txinwitness));
-            };
-        };
-        in.push_back(Pair("sequence", (int64_t)txin.nSequence));
+                }
+                in.pushKV("txinwitness", txinwitness);
+            }
+        }
+        in.pushKV("sequence", (int64_t)txin.nSequence);
         vin.push_back(in);
-    };
-    entry.push_back(Pair("vin", vin));
+    }
+    entry.pushKV("vin", vin);
     UniValue vout(UniValue::VARR);
 
-    for (unsigned int i = 0; i < tx.vpout.size(); i++)
-    {
+    for (unsigned int i = 0; i < tx.vpout.size(); i++) {
         UniValue out(UniValue::VOBJ);
-        out.push_back(Pair("n", (int64_t)i));
+        out.pushKV("n", (int64_t)i);
         OutputToJSON(txid, i, tx.vpout[i].get(), out);
         vout.push_back(out);
-    };
+    }
 
-    entry.push_back(Pair("vout", vout));
+    entry.pushKV("vout", vout);
 
-    if (!hashBlock.IsNull())
-    {
-        entry.push_back(Pair("blockhash", hashBlock.GetHex()));
+    if (!hashBlock.IsNull()) {
+        entry.pushKV("blockhash", hashBlock.GetHex());
 
         if (nConfirmations > 0) {
-            entry.push_back(Pair("height", nHeight));
-            entry.push_back(Pair("confirmations", nConfirmations));
+            entry.pushKV("height", nHeight);
+            entry.pushKV("confirmations", nConfirmations);
             PushTime(entry, "time", nBlockTime);
             PushTime(entry, "blocktime", nBlockTime);
         } else
         {
-            entry.push_back(Pair("height", -1));
-            entry.push_back(Pair("confirmations", 0));
+            entry.pushKV("height", -1);
+            entry.pushKV("confirmations", 0);
         }
     }
 

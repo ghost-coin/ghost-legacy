@@ -178,7 +178,7 @@ void ScriptPubKeyToUniv(const CScript& scriptPubKey,
 
 void AddRangeproof(const std::vector<uint8_t> &vRangeproof, UniValue &entry)
 {
-    entry.push_back(Pair("rangeproof", HexStr(vRangeproof.begin(), vRangeproof.end())));
+    entry.pushKV("rangeproof", HexStr(vRangeproof.begin(), vRangeproof.end()));
 
     if (vRangeproof.size() > 0)
     {
@@ -186,10 +186,10 @@ void AddRangeproof(const std::vector<uint8_t> &vRangeproof, UniValue &entry)
         CAmount min_value, max_value;
         if (0 == GetRangeProofInfo(vRangeproof, exponent, mantissa, min_value, max_value))
         {
-            entry.push_back(Pair("rp_exponent", exponent));
-            entry.push_back(Pair("rp_mantissa", mantissa));
-            entry.push_back(Pair("rp_min_value", ValueFromAmount(min_value)));
-            entry.push_back(Pair("rp_max_value", ValueFromAmount(max_value)));
+            entry.pushKV("rp_exponent", exponent);
+            entry.pushKV("rp_mantissa", mantissa);
+            entry.pushKV("rp_min_value", ValueFromAmount(min_value));
+            entry.pushKV("rp_max_value", ValueFromAmount(max_value));
         };
     };
 }
@@ -203,37 +203,37 @@ void OutputToJSON(uint256 &txid, int i,
         case OUTPUT_STANDARD:
             {
             fCanSpend = true;
-            entry.push_back(Pair("type", "standard"));
+            entry.pushKV("type", "standard");
             CTxOutStandard *s = (CTxOutStandard*) baseOut;
-            entry.push_back(Pair("value", ValueFromAmount(s->nValue)));
-            entry.push_back(Pair("valueSat", s->nValue));
+            entry.pushKV("value", ValueFromAmount(s->nValue));
+            entry.pushKV("valueSat", s->nValue);
             UniValue o(UniValue::VOBJ);
             ScriptPubKeyToUniv(s->scriptPubKey, o, true);
-            entry.push_back(Pair("scriptPubKey", o));
+            entry.pushKV("scriptPubKey", o);
             }
             break;
         case OUTPUT_DATA:
             {
             CTxOutData *s = (CTxOutData*) baseOut;
-            entry.push_back(Pair("type", "data"));
-            entry.push_back(Pair("data_hex", HexStr(s->vData.begin(), s->vData.end())));
+            entry.pushKV("type", "data");
+            entry.pushKV("data_hex", HexStr(s->vData.begin(), s->vData.end()));
             CAmount nValue;
             if (s->GetCTFee(nValue))
-                entry.push_back(Pair("ct_fee", ValueFromAmount(nValue)));
+                entry.pushKV("ct_fee", ValueFromAmount(nValue));
             if (s->GetDevFundCfwd(nValue))
-                entry.push_back(Pair("dev_fund_cfwd", ValueFromAmount(nValue)));
+                entry.pushKV("dev_fund_cfwd", ValueFromAmount(nValue));
             }
             break;
         case OUTPUT_CT:
             {
             fCanSpend = true;
             CTxOutCT *s = (CTxOutCT*) baseOut;
-            entry.push_back(Pair("type", "blind"));
-            entry.push_back(Pair("valueCommitment", HexStr(&s->commitment.data[0], &s->commitment.data[0]+33)));
+            entry.pushKV("type", "blind");
+            entry.pushKV("valueCommitment", HexStr(&s->commitment.data[0], &s->commitment.data[0]+33));
             UniValue o(UniValue::VOBJ);
             ScriptPubKeyToUniv(s->scriptPubKey, o, true);
-            entry.push_back(Pair("scriptPubKey", o));
-            entry.push_back(Pair("data_hex", HexStr(s->vData.begin(), s->vData.end())));
+            entry.pushKV("scriptPubKey", o);
+            entry.pushKV("data_hex", HexStr(s->vData.begin(), s->vData.end()));
 
             AddRangeproof(s->vRangeproof, entry);
             }
@@ -241,16 +241,16 @@ void OutputToJSON(uint256 &txid, int i,
         case OUTPUT_RINGCT:
             {
             CTxOutRingCT *s = (CTxOutRingCT*) baseOut;
-            entry.push_back(Pair("type", "anon"));
-            entry.push_back(Pair("pubkey", HexStr(s->pk.begin(), s->pk.end())));
-            entry.push_back(Pair("valueCommitment", HexStr(&s->commitment.data[0], &s->commitment.data[0]+33)));
-            entry.push_back(Pair("data_hex", HexStr(s->vData.begin(), s->vData.end())));
+            entry.pushKV("type", "anon");
+            entry.pushKV("pubkey", HexStr(s->pk.begin(), s->pk.end()));
+            entry.pushKV("valueCommitment", HexStr(&s->commitment.data[0], &s->commitment.data[0]+33));
+            entry.pushKV("data_hex", HexStr(s->vData.begin(), s->vData.end()));
 
             AddRangeproof(s->vRangeproof, entry);
             }
             break;
         default:
-            entry.push_back(Pair("type", "unknown"));
+            entry.pushKV("type", "unknown");
             break;
     };
 
@@ -261,9 +261,9 @@ void OutputToJSON(uint256 &txid, int i,
         CSpentIndexKey spentKey(txid, i);
         if (pCoreWriteGetSpentIndex && pCoreWriteGetSpentIndex(spentKey, spentInfo))
         {
-            entry.push_back(Pair("spentTxId", spentInfo.txid.GetHex()));
-            entry.push_back(Pair("spentIndex", (int)spentInfo.inputIndex));
-            entry.push_back(Pair("spentHeight", spentInfo.blockHeight));
+            entry.pushKV("spentTxId", spentInfo.txid.GetHex());
+            entry.pushKV("spentIndex", (int)spentInfo.inputIndex);
+            entry.pushKV("spentHeight", spentInfo.blockHeight);
         };
     };
 };
@@ -288,11 +288,11 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
           {
             if (txin.IsAnonInput())
             {
-                in.push_back(Pair("type", "anon"));
+                in.pushKV("type", "anon");
                 uint32_t nSigInputs, nSigRingSize;
                 txin.GetAnonInfo(nSigInputs, nSigRingSize);
-                in.push_back(Pair("num_inputs", (int)nSigInputs));
-                in.push_back(Pair("ring_size", (int)nSigRingSize));
+                in.pushKV("num_inputs", (int)nSigInputs);
+                in.pushKV("ring_size", (int)nSigRingSize);
             } else{
             in.pushKV("txid", txin.prevout.hash.GetHex());
             in.pushKV("vout", (int64_t)txin.prevout.n);
@@ -318,7 +318,7 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
     for (unsigned int i = 0; i < tx.vpout.size(); i++)
     {
         UniValue out(UniValue::VOBJ);
-        out.push_back(Pair("n", (int64_t)i));
+        out.pushKV("n", (int64_t)i);
         OutputToJSON(txid, i, tx.vpout[i].get(), out);
         vout.push_back(out);
     }

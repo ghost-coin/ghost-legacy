@@ -2723,7 +2723,7 @@ static bool ParseOutput(
         }
     }
     if (o.destStake.type() != typeid(CNoDestination)) {
-        output.pushKV("coldstake_address", CBitcoinAddress(o.destStake).ToString());
+        output.pushKV("coldstake_address", EncodeDestination(o.destStake));
     }
     if (pwallet->mapAddressBook.count(o.destination)) {
         output.pushKV("label", pwallet->mapAddressBook[o.destination].name);
@@ -2942,7 +2942,7 @@ static void ParseOutputs(
 static void push(UniValue & entry, std::string key, UniValue const & value)
 {
     if (entry[key].getType() == 0) {
-        entry.push_back(Pair(key, value));
+        entry.pushKV(key, value);
     }
 }
 

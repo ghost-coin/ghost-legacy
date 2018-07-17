@@ -378,19 +378,20 @@ static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &deriv
     keyobj.pushKV("privkey", CBitcoinSecret(key).ToString());
 
     std::map<CTxDestination, CAddressBookData>::const_iterator mi = pw->mapAddressBook.find(idk);
-    if (mi != pw->mapAddressBook.end())
-    {
+    if (mi != pw->mapAddressBook.end()) {
         // TODO: confirm vPath?
         keyobj.pushKV("label", mi->second.name);
         if (!mi->second.purpose.empty())
             keyobj.pushKV("purpose", mi->second.purpose);
 
         UniValue objDestData(UniValue::VOBJ);
-        for (const auto &pair : mi->second.destdata)
-            objDestData.push_back(Pair(pair.first, pair.second));
-        if (objDestData.size() > 0)
+        for (const auto &pair : mi->second.destdata) {
+            objDestData.pushKV(pair.first, pair.second);
+        }
+        if (objDestData.size() > 0) {
             keyobj.pushKV("destdata", objDestData);
-    };
+        }
+    }
     derivedKeys.push_back(keyobj);
     return;
 };
@@ -538,14 +539,12 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
 
                 CKey kSpend;
                 uint32_t nChild = sxPacked.aks.akSpend.nKey;
-                if (kp.Derive(kSpend, nChild))
-                {
+                if (kp.Derive(kSpend, nChild)) {
                     sxAddr.pushKV("spend_priv", CBitcoinSecret(kSpend).ToString());
-                } else
-                {
+                } else {
                     LogPrintf("%s: ERROR - Derive failed %u\n", __func__, nChild);
                     acc.pushKV("ERROR", "Derive spend key failed.");
-                };
+                }
                 mapStealthKeySpend[sxPacked.id] = std::make_pair(kSpend, sxStr);
 
                 sxAddr.pushKV("account_chain", (int)sxPacked.aks.akSpend.nParent);
@@ -555,8 +554,7 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
                 sxAddr.pushKV("scan_key_offset", std::to_string(nScanKey)+"'");
 
                 std::map<CTxDestination, CAddressBookData>::const_iterator mi = mapAddressBook.find(sx);
-                if (mi != mapAddressBook.end())
-                {
+                if (mi != mapAddressBook.end()) {
                     // TODO: confirm vPath?
 
                     if (mi->second.name != sxPacked.aks.sLabel)
@@ -565,11 +563,13 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
                         sxAddr.pushKV("purpose", mi->second.purpose);
 
                     UniValue objDestData(UniValue::VOBJ);
-                    for (const auto &pair : mi->second.destdata)
-                        sxAddr.push_back(Pair(pair.first, pair.second));
-                    if (objDestData.size() > 0)
+                    for (const auto &pair : mi->second.destdata) {
+                        sxAddr.pushKV(pair.first, pair.second);
+                    }
+                    if (objDestData.size() > 0) {
                         sxAddr.pushKV("destdata", objDestData);
-                };
+                    }
+                }
 
                 stealthAddresses.push_back(sxAddr);
             };
