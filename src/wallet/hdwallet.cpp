@@ -12067,7 +12067,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         };
 
         LogPrint(BCLog::POS, "%s: Coinstake reward split %d%%, foundation %s, reward %s.\n",
-            __func__, nStakeSplit, part::AmountToString(nDevPart), part::AmountToString(nRewardOut));
+            __func__, nStakeSplit, FormatMoney(nDevPart), FormatMoney(nRewardOut));
     };
 
 

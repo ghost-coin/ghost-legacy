@@ -90,6 +90,7 @@ BOOST_AUTO_TEST_CASE(cnode_listen_port)
 
 BOOST_AUTO_TEST_CASE(caddrdb_read)
 {
+    SetDataDir("caddrdb_read");
     CAddrManUncorrupted addrmanUncorrupted;
     addrmanUncorrupted.MakeDeterministic();
 
@@ -135,6 +136,7 @@ BOOST_AUTO_TEST_CASE(caddrdb_read)
 
 BOOST_AUTO_TEST_CASE(caddrdb_read_corrupted)
 {
+    SetDataDir("caddrdb_read_corrupted");
     CAddrManCorrupted addrmanCorrupted;
     addrmanCorrupted.MakeDeterministic();
 

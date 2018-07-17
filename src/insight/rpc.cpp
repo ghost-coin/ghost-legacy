@@ -17,6 +17,8 @@
 
 #include <univalue.h>
 
+#include <boost/thread/thread.hpp> // boost::thread::interrupt
+
 bool getAddressFromIndex(const int &type, const uint256 &hash, std::string &address)
 {
     if (type == ADDR_INDT_SCRIPT_ADDRESS) {

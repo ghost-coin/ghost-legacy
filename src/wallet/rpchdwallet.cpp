@@ -2854,7 +2854,7 @@ static void ParseOutputs(
                 for (size_t i = 0; i < outputs.size(); ++i) {
                     auto &o = outputs.get(i);
                     if (o["vout"].get_int() == r.vout) {
-                        o.get("amount").setStr(part::AmountToString(r.amount));
+                        o.get("amount").setStr(FormatMoney(r.amount));
                         fExists = true;
                     }
                 }
