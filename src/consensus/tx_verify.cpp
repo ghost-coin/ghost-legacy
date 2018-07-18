@@ -434,10 +434,11 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                 {
                     // Scale in the depth restriction to start the chain
                     int nRequiredDepth = std::min(COINBASE_MATURITY, (int)(coin.nHeight / 2));
-                    if (nSpendHeight - coin.nHeight < nRequiredDepth)
+                    if (nSpendHeight - coin.nHeight < nRequiredDepth) {
                         return state.Invalid(false,
                             REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
-                            strprintf("tried to spend coinbase at height %d at depth %d", coin.nHeight, nSpendHeight - coin.nHeight));
+                            strprintf("tried to spend coinbase at height %d at depth %d, required %d", coin.nHeight, nSpendHeight - coin.nHeight, nRequiredDepth));
+                    }
                 } else
                 return state.Invalid(false,
                     REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",

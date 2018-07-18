@@ -2265,7 +2265,7 @@ static void ListRecord(CHDWallet *phdw, const uint256 &hash, const CTransactionR
 {
     bool fAllAccounts = (strAccount == std::string("*"));
 
-    for (auto &r : rtx.vout)
+    for (const auto &r : rtx.vout)
     {
         if (r.nFlags & ORF_CHANGE)
             continue;

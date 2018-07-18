@@ -41,7 +41,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const interface
 
         CTxDestination address = CNoDestination();
         uint8_t nFlags = 0;
-        for (auto &r : rtx.vout)
+        for (const auto &r : rtx.vout)
         {
             if (r.nFlags & ORF_CHANGE)
                 continue;

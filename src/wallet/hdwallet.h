@@ -167,7 +167,7 @@ public:
     CAmount TotalOutput()
     {
         CAmount nTotal = 0;
-        for (auto &r : vout)
+        for (const auto &r : vout)
             nTotal += r.nValue;
         return nTotal;
     };

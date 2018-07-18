@@ -4557,7 +4557,7 @@ int CMerkleTx::GetBlocksToMaturity() const
         BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
         if (mi == mapBlockIndex.end())
             return COINBASE_MATURITY;
-        CBlockIndex *pindex = (*mi).second;
+        CBlockIndex *pindex = mi->second;
         int nRequiredDepth = (int)(pindex->nHeight / 2);
         return std::max(0, (nRequiredDepth+1) - GetDepthInMainChain());
     };
