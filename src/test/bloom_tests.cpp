@@ -84,13 +84,8 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize_with_tweak)
 
 BOOST_AUTO_TEST_CASE(bloom_create_insert_key)
 {
-    std::string strSecret =  std::string("4eo8A9C6Xq8o2Y5bGDrSxzfwMkSjarZQqwiyRCoFgHwh34V1xiX");
+    std::string strSecret = std::string("5Kg1gnAjaLfKiwhhPpGS3QfRg2m6awQvaj98JCZBZQ5SuS2F15C");
     CKey key = DecodeSecret(strSecret);
-
-    CBitcoinSecret vchSecret;
-    BOOST_CHECK(vchSecret.SetString(strSecret));
-    BOOST_CHECK(key == vchSecret.GetKey());
-
     CPubKey pubkey = key.GetPubKey();
     std::vector<unsigned char> vchPubKey(pubkey.begin(), pubkey.end());
 
@@ -490,7 +485,7 @@ BOOST_AUTO_TEST_CASE(rolling_bloom)
         if (rb1.contains(RandomData()))
             ++nHits;
     }
-    // Run test_particl with --log_level=message to see BOOST_TEST_MESSAGEs:
+    // Run test_bitcoin with --log_level=message to see BOOST_TEST_MESSAGEs:
     BOOST_TEST_MESSAGE("RollingBloomFilter got " << nHits << " false positives (~100 expected)");
 
     // Insanely unlikely to get a fp count outside this range:

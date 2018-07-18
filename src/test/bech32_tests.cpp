@@ -8,7 +8,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_FIXTURE_TEST_SUITE(bech32_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(bech32_tests, ParticlBasicTestingSetup)
 
 std::vector<std::pair<std::string, std::string> > testsPass = {
     std::make_pair("PZdYWHgyhuG7NHVCzEkkx3dcLKurTpvmo6", "ph1z2kuclaye2ktkndy7mdpw3zk0nck78a7u6h8hm"),

@@ -14,6 +14,7 @@ class CBlock;
 class CScript;
 class CTransaction;
 struct CMutableTransaction;
+struct PartiallySignedTransaction;
 class uint256;
 class UniValue;
 class CTxOutBase;
@@ -27,12 +28,16 @@ bool DecodeHexTx(CMutableTransaction& tx, const std::string& hex_tx, bool try_no
 bool DecodeHexBlk(CBlock&, const std::string& strHexBlk);
 uint256 ParseHashStr(const std::string&, const std::string& strName);
 std::vector<unsigned char> ParseHexUV(const UniValue& v, const std::string& strName);
+bool DecodePSBT(PartiallySignedTransaction& psbt, const std::string& base64_tx, std::string& error);
+int ParseSighashString(const UniValue& sighash);
 
 // core_write.cpp
 UniValue ValueFromAmount(const CAmount& amount);
 std::string FormatScript(const CScript& script);
 std::string EncodeHexTx(const CTransaction& tx, const int serializeFlags = 0);
+std::string SighashToStr(unsigned char sighash_type);
 void ScriptPubKeyToUniv(const CScript& scriptPubKey, UniValue& out, bool fIncludeHex);
+void ScriptToUniv(const CScript& script, UniValue& out, bool include_address);
 void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry, bool include_hex = true, int serialize_flags = 0);
 
 void AddRangeproof(const std::vector<uint8_t> &vRangeproof, UniValue &entry);

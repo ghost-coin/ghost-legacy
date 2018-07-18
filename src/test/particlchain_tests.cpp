@@ -19,11 +19,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-struct ParticlBasicTestingSetup : public BasicTestingSetup {
-    ParticlBasicTestingSetup() : BasicTestingSetup(CBaseChainParams::MAIN, true) {}
-};
-
-
 BOOST_FIXTURE_TEST_SUITE(particlchain_tests, ParticlBasicTestingSetup)
 
 
