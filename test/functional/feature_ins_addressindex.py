@@ -75,7 +75,7 @@ class AddressIndexTest(ParticlTestFramework):
 
 
         # Check p2pkh and p2sh address indexes
-        print("Testing p2pkh and p2sh address index...")
+        self.log.info("Testing p2pkh and p2sh address index...")
 
         txid0 = self.nodes[0].sendtoaddress("pqZDE7YNWv5PJWidiaEG8tqfebkd6PNZDV", 10)
         self.stakeToHeight(1, fSync=False)
@@ -104,7 +104,7 @@ class AddressIndexTest(ParticlTestFramework):
 
 
         # Check that limiting by height works
-        print("Testing querying txids by range of block heights..")
+        self.log.info("Testing querying txids by range of block heights..")
         # Note start and end parameters must be > 0 to apply
         height_txids = self.nodes[1].getaddresstxids({
             "addresses": ["r8L81gLiWg46j5EGfZSp2JHmA9hBgLbHuf"],
@@ -131,7 +131,7 @@ class AddressIndexTest(ParticlTestFramework):
 
 
         # Check that outputs with the same address will only return one txid
-        print("Testing for txid uniqueness...")
+        self.log.info("Testing for txid uniqueness...")
 
         inputs = []
         outputs = {'pqZDE7YNWv5PJWidiaEG8tqfebkd6PNZDV':1,'pqavEUgLCZeGh8o9sTcCfYVAsrTgnQTUsK':1}
@@ -157,7 +157,7 @@ class AddressIndexTest(ParticlTestFramework):
 
 
         # Check that balances are correct
-        print("Testing balances...")
+        self.log.info("Testing balances...")
         balance0 = self.nodes[1].getaddressbalance("pqavEUgLCZeGh8o9sTcCfYVAsrTgnQTUsK")
         assert_equal(balance0["balance"], 2 * 100000000)
 
@@ -211,7 +211,7 @@ class AddressIndexTest(ParticlTestFramework):
         assert_equal(len(deltas), 1)
 
         # Check that unspent outputs can be queried
-        print("Testing utxos...")
+        self.log.info("Testing utxos...")
         utxos = self.nodes[1].getaddressutxos({"addresses": [address2]})
         assert_equal(len(utxos), 2)
         assert_equal(utxos[0]["satoshis"], 1500000000)
@@ -219,7 +219,7 @@ class AddressIndexTest(ParticlTestFramework):
 
 
         # Check that indexes will be updated with a reorg
-        print("Testing reorg...")
+        self.log.info("Testing reorg...")
         height_before = self.nodes[1].getblockcount()
         best_hash = self.nodes[0].getbestblockhash()
         self.nodes[0].invalidateblock(best_hash)
@@ -254,7 +254,7 @@ class AddressIndexTest(ParticlTestFramework):
         assert_equal(utxos3[3]["height"], 10)
 
         # Check mempool indexing
-        print("Testing mempool indexing...")
+        self.log.info("Testing mempool indexing...")
 
         address3 = nodes[3].getnewaddress()
 

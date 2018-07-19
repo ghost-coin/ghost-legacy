@@ -2450,17 +2450,17 @@ CAmount CHDWallet::GetStaked()
 {
     int64_t nTotal = 0;
     LOCK2(cs_main, cs_wallet);
-    for (std::pair<const uint256, CWalletTx>& item : mapWallet)
-    {
-        CWalletTx &wtx = item.second;
+    for (const auto &item : mapWallet) {
+        const CWalletTx &wtx = item.second;
 
+        //printf("[rm] GetBlocksToMaturity2 %d\n", wtx.GetBlocksToMaturity(wtx.GetDepthInMainChainCached()));
+        int depth;
         if (wtx.IsCoinStake()
-            && wtx.GetDepthInMainChainCached() > 0 // checks for hashunset
-            && wtx.GetBlocksToMaturity() > 0)
-        {
+            && (depth = wtx.GetDepthInMainChainCached()) > 0 // checks for hashunset
+            && wtx.GetBlocksToMaturity(&depth) > 0) {
             nTotal += CHDWallet::GetCredit(*wtx.tx, ISMINE_SPENDABLE);
-        };
-    };
+        }
+    }
     return nTotal;
 };
 
@@ -2472,7 +2472,7 @@ CAmount CHDWallet::GetLegacyBalance(const isminefilter& filter, int minDepth, co
     for (const auto& entry : mapWallet) {
         const CWalletTx& wtx = entry.second;
         const int depth = wtx.GetDepthInMainChain();
-        if (depth < 0 || !CheckFinalTx(*wtx.tx) || wtx.GetBlocksToMaturity() > 0) {
+        if (depth < 0 || !CheckFinalTx(*wtx.tx) || wtx.GetBlocksToMaturity(&depth) > 0) {
             continue;
         }
 
@@ -2526,15 +2526,16 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
     bal.Clear();
 
     LOCK2(cs_main, cs_wallet);
-    for (std::pair<const uint256, CWalletTx>& item : mapWallet)
+    for (const auto &item : mapWallet)
     {
-        CWalletTx &wtx = item.second;
+        const CWalletTx &wtx = item.second;
 
         bal.nPartImmature += wtx.GetImmatureCredit();
 
+        int depth;
         if (wtx.IsCoinStake()
-            && wtx.GetDepthInMainChainCached() > 0 // checks for hashunset
-            && wtx.GetBlocksToMaturity() > 0)
+            && (depth = wtx.GetDepthInMainChainCached()) > 0 // checks for hashunset
+            && wtx.GetBlocksToMaturity(&depth) > 0)
         {
             CAmount nSpendable, nWatchOnly;
             CHDWallet::GetCredit(*wtx.tx, nSpendable, nWatchOnly);
@@ -10248,21 +10249,20 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
     CAmount nTotal = 0;
 
     LOCK2(cs_main, cs_wallet);
-    for (const auto& item : mapWallet)
-    {
+    for (const auto& item : mapWallet) {
         const uint256& wtxid = item.first;
         const CWalletTx& wtx = item.second;
 
         if (!CheckFinalTx(*wtx.tx))
             continue;
 
-        bool fMature = !(wtx.GetBlocksToMaturity() > 0);
-        if (!fIncludeImmature
-            && !fMature)
-            continue;
-
         int nDepth = wtx.GetDepthInMainChain();
         if (nDepth < 0)
+            continue;
+
+        bool fMature = !(wtx.GetBlocksToMaturity(&nDepth) > 0);
+        if (!fIncludeImmature
+            && !fMature)
             continue;
 
         if (nDepth < nMinDepth || nDepth > nMaxDepth)

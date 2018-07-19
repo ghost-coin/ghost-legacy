@@ -115,6 +115,7 @@ public:
     CTransactionRecord() :
         nFlags(0), nIndex(0), nBlockTime(0) , nTimeReceived(0) , nFee(0) {};
 
+
     // Conflicted state is marked by set blockHash and nIndex -1
     uint256 blockHash;
     int16_t nFlags;

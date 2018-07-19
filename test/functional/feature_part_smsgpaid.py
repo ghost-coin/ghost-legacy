@@ -244,7 +244,7 @@ class SmsgPaidTest(ParticlTestFramework):
         assert(len(ro['messages']) == 6)
 
 
-        # Test smsglocalkeys
+        self.log.info('Test smsglocalkeys')
         addr = nodes[0].getnewaddress()
 
         ro = nodes[0].smsglocalkeys('recv','+', addr)
@@ -269,7 +269,7 @@ class SmsgPaidTest(ParticlTestFramework):
         assert(ro['wallet_keys'][n]['receive'] == '0')
         assert(ro['wallet_keys'][n]['anon'] == '0')
 
-        # Test smsgpurge
+        self.log.info('Test smsgpurge')
         ro = nodes[0].smsg(msgid, {'encoding':'hex'})
         assert(ro['msgid'] == msgid)
 
@@ -284,6 +284,13 @@ class SmsgPaidTest(ParticlTestFramework):
         ro = nodes[0].smsgbuckets()
         assert(int(ro['total']['numpurged']) == 1)
         assert(int(ro['buckets'][0]['no. messages']) == int(ro['buckets'][0]['active messages']) + 1)
+
+
+        self.log.info('Test listunspent include_immature')
+        without_immature = nodes[1].listunspent()
+
+        with_immature = nodes[1].listunspent(query_options={'include_immature':True})
+        assert(len(with_immature) > len(without_immature))
 
 
 if __name__ == '__main__':

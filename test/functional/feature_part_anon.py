@@ -6,6 +6,7 @@
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import *
 
+
 class AnonTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True

@@ -291,7 +291,7 @@ public:
     int GetDepthInMainChainCached() const;
     int GetDepthInMainChain() const;
     bool IsInMainChain() const { return GetDepthInMainChain() > 0; }
-    int GetBlocksToMaturity() const;
+    int GetBlocksToMaturity(const int *pdepth=nullptr) const;
     bool hashUnset() const { return (hashBlock.IsNull() || hashBlock == ABANDON_HASH); }
     bool isAbandoned() const { return (hashBlock == ABANDON_HASH); }
     void setAbandoned()

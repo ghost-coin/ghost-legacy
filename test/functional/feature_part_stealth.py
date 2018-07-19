@@ -7,6 +7,7 @@ from test_framework.test_particl import ParticlTestFramework
 from test_framework.test_particl import isclose
 from test_framework.util import *
 
+
 class StealthTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True

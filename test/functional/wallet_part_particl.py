@@ -611,7 +611,7 @@ class WalletParticlTest(ParticlTestFramework):
         ro = nodes[2].listaddressgroupings()
         assert(len(ro) == 5)
 
-        # Test lockunspent
+        self.log.info('Test lockunspent')
         unspent = nodes[2].listunspent()
         assert(nodes[2].lockunspent(False, [unspent[0]]) == True)
         assert(len(nodes[2].listlockunspent()) == 1)
@@ -621,7 +621,7 @@ class WalletParticlTest(ParticlTestFramework):
         unspentCheck = nodes[2].listunspent()
         assert(len(unspentCheck) == len(unspent))
 
-        # Test bumpfee
+        self.log.info('Test bumpfee')
         txnid = nodes[1].sendtoaddress(address1, 0.01, "", "", False, "", True)
         ro = nodes[1].bumpfee(txnid)
         assert(len(ro['errors']) == 0)

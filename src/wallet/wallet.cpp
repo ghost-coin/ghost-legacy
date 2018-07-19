@@ -4547,7 +4547,7 @@ int CMerkleTx::GetDepthInMainChain() const
     return ((nIndex == -1) ? (-1) : 1) * (chainActive.Height() - pindex->nHeight + 1);
 }
 
-int CMerkleTx::GetBlocksToMaturity() const
+int CMerkleTx::GetBlocksToMaturity(const int *pdepth) const
 {
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
@@ -4559,12 +4559,11 @@ int CMerkleTx::GetBlocksToMaturity() const
             return COINBASE_MATURITY;
         CBlockIndex *pindex = mi->second;
         int nRequiredDepth = (int)(pindex->nHeight / 2);
-        return std::max(0, (nRequiredDepth+1) - GetDepthInMainChain());
+        return std::max(0, (nRequiredDepth+1) - (pdepth ? *pdepth : GetDepthInMainChain()));
     };
 
-    return std::max(0, (COINBASE_MATURITY+1) - GetDepthInMainChain());
+    return std::max(0, (COINBASE_MATURITY+1) - (pdepth ? *pdepth : GetDepthInMainChain()));
 }
-
 
 bool CWalletTx::AcceptToMemoryPool(const CAmount& nAbsurdFee, CValidationState& state)
 {
