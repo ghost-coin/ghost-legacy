@@ -339,6 +339,7 @@ bool TxIndex::IndexCSOutputs(const CBlock& block, const CBlockIndex* pindex)
     CDBBatch batch(*m_db);
     std::map<ColdStakeIndexOutputKey, ColdStakeIndexOutputValue> newCSOuts;
     std::map<ColdStakeIndexLinkKey, std::vector<ColdStakeIndexOutputKey> > newCSLinks;
+
     for (const auto& tx : block.vtx) {
         int n = -1;
         for (const auto &o : tx->vpout) {

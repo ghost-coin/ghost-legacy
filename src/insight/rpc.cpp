@@ -1175,7 +1175,6 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
                         int depth = height - lk.m_height;
                         int depth_required = std::min(min_kernel_depth-1, (int)(height / 2));
                         if (depth < depth_required) {
-                            it->Next();
                             continue;
                         }
                     }

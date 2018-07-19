@@ -11663,7 +11663,7 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
 
             if (pcoin->IsCoinStake() && min_stake_confirmations < COINBASE_MATURITY) {
                 // min_stake_confirmations is only  less than COINBASE_MATURITY in regtest mode
-                if (nDepth < std::min(COINBASE_MATURITY-1, (int)(nHeight / 2))) {
+                if (nDepth < std::min(COINBASE_MATURITY, (int)(nHeight / 2))) {
                     continue;
                 }
             }
