@@ -15,7 +15,9 @@
 #include <util.h>
 #include <validation.h>
 #include <validationinterface.h>
+#include <consensus/validation.h>
 #include <chainparams.h>
+#include <txmempool.h>
 
 
 bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)

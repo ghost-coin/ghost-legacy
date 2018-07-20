@@ -7,7 +7,7 @@ $(package)_patches=0001-fix-build-with-older-mingw64.patch 0002-disable-pthread_
 $(package)_dependencies=libsodium
 
 define $(package)_set_vars
-  $(package)_config_opts=--without-docs --disable-shared --with-libsodium --enable-curve --disable-perf
+  $(package)_config_opts=--without-docs --disable-shared --with-libsodium --enable-curve --disable-perf --disable-Werror
   $(package)_config_opts_linux=--with-pic
   $(package)_cxxflags=-std=c++11
 endef
