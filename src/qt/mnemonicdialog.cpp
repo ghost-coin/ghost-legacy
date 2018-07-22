@@ -37,42 +37,41 @@ MnemonicDialog::MnemonicDialog(QWidget *parent, WalletModel *wm) :
 
     QObject::connect(this, SIGNAL(startRescan()), walletModel, SLOT(startRescan()), Qt::QueuedConnection);
 
+    setWindowTitle(QString("HD Wallet Setup - %1").arg(QString::fromStdString(wm->wallet().getWalletName())));
     ui->edtPath->setPlaceholderText(tr("Path to derive account from, if not using default. (optional, default=%1)").arg(QString::fromStdString(GetDefaultAccountPath())));
     ui->edtPassword->setPlaceholderText(tr("Enter a passphrase to protect your Recovery Phrase. (optional)"));
 #if QT_VERSION >= 0x050200
     ui->tbxMnemonic->setPlaceholderText(tr("Enter your BIP39 compliant Recovery Phrase/Mnemonic."));
 #endif
 
-    if (!wm->wallet().isDefaultAccountSet())
-    {
-        ui->lblHelp->setText(
-            "This wallet has no HD account loaded.\n"
+    if (!wm->wallet().isDefaultAccountSet()) {
+        ui->lblHelp->setText(QString(
+            "Wallet %1 has no HD account loaded.\n"
             "An account must first be loaded in order to generate receiving addresses.\n"
             "Importing a recovery phrase will load a new master key and account.\n"
-            "You can generate a new recovery phrase from the 'Create' page below.\n");
-    } else
-    {
-        ui->lblHelp->setText(
-            "This wallet already has an HD account loaded.\n"
+            "You can generate a new recovery phrase from the 'Create' page below.\n").arg(QString::fromStdString(wm->wallet().getWalletName())));
+    } else {
+        ui->lblHelp->setText(QString(
+            "Wallet %1 already has an HD account loaded.\n"
             "By importing another recovery phrase a new account will be created and set as the default.\n"
             "The wallet will receive on addresses from the new and existing account/s.\n"
-            "New addresses will be generated from the new account.\n");
+            "New addresses will be generated from the new account.\n").arg(QString::fromStdString(wm->wallet().getWalletName())));
     };
 
     ui->cbxLanguage->clear();
-    for (int l = 1; l < WLL_MAX; ++l)
+    for (int l = 1; l < WLL_MAX; ++l) {
         ui->cbxLanguage->addItem(mnLanguagesDesc[l], QString(mnLanguagesTag[l]));
+    }
 
     return;
 };
 
 MnemonicDialog::~MnemonicDialog()
 {
-    if (m_thread)
-    {
+    if (m_thread) {
         m_thread->wait();
         delete m_thread;
-    };
+    }
 };
 
 void MnemonicDialog::on_btnCancel_clicked()
@@ -91,16 +90,14 @@ void MnemonicDialog::on_btnImport_clicked()
     sCommand += " \"" + sPassword + "\" false \"Master Key\" \"Default Account\" -1";
 
     UniValue rv;
-    if (walletModel->tryCallRpc(sCommand, rv))
-    {
+    if (walletModel->tryCallRpc(sCommand, rv)) {
         close();
-        if (!rv["warnings"].isNull())
-        {
+        if (!rv["warnings"].isNull()) {
             for (size_t i = 0; i < rv["warnings"].size(); ++i)
                 walletModel->warningBox(tr("Import"), QString::fromStdString(rv["warnings"][i].get_str()));
-        };
+        }
         startRescan();
-    };
+    }
 
     return;
 };
@@ -113,10 +110,9 @@ void MnemonicDialog::on_btnGenerate_clicked()
     QString sCommand = "mnemonic new  \"\" " + sLanguage + " " + QString::number(nBytesEntropy);
 
     UniValue rv;
-    if (walletModel->tryCallRpc(sCommand, rv))
-    {
+    if (walletModel->tryCallRpc(sCommand, rv)) {
         ui->tbxMnemonicOut->setText(QString::fromStdString(rv["mnemonic"].get_str()));
-    };
+    }
 
     return;
 };
@@ -152,27 +148,27 @@ void MnemonicDialog::hwImportComplete(bool passed)
     delete m_thread;
     m_thread = nullptr;
 
-    if (!passed)
-    {
+    if (!passed) {
         QString sError;
-        if (m_rv["Error"].isStr())
+        if (m_rv["Error"].isStr()) {
             sError = QString::fromStdString(m_rv["Error"].get_str());
-        else
+        } else {
             sError = QString::fromStdString(m_rv.write(1));
+        }
 
         ui->tbxHwdOut->appendPlainText(sError);
         if (sError == "No device found."
-            || sError.indexOf("6982") > -1)
+            || sError.indexOf("6982") > -1) {
             ui->tbxHwdOut->appendPlainText("Open particl app on device before importing.");
-    } else
-    {
+        }
+    } else {
         UniValue rv;
         QString sCommand = "devicegetnewstealthaddress \"default stealth\"";
         walletModel->tryCallRpc(sCommand, rv);
         close();
 
         startRescan();
-    };
+    }
 
     return;
 };

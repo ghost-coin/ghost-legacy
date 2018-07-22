@@ -13,6 +13,7 @@ from test_framework.test_particl import ParticlTestFramework
 from test_framework.test_framework import SkipTest
 from test_framework.util import bytes_to_hex_str
 
+
 class ZMQTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -143,14 +144,14 @@ class ZMQTest(ParticlTestFramework):
                 break
         assert(fFound)
 
-        address0 = nodes[0].getnewaddress() # will be different each run
+        address0 = nodes[0].getnewaddress()  # Will be different each run
         address1 = nodes[1].getnewaddress()
         assert(address1 == 'pX9N6S76ZtA5BfsiJmqBbjaEgLMHpt58it')
 
         ro = nodes[0].smsglocalkeys()
         assert(len(ro['wallet_keys']) == 0)
 
-        ro = nodes[0].smsgaddlocaladdress(address0) # listen on address0
+        ro = nodes[0].smsgaddlocaladdress(address0)  # Listen on address0
         assert('Receiving messages enabled for address' in ro['result'])
 
         ro = nodes[0].smsglocalkeys()
@@ -179,7 +180,7 @@ class ZMQTest(ParticlTestFramework):
             if topic == 'smsg':
                 fFound = True
                 zmqhash = bytes_to_hex_str(msg[1])
-                assert(zmqhash[:4] == '0300') # version 3.0
+                assert(zmqhash[:4] == '0300')  # version 3.0
                 assert(zmqhash[4:] == msgid)
                 break
         assert(fFound)
@@ -188,9 +189,6 @@ class ZMQTest(ParticlTestFramework):
         assert(len(ro['server_secret_key']) == 40)
         assert(len(ro['server_public_key']) == 40)
         assert(len(ro['server_secret_key_b64']) > 40)
-
-
-
 
 
 if __name__ == '__main__':
