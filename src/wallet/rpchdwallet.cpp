@@ -6454,17 +6454,18 @@ static UniValue buildscript(const JSONRPCRequest &request)
         CBitcoinAddress addrTrue(params["addrstake"].get_str());
         CBitcoinAddress addrFalse(params["addrspend"].get_str());
 
-        if (!addrTrue.IsValid())
+        if (!addrTrue.IsValid()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid addrstake.");
-
-        if (!addrFalse.IsValid())
+        }
+        if (!addrFalse.IsValid()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid addrspend.");
-        if (addrFalse.IsValid(CChainParams::PUBKEY_ADDRESS))
+        }
+        if (addrFalse.IsValid(CChainParams::PUBKEY_ADDRESS)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid addrspend, can't be p2pkh.");
+        }
 
         CScript scriptTrue = GetScriptForDestination(addrTrue.Get());
         CScript scriptFalse = GetScriptForDestination(addrFalse.Get());
-        // TODO: More checks
 
         scriptOut = CScript() << OP_ISCOINSTAKE << OP_IF;
         scriptOut += scriptTrue;

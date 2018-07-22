@@ -14,13 +14,39 @@
 #include <QApplication>
 #include <QClipboard>
 
-SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *parent) :
+SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *parent, bool coldstake) :
     QStackedWidget(parent),
     ui(new Ui::SendCoinsEntry),
     model(0),
-    platformStyle(_platformStyle)
+    platformStyle(_platformStyle),
+    m_coldstake(coldstake)
 {
     ui->setupUi(this);
+
+    if (m_coldstake) {
+        ui->addressBookButton_cs->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
+        ui->pasteButton_cs->setIcon(platformStyle->SingleColorIcon(":/icons/editpaste"));
+        ui->addressBookButton2_cs->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
+        ui->pasteButton2_cs->setIcon(platformStyle->SingleColorIcon(":/icons/editpaste"));
+        ui->deleteButton_cs->setIcon(platformStyle->SingleColorIcon(":/icons/remove"));
+
+        setCurrentWidget(ui->SendCoins_cs);
+
+        // normal bitcoin address field
+        GUIUtil::setupAddressWidget(ui->stakeAddr, this);
+        GUIUtil::setupAddressWidget(ui->spendAddr, this);
+        // just a label for displaying bitcoin address(es)
+        ui->stakeAddr->setFont(GUIUtil::fixedPitchFont());
+        ui->spendAddr->setFont(GUIUtil::fixedPitchFont());
+
+        // Connect signals
+        connect(ui->payAmount_cs, SIGNAL(valueChanged()), this, SIGNAL(payAmountChanged()));
+        connect(ui->checkboxSubtractFeeFromAmount_cs, SIGNAL(toggled(bool)), this, SIGNAL(subtractFeeFromAmountChanged()));
+        connect(ui->deleteButton_cs, SIGNAL(clicked()), this, SLOT(deleteClicked()));
+        connect(ui->useAvailableBalanceButton_cs, SIGNAL(clicked()), this, SLOT(useAvailableBalanceClicked()));
+
+        return;
+    }
 
     ui->addressBookButton->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
     ui->pasteButton->setIcon(platformStyle->SingleColorIcon(":/icons/editpaste"));
@@ -77,6 +103,44 @@ void SendCoinsEntry::on_payTo_textChanged(const QString &address)
     updateLabel(address);
 }
 
+void SendCoinsEntry::on_pasteButton_cs_clicked()
+{
+    // Paste text from clipboard into recipient field
+    ui->stakeAddr->setText(QApplication::clipboard()->text());
+}
+
+void SendCoinsEntry::on_addressBookButton_cs_clicked()
+{
+    if(!model)
+        return;
+    AddressBookPage dlg(platformStyle, AddressBookPage::ForSelection, AddressBookPage::SendingTab, this);
+    dlg.setModel(model->getAddressTableModel());
+    if(dlg.exec())
+    {
+        ui->stakeAddr->setText(dlg.getReturnValue());
+        ui->spendAddr->setFocus();
+    }
+}
+
+void SendCoinsEntry::on_pasteButton2_cs_clicked()
+{
+    // Paste text from clipboard into recipient field
+    ui->spendAddr->setText(QApplication::clipboard()->text());
+}
+
+void SendCoinsEntry::on_addressBookButton2_cs_clicked()
+{
+    if(!model)
+        return;
+    AddressBookPage dlg(platformStyle, AddressBookPage::ForSelection, AddressBookPage::SendingTab, this);
+    dlg.setModel(model->getAddressTableModel());
+    if(dlg.exec())
+    {
+        ui->spendAddr->setText(dlg.getReturnValue());
+        ui->payAmount_cs->setFocus();
+    }
+}
+
 void SendCoinsEntry::setModel(WalletModel *_model)
 {
     this->model = _model;
@@ -105,6 +169,13 @@ void SendCoinsEntry::clear()
     ui->payTo_s->clear();
     ui->memoTextLabel_s->clear();
     ui->payAmount_s->clear();
+
+    ui->stakeAddr->clear();
+    ui->spendAddr->clear();
+    ui->payAmount_cs->clear();
+    ui->checkboxSubtractFeeFromAmount_cs->setCheckState(Qt::Unchecked);
+    ui->edtNarration->clear();
+    ui->edtNarration_cs->clear();
 
     // update the display unit, to not use the default ("BTC")
     updateDisplayUnit();
@@ -136,6 +207,36 @@ bool SendCoinsEntry::validate(interfaces::Node& node)
     // Skip checks for payment request
     if (recipient.paymentRequest.IsInitialized())
         return retval;
+
+    if (m_coldstake) {
+        if (!model->validateAddress(ui->stakeAddr->text())) {
+            ui->stakeAddr->setValid(false);
+            retval = false;
+        }
+        if (!model->validateAddress(ui->spendAddr->text())) {
+            ui->spendAddr->setValid(false);
+            retval = false;
+        }
+
+        if (!ui->payAmount_cs->validate()) {
+            retval = false;
+        }
+
+        // Sending a zero amount is invalid
+        if (ui->payAmount_cs->value(0) <= 0)
+        {
+            ui->payAmount_cs->setValid(false);
+            retval = false;
+        }
+
+        // Reject dust outputs:
+        if (retval && GUIUtil::isDust(node, ui->spendAddr->text(), ui->payAmount_cs->value())) {
+            ui->payAmount_cs->setValid(false);
+            retval = false;
+        }
+
+        return retval;
+    }
 
     if (!model->validateAddress(ui->payTo->text()))
     {
@@ -169,6 +270,17 @@ SendCoinsRecipient SendCoinsEntry::getValue()
     // Payment request
     if (recipient.paymentRequest.IsInitialized())
         return recipient;
+
+    recipient.m_coldstake = m_coldstake;
+    if (m_coldstake) {
+        recipient.stake_address = ui->stakeAddr->text();
+        recipient.spend_address = ui->spendAddr->text();
+        recipient.amount = ui->payAmount_cs->value();
+        recipient.narration = ui->edtNarration_cs->text();
+        recipient.fSubtractFeeFromAmount = (ui->checkboxSubtractFeeFromAmount_cs->checkState() == Qt::Checked);
+
+        return recipient;
+    }
 
     // Normal payment
     recipient.address = ui->payTo->text();
@@ -239,6 +351,10 @@ void SendCoinsEntry::setAddress(const QString &address)
 
 void SendCoinsEntry::setAmount(const CAmount &amount)
 {
+    if (m_coldstake) {
+        ui->payAmount_cs->setValue(amount);
+        return;
+    }
     ui->payAmount->setValue(amount);
 }
 
@@ -260,6 +376,7 @@ void SendCoinsEntry::updateDisplayUnit()
         ui->payAmount->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
         ui->payAmount_is->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
         ui->payAmount_s->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
+        ui->payAmount_cs->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     }
 }
 

@@ -80,6 +80,9 @@ public:
     static const int CURRENT_VERSION = 1;
     int nVersion;
 
+    bool m_coldstake = false;
+    QString stake_address, spend_address;
+
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>

@@ -1290,6 +1290,23 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="addButtonCS">
+       <property name="toolTip">
+        <string>Send to a coldstake script</string>
+       </property>
+       <property name="text">
+        <string>Add &amp;Coldstake Recipient</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../bitcoin.qrc">
+         <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

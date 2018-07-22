@@ -26,7 +26,7 @@ class SendCoinsEntry : public QStackedWidget
     Q_OBJECT
 
 public:
-    explicit SendCoinsEntry(const PlatformStyle *platformStyle, QWidget *parent = 0);
+    explicit SendCoinsEntry(const PlatformStyle *platformStyle, QWidget *parent = 0, bool coldstake = false);
     ~SendCoinsEntry();
 
     void setModel(WalletModel *model);
@@ -66,6 +66,12 @@ private Q_SLOTS:
     void on_pasteButton_clicked();
     void updateDisplayUnit();
 
+    void on_pasteButton_cs_clicked();
+    void on_addressBookButton_cs_clicked();
+
+    void on_pasteButton2_cs_clicked();
+    void on_addressBookButton2_cs_clicked();
+
 private:
     SendCoinsRecipient recipient;
     Ui::SendCoinsEntry *ui;
@@ -73,6 +79,8 @@ private:
     const PlatformStyle *platformStyle;
 
     bool updateLabel(const QString &address);
+public:
+    bool m_coldstake;
 };
 
 #endif // BITCOIN_QT_SENDCOINSENTRY_H

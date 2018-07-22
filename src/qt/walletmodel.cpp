@@ -184,6 +184,12 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         }
         else
         {   // User-entered bitcoin address / amount:
+            if (rcp.m_coldstake)
+            {
+                if (!validateAddress(rcp.spend_address) || !validateAddress(rcp.stake_address)) {
+                    return InvalidAddress;
+                }
+            } else
             if(!validateAddress(rcp.address))
             {
                 return InvalidAddress;

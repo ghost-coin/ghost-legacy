@@ -69,6 +69,7 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
         ui->sendButton->setIcon(QIcon());
     } else {
         ui->addButton->setIcon(_platformStyle->SingleColorIcon(":/icons/add"));
+        ui->addButtonCS->setIcon(_platformStyle->SingleColorIcon(":/icons/add"));
         ui->clearButton->setIcon(_platformStyle->SingleColorIcon(":/icons/remove"));
         ui->sendButton->setIcon(_platformStyle->SingleColorIcon(":/icons/send"));
     }
@@ -78,6 +79,7 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
     addEntry();
 
     connect(ui->addButton, SIGNAL(clicked()), this, SLOT(addEntry()));
+    connect(ui->addButtonCS, SIGNAL(clicked()), this, SLOT(addEntryCS()));
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
 
     // Coin Control
@@ -292,12 +294,24 @@ void SendCoinsDialog::on_sendButton_clicked()
     sCommand += " [";
 
     int nRecipient = 0;
-    for (const auto &rcp : currentTransaction.getRecipients())
-    {
+    for (const auto &rcp : currentTransaction.getRecipients()) {
         if (nRecipient > 0)
             sCommand += ",";
 
-        sCommand += "{\"address\":\""+rcp.address+"\",\"amount\":"
+        if (rcp.m_coldstake) {
+            QString build_script = "buildscript {\"recipe\":\"ifcoinstake\",\"addrstake\":\""
+                + rcp.stake_address + "\",\"addrspend\":\"" + rcp.spend_address + "\"}";
+            UniValue rv;
+            if (!model->tryCallRpc(build_script, rv)) {
+                return;
+            }
+
+            sCommand += "{\"address\":\"script\"";
+            sCommand += ",\"script\":\"" + QString::fromStdString(rv["hex"].get_str()) + "\"";
+        } else {
+            sCommand += "{\"address\":\"" + rcp.address + "\"";
+        }
+        sCommand += ",\"amount\":"
             + BitcoinUnits::format(BitcoinUnits::BTC, rcp.amount, false, BitcoinUnits::separatorNever);
 
         if (rcp.fSubtractFeeFromAmount)
@@ -308,7 +322,7 @@ void SendCoinsDialog::on_sendButton_clicked()
         sCommand += "}";
 
         nRecipient++;
-    };
+    }
 
     int nRingSize = ui->spinRingSize->value();
     int nMaxInputs = ui->spinMaxInputs->value();
@@ -320,44 +334,40 @@ void SendCoinsDialog::on_sendButton_clicked()
     sCoinControl += " {";
     sCoinControl += "\"replaceable\":" + QString::fromUtf8((ui->optInRBF->isChecked() ? "true" : "false"));
 
-    if (ctrl.m_feerate)
-    {
+    if (ctrl.m_feerate) {
         sCoinControl += ",\"feeRate\":" + QString::fromStdString(ctrl.m_feerate->ToString(false));
-    } else
-    {
+    } else {
         std::string sFeeMode;
         if (StringFromFeeMode(ctrl.m_fee_mode, sFeeMode))
             sCoinControl += ",\"estimate_mode\":\"" + QString::fromStdString(sFeeMode) +"\"";
         if (ctrl.m_confirm_target)
             sCoinControl += ",\"conf_target\":" + QString::number(*ctrl.m_confirm_target);
-    };
+    }
 
-    if (!boost::get<CNoDestination>(&ctrl.destChange))
-    {
+    if (!boost::get<CNoDestination>(&ctrl.destChange)) {
         CBitcoinAddress addrChange(ctrl.destChange);
         sCoinControl += ",\"changeaddress\":\""+QString::fromStdString(addrChange.ToString())+"\"";
-    };
+    }
 
-    if (ctrl.NumSelected() > 0)
-    {
+    if (ctrl.NumSelected() > 0)  {
         sCoinControl += ",\"inputs\":[";
         bool fNeedCommaInputs = false;
-        for (const auto &op : ctrl.setSelected)
-        {
+        for (const auto &op : ctrl.setSelected) {
             sCoinControl += fNeedCommaInputs ? ",{" : "{";
             sCoinControl += "\"tx\":\"" + QString::fromStdString(op.hash.ToString()) + "\"";
             sCoinControl += ",\"n\":" + QString::number(op.n);
             sCoinControl += "}";
             fNeedCommaInputs = true;
-        };
+        }
         sCoinControl += "]";
-    };
+    }
     sCoinControl += "} ";
 
     UniValue rv;
     QString sGetFeeCommand = sCommand + " true" + sCoinControl;
-    if (!model->tryCallRpc(sGetFeeCommand, rv))
+    if (!model->tryCallRpc(sGetFeeCommand, rv)) {
         return;
+    }
 
     double rFee = rv["fee"].get_real();
 
@@ -386,8 +396,15 @@ void SendCoinsDialog::on_sendButton_clicked()
         }
         amount.append("</b>");
         // generate monospace address string
-        QString address = "<span style='font-family: monospace;'>" + rcp.address;
-        address.append("</span>");
+        QString address;
+        if (rcp.m_coldstake) {
+            address = "<span style='font-family: monospace;'>Spend: " + rcp.spend_address;
+            address.append("<br/>Stake: " + rcp.stake_address);
+            address.append("</span>");
+        } else {
+            address = "<span style='font-family: monospace;'>" + rcp.address;
+            address.append("</span>");
+        }
 
         QString recipientElement;
         recipientElement = "<br />";
@@ -496,15 +513,17 @@ void SendCoinsDialog::on_sendButton_clicked()
 
 
     uint256 hashSent;
-    if (!model->tryCallRpc(sCommand, rv))
+    if (!model->tryCallRpc(sCommand, rv)) {
         sendStatus = WalletModel::TransactionCreationFailed;
-    else
+    } else {
         hashSent.SetHex(rv.get_str());
-
+    }
 
     // Update Addressbook
-    for (const auto &rcp : currentTransaction.getRecipients())
-    {
+    for (const auto &rcp : currentTransaction.getRecipients()) {
+        if (rcp.m_coldstake) {
+            continue;
+        }
         sCommand = "manageaddressbook newsend ";
         sCommand += rcp.address;
         QString strLabel = rcp.label;
@@ -512,12 +531,11 @@ void SendCoinsDialog::on_sendButton_clicked()
         sCommand += " send";
 
         model->tryCallRpc(sCommand, rv);
-    };
+    }
 
     processSendCoinsReturn(sendStatus);
 
-    if (sendStatus.status == WalletModel::OK)
-    {
+    if (sendStatus.status == WalletModel::OK) {
         accept();
         CoinControlDialog::coinControl()->UnSelectAll();
         coinControlUpdateLabels();
@@ -562,6 +580,29 @@ void SendCoinsDialog::accept()
 SendCoinsEntry *SendCoinsDialog::addEntry()
 {
     SendCoinsEntry *entry = new SendCoinsEntry(platformStyle, this);
+    entry->setModel(model);
+    ui->entries->addWidget(entry);
+    connect(entry, SIGNAL(removeEntry(SendCoinsEntry*)), this, SLOT(removeEntry(SendCoinsEntry*)));
+    connect(entry, SIGNAL(useAvailableBalance(SendCoinsEntry*)), this, SLOT(useAvailableBalance(SendCoinsEntry*)));
+    connect(entry, SIGNAL(payAmountChanged()), this, SLOT(coinControlUpdateLabels()));
+    connect(entry, SIGNAL(subtractFeeFromAmountChanged()), this, SLOT(coinControlUpdateLabels()));
+
+    // Focus the field, so that entry can start immediately
+    entry->clear();
+    entry->setFocus();
+    ui->scrollAreaWidgetContents->resize(ui->scrollAreaWidgetContents->sizeHint());
+    qApp->processEvents();
+    QScrollBar* bar = ui->scrollArea->verticalScrollBar();
+    if(bar)
+        bar->setSliderPosition(bar->maximum());
+
+    updateTabsAndLabels();
+    return entry;
+}
+
+SendCoinsEntry *SendCoinsDialog::addEntryCS()
+{
+    SendCoinsEntry *entry = new SendCoinsEntry(platformStyle, this, true);
     entry->setModel(model);
     ui->entries->addWidget(entry);
     connect(entry, SIGNAL(removeEntry(SendCoinsEntry*)), this, SLOT(removeEntry(SendCoinsEntry*)));
