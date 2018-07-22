@@ -24,8 +24,6 @@
 #endif
 #include <walletinitinterface.h>
 
-#include <boost/thread.hpp>
-
 #include <stdio.h>
 
 /* Introduction text for doxygen: */

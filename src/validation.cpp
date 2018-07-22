@@ -54,7 +54,6 @@
 #include <sstream>
 
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
@@ -3070,6 +3069,13 @@ bool FlushView(CCoinsViewCache *view, CValidationState& state, bool fDisconnecti
     return true;
 };
 
+/** Private helper function that concatenates warning messages. */
+static void AppendWarning(std::string& res, const std::string& warn)
+{
+    if (!res.empty()) res += ", ";
+    res += warn;
+}
+
 /** Check warning conditions and do some notifications on new chain tip set. */
 void UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainParams) {
     // New best block
@@ -3081,7 +3087,7 @@ void UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainParams) {
         g_best_block_cv.notify_all();
     }
 
-    std::vector<std::string> warningMessages;
+    std::string warningMessages;
     if (!IsInitialBlockDownload())
     {
         int nUpgraded = 0;
@@ -3094,7 +3100,7 @@ void UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainParams) {
                 if (state == ThresholdState::ACTIVE) {
                     DoWarning(strWarning);
                 } else {
-                    warningMessages.push_back(strWarning);
+                    AppendWarning(warningMessages, strWarning);
                 }
             }
         }
@@ -3114,7 +3120,7 @@ void UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainParams) {
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0)
-            warningMessages.push_back(strprintf(_("%d of last 100 blocks have unexpected version"), nUpgraded));
+            AppendWarning(warningMessages, strprintf(_("%d of last 100 blocks have unexpected version"), nUpgraded));
         if (nUpgraded > 100/2)
         {
             std::string strWarning = _("Warning: Unknown block versions being mined! It's possible unknown rules are in effect");
@@ -3128,7 +3134,7 @@ void UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainParams) {
       FormatISO8601DateTime(pindexNew->GetBlockTime()),
       GuessVerificationProgress(chainParams.TxData(), pindexNew), pcoinsTip->DynamicMemoryUsage() * (1.0 / (1<<20)), pcoinsTip->GetCacheSize());
     if (!warningMessages.empty())
-        LogPrintf(" warning='%s'", boost::algorithm::join(warningMessages, ", ")); /* Continued */
+        LogPrintf(" warning='%s'", warningMessages); /* Continued */
     LogPrintf("\n");
 
 }
