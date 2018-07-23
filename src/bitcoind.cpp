@@ -38,6 +38,8 @@
  *
  * The software is a community-driven open source project, released under the MIT license.
  *
+ * See https://github.com/bitcoin/bitcoin and https://bitcoincore.org/ for further information about the project.
+ *
  * \section Navigation
  * Use the buttons <code>Namespaces</code>, <code>Classes</code> or <code>Files</code> at the top of the page to start navigating the code.
  */

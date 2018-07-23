@@ -33,7 +33,6 @@ particld or particl-qt with the parameter: -createdefaultmasterkey.
 
 Remember to backup your passphrase and/or wallet.dat file!
 
-
 License
 -------
 
