@@ -32,10 +32,6 @@
 #include <rpc/rpcutil.h>
 #include <rpc/client.h>
 
-#if ENABLE_ZMQ
-#include <zmq.h>
-#endif
-
 #include <stdint.h>
 #ifdef HAVE_MALLOC_INFO
 #include <malloc.h>
@@ -521,28 +517,6 @@ UniValue runstrings(const JSONRPCRequest& request)
     return rv;
 }
 
-#if ENABLE_ZMQ
-UniValue getnewzmqserverkeypair(const JSONRPCRequest& request)
-{
-    if (request.fHelp || request.params.size() != 0)
-        throw std::runtime_error(
-            "getnewzmqserverkeypair\n"
-            "\nReturns a newly generated server keypair for use with zmq.\n");
-
-    char server_public_key[41], server_secret_key[41];
-    zmq_curve_keypair(server_public_key, server_secret_key);
-
-    UniValue obj(UniValue::VOBJ);
-    obj.pushKV("server_secret_key", server_secret_key);
-    obj.pushKV("server_public_key", server_public_key);
-
-    std::string sBase64 = EncodeBase64((uint8_t*)server_secret_key, 40);
-    obj.pushKV("server_secret_key_b64", sBase64);
-
-    return obj;
-}
-#endif
-
 static UniValue getinfo_deprecated(const JSONRPCRequest& request)
 {
     throw JSONRPCError(RPC_METHOD_NOT_FOUND,
@@ -564,11 +538,6 @@ static const CRPCCommand commands[] =
     { "util",               "createmultisig",         &createmultisig,         {"nrequired","keys"} },
     { "util",               "verifymessage",          &verifymessage,          {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", &signmessagewithprivkey, {"privkey","message"} },
-
-    /* ZMQ */
-    #if ENABLE_ZMQ
-    { "zmq",                "getnewzmqserverkeypair", &getnewzmqserverkeypair, {} },
-    #endif
 
     /* Not shown in help */
     { "hidden",             "setmocktime",            &setmocktime,            {"timestamp","is_offset"}},

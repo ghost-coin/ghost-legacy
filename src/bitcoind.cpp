@@ -19,9 +19,6 @@
 #include <httpserver.h>
 #include <httprpc.h>
 #include <utilstrencodings.h>
-#if ENABLE_ZMQ
-#include <zmq.h>
-#endif
 #include <walletinitinterface.h>
 
 #include <stdio.h>
@@ -52,6 +49,10 @@ static void WaitForShutdown()
     }
     Interrupt();
 }
+
+#if ENABLE_ZMQ
+extern int GetNewZMQKeypair(char *server_public_key, char *server_secret_key);
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -98,7 +99,10 @@ static bool AppInit(int argc, char* argv[])
         std::string sOut;
 
         char server_public_key[41], server_secret_key[41];
-        zmq_curve_keypair(server_public_key, server_secret_key);
+        if (0 != GetNewZMQKeypair(server_public_key, server_secret_key)) {
+            fprintf(stdout, "zmq_curve_keypair failed.\n");
+            return true;
+        }
         sOut = "Server Public key:      " + std::string(server_public_key) + "\n"
              + "Server Secret key:      " + std::string(server_secret_key) + "\n"
              + "Server Secret key b64:  " + EncodeBase64((uint8_t*)server_secret_key, 40) + "\n";

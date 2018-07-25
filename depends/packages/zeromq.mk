@@ -4,10 +4,9 @@ $(package)_download_path=https://github.com/zeromq/libzmq/releases/download/v$($
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=cc9090ba35713d59bb2f7d7965f877036c49c5558ea0c290b0dcc6f2a17e489f
 $(package)_patches=0001-fix-build-with-older-mingw64.patch 0002-disable-pthread_set_name_np.patch
-$(package)_dependencies=libsodium
 
 define $(package)_set_vars
-  $(package)_config_opts=--without-docs --disable-shared --with-libsodium --enable-curve --disable-perf --disable-Werror
+  $(package)_config_opts=--without-docs --disable-shared --without-libsodium --enable-curve --disable-perf --disable-Werror
   $(package)_config_opts_linux=--with-pic
   $(package)_cxxflags=-std=c++11
 endef
@@ -15,7 +14,9 @@ endef
 define $(package)_preprocess_cmds
    patch -p1 < $($(package)_patch_dir)/0001-fix-build-with-older-mingw64.patch && \
    patch -p1 < $($(package)_patch_dir)/0002-disable-pthread_set_name_np.patch && \
-   cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub config
+   cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub config && \
+   sed -i 's/getrandom(buf/breakgetrandom(buf/g' acinclude.m4 && \
+   ./autogen.sh;
 endef
 
 define $(package)_config_cmds
