@@ -84,6 +84,7 @@ public:
         EXT_SECRET_KEY_BTC,
         PUBKEY_ADDRESS_256,
         SCRIPT_ADDRESS_256,
+        STAKE_ONLY_PKADDR,
         MAX_BASE58_TYPES
     };
 

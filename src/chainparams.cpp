@@ -544,6 +544,7 @@ public:
         bech32Prefixes[STEALTH_ADDRESS].assign      ("ps","ps"+2);
         bech32Prefixes[EXT_KEY_HASH].assign         ("pek","pek"+3);
         bech32Prefixes[EXT_ACC_HASH].assign         ("pea","pea"+3);
+        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("pcs","pcs"+3);
 
         bech32_hrp = "bc";
 
@@ -702,6 +703,7 @@ public:
         bech32Prefixes[STEALTH_ADDRESS].assign      ("tps","tps"+3);
         bech32Prefixes[EXT_KEY_HASH].assign         ("tpek","tpek"+4);
         bech32Prefixes[EXT_ACC_HASH].assign         ("tpea","tpea"+4);
+        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tpcs","tpcs"+4);
 
         bech32_hrp = "tb";
 
