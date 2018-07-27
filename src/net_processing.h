@@ -88,6 +88,6 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
 //void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
 /** Decrease a node's misbehavior score. */
-void DecMisbehaving(NodeId nodeid, int howmuch);
+void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 #endif // BITCOIN_NET_PROCESSING_H

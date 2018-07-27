@@ -4293,7 +4293,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(const std::string& name_,
         // Regenerate the keypool if upgraded to HD
         if (hd_upgrade) {
             if (!walletInstance->TopUpKeyPool()) {
-                InitError(_("Unable to generate keys") += "\n");
+                InitError(_("Unable to generate keys"));
                 return nullptr;
             }
         }
@@ -4321,7 +4321,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(const std::string& name_,
 
         // Top up the keypool
         if (!walletInstance->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS) && !walletInstance->TopUpKeyPool()) {
-            InitError(_("Unable to generate initial keys") += "\n");
+            InitError(_("Unable to generate initial keys"));
             return nullptr;
         }
 
