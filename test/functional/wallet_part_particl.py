@@ -582,6 +582,26 @@ class WalletParticlTest(ParticlTestFramework):
         assert(ro['address'].startswith('tpl1'))
         assert(ro['ismine'] == True)
 
+        addr = nodes[0].getnewaddress('test stakeonly p2pkh encoding')
+        ro1 = nodes[0].validateaddress(addr, True)
+        ro2 = nodes[0].validateaddress(ro1['stakeonly_address'], True)
+        assert(ro2['isstakeonly'] == True)
+        assert(ro2['base58_address'] == addr)
+        assert(ro2['stakeonly_address'] == ro1['stakeonly_address'])
+        assert(ro2['address'] == ro1['bech32_address'])
+
+        ro3 = nodes[0].getaddressinfo(ro1['stakeonly_address'])
+        assert(ro3['isstakeonly'] == True)
+        assert(ro3['address'] == ro1['stakeonly_address'])
+
+        addr = nodes[0].getnewaddress('test validateaddressy p2pkh bech32', 'true')
+        ro = nodes[0].validateaddress(addr)
+        assert(ro['address'] == addr)
+
+        ro = nodes[0].getaddressinfo(addr)
+        assert(ro['address'] == addr)
+
+
         #sAddrStake = sHardenedAddr
         sAddrStake = 'pomrQeo26xVLV5pnuDYkTUYuABFuP13HHE'
         sAddrSpend = 'tpl1vj4wplpq9ct7zmms3tvpr5dah84txlffz9sp5s5w4c7dhh6hvqus29mjpy'

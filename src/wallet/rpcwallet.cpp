@@ -235,29 +235,25 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
     if (!request.params[0].isNull())
         label = LabelFromValue(request.params[0]);
 
-    if (IsParticlWallet(pwallet))
-    {
+    if (IsParticlWallet(pwallet)) {
         CKeyID keyID;
         bool fBech32 = false;
-        if (request.params.size() > 1)
-        {
+        if (request.params.size() > 1) {
             std::string s = request.params[1].get_str();
             fBech32 = part::IsStringBoolPositive(s);
-        };
+        }
 
         bool fHardened = false;
-        if (request.params.size() > 2)
-        {
+        if (request.params.size() > 2) {
             std::string s = request.params[2].get_str();
             fHardened = part::IsStringBoolPositive(s);
-        };
+        }
 
         bool f256bit = false;
-        if (request.params.size() > 3)
-        {
+        if (request.params.size() > 3) {
             std::string s = request.params[3].get_str();
             f256bit = part::IsStringBoolPositive(s);
-        };
+        }
 
         CPubKey newKey;
         CHDWallet *phdw = GetParticlWallet(pwallet);
@@ -267,22 +263,21 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
 
             {
                 LOCK(phdw->cs_wallet);
-                if (phdw->idDefaultAccount.IsNull())
-                {
+                if (phdw->idDefaultAccount.IsNull()) {
                     if (!phdw->pEKMaster)
                         throw JSONRPCError(RPC_WALLET_ERROR, _("Wallet has no active master key."));
                     throw JSONRPCError(RPC_WALLET_ERROR, _("No default account set."));
-                };
+                }
             }
-            if (0 != phdw->NewKeyFromAccount(newKey, false, fHardened, f256bit, fBech32, label.c_str()))
+            if (0 != phdw->NewKeyFromAccount(newKey, false, fHardened, f256bit, fBech32, label.c_str())) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "NewKeyFromAccount failed.");
+            }
         }
 
-        if (f256bit)
-        {
+        if (f256bit) {
             CKeyID256 idKey256 = newKey.GetID256();
             return CBitcoinAddress(idKey256, fBech32).ToString();
-        };
+        }
         keyID = newKey.GetID();
         return CBitcoinAddress(keyID, fBech32).ToString();
     };
@@ -5060,37 +5055,38 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
     UniValue ret(UniValue::VOBJ);
     std::string s = request.params[0].get_str();
     bool fBech32 = bech32::Decode(s).second.size() > 0;
+    bool is_stake_only_version = false;
     CTxDestination dest = DecodeDestination(s);
+    if (fBech32 && !IsValidDestination(dest)) {
+        dest = DecodeDestination(s, true);
+        is_stake_only_version = true;
+    }
 
     // Make sure the destination is valid
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
-    std::string currentAddress = EncodeDestination(dest, fBech32);
+    std::string currentAddress = EncodeDestination(dest, fBech32, is_stake_only_version);
     ret.pushKV("address", currentAddress);
 
     CScript scriptPubKey = GetScriptForDestination(dest);
     ret.pushKV("scriptPubKey", HexStr(scriptPubKey.begin(), scriptPubKey.end()));
 
     isminetype mine = ISMINE_NO;
-    if (IsParticlWallet(pwallet))
-    {
+    if (IsParticlWallet(pwallet)) {
         CHDWallet *phdw = GetParticlWallet(pwallet);
-        if (dest.type() == typeid(CExtKeyPair))
-        {
+        if (dest.type() == typeid(CExtKeyPair)) {
             CExtKeyPair ek = boost::get<CExtKeyPair>(dest);
             CKeyID id = ek.GetID();
             mine = phdw->HaveExtKey(id);
         } else
-        if (dest.type() == typeid(CStealthAddress))
-        {
+        if (dest.type() == typeid(CStealthAddress)) {
             const CStealthAddress &sxAddr = boost::get<CStealthAddress>(dest);
             mine = phdw->HaveStealthAddress(sxAddr);
         } else
         if (dest.type() == typeid(CKeyID)
-            || dest.type() == typeid(CKeyID256))
-        {
+            || dest.type() == typeid(CKeyID256)) {
             CKeyID idk;
             const CEKAKey *pak = nullptr;
             const CEKASCKey *pasc = nullptr;
@@ -5098,11 +5094,9 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
             bool isInvalid;
             mine = phdw->IsMine(scriptPubKey, idk, pak, pasc, pa, isInvalid);
 
-            if (pa && pak)
-            {
+            if (pa && pak) {
                 CStoredExtKey *sek = pa->GetChain(pak->nParent);
-                if (sek)
-                {
+                if (sek) {
                     ret.pushKV("from_ext_address_id", sek->GetIDString58());
                     std::string sPath;
                     std::vector<uint32_t> vPath;
@@ -5110,31 +5104,32 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
                     vPath.push_back(pak->nKey);
                     PathToString(vPath, sPath);
                     ret.pushKV("path", sPath);
-                } else
-                {
+                } else {
                     ret.pushKV("error", "Unknown chain.");
-                };
+                }
             } else
-            if (dest.type() == typeid(CKeyID))
-            {
+            if (dest.type() == typeid(CKeyID)) {
                 CStealthAddress sx;
                 idk = boost::get<CKeyID>(dest);
-                if (phdw->GetStealthLinked(idk, sx))
+                if (phdw->GetStealthLinked(idk, sx)) {
                     ret.pushKV("from_stealth_address", sx.Encoded());
-            };
-        } else
-        {
+                }
+            }
+        } else {
             mine = phdw ? IsMine(*phdw, dest) : ISMINE_NO;
-        };
-        if (mine & ISMINE_HARDWARE_DEVICE)
+        }
+        if (mine & ISMINE_HARDWARE_DEVICE) {
             ret.pushKV("isondevice", true);
-    } else
-    {
+        }
+    } else {
         mine = IsMine(*pwallet, dest);
-    };
+    }
 
     ret.pushKV("ismine", bool(mine & ISMINE_SPENDABLE));
     ret.pushKV("iswatchonly", bool(mine & ISMINE_WATCH_ONLY));
+    if (is_stake_only_version) {
+        ret.pushKV("isstakeonly", true);
+    }
     UniValue detail = DescribeWalletAddress(pwallet, dest);
     ret.pushKVs(detail);
     if (pwallet->mapAddressBook.count(dest)) {

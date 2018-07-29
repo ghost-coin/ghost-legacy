@@ -73,26 +73,24 @@ const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime) const
 
 bool CChainParams::IsBech32Prefix(const std::vector<unsigned char> &vchPrefixIn) const
 {
-    for (auto &hrp : bech32Prefixes)
-    {
-        if (vchPrefixIn == hrp)
+    for (auto &hrp : bech32Prefixes)  {
+        if (vchPrefixIn == hrp) {
             return true;
-    };
+        }
+    }
 
     return false;
 };
 
 bool CChainParams::IsBech32Prefix(const std::vector<unsigned char> &vchPrefixIn, CChainParams::Base58Type &rtype) const
 {
-    for (size_t k = 0; k < MAX_BASE58_TYPES; ++k)
-    {
+    for (size_t k = 0; k < MAX_BASE58_TYPES; ++k) {
         auto &hrp = bech32Prefixes[k];
-        if (vchPrefixIn == hrp)
-        {
+        if (vchPrefixIn == hrp) {
             rtype = static_cast<CChainParams::Base58Type>(k);
             return true;
-        };
-    };
+        }
+    }
 
     return false;
 };
@@ -101,7 +99,7 @@ bool CChainParams::IsBech32Prefix(const char *ps, size_t slen, CChainParams::Bas
 {
     for (size_t k = 0; k < MAX_BASE58_TYPES; ++k)
     {
-        auto &hrp = bech32Prefixes[k];
+        const auto &hrp = bech32Prefixes[k];
         size_t hrplen = hrp.size();
         if (hrplen > 0
             && slen > hrplen
@@ -836,7 +834,8 @@ public:
         bech32Prefixes[EXT_SECRET_KEY].assign       ("tpex","tpex"+4);
         bech32Prefixes[STEALTH_ADDRESS].assign      ("tps","tps"+3);
         bech32Prefixes[EXT_KEY_HASH].assign         ("tpek","tpek"+4);
-        bech32Prefixes[EXT_KEY_HASH].assign         ("tpea","tpea"+4);
+        bech32Prefixes[EXT_ACC_HASH].assign         ("tpea","tpea"+4);
+        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tpcs","tpcs"+4);
 
         bech32_hrp = "bcrt";
 

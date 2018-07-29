@@ -1114,7 +1114,7 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
     }
 
     ColdStakeIndexLinkKey seek_key;
-    CTxDestination stake_dest = DecodeDestination(request.params[0].get_str());
+    CTxDestination stake_dest = DecodeDestination(request.params[0].get_str(), true);
     if (stake_dest.type() == typeid(CKeyID)) {
         seek_key.m_stake_type = TX_PUBKEYHASH;
         CKeyID id = boost::get<CKeyID>(stake_dest);

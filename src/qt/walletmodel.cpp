@@ -138,9 +138,9 @@ void WalletModel::updateWatchOnlyFlag(bool fHaveWatchonly)
     Q_EMIT notifyWatchonlyChanged(fHaveWatchonly);
 }
 
-bool WalletModel::validateAddress(const QString &address)
+bool WalletModel::validateAddress(const QString &address, bool allow_stakeonly)
 {
-    return IsValidDestinationString(address.toStdString());
+    return IsValidDestinationString(address.toStdString(), allow_stakeonly);
 }
 
 WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransaction &transaction, const CCoinControl& coinControl)
@@ -186,7 +186,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         {   // User-entered bitcoin address / amount:
             if (rcp.m_coldstake)
             {
-                if (!validateAddress(rcp.spend_address) || !validateAddress(rcp.stake_address)) {
+                if (!validateAddress(rcp.spend_address) || !validateAddress(rcp.stake_address, true)) {
                     return InvalidAddress;
                 }
             } else

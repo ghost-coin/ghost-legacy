@@ -708,7 +708,7 @@ public:
     size_t CountColdstakeOutputs();
 
     /* Return a script for a simple address type (normal/extended) */
-    bool GetScriptForAddress(CScript &script, const CBitcoinAddress &addr, bool fUpdate = false, std::vector<uint8_t> *vData = NULL);
+    bool GetScriptForAddress(CScript &script, const CBitcoinAddress &addr, bool fUpdate = false, std::vector<uint8_t> *vData = NULL, bool allow_stakeonly = false);
 
     bool SetReserveBalance(CAmount nNewReserveBalance);
     uint64_t GetStakeWeight() const;

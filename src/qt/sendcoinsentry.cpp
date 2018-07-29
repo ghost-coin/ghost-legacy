@@ -33,7 +33,7 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *par
         setCurrentWidget(ui->SendCoins_cs);
 
         // normal bitcoin address field
-        GUIUtil::setupAddressWidget(ui->stakeAddr, this);
+        GUIUtil::setupAddressWidget(ui->stakeAddr, this, true);
         GUIUtil::setupAddressWidget(ui->spendAddr, this);
         // just a label for displaying bitcoin address(es)
         ui->stakeAddr->setFont(GUIUtil::fixedPitchFont());
@@ -209,7 +209,7 @@ bool SendCoinsEntry::validate(interfaces::Node& node)
         return retval;
 
     if (m_coldstake) {
-        if (!model->validateAddress(ui->stakeAddr->text())) {
+        if (!model->validateAddress(ui->stakeAddr->text(), true)) {
             ui->stakeAddr->setValid(false);
             retval = false;
         }

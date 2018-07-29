@@ -602,6 +602,13 @@ SendCoinsEntry *SendCoinsDialog::addEntry()
 
 SendCoinsEntry *SendCoinsDialog::addEntryCS()
 {
+    if (ui->entries->count() == 1) {
+        SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(0)->widget());
+        if (entry->isClear() && !entry->m_coldstake) {
+            ui->entries->takeAt(0)->widget()->deleteLater();
+        }
+    }
+
     SendCoinsEntry *entry = new SendCoinsEntry(platformStyle, this, true);
     entry->setModel(model);
     ui->entries->addWidget(entry);

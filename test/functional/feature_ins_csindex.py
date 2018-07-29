@@ -58,10 +58,20 @@ class TxIndexTest(ParticlTestFramework):
                             [{'address': 'script', 'amount':12000, 'script':toScript['hex']},
                              {'address': 'script', 'amount':12000, 'script':toScript['hex']}])
 
-        toScript = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake2, 'addrspend': addrSpend2})
+        addrStake2_stakeonly = nodes[1].validateaddress(addrStake2, True)['stakeonly_address']
+        toScript = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake2_stakeonly, 'addrspend': addrSpend2})
         nodes[1].sendtypeto('part', 'part',
                             [{'address': 'script', 'amount':12, 'script':toScript['hex']}])
 
+        try:
+            nodes[1].sendtoaddress(addrStake2_stakeonly, 12)
+        except JSONRPCException as e:
+            assert('Invalid address' in e.error['message'])
+        try:
+            nodes[1].sendtypeto('part', 'part',
+                                [{'address': addrStake2_stakeonly, 'amount':12}])
+        except JSONRPCException as e:
+            assert('Can\'t send to stake-only address version' in e.error['message'])
 
         self.sync_all()
 
@@ -88,6 +98,9 @@ class TxIndexTest(ParticlTestFramework):
         assert(len(ro) == 1)
         assert(ro[0]['value'] == 1200000000)
         assert(ro[0]['addrspend'] == addrSpend2)
+
+        ro2 = nodes[2].listcoldstakeunspent(addrStake2_stakeonly)
+        assert(json.dumps(ro2) == json.dumps(ro))
 
         self.stakeBlocks(1)
 

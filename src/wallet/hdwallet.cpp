@@ -294,71 +294,61 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
     nWalletDevFundCedePercent = gArgs.GetArg("-foundationdonationpercent", 0);
 
     UniValue json;
-    if (GetSetting("stakingoptions", json))
-    {
-        if (!json["enabled"].isNull())
-        {
+    if (GetSetting("stakingoptions", json)) {
+        if (!json["enabled"].isNull()) {
             try { fStakingEnabled = GetBool(json["enabled"]);
             } catch (std::exception &e) {
                 sError = "Setting \"enabled\" failed.";
-            };
-        };
+            }
+        }
 
-        if (!json["stakecombinethreshold"].isNull())
-        {
+        if (!json["stakecombinethreshold"].isNull()) {
             try { nStakeCombineThreshold = AmountFromValue(json["stakecombinethreshold"]);
             } catch (std::exception &e) {
                 sError = "\"stakecombinethreshold\" not amount.";
-            };
-        };
+            }
+        }
 
-        if (!json["stakesplitthreshold"].isNull())
-        {
+        if (!json["stakesplitthreshold"].isNull()) {
             try { nStakeSplitThreshold = AmountFromValue(json["stakesplitthreshold"]);
             } catch (std::exception &e) {
                 sError = "\"stakesplitthreshold\" not amount.";
-            };
-        };
+            }
+        }
 
-        if (!json["foundationdonationpercent"].isNull())
-        {
+        if (!json["foundationdonationpercent"].isNull()) {
             try { nWalletDevFundCedePercent = json["foundationdonationpercent"].get_int();
             } catch (std::exception &e) {
                 sError = "\"foundationdonationpercent\" not integer.";
-            };
-        };
+            }
+        }
 
-        if (json["rewardaddress"].isStr())
-        {
+        if (json["rewardaddress"].isStr()) {
             try { rewardAddress = CBitcoinAddress(json["rewardaddress"].get_str());
             } catch (std::exception &e) {
                 sError = "Setting \"rewardaddress\" failed.";
-            };
-        };
-    };
+            }
+        }
+    }
 
-    if (nStakeCombineThreshold < 100 * COIN || nStakeCombineThreshold > 5000 * COIN)
-    {
+    if (nStakeCombineThreshold < 100 * COIN || nStakeCombineThreshold > 5000 * COIN) {
         sError = "\"stakecombinethreshold\" must be >= 100 and <= 5000.";
         nStakeCombineThreshold = 1000 * COIN;
-    };
+    }
 
-    if (nStakeSplitThreshold < nStakeCombineThreshold * 2 || nStakeSplitThreshold > 10000 * COIN)
-    {
+    if (nStakeSplitThreshold < nStakeCombineThreshold * 2 || nStakeSplitThreshold > 10000 * COIN) {
         sError = "\"stakesplitthreshold\" must be >= 2x \"stakecombinethreshold\" and <= 10000.";
         nStakeSplitThreshold = nStakeCombineThreshold * 2;
-    };
+    }
 
-    if (nWalletDevFundCedePercent < 0)
-    {
+    if (nWalletDevFundCedePercent < 0) {
         LogPrintf("%s: Warning \"foundationdonationpercent\" out of range %d, clamped to %d\n", nWalletDevFundCedePercent, 0);
         nWalletDevFundCedePercent = 0;
     } else
-    if (nWalletDevFundCedePercent > 100)
-    {
+    if (nWalletDevFundCedePercent > 100) {
         LogPrintf("%s: \"Warning foundationdonationpercent\" out of range %d, clamped to %d\n", nWalletDevFundCedePercent, 100);
         nWalletDevFundCedePercent = 100;
-    };
+    }
 
     return true;
 };
@@ -1048,31 +1038,27 @@ isminetype CHDWallet::HaveAddress(const CTxDestination &dest)
 {
     LOCK(cs_wallet);
 
-    if (dest.type() == typeid(CKeyID))
-    {
+    if (dest.type() == typeid(CKeyID)) {
         CKeyID id = boost::get<CKeyID>(dest);
         return IsMine(id);
-    };
+    }
 
-    if (dest.type() == typeid(CKeyID256))
-    {
+    if (dest.type() == typeid(CKeyID256)) {
         CKeyID256 id256 = boost::get<CKeyID256>(dest);
         CKeyID id(id256);
         return IsMine(id);
-    };
+    }
 
-    if (dest.type() == typeid(CExtKeyPair))
-    {
+    if (dest.type() == typeid(CExtKeyPair)) {
         CExtKeyPair ek = boost::get<CExtKeyPair>(dest);
         CKeyID id = ek.GetID();
         return HaveExtKey(id);
-    };
+    }
 
-    if (dest.type() == typeid(CStealthAddress))
-    {
+    if (dest.type() == typeid(CStealthAddress)) {
         CStealthAddress sx = boost::get<CStealthAddress>(dest);
         return HaveStealthAddress(sx);
-    };
+    }
 
     return ISMINE_NO;
 };
@@ -3422,21 +3408,19 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
             r.scriptPubKey = GetScriptForDestination(idChange);
         };
 
-        if (r.nType == OUTPUT_STANDARD)
-        {
-            if (jsonSettings["coldstakingaddress"].isStr())
-            {
+        if (r.nType == OUTPUT_STANDARD) {
+            if (jsonSettings["coldstakingaddress"].isStr()) {
                 LogPrintf("%s: Adding coldstaking script.\n", __func__);
                 std::string sAddress = jsonSettings["coldstakingaddress"].get_str();
 
-                CBitcoinAddress addr(sAddress);
-                if (!addr.IsValid())
+                CTxDestination destStake = DecodeDestination(sAddress, true);
+                if (destStake.type() == typeid(CNoDestination)) {
                     return errorN(0, sError, __func__, "Invalid coldstaking address setting.");
-                r.addressColdStaking = addr.Get();
+                }
+                r.addressColdStaking = destStake;
 
                 CScript scriptStaking;
-                if (r.addressColdStaking.type() == typeid(CExtKeyPair))
-                {
+                if (r.addressColdStaking.type() == typeid(CExtKeyPair)) {
                     CExtKeyPair ek = boost::get<CExtKeyPair>(r.addressColdStaking);
                     uint32_t nChildKey;
 
@@ -3448,32 +3432,29 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
                     CKeyID idTo = pkTemp.GetID();
                     scriptStaking = GetScriptForDestination(idTo);
                 } else
-                if (r.addressColdStaking.type() == typeid(CKeyID))
-                {
+                if (r.addressColdStaking.type() == typeid(CKeyID)) {
                     CKeyID idk = boost::get<CKeyID>(r.addressColdStaking);
 
                     scriptStaking = GetScriptForDestination(idk);
-                };
+                }
 
                 // Switch to sha256 hash
                 CKeyID256 idChange = r.pkTo.GetID256();
                 r.address = idChange;
                 r.scriptPubKey = GetScriptForDestination(idChange);
 
-                if (scriptStaking.IsPayToPublicKeyHash())
-                {
+                if (scriptStaking.IsPayToPublicKeyHash()) {
                     CScript script = CScript() << OP_ISCOINSTAKE << OP_IF;
                     script += scriptStaking;
                     script << OP_ELSE;
                     script += r.scriptPubKey;
                     script << OP_ENDIF;
                     r.scriptPubKey = script;
-                } else
-                {
+                } else {
                     return errorN(false, sError, __func__, "Unknown scriptStaking type, must be pay-to-public-key-hash.");
-                };
-            };
-        };
+                }
+            }
+        }
 
 
         return true;
@@ -11542,11 +11523,15 @@ size_t CHDWallet::CountColdstakeOutputs()
     return nColdstakeOutputs;
 };
 
-bool CHDWallet::GetScriptForAddress(CScript &script, const CBitcoinAddress &addr, bool fUpdate, std::vector<uint8_t> *vData)
+bool CHDWallet::GetScriptForAddress(CScript &script, const CBitcoinAddress &addr, bool fUpdate, std::vector<uint8_t> *vData, bool allow_stakeonly)
 {
     LOCK(cs_wallet);
 
     CTxDestination dest = addr.Get();
+    if (allow_stakeonly && dest.type() == typeid(CNoDestination())) {
+        dest = addr.GetStakeOnly();
+    }
+
     if (dest.type() == typeid(CStealthAddress))
     {
         if (!vData)
@@ -11910,7 +11895,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
                     CBitcoinAddress addrColdStaking(sAddress);
                     CScript scriptStaking;
-                    if (!GetScriptForAddress(scriptStaking, addrColdStaking, true)) {
+                    if (!GetScriptForAddress(scriptStaking, addrColdStaking, true, NULL, true)) {
                         return error("%s: GetScriptForAddress failed.", __func__);
                     }
 

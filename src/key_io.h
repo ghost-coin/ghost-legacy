@@ -28,10 +28,10 @@ std::string EncodeExtKey(const CExtKey& extkey);
 CExtPubKey DecodeExtPubKey(const std::string& str);
 std::string EncodeExtPubKey(const CExtPubKey& extpubkey);
 
-std::string EncodeDestination(const CTxDestination& dest, bool fBech32=false);
-CTxDestination DecodeDestination(const std::string& str);
-bool IsValidDestinationString(const std::string& str);
-bool IsValidDestinationString(const std::string& str, const CChainParams& params);
+std::string EncodeDestination(const CTxDestination& dest, bool fBech32=false, bool stake_only=false);
+CTxDestination DecodeDestination(const std::string& str, bool allow_stake_only=false);
+bool IsValidDestinationString(const std::string& str, bool allow_stake_only=false);
+bool IsValidDestinationString(const std::string& str, const CChainParams& params, bool allow_stake_only=false);
 
 /**
  * Base class for all base58-encoded data
@@ -62,6 +62,8 @@ public:
     bool operator>=(const CBase58Data& b58) const { return CompareTo(b58) >= 0; }
     bool operator< (const CBase58Data& b58) const { return CompareTo(b58) <  0; }
     bool operator> (const CBase58Data& b58) const { return CompareTo(b58) >  0; }
+
+    bool IsBech32() const {return fBech32;}
 };
 
 /** base58-encoded Bitcoin addresses.
@@ -94,6 +96,7 @@ public:
     CBitcoinAddress(const char* pszAddress) { SetString(pszAddress); }
 
     CTxDestination Get() const;
+    CTxDestination GetStakeOnly() const;
     bool GetKeyID(CKeyID &keyID) const;
     bool GetKeyID(CKeyID256 &keyID) const;
     bool GetKeyID(CKeyID &keyID, CChainParams::Base58Type prefix) const;
@@ -102,11 +105,20 @@ public:
 
     uint8_t getVersion()
     {
-        // TODO: fix
+        // TODO: Fix for multibyte versions
         if (vchVersion.size() > 0)
             return vchVersion[0];
         return 0;
-    };
+    }
+    std::vector<uint8_t> &getVchVersion()
+    {
+        return vchVersion;
+    }
+    void setVersion(const std::vector<uint8_t> &version)
+    {
+        vchVersion = version;
+        return;
+    }
 };
 
 /**

@@ -87,6 +87,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "addmultisigaddress", 4, "256bit" },
     { "createmultisig", 0, "nrequired" },
     { "createmultisig", 1, "keys" },
+    { "validateaddress", 1, "showaltversions" },
     { "listunspent", 0, "minconf" },
     { "listunspent", 1, "maxconf" },
     { "listunspent", 2, "addresses" },

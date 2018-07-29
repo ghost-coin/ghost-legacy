@@ -41,9 +41,9 @@
 
 static UniValue validateaddress(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1)
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
-            "validateaddress \"address\"\n"
+            "validateaddress \"address\" (showaltversions)\n"
             "\nReturn information about the given particl address.\n"
             "DEPRECATION WARNING: Parts of this command have been deprecated and moved to getaddressinfo. Clients must\n"
             "transition to using getaddressinfo to access this information before upgrading to v0.18. The following deprecated\n"
@@ -51,6 +51,7 @@ static UniValue validateaddress(const JSONRPCRequest& request)
             "script, hex, pubkeys, sigsrequired, pubkey, addresses, embedded, iscompressed, account, timestamp, hdkeypath, kdmasterkeyid.\n"
             "\nArguments:\n"
             "1. \"address\"                    (string, required) The particl address to validate\n"
+            "2. showaltversions              (bool, optional) Display all alternative encodings and versions,\n"
             "\nResult:\n"
             "{\n"
             "  \"isvalid\" : true|false,       (boolean) If the address is valid or not. If not, this is the only property returned.\n"
@@ -74,8 +75,20 @@ static UniValue validateaddress(const JSONRPCRequest& request)
     CTxDestination dest = DecodeDestination(s);
     bool isValid = IsValidDestination(dest);
 
+    bool is_stake_only_version = false;
+    if (!isValid) {
+        dest = DecodeDestination(s, true);
+        isValid = IsValidDestination(dest);
+        if (isValid) {
+            is_stake_only_version = true;
+        }
+    }
+
     UniValue ret(UniValue::VOBJ);
     ret.pushKV("isvalid", isValid);
+    if (is_stake_only_version) {
+        ret.pushKV("isstakeonly", true);
+    }
     if (isValid)
     {
 #ifdef ENABLE_WALLET
@@ -92,6 +105,17 @@ static UniValue validateaddress(const JSONRPCRequest& request)
 
             UniValue detail = DescribeAddress(dest);
             ret.pushKVs(detail);
+        }
+
+        if (!request.params[1].isNull() && GetBool(request.params[1])) {
+            if (fBech32) {
+                ret.pushKV("base58_address", EncodeDestination(dest, false));
+            } else {
+                ret.pushKV("bech32_address", EncodeDestination(dest, true));
+            }
+            if (dest.type() == typeid(CKeyID)) {
+                ret.pushKV("stakeonly_address", EncodeDestination(dest, true, true));
+            }
         }
     }
     return ret;
@@ -534,7 +558,7 @@ static const CRPCCommand commands[] =
   //  --------------------- ------------------------  -----------------------  ----------
     { "control",            "getmemoryinfo",          &getmemoryinfo,          {"mode"} },
     { "control",            "logging",                &logging,                {"include", "exclude"}},
-    { "util",               "validateaddress",        &validateaddress,        {"address"} }, /* uses wallet if enabled */
+    { "util",               "validateaddress",        &validateaddress,        {"address","showaltversions"} }, /* uses wallet if enabled */
     { "util",               "createmultisig",         &createmultisig,         {"nrequired","keys"} },
     { "util",               "verifymessage",          &verifymessage,          {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", &signmessagewithprivkey, {"privkey","message"} },
