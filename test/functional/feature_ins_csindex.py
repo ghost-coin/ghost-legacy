@@ -45,6 +45,9 @@ class TxIndexTest(ParticlTestFramework):
         addrStake = nodes[2].getnewaddress('addrStake')
         addrSpend = nodes[2].getnewaddress('addrSpend', 'false', 'false', 'true')
 
+        addrStake2 = nodes[2].getnewaddress('addrStake2')
+        addrSpend2 = nodes[2].getnewaddress('addrSpend2', 'false', 'false', 'true')
+
         for i in range(len(nodes)):
             nodes[i].setmocktime(1530566486, True)  # Clamp for more consistent runtime
 
@@ -54,6 +57,11 @@ class TxIndexTest(ParticlTestFramework):
         nodes[1].sendtypeto('part', 'part',
                             [{'address': 'script', 'amount':12000, 'script':toScript['hex']},
                              {'address': 'script', 'amount':12000, 'script':toScript['hex']}])
+
+        toScript = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake2, 'addrspend': addrSpend2})
+        nodes[1].sendtypeto('part', 'part',
+                            [{'address': 'script', 'amount':12, 'script':toScript['hex']}])
+
 
         self.sync_all()
 
@@ -69,10 +77,18 @@ class TxIndexTest(ParticlTestFramework):
         self.stakeBlocks(1)
         ro = nodes[2].listcoldstakeunspent(addrStake)
         assert(len(ro) == 2)
+        assert(ro[0]['value'] == ro[1]['value'] == 1200000000000)
+        assert(ro[0]['addrspend'] == ro[1]['addrspend'] == addrSpend)
         ro = nodes[2].listcoldstakeunspent(addrStake, 2, {'mature_only': True})
         assert(len(ro) == 0)
         ro = nodes[2].listcoldstakeunspent(addrStake, 2, {'mature_only': True, 'all_staked': True})
         assert(len(ro) == 0)
+
+        ro = nodes[2].listcoldstakeunspent(addrStake2)
+        assert(len(ro) == 1)
+        assert(ro[0]['value'] == 1200000000)
+        assert(ro[0]['addrspend'] == addrSpend2)
+
         self.stakeBlocks(1)
 
         self.stakeBlocks(1,nStakeNode=2)

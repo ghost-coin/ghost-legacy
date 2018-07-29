@@ -88,10 +88,12 @@ public:
     }
 
     friend bool operator<(const ColdStakeIndexLinkKey& a, const ColdStakeIndexLinkKey& b) {
-        if (a.m_stake_id.Compare(b.m_stake_id) < 0)
-            return true;
-        if (a.m_spend_id.Compare(b.m_spend_id) < 0)
-            return true;
+        int cmp = a.m_stake_id.Compare(b.m_stake_id);
+        if (cmp < 0) return true;
+        if (cmp > 0) return false;
+        cmp = a.m_spend_id.Compare(b.m_spend_id);
+        if (cmp < 0) return true;
+        if (cmp > 0) return false;
         return a.m_height < b.m_height;
     }
 };
