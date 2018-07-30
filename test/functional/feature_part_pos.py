@@ -161,7 +161,7 @@ class PosTest(ParticlTestFramework):
         ro = nodes[0].getrawtransaction(coinstakehash, True)
 
         fFound = False
-        for vout in ro["vout"]:
+        for vout in ro['vout']:
             try:
                 addr0 = vout['scriptPubKey']['addresses'][0]
                 ro = nodes[0].getaddressinfo(addr0)

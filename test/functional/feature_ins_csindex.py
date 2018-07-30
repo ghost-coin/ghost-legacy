@@ -65,11 +65,13 @@ class TxIndexTest(ParticlTestFramework):
 
         try:
             nodes[1].sendtoaddress(addrStake2_stakeonly, 12)
+            assert(False), 'Sent to stakeonly address'
         except JSONRPCException as e:
             assert('Invalid address' in e.error['message'])
         try:
             nodes[1].sendtypeto('part', 'part',
                                 [{'address': addrStake2_stakeonly, 'amount':12}])
+            assert(False), 'Sent to stakeonly address'
         except JSONRPCException as e:
             assert('Can\'t send to stake-only address version' in e.error['message'])
 
@@ -103,6 +105,10 @@ class TxIndexTest(ParticlTestFramework):
         assert(json.dumps(ro2) == json.dumps(ro))
 
         self.stakeBlocks(1)
+
+        # Lock the addrStake2 unspent, the unspents on addrStake must stake in the next block
+        ro = nodes[2].listcoldstakeunspent(addrStake2_stakeonly, -1, {'show_outpoints': True})
+        assert(nodes[2].lockunspent(False, [{'txid': ro[0]['txid'], 'vout': ro[0]['n']}]) == True)
 
         self.stakeBlocks(1,nStakeNode=2)
         ro = nodes[2].listcoldstakeunspent(addrStake)

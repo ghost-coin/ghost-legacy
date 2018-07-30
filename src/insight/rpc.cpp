@@ -1085,11 +1085,12 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
             "\nReturns the unspent outputs of \"stakeaddress\" at height.\n"
             "\nArguments:\n"
             "1. \"stakeaddress\"        (string, required) The stakeaddress to filter outputs by.\n"
-            "2. height                (numeric, optional) The block height to return outputs for.\n"
+            "2. height                (numeric, optional) The block height to return outputs for, -1 for current height.\n"
             "3. options               (object, optional)\n"
             "   {\n"
             "     \"mature_only\"         (boolean, optional, default false) Return only outputs stakeable at height.\n"\
             "     \"all_staked\"          (boolean, optional, default false) Ignore maturity check for outputs of coinstake transactions.\n"
+            "     \"show_outpoints\"      (boolean, optional, default false) Display txid and index per output.\n"
             "   }\n"
             "\nResult:\n"
             "[\n"
@@ -1131,10 +1132,14 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 
     LOCK(cs_main);
 
-    int height = !request.params[1].isNull() ? request.params[1].get_int() : chainActive.Tip()->nHeight;
+    int height = !request.params[1].isNull() ? request.params[1].get_int() : -1;
+    if (height == -1) {
+        height = chainActive.Tip()->nHeight;
+    }
 
     bool mature_only = false;
     bool all_staked = false;
+    bool show_outpoints = false;
     if (request.params[2].isObject()) {
         const UniValue &options = request.params[2];
         RPCTypeCheck(options, {UniValue::VBOOL, UniValue::VBOOL}, true);
@@ -1143,6 +1148,9 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
         }
         if (options["all_staked"].isBool()) {
             all_staked = options["all_staked"].get_bool();
+        }
+        if (options["show_outpoints"].isBool()) {
+            show_outpoints = options["show_outpoints"].get_bool();
         }
     }
 
@@ -1182,6 +1190,11 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
                     UniValue output(UniValue::VOBJ);
                     output.pushKV("height", (int)lk.m_height);
                     output.pushKV("value", ov.m_value);
+
+                    if (show_outpoints) {
+                        output.pushKV("txid", ok.m_txnid.ToString());
+                        output.pushKV("n", ok.m_n);
+                    }
 
                     switch (lk.m_spend_type) {
                         case TX_PUBKEYHASH: {
