@@ -5184,47 +5184,9 @@ UniValue sendtypeto(const JSONRPCRequest &request)
     return SendToInner(req, typeIn, typeOut);
 };
 
-static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
+
+static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *const pwallet)
 {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
-        return NullUniValue;
-
-    if (request.fHelp || request.params.size() < 3 || request.params.size() > 4)
-        throw std::runtime_error(
-            "createsignaturewithwallet \"hexstring\" \"prevtx\" \"address\" \"sighashtype\"\n"
-            "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
-            + HelpRequiringPassphrase(pwallet) + "\n"
-
-            "\nArguments:\n"
-            "1. \"hexstring\"                      (string, required) The transaction hex string\n"
-            "2. \"prevtx\"                         (json, required) The prevtx signing for\n"
-            "    {\n"
-            "     \"txid\":\"id\",                   (string, required) The transaction id\n"
-            "     \"vout\":n,                      (numeric, required) The output number\n"
-            "     \"scriptPubKey\": \"hex\",         (string, required) script key\n"
-            "     \"redeemScript\": \"hex\",         (string, required for P2SH or P2WSH) redeem script\n"
-            "     \"amount\": value                (numeric or string, required) The amount spent\n"
-            "     \"amount_commitment\": \"hex\",    (string, required) The amount commitment spent\n"
-            "   }\n"
-            "3. \"address\"                        (string, required) The address of the private key to sign with\n"
-            "4. \"sighashtype\"                    (string, optional, default=ALL) The signature hash type. Must be one of\n"
-            "       \"ALL\"\n"
-            "       \"NONE\"\n"
-            "       \"SINGLE\"\n"
-            "       \"ALL|ANYONECANPAY\"\n"
-            "       \"NONE|ANYONECANPAY\"\n"
-            "       \"SINGLE|ANYONECANPAY\"\n"
-            "\nResult:\n"
-            "The hex encoded signature.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("createsignaturewithwallet", "\"myhex\" 0 \"myaddress\"")
-            + HelpExampleRpc("createsignaturewithwallet", "\"myhex\", 0, \"myaddress\"")
-        );
-
-    EnsureWalletIsUnlocked(pwallet);
-
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VOBJ, UniValue::VSTR, UniValue::VSTR}, true);
 
     CMutableTransaction mtx;
@@ -5238,8 +5200,7 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
         {
             {"txid", UniValueType(UniValue::VSTR)},
             {"vout", UniValueType(UniValue::VNUM)},
-            {"scriptPubKey", UniValueType(UniValue::VSTR)},
-        });
+        }, true);
 
     uint256 txid = ParseHashO(prevOut, "txid");
 
@@ -5248,48 +5209,111 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "vout must be positive");
     }
 
-    COutPoint out(txid, nOut);
-    std::vector<unsigned char> pkData(ParseHexO(prevOut, "scriptPubKey"));
-    CScript scriptRedeem, scriptPubKey(pkData.begin(), pkData.end());
+    COutPoint prev_out(txid, nOut);
+
+    // Find the prevout if it exists in the wallet or chain
+    CTxOutBaseRef txout;
+    if (pwallet) {
+        pwallet->GetPrevout(prev_out, txout);
+    }
+    if (!txout.get()) {
+        // TODO: try fetch from utxodb first
+        LOCK(cs_main);
+        uint256 hashBlock;
+        CTransactionRef txn;
+        if (GetTransaction(prev_out.hash, txn, Params().GetConsensus(), hashBlock, true)) {
+            if (txn->GetNumVOuts() > prev_out.n) {
+                txout = txn->vpout[prev_out.n];
+            }
+        }
+    }
+
+    CScript scriptRedeem, scriptPubKey;
+    if (prevOut.exists("scriptPubKey")) {
+        std::vector<unsigned char> pkData(ParseHexO(prevOut, "scriptPubKey"));
+        scriptPubKey = CScript(pkData.begin(), pkData.end());
+    } else {
+        if (txout.get() && txout->GetPScriptPubKey()) {
+            const CScript *ps = txout->GetPScriptPubKey();
+            scriptPubKey = CScript(ps->begin(), ps->end());
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "\"scriptPubKey\" is required");
+        }
+    }
 
     std::vector<uint8_t> vchAmount;
-    if (prevOut.exists("amount"))
-    {
-        if (prevOut.exists("amount_commitment"))
+    if (prevOut.exists("amount")) {
+        if (prevOut.exists("amount_commitment")) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Both \"amount\" and \"amount_commitment\" found.");
+        }
         CAmount nValue = AmountFromValue(prevOut["amount"]);
         vchAmount.resize(8);
         memcpy(vchAmount.data(), &nValue, 8);
     } else
-    if (prevOut.exists("amount_commitment"))
-    {
+    if (prevOut.exists("amount_commitment")) {
         std::string s = prevOut["amount_commitment"].get_str();
-        if (!IsHex(s) || !(s.size() == 66))
+        if (!IsHex(s) || !(s.size() == 66)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "\"amount_commitment\" must be 33 bytes and hex encoded.");
+        }
         vchAmount = ParseHex(s);
-    } else
-    {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "\"amount\" or \"amount_commitment\" is required");
-    };
+    } else {
+        if (!txout.get() || !txout->PutValue(vchAmount)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "\"amount\" or \"amount_commitment\" is required");
+        }
+    }
 
-    if (prevOut.exists("redeemScript"))
-    {
+    if (prevOut.exists("redeemScript")) {
         std::vector<unsigned char> redeemData(ParseHexO(prevOut, "redeemScript"));
         scriptRedeem = CScript(redeemData.begin(), redeemData.end());
-    };
-
-    CKeyID idSign;
-    CTxDestination dest = DecodeDestination(request.params[2].get_str());
-    if (!IsValidDestination(dest))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
-
-    if (dest.type() == typeid(CKeyID))
-    {
-        idSign = boost::get<CKeyID>(dest);
     } else
+    if (scriptPubKey.IsPayToScriptHashAny(mtx.IsCoinStake()))
     {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unsupported destination type.");
-    };
+        if (pwallet) {
+            CTxDestination redeemDest;
+            if (ExtractDestination(scriptPubKey, redeemDest)) {
+                if (redeemDest.type() == typeid(CScriptID)) {
+                    const CScriptID& scriptID = boost::get<CScriptID>(redeemDest);
+                    pwallet->GetCScript(scriptID, scriptRedeem);
+                } else
+                if (redeemDest.type() == typeid(CScriptID256)) {
+                    const CScriptID256& hash = boost::get<CScriptID256>(redeemDest);
+                    CScriptID scriptID;
+                    scriptID.Set(hash);
+                    pwallet->GetCScript(scriptID, scriptRedeem);
+                }
+            }
+        }
+
+        if (scriptRedeem.size() == 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "\"redeemScript\" is required");
+        }
+    }
+
+    CBasicKeyStore keystore, *pkeystore;
+    CKeyID idSign;
+    if (pwallet) {
+        CTxDestination destSign = DecodeDestination(request.params[2].get_str());
+        if (!IsValidDestination(destSign)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+        }
+
+        if (destSign.type() == typeid(CKeyID)) {
+            idSign = boost::get<CKeyID>(destSign);
+        } else {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unsupported signing key type.");
+        }
+        pkeystore = pwallet;
+    } else {
+        std::string strPrivkey = request.params[2].get_str();
+        CKey key = DecodeSecret(strPrivkey);
+        if (!key.IsValid()) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key");
+        }
+
+        keystore.AddKey(key);
+        idSign = key.GetPubKey().GetID();
+        pkeystore = &keystore;
+    }
 
     const UniValue &hashType = request.params[3];
     int nHashType = SIGHASH_ALL;
@@ -5310,31 +5334,76 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
         }
     }
 
-
     // Sign the transaction
-    LOCK2(cs_main, pwallet->cs_wallet);
-
     std::vector<uint8_t> vchSig;
     unsigned int i;
     for (i = 0; i < mtx.vin.size(); i++) {
         CTxIn& txin = mtx.vin[i];
 
-        if (txin.prevout == out)
-        {
+        if (txin.prevout == prev_out) {
             MutableTransactionSignatureCreator creator(&mtx, i, vchAmount, nHashType);
             CScript &scriptSig = scriptPubKey.IsPayToScriptHashAny(mtx.IsCoinStake()) ? scriptRedeem : scriptPubKey;
 
-            if (!creator.CreateSig(*pwallet, vchSig, idSign, scriptSig, SigVersion::BASE))
+            if (!creator.CreateSig(*pkeystore, vchSig, idSign, scriptSig, SigVersion::BASE)) {
                 throw JSONRPCError(RPC_MISC_ERROR, "CreateSig failed.");
+            }
 
             break;
-        };
-    };
+        }
+    }
 
-    if (i >= mtx.vin.size())
+    if (i >= mtx.vin.size()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "No matching input found.");
+    }
 
     return HexStr(vchSig);
+}
+
+static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() < 3 || request.params.size() > 4)
+        throw std::runtime_error(
+            "createsignaturewithwallet \"hexstring\" \"prevtx\" \"address\" \"sighashtype\"\n"
+            "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
+            + HelpRequiringPassphrase(pwallet) + "\n"
+
+            "\nArguments:\n"
+            "1. \"hexstring\"                      (string, required) The transaction hex string\n"
+            "2. \"prevtx\"                         (json, required) The prevtx signing for\n"
+            "    {\n"
+            "     \"txid\":\"id\",                   (string, required) The transaction id\n"
+            "     \"vout\":n,                      (numeric, required) The output number\n"
+            "     \"scriptPubKey\": \"hex\",         (string, optional) script key\n"
+            "     \"redeemScript\": \"hex\",         (string, optional for P2SH or P2WSH) redeem script\n"
+            "     \"amount\": value                (numeric or string, optional) The amount spent\n"
+            "     \"amount_commitment\": \"hex\",    (string, optional) The amount commitment spent\n"
+            "   }\n"
+            "3. \"address\"                        (string, required) The address of the private key to sign with\n"
+            "4. \"sighashtype\"                    (string, optional, default=ALL) The signature hash type. Must be one of\n"
+            "       \"ALL\"\n"
+            "       \"NONE\"\n"
+            "       \"SINGLE\"\n"
+            "       \"ALL|ANYONECANPAY\"\n"
+            "       \"NONE|ANYONECANPAY\"\n"
+            "       \"SINGLE|ANYONECANPAY\"\n"
+            "\nResult:\n"
+            "The hex encoded signature.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("createsignaturewithwallet", "\"myhex\" \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\" \"myaddress\"")
+            + HelpExampleRpc("createsignaturewithwallet", "\"myhex\", \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\", \"myaddress\"")
+        );
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    return createsignatureinner(request, pwallet);
 }
 
 static UniValue createsignaturewithkey(const JSONRPCRequest &request)
@@ -5350,10 +5419,10 @@ static UniValue createsignaturewithkey(const JSONRPCRequest &request)
             "    {\n"
             "     \"txid\":\"id\",                   (string, required) The transaction id\n"
             "     \"vout\":n,                      (numeric, required) The output number\n"
-            "     \"scriptPubKey\": \"hex\",         (string, required) script key\n"
-            "     \"redeemScript\": \"hex\",         (string, required for P2SH or P2WSH) redeem script\n"
-            "     \"amount\": value                (numeric or string, required) The amount spent\n"
-            "     \"amount_commitment\": \"hex\",    (string, required) The amount commitment spent\n"
+            "     \"scriptPubKey\": \"hex\",         (string, optional) script key\n"
+            "     \"redeemScript\": \"hex\",         (string, optional for P2SH or P2WSH) redeem script\n"
+            "     \"amount\": value                (numeric or string, optional) The amount spent\n"
+            "     \"amount_commitment\": \"hex\",    (string, optional) The amount commitment spent\n"
             "   }\n"
             "3. \"privkey\"                        (string, required) A base58-encoded private key for signing\n"
             "4. \"sighashtype\"                    (string, optional, default=ALL) The signature hash type. Must be one of\n"
@@ -5366,114 +5435,11 @@ static UniValue createsignaturewithkey(const JSONRPCRequest &request)
             "\nResult:\n"
             "The hex encoded signature.\n"
             "\nExamples:\n"
-            + HelpExampleCli("createsignaturewithkey", "\"myhex\" 0 \"myprivkey\"")
-            + HelpExampleRpc("createsignaturewithkey", "\"myhex\", 0, \"myprivkey\"")
+            + HelpExampleCli("createsignaturewithkey", "\"myhex\" \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\" \"myprivkey\"")
+            + HelpExampleRpc("createsignaturewithkey", "\"myhex\", \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\", \"myprivkey\"")
         );
 
-    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VOBJ, UniValue::VSTR, UniValue::VSTR}, true);
-
-    CMutableTransaction mtx;
-    if (!DecodeHexTx(mtx, request.params[0].get_str(), true)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
-    }
-
-    UniValue prevOut = request.params[1].get_obj();
-
-    RPCTypeCheckObj(prevOut,
-        {
-            {"txid", UniValueType(UniValue::VSTR)},
-            {"vout", UniValueType(UniValue::VNUM)},
-            {"scriptPubKey", UniValueType(UniValue::VSTR)},
-        });
-
-    uint256 txid = ParseHashO(prevOut, "txid");
-
-    int nOut = find_value(prevOut, "vout").get_int();
-    if (nOut < 0) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "vout must be positive");
-    }
-
-    COutPoint out(txid, nOut);
-    std::vector<unsigned char> pkData(ParseHexO(prevOut, "scriptPubKey"));
-    CScript scriptRedeem, scriptPubKey(pkData.begin(), pkData.end());
-
-
-    std::vector<uint8_t> vchAmount(8);
-    if (prevOut.exists("amount"))
-    {
-        if (prevOut.exists("amount_commitment"))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Both \"amount\" and \"amount_commitment\" found.");
-        CAmount nValue = AmountFromValue(prevOut["amount"]);
-        vchAmount.resize(8);
-        memcpy(vchAmount.data(), &nValue, 8);
-    } else
-    if (prevOut.exists("amount_commitment"))
-    {
-        std::string s = prevOut["amount_commitment"].get_str();
-        if (!IsHex(s) || !(s.size() == 66))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "\"amount_commitment\" must be 33 bytes and hex encoded.");
-        vchAmount = ParseHex(s);
-    } else
-    {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "\"amount\" or \"amount_commitment\" is required");
-    };
-
-    if (prevOut.exists("redeemScript"))
-    {
-        std::vector<unsigned char> redeemData(ParseHexO(prevOut, "redeemScript"));
-        scriptRedeem = CScript(redeemData.begin(), redeemData.end());
-    };
-
-    std::string strPrivkey = request.params[2].get_str();
-    CKey key = DecodeSecret(strPrivkey);
-    if (!key.IsValid()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key");
-    }
-
-    CBasicKeyStore keystore;
-    keystore.AddKey(key);
-    CKeyID idSign = key.GetPubKey().GetID();
-
-    const UniValue &hashType = request.params[3];
-    int nHashType = SIGHASH_ALL;
-    if (!hashType.isNull()) {
-        static std::map<std::string, int> mapSigHashValues = {
-            {std::string("ALL"), int(SIGHASH_ALL)},
-            {std::string("ALL|ANYONECANPAY"), int(SIGHASH_ALL|SIGHASH_ANYONECANPAY)},
-            {std::string("NONE"), int(SIGHASH_NONE)},
-            {std::string("NONE|ANYONECANPAY"), int(SIGHASH_NONE|SIGHASH_ANYONECANPAY)},
-            {std::string("SINGLE"), int(SIGHASH_SINGLE)},
-            {std::string("SINGLE|ANYONECANPAY"), int(SIGHASH_SINGLE|SIGHASH_ANYONECANPAY)},
-        };
-        std::string strHashType = hashType.get_str();
-        if (mapSigHashValues.count(strHashType)) {
-            nHashType = mapSigHashValues[strHashType];
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid sighash param");
-        }
-    }
-
-    std::vector<uint8_t> vchSig;
-    unsigned int i;
-    for (i = 0; i < mtx.vin.size(); i++) {
-        CTxIn& txin = mtx.vin[i];
-
-        if (txin.prevout == out)
-        {
-            MutableTransactionSignatureCreator creator(&mtx, i, vchAmount, nHashType);
-            CScript &scriptSig = scriptPubKey.IsPayToScriptHashAny(mtx.IsCoinStake()) ? scriptRedeem : scriptPubKey;
-
-            if (!creator.CreateSig(keystore, vchSig, idSign, scriptSig, SigVersion::BASE))
-                throw JSONRPCError(RPC_MISC_ERROR, "CreateSig failed.");
-
-            break;
-        };
-    };
-
-    if (i >= mtx.vin.size())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "No matching input found.");
-
-    return HexStr(vchSig);
+    return createsignatureinner(request, nullptr);
 }
 
 static UniValue debugwallet(const JSONRPCRequest &request)

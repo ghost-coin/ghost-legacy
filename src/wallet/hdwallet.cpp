@@ -2118,38 +2118,38 @@ CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex)
 {
     MapWallet_t::iterator itw;
     MapRecords_t::iterator itr;
-    if ((itw = mapWallet.find(op.hash)) != mapWallet.end())
-    {
+    if ((itw = mapWallet.find(op.hash)) != mapWallet.end()) {
         CWalletTx *pcoin = &itw->second;
-        if (pcoin->tx->GetNumVOuts() > op.n)
+        if (pcoin->tx->GetNumVOuts() > op.n) {
             return pcoin->tx->vpout[op.n]->GetValue();
+        }
         return 0;
-    };
+    }
 
-    if ((itr = mapRecords.find(op.hash)) != mapRecords.end())
-    {
+    if ((itr = mapRecords.find(op.hash)) != mapRecords.end()) {
         const COutputRecord *rec = itr->second.GetOutput(op.n);
-        if (rec)
+        if (rec) {
             return rec->nValue;
+        }
         CStoredTransaction stx;
-        if (!CHDWalletDB(*database).ReadStoredTx(op.hash, stx)) // TODO: cache / use mapTempWallet
-        {
+        if (!CHDWalletDB(*database).ReadStoredTx(op.hash, stx)) { // TODO: cache / use mapTempWallet
             LogPrintf("%s: ReadStoredTx failed for %s.\n", __func__, op.hash.ToString());
             return 0;
-        };
-        if (stx.tx->GetNumVOuts() > op.n)
+        }
+        if (stx.tx->GetNumVOuts() > op.n) {
             return stx.tx->vpout[op.n]->GetValue();
+        }
         return 0;
-    };
+    }
 
     uint256 hashBlock;
     CTransactionRef txOut;
-    if (GetTransaction(op.hash, txOut, Params().GetConsensus(), hashBlock, true))
-    {
-        if (txOut->GetNumVOuts() > op.n)
+    if (GetTransaction(op.hash, txOut, Params().GetConsensus(), hashBlock, true)) {
+        if (txOut->GetNumVOuts() > op.n) {
             return txOut->vpout[op.n]->GetValue();
+        }
         return 0;
-    };
+    }
 
     return 0;
 };
@@ -5363,7 +5363,7 @@ void CHDWallet::ClearCachedBalances()
     return;
 }
 
-bool CHDWallet::LoadToWallet(const CWalletTx& wtxIn)
+void CHDWallet::LoadToWallet(const CWalletTx& wtxIn)
 {
     uint256 hash = wtxIn.GetHash();
 
@@ -5383,22 +5383,20 @@ bool CHDWallet::LoadToWallet(const CWalletTx& wtxIn)
     }
 
     int nBestHeight = chainActive.Height();
-    if (wtx.IsCoinStake() && wtx.isAbandoned())
-    {
+    if (wtx.IsCoinStake() && wtx.isAbandoned()) {
         int csHeight;
         if (wtx.tx->GetCoinStakeHeight(csHeight)
-            && csHeight > nBestHeight - (MAX_STAKE_SEEN_SIZE * 1.5))
-        {
+            && csHeight > nBestHeight - (MAX_STAKE_SEEN_SIZE * 1.5)) {
             // Add to MapStakeSeen to prevent node submitting a block that would be rejected.
             const COutPoint &kernel = wtx.tx->vin[0].prevout;
             AddToMapStakeSeen(kernel, hash);
-        };
-    };
+        }
+    }
 
-    return true;
+    return;
 };
 
-bool CHDWallet::LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx)
+void CHDWallet::LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx)
 {
     std::pair<MapRecords_t::iterator, bool> ret = mapRecords.insert(std::make_pair(hash, rtx));
 
@@ -5407,7 +5405,7 @@ bool CHDWallet::LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx)
 
     // TODO: Spend only owned inputs?
 
-    return true;
+    return;
 };
 
 void CHDWallet::RemoveFromTxSpends(const uint256 &hash, const CTransactionRef pt)
@@ -11464,11 +11462,13 @@ bool CHDWallet::GetSetting(const std::string &setting, UniValue &json)
 
     std::string sJson;
 
-    if (!wdb.ReadWalletSetting(setting, sJson))
+    if (!wdb.ReadWalletSetting(setting, sJson)) {
         return false;
+    }
 
-    if (!json.read(sJson))
+    if (!json.read(sJson)) {
         return false;
+    }
 
     return true;
 };
@@ -11481,8 +11481,9 @@ bool CHDWallet::SetSetting(const std::string &setting, const UniValue &json)
 
     std::string sJson = json.write();
 
-    if (!wdb.WriteWalletSetting(setting, sJson))
+    if (!wdb.WriteWalletSetting(setting, sJson)) {
         return false;
+    }
 
     return true;
 };
@@ -11493,10 +11494,36 @@ bool CHDWallet::EraseSetting(const std::string &setting)
 
     CHDWalletDB wdb(*database, "r+");
 
-    if (!wdb.EraseWalletSetting(setting))
+    if (!wdb.EraseWalletSetting(setting)) {
         return false;
+    }
 
     return true;
+};
+
+bool CHDWallet::GetPrevout(const COutPoint &prevout, CTxOutBaseRef &txout)
+{
+    MapWallet_t::const_iterator mi = mapWallet.find(prevout.hash);
+    if (mi != mapWallet.end()) {
+        if (prevout.n >= mi->second.tx->vpout.size()) {
+            return false;
+        }
+
+        txout = mi->second.tx->vpout[prevout.n];
+        return true;
+    }
+
+    MapRecords_t::const_iterator mir = mapRecords.find(prevout.hash);
+    if (mir != mapRecords.end()) {
+        const COutputRecord *oR = mir->second.GetOutput(prevout.n);
+
+        if (oR && oR->nType == OUTPUT_STANDARD) { // get outputs other than standard from the utxodb or chain instead
+            txout = MAKE_OUTPUT<CTxOutStandard>(oR->nValue, oR->scriptPubKey);
+            return true;
+        }
+    }
+
+    return false;
 };
 
 size_t CHDWallet::CountColdstakeOutputs()

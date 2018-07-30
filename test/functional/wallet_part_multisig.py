@@ -273,11 +273,11 @@ class MultiSigTest(ParticlTestFramework):
         redeemScript = ro['hex']
 
         inputs = [{
-            "txid":txFundId,
-            "vout":fundoutn,
-            "scriptPubKey":fundscriptpubkey,
-            "redeemScript":redeemScript,
-            "amount":1.0,
+            'txid': txFundId,
+            'vout': fundoutn,
+            'scriptPubKey': fundscriptpubkey,
+            'redeemScript': redeemScript,
+            'amount': 1.0,
             }]
 
         outputs = {addrTo:0.99}
@@ -285,6 +285,24 @@ class MultiSigTest(ParticlTestFramework):
 
         sig0 = nodes[0].createsignaturewithwallet(hexRaw, inputs[0], addrs[0])
         sig1 = nodes[0].createsignaturewithwallet(hexRaw, inputs[0], addrs[1])
+
+
+        self.log.info('Test createsignaturewithwallet without providing prevout details')
+        outpoint_only = { 'txid': txFundId, 'vout': fundoutn }
+        sig1_check1 = nodes[0].createsignaturewithwallet(hexRaw, outpoint_only, addrs[1])
+        assert(sig1 == sig1_check1)
+        addr1_privkey = nodes[0].dumpprivkey(addrs[1])
+        sig1_check2 = nodes[0].createsignaturewithkey(hexRaw, inputs[0], addr1_privkey)
+        assert(sig1 == sig1_check2)
+        try:
+            sig1_check3 = nodes[0].createsignaturewithkey(hexRaw, outpoint_only, addr1_privkey)
+            assert(False), 'createsignaturewithkey passed with no redeemscript'
+        except JSONRPCException as e:
+            assert('"redeemScript" is required' in e.error['message'])
+        outpoint_only['redeemScript'] = redeemScript
+        sig1_check3 = nodes[0].createsignaturewithkey(hexRaw, outpoint_only, addr1_privkey)
+        assert(sig1 == sig1_check3)
+
 
         witnessStack = [
             "",

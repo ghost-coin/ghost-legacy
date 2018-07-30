@@ -519,8 +519,8 @@ public:
 
 
     void ClearCachedBalances() override;
-    bool LoadToWallet(const CWalletTx& wtxIn) override;
-    bool LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx);
+    void LoadToWallet(const CWalletTx& wtxIn) override;
+    void LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx);
 
     /** Remove txn from mapwallet and TxSpends */
     void RemoveFromTxSpends(const uint256 &hash, const CTransactionRef pt);
@@ -704,6 +704,9 @@ public:
     bool GetSetting(const std::string &setting, UniValue &json);
     bool SetSetting(const std::string &setting, const UniValue &json);
     bool EraseSetting(const std::string &setting);
+
+    /* Return a prevout if it exists in the wallet. */
+    bool GetPrevout(const COutPoint &prevout, CTxOutBaseRef &txout);
 
     size_t CountColdstakeOutputs();
 

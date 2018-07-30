@@ -116,34 +116,38 @@ CTxOutStandard::CTxOutStandard(const CAmount& nValueIn, CScript scriptPubKeyIn) 
     scriptPubKey = scriptPubKeyIn;
 };
 
+void DeepCopy(CTxOutBaseRef &to, const CTxOutBaseRef &from)
+{
+    switch (from->GetType()) {
+        case OUTPUT_STANDARD:
+            to = MAKE_OUTPUT<CTxOutStandard>();
+            *((CTxOutStandard*)to.get()) = *((CTxOutStandard*)from.get());
+            break;
+        case OUTPUT_CT:
+            to = MAKE_OUTPUT<CTxOutCT>();
+            *((CTxOutCT*)to.get()) = *((CTxOutCT*)from.get());
+            break;
+        case OUTPUT_RINGCT:
+            to = MAKE_OUTPUT<CTxOutRingCT>();
+            *((CTxOutRingCT*)to.get()) = *((CTxOutRingCT*)from.get());
+            break;
+        case OUTPUT_DATA:
+            to = MAKE_OUTPUT<CTxOutData>();
+            *((CTxOutData*)to.get()) = *((CTxOutData*)from.get());
+            break;
+        default:
+            break;
+    }
+    return;
+}
+
 std::vector<CTxOutBaseRef> DeepCopy(const std::vector<CTxOutBaseRef> &from)
 {
     std::vector<CTxOutBaseRef> vpout;
     vpout.resize(from.size());
-    for (size_t i = 0; i < from.size(); ++i)
-    {
-        switch (from[i]->GetType())
-        {
-            case OUTPUT_STANDARD:
-                vpout[i] = MAKE_OUTPUT<CTxOutStandard>();
-                *((CTxOutStandard*)vpout[i].get()) = *((CTxOutStandard*)from[i].get());
-                break;
-            case OUTPUT_CT:
-                vpout[i] = MAKE_OUTPUT<CTxOutCT>();
-                *((CTxOutCT*)vpout[i].get()) = *((CTxOutCT*)from[i].get());
-                break;
-            case OUTPUT_RINGCT:
-                vpout[i] = MAKE_OUTPUT<CTxOutRingCT>();
-                *((CTxOutRingCT*)vpout[i].get()) = *((CTxOutRingCT*)from[i].get());
-                break;
-            case OUTPUT_DATA:
-                vpout[i] = MAKE_OUTPUT<CTxOutData>();
-                *((CTxOutData*)vpout[i].get()) = *((CTxOutData*)from[i].get());
-                break;
-            default:
-                break;
-        };
-    };
+    for (size_t i = 0; i < from.size(); ++i) {
+        DeepCopy(vpout[i], from[i]);
+    }
 
     return vpout;
 }
