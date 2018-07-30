@@ -3456,7 +3456,6 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
             }
         }
 
-
         return true;
     };
 

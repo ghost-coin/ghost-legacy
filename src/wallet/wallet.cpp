@@ -1661,89 +1661,86 @@ void CWalletTx::GetAmounts(std::list<COutputEntry>& listReceived,
     };
 
     // staked
-    if (tx->IsCoinStake())
-    {
+    if (tx->IsCoinStake()) {
         CAmount nCredit = 0;
         CTxDestination address = CNoDestination();
         CTxDestination addressStake = CNoDestination();
 
         isminetype isMineAll = ISMINE_NO;
-        for (unsigned int i = 0; i < tx->vpout.size(); ++i)
-        {
+        for (unsigned int i = 0; i < tx->vpout.size(); ++i) {
             const CTxOutBase *txout = tx->vpout[i].get();
-            if (!txout->IsType(OUTPUT_STANDARD))
+            if (!txout->IsType(OUTPUT_STANDARD)) {
                 continue;
+            }
 
             isminetype mine = pwallet->IsMine(txout);
-            if (!(mine & filter))
+            if (!(mine & filter)) {
                 continue;
+            }
             isMineAll = (isminetype)((uint8_t)isMineAll |(uint8_t)mine);
 
-            if (fForFilterTx || address.type() == typeid(CNoDestination))
-            {
+            if (fForFilterTx || address.type() == typeid(CNoDestination)) {
                 const CScript &scriptPubKey = *txout->GetPScriptPubKey();
                 ExtractDestination(scriptPubKey, address);
 
                 if (HasIsCoinstakeOp(scriptPubKey)) {
                     CScript scriptOut;
-                    if (GetCoinstakeScriptPath(scriptPubKey, scriptOut)){
+                    if (GetCoinstakeScriptPath(scriptPubKey, scriptOut)) {
                         ExtractDestination(scriptOut, addressStake);
                     }
                 }
             }
             nCredit += txout->GetValue();
 
-            if (fForFilterTx)
-            {
+            if (fForFilterTx) {
                 COutputEntry output = {address, txout->GetValue(), (int)i, mine, addressStake};
                 listStaked.push_back(output);
-            };
-        };
+            }
+        }
         // Recalc fee as GetValueOut might include foundation fund output
         nFee = nDebit - nCredit;
 
-        if (fForFilterTx || !(isMineAll & filter))
+        if (fForFilterTx || !(isMineAll & filter)) {
             return;
+        }
 
         COutputEntry output = {address, nCredit, 1, isMineAll, addressStake};
         listStaked.push_back(output);
         return;
-    };
+    }
 
     // Sent/received.
-    if (tx->IsParticlVersion())
-    {
-        for (unsigned int i = 0; i < tx->vpout.size(); ++i)
-        {
+    if (tx->IsParticlVersion()) {
+        for (unsigned int i = 0; i < tx->vpout.size(); ++i) {
             const CTxOutBase *txout = tx->vpout[i].get();
-            if (!txout->IsStandardOutput())
+            if (!txout->IsStandardOutput()) {
                 continue;
+            }
 
             isminetype fIsMine = pwallet->IsMine(txout);
 
             // Only need to handle txouts if AT LEAST one of these is true:
             //   1) they debit from us (sent)
             //   2) the output is to us (received)
-            if (nDebit > 0)
-            {
+            if (nDebit > 0) {
                 // Don't report 'change' txouts
                 if (pwallet->IsChange(txout))
                     continue;
             } else
-            if (!(fIsMine & filter))
+            if (!(fIsMine & filter)) {
                 continue;
+            }
 
             // In either case, we need to get the destination address
             const CScript &scriptPubKey = *txout->GetPScriptPubKey();
             CTxDestination address;
             CTxDestination addressStake = CNoDestination();
 
-            if (!ExtractDestination(scriptPubKey, address) && !scriptPubKey.IsUnspendable())
-            {
+            if (!ExtractDestination(scriptPubKey, address) && !scriptPubKey.IsUnspendable()) {
                 LogPrintf("CWalletTx::GetAmounts: Unknown transaction type found, txid %s\n",
                          this->GetHash().ToString());
                 address = CNoDestination();
-            };
+            }
 
             if (HasIsCoinstakeOp(scriptPubKey)) {
                 CScript scriptOut;
@@ -1755,13 +1752,15 @@ void CWalletTx::GetAmounts(std::list<COutputEntry>& listReceived,
             COutputEntry output = {address, txout->GetValue(), (int)i, fIsMine, addressStake};
 
             // If we are debited by the transaction, add the output as a "sent" entry
-            if (nDebit > 0)
+            if (nDebit > 0){
                 listSent.push_back(output);
+            }
 
             // If we are receiving the output, add it as a "received" entry
-            if (fIsMine & filter)
+            if (fIsMine & filter) {
                 listReceived.push_back(output);
-        };
+            }
+        }
     } else
     {
         for (unsigned int i = 0; i < tx->vout.size(); ++i)

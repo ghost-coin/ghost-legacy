@@ -3361,18 +3361,17 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
 
 
     std::vector<CScript> vDevFundScripts;
-    if (fWithReward)
-    {
+    if (fWithReward) {
         const auto v = Params().GetDevFundSettings();
-        for (const auto &s : v)
-        {
+        for (const auto &s : v) {
             CTxDestination dfDest = CBitcoinAddress(s.second.sDevFundAddresses).Get();
-            if (dfDest.type() == typeid(CNoDestination))
+            if (dfDest.type() == typeid(CNoDestination)) {
                 continue;
+            }
             CScript script = GetScriptForDestination(dfDest);
             vDevFundScripts.push_back(script);
-        };
-    };
+        }
+    }
 
 
     // for transactions and records
@@ -4270,13 +4269,10 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
         entry.pushKV("txid", out.txhash.GetHex());
         entry.pushKV("vout", out.i);
 
-        if (pout->vPath.size() > 0 && pout->vPath[0] == ORA_STEALTH)
-        {
-            if (pout->vPath.size() < 5)
-            {
+        if (pout->vPath.size() > 0 && pout->vPath[0] == ORA_STEALTH) {
+            if (pout->vPath.size() < 5) {
                 LogPrintf("%s: Warning, malformed vPath.\n", __func__);
-            } else
-            {
+            } else {
                 uint32_t sidx;
                 memcpy(&sidx, &pout->vPath[1], 4);
                 CStealthAddress sx;
@@ -4287,20 +4283,25 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
                     if (i != pwallet->mapAddressBook.end()) {
                         entry.pushKV("label", i->second.name);
                     }
+                    if (setAddress.size() && !setAddress.count(CTxDestination(sx))) {
+                        continue;
+                    }
                 }
-            };
-        };
+            }
+        }
 
-        if (!entry.exists("address"))
+        if (!entry.exists("address")) {
             entry.pushKV("address", "unknown");
-        if (fCCFormat)
-        {
+            if (setAddress.size()) {
+                continue;
+            }
+        }
+        if (fCCFormat) {
             entry.pushKV("time", out.rtx->second.GetTxTime());
             entry.pushKV("amount", nValue);
-        } else
-        {
+        } else {
             entry.pushKV("amount", ValueFromAmount(nValue));
-        };
+        }
         entry.pushKV("confirmations", out.nDepth);
         //entry.pushKV("spendable", out.fSpendable);
         //entry.pushKV("solvable", out.fSolvable);

@@ -119,9 +119,11 @@ class AnonTest(ParticlTestFramework):
         txnHashes = [txnHash,]
 
 
+        unspent_filtered = nodes[1].listunspentanon(1, 9999, [sxAddrTo1_1])
+        assert(unspent_filtered[0]['label'] == 'lblsx11')
+
         # Test lockunspent
         unspent = nodes[1].listunspentanon()
-        assert(unspent[0]['label'] == 'lblsx11')
         assert(nodes[1].lockunspent(False, [unspent[0]]) == True)
         assert(len(nodes[1].listlockunspent()) == 1)
         unspentCheck = nodes[1].listunspentanon()
