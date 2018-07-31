@@ -184,12 +184,24 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         }
         else
         {   // User-entered bitcoin address / amount:
-            if (rcp.m_coldstake)
-            {
+            if (rcp.m_coldstake) {
                 if (!validateAddress(rcp.spend_address) || !validateAddress(rcp.stake_address, true)) {
                     return InvalidAddress;
                 }
-            } else
+                if(rcp.amount <= 0) {
+                    return InvalidAmount;
+                }
+                //setAddress.insert(rcp.address);
+                //++nAddresses;
+
+                CScript scriptPubKey = GetScriptForDestination(DecodeDestination(rcp.address.toStdString()));
+                CRecipient recipient = {scriptPubKey, rcp.amount, rcp.fSubtractFeeFromAmount};
+                vecSend.push_back(recipient);
+
+                total += rcp.amount;
+                continue;
+            }
+
             if(!validateAddress(rcp.address))
             {
                 return InvalidAddress;
