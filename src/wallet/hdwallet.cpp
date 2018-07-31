@@ -3511,6 +3511,7 @@ int PreAcceptMempoolTx(CWalletTx &wtx, std::string &sError)
         size_t nLimitDescendants = gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
         size_t nLimitDescendantSize = gArgs.GetArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT)*1000;
         std::string errString;
+        LOCK(::mempool.cs);
         if (!mempool.CalculateMemPoolAncestors(entry, setAncestors, nLimitAncestors, nLimitAncestorSize, nLimitDescendants, nLimitDescendantSize, errString)) {
             return errorN(1, sError, __func__, _("Transaction has too long of a mempool chain").c_str());
         }

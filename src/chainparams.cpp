@@ -470,7 +470,7 @@ public:
         consensus.nMinimumChainWork = uint256S("0x00");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        //consensus.defaultAssumeValid = uint256S("0x0000000000000000030abc968e1bd635736e880b946085c93152969b9a81a6e2"); //447235
+        consensus.defaultAssumeValid = uint256S("0x5dacfb4e040ed98031f8586ce1516b6813990b53d677fb45a49099e8ceecb6fa"); //250000
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -564,15 +564,15 @@ public:
                 { 170880,   uint256S("0x03d23bd24386ebeb41c81f84145c46cc3f64e4d114b2b8d2bb14e5855f254f2a")},
                 { 194500,   uint256S("0x57ad502b9948d4c8291c8ce7b6394e4129985aab436b7242130a1ab0c74e1129")},
                 { 213800,   uint256S("0xfd6c0e5f7444a9e09a5fa1652db73d5b8628aeabe162529a5356be700509aa80")},
+                { 254275,   uint256S("0x7f454ac5629ef667f40f900357d30bd63b7983363255880fd155fadbc9add957")},
             }
         };
 
         chainTxData = ChainTxData {
-            // Data as of block 0xfd6c0e5f7444a9e09a5fa1652db73d5b8628aeabe162529a5356be700509aa80 (height 213800).
-            1527848784, // * UNIX timestamp of last known number of transactions
-            246145,     // * total number of transactions between genesis and that timestamp
-                        //   (the tx=... number in the SetBestChain debug.log lines)
-            0.038       // * estimated number of transactions per second after that timestamp
+            // Data from rpc: getchaintxstats 4096 7f454ac5629ef667f40f900357d30bd63b7983363255880fd155fadbc9add957
+            /* nTime    */ 1533059296,
+            /* nTxCount */ 289708,
+            /* dTxRate  */ 0.038
         };
 
         /* disable fallback fee on mainnet */
@@ -715,14 +715,15 @@ public:
             {
                 {127620, uint256S("0xe5ab909fc029b253bad300ccf859eb509e03897e7853e8bfdde2710dbf248dd1")},
                 {170400, uint256S("0x47927aa5a937b0e0e50ad6fb5c9fe331985831308c4562a17fe13df381cdb0f4")},
+                {210920, uint256S("0x5534f546c3b5a264ca034703b9694fabf36d749d66e0659eef5f0734479b9802")},
             }
         };
 
         chainTxData = ChainTxData{
-            // Data as of block 0x47927aa5a937b0e0e50ad6fb5c9fe331985831308c4562a17fe13df381cdb0f4 (height 170400)
-            1527838656,
-            184292,
-            0.005
+            // Data from rpc: getchaintxstats 4096 0x5534f546c3b5a264ca034703b9694fabf36d749d66e0659eef5f0734479b9802
+            /* nTime    */ 1533059744,
+            /* nTxCount */ 227795,
+            /* dTxRate  */ 0.005
         };
 
         /* enable fallback fee on testnet */
