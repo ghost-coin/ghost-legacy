@@ -2168,17 +2168,16 @@ bool CWalletTx::IsTrusted() const
         if (parent == nullptr)
             return false;
 
-        if (tx->IsParticlVersion())
-        {
+        if (tx->IsParticlVersion()) {
             const CTxOutBase *parentOut = parent->tx->vpout[txin.prevout.n].get();
-            if (pwallet->IsMine(parentOut) != ISMINE_SPENDABLE)
+            if (!(pwallet->IsMine(parentOut) & ISMINE_SPENDABLE)) {
                 return false;
-        } else
-        {
+            }
+        } else {
             const CTxOut& parentOut = parent->tx->vout[txin.prevout.n];
             if (pwallet->IsMine(parentOut) != ISMINE_SPENDABLE)
                 return false;
-        };
+        }
     }
     return true;
 }
