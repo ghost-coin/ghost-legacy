@@ -1878,7 +1878,6 @@
 <context>
     <name>bitcoin-core</name>
     <message>
-    <message>
         <source>Particl Core</source>
         <translation>Particl Kern</translation>
     </message>

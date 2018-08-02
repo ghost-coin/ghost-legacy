@@ -73,12 +73,12 @@ struct CExtPubKey {
     unsigned char nDepth;
     unsigned char vchFingerprint[4];
     unsigned int nChild;
-    unsigned char vchChainCode[32];
+    unsigned char chaincode[32];
     CPubKey pubkey;
 
     friend bool operator==(const CExtPubKey &a, const CExtPubKey &b) {
         return a.nDepth == b.nDepth && memcmp(&a.vchFingerprint[0], &b.vchFingerprint[0], 4) == 0 && a.nChild == b.nChild &&
-               memcmp(&a.vchChainCode[0], &b.vchChainCode[0], 32) == 0 && a.pubkey == b.pubkey;
+               memcmp(&a.chaincode[0], &b.chaincode[0], 32) == 0 && a.pubkey == b.pubkey;
     }
 
     bool IsValid() const { return pubkey.IsValid(); }
@@ -97,7 +97,7 @@ struct CExtPubKey {
         s.write((char*)&nDepth, 1);
         s.write((char*)vchFingerprint, 4);
         s.write((char*)&nChild, 4);
-        s.write((char*)vchChainCode, 32);
+        s.write((char*)chaincode, 32);
 
         pubkey.Serialize(s);
     }
@@ -107,7 +107,7 @@ struct CExtPubKey {
         s.read((char*)&nDepth, 1);
         s.read((char*)vchFingerprint, 4);
         s.read((char*)&nChild, 4);
-        s.read((char*)vchChainCode, 32);
+        s.read((char*)chaincode, 32);
 
         pubkey.Unserialize(s);
     }
@@ -117,12 +117,12 @@ struct CExtKey {
     unsigned char nDepth;
     unsigned char vchFingerprint[4];
     unsigned int nChild;
-    unsigned char vchChainCode[32];
+    unsigned char chaincode[32];
     CKey key;
 
     friend bool operator==(const CExtKey &a, const CExtKey &b) {
         return a.nDepth == b.nDepth && memcmp(&a.vchFingerprint[0], &b.vchFingerprint[0], 4) == 0 && a.nChild == b.nChild &&
-               memcmp(&a.vchChainCode[0], &b.vchChainCode[0], 32) == 0 && a.key == b.key;
+               memcmp(&a.chaincode[0], &b.chaincode[0], 32) == 0 && a.key == b.key;
     }
 
     bool IsValid() const { return key.IsValid(); }
@@ -145,7 +145,7 @@ struct CExtKey {
         s.write((char*)&nDepth, 1);
         s.write((char*)vchFingerprint, 4);
         s.write((char*)&nChild, 4);
-        s.write((char*)vchChainCode, 32);
+        s.write((char*)chaincode, 32);
 
         char fValid = key.IsValid();
         s.write((char*)&fValid, 1);
@@ -158,7 +158,7 @@ struct CExtKey {
         s.read((char*)&nDepth, 1);
         s.read((char*)vchFingerprint, 4);
         s.read((char*)&nChild, 4);
-        s.read((char*)vchChainCode, 32);
+        s.read((char*)chaincode, 32);
 
         char tmp[33];
         s.read((char*)tmp, 1); // key.IsValid()
@@ -177,7 +177,7 @@ public:
     uint8_t nDepth;
     uint8_t vchFingerprint[4];
     uint32_t nChild;
-    uint8_t vchChainCode[32];
+    uint8_t chaincode[32];
     CKey key;
     CPubKey pubkey;
 
@@ -187,7 +187,7 @@ public:
         nDepth = vk.nDepth;
         memcpy(vchFingerprint, vk.vchFingerprint, sizeof(vchFingerprint));
         nChild = vk.nChild;
-        memcpy(vchChainCode, vk.vchChainCode, sizeof(vchChainCode));
+        memcpy(chaincode, vk.chaincode, sizeof(chaincode));
         key = vk.key;
         pubkey = key.GetPubKey();
     };
@@ -197,7 +197,7 @@ public:
         nDepth = pk.nDepth;
         memcpy(vchFingerprint, pk.vchFingerprint, sizeof(vchFingerprint));
         nChild = pk.nChild;
-        memcpy(vchChainCode, pk.vchChainCode, sizeof(vchChainCode));
+        memcpy(chaincode, pk.chaincode, sizeof(chaincode));
         key.Clear();
         pubkey = pk.pubkey;
     };
@@ -208,7 +208,7 @@ public:
         vk.nDepth = nDepth;
         memcpy(vk.vchFingerprint, vchFingerprint, sizeof(vchFingerprint));
         vk.nChild = nChild;
-        memcpy(vk.vchChainCode, vchChainCode, sizeof(vchChainCode));
+        memcpy(vk.chaincode, chaincode, sizeof(chaincode));
         vk.key = key;
         return vk;
     };
@@ -220,13 +220,13 @@ public:
     friend bool operator==(const CExtKeyPair &a, const CExtKeyPair &b)
     {
         return a.nDepth == b.nDepth && memcmp(&a.vchFingerprint[0], &b.vchFingerprint[0], 4) == 0 && a.nChild == b.nChild &&
-               memcmp(&a.vchChainCode[0], &b.vchChainCode[0], 32) == 0 && a.key == b.key && a.pubkey == b.pubkey ;
+               memcmp(&a.chaincode[0], &b.chaincode[0], 32) == 0 && a.key == b.key && a.pubkey == b.pubkey ;
     }
 
     friend bool operator < (const CExtKeyPair &a, const CExtKeyPair &b)
     {
         return a.nDepth < b.nDepth || memcmp(&a.vchFingerprint[0], &b.vchFingerprint[0], 4) < 0 || a.nChild < b.nChild
-            || memcmp(&a.vchChainCode[0], &b.vchChainCode[0], 32) < 0 || a.key < b.key || a.pubkey < b.pubkey ;
+            || memcmp(&a.chaincode[0], &b.chaincode[0], 32) < 0 || a.key < b.key || a.pubkey < b.pubkey ;
     }
 
     bool IsValidV() const { return key.IsValid(); }
@@ -254,7 +254,7 @@ public:
         s.write((char*)&nDepth, 1);
         s.write((char*)vchFingerprint, 4);
         s.write((char*)&nChild, 4);
-        s.write((char*)vchChainCode, 32);
+        s.write((char*)chaincode, 32);
 
         char fValid = key.IsValid();
         s.write((char*)&fValid, 1);
@@ -269,7 +269,7 @@ public:
         s.read((char*)&nDepth, 1);
         s.read((char*)vchFingerprint, 4);
         s.read((char*)&nChild, 4);
-        s.read((char*)vchChainCode, 32);
+        s.read((char*)chaincode, 32);
 
         char tmp[33];
         s.read((char*)tmp, 1); // key.IsValid()

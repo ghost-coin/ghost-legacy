@@ -536,7 +536,7 @@ BOOST_AUTO_TEST_CASE(extkey_regtest_keys)
     for (uint32_t k = 0; k < 10; ++k)
     {
         CPubKey out;
-        BOOST_CHECK(true == ekp.pubkey.Derive(out, temp, k, ekp.vchChainCode));
+        BOOST_CHECK(true == ekp.pubkey.Derive(out, temp, k, ekp.chaincode));
 
         CKeyID id = out.GetID();
 

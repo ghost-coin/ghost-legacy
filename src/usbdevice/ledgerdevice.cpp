@@ -319,7 +319,7 @@ int CLedgerDevice::GetXPub(const std::vector<uint32_t> &vPath, CExtPubKey &ekp, 
     ofs+=lenPubkey;
     size_t lenAddr = out[ofs++];
     ofs+=lenAddr;
-    memcpy(ekp.vchChainCode, &out[ofs], 32);
+    memcpy(ekp.chaincode, &out[ofs], 32);
 
     // Set fingerprint
     if (lenPath > 1)
