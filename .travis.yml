@@ -45,6 +45,7 @@ env:
         DEP_OPTS="DEBUG=1 NO_QT=1"
         RUN_UNIT_TESTS=true
         RUN_TESTS=true
+        RUN_BENCH=true
         GOAL="install"
         BITCOIN_CONFIG="--enable-usbdevice --enable-gui --enable-zmq --enable-glibc-back-compat --enable-reduce-exports CPPFLAGS=-DDEBUG_LOCKORDER"
 # Win32
@@ -81,7 +82,6 @@ env:
         PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools protobuf-compiler libdbus-1-dev libharfbuzz-dev libprotobuf-dev libudev-dev"
         DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1 ALLOW_HOST_PACKAGES=1"
         RUN_TESTS=false
-        RUN_BENCH=true
         GOAL="install"
         BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\" --enable-usbdevice "
         RUN_UNIT_TESTS=true
