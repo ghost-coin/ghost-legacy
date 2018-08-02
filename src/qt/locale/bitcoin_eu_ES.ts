@@ -30,6 +30,10 @@
         <translation>Ezabatu aukeratutako helbideak listatik</translation>
     </message>
     <message>
+        <source>Enter address or label to search</source>
+        <translation>Bilatzeko, helbide edo etiketa sartu</translation>
+    </message>
+    <message>
         <source>Export the data in the current tab to a file</source>
         <translation>Uneko fitxategian datuak esportatu</translation>
     </message>
@@ -160,7 +164,7 @@
         <translation>Diruorroaren enkriptazioa berretsi</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR BITCOINS&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
         <translation>Abisua: Diruzorroa enkriptatzen baduzu eta zure pasahitza galtzen baduzu, &lt;b&gt;BITCOIN GUZTIAK GALDUKO DITUZU&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -336,10 +340,6 @@
         <translation>&amp;Helbidea</translation>
     </message>
     <message>
-        <source>New receiving address</source>
-        <translation>Jasotzeko helbide berria</translation>
-    </message>
-    <message>
         <source>New sending address</source>
         <translation>Bidaltzeko helbide berria</translation>
     </message>
@@ -350,10 +350,6 @@
     <message>
         <source>Edit sending address</source>
         <translation>Bidaltzeko helbidea editatu</translation>
-    </message>
-    <message>
-        <source>The entered address "%1" is already in the address book.</source>
-        <translation>Sartu berri den helbidea, "%1", helbide-liburuan dago jadanik.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -604,10 +600,6 @@
         <translation>%1 konfirmazio</translation>
     </message>
     <message>
-        <source>, has not been successfully broadcast yet</source>
-        <translation>, ez da oraindik arrakastaz igorri</translation>
-    </message>
-    <message>
         <source>Date</source>
         <translation>Data</translation>
     </message>
@@ -656,10 +648,6 @@
     <message>
         <source>Confirmed (%1 confirmations)</source>
         <translation>Konfirmatuta (%1 konfirmazio)</translation>
-    </message>
-    <message>
-        <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>Bloke hau ez du beste inongo nodok jaso, eta seguruenik ez da onartuko!</translation>
     </message>
     <message>
         <source>Generated but not accepted</source>
@@ -819,10 +807,6 @@
     </context>
 <context>
     <name>bitcoin-core</name>
-    <message>
-        <source>Options:</source>
-        <translation>Aukerak:</translation>
-    </message>
     <message>
         <source>Rescanning...</source>
         <translation>Birbilatzen...</translation>

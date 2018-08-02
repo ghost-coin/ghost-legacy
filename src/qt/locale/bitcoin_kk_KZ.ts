@@ -169,7 +169,7 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Bitcoin</source>
+        <source>Particl</source>
         <translation>Биткоин</translation>
     </message>
     <message>
@@ -236,6 +236,10 @@
     </context>
 <context>
     <name>ReceiveRequestDialog</name>
+    <message>
+        <source>Wallet</source>
+        <translation>Әмиян</translation>
+    </message>
     </context>
 <context>
     <name>RecentRequestsTableModel</name>

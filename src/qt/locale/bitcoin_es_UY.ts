@@ -30,6 +30,10 @@
         <translation>Eliminar la dirección seleccionada de la lista</translation>
     </message>
     <message>
+        <source>Enter address or label to search</source>
+        <translation>Ingresar la dirección o etiqueta para buscar</translation>
+    </message>
+    <message>
         <source>Export the data in the current tab to a file</source>
         <translation>Exportar los datos en la pestaña actual a un archivo</translation>
     </message>
@@ -252,8 +256,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Bitcoin</source>
-        <translation>Bitcoin</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -334,6 +338,10 @@
     <message>
         <source>Copy &amp;Address</source>
         <translation>Copiar Dirección</translation>
+    </message>
+    <message>
+        <source>Wallet</source>
+        <translation>Billetera</translation>
     </message>
     </context>
 <context>
@@ -466,10 +474,6 @@
     </context>
 <context>
     <name>bitcoin-core</name>
-    <message>
-        <source>Options:</source>
-        <translation>Opciones:</translation>
-    </message>
     <message>
         <source>Information</source>
         <translation>Información</translation>

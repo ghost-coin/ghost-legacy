@@ -30,6 +30,10 @@
         <translation>حذف آدرس های انتخاب شده از لیست</translation>
     </message>
     <message>
+        <source>Enter address or label to search</source>
+        <translation>آدرس یا برچسب را برای جستجو وارد کنید</translation>
+    </message>
+    <message>
         <source>Export the data in the current tab to a file</source>
         <translation>صدور داده نوار جاری به یک فایل</translation>
     </message>
@@ -62,11 +66,11 @@
         <translation>آدرس‌های گیرنده</translation>
     </message>
     <message>
-        <source>These are your Bitcoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>اینها آدرس‌های شما برای ارسال وجوه هستند. همیشه قبل از ارسال، مقدار و آدرس گیرنده را بررسی کنید.</translation>
     </message>
     <message>
-        <source>These are your Bitcoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <source>These are your Particl addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
         <translation>اینها آدرس‌های بیتکوین شما برای دریافت وجوه هستند. توصیه می‌شود برای هر دریافت از یک آدرس جدید استفاده کنید.</translation>
     </message>
     <message>
@@ -132,6 +136,10 @@
         <translation>رمز/پَس فرِیز را دوباره وارد کنید</translation>
     </message>
     <message>
+        <source>Show password</source>
+        <translation>نمایش گذرواژه</translation>
+    </message>
+    <message>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
         <translation>رمز جدید را در کیف‌پول وارد کنید. &lt;br/&gt;لطفا از رمزی استفاده کنید که&lt;b&gt; حداقل ۱۰ کاراکتر راندوم&lt;/b&gt;یا&lt;b&gt;حداقل ۸ کلمه داشته باشد&lt;/b&gt;.</translation>
     </message>
@@ -168,7 +176,7 @@
         <translation>تایید رمزگذاری کیف پول</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR BITCOINS&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
         <translation>اخطار: اگر کیف‌پول خود را رمزگذاری کرده و رمز خود را فراموش کنید، شما &lt;b&gt;تمام بیت‌کوین‌های خود را از دست خواهید داد&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -180,7 +188,7 @@
         <translation>کیف پول رمزگذاری شده است</translation>
     </message>
     <message>
-        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your bitcoins from being stolen by malware infecting your computer.</source>
+        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
         <translation>%1 برای اتمام فرایند رمزگذاری بسته خواهد شد. به خاطر داشته باشید که رمزگذاری WALLET شما،  کامپیوتر شما را از آلودگی به بدافزارها مصون نمی دارد.</translation>
     </message>
     <message>
@@ -240,6 +248,10 @@
     <message>
         <source>&amp;Overview</source>
         <translation>بازبینی</translation>
+    </message>
+    <message>
+        <source>Node</source>
+        <translation>گره</translation>
     </message>
     <message>
         <source>Show general overview of wallet</source>
@@ -306,6 +318,14 @@
         <translation>دریافت آدرس ها</translation>
     </message>
     <message>
+        <source>Wallet:</source>
+        <translation>کیف پول:</translation>
+    </message>
+    <message>
+        <source>default wallet</source>
+        <translation>کیف پول پیش‌فرض</translation>
+    </message>
+    <message>
         <source>Click to disable network activity.</source>
         <translation>برای غیرفعال‌کردن فعالیت شبکه کلیک کنید.</translation>
     </message>
@@ -326,7 +346,7 @@
         <translation>فهرست‌بندی نمایه بلاک‌ها…</translation>
     </message>
     <message>
-        <source>Send coins to a Bitcoin address</source>
+        <source>Send coins to a Particl address</source>
         <translation>ارسال کوین به آدرس بیت کوین</translation>
     </message>
     <message>
@@ -354,6 +374,10 @@
         <translation>ارسال</translation>
     </message>
     <message>
+        <source>&amp;Receive</source>
+        <translation>دریافت</translation>
+    </message>
+    <message>
         <source>&amp;Show / Hide</source>
         <translation>نمایش/ عدم نمایش</translation>
     </message>
@@ -366,11 +390,11 @@
         <translation>رمزنگاری کلیدهای شخصی متعلق به کیف‌پول</translation>
     </message>
     <message>
-        <source>Sign messages with your Bitcoin addresses to prove you own them</source>
+        <source>Sign messages with your Particl addresses to prove you own them</source>
         <translation>پیام‌ها را با آدرس بیت‌کوین خود امضا کنید تا مالکیت آن‌ها را اثبات کنید</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Bitcoin addresses</source>
+        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
         <translation>پیام‌ها را تائید کنید تا از امضاشدن آن‌ها با آدرس بیت‌کوین مطمئن شوید</translation>
     </message>
     <message>
@@ -390,7 +414,7 @@
         <translation>نوار ابزار</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and bitcoin: URIs)</source>
+        <source>Request payments (generates QR codes and particl: URIs)</source>
         <translation>درخواست پرداخت (ساخت کد QR و بیت‌کوین: URIs)</translation>
     </message>
     <message>
@@ -402,12 +426,12 @@
         <translation>نمایش لیست آدرس‌ها و لیبل‌های دریافتی استفاده شده</translation>
     </message>
     <message>
-        <source>Open a bitcoin: URI or payment request</source>
+        <source>Open a particl: URI or payment request</source>
         <translation>بازکردن بیت‌کوین: آدرس یا درخواست پرداخت</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Bitcoin network</source>
-        <translation><numerusform>%n ارتباط فعال به شبکه بیت‌کوین</numerusform></translation>
+        <source>%n active connection(s) to Particl network</source>
+        <translation><numerusform>%n ارتباط فعال به شبکه بیت‌کوین</numerusform><numerusform>%n ارتباط فعال به شبکه بیت‌کوین</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -419,11 +443,27 @@
     </message>
     <message numerus="yes">
         <source>Processed %n block(s) of transaction history.</source>
-        <translation><numerusform>%n بلاک از تاریخچه تراکنش، پردازش شد.</numerusform></translation>
+        <translation><numerusform>%n بلاک از تاریخچه تراکنش، پردازش شد.</numerusform><numerusform>%n بلاک از تاریخچه تراکنش، پردازش شد.</numerusform></translation>
+    </message>
+    <message>
+        <source>%1 behind</source>
+        <translation>%1 قبل</translation>
+    </message>
+    <message>
+        <source>Transactions after this will not yet be visible.</source>
+        <translation>تراکنش‌های بعد از این تراکنش هنوز در دسترس نیستند.</translation>
     </message>
     <message>
         <source>Error</source>
         <translation>خطا</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>هشدار</translation>
+    </message>
+    <message>
+        <source>Information</source>
+        <translation>اطلاعات</translation>
     </message>
     <message>
         <source>Up to date</source>
@@ -432,6 +472,18 @@
     <message>
         <source>Catching up...</source>
         <translation>در حال روزآمد سازی..</translation>
+    </message>
+    <message>
+        <source>Amount: %1
+</source>
+        <translation>مبلغ: %1
+</translation>
+    </message>
+    <message>
+        <source>Address: %1
+</source>
+        <translation>آدرس: %1
+</translation>
     </message>
     <message>
         <source>Sent transaction</source>
@@ -475,6 +527,14 @@
     <message>
         <source>(un)select all</source>
         <translation>(عدم)انتخاب همه</translation>
+    </message>
+    <message>
+        <source>Tree mode</source>
+        <translation>حالت درختی</translation>
+    </message>
+    <message>
+        <source>List mode</source>
+        <translation>حالت لیستی</translation>
     </message>
     <message>
         <source>Amount</source>
@@ -552,10 +612,6 @@
         <translation>آدرس</translation>
     </message>
     <message>
-        <source>New receiving address</source>
-        <translation>آدرس دریافتی جدید</translation>
-    </message>
-    <message>
         <source>New sending address</source>
         <translation>آدرس ارسالی جدید</translation>
     </message>
@@ -566,6 +622,10 @@
     <message>
         <source>Edit sending address</source>
         <translation>ویرایش آدرس ارسالی</translation>
+    </message>
+    <message>
+        <source>The entered address "%1" is not a valid Particl address.</source>
+        <translation>آدرس وارد شده "%1" آدرس معتبر بیت کوین نیست.</translation>
     </message>
     </context>
 <context>
@@ -581,10 +641,6 @@
         <source>version</source>
         <translation>نسخه</translation>
     </message>
-    <message>
-        <source>Usage:</source>
-        <translation>میزان استفاده:</translation>
-    </message>
     </context>
 <context>
     <name>Intro</name>
@@ -593,8 +649,16 @@
         <translation>خوش آمدید</translation>
     </message>
     <message>
-        <source>Bitcoin</source>
+        <source>Welcome to %1.</source>
+        <translation>به %1 خوش آمدید.</translation>
+    </message>
+    <message>
+        <source>Particl</source>
         <translation>بیت کوین</translation>
+    </message>
+    <message>
+        <source>The wallet will also be stored in this directory.</source>
+        <translation>کیف پول هم در همین دایرکتوری ذخیره می‌شود.</translation>
     </message>
     <message>
         <source>Error</source>
@@ -608,8 +672,20 @@
         <translation>فرم</translation>
     </message>
     <message>
+        <source>Number of blocks left</source>
+        <translation>تعداد بلوک‌های باقیمانده</translation>
+    </message>
+    <message>
         <source>Unknown...</source>
         <translation>ناشناس...</translation>
+    </message>
+    <message>
+        <source>Last block time</source>
+        <translation>زمان آخرین بلوک</translation>
+    </message>
+    <message>
+        <source>Progress</source>
+        <translation>پیشرفت</translation>
     </message>
     <message>
         <source>calculating...</source>
@@ -682,7 +758,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
-        <translation>اطلاعات نمایش داده شده ممکن است روزآمد نباشد. wallet شما به صورت خودکار بعد از برقراری اتصال با شبکه bitcoin به روز می شود اما این فرایند هنوز تکمیل نشده است.</translation>
+        <translation>اطلاعات نمایش داده شده ممکن است روزآمد نباشد. wallet شما به صورت خودکار بعد از برقراری اتصال با شبکه particl به روز می شود اما این فرایند هنوز تکمیل نشده است.</translation>
     </message>
     <message>
         <source>Available:</source>
@@ -750,6 +826,14 @@
         <source>Current number of blocks</source>
         <translation>تعداد زنجیره های حاضر</translation>
     </message>
+    <message>
+        <source>Last block time</source>
+        <translation>زمان آخرین بلوک</translation>
+    </message>
+    <message>
+        <source>default wallet</source>
+        <translation>کیف پول پیش‌فرض</translation>
+    </message>
     </context>
 <context>
     <name>ReceiveCoinsDialog</name>
@@ -791,6 +875,10 @@
     <message>
         <source>Label</source>
         <translation>برچسب</translation>
+    </message>
+    <message>
+        <source>Wallet</source>
+        <translation>کیف پول</translation>
     </message>
     </context>
 <context>
@@ -1076,56 +1164,16 @@
 <context>
     <name>bitcoin-core</name>
     <message>
-        <source>Options:</source>
-        <translation>انتخابها:</translation>
-    </message>
-    <message>
-        <source>Specify data directory</source>
-        <translation>دایرکتوری داده را مشخص کن</translation>
-    </message>
-    <message>
-        <source>Accept command line and JSON-RPC commands</source>
-        <translation>command line  و JSON-RPC commands را قبول کنید</translation>
-    </message>
-    <message>
-        <source>Run in the background as a daemon and accept commands</source>
-        <translation>به عنوان daemon بک گراند را اجرا کنید و دستورات را قبول نمایید</translation>
-    </message>
-    <message>
         <source>The transaction amount is too small to send after the fee has been deducted</source>
         <translation>مبلغ تراکنش کمتر از آن است که پس از کسر هزینه  تراکنش قابل ارسال باشد</translation>
     </message>
     <message>
-        <source>RPC server options:</source>
-        <translation>گزینه های سرویس دهنده RPC:</translation>
+        <source>Information</source>
+        <translation>اطلاعات</translation>
     </message>
     <message>
-        <source>Send trace/debug info to console instead of debug.log file</source>
-        <translation>ارسال اطلاعات پیگیری/خطایابی به کنسول به جای ارسال به فایل debug.log</translation>
-    </message>
-    <message>
-        <source>Username for JSON-RPC connections</source>
-        <translation>شناسه کاربری برای ارتباطاتِ JSON-RPC</translation>
-    </message>
-    <message>
-        <source>Password for JSON-RPC connections</source>
-        <translation>رمز برای ارتباطاتِ JSON-RPC</translation>
-    </message>
-    <message>
-        <source>Execute command when the best block changes (%s in cmd is replaced by block hash)</source>
-        <translation>دستور را وقتی بهترین بلاک تغییر کرد اجرا کن (%s در دستور توسط block hash جایگزین شده است)</translation>
-    </message>
-    <message>
-        <source>Set the number of threads to service RPC calls (default: %d)</source>
-        <translation>تنظیم تعداد ریسمان ها برای سرویس دهی فراخوانی های RPC (پیش فرض: %d)</translation>
-    </message>
-    <message>
-        <source>Specify configuration file (default: %s)</source>
-        <translation>فایل تنظیمات را مشخص کنید (پیش فرض: %s)</translation>
-    </message>
-    <message>
-        <source>Specify pid file (default: %s)</source>
-        <translation>فایل pid را مشخص کنید (پیش فرض: %s)</translation>
+        <source>Warning</source>
+        <translation>هشدار</translation>
     </message>
     <message>
         <source>Insufficient funds</source>
