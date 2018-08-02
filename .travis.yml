@@ -83,7 +83,7 @@ env:
         RUN_TESTS=false
         RUN_BENCH=true
         GOAL="install"
-        BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\" --enable-usbdevice --disable-bench "
+        BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\" --enable-usbdevice "
         RUN_UNIT_TESTS=true
         UNIT_TESTS_TIMEOUT=1200
 # x86_64 Linux (Qt5 & system libs)
