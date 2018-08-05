@@ -56,7 +56,7 @@ endif
 
 #Needed from init.cpp
 if ENABLE_USBDEVICE
-bench_bench_particl_LDADD += $(LIBPARTICL_USBDEVICE) $(USB_LIBS)
+bench_bench_particl_LDADD += $(LIBPARTICL_USBDEVICE) $(USB_LIBS) $(PROTOBUF_LIBS)
 endif
 
 if ENABLE_WALLET

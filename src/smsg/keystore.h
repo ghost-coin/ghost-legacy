@@ -9,8 +9,7 @@
 #include <pubkey.h>
 #include <sync.h>
 
-namespace smsg
-{
+namespace smsg {
 
 enum SMSGKeyFlagTypes
 {

@@ -33,48 +33,44 @@ static std::vector<uint32_t> GetPath(std::vector<uint32_t> &vPath, const UniValu
 {
     // Pass empty string as defaultpath to drop defaultpath and use path as full path
     std::string sPath;
-    if (path.isStr())
-    {
+    if (path.isStr()) {
         sPath = path.get_str();
     } else
-    if (path.isNum())
-    {
+    if (path.isNum()) {
         sPath = strprintf("%d", path.get_int());
-    } else
-    {
+    } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown \"path\" type."));
-    };
+    }
 
-    if (defaultpath.isNull())
-    {
+    if (defaultpath.isNull()) {
         sPath = GetDefaultAccountPath() + "/" + sPath;
     } else
-    if (path.isNum())
-    {
+    if (path.isNum()) {
         sPath = strprintf("%d", defaultpath.get_int()) + "/" + sPath;
     } else
-    if (defaultpath.isStr())
-    {
-        if (!defaultpath.get_str().empty())
+    if (defaultpath.isStr()) {
+        if (!defaultpath.get_str().empty()) {
             sPath = defaultpath.get_str() + "/" + sPath;
-    } else
-    {
+        }
+    } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown \"defaultpath\" type."));
-    };
+    }
 
     int rv;
-    if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0)
+    if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Bad path: %s.", ExtKeyGetString(rv)));
+    }
 
     return vPath;
 };
 
-static CUSBDevice *SelectDevice(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
+static usb_device::CUSBDevice *SelectDevice(std::vector<std::unique_ptr<usb_device::CUSBDevice> > &vDevices)
 {
     std::string sError;
-    CUSBDevice *rv = SelectDevice(vDevices, sError);
-    if (!rv)
+    usb_device::CUSBDevice *rv = SelectDevice(vDevices, sError);
+    if (!rv) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, sError);
+    }
     return rv;
 };
 
@@ -94,26 +90,26 @@ static UniValue listdevices(const JSONRPCRequest &request)
             + HelpExampleCli("listdevices", "")
             + HelpExampleRpc("listdevices", ""));
 
-    std::vector<std::unique_ptr<CUSBDevice> > vDevices;
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
     ListDevices(vDevices);
 
     UniValue result(UniValue::VARR);
 
-    for (size_t i = 0; i < vDevices.size(); ++i)
-    {
-        CUSBDevice *device = vDevices[i].get();
+    for (size_t i = 0; i < vDevices.size(); ++i) {
+        usb_device::CUSBDevice *device = vDevices[i].get();
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("vendor", device->pType->cVendor);
         obj.pushKV("product", device->pType->cProduct);
 
         std::string sValue, sError;
-        if (0 == device->GetFirmwareVersion(sValue, sError))
+        if (0 == device->GetFirmwareVersion(sValue, sError)) {
             obj.pushKV("firmwareversion", sValue);
-        else
+        } else {
             obj.pushKV("error", sError);
+        }
 
         result.push_back(obj);
-    };
+    }
 
     return result;
 };
@@ -132,13 +128,14 @@ static UniValue getdeviceinfo(const JSONRPCRequest &request)
             + HelpExampleCli("getdeviceinfo", "")
             + HelpExampleRpc("getdeviceinfo", ""));
 
-    std::vector<std::unique_ptr<CUSBDevice> > vDevices;
-    CUSBDevice *pDevice = SelectDevice(vDevices);
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
 
     UniValue info(UniValue::VOBJ);
     std::string sError;
-    if (0 != pDevice->GetInfo(info, sError))
+    if (0 != pDevice->GetInfo(info, sError)) {
         info.pushKV("error", sError);
+    }
 
     return info;
 };
@@ -169,13 +166,14 @@ static UniValue getdevicepublickey(const JSONRPCRequest &request)
     std::vector<uint32_t> vPath;
     GetPath(vPath, request.params[0], request.params[1]);
 
-    std::vector<std::unique_ptr<CUSBDevice> > vDevices;
-    CUSBDevice *pDevice = SelectDevice(vDevices);
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
 
     std::string sError;
     CPubKey pk;
-    if (0 != pDevice->GetPubKey(vPath, pk, sError))
+    if (0 != pDevice->GetPubKey(vPath, pk, sError)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("GetPubKey failed %s.", sError));
+    }
 
     std::string sPath;
     if (0 != PathToString(vPath, sPath))
@@ -206,13 +204,14 @@ static UniValue getdevicexpub(const JSONRPCRequest &request)
     std::vector<uint32_t> vPath;
     GetPath(vPath, request.params[0], request.params[1]);
 
-    std::vector<std::unique_ptr<CUSBDevice> > vDevices;
-    CUSBDevice *pDevice = SelectDevice(vDevices);
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
 
     std::string sError;
     CExtPubKey ekp;
-    if (0 != pDevice->GetXPub(vPath, ekp, sError))
+    if (0 != pDevice->GetXPub(vPath, ekp, sError)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("GetXPub failed %s.", sError));
+    }
 
     return CBitcoinExtPubKey(ekp).ToString();
 };
@@ -238,16 +237,18 @@ static UniValue devicesignmessage(const JSONRPCRequest &request)
     std::vector<uint32_t> vPath;
     GetPath(vPath, request.params[0], request.params[2]);
 
-    std::vector<std::unique_ptr<CUSBDevice> > vDevices;
-    CUSBDevice *pDevice = SelectDevice(vDevices);
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
 
-    if (!request.params[1].isStr())
+    if (!request.params[1].isStr()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Bad message.");
+    }
 
     std::string sError, sMessage = request.params[1].get_str();
     std::vector<uint8_t> vchSig;
-    if (0 != pDevice->SignMessage(vPath, sMessage, vchSig, sError))
+    if (0 != pDevice->SignMessage(vPath, sMessage, vchSig, sError)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("SignMessage failed %s.", sError));
+    }
 
     return EncodeBase64(vchSig.data(), vchSig.size());
 };
@@ -257,8 +258,9 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     #ifdef ENABLE_WALLET
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
+    }
     #endif
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 5)
@@ -322,11 +324,12 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR, UniValue::VARR, UniValue::VSTR, UniValue::VSTR}, true);
 
     CMutableTransaction mtx;
-    if (!DecodeHexTx(mtx, request.params[0].get_str(), true))
+    if (!DecodeHexTx(mtx, request.params[0].get_str(), true)) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
+    }
 
-    std::vector<std::unique_ptr<CUSBDevice> > vDevices;
-    CUSBDevice *pDevice = SelectDevice(vDevices);
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
 
     // TODO check root id on wallet and device match
 
@@ -349,17 +352,18 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
 
 
     bool fGivenKeys = false;
-    CPathKeyStore tempKeystore;
+    usb_device::CPathKeyStore tempKeystore;
     if (!request.params[2].isNull()) {
         fGivenKeys = true;
         UniValue paths = request.params[2].get_array();
         for (unsigned int idx = 0; idx < paths.size(); idx++) {
-            CPathKey pathkey;
+            usb_device::CPathKey pathkey;
             GetPath(pathkey.vPath, paths[idx], request.params[4]);
 
             std::string sError;
-            if (0 != pDevice->GetPubKey(pathkey.vPath, pathkey.pk, sError))
+            if (0 != pDevice->GetPubKey(pathkey.vPath, pathkey.pk, sError)) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Device GetPubKey failed %s.", sError));
+            }
 
             tempKeystore.AddKey(pathkey);
         }
@@ -370,8 +374,9 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
         UniValue prevTxs = request.params[1].get_array();
         for (unsigned int idx = 0; idx < prevTxs.size(); idx++) {
             const UniValue& p = prevTxs[idx];
-            if (!p.isObject())
+            if (!p.isObject()) {
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "expected object with {\"txid'\",\"vout\",\"scriptPubKey\"}");
+            }
 
             UniValue prevOut = p.get_obj();
 
@@ -385,8 +390,9 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
             uint256 txid = ParseHashO(prevOut, "txid");
 
             int nOut = find_value(prevOut, "vout").get_int();
-            if (nOut < 0)
+            if (nOut < 0) {
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "vout must be positive");
+            }
 
             COutPoint out(txid, nOut);
             std::vector<unsigned char> pkData(ParseHexO(prevOut, "scriptPubKey"));
@@ -395,8 +401,9 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
             {
             const Coin& coin = view.AccessCoin(out);
 
-            if (coin.nType != OUTPUT_STANDARD && coin.nType != OUTPUT_CT)
+            if (coin.nType != OUTPUT_STANDARD && coin.nType != OUTPUT_CT) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad input type: %d", coin.nType));
+            }
 
             if (!coin.IsSpent() && coin.out.scriptPubKey != scriptPubKey) {
                 std::string err("Previous output scriptPubKey mismatch:\n");
@@ -451,10 +458,11 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
             {std::string("SINGLE|ANYONECANPAY"), int(SIGHASH_SINGLE|SIGHASH_ANYONECANPAY)},
         };
         std::string strHashType = request.params[3].get_str();
-        if (mapSigHashValues.count(strHashType))
+        if (mapSigHashValues.count(strHashType)) {
             nHashType = mapSigHashValues[strHashType];
-        else
+        } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid sighash param");
+        }
     }
 
     bool fHashSingle = ((nHashType & ~SIGHASH_ANYONECANPAY) == SIGHASH_SINGLE);
@@ -467,11 +475,11 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     const CTransaction txConst(mtx);
 
     // Prepare transaction
-    if (0 != pDevice->Open())
+    if (0 != pDevice->Open()) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Failed to open dongle."));
+    }
     pDevice->PrepareTransaction(&mtx, view);
-    if (!pDevice->sError.empty())
-    {
+    if (!pDevice->sError.empty()) {
         pDevice->Close();
         UniValue entry(UniValue::VOBJ);
         entry.pushKV("error", pDevice->sError);
@@ -482,7 +490,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
             result.pushKV("errors", vErrors);
         }
         return result;
-    };
+    }
 
 
     // Sign what we can:
@@ -507,7 +515,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mtx.GetNumVOuts())) {
             pDevice->sError.clear();
-            ProduceSignature(keystore, DeviceSignatureCreator(pDevice, &mtx, i, vchAmount, nHashType), prevPubKey, sigdata);
+            ProduceSignature(keystore, usb_device::DeviceSignatureCreator(pDevice, &mtx, i, vchAmount, nHashType), prevPubKey, sigdata);
 
             if (!pDevice->sError.empty()) {
                 UniValue entry(UniValue::VOBJ);
@@ -582,25 +590,25 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 
     EnsureWalletIsUnlocked(pwallet);
 
-    std::vector<std::unique_ptr<CUSBDevice> > vDevices;
-    CUSBDevice *pDevice = SelectDevice(vDevices);
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
 
     std::string sLabel;
-    if (request.params[0].isStr())
+    if (request.params[0].isStr()) {
         sLabel = request.params[0].get_str();
+    }
 
     std::vector<uint32_t> vPath;
-    if (request.params[1].isStr() && request.params[1].get_str().size())
-    {
+    if (request.params[1].isStr() && request.params[1].get_str().size()) {
         UniValue emptyStr(UniValue::VSTR);
         GetPath(vPath, request.params[1], emptyStr);
-    } else
-    {
+    } else {
         std::string sPath = GetDefaultAccountPath();
         int rv;
-        if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0)
+        if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Bad path: %s.", ExtKeyGetString(rv)));
-    };
+        }
+    }
 
     bool fMakeDefault = request.params[2].isBool() ? request.params[2].get_bool() : true;
     int64_t nScanFrom = request.params[3].isNum() ? request.params[3].get_int64() : 0;
@@ -613,8 +621,9 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 
     std::string sError;
     CExtPubKey ekp;
-    if (0 != pDevice->GetXPub(vPath, ekp, sError))
+    if (0 != pDevice->GetXPub(vPath, ekp, sError)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("GetXPub failed %s.", sError));
+    }
 
     CKeyID idAccount = ekp.pubkey.GetID();
 
@@ -623,8 +632,9 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
         CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
 
         CStoredExtKey checkSEA;
-        if (wdb.ReadExtKey(idAccount, checkSEA))
+        if (wdb.ReadExtKey(idAccount, checkSEA)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Account already exists in db.");
+        }
 
 
         CStoredExtKey *sekAccount = new CStoredExtKey();
@@ -646,11 +656,10 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
         CExtPubKey epExternal, epInternal;
         uint32_t nExternal, nInternal;
         if (sekAccount->DeriveNextKey(epExternal, nExternal, false) != 0
-            || sekAccount->DeriveNextKey(epInternal, nInternal, false) != 0)
-        {
+            || sekAccount->DeriveNextKey(epInternal, nInternal, false) != 0) {
             sea->FreeChains();
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Could not derive account chain keys.");
-        };
+        }
 
         std::vector<uint32_t> vChainPath;
         vChainPath.push_back(vPath.back()); // make relative to key before account
@@ -673,8 +682,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
         sea->InsertChain(sekInternal);
         sea->nActiveInternal = sea->NumChains();
 
-        if (fInitStealth)
-        {
+        if (fInitStealth) {
             // Generate a chain to use for generating scan secrets
             // Use a signed message as the seed so the scan chain is deterministic.
             // In this way if the wallet is locked it's not possible to regenerate the private key to the scan chain.
@@ -682,20 +690,18 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
             std::string msg = "Scan chain secret seed";
             std::vector<uint8_t> vchSig;
             std::vector<uint32_t> vSigPath;
-            if (!pwallet->GetFullChainPath(sea, sea->nActiveExternal, vSigPath))
-            {
+            if (!pwallet->GetFullChainPath(sea, sea->nActiveExternal, vSigPath)) {
                 sea->FreeChains();
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "GetFullChainPath failed.");
-            };
+            }
 
             vSigPath.push_back(0);
             uiInterface.NotifyWaitingForDevice(false);
-            if (0 != pDevice->SignMessage(vSigPath, msg, vchSig, sError))
-            {
+            if (0 != pDevice->SignMessage(vSigPath, msg, vchSig, sError)) {
                 sea->FreeChains();
                 uiInterface.NotifyWaitingForDevice(true);
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Could not generate scan chain seed from signed message %s.", sError));
-            };
+            }
             uiInterface.NotifyWaitingForDevice(true);
             vchSig.insert(vchSig.end(), sekExternal->kp.pubkey.begin(), sekExternal->kp.pubkey.end());
 
@@ -718,11 +724,10 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
             CExtPubKey epStealthSpend;
             uint32_t nStealthSpend = WithHardenedBit(CHAIN_NO_STEALTH_SPEND);
             vPath.push_back(nStealthSpend);
-            if (0 != pDevice->GetXPub(vPath, epStealthSpend, sError))
-            {
+            if (0 != pDevice->GetXPub(vPath, epStealthSpend, sError)) {
                 sea->FreeChains();
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("GetXPub failed %s.", sError));
-            };
+            }
             vPath.pop_back();
 
             CStoredExtKey *sekStealthSpend = new CStoredExtKey();
@@ -737,56 +742,52 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 
             sea->mapValue[EKVT_STEALTH_SCAN_CHAIN] = SetCompressedInt64(vData, nStealthScanChain);
             sea->mapValue[EKVT_STEALTH_SPEND_CHAIN] = SetCompressedInt64(vData, nStealthSpendChain);
-        };
+        }
 
-        if (!wdb.TxnBegin())
+        if (!wdb.TxnBegin()) {
             throw std::runtime_error("TxnBegin failed.");
+        }
 
-        if (0 != pwallet->ExtKeySaveAccountToDB(&wdb, idAccount, sea))
-        {
+        if (0 != pwallet->ExtKeySaveAccountToDB(&wdb, idAccount, sea)) {
             sea->FreeChains();
             wdb.TxnAbort();
             throw JSONRPCError(RPC_INTERNAL_ERROR, "DB Write failed.");
-        };
+        }
 
-        if (0 != pwallet->ExtKeyAddAccountToMaps(idAccount, sea))
-        {
+        if (0 != pwallet->ExtKeyAddAccountToMaps(idAccount, sea)) {
             sea->FreeChains();
             wdb.TxnAbort();
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ExtKeyAddAccountToMaps failed.");
-        };
+        }
 
         CKeyID idOldDefault = pwallet->idDefaultAccount;
-        if (fMakeDefault)
-        {
+        if (fMakeDefault) {
             CKeyID idNewDefaultAccount = sea->GetID();
             int rv;
-            if (0 != (rv = pwallet->ExtKeySetDefaultAccount(&wdb, idNewDefaultAccount)))
-            {
+            if (0 != (rv = pwallet->ExtKeySetDefaultAccount(&wdb, idNewDefaultAccount))) {
                 pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("ExtKeySetDefaultAccount failed, %s.", ExtKeyGetString(rv)));
-            };
-        };
+            }
+        }
 
-        if (!wdb.TxnCommit())
-        {
+        if (!wdb.TxnCommit()) {
             pwallet->idDefaultAccount = idOldDefault;
             pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);
             throw JSONRPCError(RPC_INTERNAL_ERROR, "TxnCommit failed.");
-        };
+        }
     } // pwallet->cs_wallet
 
-    if (nScanFrom >= 0)
-    {
+    if (nScanFrom >= 0) {
         pwallet->RescanFromTime(nScanFrom, reserver, true /* update */);
         pwallet->MarkDirty();
         pwallet->ReacceptWalletTransactions();
-    };
+    }
 
     std::string sPath;
-    if (0 != PathToString(vPath, sPath))
+    if (0 != PathToString(vPath, sPath)) {
         sPath = "error";
+    }
     UniValue result(UniValue::VOBJ);
 
     result.pushKV("extkey", CBitcoinExtPubKey(ekp).ToString());
@@ -801,8 +802,9 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
+    }
 
     if (request.fHelp || request.params.size() > 4)
         throw std::runtime_error(
@@ -828,19 +830,21 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
 
 
     std::string sError, sLabel;
-    if (request.params.size() > 0)
+    if (request.params.size() > 0) {
         sLabel = request.params[0].get_str();
+    }
 
     uint32_t num_prefix_bits = 0;
-    if (request.params.size() > 1)
-    {
+    if (request.params.size() > 1) {
         std::string s = request.params[1].get_str();
-        if (s.length() && !ParseUInt32(s, &num_prefix_bits))
+        if (s.length() && !ParseUInt32(s, &num_prefix_bits)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits invalid number."));
-    };
+        }
+    }
 
-    if (num_prefix_bits > 32)
+    if (num_prefix_bits > 32) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits must be <= 32."));
+    }
 
     std::string sPrefix_num;
     if (request.params.size() > 2)
@@ -855,93 +859,98 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
         LOCK(pwallet->cs_wallet);
 
         ExtKeyAccountMap::iterator mi = pwallet->mapExtAccounts.find(pwallet->idDefaultAccount);
-        if (mi == pwallet->mapExtAccounts.end())
+        if (mi == pwallet->mapExtAccounts.end()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unknown account.");
+        }
 
         CExtKeyAccount *sea = mi->second;
         uint64_t nScanChain, nSpendChain;
         CStoredExtKey *sekScan = nullptr, *sekSpend = nullptr;
         mapEKValue_t::iterator mvi = sea->mapValue.find(EKVT_STEALTH_SCAN_CHAIN);
-        if (mvi != sea->mapValue.end())
-        {
+        if (mvi != sea->mapValue.end()) {
             GetCompressedInt64(mvi->second, nScanChain);
             sekScan = sea->GetChain(nScanChain);
-        };
-        if (!sekScan)
+        }
+        if (!sekScan) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unknown stealth scan chain.");
+        }
 
         mvi = sea->mapValue.find(EKVT_STEALTH_SPEND_CHAIN);
-        if (mvi != sea->mapValue.end())
-        {
+        if (mvi != sea->mapValue.end()) {
             GetCompressedInt64(mvi->second, nSpendChain);
             sekSpend = sea->GetChain(nSpendChain);
-        };
-        if (!sekSpend)
+        }
+        if (!sekSpend) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unknown stealth spend chain.");
+        }
 
 
         uint32_t nSpendGenerated = sekSpend->nHGenerated;
 
         std::vector<uint32_t> vSpendPath;
-        if (!pwallet->GetFullChainPath(sea, nSpendChain, vSpendPath))
+        if (!pwallet->GetFullChainPath(sea, nSpendChain, vSpendPath)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "GetFullChainPath failed.");
+        }
         vSpendPath.push_back(WithHardenedBit(nSpendGenerated));
 
-        std::vector<std::unique_ptr<CUSBDevice> > vDevices;
-        CUSBDevice *pDevice = SelectDevice(vDevices);
+        std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+        usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
 
         CPubKey pkSpend;
-        if (0 != pDevice->GetPubKey(vSpendPath, pkSpend, sError))
+        if (0 != pDevice->GetPubKey(vSpendPath, pkSpend, sError)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Device GetPubKey failed %s.", sError));
+        }
 
         sekSpend->nHGenerated = nSpendGenerated+1;
 
 
         CKey kScan;
         uint32_t nScanOut;
-        if (0 != sekScan->DeriveNextKey(kScan, nScanOut, true))
+        if (0 != sekScan->DeriveNextKey(kScan, nScanOut, true)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Derive failed.");
+        }
 
         uint32_t nPrefixBits = num_prefix_bits;
         uint32_t nPrefix = 0;
         const char *pPrefix = sPrefix_num.empty() ? nullptr : sPrefix_num.c_str();
-        if (pPrefix)
-        {
-            if (!ExtractStealthPrefix(pPrefix, nPrefix))
+        if (pPrefix) {
+            if (!ExtractStealthPrefix(pPrefix, nPrefix)) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "ExtractStealthPrefix failed.");
+            }
         } else
-        if (nPrefixBits > 0)
-        {
+        if (nPrefixBits > 0) {
             // If pPrefix is null, set nPrefix from the hash of kScan
             uint8_t tmp32[32];
             CSHA256().Write(kScan.begin(), 32).Finalize(tmp32);
             memcpy(&nPrefix, tmp32, 4);
-        };
+        }
 
         uint32_t nMask = SetStealthMask(nPrefixBits);
         nPrefix = nPrefix & nMask;
         akStealth = CEKAStealthKey(nScanChain, nScanOut, kScan, nSpendChain, WithHardenedBit(nSpendGenerated), pkSpend, nPrefixBits, nPrefix);
         akStealth.sLabel = sLabel;
 
-        if (0 != akStealth.SetSxAddr(sxAddr))
+        if (0 != akStealth.SetSxAddr(sxAddr)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "SetSxAddr failed.");
+        }
 
         CKeyID idAccount = sea->GetID();
         CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
 
-        if (!wdb.TxnBegin())
+        if (!wdb.TxnBegin()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "TxnBegin failed.");
+        }
 
-        if (0 != pwallet->SaveStealthAddress(&wdb, sea, akStealth, fBech32))
-        {
+        if (0 != pwallet->SaveStealthAddress(&wdb, sea, akStealth, fBech32)) {
             wdb.TxnAbort();
             pwallet->ExtKeyRemoveAccountFromMapsAndFree(idAccount);
             pwallet->ExtKeyLoadAccount(&wdb, idAccount);
             throw JSONRPCError(RPC_INTERNAL_ERROR, "SaveStealthAddress failed.");
-        };
+        }
 
-        if (!wdb.TxnCommit())
+        if (!wdb.TxnCommit()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "TxnCommit failed.");
+        }
     }
 
     pwallet->AddressBookChangedNotify(sxAddr, CT_NEW);

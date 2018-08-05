@@ -97,6 +97,7 @@ usb_packages_$(NO_USB) = $(usb_packages)
 
 ifeq ($(NO_USB),)
     linux_packages += $(linux_packages_usb)
+    native_packages += $(usb_native_packages)
 endif
 
 packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_) $(usb_packages_)

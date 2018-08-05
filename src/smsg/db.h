@@ -13,8 +13,7 @@
 
 class CDataStream;
 
-namespace smsg
-{
+namespace smsg {
 
 class SecMsgStored;
 

@@ -76,8 +76,7 @@ extern CCriticalSection cs_main;
 
 smsg::CSMSG smsgModule;
 
-namespace smsg
-{
+namespace smsg {
 bool fSecMsgEnabled = false;
 
 boost::thread_group threadGroupSmsg;

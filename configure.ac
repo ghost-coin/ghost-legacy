@@ -1111,6 +1111,11 @@ if test x$use_pkgconfig = xyes; then
       fi
 
       if test "x$enable_usbdevice" = "xyes"; then
+        if test "x$bitcoin_enable_qt" != "xyes"; then
+            PKG_CHECK_MODULES([PROTOBUF], [protobuf],[have_protobuf=yes],
+            [AC_MSG_WARN(protobuf not found.)
+             enable_usbdevice=no])
+        fi
         PKG_CHECK_MODULES([USB],[$LIBHIDAPINAME >= 0],
           [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
           [AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
@@ -1160,6 +1165,11 @@ else
   fi
 
   if test "x$enable_usbdevice" = "xyes"; then
+    if test "x$bitcoin_enable_qt" != "xyes"; then
+      AC_CHECK_LIB([protobuf] ,[main],[PROTOBUF_LIBS=-lprotobuf],
+        [AC_MSG_WARN([protobuf not found, disabling usbdevice support])
+         enable_usbdevice=no],)
+    fi
     AC_CHECK_HEADER([hidapi/hidapi.h],
        [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
        [AC_MSG_WARN([hidapi.h not found, disabling usbdevice support])
@@ -1236,6 +1246,18 @@ AC_SUBST(UNIVALUE_CFLAGS)
 AC_SUBST(UNIVALUE_LIBS)
 
 BITCOIN_QT_PATH_PROGS([PROTOC], [protoc],$protoc_bin_path)
+
+if test "x$enable_usbdevice" = "xyes"; then
+  if test "x$bitcoin_enable_qt" != "xyes"; then
+    if test "x$protoc_bin_path" != x; then
+      AC_PATH_PROGS([PROTOC],[protoc],,$protoc_bin_path)
+    else
+      AC_PATH_PROGS([PROTOC],[protoc])
+    fi
+  fi
+fi
+
+
 
 AC_MSG_CHECKING([whether to build bitcoind])
 AM_CONDITIONAL([BUILD_BITCOIND], [test x$build_bitcoind = xyes])

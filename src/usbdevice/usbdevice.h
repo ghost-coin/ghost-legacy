@@ -15,17 +15,23 @@
 #include <keystore.h>
 #include <memory>
 
-enum DeviceTypeID {
-    USBDEVICE_UNKNOWN = -1,
-    USBDEVICE_DEBUG = 0,
-    USBDEVICE_LEDGER_NANO_S = 1,
-    USBDEVICE_SIZE,
-};
 
 class UniValue;
 struct hid_device_;
 typedef struct hid_device_ hid_device;
 class CCoinsViewCache;
+
+namespace usb_device {
+
+enum DeviceTypeID {
+    USBDEVICE_UNKNOWN = -1,
+    USBDEVICE_DEBUG = 0,
+    USBDEVICE_LEDGER_NANO_S = 1,
+    USBDEVICE_TREZOR_ONE = 2,
+    USBDEVICE_SIZE,
+};
+
+void ShutdownHardwareIntegration();
 
 class CPathKey
 {
@@ -160,6 +166,8 @@ public:
 
     bool CreateSig(const SigningProvider& provider, std::vector<unsigned char> &vchSig, const CKeyID &keyid, const CScript &scriptCode, SigVersion sigversion) const override;
 };
+
+} // usb_device
 
 #endif // PARTICL_USBDEVICE_USBDEVICE_H
 

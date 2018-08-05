@@ -4,8 +4,7 @@
 
 #include <smsg/keystore.h>
 
-namespace smsg
-{
+namespace smsg {
 
 bool SecMsgKeyStore::AddKey(const CKeyID &idk, SecMsgKey &key)
 {

@@ -17,8 +17,7 @@
 
 class CWallet;
 
-namespace smsg
-{
+namespace smsg {
 
 enum SecureMessageCodes {
     SMSG_NO_ERROR = 0,

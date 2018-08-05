@@ -3911,31 +3911,31 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             {
                 CCoinsView viewDummy;
                 CCoinsViewCache view(&viewDummy);
-                for (const auto &coin : setCoins)
-                {
+                for (const auto &coin : setCoins) {
                     Coin newcoin;
                     newcoin.out.scriptPubKey = coin.txout.scriptPubKey;
                     newcoin.out.nValue = coin.GetValue();
                     newcoin.nHeight = 1;
                     view.AddCoin(coin.outpoint, std::move(newcoin), true);
-                };
-                std::vector<std::unique_ptr<CUSBDevice> > vDevices;
-                CUSBDevice *pDevice = SelectDevice(vDevices, sError);
-                if (!pDevice)
+                }
+                std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+                usb_device::CUSBDevice *pDevice = usb_device::SelectDevice(vDevices, sError);
+                if (!pDevice) {
                     return 1; // sError is set
+                }
 
-                if (0 != pDevice->Open())
+                if (0 != pDevice->Open()) {
                     return errorN(1, sError, __func__, _("Failed to open dongle").c_str());
+                }
 
                 uiInterface.NotifyWaitingForDevice(false);
 
                 pDevice->PrepareTransaction(&txNew, view);
-                if (!pDevice->sError.empty())
-                {
+                if (!pDevice->sError.empty()) {
                     pDevice->Close();
                     uiInterface.NotifyWaitingForDevice(true);
                     return errorN(1, sError, __func__, _("PrepareTransaction for device failed: %s").c_str(), pDevice->sError);
-                };
+                }
 
                 int nIn = 0;
                 for (const auto &coin : setCoins)
@@ -3953,7 +3953,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 
                     pDevice->sError.clear();
                     SignatureData sigdata;
-                    ProduceSignature(*this, DeviceSignatureCreator(pDevice, &txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata);
+                    ProduceSignature(*this, usb_device::DeviceSignatureCreator(pDevice, &txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata);
 
                     if (!pDevice->sError.empty())
                     {

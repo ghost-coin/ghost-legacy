@@ -7,8 +7,7 @@
 #include <serialize.h>
 #include <clientversion.h>
 
-namespace smsg
-{
+namespace smsg {
 
 /*
 prefixes

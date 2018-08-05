@@ -9,6 +9,8 @@
 #include <validation.h>
 #include <hash.h>
 
+namespace usb_device {
+
 const char *seed = "debug key";
 
 const size_t MAX_BIP32_PATH = 10;
@@ -41,16 +43,17 @@ int CDebugDevice::GetInfo(UniValue &info, std::string &sError)
 
 int CDebugDevice::GetPubKey(const std::vector<uint32_t> &vPath, CPubKey &pk, std::string &sError)
 {
-    if (vPath.size() < 1 || vPath.size() > MAX_BIP32_PATH)
+    if (vPath.size() < 1 || vPath.size() > MAX_BIP32_PATH) {
         return errorN(1, sError, __func__, _("Path depth out of range.").c_str());
+    }
 
     CExtKey vkOut, vkWork = ekv;
-    for (auto it = vPath.begin(); it != vPath.end(); ++it)
-    {
-        if (!vkWork.Derive(vkOut, *it))
+    for (auto it = vPath.begin(); it != vPath.end(); ++it) {
+        if (!vkWork.Derive(vkOut, *it)) {
             return errorN(1, sError, __func__, "CExtKey Derive failed");
+        }
         vkWork = vkOut;
-    };
+    }
 
     pk = vkOut.key.GetPubKey();
 
@@ -59,16 +62,17 @@ int CDebugDevice::GetPubKey(const std::vector<uint32_t> &vPath, CPubKey &pk, std
 
 int CDebugDevice::GetXPub(const std::vector<uint32_t> &vPath, CExtPubKey &ekp, std::string &sError)
 {
-    if (vPath.size() < 1 || vPath.size() > MAX_BIP32_PATH)
+    if (vPath.size() < 1 || vPath.size() > MAX_BIP32_PATH) {
         return errorN(1, sError, __func__, _("Path depth out of range.").c_str());
+    }
 
     CExtKey vkOut, vkWork = ekv;
-    for (auto it = vPath.begin(); it != vPath.end(); ++it)
-    {
-        if (!vkWork.Derive(vkOut, *it))
+    for (auto it = vPath.begin(); it != vPath.end(); ++it) {
+        if (!vkWork.Derive(vkOut, *it)) {
             return errorN(1, sError, __func__, "CExtKey Derive failed");
+        }
         vkWork = vkOut;
-    };
+    }
 
     ekp = vkOut.Neutered();
 
@@ -78,19 +82,20 @@ int CDebugDevice::GetXPub(const std::vector<uint32_t> &vPath, CExtPubKey &ekp, s
 int CDebugDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::string &sMessage, std::vector<uint8_t> &vchSig, std::string &sError)
 {
     CExtKey vkOut, vkWork = ekv;
-    for (auto it = vPath.begin(); it != vPath.end(); ++it)
-    {
-        if (!vkWork.Derive(vkOut, *it))
+    for (auto it = vPath.begin(); it != vPath.end(); ++it) {
+        if (!vkWork.Derive(vkOut, *it)) {
             return errorN(1, sError, __func__, "CExtKey Derive failed");
+        }
         vkWork = vkOut;
-    };
+    }
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << strMessageMagic;
     ss << sMessage;
 
-    if (!vkOut.key.SignCompact(ss.GetHash(), vchSig))
+    if (!vkOut.key.SignCompact(ss.GetHash(), vchSig)) {
         return errorN(1, sError, __func__, "Sign failed");
+    }
 
     return 0;
 };
@@ -107,24 +112,27 @@ int CDebugDevice::SignTransaction(const std::vector<uint32_t> &vPath, const std:
     uint256 hash = SignatureHash(scriptCode, *tx, nIn, hashType, amount, sigversion);
 
     CExtKey vkOut, vkWork = ekv;
-    for (auto it = vPath.begin(); it != vPath.end(); ++it)
-    {
-        if (!vkWork.Derive(vkOut, *it))
+    for (auto it = vPath.begin(); it != vPath.end(); ++it) {
+        if (!vkWork.Derive(vkOut, *it)) {
             return errorN(1, sError, __func__, "CExtKey Derive failed");
+        }
         vkWork = vkOut;
-    };
+    }
 
     CKey key = vkOut.key;
-    if (vSharedSecret.size() == 32)
-    {
+    if (vSharedSecret.size() == 32) {
         key = key.Add(vSharedSecret.data());
-        if (!key.IsValid())
+        if (!key.IsValid()) {
             return errorN(1, sError, __func__, "Add failed");
-    };
+        }
+    }
 
-    if (!key.Sign(hash, vchSig))
+    if (!key.Sign(hash, vchSig)) {
         return errorN(1, sError, __func__, "Sign failed");
+    }
     vchSig.push_back((unsigned char)hashType);
 
     return 0;
 };
+
+} // usb_device

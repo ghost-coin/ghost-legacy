@@ -10,7 +10,7 @@
 
 #include <memory>
 
-
+namespace usb_device {
 
 class CDebugDevice : public CUSBDevice
 {
@@ -34,5 +34,6 @@ public:
     CExtKey ekv;
 };
 
+} // usb_device
 
 #endif // PARTICL_USBDEVICE_DEBUGDEVICE_H

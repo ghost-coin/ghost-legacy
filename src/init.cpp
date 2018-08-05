@@ -54,6 +54,7 @@
 #endif
 #if ENABLE_USBDEVICE
 #include <usbdevice/rpcusbdevice.h>
+#include <usbdevice/usbdevice.h>
 #endif
 #include <anon.h>
 #include <core_io.h>
@@ -375,6 +376,10 @@ void Shutdown()
         delete g_zmq_notification_interface;
         g_zmq_notification_interface = nullptr;
     }
+#endif
+
+#if ENABLE_USBDEVICE
+    usb_device::ShutdownHardwareIntegration();
 #endif
 
 #ifndef WIN32

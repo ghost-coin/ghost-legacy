@@ -7,6 +7,8 @@
 
 #include <usbdevice/usbdevice.h>
 
+namespace usb_device {
+
 class CLedgerDevice : public CUSBDevice
 {
 public:
@@ -30,5 +32,7 @@ public:
         int nIn, const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion,
         std::vector<uint8_t> &vchSig, std::string &sError) override;
 };
+
+} // usb_device
 
 #endif // PARTICL_USBDEVICE_LEDGERDEVICE_H

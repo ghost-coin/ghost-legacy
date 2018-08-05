@@ -58,6 +58,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "txdb -> validation -> txdb"
     "usbdevice/debugdevice -> usbdevice/usbdevice -> usbdevice/debugdevice"
     "usbdevice/ledgerdevice -> usbdevice/usbdevice -> usbdevice/ledgerdevice"
+    "usbdevice/trezordevice -> usbdevice/usbdevice -> usbdevice/trezordevice"
     "usbdevice/usbdevice -> wallet/hdwallet -> usbdevice/usbdevice"
     "wallet/hdwallet -> wallet/hdwalletdb -> wallet/hdwallet"
     "wallet/hdwallet -> wallet/rpchdwallet -> wallet/hdwallet"
