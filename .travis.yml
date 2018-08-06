@@ -171,7 +171,7 @@ jobs:
         OSX_SDK=10.11
         GOAL="all deploy"
         RUN_TESTS=false
-        BITCOIN_CONFIG="--enable-gui --enable-reduce-exports --enable-werror --disable-bench --disable-tests"
+        BITCOIN_CONFIG="--enable-gui --enable-reduce-exports --enable-werror --disable-bench --disable-tests --enable-usbdevice"
     - stage: lint
       env:
       sudo: false
