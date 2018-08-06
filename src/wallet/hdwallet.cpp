@@ -120,7 +120,7 @@ const COutputRecord *CTransactionRecord::GetChangeOutput() const
 
 int CHDWallet::Finalise()
 {
-    LogPrint(BCLog::HDWALLET, "%s, %s\n", __func__, GetName());
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     FreeExtKeyMaps();
     mapAddressBook.clear();
@@ -129,18 +129,22 @@ int CHDWallet::Finalise()
 
 int CHDWallet::FreeExtKeyMaps()
 {
-    LogPrint(BCLog::HDWALLET, "%s, %s\n", __func__, GetName());
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     ExtKeyAccountMap::iterator it = mapExtAccounts.begin();
-    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it)
-        if (it->second)
+    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it) {
+        if (it->second) {
             delete it->second;
+        }
+    }
     mapExtAccounts.clear();
 
     ExtKeyMap::iterator itl = mapExtKeys.begin();
-    for (itl = mapExtKeys.begin(); itl != mapExtKeys.end(); ++itl)
-        if (itl->second)
+    for (itl = mapExtKeys.begin(); itl != mapExtKeys.end(); ++itl) {
+        if (itl->second) {
             delete itl->second;
+        }
+    }
     mapExtKeys.clear();
 
     return 0;
@@ -166,19 +170,17 @@ bool CHDWallet::Initialise()
 {
     fParticlWallet = true;
 
-    if (!ParseMoney(gArgs.GetArg("-reservebalance", ""), nReserveBalance))
-    {
+    if (!ParseMoney(gArgs.GetArg("-reservebalance", ""), nReserveBalance)) {
         return InitError(_("Invalid amount for -reservebalance=<amount>"));
-    };
+    }
 
     std::string sError;
     ProcessStakingSettings(sError);
 
     if (mapMasterKeys.size() > 0
-        && !SetCrypted())
-    {
+        && !SetCrypted()) {
         return error("SetCrypted failed.");
-    };
+    }
 
     {
         // Prepare extended keys
@@ -226,7 +228,7 @@ bool CHDWallet::Initialise()
         }
 
         uiInterface.InitMessage(_("Rescanning..."));
-        LogPrintf("Rescanning last %i blocks (from block %i)...\n", chainActive.Height() - pindexRescan->nHeight, pindexRescan->nHeight);
+        WalletLogPrintf("Rescanning last %i blocks (from block %i)...\n", chainActive.Height() - pindexRescan->nHeight, pindexRescan->nHeight);
 
         // No need to read and scan block if block was created before
         // our wallet birthday (as adjusted for block time variability)
@@ -243,24 +245,22 @@ bool CHDWallet::Initialise()
             }
             ScanForWalletTransactions(pindexRescan, nullptr, reserver, true);
         }
-        LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
+        WalletLogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
         ChainStateFlushed(chainActive.GetLocator());
         database->IncrementUpdateCounter();
     }
 
-    if (!pEKMaster)
-    {
-        if (gArgs.GetBoolArg("-createdefaultmasterkey", false))
-        {
+    if (!pEKMaster) {
+        if (gArgs.GetBoolArg("-createdefaultmasterkey", false)) {
             std::string sMsg = "Generating random HD keys for wallet " + GetName();
             #ifndef ENABLE_QT
             fprintf(stdout, "%s\n", sMsg.c_str());
             #endif
             LogPrintf("%s\n", sMsg);
-            if (MakeDefaultAccount() != 0)
+            if (MakeDefaultAccount() != 0) {
                 fprintf(stdout, "Error: MakeDefaultAccount failed!\n");
-        } else
-        {
+            }
+        } else {
             /*
             std::string sWarning = "Warning: Wallet " + pwallet->GetName() + " has no master HD key set, please view the readme.";
             #ifndef ENABLE_QT
@@ -269,22 +269,21 @@ bool CHDWallet::Initialise()
             LogPrintf("%s\n", sWarning);
             */
         }
-    };
-    if (idDefaultAccount.IsNull())
-    {
+    }
+    if (idDefaultAccount.IsNull()) {
         std::string sWarning = "Warning: Wallet " + GetName() + " has no active account, please view the readme.";
         #ifndef ENABLE_QT
         fprintf(stdout, "%s\n", sWarning.c_str());
         #endif
         LogPrintf("%s\n", sWarning);
-    };
+    }
 
     return true;
 };
 
 bool CHDWallet::ProcessStakingSettings(std::string &sError)
 {
-    LogPrint(BCLog::HDWALLET, "ProcessStakingSettings\n");
+    LogPrint(BCLog::HDWALLET, "%s ProcessStakingSettings\n", GetDisplayName());
 
     // Set defaults
     fStakingEnabled = true;
@@ -342,11 +341,11 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
     }
 
     if (nWalletDevFundCedePercent < 0) {
-        LogPrintf("%s: Warning \"foundationdonationpercent\" out of range %d, clamped to %d\n", nWalletDevFundCedePercent, 0);
+        WalletLogPrintf("%s: Warning \"foundationdonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 0);
         nWalletDevFundCedePercent = 0;
     } else
     if (nWalletDevFundCedePercent > 100) {
-        LogPrintf("%s: \"Warning foundationdonationpercent\" out of range %d, clamped to %d\n", nWalletDevFundCedePercent, 100);
+        WalletLogPrintf("%s: \"Warning foundationdonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 100);
         nWalletDevFundCedePercent = 100;
     }
 
@@ -394,10 +393,11 @@ extern int ListAccountExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, 
 extern int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo);
 bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
 {
-    LogPrintf("Dumping wallet to JSON.\n");
+    WalletLogPrintf("Dumping wallet to JSON.\n");
 
-    if (IsLocked())
+    if (IsLocked()) {
         return errorN(false, sError, __func__, _("Wallet must be unlocked.").c_str());
+    }
 
     LOCK(cs_wallet);
 
@@ -410,15 +410,13 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
     ListAccountExtKeys(this, 3, extaccs, nAcc);
 
     CExtKey58 eKey58;
-    for (size_t k = 0; k < extaccs.size(); ++k)
-    {
+    for (size_t k = 0; k < extaccs.size(); ++k) {
         UniValue &acc = extaccs.get(k);
         size_t nChains = acc["chains"].size();
 
         std::vector<CExtKeyPair> vChains;
         vChains.resize(nChains);
-        for (size_t c = 0; c < nChains; ++c)
-        {
+        for (size_t c = 0; c < nChains; ++c) {
             UniValue &chain = acc.get("chains").get(c);
 
             const std::string &sEvkey = chain["evkey"].get_str();
@@ -427,90 +425,85 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
             uint32_t nDerivesH = 0;
 
             if (chain["num_derives"].isStr()
-                && !ParseUInt32(chain["num_derives"].get_str(), &nDerives))
+                && !ParseUInt32(chain["num_derives"].get_str(), &nDerives)) {
                 return errorN(false, sError, __func__, _("num_derives to int failed.").c_str());
+            }
             if (chain["num_derives_h"].isStr()
-                && !ParseUInt32(chain["num_derives_h"].get_str(), &nDerivesH))
+                && !ParseUInt32(chain["num_derives_h"].get_str(), &nDerivesH)) {
                 return errorN(false, sError, __func__, _("num_derives_h to int failed.").c_str());
+            }
 
             eKey58.Set58(sEvkey.c_str());
             CExtKeyPair kp = eKey58.GetKey();
             vChains[c] = kp;
 
             bool fIsStealth = false;
-            if (chain["use_type"].isStr())
-            {
-                if (chain["use_type"].get_str() == "stealth")
-                    fIsStealth = true;
-            };
+            if (chain["use_type"].isStr() && chain["use_type"].get_str() == "stealth") {
+                fIsStealth = true;
+            }
 
             UniValue derivedKeys(UniValue::VARR);
             UniValue derivedKeysH(UniValue::VARR);
 
 
-            if (fIsStealth)
-            {
+            if (fIsStealth) {
                 // Dump from pack instead
-            } else
-            {
+            } else {
                 CKey key;
                 uint32_t nChild = 0;
-                for (uint32_t k = 0; k < nDerives; ++k)
-                {
-                    if (kp.Derive(key, nChild))
-                    {
+                for (uint32_t k = 0; k < nDerives; ++k) {
+                    if (kp.Derive(key, nChild)) {
                         AppendKey(this, key, nChild, derivedKeys);
-                    };
+                    }
                     nChild++;
-                };
+                }
                 chain.pushKV("derived_keys", derivedKeys);
 
-                for (uint32_t k = 0; k < nDerivesH; ++k)
-                {
+                for (uint32_t k = 0; k < nDerivesH; ++k) {
                     nChild = k;
                     SetHardenedBit(nChild);
-                    if (kp.Derive(key, nChild))
-                    {
+                    if (kp.Derive(key, nChild)) {
                         AppendKey(this, key, nChild, derivedKeysH);
-                    };
-                };
+                    }
+                }
                 chain.pushKV("derived_keys_hardened", derivedKeysH);
-            };
-        };
+            }
+        }
         // Read stealth keys from packs to keep metadata such as prefix
         size_t nPackStealthAddrs = 0;
         size_t nPackStealthKeys = 0;
 
-        if (acc["stealth_address_pack"].isNum())
+        if (acc["stealth_address_pack"].isNum()) {
             nPackStealthAddrs = acc["stealth_address_pack"].get_int();
-        if (acc["stealth_keys_received_pack"].isNum())
+        }
+        if (acc["stealth_keys_received_pack"].isNum()) {
             nPackStealthKeys = acc["stealth_keys_received_pack"].get_int();
+        }
 
         CKeyID idAcc;
         CBitcoinAddress accIdAddr(acc["id"].get_str());
 
-        if (!accIdAddr.IsValid(CChainParams::EXT_ACC_HASH))
-        {
-            LogPrintf("%s: ERROR - Invalid account id %s\n", __func__, acc["id"].get_str());
+        if (!accIdAddr.IsValid(CChainParams::EXT_ACC_HASH)) {
+            WalletLogPrintf("%s: ERROR - Invalid account id %s\n", __func__, acc["id"].get_str());
             acc.pushKV("ERROR", "Invalid account id");
             continue;
-        };
+        }
 
         accIdAddr.GetKeyID(idAcc, CChainParams::EXT_ACC_HASH);
         std::map<CKeyID, std::pair<CKey, std::string> > mapStealthKeySpend;
         UniValue stealthAddresses(UniValue::VARR);
         std::vector<CEKAStealthKeyPack> aksPak;
-        for (uint32_t i = 0; i <= nPackStealthAddrs; ++i)
-        {
-            if (!wdb.ReadExtStealthKeyPack(idAcc, i, aksPak))
+        for (uint32_t i = 0; i <= nPackStealthAddrs; ++i) {
+            if (!wdb.ReadExtStealthKeyPack(idAcc, i, aksPak)) {
                 continue;
+            }
 
-            for (const auto &sxPacked : aksPak)
-            {
+            for (const auto &sxPacked : aksPak) {
                 UniValue sxAddr(UniValue::VOBJ);
 
-                if (!sxPacked.aks.sLabel.empty())
+                if (!sxPacked.aks.sLabel.empty()) {
                     sxAddr.pushKV("label", sxPacked.aks.sLabel);
+                }
 
                 CStealthAddress sx;
                 sxPacked.aks.SetSxAddr(sx);
@@ -520,12 +513,11 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
                 sxAddr.pushKV("scan_priv", CBitcoinSecret(sxPacked.aks.skScan).ToString());
 
                 size_t p = sxPacked.aks.akSpend.nParent;
-                if (p >= vChains.size()+1)
-                {
-                    LogPrintf("%s: ERROR - chain out of range %d\n", __func__, p);
+                if (p >= vChains.size()+1) {
+                    WalletLogPrintf("%s: ERROR - chain out of range %d\n", __func__, p);
                     acc.pushKV("ERROR", "Invalid chain offset.");
                     continue;
-                };
+                }
 
                 // Chain0 is the account key
                 CExtKeyPair &kp = vChains[p-1];
@@ -535,7 +527,7 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
                 if (kp.Derive(kSpend, nChild)) {
                     sxAddr.pushKV("spend_priv", CBitcoinSecret(kSpend).ToString());
                 } else {
-                    LogPrintf("%s: ERROR - Derive failed %u\n", __func__, nChild);
+                    WalletLogPrintf("%s: ERROR - Derive failed %u\n", __func__, nChild);
                     acc.pushKV("ERROR", "Derive spend key failed.");
                 }
                 mapStealthKeySpend[sxPacked.id] = std::make_pair(kSpend, sxStr);
@@ -565,49 +557,44 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
                 }
 
                 stealthAddresses.push_back(sxAddr);
-            };
-        };
+            }
+        }
 
         acc.pushKV("stealth_addresses", stealthAddresses);
 
         UniValue stealthReceivedKeys(UniValue::VARR);
         std::vector<CEKASCKeyPack> asckPak;
-        for (uint32_t i = 0; i <= nPackStealthKeys; ++i)
-        {
-            if (!wdb.ReadExtStealthKeyChildPack(idAcc, i, asckPak))
+        for (uint32_t i = 0; i <= nPackStealthKeys; ++i) {
+            if (!wdb.ReadExtStealthKeyChildPack(idAcc, i, asckPak)) {
                 continue;
+            }
 
-            for (const auto &keyPacked : asckPak)
-            {
+            for (const auto &keyPacked : asckPak) {
                 UniValue obj(UniValue::VOBJ);
                 obj.pushKV("address", CBitcoinAddress(keyPacked.id).ToString());
 
                 CKey kOut, kSpend;
 
                 std::map<CKeyID, std::pair<CKey, std::string> >::const_iterator mi;
-                if ((mi = mapStealthKeySpend.find(keyPacked.asck.idStealthKey)) == mapStealthKeySpend.end())
-                {
-                    LogPrintf("%s: ERROR - Unknown stealth key %s\n", __func__, HexStr(keyPacked.asck.idStealthKey.begin(), keyPacked.asck.idStealthKey.end()));
+                if ((mi = mapStealthKeySpend.find(keyPacked.asck.idStealthKey)) == mapStealthKeySpend.end()) {
+                    WalletLogPrintf("%s: ERROR - Unknown stealth key %s\n", __func__, HexStr(keyPacked.asck.idStealthKey.begin(), keyPacked.asck.idStealthKey.end()));
                     acc.pushKV("ERROR", "Unknown stealth key.");
-                } else
-                {
+                } else {
                     obj.pushKV("stealth_address", mi->second.second);
 
-                    if (0 != StealthSharedToSecretSpend(keyPacked.asck.sShared, mi->second.first, kOut))
-                    {
-                        LogPrintf("%s: ERROR - StealthSharedToSecretSpend failed\n", __func__);
+                    if (0 != StealthSharedToSecretSpend(keyPacked.asck.sShared, mi->second.first, kOut)) {
+                        WalletLogPrintf("%s: ERROR - StealthSharedToSecretSpend failed\n", __func__);
                         acc.pushKV("ERROR", "StealthSharedToSecretSpend failed.");
-                    } else
-                    {
+                    } else {
                         obj.pushKV("privkey", CBitcoinSecret(kOut).ToString());
-                    };
-                };
+                    }
+                }
                 stealthReceivedKeys.push_back(obj);
-            };
-        };
+            }
+        }
 
         acc.pushKV("keys_received_on_stealth_addresses", stealthReceivedKeys);
-    };
+    }
 
 
     rv.pushKV("loose_extkeys", extkeys);
@@ -622,10 +609,11 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
 
 bool CHDWallet::LoadJson(const UniValue &inj, std::string &sError)
 {
-    LogPrintf("Loading wallet from JSON.\n");
+    WalletLogPrintf("Loading wallet from JSON.\n");
 
-    if (IsLocked())
+    if (IsLocked()) {
         return errorN(false, sError, __func__, _("Wallet must be unlocked.").c_str());
+    }
 
     LOCK(cs_wallet);
 
@@ -693,7 +681,7 @@ bool CHDWallet::LoadAddressBook(CHDWalletDB *pwdb)
 
 bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
 {
-    LogPrint(BCLog::HDWALLET, "Loading vote tokens for %s.\n", GetName());
+    LogPrint(BCLog::HDWALLET, "%s Loading vote tokens.\n", GetDisplayName());
 
     LOCK(cs_wallet);
 
@@ -715,10 +703,10 @@ bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
             {
                 if ((v.nToken >> 16) < 1
                     || (v.nToken & 0xFFFF) < 1)
-                    LogPrintf(_("Clearing vote from block %d to %d.\n").c_str(),
+                    WalletLogPrintf(_("Clearing vote from block %d to %d.\n").c_str(),
                         v.nStart, v.nEnd);
                 else
-                    LogPrintf( _("Voting for option %u on proposal %u from block %d to %d.\n").c_str(),
+                    WalletLogPrintf( _("Voting for option %u on proposal %u from block %d to %d.\n").c_str(),
                         v.nToken >> 16, v.nToken & 0xFFFF, v.nStart, v.nEnd);
             };
         };
@@ -847,7 +835,7 @@ bool CHDWallet::IsLocked() const
 
 bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
 {
-    LogPrint(BCLog::HDWALLET, "%s %s\n", __func__, GetName());
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     if (IsCrypted())
         return false;
@@ -873,7 +861,7 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
     if (kMasterKey.nDeriveIterations < 25000)
         kMasterKey.nDeriveIterations = 25000;
 
-    LogPrintf("Encrypting Wallet %s with an nDeriveIterations of %i\n", GetName(), kMasterKey.nDeriveIterations);
+    WalletLogPrintf("Encrypting wallet with an nDeriveIterations of %i\n", kMasterKey.nDeriveIterations);
 
     if (!crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, kMasterKey.nDeriveIterations, kMasterKey.nDerivationMethod))
         return false;
@@ -911,7 +899,7 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
 
         if (0 != ExtKeyEncryptAll((CHDWalletDB*)encrypted_batch, vMasterKey))
         {
-            LogPrintf("Terminating - Error: ExtKeyEncryptAll failed.\n");
+            WalletLogPrintf("Terminating - Error: ExtKeyEncryptAll failed.\n");
             //if (fFileBacked)
             {
                 encrypted_batch->TxnAbort();
@@ -937,11 +925,11 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
         }
 
         if (!Lock())
-            LogPrintf("%s: ERROR: Lock wallet failed!\n", __func__);
+            WalletLogPrintf("%s: ERROR: Lock wallet failed!\n", __func__);
         if (!Unlock(strWalletPassphrase))
-            LogPrintf("%s: ERROR: Unlock wallet failed!\n", __func__);
+            WalletLogPrintf("%s: ERROR: Unlock wallet failed!\n", __func__);
         if (!Lock())
-            LogPrintf("%s: ERROR: Lock wallet failed!\n", __func__);
+            WalletLogPrintf("%s: ERROR: Lock wallet failed!\n", __func__);
 
         // Need to completely rewrite the wallet file; if we don't, bdb might keep
         // bits of the unencrypted private key in slack space in the database file.
@@ -955,12 +943,12 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
 
 bool CHDWallet::Lock()
 {
-    LogPrint(BCLog::HDWALLET, "%s, %s\n", __func__, GetName());
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     if (IsLocked())
         return true;
 
-    LogPrintf("Locking wallet %s.\n", GetName());
+    WalletLogPrintf("Locking wallet.\n");
 
     {
         LOCK(cs_wallet);
@@ -972,16 +960,16 @@ bool CHDWallet::Lock()
 
 bool CHDWallet::Unlock(const SecureString &strWalletPassphrase)
 {
-    LogPrint(BCLog::HDWALLET, "%s, %s\n", __func__, GetName());
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     if (!IsCrypted()) {
-        return error("%s, %s: Wallet is not encrypted.\n", __func__, GetName());
+        return error("%s %s: Wallet is not encrypted.\n", GetDisplayName(), __func__);
     }
 
     bool fWasUnlocked = false;
     CKeyingMaterial vMasterKeyOld;
     if (!IsLocked()) {
-        LogPrint(BCLog::HDWALLET, "%s, %s: Wallet is already unlocked.\n", __func__, GetName());
+        LogPrint(BCLog::HDWALLET, "%s %s: Wallet is already unlocked.\n", GetDisplayName(), __func__);
         // Possibly unlocked for staking
         fWasUnlocked = true;
         LOCK(cs_KeyStore);
@@ -991,7 +979,7 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase)
     CCrypter crypter;
     CKeyingMaterial vMasterKeyNew;
 
-    LogPrintf("Unlocking wallet %s.\n", GetName());
+    WalletLogPrintf("Unlocking wallet.\n");
 
     {
         bool fFoundKey = false;
@@ -1072,25 +1060,23 @@ isminetype CHDWallet::HaveKey(const CKeyID &address, const CEKAKey *&pak, const 
     pasc = nullptr;
     int rv;
     ExtKeyAccountMap::const_iterator it;
-    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it)
-    {
+    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it) {
         pa = it->second;
         isminetype ismine = ISMINE_NO;
         rv = pa->HaveKey(address, true, pak, pasc, ismine);
-        if (rv == HK_NO)
+        if (rv == HK_NO) {
             continue;
+        }
 
-        if (rv == HK_LOOKAHEAD_DO_UPDATE)
-        {
+        if (rv == HK_LOOKAHEAD_DO_UPDATE) {
             CEKAKey ak = *pak; // Must copy CEKAKey, ExtKeySaveKey modifies CExtKeyAccount
-            if (0 != ExtKeySaveKey(pa, address, ak))
-            {
-                LogPrintf("%s: ExtKeySaveKey failed.\n", __func__);
+            if (0 != ExtKeySaveKey(pa, address, ak)) {
+                WalletLogPrintf("%s: ExtKeySaveKey failed.\n", __func__);
                 return ISMINE_NO;
-            };
-        };
+            }
+        }
         return ismine;
-    };
+    }
 
     pa = nullptr;
     return CCryptoKeyStore::IsMine(address);
@@ -1296,7 +1282,7 @@ bool CHDWallet::GetStealthAddressSpendKey(CStealthAddress &sxAddr, CKey &key) co
 bool CHDWallet::ImportStealthAddress(const CStealthAddress &sxAddr, const CKey &skSpend)
 {
     if (LogAcceptCategory(BCLog::HDWALLET))
-        LogPrintf("%s: %s.\n", __func__, sxAddr.Encoded());
+        WalletLogPrintf("%s: %s.\n", __func__, sxAddr.Encoded());
 
     LOCK(cs_wallet);
 
@@ -1305,28 +1291,24 @@ bool CHDWallet::ImportStealthAddress(const CStealthAddress &sxAddr, const CKey &
 
     bool fOwned = skSpend.IsValid();
 
-    if (fOwned)
-    {
+    if (fOwned) {
         // Owned addresses can only be added when wallet is unlocked
-        if (IsLocked())
-        {
+        if (IsLocked()) {
             stealthAddresses.erase(sxAddr);
             return error("%s: Wallet must be unlocked.", __func__);
-        };
+        }
 
         CPubKey pk = skSpend.GetPubKey();
-        if (!AddKeyPubKey(skSpend, pk))
-        {
+        if (!AddKeyPubKey(skSpend, pk)) {
             stealthAddresses.erase(sxAddr);
             return error("%s: AddKeyPubKey failed.", __func__);
-        };
-    };
+        }
+    }
 
-    if (!CHDWalletDB(*database).WriteStealthAddress(sxAddr))
-    {
+    if (!CHDWalletDB(*database).WriteStealthAddress(sxAddr)) {
         stealthAddresses.erase(sxAddr);
         return error("%s: WriteStealthAddress failed.", __func__);
-    };
+    }
 
     return true;
 };
@@ -1466,7 +1448,7 @@ bool CHDWallet::DelAddressBook(const CTxDestination &address)
             std::set<CStealthAddress>::iterator si = stealthAddresses.find(sxAddr);
             if (si == stealthAddresses.end())
             {
-                LogPrintf("%s: Stealth address not found in wallet.\n", __func__);
+                WalletLogPrintf("%s: Stealth address not found in wallet.\n", __func__);
                 //return false;
             } else
             {
@@ -1475,7 +1457,7 @@ bool CHDWallet::DelAddressBook(const CTxDestination &address)
                 if (stealthAddresses.erase(sxAddr) < 1
                     || !CHDWalletDB(*database).EraseStealthAddress(sxAddr))
                 {
-                    LogPrintf("%s: Error: Remove stealthAddresses failed.\n", __func__);
+                    WalletLogPrintf("%s: Error: Remove stealthAddresses failed.\n", __func__);
                     return false;
                 };
             };
@@ -2133,7 +2115,7 @@ CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex)
         }
         CStoredTransaction stx;
         if (!CHDWalletDB(*database).ReadStoredTx(op.hash, stx)) { // TODO: cache / use mapTempWallet
-            LogPrintf("%s: ReadStoredTx failed for %s.\n", __func__, op.hash.ToString());
+            WalletLogPrintf("%s: ReadStoredTx failed for %s.\n", __func__, op.hash.ToString());
             return 0;
         }
         if (stx.tx->GetNumVOuts() > op.n) {
@@ -2693,35 +2675,38 @@ bool CHDWallet::IsChange(const CTxOutBase *txout) const
 int CHDWallet::GetChangeAddress(CPubKey &pk)
 {
     ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idDefaultAccount);
-    if (mi == mapExtAccounts.end())
-        return errorN(1, "%s Unknown account.", __func__);
+    if (mi == mapExtAccounts.end()) {
+        return errorN(1, "%s %s Unknown account.", GetDisplayName(), __func__);
+    }
 
     // Return a key from the lookahead of the internal chain
     // Don't promote the key to the main map, that will happen when the transaction is processed.
 
     CStoredExtKey *pc;
-    if ((pc = mi->second->ChainInternal()) == nullptr)
-        return errorN(1, "%s Unknown chain.", __func__);
+    if ((pc = mi->second->ChainInternal()) == nullptr) {
+        return errorN(1, "%s %s Unknown chain.", GetDisplayName(), __func__);
+    }
 
 
     // Alternative: take 1st key of keypool
-    for (size_t k = 0; k < 1000; ++k)
-    {
+    for (size_t k = 0; k < 1000; ++k) {
         uint32_t nChild;
-        if (0 != pc->DeriveNextKey(pk, nChild, false, false))
-            return errorN(1, "%s TryDeriveNext failed.", __func__);
+        if (0 != pc->DeriveNextKey(pk, nChild, false, false)) {
+            return errorN(1, "%s %s TryDeriveNext failed.", GetDisplayName(), __func__);
+        }
 
         CKeyID idk = pk.GetID();
-        if (mi->second->HaveSavedKey(idk))
-        {
-            if (LogAcceptCategory(BCLog::HDWALLET))
-                LogPrintf("%s: Skipping used address %s.\n", __func__, CBitcoinAddress(idk).ToString());
+        if (mi->second->HaveSavedKey(idk)) {
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                WalletLogPrintf("%s: Skipping used address %s.\n", __func__, CBitcoinAddress(idk).ToString());
+            }
             pc->nGenerated++;
-        };
-    };
+        }
+    }
 
-    if (LogAcceptCategory(BCLog::HDWALLET))
-        LogPrintf("Change Address: %s\n", CBitcoinAddress(pk.GetID()).ToString());
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("Change Address: %s\n", CBitcoinAddress(pk.GetID()).ToString());
+    }
 
     return 0;
 };
@@ -2837,22 +2822,25 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
                     if (StealthSecret(r.sEphem, sx.scan_pubkey, sx.spend_pubkey, sShared, pkSendTo) == 0)
                         break;
                 };
-                if (k >= nTries)
+                if (k >= nTries) {
                     return errorN(1, sError, __func__, "Could not generate receiving public key.");
+                }
 
                 CPubKey pkEphem = r.sEphem.GetPubKey();
                 r.pkTo = CPubKey(pkSendTo);
                 CKeyID idTo = r.pkTo.GetID();
                 r.scriptPubKey = GetScriptForDestination(idTo);
 
-                if (LogAcceptCategory(BCLog::HDWALLET))
-                    LogPrintf("Stealth send to generated address: %s\n", CBitcoinAddress(idTo).ToString());
+                if (LogAcceptCategory(BCLog::HDWALLET)) {
+                    WalletLogPrintf("Stealth send to generated address: %s\n", CBitcoinAddress(idTo).ToString());
+                }
 
                 CTempRecipient rd;
                 rd.nType = OUTPUT_DATA;
 
-                if (0 != MakeStealthData(r.sNarration, sx.prefix, sShared, pkEphem, rd.vData, r.nStealthPrefix, sError))
+                if (0 != MakeStealthData(r.sNarration, sx.prefix, sShared, pkEphem, rd.vData, r.nStealthPrefix, sError)) {
                     return 1;
+                }
                 vecSend.insert(vecSend.begin() + (i+1), rd);
                 i++; // skip over inserted output
             } else
@@ -2927,20 +2915,20 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
                     */
                     sEphem.MakeNewKey(true);
                 };
-                if (k >= nTries)
+                if (k >= nTries) {
                     return errorN(1, sError, __func__, "Could not generate receiving public key.");
+                }
 
                 r.pkTo = CPubKey(pkSendTo);
                 CKeyID idTo = r.pkTo.GetID();
 
                 r.scriptPubKey = GetScriptForDestination(idTo);
-                if (sx.prefix.number_bits > 0)
-                {
+                if (sx.prefix.number_bits > 0) {
                     r.nStealthPrefix = FillStealthPrefix(sx.prefix.number_bits, sx.prefix.bitfield);
-                };
+                }
 
                 if (LogAcceptCategory(BCLog::HDWALLET))
-                    LogPrintf("Creating blind output to stealth generated address: %s\n", CBitcoinAddress(idTo).ToString());
+                    WalletLogPrintf("Creating blind output to stealth generated address: %s\n", CBitcoinAddress(idTo).ToString());
             } else
             if (r.address.type() == typeid(CExtKeyPair))
             {
@@ -3016,7 +3004,7 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
                 };
 
                 if (LogAcceptCategory(BCLog::HDWALLET))
-                    LogPrintf("Creating anon output to stealth generated address: %s\n", CBitcoinAddress(idTo).ToString());
+                    WalletLogPrintf("Creating anon output to stealth generated address: %s\n", CBitcoinAddress(idTo).ToString());
             } else
             {
                 return errorN(1, sError, __func__, _("Only able to send to stealth address for now.").c_str()); // TODO: add more types?
@@ -3277,48 +3265,47 @@ static bool ExpandChangeAddress(CHDWallet *phdw, CTempRecipient &r, std::string 
         CKeyID idTo = r.pkTo.GetID();
         r.scriptPubKey = GetScriptForDestination(idTo);
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Stealth send to generated change address: %s\n", CBitcoinAddress(idTo).ToString());
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            phdw->WalletLogPrintf("Stealth send to generated change address: %s\n", CBitcoinAddress(idTo).ToString());
+        }
 
-        if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT)
-        {
-            if (sx.prefix.number_bits > 0)
-            {
+        if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT) {
+            if (sx.prefix.number_bits > 0) {
                 r.nStealthPrefix = FillStealthPrefix(sx.prefix.number_bits, sx.prefix.bitfield);
-            };
-        } else
-        {
-            if (0 != MakeStealthData(r.sNarration, sx.prefix, sShared, pkEphem, r.vData, r.nStealthPrefix, sError))
+            }
+        } else {
+            if (0 != MakeStealthData(r.sNarration, sx.prefix, sShared, pkEphem, r.vData, r.nStealthPrefix, sError)) {
                 return 1;
-        };
+            }
+        }
         return true;
     };
 
-    if (r.address.type() == typeid(CExtKeyPair))
-    {
+    if (r.address.type() == typeid(CExtKeyPair)) {
         CExtKeyPair ek = boost::get<CExtKeyPair>(r.address);
         uint32_t nChildKey;
 
-        if (0 != phdw->ExtKeyGetDestination(ek, r.pkTo, nChildKey))
+        if (0 != phdw->ExtKeyGetDestination(ek, r.pkTo, nChildKey)) {
             return errorN(false, sError, __func__, "ExtKeyGetDestination failed.");
+        }
 
         r.nChildKey = nChildKey;
         CKeyID idTo = r.pkTo.GetID();
         r.scriptPubKey = GetScriptForDestination(idTo);
 
         return true;
-    };
+    }
 
-    if (r.address.type() == typeid(CKeyID))
-    {
+    if (r.address.type() == typeid(CKeyID)) {
         CKeyID idk = boost::get<CKeyID>(r.address);
 
-        if (!phdw->GetPubKey(idk, r.pkTo))
+        if (!phdw->GetPubKey(idk, r.pkTo)) {
             return errorN(false, sError, __func__, "GetPubKey failed.");
+        }
         r.scriptPubKey = GetScriptForDestination(idk);
 
         return true;
-    };
+    }
 
     if (r.address.type() != typeid(CNoDestination)
         // TODO OUTPUT_CT?
@@ -3410,7 +3397,7 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
 
         if (r.nType == OUTPUT_STANDARD) {
             if (jsonSettings["coldstakingaddress"].isStr()) {
-                LogPrintf("%s: Adding coldstaking script.\n", __func__);
+                WalletLogPrintf("%s: Adding coldstaking script.\n", __func__);
                 std::string sAddress = jsonSettings["coldstakingaddress"].get_str();
 
                 CTxDestination destStake = DecodeDestination(sAddress, true);
@@ -3996,7 +3983,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     if (0 != PreAcceptMempoolTx(wtx, sError))
         return 1;
 
-    LogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
+    WalletLogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
               nFeeRet, nBytes, nFeeNeeded, feeCalc.returnedTarget, feeCalc.desiredTarget, StringForFeeReason(feeCalc.reason), feeCalc.est.decay,
               feeCalc.est.pass.start, feeCalc.est.pass.end,
               100 * feeCalc.est.pass.withinTarget / (feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool),
@@ -4085,12 +4072,12 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 rtx.mapValue[RTXVT_EPHEM_PATH] = vEphemPath;
             } else
             {
-                LogPrintf("Warning: %s - missing path value.\n", __func__);
+                WalletLogPrintf("Warning: %s - missing path value.\n", __func__);
                 vEphemPath.clear();
             };
         } else
         {
-            LogPrintf("Warning: %s - ExtKeyGetIndex failed %s.\n", __func__, pcC->GetIDString58());
+            WalletLogPrintf("Warning: %s - ExtKeyGetIndex failed %s.\n", __func__, pcC->GetIDString58());
         };
 
         CKeyID idChain = pcC->GetID();
@@ -4527,10 +4514,11 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 
     } // cs_main, cs_wallet
 
-    if (0 != PreAcceptMempoolTx(wtx, sError))
+    if (0 != PreAcceptMempoolTx(wtx, sError)) {
         return 1;
+    }
 
-    LogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
+    WalletLogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
               nFeeRet, nBytes, nFeeNeeded, feeCalc.returnedTarget, feeCalc.desiredTarget, StringForFeeReason(feeCalc.reason), feeCalc.est.decay,
               feeCalc.est.pass.start, feeCalc.est.pass.end,
               100 * feeCalc.est.pass.withinTarget / (feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool),
@@ -4544,16 +4532,16 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError)
 {
-    if (vecSend.size() < 1)
+    if (vecSend.size() < 1) {
         return errorN(1, sError, __func__, _("Transaction must have at least one recipient.").c_str());
+    }
 
     CAmount nValue = 0;
-    for (const auto &r : vecSend)
-    {
+    for (const auto &r : vecSend) {
         nValue += r.nAmount;
         if (nValue < 0 || r.nAmount < 0)
             return errorN(1, sError, __func__, _("Transaction amounts must not be negative.").c_str());
-    };
+    }
 
     CExtKeyAccount *sea;
     CStoredExtKey *pcC = nullptr;
@@ -4562,49 +4550,43 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     }
 
     uint32_t nLastHardened = pcC ? pcC->nHGenerated : 0;
-    if (0 != AddBlindedInputs(wtx, rtx, vecSend, sea, pcC, sign, nFeeRet, coinControl, sError))
-    {
+    if (0 != AddBlindedInputs(wtx, rtx, vecSend, sea, pcC, sign, nFeeRet, coinControl, sError)) {
         // sError will be set
-        if (pcC)
+        if (pcC) {
             pcC->nHGenerated = nLastHardened; // reset
+        }
         return 1;
-    };
+    }
 
-    if (pcC)
-    {
+    if (pcC) {
         LOCK(cs_wallet);
         CHDWalletDB wdb(*database, "r+");
 
         std::vector<uint8_t> vEphemPath;
         uint32_t idIndex;
         bool requireUpdateDB;
-        if (0 == ExtKeyGetIndex(&wdb, sea, idIndex, requireUpdateDB))
-        {
+        if (0 == ExtKeyGetIndex(&wdb, sea, idIndex, requireUpdateDB)) {
             PushUInt32(vEphemPath, idIndex);
 
-            if (0 == AppendChainPath(pcC, vEphemPath))
-            {
+            if (0 == AppendChainPath(pcC, vEphemPath)) {
                 uint32_t nChild = nLastHardened;
                 PushUInt32(vEphemPath, SetHardenedBit(nChild));
                 rtx.mapValue[RTXVT_EPHEM_PATH] = vEphemPath;
 
-            } else
-            {
-                LogPrintf("Warning: %s - missing path value.\n", __func__);
+            } else {
+                WalletLogPrintf("Warning: %s - missing path value.\n", __func__);
                 vEphemPath.clear();
-            };
-        } else
-        {
-            LogPrintf("Warning: %s - ExtKeyGetIndex failed %s.\n", __func__, pcC->GetIDString58());
-        };
+            }
+        } else {
+            WalletLogPrintf("Warning: %s - ExtKeyGetIndex failed %s.\n", __func__, pcC->GetIDString58());
+        }
 
         CKeyID idChain = pcC->GetID();
-        if (!wdb.WriteExtKey(idChain, *pcC))
-        {
+        if (!wdb.WriteExtKey(idChain, *pcC)) {
             pcC->nHGenerated = nLastHardened;
             return errorN(1, sError, __func__, "WriteExtKey failed.");
-        };
-    };
+        }
+    }
 
     return 0;
 };
@@ -5278,7 +5260,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     if (0 != PreAcceptMempoolTx(wtx, sError))
         return 1;
 
-    LogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
+    WalletLogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
               nFeeRet, nBytes, nFeeNeeded, feeCalc.returnedTarget, feeCalc.desiredTarget, StringForFeeReason(feeCalc.reason), feeCalc.est.decay,
               feeCalc.est.pass.start, feeCalc.est.pass.end,
               100 * feeCalc.est.pass.withinTarget / (feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool),
@@ -5337,12 +5319,12 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 rtx.mapValue[RTXVT_EPHEM_PATH] = vEphemPath;
             } else
             {
-                LogPrintf("Warning: %s - missing path value.\n", __func__);
+                WalletLogPrintf("Warning: %s - missing path value.\n", __func__);
                 vEphemPath.clear();
             };
         } else
         {
-            LogPrintf("Warning: %s - ExtKeyGetIndex failed %s.\n", __func__, pcC->GetIDString58());
+            WalletLogPrintf("Warning: %s - ExtKeyGetIndex failed %s.\n", __func__, pcC->GetIDString58());
         };
 
         CKeyID idChain = pcC->GetID();
@@ -5410,19 +5392,16 @@ void CHDWallet::LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx)
 
 void CHDWallet::RemoveFromTxSpends(const uint256 &hash, const CTransactionRef pt)
 {
-    for (auto &txin : pt->vin)
-    {
+    for (auto &txin : pt->vin) {
         std::pair<TxSpends::iterator, TxSpends::iterator> ip = mapTxSpends.equal_range(txin.prevout);
-        for (auto it = ip.first; it != ip.second; )
-        {
-            if (it->second == hash)
-            {
+        for (auto it = ip.first; it != ip.second; ) {
+            if (it->second == hash) {
                 mapTxSpends.erase(it++);
                 continue;
-            };
+            }
             ++it;
-        };
-    };
+        }
+    }
     return;
 };
 
@@ -5432,52 +5411,43 @@ int CHDWallet::UnloadTransaction(const uint256 &hash)
 
     MapWallet_t::iterator itw;
     MapRecords_t::iterator itr;
-    if ((itw = mapWallet.find(hash)) != mapWallet.end())
-    {
+    if ((itw = mapWallet.find(hash)) != mapWallet.end()) {
         CWalletTx *pcoin = &itw->second;
 
         RemoveFromTxSpends(hash, pcoin->tx);
 
-        for (auto it = wtxOrdered.begin(); it != wtxOrdered.end(); )
-        {
-            if (it->second.first == pcoin)
-            {
+        for (auto it = wtxOrdered.begin(); it != wtxOrdered.end(); ) {
+            if (it->second.first == pcoin) {
                 wtxOrdered.erase(it++);
                 continue;
-            };
+            }
             ++it;
-        };
+        }
 
         mapWallet.erase(itw);
     } else
-    if ((itr = mapRecords.find(hash)) != mapRecords.end())
-    {
+    if ((itr = mapRecords.find(hash)) != mapRecords.end()) {
         CStoredTransaction stx;
-        if (!CHDWalletDB(*database).ReadStoredTx(hash, stx)) // TODO: cache / use mapTempWallet
-        {
-            LogPrintf("%s: ReadStoredTx failed for %s.\n", __func__, hash.ToString());
-        } else
-        {
+        if (!CHDWalletDB(*database).ReadStoredTx(hash, stx)) { // TODO: cache / use mapTempWallet
+            WalletLogPrintf("%s: ReadStoredTx failed for %s.\n", __func__, hash.ToString());
+        } else {
             RemoveFromTxSpends(hash, stx.tx);
-        };
+        }
 
-        for (auto it = rtxOrdered.begin(); it != rtxOrdered.end(); )
-        {
+        for (auto it = rtxOrdered.begin(); it != rtxOrdered.end(); ) {
             //if (it->second->first == hash)
-            if (it->second == itr)
-            {
+            if (it->second == itr) {
                 rtxOrdered.erase(it++);
                 continue;
-            };
+            }
             ++it;
-        };
+        }
 
         mapRecords.erase(itr);
-    } else
-    {
-        LogPrintf("Warning: %s - tx not found in wallet! %s.\n", __func__, hash.ToString());
+    } else {
+        WalletLogPrintf("Warning: %s - tx not found in wallet! %s.\n", __func__, hash.ToString());
         return 1;
-    };
+    }
 
     NotifyTransactionChanged(this, hash, CT_DELETED);
     return 0;
@@ -5489,38 +5459,44 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
     LOCK(cs_wallet);
 
     ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idDefaultAccount);
-    if (mi == mapExtAccounts.end())
+    if (mi == mapExtAccounts.end()) {
         return errorN(1, "%s: %s.", __func__, _("Default account not found"));
+    }
 
     sea = mi->second;
     mapEKValue_t::iterator mvi = sea->mapValue.find(EKVT_CONFIDENTIAL_CHAIN);
-    if (mvi != sea->mapValue.end())
-    {
+    if (mvi != sea->mapValue.end()) {
         uint64_t n;
         GetCompressedInt64(mvi->second, n);
-        if ((pc = sea->GetChain(n)))
+        if ((pc = sea->GetChain(n))) {
             return 0;
+        }
 
         return errorN(1, "%s: %s.", __func__, _("Confidential chain set but not found"));
-    };
+    }
 
-    LogPrint(BCLog::HDWALLET, "Adding confidential chain to account: %s.\n", sea->GetIDString58());
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("Adding confidential chain to account: %s.\n", sea->GetIDString58());
+    }
 
     size_t nConfidential = sea->vExtKeys.size();
 
     CStoredExtKey *sekAccount = sea->ChainAccount();
-    if (!sekAccount)
+    if (!sekAccount) {
         return errorN(1, "%s: %s.", __func__, _("Account chain not found"));
+    }
 
     std::vector<uint8_t> vAccountPath, vSubKeyPath, v;
     mvi = sekAccount->mapValue.find(EKVT_PATH);
-    if (mvi != sekAccount->mapValue.end())
+    if (mvi != sekAccount->mapValue.end()) {
         vAccountPath = mvi->second;
+    }
 
     CExtKey evConfidential;
     uint32_t nChild;
-    if (0 != sekAccount->DeriveNextKey(evConfidential, nChild, true))
+    if (0 != sekAccount->DeriveNextKey(evConfidential, nChild, true)) {
         return errorN(1, "%s: %s.", __func__, _("DeriveNextKey failed"));
+    }
 
     CStoredExtKey *sekConfidential = new CStoredExtKey();
     sekConfidential->kp = evConfidential;
@@ -5537,16 +5513,16 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
 
     sea->mapValue[EKVT_CONFIDENTIAL_CHAIN] = SetCompressedInt64(v, nConfidential);
 
-    if (!pwdb)
-    {
+    if (!pwdb) {
         CHDWalletDB wdb(*database, "r+");
-        if (0 != ExtKeySaveAccountToDB(&wdb, idDefaultAccount, sea))
+        if (0 != ExtKeySaveAccountToDB(&wdb, idDefaultAccount, sea)) {
             return errorN(1,"%s: %s.", __func__, _("ExtKeySaveAccountToDB failed"));
-    } else
-    {
-        if (0 != ExtKeySaveAccountToDB(pwdb, idDefaultAccount, sea))
+        }
+    } else {
+        if (0 != ExtKeySaveAccountToDB(pwdb, idDefaultAccount, sea)) {
             return errorN(1, "%s: %s.", __func__, _("ExtKeySaveAccountToDB failed"));
-    };
+        }
+    }
 
     pc = sekConfidential;
     return 0;
@@ -5554,12 +5530,13 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
 
 int CHDWallet::MakeDefaultAccount()
 {
-    LogPrintf("Generating initial master key and account from random data.\n");
+    WalletLogPrintf("Generating initial master key and account from random data.\n");
 
     LOCK(cs_wallet);
     CHDWalletDB wdb(GetDBHandle(), "r+");
-    if (!wdb.TxnBegin())
+    if (!wdb.TxnBegin()) {
         return errorN(1, "TxnBegin failed.");
+    }
 
     std::string sLblMaster = "Master Key";
     std::string sLblAccount = "Default Account";
@@ -5568,65 +5545,61 @@ int CHDWallet::MakeDefaultAccount()
     CExtKeyAccount *sea;
     CExtKey ekMaster;
 
-    if (0 != ExtKeyNew32(ekMaster))
-    {
+    if (0 != ExtKeyNew32(ekMaster)) {
         wdb.TxnAbort();
         return 1;
-    };
+    }
 
     CStoredExtKey sek;
     sek.kp = ekMaster;
-    if (0 != (rv = ExtKeyImportLoose(&wdb, sek, idNewMaster, false, false)))
-    {
+    if (0 != (rv = ExtKeyImportLoose(&wdb, sek, idNewMaster, false, false))) {
         wdb.TxnAbort();
         return errorN(1, "ExtKeyImportLoose failed, %s", ExtKeyGetString(rv));
-    };
+    }
 
     idNewMaster = sek.GetID();
-    if (0 != (rv = ExtKeySetMaster(&wdb, idNewMaster)))
-    {
+    if (0 != (rv = ExtKeySetMaster(&wdb, idNewMaster))) {
         wdb.TxnAbort();
         return errorN(1, "ExtKeySetMaster failed, %s.", ExtKeyGetString(rv));
-    };
+    }
 
     sea = new CExtKeyAccount();
-    if (0 != (rv = ExtKeyDeriveNewAccount(&wdb, sea, sLblAccount)))
-    {
+    if (0 != (rv = ExtKeyDeriveNewAccount(&wdb, sea, sLblAccount))) {
         ExtKeyRemoveAccountFromMapsAndFree(sea);
         wdb.TxnAbort();
         return errorN(1, "ExtKeyDeriveNewAccount failed, %s.", ExtKeyGetString(rv));
-    };
+    }
 
     CKeyID idNewDefaultAccount = sea->GetID();
     CKeyID idOldDefault = idDefaultAccount;
-    if (0 != (rv = ExtKeySetDefaultAccount(&wdb, idNewDefaultAccount)))
-    {
+    if (0 != (rv = ExtKeySetDefaultAccount(&wdb, idNewDefaultAccount))) {
         ExtKeyRemoveAccountFromMapsAndFree(sea);
         wdb.TxnAbort();
         return errorN(1, "ExtKeySetDefaultAccount failed, %s.", ExtKeyGetString(rv));
-    };
+    }
 
-    if (!wdb.TxnCommit())
-    {
+    if (!wdb.TxnCommit()) {
         idDefaultAccount = idOldDefault;
         ExtKeyRemoveAccountFromMapsAndFree(sea);
         return errorN(1, "TxnCommit failed.");
-    };
+    }
     return 0;
 }
 
 int CHDWallet::ExtKeyNew32(CExtKey &out)
 {
-    LogPrint(BCLog::HDWALLET, "ExtKeyNew32 from random.\n");
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("ExtKeyNew32 from random.\n");
+    }
 
     uint8_t data[32];
 
-    for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i)
-    {
+    for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i) {
         GetStrongRandBytes(data, 32);
-        if (ExtKeyNew32(out, data, 32) == 0)
+        if (ExtKeyNew32(out, data, 32) == 0) {
             break;
-    };
+        }
+    }
 
     return out.IsValid() ? 0 : 1;
 };
@@ -5643,16 +5616,16 @@ int CHDWallet::ExtKeyNew32(CExtKey &out, const char *sPassPhrase, int32_t nHash,
     memset(data, 0, 64);
 
     CHMAC_SHA256 ctx256((const uint8_t*)sPassPhrase, nPhraseLen);
-    for (int i = 0; i < nHash; ++i)
-    {
+    for (int i = 0; i < nHash; ++i) {
         CHMAC_SHA256 tmp = ctx256;
         tmp.Write(data, 32).Finalize(data);
-    };
+    }
 
     CHMAC_SHA512((const uint8_t*)sSeed, nSeedLen).Write(data, 32).Finalize(data);
 
-    if (out.SetKeyCode(data, &data[32]) != 0)
+    if (out.SetKeyCode(data, &data[32]) != 0) {
         return errorN(1, "SetKeyCode failed.");
+    }
 
     return out.IsValid() ? 0 : 1;
 };
@@ -5675,8 +5648,9 @@ int CHDWallet::ExtKeyImportLoose(CHDWalletDB *pwdb, CStoredExtKey &sekIn, CKeyID
 
     assert(pwdb);
 
-    if (IsLocked())
+    if (IsLocked()) {
         return errorN(1, "Wallet must be unlocked.");
+    }
 
     CKeyID id = sekIn.GetID();
 
@@ -5684,30 +5658,27 @@ int CHDWallet::ExtKeyImportLoose(CHDWalletDB *pwdb, CStoredExtKey &sekIn, CKeyID
     // It's possible for a public ext key to be added first
     CStoredExtKey sekExist;
     CStoredExtKey sek = sekIn;
-    if (pwdb->ReadExtKey(id, sekExist))
-    {
+    if (pwdb->ReadExtKey(id, sekExist)) {
         if (IsCrypted()
-            && 0 != ExtKeyUnlock(&sekExist))
+            && 0 != ExtKeyUnlock(&sekExist)) {
             return errorN(13, "%s: %s", __func__, ExtKeyGetString(13));
+        }
 
         sek = sekExist;
         if (!sek.kp.IsValidV()
-            && sekIn.kp.IsValidV())
-        {
+            && sekIn.kp.IsValidV()) {
             sek.kp = sekIn.kp;
             std::vector<uint8_t> v;
             sek.mapValue[EKVT_ADDED_SECRET_AT] = SetCompressedInt64(v, GetTime());
-        };
-    } else
-    {
+        }
+    } else {
         // New key
         sek.nFlags |= EAF_ACTIVE;
 
         fsekInExist = false;
-    };
+    }
 
-    if (fBip44)
-    {
+    if (fBip44) {
         // Import key as bip44 root and derive a new master key
         // NOTE: can't know created at time of derived key here
 
@@ -5731,36 +5702,35 @@ int CHDWallet::ExtKeyImportLoose(CHDWalletDB *pwdb, CStoredExtKey &sekIn, CKeyID
 
         idDerived = sekDerived.GetID();
 
-        if (pwdb->ReadExtKey(idDerived, sekExist))
-        {
+        if (pwdb->ReadExtKey(idDerived, sekExist)) {
             if (fSaveBip44
-                && !fsekInExist)
-            {
+                && !fsekInExist) {
                 // Assume the user wants to save the bip44 key, drop down
-            } else
-            {
+            } else {
                 return errorN(12, "%s: %s", __func__, ExtKeyGetString(12));
-            };
-        } else
-        {
+            }
+        } else {
             if (IsCrypted()
-                && (ExtKeyEncrypt(&sekDerived, vMasterKey, false) != 0))
+                && (ExtKeyEncrypt(&sekDerived, vMasterKey, false) != 0)) {
                 return errorN(1, "%s: ExtKeyEncrypt failed.", __func__);
+            }
 
-            if (!pwdb->WriteExtKey(idDerived, sekDerived))
+            if (!pwdb->WriteExtKey(idDerived, sekDerived)) {
                 return errorN(1, "%s: DB Write failed.", __func__);
-        };
-    };
+            }
+        }
+    }
 
-    if (!fBip44 || fSaveBip44)
-    {
+    if (!fBip44 || fSaveBip44) {
         if (IsCrypted()
-            && ExtKeyEncrypt(&sek, vMasterKey, false) != 0)
+            && ExtKeyEncrypt(&sek, vMasterKey, false) != 0) {
             return errorN(1, "%s: ExtKeyEncrypt failed.", __func__);
+        }
 
-        if (!pwdb->WriteExtKey(id, sek))
+        if (!pwdb->WriteExtKey(id, sek)) {
             return errorN(1, "%s: DB Write failed.", __func__);
-    };
+        }
+    }
 
     return 0;
 };
@@ -5772,14 +5742,15 @@ int CHDWallet::ExtKeyImportAccount(CHDWalletDB *pwdb, CStoredExtKey &sekIn, int6
 
     if (LogAcceptCategory(BCLog::HDWALLET))
     {
-        LogPrintf("%s.\n", __func__);
+        WalletLogPrintf("%s.\n", __func__);
         AssertLockHeld(cs_wallet);
     };
 
     assert(pwdb);
 
-    if (IsLocked())
+    if (IsLocked()) {
         return errorN(1, "Wallet must be unlocked.");
+    }
 
     CKeyID idAccount = sekIn.GetID();
 
@@ -5788,201 +5759,178 @@ int CHDWallet::ExtKeyImportAccount(CHDWalletDB *pwdb, CStoredExtKey &sekIn, int6
 
     // NOTE: is this confusing behaviour?
     CStoredExtKey sekExist;
-    if (pwdb->ReadExtKey(idAccount, sekExist))
-    {
+    if (pwdb->ReadExtKey(idAccount, sekExist)) {
         // Add secret if exists in db
         *sek = sekExist;
         if (!sek->kp.IsValidV()
-            && sekIn.kp.IsValidV())
-        {
+            && sekIn.kp.IsValidV()) {
             sek->kp = sekIn.kp;
             std::vector<uint8_t> v;
             sek->mapValue[EKVT_ADDED_SECRET_AT] = SetCompressedInt64(v, GetTime());
-        };
-    };
+        }
+    }
 
     // TODO: before allowing import of 'watch only' accounts
     //       txns must be linked to accounts.
 
-    if (!sek->kp.IsValidV())
-    {
+    if (!sek->kp.IsValidV()) {
         delete sek;
         return errorN(1, "Accounts must be derived from a valid private key.");
-    };
+    }
 
     CExtKeyAccount *sea = new CExtKeyAccount();
-    if (pwdb->ReadExtAccount(idAccount, *sea))
-    {
-        if (0 != ExtKeyUnlock(sea))
-        {
+    if (pwdb->ReadExtAccount(idAccount, *sea)) {
+        if (0 != ExtKeyUnlock(sea)) {
             delete sek;
             delete sea;
             return errorN(1, "Error unlocking existing account.");
-        };
+        }
         CStoredExtKey *sekAccount = sea->ChainAccount();
-        if (!sekAccount)
-        {
+        if (!sekAccount) {
             delete sek;
             delete sea;
             return errorN(1, "ChainAccount failed.");
-        };
+        }
         // Account exists, update secret if necessary
         if (!sek->kp.IsValidV()
-            && sekAccount->kp.IsValidV())
-        {
+            && sekAccount->kp.IsValidV()) {
             sekAccount->kp = sek->kp;
             std::vector<uint8_t> v;
             sekAccount->mapValue[EKVT_ADDED_SECRET_AT] = SetCompressedInt64(v, GetTime());
 
              if (IsCrypted()
-                && ExtKeyEncrypt(sekAccount, vMasterKey, false) != 0)
-            {
+                && ExtKeyEncrypt(sekAccount, vMasterKey, false) != 0) {
                 delete sek;
                 delete sea;
                 return errorN(1, "ExtKeyEncrypt failed.");
-            };
+            }
 
-            if (!pwdb->WriteExtKey(idAccount, *sekAccount))
-            {
+            if (!pwdb->WriteExtKey(idAccount, *sekAccount)) {
                 delete sek;
                 delete sea;
                 return errorN(1, "WriteExtKey failed.");
-            };
+            }
 
             delete sek;
             delete sea;
             return 3;
-        };
+        }
         delete sek;
         delete sea;
         return 2;
-    };
+    }
 
     CKeyID idMaster; // inits to 0
-    if (0 != ExtKeyCreateAccount(sek, idMaster, *sea, sLabel))
-    {
+    if (0 != ExtKeyCreateAccount(sek, idMaster, *sea, sLabel)) {
         delete sek;
         delete sea;
         return errorN(1, "ExtKeyCreateAccount failed.");
-    };
+    }
 
     std::vector<uint8_t> v;
     sea->mapValue[EKVT_CREATED_AT] = SetCompressedInt64(v, nCreatedAt);
 
-    if (0 != ExtKeySaveAccountToDB(pwdb, idAccount, sea))
-    {
+    if (0 != ExtKeySaveAccountToDB(pwdb, idAccount, sea)) {
         sea->FreeChains();
         delete sea;
         return errorN(1, "DB Write failed.");
-    };
+    }
 
-    if (0 != ExtKeyAddAccountToMaps(idAccount, sea))
-    {
+    if (0 != ExtKeyAddAccountToMaps(idAccount, sea)) {
         sea->FreeChains();
         delete sea;
         return errorN(1, "ExtKeyAddAccountToMap() failed.");
-    };
+    }
 
     return 0;
 };
 
 int CHDWallet::ExtKeySetMaster(CHDWalletDB *pwdb, CKeyID &idNewMaster)
 {
-    if (LogAcceptCategory(BCLog::HDWALLET))
-    {
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
         CBitcoinAddress addr;
         addr.Set(idNewMaster, CChainParams::EXT_KEY_HASH);
-        LogPrintf("ExtKeySetMaster %s.\n", addr.ToString());
+        WalletLogPrintf("ExtKeySetMaster %s.\n", addr.ToString());
         AssertLockHeld(cs_wallet);
-    };
+    }
 
     assert(pwdb);
 
-    if (IsLocked())
+    if (IsLocked()) {
         return errorN(1, "Wallet must be unlocked.");
+    }
 
     CKeyID idOldMaster;
     bool fOldMaster = pwdb->ReadNamedExtKeyId("master", idOldMaster);
 
-    if (idNewMaster == idOldMaster)
+    if (idNewMaster == idOldMaster) {
         return errorN(11, ExtKeyGetString(11));
+    }
 
     ExtKeyMap::iterator mi;
     CStoredExtKey ekOldMaster, *pEKOldMaster, *pEKNewMaster;
     bool fNew = false;
     mi = mapExtKeys.find(idNewMaster);
-    if (mi != mapExtKeys.end())
-    {
+    if (mi != mapExtKeys.end()) {
         pEKNewMaster = mi->second;
-    } else
-    {
+    } else {
         pEKNewMaster = new CStoredExtKey();
         fNew = true;
-        if (!pwdb->ReadExtKey(idNewMaster, *pEKNewMaster))
-        {
+        if (!pwdb->ReadExtKey(idNewMaster, *pEKNewMaster)) {
             delete pEKNewMaster;
             return errorN(10, ExtKeyGetString(10));
-        };
-    };
+        }
+    }
 
     // Prevent setting bip44 root key as a master key.
     mapEKValue_t::iterator mvi = pEKNewMaster->mapValue.find(EKVT_KEY_TYPE);
     if (mvi != pEKNewMaster->mapValue.end()
         && mvi->second.size() == 1
-        && mvi->second[0] == EKT_BIP44_MASTER)
-    {
+        && mvi->second[0] == EKT_BIP44_MASTER) {
         if (fNew) delete pEKNewMaster;
         return errorN(9, ExtKeyGetString(9));
-    };
+    }
 
     if (ExtKeyUnlock(pEKNewMaster) != 0
-        || !pEKNewMaster->kp.IsValidV())
-    {
+        || !pEKNewMaster->kp.IsValidV()) {
         if (fNew) delete pEKNewMaster;
         return errorN(1, "New master ext key has no secret.");
-    };
+    }
 
     std::vector<uint8_t> v;
     pEKNewMaster->mapValue[EKVT_KEY_TYPE] = SetChar(v, EKT_MASTER);
 
     if (!pwdb->WriteExtKey(idNewMaster, *pEKNewMaster)
-        || !pwdb->WriteNamedExtKeyId("master", idNewMaster))
-    {
+        || !pwdb->WriteNamedExtKeyId("master", idNewMaster)) {
         if (fNew) delete pEKNewMaster;
         return errorN(1, "DB Write failed.");
-    };
+    }
 
     // Unset old master ext key
-    if (fOldMaster)
-    {
+    if (fOldMaster) {
         mi = mapExtKeys.find(idOldMaster);
-        if (mi != mapExtKeys.end())
-        {
+        if (mi != mapExtKeys.end()) {
             pEKOldMaster = mi->second;
-        } else
-        {
-            if (!pwdb->ReadExtKey(idOldMaster, ekOldMaster))
-            {
+        } else {
+            if (!pwdb->ReadExtKey(idOldMaster, ekOldMaster)) {
                 if (fNew) delete pEKNewMaster;
                 return errorN(1, "ReadExtKey failed.");
-            };
+            }
 
             pEKOldMaster = &ekOldMaster;
-        };
+        }
 
         mapEKValue_t::iterator it = pEKOldMaster->mapValue.find(EKVT_KEY_TYPE);
-        if (it != pEKOldMaster->mapValue.end())
-        {
+        if (it != pEKOldMaster->mapValue.end()) {
             if (LogAcceptCategory(BCLog::HDWALLET))
-                LogPrintf("Removing tag from old master key %s.\n", pEKOldMaster->GetIDString58());
+                WalletLogPrintf("Removing tag from old master key %s.\n", pEKOldMaster->GetIDString58());
             pEKOldMaster->mapValue.erase(it);
-            if (!pwdb->WriteExtKey(idOldMaster, *pEKOldMaster))
-            {
+            if (!pwdb->WriteExtKey(idOldMaster, *pEKOldMaster)) {
                 if (fNew) delete pEKNewMaster;
                 return errorN(1, "WriteExtKey failed.");
-            };
-        };
-    };
+            }
+        }
+    }
 
     mapExtKeys[idNewMaster] = pEKNewMaster;
     pEKMaster = pEKNewMaster;
@@ -5998,17 +5946,19 @@ int CHDWallet::ExtKeyNewMaster(CHDWalletDB *pwdb, CKeyID &idMaster, bool fAutoGe
     //  to BIP44 (path 44'/44'), The root (bip44) key only stored in the system
     //  and the derived key is set as the system master key.
 
-    LogPrintf("ExtKeyNewMaster.\n");
+    WalletLogPrintf("ExtKeyNewMaster.\n");
     AssertLockHeld(cs_wallet);
     assert(pwdb);
 
-    if (IsLocked())
+    if (IsLocked()) {
         return errorN(1, "Wallet must be unlocked.");
+    }
 
     CExtKey evRootKey;
     CStoredExtKey sekRoot;
-    if (ExtKeyNew32(evRootKey) != 0)
+    if (ExtKeyNew32(evRootKey) != 0) {
         return errorN(1, "ExtKeyNew32 failed.");
+    }
 
     std::vector<uint8_t> v;
     sekRoot.nFlags |= EAF_ACTIVE;
@@ -6038,48 +5988,47 @@ int CHDWallet::ExtKeyNewMaster(CHDWalletDB *pwdb, CKeyID &idMaster, bool fAutoGe
 
     if (IsCrypted()
         && (ExtKeyEncrypt(&sekRoot, vMasterKey, false) != 0
-            || ExtKeyEncrypt(&sekMaster, vMasterKey, false) != 0))
-    {
+            || ExtKeyEncrypt(&sekMaster, vMasterKey, false) != 0)) {
         return errorN(1, "ExtKeyEncrypt failed.");
-    };
+    }
 
     if (!pwdb->WriteExtKey(idRoot, sekRoot)
         || !pwdb->WriteExtKey(idMaster, sekMaster)
-        || (fAutoGenerated && !pwdb->WriteFlag("madeDefaultEKey", 1)))
-    {
+        || (fAutoGenerated && !pwdb->WriteFlag("madeDefaultEKey", 1))) {
         return errorN(1, "DB Write failed.");
-    };
+    }
 
     return 0;
 };
 
 int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, CExtKeyAccount &ekaOut, const std::string &sLabel)
 {
-    LogPrint(BCLog::HDWALLET, "%s, %s\n", __func__, GetName());
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
     AssertLockHeld(cs_wallet);
 
     std::vector<uint8_t> vAccountPath, vSubKeyPath, v;
     mapEKValue_t::iterator mi = sekAccount->mapValue.find(EKVT_PATH);
 
-    if (mi != sekAccount->mapValue.end())
+    if (mi != sekAccount->mapValue.end()) {
         vAccountPath = mi->second;
+    }
 
     ekaOut.idMaster = idMaster;
     ekaOut.sLabel = sLabel;
     ekaOut.nFlags |= EAF_ACTIVE;
     ekaOut.mapValue[EKVT_CREATED_AT] = SetCompressedInt64(v, GetTime());
 
-    if (sekAccount->kp.IsValidV())
+    if (sekAccount->kp.IsValidV()) {
         ekaOut.nFlags |= EAF_HAVE_SECRET;
+    }
 
     CExtKey evExternal, evInternal, evStealth;
     uint32_t nExternal, nInternal, nStealth;
     if (sekAccount->DeriveNextKey(evExternal, nExternal, false) != 0
         || sekAccount->DeriveNextKey(evInternal, nInternal, false) != 0
-        || sekAccount->DeriveNextKey(evStealth, nStealth, true) != 0)
-    {
+        || sekAccount->DeriveNextKey(evStealth, nStealth, true) != 0) {
         return errorN(1, "Could not derive account chain keys.");
-    };
+    }
 
     CStoredExtKey *sekExternal = new CStoredExtKey();
     sekExternal->kp = evExternal;
@@ -6118,14 +6067,13 @@ int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, 
     ekaOut.nActiveStealth = 3;
 
     if (IsCrypted()
-        && ExtKeyEncrypt(&ekaOut, vMasterKey, false) != 0)
-    {
+        && ExtKeyEncrypt(&ekaOut, vMasterKey, false) != 0) {
         delete sekExternal;
         delete sekInternal;
         delete sekStealth;
         // sekAccount should be freed in calling function
         return errorN(1, "ExtKeyEncrypt failed.");
-    };
+    }
 
     return 0;
 };
@@ -6133,16 +6081,18 @@ int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, 
 int CHDWallet::ExtKeyDeriveNewAccount(CHDWalletDB *pwdb, CExtKeyAccount *sea, const std::string &sLabel, const std::string &sPath)
 {
     // Derive a new account from the master extkey and save to wallet
-    LogPrintf("%s\n", __func__);
+    WalletLogPrintf("%s\n", __func__);
     AssertLockHeld(cs_wallet);
     assert(pwdb);
     assert(sea);
 
-    if (IsLocked())
+    if (IsLocked()) {
         return errorN(1, "%s: Wallet must be unlocked.", __func__);
+    }
 
-    if (!pEKMaster || !pEKMaster->kp.IsValidV())
+    if (!pEKMaster || !pEKMaster->kp.IsValidV()) {
         return errorN(1, "%s: Master ext key is invalid.", __func__);
+    }
 
     CKeyID idMaster = pEKMaster->GetID();
 
@@ -6152,82 +6102,71 @@ int CHDWallet::ExtKeyDeriveNewAccount(CHDWalletDB *pwdb, CExtKeyAccount *sea, co
     uint32_t nAccount;
     std::vector<uint8_t> vAccountPath, vSubKeyPath;
 
-    if (sPath.length() == 0)
-    {
-        if (pEKMaster->DeriveNextKey(evAccountKey, nAccount, true, true) != 0)
-        {
+    if (sPath.length() == 0) {
+        if (pEKMaster->DeriveNextKey(evAccountKey, nAccount, true, true) != 0) {
             delete sekAccount;
             return errorN(1, "%s: Could not derive account key from master.", __func__);
-        };
+        }
         sekAccount->kp = evAccountKey;
         sekAccount->mapValue[EKVT_PATH] = PushUInt32(vAccountPath, nAccount);
-    } else
-    {
+    } else {
         std::vector<uint32_t> vPath;
         int rv;
-        if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0)
-        {
+        if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0) {
             delete sekAccount;
             return errorN(1, "%s: ExtractExtKeyPath failed %s.", __func__, ExtKeyGetString(rv));
-        };
+        }
 
         CExtKey vkOut;
         CExtKey vkWork = pEKMaster->kp.GetExtKey();
-        for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it)
-        {
-            if (!vkWork.Derive(vkOut, *it))
-            {
+        for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it) {
+            if (!vkWork.Derive(vkOut, *it)) {
                 delete sekAccount;
                 return errorN(1, "%s: CExtKey Derive failed %s, %d.", __func__, sPath.c_str(), *it);
-            };
+            }
             PushUInt32(vAccountPath, *it);
 
             vkWork = vkOut;
-        };
+        }
 
         sekAccount->kp = vkOut;
         sekAccount->mapValue[EKVT_PATH] = vAccountPath;
-    };
+    }
 
     if (!sekAccount->kp.IsValidV()
-        || !sekAccount->kp.IsValidP())
-    {
+        || !sekAccount->kp.IsValidP()) {
         delete sekAccount;
         pEKMaster->SetCounter(nOldHGen, true);
         return errorN(1, "%s: Invalid key.", __func__);
-    };
+    }
 
     sekAccount->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
-    if (0 != ExtKeyCreateAccount(sekAccount, idMaster, *sea, sLabel))
-    {
+    if (0 != ExtKeyCreateAccount(sekAccount, idMaster, *sea, sLabel)) {
         delete sekAccount;
         pEKMaster->SetCounter(nOldHGen, true);
         return errorN(1, "%s: ExtKeyCreateAccount failed.", __func__);
-    };
+    }
 
     CKeyID idAccount = sea->GetID();
 
     CStoredExtKey checkSEA;
-    if (pwdb->ReadExtKey(idAccount, checkSEA))
-    {
+    if (pwdb->ReadExtKey(idAccount, checkSEA)) {
         sea->FreeChains();
         pEKMaster->SetCounter(nOldHGen, true);
         return errorN(14, "%s: Account already exists in db.", __func__);
-    };
+    }
 
     if (!pwdb->WriteExtKey(idMaster, *pEKMaster)
-        || 0 != ExtKeySaveAccountToDB(pwdb, idAccount, sea))
-    {
+        || 0 != ExtKeySaveAccountToDB(pwdb, idAccount, sea)) {
         sea->FreeChains();
         pEKMaster->SetCounter(nOldHGen, true);
         return errorN(1, "%s: DB Write failed.", __func__);
-    };
+    }
 
-    if (0 != ExtKeyAddAccountToMaps(idAccount, sea))
-    {
+    if (0 != ExtKeyAddAccountToMaps(idAccount, sea)) {
         sea->FreeChains();
         return errorN(1, "%s: ExtKeyAddAccountToMaps() failed.", __func__);
-    };
+    }
 
     return 0;
 };
@@ -6238,49 +6177,42 @@ int CHDWallet::ExtKeySetDefaultAccount(CHDWalletDB *pwdb, CKeyID &idNewDefault)
     // add account to maps if not already there
     // run in a db transaction
 
-    LogPrint(BCLog::HDWALLET, "%s, %s\n", __func__, GetName());
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
     AssertLockHeld(cs_wallet);
     assert(pwdb);
 
     CExtKeyAccount *sea = new CExtKeyAccount();
 
     // Read account from db, inactive accounts are not loaded into maps
-    if (!pwdb->ReadExtAccount(idNewDefault, *sea))
-    {
+    if (!pwdb->ReadExtAccount(idNewDefault, *sea)) {
         delete sea;
-        return errorN(15, "%s: Account not in wallet.", __func__);
-    };
+        return errorN(15, "%s %s: Account not in wallet.", GetDisplayName(), __func__);
+    }
 
     // If !EAF_ACTIVE, rewrite with EAF_ACTIVE set
-    if (!(sea->nFlags & EAF_ACTIVE))
-    {
+    if (!(sea->nFlags & EAF_ACTIVE)) {
         sea->nFlags |= EAF_ACTIVE;
-        if (!pwdb->WriteExtAccount(idNewDefault, *sea))
-        {
+        if (!pwdb->WriteExtAccount(idNewDefault, *sea)) {
             delete sea;
-            return errorN(1, "%s: WriteExtAccount() failed.", __func__);
-        };
-    };
+            return errorN(1, "%s %s: WriteExtAccount() failed.", GetDisplayName(), __func__);
+        }
+    }
 
-    if (!pwdb->WriteNamedExtKeyId("defaultAccount", idNewDefault))
-    {
+    if (!pwdb->WriteNamedExtKeyId("defaultAccount", idNewDefault)) {
         delete sea;
-        return errorN(1, "%s: WriteNamedExtKeyId() failed.", __func__);
-    };
+        return errorN(1, "%s %s: WriteNamedExtKeyId() failed.", GetDisplayName(), __func__);
+    }
 
     ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idNewDefault);
-    if (mi == mapExtAccounts.end())
-    {
-        if (0 != ExtKeyAddAccountToMaps(idNewDefault, sea))
-        {
+    if (mi == mapExtAccounts.end()) {
+        if (0 != ExtKeyAddAccountToMaps(idNewDefault, sea)) {
             delete sea;
-            return errorN(1, "%s: ExtKeyAddAccountToMaps() failed.", __func__);
-        };
+            return errorN(1, "%s %s: ExtKeyAddAccountToMaps() failed.", GetDisplayName(), __func__);
+        }
         // sea will be freed in FreeExtKeyMaps
-    } else
-    {
+    } else {
         delete sea;
-    };
+    }
 
     // Set idDefaultAccount last, incase something fails.
     idDefaultAccount = idNewDefault;
@@ -6290,18 +6222,19 @@ int CHDWallet::ExtKeySetDefaultAccount(CHDWalletDB *pwdb, CKeyID &idNewDefault)
 
 int CHDWallet::ExtKeyEncrypt(CStoredExtKey *sek, const CKeyingMaterial &vMKey, bool fLockKey)
 {
-    if (!sek->kp.IsValidV())
-    {
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("%s: sek %s has no secret, encryption skipped.\n", __func__, sek->GetIDString58());
+    if (!sek->kp.IsValidV()) {
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("%s: sek %s has no secret, encryption skipped.\n", __func__, sek->GetIDString58());
+        }
         return 0;
-    };
+    }
 
     std::vector<uint8_t> vchCryptedSecret;
     CPubKey pubkey = sek->kp.pubkey;
     CKeyingMaterial vchSecret(sek->kp.key.begin(), sek->kp.key.end());
-    if (!EncryptSecret(vMKey, vchSecret, pubkey.GetHash(), vchCryptedSecret))
+    if (!EncryptSecret(vMKey, vchSecret, pubkey.GetHash(), vchCryptedSecret)) {
         return errorN(1, "EncryptSecret failed.");
+    }
 
     sek->nFlags |= EAF_IS_CRYPTED;
 
@@ -6309,14 +6242,12 @@ int CHDWallet::ExtKeyEncrypt(CStoredExtKey *sek, const CKeyingMaterial &vMKey, b
 
     // CStoredExtKey serialise will never save key when vchCryptedSecret is set
     // thus key can be left intact here
-    if (fLockKey)
-    {
+    if (fLockKey) {
         sek->fLocked = 1;
         sek->kp.key.Clear();
-    } else
-    {
+    } else {
         sek->fLocked = 0;
-    };
+    }
 
     return 0;
 };
@@ -6326,38 +6257,39 @@ int CHDWallet::ExtKeyEncrypt(CExtKeyAccount *sea, const CKeyingMaterial &vMKey, 
     assert(sea);
 
     std::vector<CStoredExtKey*>::iterator it;
-    for (it = sea->vExtKeys.begin(); it != sea->vExtKeys.end(); ++it)
-    {
+    for (it = sea->vExtKeys.begin(); it != sea->vExtKeys.end(); ++it) {
         CStoredExtKey *sek = *it;
-        if (sek->nFlags & EAF_IS_CRYPTED)
+        if (sek->nFlags & EAF_IS_CRYPTED) {
             continue;
+        }
 
         if (!sek->kp.IsValidV()
-            && LogAcceptCategory(BCLog::HDWALLET))
-        {
-            LogPrintf("%s : Skipping account %s chain, no secret.\n", __func__, sea->GetIDString58());
+            && LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("%s : Skipping account %s chain, no secret.\n", __func__, sea->GetIDString58());
             continue;
-        };
+        }
 
         if (sek->kp.IsValidV()
-            && ExtKeyEncrypt(sek, vMKey, fLockKey) != 0)
+            && ExtKeyEncrypt(sek, vMKey, fLockKey) != 0) {
             return 1;
-    };
+        }
+    }
 
     return 0;
 };
 
 int CHDWallet::ExtKeyEncryptAll(CHDWalletDB *pwdb, const CKeyingMaterial &vMKey)
 {
-    LogPrintf("%s, %s\n", __func__, GetName());
+    WalletLogPrintf("%s\n", __func__);
 
     // Encrypt loose and account extkeys stored in wallet
     // skip invalid private keys
 
     Dbc *pcursor = pwdb->GetTxnCursor();
 
-    if (!pcursor)
+    if (!pcursor) {
         return errorN(1, "%s : cannot create DB cursor.", __func__);
+    }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
@@ -6372,35 +6304,35 @@ int CHDWallet::ExtKeyEncryptAll(CHDWalletDB *pwdb, const CKeyingMaterial &vMKey)
 
     uint32_t fFlags = DB_SET_RANGE;
     ssKey << std::string("ek32");
-    while (pwdb->ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0)
-    {
+    while (pwdb->ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "ek32")
+        if (strType != "ek32") {
             break;
+        }
 
         ssKey >> ckeyId;
         ssValue >> sek;
 
-        if (!sek.kp.IsValidV())
-        {
-            if (LogAcceptCategory(BCLog::HDWALLET))
-            {
+        if (!sek.kp.IsValidV()) {
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
                 addr.Set(ckeyId, CChainParams::EXT_KEY_HASH);
-                LogPrintf("%s : Skipping key %s, no secret.\n", __func__, sek.GetIDString58());
-            };
+                WalletLogPrintf("%s: Skipping key %s, no secret.\n", __func__, sek.GetIDString58());
+            }
             continue;
-        };
+        }
 
-        if (ExtKeyEncrypt(&sek, vMKey, true) != 0)
-            return errorN(1, "%s : ExtKeyEncrypt failed.", __func__);
+        if (ExtKeyEncrypt(&sek, vMKey, true) != 0) {
+            return errorN(1, "%s: ExtKeyEncrypt failed.", __func__);
+        }
 
         nKeys++;
 
-        if (!pwdb->Replace(pcursor, sek))
-            return errorN(1, "%s : Replace failed.", __func__);
-    };
+        if (!pwdb->Replace(pcursor, sek)) {
+            return errorN(1, "%s: Replace failed.", __func__);
+        }
+    }
 
     pcursor->close();
 
@@ -6413,20 +6345,19 @@ int CHDWallet::ExtKeyLock()
 {
     LogPrint(BCLog::HDWALLET, "ExtKeyLock.\n");
 
-    if (pEKMaster)
-    {
+    if (pEKMaster) {
         pEKMaster->kp.key.Clear();
         pEKMaster->fLocked = 1;
-    };
+    }
 
-    for (auto &mi : mapExtKeys)
-    {
+    for (auto &mi : mapExtKeys) {
         CStoredExtKey *sek = mi.second;
-        if (!(sek->nFlags & EAF_IS_CRYPTED))
+        if (!(sek->nFlags & EAF_IS_CRYPTED)) {
             continue;
+        }
         sek->kp.key.Clear();
         sek->fLocked = 1;
-    };
+    }
 
     return 0;
 };
@@ -6439,14 +6370,15 @@ int CHDWallet::ExtKeyUnlock(CExtKeyAccount *sea)
 int CHDWallet::ExtKeyUnlock(CExtKeyAccount *sea, const CKeyingMaterial &vMKey)
 {
     std::vector<CStoredExtKey*>::iterator it;
-    for (it = sea->vExtKeys.begin(); it != sea->vExtKeys.end(); ++it)
-    {
+    for (it = sea->vExtKeys.begin(); it != sea->vExtKeys.end(); ++it) {
         CStoredExtKey *sek = *it;
-        if (!(sek->nFlags & EAF_IS_CRYPTED))
+        if (!(sek->nFlags & EAF_IS_CRYPTED)) {
             continue;
-        if (ExtKeyUnlock(sek, vMKey) != 0)
+        }
+        if (ExtKeyUnlock(sek, vMKey) != 0) {
             return 1;
-    };
+        }
+    }
 
     return 0;
 };
@@ -6458,25 +6390,27 @@ int CHDWallet::ExtKeyUnlock(CStoredExtKey *sek)
 
 int CHDWallet::ExtKeyUnlock(CStoredExtKey *sek, const CKeyingMaterial &vMKey)
 {
-    if (!(sek->nFlags & EAF_IS_CRYPTED)) // is not necessary to unlock
+    if (!(sek->nFlags & EAF_IS_CRYPTED)) { // not necessary to unlock
         return 0;
+    }
 
     CKeyingMaterial vchSecret;
     uint256 iv = Hash(sek->kp.pubkey.begin(), sek->kp.pubkey.end());
     if (!DecryptSecret(vMKey, sek->vchCryptedSecret, iv, vchSecret)
-        || vchSecret.size() != 32)
-    {
-        return errorN(1, "Failed decrypting ext key %s", sek->GetIDString58().c_str());
-    };
+        || vchSecret.size() != 32) {
+        return errorN(1, "%s Failed decrypting ext key %s", GetDisplayName(), sek->GetIDString58().c_str());
+    }
 
     CKey key;
     key.Set(vchSecret.begin(), vchSecret.end(), true);
 
-    if (!key.IsValid())
-        return errorN(1, "Failed decrypting ext key %s", sek->GetIDString58().c_str());
+    if (!key.IsValid()) {
+        return errorN(1, "%s Failed decrypting ext key %s", GetDisplayName(), sek->GetIDString58().c_str());
+    }
 
-    if (key.GetPubKey() != sek->kp.pubkey)
-        return errorN(1, "Decrypted ext key mismatch %s", sek->GetIDString58().c_str());
+    if (key.GetPubKey() != sek->kp.pubkey) {
+        return errorN(1, "%s Decrypted ext key mismatch %s", GetDisplayName(), sek->GetIDString58().c_str());
+    }
 
     sek->kp.key = key;
     sek->fLocked = 0;
@@ -6488,18 +6422,18 @@ int CHDWallet::ExtKeyUnlock(const CKeyingMaterial &vMKey)
     LogPrint(BCLog::HDWALLET, "ExtKeyUnlock.\n");
 
     if (pEKMaster
-        && pEKMaster->nFlags & EAF_IS_CRYPTED)
-    {
-        if (ExtKeyUnlock(pEKMaster, vMKey) != 0)
+        && pEKMaster->nFlags & EAF_IS_CRYPTED) {
+        if (ExtKeyUnlock(pEKMaster, vMKey) != 0) {
             return 1;
-    };
+        }
+    }
 
-    for (auto &mi : mapExtKeys)
-    {
+    for (auto &mi : mapExtKeys) {
         CStoredExtKey *sek = mi.second;
-        if (0 != ExtKeyUnlock(sek, vMKey))
-            return errorN(1, "ExtKeyUnlock failed.");
-    };
+        if (0 != ExtKeyUnlock(sek, vMKey)) {
+            return errorN(1, "%s ExtKeyUnlock failed.", GetDisplayName());
+        }
+    }
 
     return 0;
 };
@@ -6507,56 +6441,51 @@ int CHDWallet::ExtKeyUnlock(const CKeyingMaterial &vMKey)
 
 int CHDWallet::ExtKeyCreateInitial(CHDWalletDB *pwdb)
 {
-    LogPrintf("Creating intital extended master key and account.\n");
+    WalletLogPrintf("Creating intital extended master key and account.\n");
 
     CKeyID idMaster;
 
-    if (!pwdb->TxnBegin())
-        return errorN(1, "TxnBegin failed.");
+    if (!pwdb->TxnBegin()) {
+        return errorN(1, "%s TxnBegin failed.", GetDisplayName());
+    }
 
     if (ExtKeyNewMaster(pwdb, idMaster, true) != 0
-        || ExtKeySetMaster(pwdb, idMaster) != 0)
-    {
+        || ExtKeySetMaster(pwdb, idMaster) != 0) {
         pwdb->TxnAbort();
-        return errorN(1, "Make or SetNewMasterKey failed.");
-    };
+        return errorN(1, "%s Make or SetNewMasterKey failed.", GetDisplayName());
+    }
 
     CExtKeyAccount *seaDefault = new CExtKeyAccount();
 
-    if (ExtKeyDeriveNewAccount(pwdb, seaDefault, "default") != 0)
-    {
+    if (ExtKeyDeriveNewAccount(pwdb, seaDefault, "default") != 0) {
         delete seaDefault;
         pwdb->TxnAbort();
-        return errorN(1, "DeriveNewExtAccount failed.");
-    };
+        return errorN(1, "%s DeriveNewExtAccount failed.", GetDisplayName());
+    }
 
     idDefaultAccount = seaDefault->GetID();
-    if (!pwdb->WriteNamedExtKeyId("defaultAccount", idDefaultAccount))
-    {
+    if (!pwdb->WriteNamedExtKeyId("defaultAccount", idDefaultAccount)) {
         pwdb->TxnAbort();
-        return errorN(1, "WriteNamedExtKeyId failed.");
-    };
+        return errorN(1, "%s WriteNamedExtKeyId failed.", GetDisplayName());
+    }
 
     CPubKey newKey;
-    if (0 != NewKeyFromAccount(pwdb, idDefaultAccount, newKey, false, false))
-    {
+    if (0 != NewKeyFromAccount(pwdb, idDefaultAccount, newKey, false, false)) {
         pwdb->TxnAbort();
-        return errorN(1, "NewKeyFromAccount failed.");
-    };
+        return errorN(1, "%s NewKeyFromAccount failed.", GetDisplayName());
+    }
 
     CEKAStealthKey aks;
     std::string strLbl = "Default Stealth Address";
-    if (0 != NewStealthKeyFromAccount(pwdb, idDefaultAccount, strLbl, aks, 0, nullptr))
-    {
+    if (0 != NewStealthKeyFromAccount(pwdb, idDefaultAccount, strLbl, aks, 0, nullptr)) {
         pwdb->TxnAbort();
-        return errorN(1, "NewStealthKeyFromAccount failed.");
-    };
+        return errorN(1, "%s NewStealthKeyFromAccount failed.", GetDisplayName());
+    }
 
-    if (!pwdb->TxnCommit())
-    {
+    if (!pwdb->TxnCommit()) {
         // TxnCommit destroys activeTxn
-        return errorN(1, "TxnCommit failed.");
-    };
+        return errorN(1, "%s TxnCommit failed.", GetDisplayName());
+    }
 
     SetAddressBook(CBitcoinAddress(newKey.GetID()).Get(), "Default Address", "receive");
 
@@ -6565,19 +6494,17 @@ int CHDWallet::ExtKeyCreateInitial(CHDWalletDB *pwdb)
 
 int CHDWallet::ExtKeyLoadMaster()
 {
-    LogPrintf("Loading master ext key %s.\n", GetName());
+    WalletLogPrintf("Loading master ext key.\n");
 
     LOCK(cs_wallet);
 
     CKeyID idMaster;
 
     CHDWalletDB wdb(*database, "r+");
-    if (!wdb.ReadNamedExtKeyId("master", idMaster))
-    {
+    if (!wdb.ReadNamedExtKeyId("master", idMaster)) {
         int nValue;
         if (!wdb.ReadFlag("madeDefaultEKey", nValue)
-            || nValue == 0)
-        {
+            || nValue == 0) {
             /*
             if (IsLocked())
             {
@@ -6591,28 +6518,27 @@ int CHDWallet::ExtKeyLoadMaster()
 
             return 0;
             */
-        };
-        LogPrintf("Warning: No master ext key has been set.\n");
+        }
+        WalletLogPrintf("Warning: No master ext key has been set.\n");
         return 1;
-    };
+    }
 
     pEKMaster = new CStoredExtKey();
-    if (!wdb.ReadExtKey(idMaster, *pEKMaster))
-    {
+    if (!wdb.ReadExtKey(idMaster, *pEKMaster)) {
         delete pEKMaster;
         pEKMaster = nullptr;
-        return errorN(1, "ReadExtKey failed to read master ext key.");
-    };
+        return errorN(1, "%s ReadExtKey failed to read master ext key.", GetDisplayName());
+    }
 
-    if (!pEKMaster->kp.IsValidP()) // wallet could be locked, check pk
-    {
+    if (!pEKMaster->kp.IsValidP()) { // wallet could be locked, check pk
         delete pEKMaster;
         pEKMaster = nullptr;
-        return errorN(1, " Loaded master ext key is invalid %s.", pEKMaster->GetIDString58().c_str());
-    };
+        return errorN(1, "%s Loaded master ext key is invalid %s.", GetDisplayName(), pEKMaster->GetIDString58());
+    }
 
-    if (pEKMaster->nFlags & EAF_IS_CRYPTED)
+    if (pEKMaster->nFlags & EAF_IS_CRYPTED) {
         pEKMaster->fLocked = 1;
+    }
 
     // Add to key map
     mapExtKeys[idMaster] = pEKMaster;
@@ -6630,58 +6556,55 @@ int CHDWallet::ExtKeyLoadMaster()
 int CHDWallet::ExtKeyLoadAccountKeys(CHDWalletDB *pwdb, CExtKeyAccount *sea)
 {
     sea->vExtKeys.resize(sea->vExtKeyIDs.size());
-    for (size_t i = 0; i < sea->vExtKeyIDs.size(); ++i)
-    {
+    for (size_t i = 0; i < sea->vExtKeyIDs.size(); ++i) {
         CKeyID &id = sea->vExtKeyIDs[i];
 
         CStoredExtKey *sek = new CStoredExtKey();
-        if (pwdb->ReadExtKey(id, *sek))
-        {
+        if (pwdb->ReadExtKey(id, *sek)) {
             sea->vExtKeys[i] = sek;
-        } else
-        {
-            LogPrintf("WARNING: Could not read key %d of account %s\n", i, sea->GetIDString58());
+        } else {
+            WalletLogPrintf("WARNING: Could not read key %d of account %s\n", i, sea->GetIDString58());
             sea->vExtKeys[i] = nullptr;
             delete sek;
-        };
-    };
+        }
+    }
     return 0;
 };
 
 int CHDWallet::ExtKeyLoadAccount(CHDWalletDB *pwdb, const CKeyID &idAccount)
 {
     CExtKeyAccount *sea = new CExtKeyAccount();
-    if (!pwdb->ReadExtAccount(idAccount, *sea))
-        return errorN(1, "%s: ReadExtAccount failed.", __func__);
+    if (!pwdb->ReadExtAccount(idAccount, *sea)) {
+        return errorN(1, "%s %s: ReadExtAccount failed.", GetDisplayName(), __func__);
+    }
 
     ExtKeyLoadAccountKeys(pwdb, sea);
 
-    if (0 != ExtKeyAddAccountToMaps(idAccount, sea, true))
-    {
+    if (0 != ExtKeyAddAccountToMaps(idAccount, sea, true)) {
         sea->FreeChains();
         delete sea;
-        return errorN(1, "%s: ExtKeyAddAccountToMaps failed: %s.", __func__, HDAccIDToString(idAccount));
-    };
+        return errorN(1, "%s %s: ExtKeyAddAccountToMaps failed: %s.", GetDisplayName(), __func__, HDAccIDToString(idAccount));
+    }
 
     return 0;
 };
 
 int CHDWallet::ExtKeyLoadAccounts()
 {
-    LogPrintf("Loading ext accounts %s.\n", GetName());
+    WalletLogPrintf("Loading ext accounts.\n");
 
     LOCK(cs_wallet);
 
     CHDWalletDB wdb(*database);
 
-    if (!wdb.ReadNamedExtKeyId("defaultAccount", idDefaultAccount))
-    {
-        LogPrintf("Warning: No default ext account set.\n");
-    };
+    if (!wdb.ReadNamedExtKeyId("defaultAccount", idDefaultAccount)) {
+        WalletLogPrintf("Warning: No default ext account set.\n");
+    }
 
     Dbc *pcursor;
-    if (!(pcursor = wdb.GetCursor()))
-        throw std::runtime_error(strprintf("%s: cannot create DB cursor", __func__).c_str());
+    if (!(pcursor = wdb.GetCursor())) {
+        return errorN(1, "%s %s: cannot create DB cursor", GetDisplayName(), __func__);
+    }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
@@ -6691,58 +6614,56 @@ int CHDWallet::ExtKeyLoadAccounts()
 
     unsigned int fFlags = DB_SET_RANGE;
     ssKey << std::string("eacc");
-    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0)
-    {
+    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "eacc")
+        if (strType != "eacc") {
             break;
+        }
 
         ssKey >> idAccount;
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-        {
-            LogPrintf("Loading account %s\n", HDAccIDToString(idAccount));
-        };
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("Loading account %s\n", HDAccIDToString(idAccount));
+        }
 
         CExtKeyAccount *sea = new CExtKeyAccount();
         ssValue >> *sea;
 
         ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idAccount);
-        if (mi != mapExtAccounts.end())
-        {
+        if (mi != mapExtAccounts.end()) {
             // Account already loaded, skip, can be caused by ExtKeyCreateInitial()
-            LogPrint(BCLog::HDWALLET, "Account already loaded.\n");
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                WalletLogPrintf("Account already loaded.\n");
+            }
             continue;
-        };
+        }
 
-        if (!(sea->nFlags & EAF_ACTIVE))
-        {
-            if (LogAcceptCategory(BCLog::HDWALLET))
-            {
-                LogPrintf("Skipping inactive %s\n", HDAccIDToString(idAccount));
-            };
+        if (!(sea->nFlags & EAF_ACTIVE)) {
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                WalletLogPrintf("Skipping inactive %s\n", HDAccIDToString(idAccount));
+            }
             delete sea;
             continue;
-        };
+        }
 
         // Find earliest key creation time, as wallet birthday
         int64_t nCreatedAt;
         GetCompressedInt64(sea->mapValue[EKVT_CREATED_AT], (uint64_t&)nCreatedAt);
 
-        if (!nTimeFirstKey || (nCreatedAt && nCreatedAt < nTimeFirstKey))
+        if (!nTimeFirstKey || (nCreatedAt && nCreatedAt < nTimeFirstKey)) {
             nTimeFirstKey = nCreatedAt;
+        }
 
         ExtKeyLoadAccountKeys(&wdb, sea);
 
-        if (0 != ExtKeyAddAccountToMaps(idAccount, sea, false))
-        {
-            LogPrintf("ExtKeyAddAccountToMaps() failed: %s\n", HDAccIDToString(idAccount));
+        if (0 != ExtKeyAddAccountToMaps(idAccount, sea, false)) {
+            WalletLogPrintf("%s: failed: %s\n", __func__, HDAccIDToString(idAccount));
             sea->FreeChains();
             delete sea;
-        };
-    };
+        }
+    }
 
     pcursor->close();
 
@@ -6755,15 +6676,16 @@ int CHDWallet::ExtKeySaveAccountToDB(CHDWalletDB *pwdb, const CKeyID &idAccount,
     AssertLockHeld(cs_wallet);
     assert(sea);
 
-    for (size_t i = 0; i < sea->vExtKeys.size(); ++i)
-    {
+    for (size_t i = 0; i < sea->vExtKeys.size(); ++i) {
         CStoredExtKey *sek = sea->vExtKeys[i];
-        if (!pwdb->WriteExtKey(sea->vExtKeyIDs[i], *sek))
-            return errorN(1, "ExtKeySaveAccountToDB(): WriteExtKey failed.");
-    };
+        if (!pwdb->WriteExtKey(sea->vExtKeyIDs[i], *sek)) {
+            return errorN(1, "%s %s: WriteExtKey failed.", GetDisplayName(), __func__);
+        }
+    }
 
-    if (!pwdb->WriteExtAccount(idAccount, *sea))
-        return errorN(1, "ExtKeySaveAccountToDB() WriteExtAccount failed.");
+    if (!pwdb->WriteExtAccount(idAccount, *sea)) {
+        return errorN(1, "%s %s() WriteExtAccount failed.", GetDisplayName(), __func__);
+    }
 
     return 0;
 };
@@ -6777,28 +6699,29 @@ int CHDWallet::ExtKeyAddAccountToMaps(const CKeyID &idAccount, CExtKeyAccount *s
     AssertLockHeld(cs_wallet);
     assert(sea);
 
-    for (size_t i = 0; i < sea->vExtKeys.size(); ++i)
-    {
+    for (size_t i = 0; i < sea->vExtKeys.size(); ++i) {
         CStoredExtKey *sek = sea->vExtKeys[i];
 
-        if (sek->nFlags & EAF_IS_CRYPTED)
+        if (sek->nFlags & EAF_IS_CRYPTED) {
             sek->fLocked = 1;
+        }
 
         if (sek->nFlags & EAF_ACTIVE
-            && sek->nFlags & EAF_RECEIVE_ON)
-        {
+            && sek->nFlags & EAF_RECEIVE_ON) {
             uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", N_DEFAULT_LOOKAHEAD);
 
             mapEKValue_t::iterator itV = sek->mapValue.find(EKVT_N_LOOKAHEAD);
-            if (itV != sek->mapValue.end())
+            if (itV != sek->mapValue.end()) {
                 nLookAhead = GetCompressedInt64(itV->second, nLookAhead);
+            }
 
-            if (fAddToLookAhead)
+            if (fAddToLookAhead) {
                 sea->AddLookAhead(i, (uint32_t)nLookAhead);
-        };
+            }
+        }
 
         mapExtKeys[sea->vExtKeyIDs[i]] = sek;
-    };
+    }
 
     mapExtAccounts[idAccount] = sea;
     return 0;
@@ -6807,13 +6730,15 @@ int CHDWallet::ExtKeyAddAccountToMaps(const CKeyID &idAccount, CExtKeyAccount *s
 int CHDWallet::ExtKeyRemoveAccountFromMapsAndFree(CExtKeyAccount *sea)
 {
     // Remove account keys from wallet maps and free
-    if (!sea)
+    if (!sea) {
         return 0;
+    }
 
     CKeyID idAccount = sea->GetID();
 
-    for (size_t i = 0; i < sea->vExtKeys.size(); ++i)
+    for (size_t i = 0; i < sea->vExtKeys.size(); ++i) {
         mapExtKeys.erase(sea->vExtKeyIDs[i]);
+    }
 
     mapExtAccounts.erase(idAccount);
     sea->FreeChains();
@@ -6824,23 +6749,25 @@ int CHDWallet::ExtKeyRemoveAccountFromMapsAndFree(CExtKeyAccount *sea)
 int CHDWallet::ExtKeyRemoveAccountFromMapsAndFree(const CKeyID &idAccount)
 {
     ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idAccount);
-    if (mi == mapExtAccounts.end())
-        return errorN(1, "%s: Account %s not found.", __func__, HDAccIDToString(idAccount));
+    if (mi == mapExtAccounts.end()) {
+        return errorN(1, "%s %s: Account %s not found.", GetDisplayName(), __func__, HDAccIDToString(idAccount));
+    }
 
     return ExtKeyRemoveAccountFromMapsAndFree(mi->second);
 };
 
 int CHDWallet::ExtKeyLoadAccountPacks()
 {
-    LogPrintf("Loading ext account packs %s.\n", GetName());
+    WalletLogPrintf("Loading ext account packs.\n");
 
     LOCK(cs_wallet);
 
     CHDWalletDB wdb(*database);
 
     Dbc *pcursor;
-    if (!(pcursor = wdb.GetCursor()))
-        throw std::runtime_error(strprintf("%s : cannot create DB cursor", __func__).c_str());
+    if (!(pcursor = wdb.GetCursor())) {
+        return errorN(1, "%s %s: cannot create DB cursor", GetDisplayName(), __func__);
+    }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
@@ -6854,119 +6781,115 @@ int CHDWallet::ExtKeyLoadAccountPacks()
 
     unsigned int fFlags = DB_SET_RANGE;
     ssKey << std::string("epak");
-    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0)
-    {
+    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         ekPak.clear();
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "epak")
+        if (strType != "epak") {
             break;
+        }
 
         ssKey >> idAccount;
         ssKey >> nPack;
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-        {
-            LogPrintf("Loading account key pack %s %u\n", HDAccIDToString(idAccount), nPack);
-        };
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("Loading account key pack %s %u\n", HDAccIDToString(idAccount), nPack);
+        }
 
         ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idAccount);
-        if (mi == mapExtAccounts.end())
-        {
-            LogPrintf("Warning: Unknown account %s.\n", HDAccIDToString(idAccount));
+        if (mi == mapExtAccounts.end()) {
+            WalletLogPrintf("Warning: Unknown account %s.\n", HDAccIDToString(idAccount));
             continue;
-        };
+        }
 
         CExtKeyAccount *sea = mi->second;
 
         ssValue >> ekPak;
 
         std::vector<CEKAKeyPack>::iterator it;
-        for (it = ekPak.begin(); it != ekPak.end(); ++it)
-        {
+        for (it = ekPak.begin(); it != ekPak.end(); ++it) {
             sea->mapKeys[it->id] = it->ak;
-        };
-    };
+        }
+    }
 
     size_t nStealthKeys = 0;
     ssKey.clear();
     ssKey << std::string("espk");
     fFlags = DB_SET_RANGE;
-    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0)
-    {
+    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         aksPak.clear();
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "espk")
+        if (strType != "espk") {
             break;
+        }
 
         ssKey >> idAccount;
         ssKey >> nPack;
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Loading account stealth key pack %s %u\n", idAccount.ToString(), nPack);
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("Loading account stealth key pack %s %u\n", idAccount.ToString(), nPack);
+        }
 
         ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idAccount);
-        if (mi == mapExtAccounts.end())
-        {
-            LogPrintf("Warning: Unknown account %s.\n", HDAccIDToString(idAccount));
+        if (mi == mapExtAccounts.end()) {
+            WalletLogPrintf("Warning: Unknown account %s.\n", HDAccIDToString(idAccount));
             continue;
-        };
+        }
 
         CExtKeyAccount *sea = mi->second;
 
         ssValue >> aksPak;
 
         std::vector<CEKAStealthKeyPack>::iterator it;
-        for (it = aksPak.begin(); it != aksPak.end(); ++it)
-        {
+        for (it = aksPak.begin(); it != aksPak.end(); ++it) {
             nStealthKeys++;
             sea->mapStealthKeys[it->id] = it->aks;
-        };
-    };
+        }
+    }
 
-    if (LogAcceptCategory(BCLog::HDWALLET))
-        LogPrintf("Loaded %d stealthkey%s.\n", nStealthKeys, nStealthKeys == 1 ? "" : "s");
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("Loaded %d stealthkey%s.\n", nStealthKeys, nStealthKeys == 1 ? "" : "s");
+    }
 
     ssKey.clear();
     ssKey << std::string("ecpk");
     fFlags = DB_SET_RANGE;
-    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0)
-    {
+    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         aksPak.clear();
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "ecpk")
+        if (strType != "ecpk") {
             break;
+        }
 
         ssKey >> idAccount;
         ssKey >> nPack;
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Loading account stealth child key pack %s %u\n", idAccount.ToString(), nPack);
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("Loading account stealth child key pack %s %u\n", idAccount.ToString(), nPack);
+        }
 
         ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idAccount);
-        if (mi == mapExtAccounts.end())
-        {
+        if (mi == mapExtAccounts.end()) {
             CBitcoinAddress addr;
             addr.Set(idAccount, CChainParams::EXT_ACC_HASH);
-            LogPrintf("Warning: Unknown account %s.\n", addr.ToString());
+            WalletLogPrintf("Warning: Unknown account %s.\n", addr.ToString());
             continue;
-        };
+        }
 
         CExtKeyAccount *sea = mi->second;
 
         ssValue >> asckPak;
 
         std::vector<CEKASCKeyPack>::iterator it;
-        for (it = asckPak.begin(); it != asckPak.end(); ++it)
-        {
+        for (it = asckPak.begin(); it != asckPak.end(); ++it) {
             sea->mapStealthChildKeys[it->id] = it->asck;
-        };
-    };
+        }
+    }
 
     pcursor->close();
 
@@ -6975,28 +6898,26 @@ int CHDWallet::ExtKeyLoadAccountPacks()
 
 int CHDWallet::PrepareLookahead()
 {
-    LogPrintf("Preparing Lookahead pools.\n");
+    WalletLogPrintf("Preparing Lookahead pools.\n");
 
     ExtKeyAccountMap::const_iterator it;
-    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it)
-    {
+    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it) {
         CExtKeyAccount *sea = it->second;
-        for (size_t i = 0; i < sea->vExtKeys.size(); ++i)
-        {
+        for (size_t i = 0; i < sea->vExtKeys.size(); ++i) {
             CStoredExtKey *sek = sea->vExtKeys[i];
 
             if (sek->nFlags & EAF_ACTIVE
-                && sek->nFlags & EAF_RECEIVE_ON)
-            {
+                && sek->nFlags & EAF_RECEIVE_ON) {
                 uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", N_DEFAULT_LOOKAHEAD);
                 mapEKValue_t::iterator itV = sek->mapValue.find(EKVT_N_LOOKAHEAD);
-                if (itV != sek->mapValue.end())
+                if (itV != sek->mapValue.end()) {
                     nLookAhead = GetCompressedInt64(itV->second, nLookAhead);
+                }
 
                 sea->AddLookAhead(i, (uint32_t)nLookAhead);
-            };
-        };
-    };
+            }
+        }
+    }
 
     return 0;
 };
@@ -7007,30 +6928,27 @@ int CHDWallet::ExtKeyAppendToPack(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
 
     CKeyID idAccount = sea->GetID();
     std::vector<CEKAKeyPack> ekPak;
-    if (!pwdb->ReadExtKeyPack(idAccount, sea->nPack, ekPak))
-    {
+    if (!pwdb->ReadExtKeyPack(idAccount, sea->nPack, ekPak)) {
         // New pack
         ekPak.clear();
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Account %s, starting new keypack %u.\n", idAccount.ToString(), sea->nPack);
-    };
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("Account %s, starting new keypack %u.\n", idAccount.ToString(), sea->nPack);
+        }
+    }
 
-    try { ekPak.push_back(CEKAKeyPack(idKey, ak)); } catch (std::exception& e)
-    {
+    try { ekPak.push_back(CEKAKeyPack(idKey, ak)); } catch (std::exception& e) {
         return errorN(1, "%s push_back failed.", __func__);
-    };
+    }
 
-    if (!pwdb->WriteExtKeyPack(idAccount, sea->nPack, ekPak))
-    {
+    if (!pwdb->WriteExtKeyPack(idAccount, sea->nPack, ekPak)) {
         return errorN(1, "%s Save key pack %u failed.", __func__, sea->nPack);
-    };
+    }
 
     fUpdateAcc = false;
-    if ((uint32_t)ekPak.size() >= MAX_KEY_PACK_SIZE-1)
-    {
+    if ((uint32_t)ekPak.size() >= MAX_KEY_PACK_SIZE-1) {
         fUpdateAcc = true;
         sea->nPack++;
-    };
+    }
     return 0;
 };
 
@@ -7040,28 +6958,27 @@ int CHDWallet::ExtKeyAppendToPack(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
 
     CKeyID idAccount = sea->GetID();
     std::vector<CEKASCKeyPack> asckPak;
-    if (!pwdb->ReadExtStealthKeyChildPack(idAccount, sea->nPackStealthKeys, asckPak))
-    {
+    if (!pwdb->ReadExtStealthKeyChildPack(idAccount, sea->nPackStealthKeys, asckPak)) {
         // New pack
         asckPak.clear();
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Account %s, starting new stealth child keypack %u.\n", idAccount.ToString(), sea->nPackStealthKeys);
-    };
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("Account %s, starting new stealth child keypack %u.\n", idAccount.ToString(), sea->nPackStealthKeys);
+        }
+    }
 
-    try { asckPak.push_back(CEKASCKeyPack(idKey, asck)); } catch (std::exception& e)
-    {
+    try { asckPak.push_back(CEKASCKeyPack(idKey, asck)); } catch (std::exception& e) {
         return errorN(1, "%s push_back failed.", __func__);
-    };
+    }
 
-    if (!pwdb->WriteExtStealthKeyChildPack(idAccount, sea->nPackStealthKeys, asckPak))
+    if (!pwdb->WriteExtStealthKeyChildPack(idAccount, sea->nPackStealthKeys, asckPak)) {
         return errorN(1, "%s Save key pack %u failed.", __func__, sea->nPackStealthKeys);
+    }
 
     fUpdateAcc = false;
-    if ((uint32_t)asckPak.size() >= MAX_KEY_PACK_SIZE-1)
-    {
+    if ((uint32_t)asckPak.size() >= MAX_KEY_PACK_SIZE-1) {
         sea->nPackStealthKeys++;
         fUpdateAcc = true;
-    };
+    }
 
     return 0;
 };
@@ -7073,67 +6990,70 @@ int CHDWallet::ExtKeySaveKey(CHDWalletDB *pwdb, CExtKeyAccount *sea, const CKeyI
 
     size_t nChain = ak.nParent;
     bool fUpdateAccTmp, fUpdateAcc = false;
-    if (gArgs.GetBoolArg("-extkeysaveancestors", true))
-    {
+    if (gArgs.GetBoolArg("-extkeysaveancestors", true)) {
         LOCK(sea->cs_account);
         AccKeyMap::const_iterator mi = sea->mapKeys.find(keyId);
-        if (mi != sea->mapKeys.end())
+        if (mi != sea->mapKeys.end()) {
             return false; // already saved
+        }
 
-        if (sea->mapLookAhead.erase(keyId) != 1)
-            LogPrintf("Warning: SaveKey %s key not found in look ahead %s.\n", sea->GetIDString58(), CBitcoinAddress(keyId).ToString());
+        if (sea->mapLookAhead.erase(keyId) != 1) {
+            WalletLogPrintf("Warning: SaveKey %s key not found in look ahead %s.\n", sea->GetIDString58(), CBitcoinAddress(keyId).ToString());
+        }
 
         sea->mapKeys[keyId] = ak;
-        if (0 != ExtKeyAppendToPack(pwdb, sea, keyId, ak, fUpdateAccTmp))
+        if (0 != ExtKeyAppendToPack(pwdb, sea, keyId, ak, fUpdateAccTmp)) {
             return errorN(1, "%s ExtKeyAppendToPack failed.", __func__);
+        }
         fUpdateAcc = fUpdateAccTmp ? true : fUpdateAcc;
 
         CStoredExtKey *pc;
         if (!IsHardened(ak.nKey)
-            && (pc = sea->GetChain(nChain)) != nullptr)
-        {
-            if (ak.nKey == pc->nGenerated)
-            {
+            && (pc = sea->GetChain(nChain)) != nullptr) {
+            if (ak.nKey == pc->nGenerated) {
                 pc->nGenerated++;
             } else
-            if (pc->nGenerated < ak.nKey)
-            {
+            if (pc->nGenerated < ak.nKey) {
                 uint32_t nOldGenerated = pc->nGenerated;
                 pc->nGenerated = ak.nKey + 1;
 
-                for (uint32_t i = nOldGenerated; i < ak.nKey; ++i)
-                {
+                for (uint32_t i = nOldGenerated; i < ak.nKey; ++i) {
                     uint32_t nChildOut = 0;
                     CPubKey pk;
-                    if (0 != pc->DeriveKey(pk, i, nChildOut, false))
-                    {
-                        LogPrintf("%s DeriveKey failed %d.\n", __func__, i);
+                    if (0 != pc->DeriveKey(pk, i, nChildOut, false)) {
+                        WalletLogPrintf("%s DeriveKey failed %d.\n", __func__, i);
                         break;
-                    };
+                    }
 
                     CKeyID idkExtra = pk.GetID();
-                    if (sea->mapLookAhead.erase(idkExtra) != 1)
-                        LogPrintf("Warning: SaveKey %s key not found in look ahead %s.\n", sea->GetIDString58(), CBitcoinAddress(idkExtra).ToString());
+                    if (sea->mapLookAhead.erase(idkExtra) != 1) {
+                        WalletLogPrintf("Warning: SaveKey %s key not found in look ahead %s.\n", sea->GetIDString58(), CBitcoinAddress(idkExtra).ToString());
+                    }
 
                     CEKAKey akExtra(nChain, nChildOut);
                     sea->mapKeys[idkExtra] = akExtra;
-                    if (0 != ExtKeyAppendToPack(pwdb, sea, idkExtra, akExtra, fUpdateAccTmp))
+                    if (0 != ExtKeyAppendToPack(pwdb, sea, idkExtra, akExtra, fUpdateAccTmp)) {
                         return errorN(1, "%s ExtKeyAppendToPack failed.", __func__);
+                    }
                     fUpdateAcc = fUpdateAccTmp ? true : fUpdateAcc;
 
                     if (pc->nFlags & EAF_ACTIVE
-                        && pc->nFlags & EAF_RECEIVE_ON)
+                        && pc->nFlags & EAF_RECEIVE_ON) {
                         sea->AddLookAhead(nChain, 1);
+                    }
 
-                    if (LogAcceptCategory(BCLog::HDWALLET))
-                        LogPrintf("Saved key %s %d, %s.\n", sea->GetIDString58(), nChain, CBitcoinAddress(idkExtra).ToString());
-                };
-            };
+                    if (LogAcceptCategory(BCLog::HDWALLET)) {
+                        WalletLogPrintf("Saved key %s %d, %s.\n", sea->GetIDString58(), nChain, CBitcoinAddress(idkExtra).ToString());
+                    }
+                }
+            }
             if (pc->nFlags & EAF_ACTIVE
-                && pc->nFlags & EAF_RECEIVE_ON)
+                && pc->nFlags & EAF_RECEIVE_ON) {
                 sea->AddLookAhead(nChain, 1);
-            if (LogAcceptCategory(BCLog::HDWALLET))
-                LogPrintf("Saved key %s %d, %s.\n", sea->GetIDString58(), nChain, CBitcoinAddress(keyId).ToString());
+            }
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                WalletLogPrintf("Saved key %s %d, %s.\n", sea->GetIDString58(), nChain, CBitcoinAddress(keyId).ToString());
+            }
         };
     } else
     {
@@ -7272,7 +7192,7 @@ int CHDWallet::ExtKeyNewIndex(CHDWalletDB *pwdb, const CKeyID &idKey, uint32_t &
     {
         CBitcoinAddress addr;
         addr.Set(idKey, CChainParams::EXT_ACC_HASH); // could be a loose key also
-        LogPrintf("%s %s.\n", __func__, addr.ToString());
+        WalletLogPrintf("%s %s.\n", __func__, addr.ToString());
         AssertLockHeld(cs_wallet);
     };
 
@@ -7345,7 +7265,7 @@ int CHDWallet::NewKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, CPu
 
     if (LogAcceptCategory(BCLog::HDWALLET))
     {
-        LogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
+        WalletLogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
         AssertLockHeld(cs_wallet);
     };
 
@@ -7420,7 +7340,7 @@ int CHDWallet::NewKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, CPu
             vPath.push_back(ks.nKey);
         } else
         {
-            LogPrintf("Warning: %s - missing path value.\n", __func__);
+            WalletLogPrintf("Warning: %s - missing path value.\n", __func__);
             vPath.clear();
         };
 
@@ -7471,7 +7391,7 @@ int CHDWallet::NewStealthKeyFromAccount(
 
     if (LogAcceptCategory(BCLog::HDWALLET))
     {
-        LogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
+        WalletLogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
         AssertLockHeld(cs_wallet);
     };
 
@@ -7541,7 +7461,7 @@ int CHDWallet::NewStealthKeyFromAccount(
         vPath.push_back(SetHardenedBit(nChild));
     } else
     {
-        LogPrintf("Warning: %s - missing path value.\n", __func__);
+        WalletLogPrintf("Warning: %s - missing path value.\n", __func__);
         vPath.clear();
     };
 
@@ -7555,7 +7475,7 @@ int CHDWallet::NewStealthKeyFromAccount(
         // New pack
         aksPak.clear();
         if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Account %s, starting new stealth keypack %u.\n", idAccount.ToString(), sea->nPackStealth);
+            WalletLogPrintf("Account %s, starting new stealth keypack %u.\n", idAccount.ToString(), sea->nPackStealth);
     };
 
     aksPak.push_back(CEKAStealthKeyPack(idKey, aks));
@@ -7706,7 +7626,7 @@ int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
         // New pack
         aksPak.clear();
         if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Account %s, starting new stealth keypack %u.\n", HDAccIDToString(idAccount), sea->nPackStealth);
+            WalletLogPrintf("Account %s, starting new stealth keypack %u.\n", HDAccIDToString(idAccount), sea->nPackStealth);
     };
 
     aksPak.push_back(CEKAStealthKeyPack(idKey, akStealth));
@@ -7734,7 +7654,7 @@ int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
         vPath.push_back(akStealth.akSpend.nKey);
     } else
     {
-        LogPrintf("Warning: %s - missing path value.\n", __func__);
+        WalletLogPrintf("Warning: %s - missing path value.\n", __func__);
         vPath.clear();
     };
 
@@ -7761,16 +7681,16 @@ int CHDWallet::NewStealthKeyV2FromAccount(
 {
     // Scan secrets must be stored uncrypted - always derive hardened keys
 
-    if (LogAcceptCategory(BCLog::HDWALLET))
-    {
-        LogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
         AssertLockHeld(cs_wallet);
-    };
+    }
 
     assert(pwdb);
 
-    if (IsLocked())
+    if (IsLocked()) {
         return errorN(1, "%s Wallet must be unlocked to derive hardened keys.", __func__);
+    }
 
     ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idAccount);
     if (mi == mapExtAccounts.end())
@@ -7780,54 +7700,54 @@ int CHDWallet::NewStealthKeyV2FromAccount(
     uint64_t nScanChain, nSpendChain;
     CStoredExtKey *sekScan = nullptr, *sekSpend = nullptr;
     mapEKValue_t::iterator mvi = sea->mapValue.find(EKVT_STEALTH_SCAN_CHAIN);
-    if (mvi == sea->mapValue.end())
-    {
-        if (0 != InitAccountStealthV2Chains(pwdb, sea))
+    if (mvi == sea->mapValue.end()) {
+        if (0 != InitAccountStealthV2Chains(pwdb, sea)) {
             return errorN(1, "%s InitAccountStealthV2Chains failed.", __func__);
+        }
         mvi = sea->mapValue.find(EKVT_STEALTH_SCAN_CHAIN);
-    };
-    if (mvi != sea->mapValue.end())
-    {
+    }
+    if (mvi != sea->mapValue.end()) {
         GetCompressedInt64(mvi->second, nScanChain);
         sekScan = sea->GetChain(nScanChain);
-    };
+    }
 
-    if (!sekScan)
+    if (!sekScan) {
         return errorN(1, "%s Unknown stealth scan chain.", __func__);
+    }
 
     mvi = sea->mapValue.find(EKVT_STEALTH_SPEND_CHAIN);
-    if (mvi != sea->mapValue.end())
-    {
+    if (mvi != sea->mapValue.end()) {
         GetCompressedInt64(mvi->second, nSpendChain);
         sekSpend = sea->GetChain(nSpendChain);
-    };
-    if (!sekSpend)
+    }
+    if (!sekSpend) {
         return errorN(1, "%s Unknown stealth spend chain.", __func__);
+    }
 
 
     CPubKey pkSpend;
     uint32_t nSpendGenerated;
-    if (0 != sekSpend->DeriveNextKey(pkSpend, nSpendGenerated, true))
+    if (0 != sekSpend->DeriveNextKey(pkSpend, nSpendGenerated, true)) {
         return errorN(1, "DeriveNextKey failed.");
+    }
 
     CKey kScan;
     uint32_t nScanOut;
-    if (0 != sekScan->DeriveNextKey(kScan, nScanOut, true))
+    if (0 != sekScan->DeriveNextKey(kScan, nScanOut, true)) {
         return errorN(1, "DeriveNextKey failed.");
+    }
 
     uint32_t nPrefix = 0;
-    if (pPrefix)
-    {
+    if (pPrefix) {
         if (!ExtractStealthPrefix(pPrefix, nPrefix))
             return errorN(1, "ExtractStealthPrefix failed.");
     } else
-    if (nPrefixBits > 0)
-    {
+    if (nPrefixBits > 0) {
         // If pPrefix is null, set nPrefix from the hash of kScan
         uint8_t tmp32[32];
         CSHA256().Write(kScan.begin(), 32).Finalize(tmp32);
         memcpy(&nPrefix, tmp32, 4);
-    };
+    }
 
 
     uint32_t nMask = SetStealthMask(nPrefixBits);
@@ -7835,8 +7755,9 @@ int CHDWallet::NewStealthKeyV2FromAccount(
     akStealthOut = CEKAStealthKey(nScanChain, nScanOut, kScan, nSpendChain, WithHardenedBit(nSpendGenerated), pkSpend, nPrefixBits, nPrefix);
     akStealthOut.sLabel = sLabel;
 
-    if (0 != SaveStealthAddress(pwdb, sea, akStealthOut, fBech32))
+    if (0 != SaveStealthAddress(pwdb, sea, akStealthOut, fBech32)) {
         return errorN(1, "SaveStealthAddress failed.");
+    }
 
     return 0;
 };
@@ -7876,7 +7797,7 @@ int CHDWallet::NewExtKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount,
 {
     if (LogAcceptCategory(BCLog::HDWALLET))
     {
-        LogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
+        WalletLogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
         AssertLockHeld(cs_wallet);
     };
 
@@ -8010,7 +7931,7 @@ int CHDWallet::ExtKeyGetDestination(const CExtKeyPair &ek, CPubKey &pkDest, uint
     {
         CExtKey58 ek58;
         ek58.SetKeyP(ek);
-        LogPrintf("%s: %s.\n", __func__, ek58.ToString());
+        WalletLogPrintf("%s: %s.\n", __func__, ek58.ToString());
         AssertLockHeld(cs_wallet);
     };
 
@@ -8050,7 +7971,7 @@ int CHDWallet::ExtKeyUpdateLooseKey(const CExtKeyPair &ek, uint32_t nKey, bool f
     {
         CExtKey58 ek58;
         ek58.SetKeyP(ek);
-        LogPrintf("%s %s, nKey %d.\n", __func__, ek58.ToString(), nKey);
+        WalletLogPrintf("%s %s, nKey %d.\n", __func__, ek58.ToString(), nKey);
         AssertLockHeld(cs_wallet);
     };
 
@@ -8084,50 +8005,53 @@ int CHDWallet::ExtKeyUpdateLooseKey(const CExtKeyPair &ek, uint32_t nKey, bool f
 bool CHDWallet::GetFullChainPath(const CExtKeyAccount *pa, size_t nChain, std::vector<uint32_t> &vPath) const
 {
     vPath.clear();
-    if (!pa->idMaster.IsNull())
-    {
+    if (!pa->idMaster.IsNull()) {
         ExtKeyMap::const_iterator it = mapExtKeys.find(pa->idMaster);
-        if (it == mapExtKeys.end())
-        {
+        if (it == mapExtKeys.end()) {
             CBitcoinAddress addr;
             addr.Set(pa->idMaster, CChainParams::EXT_KEY_HASH);
             return error("%s: Unknown master key %s.", __func__, addr.ToString());
-        };
+        }
         const CStoredExtKey *pSek = it->second;
-        if (0 != AppendPath(pSek, vPath))
+        if (0 != AppendPath(pSek, vPath)) {
             return error("%s: AppendPath failed.", __func__);
-    } else
-    {
+        }
+    } else {
         // This account has a path relative to the root, key0 is the account key
         const CStoredExtKey *sek = pa->GetChain(0);
-        if (sek && 0 != AppendPath(sek, vPath))
+        if (sek && 0 != AppendPath(sek, vPath)) {
             return error("%s: AppendPath failed.", __func__);
+        }
         vPath.pop_back();
-    };
+    }
 
     const CStoredExtKey *sekChain = pa->GetChain(nChain);
-    if (!sekChain)
+    if (!sekChain) {
         return error("%s: Unknown chain %d.", __func__, nChain);
+    }
 
-    if (0 != AppendPath(sekChain, vPath))
+    if (0 != AppendPath(sekChain, vPath)) {
         return error("%s: AppendPath failed.", __func__);
+    }
     return true;
 };
 
 int CHDWallet::ScanChainFromHeight(int nHeight)
 {
-    LogPrintf("%s: %d\n", __func__, nHeight);
+    WalletLogPrintf("%s: %d\n", __func__, nHeight);
 
     CBlockIndex *pnext, *pindex = chainActive.Genesis();
 
-    if (pindex == nullptr)
+    if (pindex == nullptr) {
         return errorN(1, "%s: Genesis Block is not set.", __func__);
+    }
 
     while (pindex && pindex->nHeight < nHeight
-        && (pnext = chainActive.Next(pindex)))
+        && (pnext = chainActive.Next(pindex))) {
         pindex = pnext;
+    }
 
-    LogPrintf("%s: Starting from height %d.\n", __func__, pindex->nHeight);
+    WalletLogPrintf("%s: Starting from height %d.\n", __func__, pindex->nHeight);
 
     {
         LOCK2(cs_main, cs_wallet);
@@ -8135,8 +8059,9 @@ int CHDWallet::ScanChainFromHeight(int nHeight)
         MarkDirty();
 
         WalletRescanReserver reserver(this);
-        if (!reserver.reserve())
+        if (!reserver.reserve()) {
             return errorN(1, "%s: Failed to reserve the wallet for scanning.", __func__);
+        }
         ScanForWalletTransactions(pindex, nullptr, reserver, true);
         ReacceptWalletTransactions();
     } // cs_main, cs_wallet
@@ -8281,14 +8206,14 @@ bool CHDWallet::SignTransaction(CMutableTransaction &tx)
 bool CHDWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CReserveKey& reservekey, CAmount& nFeeRet,
                                 int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
 {
-    LogPrintf("CHDWallet %s\n", __func__);
+    WalletLogPrintf("CHDWallet %s\n", __func__);
 
-    if (!fParticlWallet)
+    if (!fParticlWallet) {
         return CWallet::CreateTransaction(vecSend, tx, reservekey, nFeeRet, nChangePosInOut, strFailReason, coin_control, sign);
+    }
 
     std::vector<CTempRecipient> vecSendB;
-    for (const auto &rec : vecSend)
-    {
+    for (const auto &rec : vecSend) {
         CTempRecipient tr;
 
         tr.nType = OUTPUT_STANDARD;
@@ -8301,7 +8226,7 @@ bool CHDWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTrans
         //tr.sNarration = rec.sNarr;
 
         vecSendB.emplace_back(tr);
-    };
+    }
 
     return CreateTransaction(vecSendB, tx, reservekey, nFeeRet, nChangePosInOut, strFailReason, coin_control, sign);
 };
@@ -8309,7 +8234,7 @@ bool CHDWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTrans
 bool CHDWallet::CreateTransaction(std::vector<CTempRecipient>& vecSend, CTransactionRef& tx, CReserveKey& reservekey, CAmount& nFeeRet,
                                 int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
 {
-    LogPrintf("CHDWallet %s\n", __func__);
+    WalletLogPrintf("CHDWallet %s\n", __func__);
 
     CTransactionRecord rtxTemp;
     CWalletTx wtxNew(this, tx);
@@ -8353,7 +8278,7 @@ bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::
         wtxNew.fTimeReceivedIsTxTime = true;
         wtxNew.fFromMe = true;
 
-        LogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
+        WalletLogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
         {
             // Take key pair from key pool so it won't be used again
             reservekey.KeepKey();
@@ -8405,7 +8330,7 @@ bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx,
     {
         LOCK2(cs_main, cs_wallet);
 
-        LogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
+        WalletLogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
 
         AddToRecord(rtx, *wtxNew.tx, nullptr, -1);
 
@@ -8515,7 +8440,7 @@ int CHDWallet::LoadStealthAddresses()
 
         ssValue >> sx;
         if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Loading stealth address %s\n", sx.Encoded());
+            WalletLogPrintf("Loading stealth address %s\n", sx.Encoded());
 
         stealthAddresses.insert(sx);
     };
@@ -8536,7 +8461,7 @@ bool CHDWallet::IndexStealthKey(CHDWalletDB *pwdb, uint160 &hash, const CStealth
 
     if (!pwdb->ReadFlag("sxLastI", (int32_t&)id))
     {
-        LogPrint(BCLog::HDWALLET, "Warning: %s - ReadFlag ekLastI failed.\n", __func__);
+        LogPrint(BCLog::HDWALLET, "Warning: %s - ReadFlag sxLastI failed.\n", __func__);
     };
 
     id++;
@@ -8545,7 +8470,7 @@ bool CHDWallet::IndexStealthKey(CHDWalletDB *pwdb, uint160 &hash, const CStealth
         return error("%s: Wallet stealth index is full!", __func__); // expect multiple wallets per node before anyone hits this
 
     if (LogAcceptCategory(BCLog::HDWALLET))
-        LogPrintf("%s: New index %u.\n", __func__, id);
+        WalletLogPrintf("%s: New index %u.\n", __func__, id);
 
     if (!pwdb->WriteStealthAddressIndex(id, sxi)
         || !pwdb->WriteStealthAddressIndexReverse(hash, id)
@@ -8579,15 +8504,15 @@ bool CHDWallet::UpdateStealthAddressIndex(const CKeyID &idK, const CStealthAddre
     if (wdb.ReadStealthAddressIndexReverse(hash, id))
     {
         if (!wdb.WriteStealthAddressLink(idK, id))
-            return error("%s: WriteStealthAddressLink failed.\n", __func__);
+            return error("%s %s: WriteStealthAddressLink failed.\n", GetDisplayName(), __func__);
         return true;
     };
 
     if (!IndexStealthKey(&wdb, hash, sxi, id))
-        return error("%s: IndexStealthKey failed.\n", __func__);
+        return error("%s %s: IndexStealthKey failed.\n", GetDisplayName(), __func__);
 
     if (!wdb.WriteStealthAddressLink(idK, id))
-        return error("%s: Write failed.\n", __func__);
+        return error("%s %s: Write failed.\n", GetDisplayName(), __func__);
 
     return true;
 };
@@ -8605,10 +8530,10 @@ bool CHDWallet::GetStealthByIndex(uint32_t sxId, CStealthAddress &sx) const
         return false;
 
     if (sxi.addrRaw.size() < MIN_STEALTH_RAW_SIZE)
-        return error("%s: Incorrect size for stealthId: %u", __func__, sxId);
+        return error("%s %s: Incorrect size for stealthId: %u", GetDisplayName(), __func__, sxId);
 
     if (0 != sx.FromRaw(&sxi.addrRaw[0], sxi.addrRaw.size()))
-        return error("%s: FromRaw failed for stealthId: %u", __func__, sxId);
+        return error("%s %s: FromRaw failed for stealthId: %u", GetDisplayName(), __func__, sxId);
 
     return true;
 };
@@ -8628,10 +8553,10 @@ bool CHDWallet::GetStealthLinked(const CKeyID &idK, CStealthAddress &sx)
         return false;
 
     if (sxi.addrRaw.size() < MIN_STEALTH_RAW_SIZE)
-        return error("%s: Incorrect size for stealthId: %u", __func__, sxId);
+        return error("%s %s: Incorrect size for stealthId: %u", GetDisplayName(), __func__, sxId);
 
     if (0 != sx.FromRaw(&sxi.addrRaw[0], sxi.addrRaw.size()))
-        return error("%s: FromRaw failed for stealthId: %u", __func__, sxId);
+        return error("%s %s: FromRaw failed for stealthId: %u", GetDisplayName(), __func__, sxId);
 
     return true;
 };
@@ -8644,11 +8569,11 @@ bool CHDWallet::ProcessLockedStealthOutputs()
     CHDWalletDB wdb(*database);
 
     if (!wdb.TxnBegin())
-        return error("%s: TxnBegin failed.", __func__);
+        return error("%s %s: TxnBegin failed.", GetDisplayName(), __func__);
 
     Dbc *pcursor;
     if (!(pcursor = wdb.GetTxnCursor()))
-        return error("%s: Cannot create DB cursor.", __func__);
+        return error("%s %s: Cannot create DB cursor.", GetDisplayName(), __func__);
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
@@ -8663,103 +8588,96 @@ bool CHDWallet::ProcessLockedStealthOutputs()
     size_t nExpanded = 0;
     unsigned int fFlags = DB_SET_RANGE;
     ssKey << std::string("sxkm");
-    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0)
-    {
+    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
         ssKey >> strType;
-        if (strType != "sxkm")
+        if (strType != "sxkm") {
             break;
+        }
 
         nProcessed++;
 
         ssKey >> idk;
         ssValue >> sxKeyMeta;
 
-        if (!GetPubKey(idk, pk))
-        {
-            LogPrintf("%s Error: GetPubKey failed %s.\n", __func__, CBitcoinAddress(idk).ToString());
+        if (!GetPubKey(idk, pk)) {
+            WalletLogPrintf("%s Error: GetPubKey failed %s.\n", __func__, CBitcoinAddress(idk).ToString());
             continue;
-        };
+        }
 
         CStealthAddress sxFind;
         sxFind.SetScanPubKey(sxKeyMeta.pkScan);
 
         std::set<CStealthAddress>::iterator si = stealthAddresses.find(sxFind);
-        if (si == stealthAddresses.end())
-        {
-            LogPrintf("%s Error: No stealth key found to add secret for %s.\n", __func__, CBitcoinAddress(idk).ToString());
+        if (si == stealthAddresses.end()) {
+            WalletLogPrintf("%s Error: No stealth key found to add secret for %s.\n", __func__, CBitcoinAddress(idk).ToString());
             continue;
-        };
+        }
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Expanding secret for %s\n", CBitcoinAddress(idk).ToString());
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("Expanding secret for %s\n", CBitcoinAddress(idk).ToString());
+        }
 
         CKey sSpendR, sSpend;
 
-        if (!GetKey(si->spend_secret_id, sSpend))
-        {
-            LogPrintf("%s Error: Stealth address has no spend_secret_id key for %s\n", __func__, CBitcoinAddress(idk).ToString());
+        if (!GetKey(si->spend_secret_id, sSpend)) {
+            WalletLogPrintf("%s Error: Stealth address has no spend_secret_id key for %s\n", __func__, CBitcoinAddress(idk).ToString());
             continue;
-        };
+        }
 
-        if (si->scan_secret.size() != EC_SECRET_SIZE)
-        {
-            LogPrintf("%s Error: Stealth address has no scan_secret key for %s\n", __func__, CBitcoinAddress(idk).ToString());
+        if (si->scan_secret.size() != EC_SECRET_SIZE) {
+            WalletLogPrintf("%s Error: Stealth address has no scan_secret key for %s\n", __func__, CBitcoinAddress(idk).ToString());
             continue;
-        };
+        }
 
-        if (sxKeyMeta.pkEphem.size() != EC_COMPRESSED_SIZE)
-        {
-            LogPrintf("%s Error: Incorrect Ephemeral point size (%d) for %s\n", __func__, sxKeyMeta.pkEphem.size(), CBitcoinAddress(idk).ToString());
+        if (sxKeyMeta.pkEphem.size() != EC_COMPRESSED_SIZE) {
+            WalletLogPrintf("%s Error: Incorrect Ephemeral point size (%d) for %s\n", __func__, sxKeyMeta.pkEphem.size(), CBitcoinAddress(idk).ToString());
             continue;
-        };
+        }
 
         ec_point pkEphem;;
         pkEphem.resize(EC_COMPRESSED_SIZE);
         memcpy(&pkEphem[0], sxKeyMeta.pkEphem.begin(), sxKeyMeta.pkEphem.size());
 
-        if (StealthSecretSpend(si->scan_secret, pkEphem, sSpend, sSpendR) != 0)
-        {
-            LogPrintf("%s Error: StealthSecretSpend() failed for %s\n", __func__, CBitcoinAddress(idk).ToString());
+        if (StealthSecretSpend(si->scan_secret, pkEphem, sSpend, sSpendR) != 0) {
+            WalletLogPrintf("%s Error: StealthSecretSpend() failed for %s\n", __func__, CBitcoinAddress(idk).ToString());
             continue;
-        };
+        }
 
-        if (!sSpendR.IsValid())
-        {
-            LogPrintf("%s Error: Reconstructed key is invalid for %s\n", __func__, CBitcoinAddress(idk).ToString());
+        if (!sSpendR.IsValid()) {
+            WalletLogPrintf("%s Error: Reconstructed key is invalid for %s\n", __func__, CBitcoinAddress(idk).ToString());
             continue;
-        };
+        }
 
         CPubKey cpkT = sSpendR.GetPubKey();
-        if (cpkT != pk)
-        {
-            LogPrintf("%s: Error: Generated secret does not match.\n", __func__);
-            if (LogAcceptCategory(BCLog::HDWALLET))
-            {
+        if (cpkT != pk) {
+            WalletLogPrintf("%s: Error: Generated secret does not match.\n", __func__);
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
                 LogPrintf("cpkT   %s\n", HexStr(cpkT));
                 LogPrintf("pubKey %s\n", HexStr(pk));
-            };
+            }
             continue;
-        };
+        }
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("%s: Adding secret to key %s.\n", __func__, CBitcoinAddress(idk).ToString());
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("%s: Adding secret to key %s.\n", __func__, CBitcoinAddress(idk).ToString());
+        }
 
 
         encrypted_batch = &wdb; // HACK: use wdb in CWallet::AddCryptedKey
-        if (!AddKeyPubKey(sSpendR, pk))
-        {
-            LogPrintf("%s: Error: AddKeyPubKey failed.\n", __func__);
+        if (!AddKeyPubKey(sSpendR, pk)) {
+            WalletLogPrintf("%s: Error: AddKeyPubKey failed.\n", __func__);
             encrypted_batch = nullptr;
             continue;
-        };
+        }
         encrypted_batch = nullptr;
 
         nExpanded++;
 
         int rv = pcursor->del(0);
-        if (rv != 0)
-            LogPrintf("%s: Error: EraseStealthKeyMeta failed for %s, %d\n", __func__, CBitcoinAddress(idk).ToString(), rv);
+        if (rv != 0) {
+            WalletLogPrintf("%s: Error: EraseStealthKeyMeta failed for %s, %d\n", __func__, CBitcoinAddress(idk).ToString(), rv);
+        }
     };
 
     pcursor->close();
@@ -8811,7 +8729,7 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
 
         int rv = pcursor->del(0);
         if (rv != 0)
-            LogPrintf("%s: Error: pcursor->del failed for %s, %d.\n", __func__, op.ToString(), rv);
+            WalletLogPrintf("%s: Error: pcursor->del failed for %s, %d.\n", __func__, op.ToString(), rv);
 
         MapRecords_t::iterator mir;
 
@@ -8819,14 +8737,14 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
         if (mir == mapRecords.end()
             || !wdb.ReadStoredTx(op.hash, stx))
         {
-            LogPrintf("%s: Error: mapRecord not found for %s.\n", __func__, op.ToString());
+            WalletLogPrintf("%s: Error: mapRecord not found for %s.\n", __func__, op.ToString());
             continue;
         };
         CTransactionRecord &rtx = mir->second;
 
         if (stx.tx->vpout.size() < op.n)
         {
-            LogPrintf("%s: Error: Outpoint doesn't exist %s.\n", __func__, op.ToString());
+            WalletLogPrintf("%s: Error: Outpoint doesn't exist %s.\n", __func__, op.ToString());
             continue;
         };
 
@@ -8866,24 +8784,23 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
                 };
                 break;
             default:
-                LogPrintf("%s: Error: Output is unexpected type %d %s.\n", __func__, txout->nVersion, op.ToString());
+                WalletLogPrintf("%s: Error: Output is unexpected type %d %s.\n", __func__, txout->nVersion, op.ToString());
                 continue;
         };
 
-        if (fUpdated)
-        {
+        if (fUpdated) {
             // If txn has change, it must have been sent by this wallet
-            if (rtx.HaveChange())
-            {
+            if (rtx.HaveChange()) {
                 ProcessPlaceholder(&wdb, *stx.tx.get(), rtx);
-            };
+            }
 
             if (!wdb.WriteTxRecord(op.hash, rtx)
-                || !wdb.WriteStoredTx(op.hash, stx))
+                || !wdb.WriteStoredTx(op.hash, stx)) {
                 return false;
+            }
 
             setChanged.insert(op.hash);
-        };
+        }
 
         nExpanded++;
     };
@@ -8893,10 +8810,9 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
     wdb.TxnCommit();
     }
     // Notify UI of updated transaction
-    for (const auto &hash : setChanged)
-    {
+    for (const auto &hash : setChanged) {
         NotifyTransactionChanged(this, hash, CT_REPLACE);
-    };
+    }
 
 
     LogPrint(BCLog::HDWALLET, "%s: Expanded %u/%u output%s.\n", __func__, nExpanded, nProcessed, nProcessed == 1 ? "" : "s");
@@ -8910,26 +8826,28 @@ bool CHDWallet::CountRecords(std::string sPrefix, int64_t rv)
     LOCK(cs_wallet);
     CHDWalletDB wdb(*database);
 
-    if (!wdb.TxnBegin())
+    if (!wdb.TxnBegin()) {
         return error("%s: TxnBegin failed.", __func__);
+    }
 
     Dbc *pcursor;
-    if (!(pcursor = wdb.GetTxnCursor()))
+    if (!(pcursor = wdb.GetTxnCursor())) {
         return error("%s: Cannot create DB cursor.", __func__);
+    }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     ssKey << sPrefix;
     std::string strType;
     unsigned int fFlags = DB_SET_RANGE;
-    while (wdb.ReadKeyAtCursor(pcursor, ssKey, fFlags) == 0)
-    {
+    while (wdb.ReadKeyAtCursor(pcursor, ssKey, fFlags) == 0) {
         fFlags = DB_NEXT;
         ssKey >> strType;
-        if (strType != sPrefix)
+        if (strType != sPrefix) {
             break;
+        }
 
         rv++;
-    };
+    }
 
     pcursor->close();
 
@@ -8940,10 +8858,12 @@ bool CHDWallet::CountRecords(std::string sPrefix, int64_t rv)
 
 inline bool MatchPrefix(uint32_t nAddrBits, uint32_t addrPrefix, uint32_t outputPrefix, bool fHavePrefix)
 {
-    if (nAddrBits < 1) // addresses without prefixes scan all incoming stealth outputs
+    if (nAddrBits < 1) { // addresses without prefixes scan all incoming stealth outputs
         return true;
-    if (!fHavePrefix) // don't check when address has a prefix and no prefix on output
+    }
+    if (!fHavePrefix) { // don't check when address has a prefix and no prefix on output
         return false;
+    }
 
     uint32_t mask = SetStealthMask(nAddrBits);
 
@@ -8958,57 +8878,59 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
     CKey sSpend;
 
     CKeyID ckidMatch = boost::get<CKeyID>(address);
-    if (HaveKey(ckidMatch))
-    {
+    if (HaveKey(ckidMatch)) {
         CStealthAddress sx;
         if (fNeedShared
             && GetStealthLinked(ckidMatch, sx)
-            && GetStealthAddressScanKey(sx))
-        {
-            if (StealthShared(sx.scan_secret, vchEphemPK, sShared) != 0)
-            {
-                LogPrintf("%s: StealthShared failed.\n", __func__);
+            && GetStealthAddressScanKey(sx)) {
+            if (StealthShared(sx.scan_secret, vchEphemPK, sShared) != 0) {
+                WalletLogPrintf("%s: StealthShared failed.\n", __func__);
                 //continue;
-            };
-        };
+            }
+        }
         return true;
-    };
+    }
 
     std::set<CStealthAddress>::iterator it;
-    for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it)
-    {
-        if (!MatchPrefix(it->prefix.number_bits, it->prefix.bitfield, prefix, fHavePrefix))
+    for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it) {
+        if (!MatchPrefix(it->prefix.number_bits, it->prefix.bitfield, prefix, fHavePrefix)) {
             continue;
+        }
 
-        if (!it->scan_secret.IsValid())
+        if (!it->scan_secret.IsValid()) {
             continue; // stealth address is not owned
+        }
 
-        if (StealthSecret(it->scan_secret, vchEphemPK, it->spend_pubkey, sShared, pkExtracted) != 0)
-        {
-            LogPrintf("%s: StealthSecret failed.\n", __func__);
+        if (StealthSecret(it->scan_secret, vchEphemPK, it->spend_pubkey, sShared, pkExtracted) != 0) {
+            WalletLogPrintf("%s: StealthSecret failed.\n", __func__);
             continue;
-        };
+        }
 
         CPubKey pkE(pkExtracted);
-        if (!pkE.IsValid())
+        if (!pkE.IsValid()) {
             continue;
+        }
 
         CKeyID idExtracted = pkE.GetID();
-        if (ckidMatch != idExtracted)
+        if (ckidMatch != idExtracted) {
             continue;
+        }
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("Found stealth txn to address %s\n", it->Encoded());
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("Found stealth txn to address %s\n", it->Encoded());
+        }
 
         CStealthAddressIndexed sxi;
         it->ToRaw(sxi.addrRaw);
         uint32_t sxId;
-        if (!UpdateStealthAddressIndex(ckidMatch, sxi, sxId))
+        if (!UpdateStealthAddressIndex(ckidMatch, sxi, sxId)) {
             return error("%s: UpdateStealthAddressIndex failed.\n", __func__);
+        }
 
-        if (IsLocked())
-        {
-            LogPrint(BCLog::HDWALLET, "Wallet locked, adding key without secret.\n");
+        if (IsLocked()) {
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                WalletLogPrintf("Wallet locked, adding key without secret.\n");
+            }
 
             // Add key without secret
             std::vector<uint8_t> vchEmpty;
@@ -9019,50 +8941,47 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
             CPubKey cpkScan(it->scan_pubkey);
             CStealthKeyMetadata lockedSkMeta(cpkEphem, cpkScan);
 
-            if (!CHDWalletDB(*database).WriteStealthKeyMeta(idExtracted, lockedSkMeta))
-                LogPrintf("WriteStealthKeyMeta failed for %s.\n", coinAddress.ToString());
+            if (!CHDWalletDB(*database).WriteStealthKeyMeta(idExtracted, lockedSkMeta)) {
+                WalletLogPrintf("WriteStealthKeyMeta failed for %s.\n", coinAddress.ToString());
+            }
 
             nFoundStealth++;
             return true;
-        };
+        }
 
-        if (!GetKey(it->spend_secret_id, sSpend))
-        {
+        if (!GetKey(it->spend_secret_id, sSpend)) {
             // silently fail?
             if (LogAcceptCategory(BCLog::HDWALLET))
-                LogPrintf("GetKey() stealth spend failed.\n");
+                WalletLogPrintf("GetKey() stealth spend failed.\n");
             continue;
-        };
+        }
 
         CKey sSpendR;
-        if (StealthSharedToSecretSpend(sShared, sSpend, sSpendR) != 0)
-        {
-            LogPrintf("%s: StealthSharedToSecretSpend() failed.\n", __func__);
+        if (StealthSharedToSecretSpend(sShared, sSpend, sSpendR) != 0) {
+            WalletLogPrintf("%s: StealthSharedToSecretSpend() failed.\n", __func__);
             continue;
-        };
+        }
 
         CPubKey pkT = sSpendR.GetPubKey();
-        if (!pkT.IsValid())
-        {
-            LogPrintf("%s: pkT is invalid.\n", __func__);
+        if (!pkT.IsValid()) {
+            WalletLogPrintf("%s: pkT is invalid.\n", __func__);
             continue;
-        };
+        }
 
         CKeyID keyID = pkT.GetID();
-        if (keyID != ckidMatch)
-        {
-            LogPrintf("%s: Spend key mismatch!\n", __func__);
+        if (keyID != ckidMatch) {
+            WalletLogPrintf("%s: Spend key mismatch!\n", __func__);
             continue;
-        };
+        }
 
-        if (LogAcceptCategory(BCLog::HDWALLET))
-            LogPrintf("%s: Adding key %s.\n", __func__, CBitcoinAddress(keyID).ToString());
+        if (LogAcceptCategory(BCLog::HDWALLET)) {
+            WalletLogPrintf("%s: Adding key %s.\n", __func__, CBitcoinAddress(keyID).ToString());
+        }
 
-        if (!AddKeyPubKey(sSpendR, pkT))
-        {
-            LogPrintf("%s: AddKeyPubKey failed.\n", __func__);
+        if (!AddKeyPubKey(sSpendR, pkT)) {
+            WalletLogPrintf("%s: AddKeyPubKey failed.\n", __func__);
             continue;
-        };
+        }
 
         nFoundStealth++;
         return true;
@@ -9070,77 +8989,74 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
 
     // ext account stealth keys
     ExtKeyAccountMap::const_iterator mi;
-    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi)
-    {
+    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi) {
         CExtKeyAccount *ea = mi->second;
 
-        for (AccStealthKeyMap::iterator it = ea->mapStealthKeys.begin(); it != ea->mapStealthKeys.end(); ++it)
-        {
+        for (AccStealthKeyMap::iterator it = ea->mapStealthKeys.begin(); it != ea->mapStealthKeys.end(); ++it) {
             const CEKAStealthKey &aks = it->second;
 
-            if (!MatchPrefix(aks.nPrefixBits, aks.nPrefix, prefix, fHavePrefix))
+            if (!MatchPrefix(aks.nPrefixBits, aks.nPrefix, prefix, fHavePrefix)) {
                 continue;
+            }
 
-            if (!aks.skScan.IsValid())
+            if (!aks.skScan.IsValid()) {
                 continue;
+            }
 
-            if (StealthSecret(aks.skScan, vchEphemPK, aks.pkSpend, sShared, pkExtracted) != 0)
-            {
-                LogPrintf("%s: StealthSecret failed.\n", __func__);
+            if (StealthSecret(aks.skScan, vchEphemPK, aks.pkSpend, sShared, pkExtracted) != 0) {
+                WalletLogPrintf("%s: StealthSecret failed.\n", __func__);
                 continue;
-            };
+            }
 
             CPubKey pkE(pkExtracted);
-            if (!pkE.IsValid())
+            if (!pkE.IsValid()) {
                 continue;
+            }
 
             CKeyID idExtracted = pkE.GetID();
-            if (ckidMatch != idExtracted)
+            if (ckidMatch != idExtracted) {
                 continue;
+            }
 
-            if (LogAcceptCategory(BCLog::HDWALLET))
-            {
-                LogPrintf("Found stealth txn to address %s\n", aks.ToStealthAddress());
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                WalletLogPrintf("Found stealth txn to address %s\n", aks.ToStealthAddress());
 
                 // Check key if not locked
-                if (!IsLocked() && !(ea->nFlags & EAF_HARDWARE_DEVICE))
-                {
+                if (!IsLocked() && !(ea->nFlags & EAF_HARDWARE_DEVICE)) {
                     CKey kTest;
-                    if (0 != ea->ExpandStealthChildKey(&aks, sShared, kTest))
-                    {
-                        LogPrintf("%s: Error: ExpandStealthChildKey failed! %s.\n", __func__, aks.ToStealthAddress());
+                    if (0 != ea->ExpandStealthChildKey(&aks, sShared, kTest)) {
+                        WalletLogPrintf("%s: Error: ExpandStealthChildKey failed! %s.\n", __func__, aks.ToStealthAddress());
                         continue;
-                    };
+                    }
 
                     CKeyID kTestId = kTest.GetPubKey().GetID();
-                    if (kTestId != ckidMatch)
-                    {
-                        LogPrintf("%s: Error: Spend key mismatch!\n", __func__);
+                    if (kTestId != ckidMatch) {
+                        WalletLogPrintf("%s: Error: Spend key mismatch!\n", __func__);
                         continue;
-                    };
+                    }
                     CBitcoinAddress coinAddress(kTestId);
-                    LogPrintf("Debug: ExpandStealthChildKey matches! %s, %s.\n", aks.ToStealthAddress(), coinAddress.ToString());
-                };
-            };
+                    WalletLogPrintf("Debug: ExpandStealthChildKey matches! %s, %s.\n", aks.ToStealthAddress(), coinAddress.ToString());
+                }
+            }
 
             // Don't need to extract key now, wallet may be locked
             CKeyID idStealthKey = aks.GetID();
             CEKASCKey kNew(idStealthKey, sShared);
-            if (0 != ExtKeySaveKey(ea, ckidMatch, kNew))
-            {
-                LogPrintf("%s: Error: ExtKeySaveKey failed!\n", __func__);
+            if (0 != ExtKeySaveKey(ea, ckidMatch, kNew)) {
+                WalletLogPrintf("%s: Error: ExtKeySaveKey failed!\n", __func__);
                 continue;
-            };
+            }
 
             CStealthAddressIndexed sxi;
             aks.ToRaw(sxi.addrRaw);
             uint32_t sxId;
-            if (!UpdateStealthAddressIndex(ckidMatch, sxi, sxId))
+            if (!UpdateStealthAddressIndex(ckidMatch, sxi, sxId)) {
                 return error("%s: UpdateStealthAddressIndex failed.\n", __func__);
+            }
 
             return true;
-        };
-    };
+        }
+    }
 
     return false;
 };
@@ -9153,23 +9069,24 @@ int CHDWallet::CheckForStealthAndNarration(const CTxOutBase *pb, const CTxOutDat
     std::vector<uint8_t> vchEphemPK, vchENarr;
     const std::vector<uint8_t> &vData = pdata->vData;
 
-    if (vData.size() < 1)
+    if (vData.size() < 1) {
         return -1;
+    }
 
-    if (vData[0] == DO_NARR_PLAIN)
-    {
-        if (vData.size() < 2)
+    if (vData[0] == DO_NARR_PLAIN) {
+        if (vData.size() < 2) {
             return -1; // error
+        }
 
         sNarr = std::string(vData.begin()+1, vData.end());
         return 1;
-    };
+    }
 
-    if (vData[0] == DO_STEALTH)
-    {
+    if (vData[0] == DO_STEALTH) {
         if (vData.size() < 34
-            || !pb->IsStandardOutput())
+            || !pb->IsStandardOutput()) {
             return -1; // error
+        }
 
         vchEphemPK.resize(33);
         memcpy(&vchEphemPK[0], &vData[1], 33);
@@ -9178,42 +9095,38 @@ int CHDWallet::CheckForStealthAndNarration(const CTxOutBase *pb, const CTxOutDat
         bool fHavePrefix = false;
 
         if (vData.size() >= 34 + 5
-            && vData[34] == DO_STEALTH_PREFIX)
-        {
+            && vData[34] == DO_STEALTH_PREFIX) {
             fHavePrefix = true;
             memcpy(&prefix, &vData[35], 4);
-        };
+        }
 
         const CTxOutStandard *so = (CTxOutStandard*)pb;
         CTxDestination address;
         if (!ExtractDestination(so->scriptPubKey, address)
-            || address.type() != typeid(CKeyID))
-        {
-            LogPrintf("%s: ExtractDestination failed.\n",  __func__);
+            || address.type() != typeid(CKeyID)) {
+            WalletLogPrintf("%s: ExtractDestination failed.\n",  __func__);
             return -1;
-        };
+        }
 
-        if (!ProcessStealthOutput(address, vchEphemPK, prefix, fHavePrefix, sShared, true))
-        {
+        if (!ProcessStealthOutput(address, vchEphemPK, prefix, fHavePrefix, sShared, true)) {
             // TODO: check all other outputs?
             return 0;
-        };
+        }
 
         int nNarrOffset = -1;
-        if (vData.size() > 40 && vData[39] == DO_NARR_CRYPT)
+        if (vData.size() > 40 && vData[39] == DO_NARR_CRYPT) {
             nNarrOffset = 40;
-        else
-        if (vData.size() > 35 && vData[34] == DO_NARR_CRYPT)
+        } else
+        if (vData.size() > 35 && vData[34] == DO_NARR_CRYPT) {
             nNarrOffset = 35;
+        }
 
-        if (nNarrOffset > -1)
-        {
+        if (nNarrOffset > -1) {
             size_t lenNarr = vData.size() - nNarrOffset;
-            if (lenNarr < 1 || lenNarr > 32) // min block size 8?
-            {
-                LogPrintf("%s: Invalid narration data length: %d\n", __func__, lenNarr);
+            if (lenNarr < 1 || lenNarr > 32) { // min block size 8?
+                WalletLogPrintf("%s: Invalid narration data length: %d\n", __func__, lenNarr);
                 return 2; // still found
-            };
+            }
             vchENarr.resize(lenNarr);
             memcpy(&vchENarr[0], &vData[nNarrOffset], lenNarr);
 
@@ -9221,25 +9134,25 @@ int CHDWallet::CheckForStealthAndNarration(const CTxOutBase *pb, const CTxOutDat
             crypter.SetKey(sShared.begin(), &vchEphemPK[0]);
 
             std::vector<uint8_t> vchNarr;
-            if (!crypter.Decrypt(&vchENarr[0], vchENarr.size(), vchNarr))
-            {
-                LogPrintf("%s: Decrypt narration failed.\n", __func__);
+            if (!crypter.Decrypt(&vchENarr[0], vchENarr.size(), vchNarr)) {
+                WalletLogPrintf("%s: Decrypt narration failed.\n", __func__);
                 return 2; // still found
-            };
+            }
             sNarr = std::string(vchNarr.begin(), vchNarr.end());
-        };
+        }
 
         return 2;
-    };
+    }
 
-    LogPrintf("%s: Unknown data output type %d.\n",  __func__, vData[0]);
+    WalletLogPrintf("%s: Unknown data output type %d.\n",  __func__, vData[0]);
     return -1;
 };
 
 bool CHDWallet::FindStealthTransactions(const CTransaction &tx, mapValue_t &mapNarr)
 {
-    if (LogAcceptCategory(BCLog::HDWALLET))
-        LogPrintf("%s: tx: %s.\n", __func__, tx.GetHash().GetHex());
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("%s: tx: %s.\n", __func__, tx.GetHash().GetHex());
+    }
 
     mapNarr.clear();
 
@@ -9247,31 +9160,31 @@ bool CHDWallet::FindStealthTransactions(const CTransaction &tx, mapValue_t &mapN
 
     // A data output always applies to the preceding output
     int32_t nOutputId = -1;
-    for (const auto &txout : tx.vpout)
-    {
+    for (const auto &txout : tx.vpout) {
         nOutputId++;
-        if (txout->nVersion != OUTPUT_DATA)
+        if (txout->nVersion != OUTPUT_DATA) {
             continue;
+        }
 
         CTxOutData *txd = (CTxOutData*) txout.get();
 
-        if (nOutputId < 1)
-        {
-            if (LogAcceptCategory(BCLog::HDWALLET)) // this is normal for CT / RCT txns
-                LogPrintf("%s: Ignoring data output in pos 0, tx: %s.\n", __func__, tx.GetHash().GetHex());
+        if (nOutputId < 1) {
+            if (LogAcceptCategory(BCLog::HDWALLET)) { // this is normal for CT / RCT txns
+                WalletLogPrintf("%s: Ignoring data output in pos 0, tx: %s.\n", __func__, tx.GetHash().GetHex());
+            }
             continue;
-        };
+        }
 
         std::string sNarr;
-        if (CheckForStealthAndNarration(tx.vpout[nOutputId-1].get(), txd, sNarr) < 0)
-            LogPrintf("%s: txn %s, malformed data output %d.\n",  __func__, tx.GetHash().ToString(), nOutputId);
+        if (CheckForStealthAndNarration(tx.vpout[nOutputId-1].get(), txd, sNarr) < 0) {
+            WalletLogPrintf("%s: txn %s, malformed data output %d.\n",  __func__, tx.GetHash().ToString(), nOutputId);
+        }
 
-        if (sNarr.length() > 0)
-        {
+        if (sNarr.length() > 0) {
             std::string sKey = strprintf("n%d", nOutputId-1);
             mapNarr[sKey] = sNarr;
-        };
-    };
+        }
+    }
 
     return true;
 };
@@ -9284,50 +9197,44 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
     mapNarr.clear();
 
     int32_t nOutputId = -1;
-    for (const auto &txout : tx.vpout)
-    {
+    for (const auto &txout : tx.vpout) {
         nOutputId++;
-        if (txout->IsType(OUTPUT_CT))
-        {
+        if (txout->IsType(OUTPUT_CT)) {
             nCT++;
             const CTxOutCT *ctout = (CTxOutCT*) txout.get();
 
             CTxDestination address;
             if (!ExtractDestination(ctout->scriptPubKey, address)
-                || address.type() != typeid(CKeyID))
-            {
-                LogPrintf("%s: ExtractDestination failed.\n", __func__);
+                || address.type() != typeid(CKeyID)) {
+                WalletLogPrintf("%s: ExtractDestination failed.\n", __func__);
                 continue;
-            };
+            }
 
             // Uncover stealth
             uint32_t prefix = 0;
             bool fHavePrefix = false;
-            if (ctout->vData.size() != 33)
-            {
+            if (ctout->vData.size() != 33) {
                 if (ctout->vData.size() == 38 // Have prefix
-                    && ctout->vData[33] == DO_STEALTH_PREFIX)
-                {
+                    && ctout->vData[33] == DO_STEALTH_PREFIX) {
                     fHavePrefix = true;
                     memcpy(&prefix, &ctout->vData[34], 4);
-                } else
-                {
+                } else {
                     LogPrint(BCLog::HDWALLET, "Bad blind output data size.\n");
                     continue;
-                };
-            };
+                }
+            }
 
             CKey sShared;
             std::vector<uint8_t> vchEphemPK;
             vchEphemPK.resize(33);
             memcpy(&vchEphemPK[0], &ctout->vData[0], 33);
 
-            if (ProcessStealthOutput(address, vchEphemPK, prefix, fHavePrefix, sShared))
+            if (ProcessStealthOutput(address, vchEphemPK, prefix, fHavePrefix, sShared)) {
                 fIsMine = true;
+            }
             continue;
         } else
-        if (txout->IsType(OUTPUT_RINGCT))
-        {
+        if (txout->IsType(OUTPUT_RINGCT)) {
             nRingCT++;
             const CTxOutRingCT *rctout = (CTxOutRingCT*) txout.get();
 
@@ -9336,51 +9243,48 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
             // Uncover stealth
             uint32_t prefix = 0;
             bool fHavePrefix = false;
-            if (rctout->vData.size() != 33)
-            {
+            if (rctout->vData.size() != 33) {
                 if (rctout->vData.size() == 38 // Have prefix
-                    && rctout->vData[33] == DO_STEALTH_PREFIX)
-                {
+                    && rctout->vData[33] == DO_STEALTH_PREFIX) {
                     fHavePrefix = true;
                     memcpy(&prefix, &rctout->vData[34], 4);
-                } else
-                {
+                } else {
                     LogPrint(BCLog::HDWALLET, "Bad blind output data size.\n");
                     continue;
-                };
-            };
+                }
+            }
 
             CKey sShared;
             std::vector<uint8_t> vchEphemPK;
             vchEphemPK.resize(33);
             memcpy(&vchEphemPK[0], &rctout->vData[0], 33);
 
-            if (ProcessStealthOutput(idk, vchEphemPK, prefix, fHavePrefix, sShared))
+            if (ProcessStealthOutput(idk, vchEphemPK, prefix, fHavePrefix, sShared)) {
                 fIsMine = true;
+            }
             continue;
         } else
-        if (txout->IsType(OUTPUT_STANDARD))
-        {
+        if (txout->IsType(OUTPUT_STANDARD)) {
             if (nOutputId < (int)tx.vpout.size()-1
-                && tx.vpout[nOutputId+1]->IsType(OUTPUT_DATA))
-            {
+                && tx.vpout[nOutputId+1]->IsType(OUTPUT_DATA)) {
                 CTxOutData *txd = (CTxOutData*) tx.vpout[nOutputId+1].get();
 
                 std::string sNarr;
-                if (CheckForStealthAndNarration(txout.get(), txd, sNarr) < 0)
-                    LogPrintf("%s: txn %s, malformed data output %d.\n",  __func__, tx.GetHash().ToString(), nOutputId);
+                if (CheckForStealthAndNarration(txout.get(), txd, sNarr) < 0) {
+                    WalletLogPrintf("%s: txn %s, malformed data output %d.\n",  __func__, tx.GetHash().ToString(), nOutputId);
+                }
 
-                if (sNarr.length() > 0)
-                {
+                if (sNarr.length() > 0) {
                     std::string sKey = strprintf("n%d", nOutputId);
                     mapNarr[sKey] = sNarr;
-                };
-            };
+                }
+            }
 
-            if (IsMine(txout.get()))
+            if (IsMine(txout.get())) {
                 fIsMine = true;
-        };
-    };
+            }
+        }
+    }
 
     return fIsMine;
 };
@@ -9406,11 +9310,11 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBloc
                         if (wtxConflicted && wtxConflicted->isAbandoned() && wtxConflicted->IsCoinStake())
                         {
                             // Respending input from orphaned coinstake, leave abandoned
-                            LogPrintf("Reusing kernel from orphaned stake %s, new tx %s, \n    (kernel %s:%i).\n",
+                            WalletLogPrintf("Reusing kernel from orphaned stake %s, new tx %s, \n    (kernel %s:%i).\n",
                                 range.first->second.ToString(), tx.GetHash().ToString(), range.first->first.hash.ToString(), range.first->first.n);
                         } else
                         {
-                            LogPrintf("Transaction %s (in block %s) conflicts with wallet transaction %s (both spend %s:%i)\n", tx.GetHash().ToString(), pIndex->GetBlockHash().ToString(), range.first->second.ToString(), range.first->first.hash.ToString(), range.first->first.n);
+                            WalletLogPrintf("Transaction %s (in block %s) conflicts with wallet transaction %s (both spend %s:%i)\n", tx.GetHash().ToString(), pIndex->GetBlockHash().ToString(), range.first->second.ToString(), range.first->first.hash.ToString(), range.first->first.n);
                             MarkConflicted(pIndex->GetBlockHash(), range.first->second);
                         };
                     };
@@ -9439,7 +9343,7 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBloc
                 const std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
                 if (vKeyImages.size() != nInputs * 33)
                 {
-                    LogPrintf("Error: %s - Malformed anon txin, %s.\n", __func__, tx.GetHash().ToString());
+                    WalletLogPrintf("Error: %s - Malformed anon txin, %s.\n", __func__, tx.GetHash().ToString());
                     continue;
                 };
 
@@ -9508,11 +9412,11 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBloc
             if (fExisted && tx.IsCoinStake() && !pIndex)
             {
                 uint256 hashTx = tx.GetHash();
-                LogPrintf("Orphaning stake txn: %s\n", hashTx.ToString());
+                WalletLogPrintf("Orphaning stake txn: %s\n", hashTx.ToString());
 
                 // If block is later reconnected tx will be unabandoned by AddToWallet
                 if (!AbandonTransaction(hashTx))
-                    LogPrintf("ERROR: %s - Orphaning stake, AbandonTransaction failed for %s\n", __func__, hashTx.ToString());
+                    WalletLogPrintf("ERROR: %s - Orphaning stake, AbandonTransaction failed for %s\n", __func__, hashTx.ToString());
             };
 
             CWalletTx wtx(this, MakeTransactionRef(tx));
@@ -9595,22 +9499,23 @@ int CHDWallet::InsertTempTxn(const uint256 &txid, const CTransactionRecord *rtx)
 
     std::pair<MapWallet_t::iterator, bool> ret = mapTempWallet.insert(std::make_pair(txid, wtx));
     if (!ret.second) // silence compiler warning
-        LogPrintf("%s: insert failed for %s.\n", __func__, txid.ToString().c_str());
+        WalletLogPrintf("%s: insert failed for %s.\n", __func__, txid.ToString());
 
     return 0;
 };
 
 int CHDWallet::OwnStandardOut(const CTxOutStandard *pout, const CTxOutData *pdata, COutputRecord &rout, bool &fUpdated)
 {
-    if (pdata)
-    {
+    if (pdata) {
         std::string sNarr;
-        if (CheckForStealthAndNarration((CTxOutBase*)pout, pdata, sNarr) < 0)
-            LogPrintf("%s: malformed data output %d.\n",  __func__, rout.n);
+        if (CheckForStealthAndNarration((CTxOutBase*)pout, pdata, sNarr) < 0) {
+            WalletLogPrintf("%s: malformed data output %d.\n",  __func__, rout.n);
+        }
 
-        if (sNarr.length() > 0)
+        if (sNarr.length() > 0) {
             rout.sNarration = sNarr;
-    };
+        }
+    }
 
     CKeyID idk;
     const CEKAKey *pak = nullptr;
@@ -9691,9 +9596,10 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
         {
             rout.nValue = 0;
             fUpdated = true;
-            if (LogAcceptCategory(BCLog::HDWALLET)) LogPrintf("%s: Adding locked output %s, %d.\n", __func__, txhash.ToString(), rout.n);
-            if (!pwdb->WriteLockedAnonOut(op))
-                LogPrintf("Error: %s - WriteLockedAnonOut failed.\n");
+            if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: Adding locked output %s, %d.\n", __func__, txhash.ToString(), rout.n);
+            if (!pwdb->WriteLockedAnonOut(op)) {
+                WalletLogPrintf("Error: %s - WriteLockedAnonOut failed.\n");
+            }
         };
         return 1;
     };
@@ -9769,9 +9675,10 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
             && !pwdb->HaveLockedAnonOut(op))
         {
             rout.nValue = 0;
-            if (LogAcceptCategory(BCLog::HDWALLET)) LogPrintf("%s: Adding locked output %s, %d.\n", __func__, txhash.ToString(), rout.n);
-            if (!pwdb->WriteLockedAnonOut(op))
-                LogPrintf("Error: %s - WriteLockedAnonOut failed.\n");
+            if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: Adding locked output %s, %d.\n", __func__, txhash.ToString(), rout.n);
+            if (!pwdb->WriteLockedAnonOut(op)) {
+                WalletLogPrintf("Error: %s - WriteLockedAnonOut failed.\n");
+            }
         };
 
         fUpdated = true;
@@ -9840,10 +9747,12 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
     CCmpPubKey ki;
 
     if (0 != secp256k1_get_keyimage(secp256k1_ctx_blind, ki.ncbegin(), pout->pk.begin(), key.begin()))
-        LogPrintf("Error: %s - secp256k1_get_keyimage failed.\n", __func__);
-    else
-    if (!pwdb->WriteAnonKeyImage(ki, op))
-        LogPrintf("Error: %s - WriteAnonKeyImage failed.\n", __func__);
+    {
+        WalletLogPrintf("Error: %s - secp256k1_get_keyimage failed.\n", __func__);
+    } else
+    if (!pwdb->WriteAnonKeyImage(ki, op)) {
+        WalletLogPrintf("Error: %s - WriteAnonKeyImage failed.\n", __func__);
+    }
 
     rout.nFlags &= ~ORF_LOCKED;
     stx.InsertBlind(rout.n, blindOut);
@@ -9923,7 +9832,7 @@ bool CHDWallet::ProcessPlaceholder(CHDWalletDB *pwdb, const CTransaction &tx, CT
 bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
     const CBlockIndex *pIndex, int posInBlock, bool fFlushOnClose)
 {
-    if (LogAcceptCategory(BCLog::HDWALLET)) LogPrintf("%s, %s: %s, %p, %d\n", __func__, GetName(), tx.GetHash().ToString(), pIndex, posInBlock);
+    if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: %s, %p, %d\n", __func__, tx.GetHash().ToString(), pIndex, posInBlock);
 
     AssertLockHeld(cs_wallet);
     CHDWalletDB wdb(*database, "r+", fFlushOnClose);
@@ -10115,7 +10024,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
     if (fInsertedNew || fUpdated) {
         // Plain to plain will always be a wtx, revisit if adding p2p to rtx
         if (!tx.GetCTFee(rtx.nFee)) {
-            LogPrintf("%s: ERROR - GetCTFee failed %s.\n", __func__, txhash.ToString());
+            WalletLogPrintf("%s: ERROR - GetCTFee failed %s.\n", __func__, txhash.ToString());
         }
 
         // If txn has change, it must have been sent by this wallet
@@ -10181,7 +10090,7 @@ std::vector<uint256> CHDWallet::ResendRecordTransactionsBefore(int64_t nTime, CC
             if (0 != InsertTempTxn(txhash, &rtx)
                 || (twi = mapTempWallet.find(txhash)) == mapTempWallet.end())
             {
-                LogPrintf("ERROR: %s - InsertTempTxn failed %s.\n", __func__, txhash.ToString());
+                WalletLogPrintf("ERROR: %s - InsertTempTxn failed %s.\n", __func__, txhash.ToString());
             };
         };
 
@@ -10217,7 +10126,7 @@ void CHDWallet::ResendWalletTransactions(int64_t nBestBlockTime, CConnman *connm
 
     std::vector<uint256> relayedRecord = ResendRecordTransactionsBefore(nBestBlockTime-5*60, connman);
     if (!relayed.empty() || !relayedRecord.empty())
-        LogPrintf("%s: rebroadcast %u unconfirmed transactions\n", __func__, relayed.size() + relayedRecord.size());
+        WalletLogPrintf("%s: rebroadcast %u unconfirmed transactions\n", __func__, relayed.size() + relayedRecord.size());
     return;
 };
 
@@ -10390,15 +10299,13 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
                 continue;
 
             if (twi == mapTempWallet.end()
-                && (twi = mapTempWallet.find(txid)) == mapTempWallet.end())
-            {
+                && (twi = mapTempWallet.find(txid)) == mapTempWallet.end()) {
                 if (0 != InsertTempTxn(txid, &rtx)
-                    || (twi = mapTempWallet.find(txid)) == mapTempWallet.end())
-                {
-                    LogPrintf("ERROR: %s - InsertTempTxn failed %s.\n", __func__, txid.ToString());
+                    || (twi = mapTempWallet.find(txid)) == mapTempWallet.end()) {
+                    WalletLogPrintf("ERROR: %s - InsertTempTxn failed %s.\n", __func__, txid.ToString());
                     return;
-                };
-            };
+                }
+            }
 
             bool fSpendableIn = (r.nFlags & ORF_OWNED) || (coinControl && coinControl->fAllowWatchOnly);
             bool fNeedHardwareKey = (r.nFlags & ORF_HARDWARE_DEVICE);
@@ -10863,23 +10770,22 @@ std::map<CTxDestination, std::vector<COutput>> CHDWallet::ListCoins() const
 
 bool GetAddress(const CHDWallet *pw, const COutputRecord *pout, CTxDestination &address)
 {
-    if (ExtractDestination(pout->scriptPubKey, address))
+    if (ExtractDestination(pout->scriptPubKey, address)) {
         return true;
-    if (pout->vPath.size() > 0 && pout->vPath[0] == ORA_STEALTH)
-    {
-        if (pout->vPath.size() < 5)
-        {
-            LogPrintf("%s: Warning, malformed vPath.\n", __func__);
-        } else
-        {
+    }
+    if (pout->vPath.size() > 0 && pout->vPath[0] == ORA_STEALTH) {
+        if (pout->vPath.size() < 5) {
+            pw->WalletLogPrintf("%s: Warning, malformed vPath.\n", __func__);
+        } else {
             uint32_t sidx;
             memcpy(&sidx, &pout->vPath[1], 4);
             CStealthAddress sx;
-            if (pw->GetStealthByIndex(sidx, sx))
+            if (pw->GetStealthByIndex(sidx, sx)) {
                 address = sx;
-        };
+            }
+        }
         return true;
-    };
+    }
     return false;
 }
 
@@ -10890,19 +10796,18 @@ std::map<CTxDestination, std::vector<COutputR>> CHDWallet::ListCoins(OutputTypes
 
     CCoinControl coinControl;
     coinControl.fAllowLocked = true;
-    if (nType == OUTPUT_CT)
-    {
+    if (nType == OUTPUT_CT) {
         AvailableBlindedCoins(availableCoins, true, &coinControl);
     } else
-    if (nType == OUTPUT_RINGCT)
-    {
+    if (nType == OUTPUT_RINGCT) {
         AvailableAnonCoins(availableCoins, true, &coinControl);
-    };
+    }
 
     for (auto& coin : availableCoins) {
         CTxDestination address;
-        if (!coin.fSpendable)
+        if (!coin.fSpendable) {
             continue;
+        }
 
         const COutputRecord *oR = coin.rtx->second.GetOutput(coin.i);
         GetAddress(this, oR, address);
@@ -11105,7 +11010,7 @@ bool CHDWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligib
             }
 
         if (LogAcceptCategory(BCLog::SELECTCOINS)) {
-            LogPrintf("SelectCoins() best subset: "); /* Continued */
+            WalletLogPrintf("SelectCoins() best subset: "); /* Continued */
             for (unsigned int i = 0; i < vValue.size(); i++)
                 if (vfBest[i])
                     LogPrintf("%s ", FormatMoney(vValue[i].first)); /* Continued */
@@ -11232,7 +11137,7 @@ bool CHDWallet::AbandonTransaction(const uint256 &hashTx)
             int currentconfirm = GetDepthInMainChain(rtx.blockHash, rtx.nIndex);
             if (currentconfirm > 0)
             {
-                LogPrintf("ERROR: %s - Txn %s is %d blocks deep.\n", now.ToString(), currentconfirm);
+                WalletLogPrintf("ERROR: %s - Txn %s is %d blocks deep.\n", now.ToString(), currentconfirm);
                 continue;
             };
 
@@ -11254,7 +11159,7 @@ bool CHDWallet::AbandonTransaction(const uint256 &hashTx)
             int currentconfirm = wtx.GetDepthInMainChain();
             if (currentconfirm > 0)
             {
-                LogPrintf("ERROR: %s - Txn %s is %d blocks deep.\n", now.ToString(), currentconfirm);
+                WalletLogPrintf("ERROR: %s - Txn %s is %d blocks deep.\n", now.ToString(), currentconfirm);
                 continue;
             };
 
@@ -11397,14 +11302,14 @@ void CHDWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx)
             continue;
         };
 
-        LogPrintf("%s: Warning txn %s not recorded in wallet.\n", __func__, now.ToString());
+        WalletLogPrintf("%s: Warning txn %s not recorded in wallet.\n", __func__, now.ToString());
     };
 
     if (nChangedRecords > 0) // HACK, alternative is to load CStoredTransaction to get vin
         MarkDirty();
 
     if (LogAcceptCategory(BCLog::HDWALLET))
-        LogPrintf("%s: %s, %s processed %d txns.\n", __func__, hashBlock.ToString(), hashTx.ToString(), done.size());
+        WalletLogPrintf("%s: %s, %s processed %d txns.\n", __func__, hashBlock.ToString(), hashTx.ToString(), done.size());
     return;
 };
 
@@ -11607,7 +11512,7 @@ bool CHDWallet::GetScriptForAddress(CScript &script, const CBitcoinAddress &addr
 
 bool CHDWallet::SetReserveBalance(CAmount nNewReserveBalance)
 {
-    LogPrintf("SetReserveBalance %d\n", nReserveBalance);
+    WalletLogPrintf("SetReserveBalance %d\n", nReserveBalance);
     LOCK(cs_wallet);
 
     nReserveBalance = nNewReserveBalance;
@@ -11763,7 +11668,7 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
                     if (0 != InsertTempTxn(txid, &rtx)
                         || (twi = mapTempWallet.find(txid)) == mapTempWallet.end())
                     {
-                        LogPrintf("ERROR: %s - InsertTempTxn failed %s.\n", __func__, txid.ToString());
+                        WalletLogPrintf("ERROR: %s - InsertTempTxn failed %s.\n", __func__, txid.ToString());
                         return;
                     };
                 };
@@ -12301,7 +12206,7 @@ int LoopExtAccountsInDB(CHDWallet *pwallet, bool fInactive, LoopExtKeyCallback &
                 sea.vExtKeys[i] = sek;
             } else
             {
-                LogPrintf("WARNING: Could not read key %d of account %s\n", i, HDAccIDToString(idAccount));
+                pwallet->WalletLogPrintf("WARNING: Could not read key %d of account %s\n", i, HDAccIDToString(idAccount));
                 sea.vExtKeys[i] = nullptr;
                 delete sek;
             };
@@ -12337,7 +12242,7 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wa
             {
                 if (oR->nType != OUTPUT_STANDARD)
                 {
-                    LogPrintf("ERROR: %s non standard output - TODO.\n", __func__);
+                    wallet->WalletLogPrintf("ERROR: %s non standard output - TODO.\n", __func__);
                     return -1;
                 };
                 txouts.emplace_back(MAKE_OUTPUT<CTxOutStandard>(oR->nValue, oR->scriptPubKey));
