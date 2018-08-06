@@ -329,7 +329,7 @@ int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bool fAll
             mapEKValue_t::iterator it = sek->mapValue.find(EKVT_KEY_TYPE);
             if (it != sek->mapValue.end() && it->second.size() > 0)
             {
-                std::string(sUseType);
+                std::string sUseType;
                 switch(it->second[0])
                 {
                     case EKT_EXTERNAL:      sUseType = "external";      break;

@@ -23,6 +23,7 @@
 #include <utilstrencodings.h>
 #include <key/stealth.h>
 
+#include <memory>
 #include <stdio.h>
 
 #include <boost/algorithm/string.hpp>

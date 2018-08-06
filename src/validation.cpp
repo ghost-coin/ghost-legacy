@@ -229,6 +229,7 @@ std::set<CCmpPubKey> setConnectKi; // hacky workaround
 CBlockIndex *pindexBestHeader = nullptr;
 CWaitableCriticalSection csBestBlock;
 CConditionVariable cvBlockChange;
+uint256 hashBestBlock;
 int nScriptCheckThreads = 0;
 std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
@@ -3067,7 +3068,11 @@ void UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainParams) {
     // New best block
     mempool.AddTransactionsUpdated(1);
 
-    cvBlockChange.notify_all();
+    {
+        WaitableLock lock(csBestBlock);
+        hashBestBlock = pindexNew->GetBlockHash();
+        cvBlockChange.notify_all();
+    }
 
     std::vector<std::string> warningMessages;
     if (!IsInitialBlockDownload())
