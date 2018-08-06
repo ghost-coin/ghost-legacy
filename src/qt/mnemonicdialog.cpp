@@ -38,6 +38,11 @@ MnemonicDialog::MnemonicDialog(QWidget *parent, WalletModel *wm) :
 #endif
 #endif
 
+#if ENABLE_USBDEVICE
+#else
+    ui->tabWidget->setTabEnabled(2, false);
+#endif
+
     CHDWallet *phdw = wm->getParticlWallet();
     if (!phdw)
         return;
