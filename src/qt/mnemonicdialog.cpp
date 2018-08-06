@@ -44,6 +44,11 @@ MnemonicDialog::MnemonicDialog(QWidget *parent, WalletModel *wm) :
     ui->tbxMnemonic->setPlaceholderText(tr("Enter your BIP39 compliant Recovery Phrase/Mnemonic."));
 #endif
 
+#if ENABLE_USBDEVICE
+#else
+    ui->tabWidget->setTabEnabled(2, false);
+#endif
+
     if (!wm->wallet().isDefaultAccountSet()) {
         ui->lblHelp->setText(QString(
             "Wallet %1 has no HD account loaded.\n"
