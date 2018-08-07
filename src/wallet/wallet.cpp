@@ -106,14 +106,25 @@ std::string COutput::ToString() const
     return strprintf("COutput(%s, %d, %d) [%s]", tx->GetHash().ToString(), i, nDepth, FormatMoney(tx->tx->vout[i].nValue));
 }
 
+/** A class to identify which pubkeys a script and a keystore have in common. */
 class CAffectedKeysVisitor : public boost::static_visitor<void> {
 private:
     const CKeyStore &keystore;
     std::vector<CKeyID> &vKeys;
 
 public:
+    /**
+     * @param[in] keystoreIn The CKeyStore that is queried for the presence of a pubkey.
+     * @param[out] vKeysIn A vector to which a script's pubkey identifiers are appended if they are in the keystore.
+     */
     CAffectedKeysVisitor(const CKeyStore &keystoreIn, std::vector<CKeyID> &vKeysIn) : keystore(keystoreIn), vKeys(vKeysIn) {}
 
+    /**
+     * Apply the visitor to each destination in a script, recursively to the redeemscript
+     * in the case of p2sh destinations.
+     * @param[in] script The CScript from which destinations are extracted.
+     * @post Any CKeyIDs that script and keystore have in common are appended to the visitor's vKeys.
+     */
     void Process(const CScript &script) {
         txnouttype type;
         std::vector<CTxDestination> vDest;
@@ -4584,20 +4595,24 @@ int CMerkleTx::GetDepthInMainChain() const
 
 int CMerkleTx::GetBlocksToMaturity(const int *pdepth) const
 {
-    if (!(IsCoinBase() || IsCoinStake()))
+    if (!(IsCoinBase() || IsCoinStake())) {
         return 0;
+    }
 
-    if (fParticlMode && (chainActive.Height() < COINBASE_MATURITY * 2))
-    {
+    int chain_depth = pdepth ? *pdepth : GetDepthInMainChain();
+    //assert(chain_depth >= 0); // coinbase tx should not be conflicted
+
+    if (fParticlMode && (chainActive.Height() < COINBASE_MATURITY * 2)) {
         BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-        if (mi == mapBlockIndex.end())
+        if (mi == mapBlockIndex.end()) {
             return COINBASE_MATURITY;
+        }
         CBlockIndex *pindex = mi->second;
         int nRequiredDepth = (int)(pindex->nHeight / 2);
-        return std::max(0, (nRequiredDepth+1) - (pdepth ? *pdepth : GetDepthInMainChain()));
-    };
+        return std::max(0, (nRequiredDepth+1) - chain_depth);
+    }
 
-    return std::max(0, (COINBASE_MATURITY+1) - (pdepth ? *pdepth : GetDepthInMainChain()));
+    return std::max(0, (COINBASE_MATURITY+1) - chain_depth);
 }
 
 bool CWalletTx::AcceptToMemoryPool(const CAmount& nAbsurdFee, CValidationState& state)

@@ -534,7 +534,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-smsg", false,
                             strprintf("fees (%s) < expected (%s)", FormatMoney(nTxFee), FormatMoney(nTotalExpectedFees)));
                     else
-                        LogPrintf("%s: bad-txns-fee-smsg, %d expected %d, not enforcing.\n", nTxFee, nTotalExpectedFees);
+                        LogPrintf("%s: bad-txns-fee-smsg, %d expected %d, not enforcing.\n", __func__, nTxFee, nTotalExpectedFees);
                 };
             };
         } else

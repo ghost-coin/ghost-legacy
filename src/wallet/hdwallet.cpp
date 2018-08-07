@@ -1846,7 +1846,7 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
     }
     case TX_WITNESS_V0_KEYHASH:
     case TX_WITNESS_V0_SCRIPTHASH:
-        LogPrintf("%s: Ignoring TX_WITNESS script type.\n"); // shouldn't happen
+        LogPrintf("%s: Ignoring TX_WITNESS script type.\n", __func__); // shouldn't happen
         return ISMINE_NO;
 
     case TX_MULTISIG:
@@ -9598,7 +9598,7 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
             fUpdated = true;
             if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: Adding locked output %s, %d.\n", __func__, txhash.ToString(), rout.n);
             if (!pwdb->WriteLockedAnonOut(op)) {
-                WalletLogPrintf("Error: %s - WriteLockedAnonOut failed.\n");
+                WalletLogPrintf("Error: %s - WriteLockedAnonOut failed.\n", __func__);
             }
         };
         return 1;
@@ -9677,7 +9677,7 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
             rout.nValue = 0;
             if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: Adding locked output %s, %d.\n", __func__, txhash.ToString(), rout.n);
             if (!pwdb->WriteLockedAnonOut(op)) {
-                WalletLogPrintf("Error: %s - WriteLockedAnonOut failed.\n");
+                WalletLogPrintf("Error: %s - WriteLockedAnonOut failed.\n", __func__);
             }
         };
 
@@ -11137,7 +11137,7 @@ bool CHDWallet::AbandonTransaction(const uint256 &hashTx)
             int currentconfirm = GetDepthInMainChain(rtx.blockHash, rtx.nIndex);
             if (currentconfirm > 0)
             {
-                WalletLogPrintf("ERROR: %s - Txn %s is %d blocks deep.\n", now.ToString(), currentconfirm);
+                WalletLogPrintf("ERROR: %s - Txn %s is %d blocks deep.\n", __func__, now.ToString(), currentconfirm);
                 continue;
             };
 
@@ -11159,7 +11159,7 @@ bool CHDWallet::AbandonTransaction(const uint256 &hashTx)
             int currentconfirm = wtx.GetDepthInMainChain();
             if (currentconfirm > 0)
             {
-                WalletLogPrintf("ERROR: %s - Txn %s is %d blocks deep.\n", now.ToString(), currentconfirm);
+                WalletLogPrintf("ERROR: %s - Txn %s is %d blocks deep.\n", __func__, now.ToString(), currentconfirm);
                 continue;
             };
 
