@@ -1118,10 +1118,10 @@ public:
     isminetype IsMine(const CTxOut& txout) const;
     CAmount GetCredit(const CTxOut& txout, const isminefilter& filter) const;
 
-    virtual isminetype IsMine(const CTxOutBase *txout) const {assert(false);};
-    virtual CAmount GetCredit(const CTxOutBase *txout, const isminefilter &filter) const { return 0;};
+    virtual isminetype IsMine(const CTxOutBase *txout) const { assert(false); return ISMINE_NO; };
+    virtual CAmount GetCredit(const CTxOutBase *txout, const isminefilter &filter) const { return 0; };
 
-    virtual bool IsChange(const CTxOutBase *txout) const {assert(false);};
+    virtual bool IsChange(const CTxOutBase *txout) const { assert(false); return false; };
     bool IsChange(const CTxOut& txout) const;
     CAmount GetChange(const CTxOut& txout) const;
     virtual bool IsMine(const CTransaction& tx) const;
