@@ -34,6 +34,16 @@ int CUSBDevice::GetInfo(UniValue &info, std::string &sError)
     return 0;
 };
 
+static bool MatchLedgerInterface(struct hid_device_info *cur_dev)
+{
+#ifdef MAC_OSX
+    return cur_dev->usage_page == 0xffa0;
+#endif
+#ifdef WIN32
+    return cur_dev->usage_page == 0xffa0;
+#endif
+    return cur_dev->interface_number == 0;
+}
 
 void ListDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
 {
@@ -58,7 +68,8 @@ void ListDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
                 || cur_dev->product_id != type.nProductId)
                 continue;
 
-            if (type.type == USBDEVICE_LEDGER_NANO_S && cur_dev->interface_number == 0)
+            if (type.type == USBDEVICE_LEDGER_NANO_S
+                && MatchLedgerInterface(cur_dev))
                 vDevices.push_back(std::unique_ptr<CUSBDevice>(new CLedgerDevice(&type, cur_dev->path, (char*)cur_dev->serial_number, cur_dev->interface_number)));
         };
         cur_dev = cur_dev->next;
