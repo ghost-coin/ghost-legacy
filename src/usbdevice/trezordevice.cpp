@@ -65,6 +65,9 @@ static int WriteV1(hid_device *handle, uint16_t msg_type, std::vector<uint8_t> &
 
     do {
         size_t i = 0;
+#ifdef WIN32
+        buffer[i++] = 0; // Report ID
+#endif
         buffer[i++] = '?';
 
         if (wrote == 0) {

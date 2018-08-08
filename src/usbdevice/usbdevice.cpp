@@ -57,6 +57,17 @@ static bool MatchLedgerInterface(struct hid_device_info *cur_dev)
     return cur_dev->interface_number == 0;
 }
 
+static bool MatchTrezorInterface(struct hid_device_info *cur_dev)
+{
+#ifdef MAC_OSX
+    return cur_dev->usage_page == 0xff00;
+#endif
+#ifdef WIN32
+    return cur_dev->usage_page == 0xff00;
+#endif
+    return cur_dev->interface_number == 0;
+}
+
 void ListDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
 {
     if (Params().NetworkIDString() == "regtest") {
@@ -85,7 +96,7 @@ void ListDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
                 vDevices.push_back(std::move(device));
             } else
             if (type.type == USBDEVICE_TREZOR_ONE
-                && cur_dev->interface_number == 0) {
+                && MatchTrezorInterface(cur_dev)) {
                 std::unique_ptr<CUSBDevice> device(new CTrezorDevice(&type, cur_dev->path, (char*)cur_dev->serial_number, cur_dev->interface_number));
                 vDevices.push_back(std::move(device));
             }
