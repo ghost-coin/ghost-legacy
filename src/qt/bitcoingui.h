@@ -32,7 +32,6 @@ class UnitDisplayStatusBarControl;
 class WalletFrame;
 class WalletModel;
 class HelpMessageDialog;
-class MnemonicDialog;
 class ModalOverlay;
 
 namespace interfaces {
@@ -127,6 +126,7 @@ private:
     QAction* showHelpMessageAction = nullptr;
     QAction* m_wallet_selector_label_action = nullptr;
     QAction* m_wallet_selector_action = nullptr;
+    QAction *coldstakingAction = nullptr;
     QAction *mnemonicAction = nullptr;
 
     QLabel *m_wallet_selector_label = nullptr;
@@ -261,6 +261,8 @@ private Q_SLOTS:
     void showHelpMessageClicked();
     /** Show mnemonic dialog */
     void showMnemonicClicked();
+    /** Show coldstaking dialog */
+    void showColdStakingClicked();
 
 #ifndef Q_OS_MAC
     /** Handle tray icon clicked */

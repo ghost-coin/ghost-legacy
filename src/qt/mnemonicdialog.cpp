@@ -61,7 +61,7 @@ MnemonicDialog::MnemonicDialog(QWidget *parent, WalletModel *wm) :
             "By importing another recovery phrase a new account will be created and set as the default.\n"
             "The wallet will receive on addresses from the new and existing account/s.\n"
             "New addresses will be generated from the new account.\n").arg(QString::fromStdString(wm->wallet().getWalletName())));
-    };
+    }
 
     ui->cbxLanguage->clear();
     for (int l = 1; l < WLL_MAX; ++l) {
@@ -98,8 +98,9 @@ void MnemonicDialog::on_btnImport_clicked()
     if (walletModel->tryCallRpc(sCommand, rv)) {
         close();
         if (!rv["warnings"].isNull()) {
-            for (size_t i = 0; i < rv["warnings"].size(); ++i)
+            for (size_t i = 0; i < rv["warnings"].size(); ++i) {
                 walletModel->warningBox(tr("Import"), QString::fromStdString(rv["warnings"][i].get_str()));
+            }
         }
         startRescan();
     }
@@ -124,11 +125,10 @@ void MnemonicDialog::on_btnGenerate_clicked()
 
 void MnemonicDialog::on_btnImportFromHwd_clicked()
 {
-    if (m_thread)
-    {
+    if (m_thread) {
         qWarning() << "MnemonicDialog hwd thread exists.";
         return;
-    };
+    }
     QString sCommand = "initaccountfromdevice \"From Hardware Device\"";
 
     QString sPath = ui->edtPath->text();

@@ -23,6 +23,7 @@
 #include <qt/walletmodel.h>
 #include <qt/walletview.h>
 #include <qt/mnemonicdialog.h>
+#include <qt/coldstakingdialog.h>
 #endif // ENABLE_WALLET
 
 #ifdef Q_OS_MAC
@@ -334,6 +335,8 @@ void BitcoinGUI::createActions()
 
     mnemonicAction = new QAction(platformStyle->TextColorIcon(":/icons/info"), tr("&HD Wallet..."), this);
     mnemonicAction->setMenuRole(QAction::NoRole);
+    coldstakingAction = new QAction(platformStyle->TextColorIcon(":/icons/info"), tr("&Staking Setup"), this);
+    coldstakingAction->setMenuRole(QAction::NoRole);
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
@@ -342,6 +345,7 @@ void BitcoinGUI::createActions()
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
     connect(showHelpMessageAction, SIGNAL(triggered()), this, SLOT(showHelpMessageClicked()));
     connect(mnemonicAction, SIGNAL(triggered()), this, SLOT(showMnemonicClicked()));
+    connect(coldstakingAction, SIGNAL(triggered()), this, SLOT(showColdStakingClicked()));
     connect(openRPCConsoleAction, SIGNAL(triggered()), this, SLOT(showDebugWindow()));
     // prevents an open debug window from becoming stuck/unusable on client shutdown
     connect(quitAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
@@ -387,6 +391,7 @@ void BitcoinGUI::createMenuBar()
         file->addAction(usedReceivingAddressesAction);
         file->addSeparator();
         file->addAction(mnemonicAction);
+        file->addAction(coldstakingAction);
         file->addSeparator();
     }
     file->addAction(quitAction);
@@ -562,8 +567,9 @@ bool BitcoinGUI::setCurrentWallet(const QString& name)
     if (!walletModel)
         return true;
 
-    if (!walletModel->wallet().hdEnabled())
+    if (!walletModel->wallet().hdEnabled()) {
         showMnemonicClicked();
+    }
 
     return true;
 }
@@ -696,21 +702,42 @@ void BitcoinGUI::showDebugWindowActivateConsole()
 
 void BitcoinGUI::showMnemonicClicked()
 {
-    #ifdef ENABLE_WALLET
-    if (!walletFrame)
+#ifdef ENABLE_WALLET
+    if (!walletFrame) {
         return;
+    }
     WalletView *walletView = walletFrame->currentWalletView();
-    if (!walletView)
+    if (!walletView) {
         return;
+    }
     WalletModel *walletModel = walletView->getWalletModel();
-    if (!walletModel)
+    if (!walletModel) {
         return;
+    }
     MnemonicDialog dlg(this, walletModel);
     dlg.exec();
 
-
     setHDStatus(walletModel->wallet().hdEnabled());
-    #endif // ENABLE_WALLET
+#endif // ENABLE_WALLET
+}
+
+void BitcoinGUI::showColdStakingClicked()
+{
+#ifdef ENABLE_WALLET
+    if (!walletFrame) {
+        return;
+    }
+    WalletView *walletView = walletFrame->currentWalletView();
+    if (!walletView) {
+        return;
+    }
+    WalletModel *walletModel = walletView->getWalletModel();
+    if (!walletModel) {
+        return;
+    }
+    ColdStakingDialog dlg(this, walletModel);
+    dlg.exec();
+#endif // ENABLE_WALLET
 }
 
 void BitcoinGUI::showHelpMessageClicked()

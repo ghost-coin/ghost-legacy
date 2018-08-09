@@ -222,89 +222,81 @@ static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bo
     obj.pushKV("active", pa->nFlags & EAF_ACTIVE ? "true" : "false");
     obj.pushKV("label", pa->sLabel);
 
-    if (pwallet->idDefaultAccount == pa->GetID())
+    if (pwallet->idDefaultAccount == pa->GetID()) {
         obj.pushKV("default_account", "true");
+    }
 
     mapEKValue_t::iterator mvi = pa->mapValue.find(EKVT_CREATED_AT);
-    if (mvi != pa->mapValue.end())
-    {
+    if (mvi != pa->mapValue.end()) {
         int64_t nCreatedAt;
         GetCompressedInt64(mvi->second, (uint64_t&)nCreatedAt);
         obj.pushKV("created_at", nCreatedAt);
-    };
+    }
 
     mvi = pa->mapValue.find(EKVT_HARDWARE_DEVICE);
-    if (mvi != pa->mapValue.end())
-    {
-#if ENABLE_USBDEVICE
-
-#endif
-        if (mvi->second.size() >= 8)
-        {
+    if (mvi != pa->mapValue.end()) {
+        if (mvi->second.size() >= 8) {
             int nVendorId = *((int*)mvi->second.data());
             int nProductId = *((int*)(mvi->second.data() + 4));
             obj.pushKV("hardware_device", strprintf("0x%04x 0x%04x", nVendorId, nProductId));
-        };
-    };
+        }
+    }
 
     obj.pushKV("id", pa->GetIDString58());
     obj.pushKV("has_secret", pa->nFlags & EAF_HAVE_SECRET ? "true" : "false");
 
     CStoredExtKey *sekAccount = pa->ChainAccount();
-    if (!sekAccount)
-    {
+    if (!sekAccount) {
         obj.pushKV("error", "chain account not set.");
         return 0;
-    };
+    }
 
     CBitcoinAddress addr;
     addr.Set(pa->idMaster, CChainParams::EXT_KEY_HASH);
     obj.pushKV("root_key_id", addr.ToString());
 
     mvi = sekAccount->mapValue.find(EKVT_PATH);
-    if (mvi != sekAccount->mapValue.end())
-    {
+    if (mvi != sekAccount->mapValue.end()) {
         std::string sPath;
-        if (0 == PathToString(mvi->second, sPath, 'h'))
+        if (0 == PathToString(mvi->second, sPath, 'h')) {
             obj.pushKV("path", sPath);
-    };
+        }
+    }
     // TODO: separate passwords for accounts
     if (pa->nFlags & EAF_HAVE_SECRET
         && nShowKeys > 1
-        && pwallet->ExtKeyUnlock(sekAccount) == 0)
-    {
+        && pwallet->ExtKeyUnlock(sekAccount) == 0) {
         eKey58.SetKeyV(sekAccount->kp);
         obj.pushKV("evkey", eKey58.ToString());
-    };
+    }
 
-    if (nShowKeys > 0)
-    {
+    if (nShowKeys > 0) {
         eKey58.SetKeyP(sekAccount->kp);
         obj.pushKV("epkey", eKey58.ToString());
-    };
+    }
 
-    if (nShowKeys > 2) // dumpwallet
-    {
+    if (nShowKeys > 2) { // dumpwallet
         obj.pushKV("stealth_address_pack", (int)pa->nPackStealth);
         obj.pushKV("stealth_keys_received_pack", (int)pa->nPackStealthKeys);
-    };
+    }
 
 
-    if (fAllChains)
-    {
+    if (fAllChains) {
         UniValue arChains(UniValue::VARR);
-        for (size_t i = 1; i < pa->vExtKeys.size(); ++i) // vExtKeys[0] stores the account key
-        {
+        for (size_t i = 1; i < pa->vExtKeys.size(); ++i) { // vExtKeys[0] stores the account key
             UniValue objC(UniValue::VOBJ);
             CStoredExtKey *sek = pa->vExtKeys[i];
             eKey58.SetKeyP(sek->kp);
 
-            if (pa->nActiveExternal == i)
+            if (pa->nActiveExternal == i) {
                 objC.pushKV("function", "active_external");
-            if (pa->nActiveInternal == i)
+            }
+            if (pa->nActiveInternal == i) {
                 objC.pushKV("function", "active_internal");
-            if (pa->nActiveStealth == i)
+            }
+            if (pa->nActiveStealth == i) {
                 objC.pushKV("function", "active_stealth");
+            }
 
             objC.pushKV("id", sek->GetIDString58());
             objC.pushKV("chain", eKey58.ToString());
@@ -313,11 +305,9 @@ static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bo
             objC.pushKV("receive_on", sek->nFlags & EAF_RECEIVE_ON ? "true" : "false");
 
             mapEKValue_t::iterator it = sek->mapValue.find(EKVT_KEY_TYPE);
-            if (it != sek->mapValue.end() && it->second.size() > 0)
-            {
+            if (it != sek->mapValue.end() && it->second.size() > 0) {
                 std::string sUseType;
-                switch (it->second[0])
-                {
+                switch (it->second[0]) {
                     case EKT_EXTERNAL:      sUseType = "external";      break;
                     case EKT_INTERNAL:      sUseType = "internal";      break;
                     case EKT_STEALTH:       sUseType = "stealth";       break;
@@ -325,72 +315,64 @@ static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bo
                     case EKT_STEALTH_SCAN:  sUseType = "stealth_scan";  break;
                     case EKT_STEALTH_SPEND: sUseType = "stealth_spend"; break;
                     default:                sUseType = "unknown";       break;
-                };
+                }
                 objC.pushKV("use_type", sUseType);
-            };
+            }
 
             objC.pushKV("num_derives", strprintf("%u", sek->nGenerated));
             objC.pushKV("num_derives_h", strprintf("%u", sek->nHGenerated));
 
             if (nShowKeys > 2 // dumpwallet
-                && pa->nFlags & EAF_HAVE_SECRET)
-            {
+                && pa->nFlags & EAF_HAVE_SECRET) {
                 eKey58.SetKeyV(sek->kp);
                 objC.pushKV("evkey", eKey58.ToString());
 
                 mvi = sek->mapValue.find(EKVT_CREATED_AT);
-                if (mvi != sek->mapValue.end())
-                {
+                if (mvi != sek->mapValue.end()) {
                     int64_t nCreatedAt;
                     GetCompressedInt64(mvi->second, (uint64_t&)nCreatedAt);
                     objC.pushKV("created_at", nCreatedAt);
-                };
-            };
+                }
+            }
 
             mvi = sek->mapValue.find(EKVT_PATH);
-            if (mvi != sek->mapValue.end())
-            {
+            if (mvi != sek->mapValue.end()) {
                 std::string sPath;
-                if (0 == PathToString(mvi->second, sPath, 'h'))
+                if (0 == PathToString(mvi->second, sPath, 'h')) {
                     objC.pushKV("path", sPath);
-            };
+                }
+            }
 
             arChains.push_back(objC);
-        };
+        }
         obj.pushKV("chains", arChains);
-    } else
-    {
-        if (pa->nActiveExternal < pa->vExtKeys.size())
-        {
+    } else {
+        if (pa->nActiveExternal < pa->vExtKeys.size()) {
             CStoredExtKey *sekE = pa->vExtKeys[pa->nActiveExternal];
-            if (nShowKeys > 0)
-            {
+            if (nShowKeys > 0) {
                 eKey58.SetKeyP(sekE->kp);
                 obj.pushKV("external_chain", eKey58.ToString());
-            };
+            }
             obj.pushKV("num_derives_external", strprintf("%u", sekE->nGenerated));
             obj.pushKV("num_derives_external_h", strprintf("%u", sekE->nHGenerated));
-        };
+        }
 
-        if (pa->nActiveInternal < pa->vExtKeys.size())
-        {
+        if (pa->nActiveInternal < pa->vExtKeys.size()) {
             CStoredExtKey *sekI = pa->vExtKeys[pa->nActiveInternal];
-            if (nShowKeys > 0)
-            {
+            if (nShowKeys > 0) {
                 eKey58.SetKeyP(sekI->kp);
                 obj.pushKV("internal_chain", eKey58.ToString());
-            };
+            }
             obj.pushKV("num_derives_internal", strprintf("%u", sekI->nGenerated));
             obj.pushKV("num_derives_internal_h", strprintf("%u", sekI->nHGenerated));
-        };
+        }
 
-        if (pa->nActiveStealth < pa->vExtKeys.size())
-        {
+        if (pa->nActiveStealth < pa->vExtKeys.size()) {
             CStoredExtKey *sekS = pa->vExtKeys[pa->nActiveStealth];
             obj.pushKV("num_derives_stealth", strprintf("%u", sekS->nGenerated));
             obj.pushKV("num_derives_stealth_h", strprintf("%u", sekS->nHGenerated));
-        };
-    };
+        }
+    }
 
     return 0;
 };
@@ -399,11 +381,10 @@ static int AccountInfo(CHDWallet *pwallet, CKeyID &keyId, int nShowKeys, bool fA
 {
     // TODO: inactive keys can be in db and not in memory - search db for keyId
     ExtKeyAccountMap::iterator mi = pwallet->mapExtAccounts.find(keyId);
-    if (mi == pwallet->mapExtAccounts.end())
-    {
+    if (mi == pwallet->mapExtAccounts.end()) {
         sError = "Unknown account.";
         return 1;
-    };
+    }
 
     CExtKeyAccount *pa = mi->second;
     return AccountInfo(pwallet, pa, nShowKeys, fAllChains, obj, sError);
