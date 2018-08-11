@@ -148,9 +148,9 @@ Result CreateTransaction(const CWallet* wallet, const uint256& txid, const CCoin
     LOCK2(cs_main, wallet->cs_wallet);
     errors.clear();
 
-    const CHDWallet *pw = GetParticlWallet(wallet);
-    if (pw)
-    {
+
+    if (IsParticlWallet(wallet)) {
+        const CHDWallet *pw = GetParticlWallet(wallet);
         auto it = wallet->mapWallet.find(txid);
         if (it != wallet->mapWallet.end()) {
             const CWalletTx& wtx = it->second;

@@ -626,9 +626,6 @@ bool CWallet::IsSpent(const uint256& hash, unsigned int n) const
         const uint256& wtxid = it->second;
         std::map<uint256, CWalletTx>::const_iterator mit = mapWallet.find(wtxid);
         if (mit != mapWallet.end()) {
-            if (mit->second.isAbandoned())
-                continue;
-
             int depth = mit->second.GetDepthInMainChain();
             if (depth > 0  || (depth == 0 && !mit->second.isAbandoned()))
                 return true; // Spent
@@ -976,7 +973,6 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
     bool fUpdated = false;
     if (!fInsertedNew)
     {
-
         // Merge
         if (!wtxIn.hashUnset() && wtxIn.hashBlock != wtx.hashBlock)
         {
@@ -985,8 +981,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
         }
 
         // If no longer abandoned, update
-        //if (wtxIn.hashBlock.IsNull() && wtx.isAbandoned())
-        if (!wtxIn.hashUnset() && wtx.isAbandoned())
+        if (wtxIn.hashBlock.IsNull() && wtx.isAbandoned())
         {
             LogPrintf("%s: Unabandoning txn %s\n", __func__, hash.ToString());
             wtx.hashBlock = wtxIn.hashBlock;

@@ -32,8 +32,8 @@ class WalletLabelsTest(BitcoinTestFramework):
 
     def run_test(self):
         """Run the test twice - once using the accounts API and once using the labels API."""
-        self.log.info("Test accounts API")
-        self._run_subtest(True, self.nodes[0])
+        #self.log.info("Test accounts API")
+        #self._run_subtest(True, self.nodes[0])
         self.log.info("Test labels API")
         self._run_subtest(False, self.nodes[1])
 

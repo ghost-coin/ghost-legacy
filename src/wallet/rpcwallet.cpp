@@ -1667,8 +1667,8 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
     // Construct using pay-to-script-hash:
     CScript inner = CreateMultisigRedeemscript(required, pubkeys);
     CTxDestination dest = AddAndGetDestinationForScript(*pwallet, inner, output_type);
-    pwallet->SetAddressBook(dest, label, "send");
 
+    UniValue result(UniValue::VOBJ);
     bool fbech32 = fParticlMode && request.params.size() > 3 ? request.params[3].get_bool() : false;
     bool f256Hash = fParticlMode && request.params.size() > 4 ? request.params[4].get_bool() : false;
 
@@ -1676,14 +1676,12 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
         CScriptID256 innerID;
         innerID.Set(inner);
         pwallet->SetAddressBook(innerID, label, "send", fbech32);
-        return CBitcoinAddress(innerID, fbech32).ToString();
+        result.pushKV("address", CBitcoinAddress(innerID, fbech32).ToString());
+    } else {
+        pwallet->SetAddressBook(dest, label, "send", fbech32);
+        result.pushKV("address", EncodeDestination(dest, fbech32));
     }
 
-    CScriptID innerID(inner);
-    pwallet->SetAddressBook(innerID, label, "send", fbech32);
-
-    UniValue result(UniValue::VOBJ);
-    result.pushKV("address", fParticlMode ? CBitcoinAddress(innerID, fbech32).ToString() : EncodeDestination(dest));
     result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
     return result;
 }
@@ -3054,11 +3052,11 @@ static UniValue abandontransaction(const JSONRPCRequest& request)
     uint256 hash;
     hash.SetHex(request.params[0].get_str());
 
-    if (!pwallet->mapWallet.count(hash))
-    {
-        if (!IsParticlWallet(pwallet) || !GetParticlWallet(pwallet)->HaveTransaction(hash))
+    if (!pwallet->mapWallet.count(hash)) {
+        if (!IsParticlWallet(pwallet) || !GetParticlWallet(pwallet)->HaveTransaction(hash)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid or non-wallet transaction id");
-    };
+        }
+    }
     if (!pwallet->AbandonTransaction(hash)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction not eligible for abandonment");
     }
@@ -3757,7 +3755,7 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
     } else {
         size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
         obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
-        obj.pushKV("keypoolsize",   (int)pwallet->GetKeyPoolSize());
+        obj.pushKV("keypoolsize",   (int64_t)pwallet->KeypoolCountExternalKeys());
         seed_id = pwallet->GetHDChain().seed_id;
         if (!seed_id.IsNull() && pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
             obj.pushKV("keypoolsize_hd_internal",   (int64_t)(pwallet->GetKeyPoolSize() - kpExternalSize));

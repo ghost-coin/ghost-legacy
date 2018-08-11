@@ -1385,8 +1385,9 @@ bool IsInitialBlockDownload()
         && chainActive.Tip()->nHeight > COINBASE_MATURITY
         && chainActive.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge))
         return true;
-    if (GetNumPeers() < 1
-        || chainActive.Tip()->nHeight < GetNumBlocksOfPeers())
+    if (fParticlMode
+        && (GetNumPeers() < 1
+            || chainActive.Tip()->nHeight < GetNumBlocksOfPeers()))
         return true;
 
     LogPrintf("Leaving InitialBlockDownload (latching to false)\n");

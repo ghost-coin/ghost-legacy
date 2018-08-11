@@ -882,7 +882,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter& ss, const uint256& hash,
         };
         stats.nBogoSize += 32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ + 8 /* amount */ +
                            2 /* scriptPubKey len */ + output.second.out.scriptPubKey.size() /* scriptPubKey */
-                           + 1 /* nType */ + 33 /* commitment */;
+                           + (fParticlMode ? 1 /* nType */ + 33 /* commitment */ : 0);
     }
     ss << VARINT(0u);
 }
@@ -1259,7 +1259,9 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("blocks",                (int)chainActive.Height());
     obj.pushKV("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1);
     obj.pushKV("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex());
-    obj.pushKV("moneysupply",           ValueFromAmount(chainActive.Tip()->nMoneySupply));
+    if (fParticlMode) {
+        obj.pushKV("moneysupply",           ValueFromAmount(chainActive.Tip()->nMoneySupply));
+    }
     obj.pushKV("difficulty",            (double)GetDifficulty(chainActive.Tip()));
     PushTime(obj, "mediantime", chainActive.Tip()->GetMedianTimePast());
     obj.pushKV("verificationprogress",  GuessVerificationProgress(Params().TxData(), chainActive.Tip()));
