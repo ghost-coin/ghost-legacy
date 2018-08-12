@@ -28,7 +28,7 @@ env:
     - BASE_OUTDIR=$TRAVIS_BUILD_DIR/out
     - SDK_URL=https://bitcoincore.org/depends-sources/sdks
     - WINEDEBUG=fixme-all
-    - UNIT_TESTS_TIMEOUT = 6000 # Run unit tests if compilation took less than UNIT_TESTS_TIMEOUT seconds
+    - UNIT_TESTS_TIMEOUT = 1800 # Run unit tests if compilation took less than UNIT_TESTS_TIMEOUT seconds
     - DOCKER_PACKAGES="build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git ca-certificates ccache"
 before_install:
     - export START_TIME=`date +%s`
@@ -110,7 +110,6 @@ jobs:
         RUN_TESTS=false GOAL="install"
         BITCOIN_CONFIG="--enable-usbdevice --enable-reduce-exports"
         RUN_UNIT_TESTS=true
-        UNIT_TESTS_TIMEOUT=1200
 # Win64
     - stage: test
       env: >-
@@ -141,7 +140,6 @@ jobs:
         GOAL="install"
         BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\" --enable-usbdevice "
         RUN_UNIT_TESTS=true
-        UNIT_TESTS_TIMEOUT=1200
 # x86_64 Linux (Qt5 & system libs)
     - stage: test
       env: >-
@@ -153,7 +151,6 @@ jobs:
         BITCOIN_CONFIG="--enable-zmq --with-incompatible-bdb --enable-glibc-back-compat --enable-reduce-exports --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER"
         RUN_UNIT_TESTS=true
         TEST_ZMQ=0
-        UNIT_TESTS_TIMEOUT=1200
 # x86_64 Linux, No wallet
     - stage: test
       env: >-
@@ -163,7 +160,6 @@ jobs:
         RUN_UNIT_TESTS=true
         GOAL="install"
         BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports --disable-bench"
-        UNIT_TESTS_TIMEOUT=1200
 # Cross-Mac
     - stage: test
       env: >-

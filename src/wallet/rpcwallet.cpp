@@ -1462,9 +1462,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid estimate_mode parameter");
         }
     }
-
-    if (IsParticlWallet(pwallet))
-    {
+    if (IsParticlWallet(pwallet)) {
         JSONRPCRequest newRequest;
         newRequest.fHelp = false;
         newRequest.fSkipBlock = true; // already blocked in this function
@@ -1487,8 +1485,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
                 if (addr.get_str() == name_)
                     fSubtractFeeFromAmount = true;
             }
-            if (fSubtractFeeFromAmount)
-            {
+            if (fSubtractFeeFromAmount) {
                 UniValue uvBool(fSubtractFeeFromAmount);
                 out.pushKV("subfee", uvBool);
             }
@@ -1504,8 +1501,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
         params.push_back(sCommentTo);
 
         // Add coinstake params
-        if (request.params.size() > 5)
-        {
+        if (request.params.size() > 5) {
             UniValue uvRingsize(4);
             params.push_back(uvRingsize);
             UniValue uvNumInputs(32);
@@ -1518,19 +1514,20 @@ static UniValue sendmany(const JSONRPCRequest& request)
             unsigned int target = coin_control.m_confirm_target ? *coin_control.m_confirm_target : pwallet->m_confirm_target;
             uvCoinControl.pushKV("conf_target", (int)target);
             std::string sEstimateMode = "UNSET";
-            if (coin_control.m_fee_mode == FeeEstimateMode::ECONOMICAL)
+            if (coin_control.m_fee_mode == FeeEstimateMode::ECONOMICAL) {
                 sEstimateMode = "ECONOMICAL";
-            else
-            if (coin_control.m_fee_mode == FeeEstimateMode::CONSERVATIVE)
+            } else
+            if (coin_control.m_fee_mode == FeeEstimateMode::CONSERVATIVE) {
                 sEstimateMode = "CONSERVATIVE";
+            }
             uvCoinControl.pushKV("estimate_mode", sEstimateMode);
 
             params.push_back(uvCoinControl);
-        };
+        }
 
         newRequest.params = params;
         return sendtypeto(newRequest);
-    };
+    }
 
     std::set<CTxDestination> destinations;
     std::vector<CRecipient> vecSend;
@@ -1561,7 +1558,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
                 fSubtractFeeFromAmount = true;
         }
 
-        CRecipient recipient(scriptPubKey, nAmount, fSubtractFeeFromAmount);
+        CRecipient recipient = {scriptPubKey, nAmount, fSubtractFeeFromAmount};
         vecSend.push_back(recipient);
     }
 

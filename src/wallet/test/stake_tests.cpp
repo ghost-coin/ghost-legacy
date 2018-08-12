@@ -247,7 +247,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
     std::string strError;
     std::vector<CRecipient> vecSend;
     int nChangePosRet = -1;
-    CRecipient recipient(scriptPubKey, nAmount, fSubtractFeeFromAmount);
+    CRecipient recipient = {scriptPubKey, nAmount, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
 
     CCoinControl coinControl;

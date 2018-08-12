@@ -190,16 +190,11 @@ public:
     StringMap destdata;
 };
 
-class CRecipient
+struct CRecipient
 {
-public:
-    CRecipient() : nAmount(0), fSubtractFeeFromAmount(false) {};
-    CRecipient(CScript scriptPubKey_, CAmount nAmount_, bool fSubtractFeeFromAmount_)
-        : scriptPubKey(scriptPubKey_), nAmount(nAmount_), fSubtractFeeFromAmount(fSubtractFeeFromAmount_) {};
     CScript scriptPubKey;
     CAmount nAmount;
     bool fSubtractFeeFromAmount;
-    std::vector<uint8_t> vData;
 };
 
 typedef std::map<std::string, std::string> mapValue_t;
