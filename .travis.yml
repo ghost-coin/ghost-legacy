@@ -28,7 +28,7 @@ env:
     - BASE_OUTDIR=$TRAVIS_BUILD_DIR/out
     - SDK_URL=https://bitcoincore.org/depends-sources/sdks
     - WINEDEBUG=fixme-all
-    - UNIT_TESTS_TIMEOUT = 1800 # Run unit tests if compilation took less than UNIT_TESTS_TIMEOUT seconds
+    - UNIT_TESTS_TIMEOUT=1800 # Run unit tests if compilation took less than UNIT_TESTS_TIMEOUT seconds
     - DOCKER_PACKAGES="build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git ca-certificates ccache"
 before_install:
     - export START_TIME=`date +%s`
@@ -63,9 +63,11 @@ script:
     - cd particl-$HOST
     - BEGIN_FOLD configure; DOCKER_EXEC ./configure --cache-file=../config.cache $BITCOIN_CONFIG_ALL $BITCOIN_CONFIG || ( cat config.log && false); END_FOLD
     - BEGIN_FOLD build; DOCKER_EXEC make $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && DOCKER_EXEC make $GOAL V=1 ; false ); END_FOLD
-    - if [ $((`date +%s`-$START_TIME)) -gt "$UNIT_TESTS_TIMEOUT" ]; then RUN_UNIT_TESTS=false; fi
+    - if [ $((`date +%s`-$START_TIME)) -gt $UNIT_TESTS_TIMEOUT ]; then RUN_UNIT_TESTS=false RUN_TESTS=false; fi
     - echo $((`date +%s`-$START_TIME))
+    - echo $UNIT_TESTS_TIMEOUT
     - echo "$RUN_UNIT_TESTS"
+    - echo "$RUN_TESTS"
     - if [ "$RUN_UNIT_TESTS" = "true" ]; then BEGIN_FOLD unit-tests; DOCKER_EXEC LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib make $MAKEJOBS check VERBOSE=1; END_FOLD; fi
     - if [ "$RUN_BENCH" = "true" ]; then BEGIN_FOLD bench; DOCKER_EXEC LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib $OUTDIR/bin/bench_particl -scaling=0.001 ; END_FOLD; fi
     - if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then extended="--extended --exclude feature_pruning,feature_dbcrash"; fi
