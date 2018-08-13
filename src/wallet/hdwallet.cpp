@@ -3475,9 +3475,6 @@ static bool InsertChangeAddress(CTempRecipient &r, std::vector<CTempRecipient> &
     return true;
 };
 
-
-extern CFeeRate GetDiscardRate(const CWallet& wallet, const CBlockPolicyEstimator& estimator);
-
 int PreAcceptMempoolTx(CWalletTx &wtx, std::string &sError)
 {
     // Check if wtx can get into the mempool
@@ -8361,14 +8358,13 @@ bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx,
 };
 
 // Helper for producing a max-sized low-S signature (eg 72 bytes)
-bool CHDWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout) const
+bool CHDWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout, bool use_max_sig) const
 {
     // Fill in dummy signatures for fee calculation.
     const CScript &scriptPubKey = txout.scriptPubKey;
     SignatureData sigdata;
 
-    if (!ProduceSignature(*this, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata))
-    {
+    if (!ProduceSignature(*this, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
         return false;
     } else {
         UpdateInput(tx_in, sigdata);
@@ -8384,8 +8380,7 @@ bool CHDWallet::DummySignInput(CTxIn &tx_in, const CTxOutBaseRef &txout) const
     const CScript &scriptPubKey = *txout->GetPScriptPubKey();
     SignatureData sigdata;
 
-    if (!ProduceSignature(*this, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata))
-    {
+    if (!ProduceSignature(*this, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
         return false;
     } else {
         UpdateInput(tx_in, sigdata);
@@ -10141,25 +10136,30 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
         const uint256& wtxid = item.first;
         const CWalletTx& wtx = item.second;
 
-        if (!CheckFinalTx(*wtx.tx))
+        if (!CheckFinalTx(*wtx.tx)) {
             continue;
+        }
 
         int nDepth = wtx.GetDepthInMainChain();
-        if (nDepth < 0)
+        if (nDepth < 0) {
             continue;
+        }
 
         bool fMature = !(wtx.GetBlocksToMaturity(&nDepth) > 0);
         if (!fIncludeImmature
-            && !fMature)
+            && !fMature) {
             continue;
+        }
 
-        if (nDepth < nMinDepth || nDepth > nMaxDepth)
+        if (nDepth < nMinDepth || nDepth > nMaxDepth) {
             continue;
+        }
 
         // We should not consider coins which aren't at least in our mempool
         // It's possible for these to be conflicted via ancestors which we may never be able to detect
-        if (nDepth == 0 && !wtx.InMempool())
+        if (nDepth == 0 && !wtx.InMempool()) {
             continue;
+        }
 
         bool safeTx = wtx.IsTrusted();
         // We should not consider coins from transactions that are replacing
@@ -10197,23 +10197,28 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
             continue;
         }
 
-        for (unsigned int i = 0; i < wtx.tx->vpout.size(); i++)
-        {
-            if (!wtx.tx->vpout[i]->IsStandardOutput())
+        for (unsigned int i = 0; i < wtx.tx->vpout.size(); i++) {
+            if (!wtx.tx->vpout[i]->IsStandardOutput()) {
                 continue;
+            }
+
             const CTxOutStandard *txout = wtx.tx->vpout[i]->GetStandardOutput();
 
-            if (txout->nValue < nMinimumAmount || txout->nValue > nMaximumAmount)
+            if (txout->nValue < nMinimumAmount || txout->nValue > nMaximumAmount) {
                 continue;
+            }
 
-            if (coinControl && coinControl->HasSelected() && !coinControl->fAllowOtherInputs && !coinControl->IsSelected(COutPoint(wtxid, i)))
+            if (coinControl && coinControl->HasSelected() && !coinControl->fAllowOtherInputs && !coinControl->IsSelected(COutPoint(wtxid, i))) {
                 continue;
+            }
 
-            if (IsLockedCoin(wtxid, i))
+            if (IsLockedCoin(wtxid, i)) {
                 continue;
+            }
 
-            if (IsSpent(wtxid, i))
+            if (IsSpent(wtxid, i)) {
                 continue;
+            }
 
             isminetype mine = IsMine(txout);
             if (mine == ISMINE_NO) {
@@ -10225,7 +10230,7 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
             bool fSolvableIn = IsSolvable(*this, txout->scriptPubKey);
             bool fNeedHardwareKey = (mine & ISMINE_HARDWARE_DEVICE);
 
-            vCoins.emplace_back(&wtx, i, nDepth, fSpendableIn, fSolvableIn, safeTx, fMature, fNeedHardwareKey);
+            vCoins.emplace_back(&wtx, i, nDepth, fSpendableIn, fSolvableIn, safeTx, (coinControl && coinControl->fAllowWatchOnly), fMature, fNeedHardwareKey);
 
             // Checks the sum amount of all UTXO's.
             if (nMinimumSumAmount != MAX_MONEY) {
@@ -10240,11 +10245,10 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
             if (nMaximumCount > 0 && vCoins.size() >= nMaximumCount) {
                 return;
             }
-        };
-    };
+        }
+    }
 
-    for (MapRecords_t::const_iterator it = mapRecords.begin(); it != mapRecords.end(); ++it)
-    {
+    for (MapRecords_t::const_iterator it = mapRecords.begin(); it != mapRecords.end(); ++it) {
         const uint256 &txid = it->first;
         const CTransactionRecord &rtx = it->second;
 
@@ -10253,16 +10257,19 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
         //    continue;
 
         int nDepth = GetDepthInMainChain(rtx.blockHash, rtx.nIndex);
-        if (nDepth < 0)
+        if (nDepth < 0) {
             continue;
+        }
 
-        if (nDepth < nMinDepth || nDepth > nMaxDepth)
+        if (nDepth < nMinDepth || nDepth > nMaxDepth) {
             continue;
+        }
 
         // We should not consider coins which aren't at least in our mempool
         // It's possible for these to be conflicted via ancestors which we may never be able to detect
-        if (nDepth == 0 && !InMempool(txid))
+        if (nDepth == 0 && !InMempool(txid)) {
             continue;
+        }
 
         bool safeTx = IsTrusted(txid, rtx.blockHash);
         if (nDepth == 0 && rtx.mapValue.count(RTXVT_REPLACES_TXID)) {
@@ -10278,25 +10285,30 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
         }
 
         MapWallet_t::const_iterator twi = mapTempWallet.find(txid);
-        for (const auto &r : rtx.vout)
-        {
-            if (r.nType != OUTPUT_STANDARD)
+        for (const auto &r : rtx.vout) {
+            if (r.nType != OUTPUT_STANDARD) {
                 continue;
+            }
 
-            if (!(r.nFlags & ORF_OWN_ANY))
+            if (!(r.nFlags & ORF_OWN_ANY)) {
                 continue;
+            }
 
-            if (IsSpent(txid, r.n))
+            if (IsSpent(txid, r.n)) {
                 continue;
+            }
 
-            if (r.nValue < nMinimumAmount || r.nValue > nMaximumAmount)
+            if (r.nValue < nMinimumAmount || r.nValue > nMaximumAmount) {
                 continue;
+            }
 
-            if (coinControl && coinControl->HasSelected() && !coinControl->fAllowOtherInputs && !coinControl->IsSelected(COutPoint(txid, r.n)))
+            if (coinControl && coinControl->HasSelected() && !coinControl->fAllowOtherInputs && !coinControl->IsSelected(COutPoint(txid, r.n))) {
                 continue;
+            }
 
-            if (IsLockedCoin(txid, r.n))
+            if (IsLockedCoin(txid, r.n)) {
                 continue;
+            }
 
             if (twi == mapTempWallet.end()
                 && (twi = mapTempWallet.find(txid)) == mapTempWallet.end()) {
@@ -10310,7 +10322,7 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
             bool fSpendableIn = (r.nFlags & ORF_OWNED) || (coinControl && coinControl->fAllowWatchOnly);
             bool fNeedHardwareKey = (r.nFlags & ORF_HARDWARE_DEVICE);
 
-            vCoins.emplace_back(&twi->second, r.n, nDepth, fSpendableIn, true, safeTx, true, fNeedHardwareKey);
+            vCoins.emplace_back(&twi->second, r.n, nDepth, fSpendableIn, true, safeTx, (coinControl && coinControl->fAllowWatchOnly), true, fNeedHardwareKey);
 
             if (nMinimumSumAmount != MAX_MONEY) {
                 nTotal += r.nValue;
@@ -10324,8 +10336,8 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
             if (nMaximumCount > 0 && vCoins.size() >= nMaximumCount) {
                 return;
             }
-        };
-    };
+        }
+    }
     return;
 };
 

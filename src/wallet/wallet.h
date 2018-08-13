@@ -319,7 +319,7 @@ public:
 };
 
 //Get the marginal bytes of spending the specified output
-int CalculateMaximumSignedInputSize(const CTxOut& txout, const CWallet* pwallet);
+int CalculateMaximumSignedInputSize(const CTxOut& txout, const CWallet* pwallet, bool use_max_sig = false);
 
 /**
  * A transaction with a bunch of additional info that only the owner cares about.
@@ -506,17 +506,16 @@ public:
     CAmount GetChange() const;
 
     // Get the marginal bytes if spending the specified output from this transaction
-    int GetSpendSize(unsigned int out) const
+    int GetSpendSize(unsigned int out, bool use_max_sig = false) const
     {
-        if (tx->IsParticlVersion())
-        {
+        if (tx->IsParticlVersion()) {
             assert(tx->vpout[out]->IsStandardOutput());
             CTxOut txout;
             txout.nValue = tx->vpout[out]->GetValue();
             txout.scriptPubKey = *tx->vpout[out]->GetPScriptPubKey();
-            return CalculateMaximumSignedInputSize(txout, pwallet);
+            return CalculateMaximumSignedInputSize(txout, pwallet, use_max_sig);
         }
-        return CalculateMaximumSignedInputSize(tx->vout[out], pwallet);
+        return CalculateMaximumSignedInputSize(tx->vout[out], pwallet, use_max_sig);
     }
 
     void GetAmounts(std::list<COutputEntry>& listReceived,
@@ -568,11 +567,14 @@ public:
      */
     bool fSafe;
 
+    /** Whether to use the maximum sized, 72 byte signature when calculating the size of the input spend. This should only be set when watch-only outputs are allowed */
+    bool use_max_sig;
+
     bool fMature;
     bool fNeedHardwareKey = false;
 
-    COutput(const CWalletTx *txIn, int iIn, int nDepthIn, bool fSpendableIn, bool fSolvableIn, bool fSafeIn, bool fMatureIn=true, bool fNeedHardwareKeyIn=false, bool fGetSpendSize=true)
-        : tx(txIn), i(iIn), nDepth(nDepthIn), fSpendable(fSpendableIn), fSolvable(fSolvableIn), fSafe(fSafeIn), fMature(fMatureIn), fNeedHardwareKey(fNeedHardwareKeyIn)
+    COutput(const CWalletTx *txIn, int iIn, int nDepthIn, bool fSpendableIn, bool fSolvableIn, bool fSafeIn, bool use_max_sig_in = false, bool fMatureIn=true, bool fNeedHardwareKeyIn=false, bool fGetSpendSize=true)
+        : tx(txIn), i(iIn), nDepth(nDepthIn), fSpendable(fSpendableIn), fSolvable(fSolvableIn), fSafe(fSafeIn), use_max_sig(use_max_sig_in), fMature(fMatureIn), fNeedHardwareKey(fNeedHardwareKeyIn)
     {
         // fGetSpendSize, avoid running DummySignInput when staking
         tx = txIn; i = iIn; nDepth = nDepthIn; fSpendable = fSpendableIn; fSolvable = fSolvableIn; fSafe = fSafeIn; nInputBytes = -1;
@@ -1042,14 +1044,14 @@ public:
     void ListAccountCreditDebit(const std::string& strAccount, std::list<CAccountingEntry>& entries);
     bool AddAccountingEntry(const CAccountingEntry&);
     bool AddAccountingEntry(const CAccountingEntry&, WalletBatch *batch);
-    bool DummySignTx(CMutableTransaction &txNew, const std::set<CTxOut> &txouts) const
+    bool DummySignTx(CMutableTransaction &txNew, const std::set<CTxOut> &txouts, bool use_max_sig = false) const
     {
         std::vector<CTxOut> v_txouts(txouts.size());
         std::copy(txouts.begin(), txouts.end(), v_txouts.begin());
-        return DummySignTx(txNew, v_txouts);
+        return DummySignTx(txNew, v_txouts, use_max_sig);
     }
-    bool DummySignTx(CMutableTransaction &txNew, const std::vector<CTxOut> &txouts) const;
-    virtual bool DummySignInput(CTxIn &tx_in, const CTxOut &txout) const;
+    bool DummySignTx(CMutableTransaction &txNew, const std::vector<CTxOut> &txouts, bool use_max_sig = false) const;
+    virtual bool DummySignInput(CTxIn &tx_in, const CTxOut &txout, bool use_max_sig = false) const;
 
     CFeeRate m_pay_tx_fee{DEFAULT_PAY_TX_FEE};
     unsigned int m_confirm_target{DEFAULT_TX_CONFIRM_TARGET};
@@ -1382,9 +1384,9 @@ public:
 };
 
 // Calculate the size of the transaction assuming all signatures are max size
-// Use DummySignatureCreator, which inserts 72 byte signatures everywhere.
+// Use DummySignatureCreator, which inserts 71 byte signatures everywhere.
 // NOTE: this requires that all inputs must be in mapWallet (eg the tx should
 // be IsAllFromMe).
-int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *wallet);
-int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *wallet, const std::vector<CTxOut>& txouts);
+int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *wallet, bool use_max_sig = false);
+int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *wallet, const std::vector<CTxOut>& txouts, bool use_max_sig = false);
 #endif // BITCOIN_WALLET_WALLET_H

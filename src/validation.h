@@ -342,11 +342,6 @@ uint64_t CalculateCurrentUsage();
 void PruneOneBlockFile(const int fileNumber);
 
 /**
- *  Mark one block file as pruned.
- */
-void PruneOneBlockFile(const int fileNumber);
-
-/**
  *  Actually unlink the specified files
  */
 void UnlinkPrunedFiles(const std::set<int>& setFilesToPrune);
@@ -597,9 +592,6 @@ int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Para
 static const unsigned int REJECT_INTERNAL = 0x100;
 /** Too high fee. Can not be triggered by P2P transactions */
 static const unsigned int REJECT_HIGHFEE = 0x100;
-
-/** Get block file info entry for one block file */
-CBlockFileInfo* GetBlockFileInfo(size_t n);
 
 /** Get block file info entry for one block file */
 CBlockFileInfo* GetBlockFileInfo(size_t n);

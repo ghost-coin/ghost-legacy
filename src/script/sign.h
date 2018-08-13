@@ -86,8 +86,10 @@ public:
     bool IsCoinStake() const override { return txTo && txTo->IsCoinStake(); }
 };
 
-/** A signature creator that just produces 72-byte empty signatures. */
+/** A signature creator that just produces 71-byte empty signatures. */
 extern const BaseSignatureCreator& DUMMY_SIGNATURE_CREATOR;
+/** A signature creator that just produces 72-byte empty signatures. */
+extern const BaseSignatureCreator& DUMMY_MAXIMUM_SIGNATURE_CREATOR;
 extern const BaseSignatureCreator& DUMMY_SIGNATURE_CREATOR_PARTICL;
 
 typedef std::pair<CPubKey, std::vector<unsigned char>> SigPair;

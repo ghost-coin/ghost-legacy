@@ -29,9 +29,6 @@
 
 extern UniValue CallRPC(std::string args, std::string wallet="");
 
-extern bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex,
-                  CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck);
-
 struct StakeTestingSetup: public TestingSetup {
     StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
         TestingSetup(chainName, true) // fParticlMode = true

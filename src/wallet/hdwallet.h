@@ -623,7 +623,7 @@ public:
     bool CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx,
         CReserveKey &reservekey, CConnman *connman, CValidationState &state);
 
-    bool DummySignInput(CTxIn &tx_in, const CTxOut &txout) const override;
+    bool DummySignInput(CTxIn &tx_in, const CTxOut &txout, bool use_max_sig = false) const override;
 
     bool DummySignInput(CTxIn &tx_in, const CTxOutBaseRef &txout) const;
     bool DummySignTx(CMutableTransaction &txNew, const std::vector<CTxOutBaseRef> &txouts) const;

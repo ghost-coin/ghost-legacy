@@ -267,15 +267,11 @@ bool ProduceSignature(const SigningProvider& provider, const BaseSignatureCreato
         result.push_back(std::vector<unsigned char>(subscript.begin(), subscript.end()));
     }
 
-    if (creator.IsParticlVersion())
-    {
+    if (creator.IsParticlVersion()) {
         sigdata.scriptWitness.stack = result;
-    } else
-    {
+    } else  {
         sigdata.scriptSig = PushAll(result);
-    };
-
-    ScriptError serror = SCRIPT_ERR_OK;
+    }
 
     // Test solution
     sigdata.complete = solved && VerifyScript(sigdata.scriptSig, fromPubKey, &sigdata.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, creator.Checker());
@@ -506,22 +502,25 @@ public:
 const DummySignatureChecker DUMMY_CHECKER;
 
 class DummySignatureCreator : public BaseSignatureCreator {
+private:
+    char m_r_len = 32;
+    char m_s_len = 32;
 public:
-    DummySignatureCreator() {}
+    DummySignatureCreator(char r_len, char s_len) : m_r_len(r_len), m_s_len(s_len) {}
     const BaseSignatureChecker& Checker() const override { return DUMMY_CHECKER; }
     bool CreateSig(const SigningProvider& provider, std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const override
     {
         // Create a dummy signature that is a valid DER-encoding
-        vchSig.assign(72, '\000');
+        vchSig.assign(m_r_len + m_s_len + 7, '\000');
         vchSig[0] = 0x30;
-        vchSig[1] = 69;
+        vchSig[1] = m_r_len + m_s_len + 4;
         vchSig[2] = 0x02;
-        vchSig[3] = 33;
+        vchSig[3] = m_r_len;
         vchSig[4] = 0x01;
-        vchSig[4 + 33] = 0x02;
-        vchSig[5 + 33] = 32;
-        vchSig[6 + 33] = 0x01;
-        vchSig[6 + 33 + 32] = SIGHASH_ALL;
+        vchSig[4 + m_r_len] = 0x02;
+        vchSig[5 + m_r_len] = m_s_len;
+        vchSig[6 + m_r_len] = 0x01;
+        vchSig[6 + m_r_len + m_s_len] = SIGHASH_ALL;
         return true;
     }
 };
@@ -537,7 +536,7 @@ const DummySignatureCheckerParticl DUMMY_CHECKER_PARTICL;
 
 class DummySignatureCreatorParticl : public DummySignatureCreator {
 public:
-    DummySignatureCreatorParticl() : DummySignatureCreator() {}
+    DummySignatureCreatorParticl() : DummySignatureCreator(33, 32) {}
     const BaseSignatureChecker& Checker() const override { return DUMMY_CHECKER_PARTICL; }
     bool IsParticlVersion() const override { return true; }
 };
@@ -555,7 +554,8 @@ bool LookupHelper(const M& map, const K& key, V& value)
 
 }
 
-const BaseSignatureCreator& DUMMY_SIGNATURE_CREATOR = DummySignatureCreator();
+const BaseSignatureCreator& DUMMY_SIGNATURE_CREATOR = DummySignatureCreator(32, 32);
+const BaseSignatureCreator& DUMMY_MAXIMUM_SIGNATURE_CREATOR = DummySignatureCreator(33, 32);
 const BaseSignatureCreator& DUMMY_SIGNATURE_CREATOR_PARTICL = DummySignatureCreatorParticl();
 const SigningProvider& DUMMY_SIGNING_PROVIDER = SigningProvider();
 
@@ -571,7 +571,8 @@ bool IsSolvable(const SigningProvider& provider, const CScript& script)
     static_assert(STANDARD_SCRIPT_VERIFY_FLAGS & SCRIPT_VERIFY_WITNESS_PUBKEYTYPE, "IsSolvable requires standard script flags to include WITNESS_PUBKEYTYPE");
     if (ProduceSignature(provider, DUMMY_SIGNATURE_CREATOR, script, sigs)) {
         // VerifyScript check is just defensive, and should never fail.
-        assert(VerifyScript(sigs.scriptSig, script, &sigs.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, DUMMY_CHECKER));
+        bool verified = VerifyScript(sigs.scriptSig, script, &sigs.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, DUMMY_CHECKER);
+        assert(verified);
         return true;
     }
     return false;

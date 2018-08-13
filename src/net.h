@@ -91,7 +91,6 @@ typedef int64_t NodeId;
 
 
 extern CCriticalSection cs_main;
-extern void DecMisbehaving(NodeId nodeid, int howmuch);
 
 struct AddedNodeInfo
 {
