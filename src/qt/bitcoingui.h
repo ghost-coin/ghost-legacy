@@ -9,6 +9,8 @@
 #include <config/bitcoin-config.h>
 #endif
 
+#include <qt/optionsdialog.h>
+
 #include <amount.h>
 
 #include <QLabel>
@@ -45,6 +47,10 @@ class QComboBox;
 class QProgressBar;
 class QProgressDialog;
 QT_END_NAMESPACE
+
+namespace GUIUtil {
+class ClickableLabel;
+}
 
 /**
   Bitcoin GUI main class. This class represents the main window of the Bitcoin UI. It communicates with both the client and
@@ -94,8 +100,8 @@ private:
     UnitDisplayStatusBarControl* unitDisplayControl = nullptr;
     QLabel* labelWalletEncryptionIcon = nullptr;
     QLabel* labelWalletHDStatusIcon = nullptr;
-    QLabel* labelProxyIcon = nullptr;
-    QLabel* connectionsControl = nullptr;
+    GUIUtil::ClickableLabel* labelProxyIcon = nullptr;
+    GUIUtil::ClickableLabel* connectionsControl = nullptr;
     QLabel* labelBlocksIcon = nullptr;
     QLabel* progressBarLabel = nullptr;
     QProgressBar* progressBar = nullptr;
@@ -168,6 +174,9 @@ private:
     void updateNetworkState();
 
     void updateHeadersSyncProgressLabel();
+
+    /** Open the OptionsDialog on the specified tab index */
+    void openOptionsDialogWithTab(OptionsDialog::Tab tab);
 
     QMessageBox mbDevice;
 
@@ -282,9 +291,6 @@ private Q_SLOTS:
 
     /** When hideTrayIcon setting is changed in OptionsModel hide or show the icon accordingly. */
     void setTrayIconVisible(bool);
-
-    /** Toggle networking */
-    void toggleNetworkActive();
 
     void showModalOverlay();
 };

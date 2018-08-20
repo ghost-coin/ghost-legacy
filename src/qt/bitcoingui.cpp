@@ -151,7 +151,7 @@ BitcoinGUI::BitcoinGUI(interfaces::Node& node, const PlatformStyle *_platformSty
     unitDisplayControl = new UnitDisplayStatusBarControl(platformStyle);
     labelWalletEncryptionIcon = new GUIUtil::ClickableLabel();
     labelWalletHDStatusIcon = new QLabel();
-    labelProxyIcon = new QLabel();
+    labelProxyIcon = new GUIUtil::ClickableLabel();
     connectionsControl = new GUIUtil::ClickableLabel();
     labelBlocksIcon = new GUIUtil::ClickableLabel();
     if(enableWallet)
@@ -198,7 +198,12 @@ BitcoinGUI::BitcoinGUI(interfaces::Node& node, const PlatformStyle *_platformSty
     // Subscribe to notifications from core
     subscribeToCoreSignals();
 
-    connect(connectionsControl, SIGNAL(clicked(QPoint)), this, SLOT(toggleNetworkActive()));
+    connect(connectionsControl, &GUIUtil::ClickableLabel::clicked, [this] {
+        m_node.setNetworkActive(!m_node.getNetworkActive());
+    });
+    connect(labelProxyIcon, &GUIUtil::ClickableLabel::clicked, [this] {
+        openOptionsDialogWithTab(OptionsDialog::TAB_NETWORK);
+    });
 
     modalOverlay = new ModalOverlay(this->centralWidget());
 #ifdef ENABLE_WALLET
@@ -669,12 +674,7 @@ void BitcoinGUI::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void BitcoinGUI::optionsClicked()
 {
-    if(!clientModel || !clientModel->getOptionsModel())
-        return;
-
-    OptionsDialog dlg(this, enableWallet);
-    dlg.setModel(clientModel->getOptionsModel());
-    dlg.exec();
+    openOptionsDialogWithTab(OptionsDialog::TAB_MAIN);
 }
 
 void BitcoinGUI::aboutClicked()
@@ -836,6 +836,17 @@ void BitcoinGUI::updateHeadersSyncProgressLabel()
     int estHeadersLeft = (GetTime() - headersTipTime) / Params().GetConsensus().nPowTargetSpacing;
     if (estHeadersLeft > HEADER_HEIGHT_DELTA_SYNC)
         progressBarLabel->setText(tr("Syncing Headers (%1%)...").arg(QString::number(100.0 / (headersTipHeight+estHeadersLeft)*headersTipHeight, 'f', 1)));
+}
+
+void BitcoinGUI::openOptionsDialogWithTab(OptionsDialog::Tab tab)
+{
+    if (!clientModel || !clientModel->getOptionsModel())
+        return;
+
+    OptionsDialog dlg(this, enableWallet);
+    dlg.setCurrentTab(tab);
+    dlg.setModel(clientModel->getOptionsModel());
+    dlg.exec();
 }
 
 void BitcoinGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool header)
@@ -1355,11 +1366,6 @@ void BitcoinGUI::unsubscribeFromCoreSignals()
     // Disconnect signals from client
     m_handler_message_box->disconnect();
     m_handler_question->disconnect();
-}
-
-void BitcoinGUI::toggleNetworkActive()
-{
-    m_node.setNetworkActive(!m_node.getNetworkActive());
 }
 
 UnitDisplayStatusBarControl::UnitDisplayStatusBarControl(const PlatformStyle *platformStyle) :
