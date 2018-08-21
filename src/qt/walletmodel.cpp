@@ -48,11 +48,11 @@ WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet, interfaces:
 
     // This timer will be fired repeatedly to update the balance
     pollTimer = new QTimer(this);
-    connect(pollTimer, SIGNAL(timeout()), this, SLOT(pollBalanceChanged()));
+    connect(pollTimer, &QTimer::timeout, this, &WalletModel::pollBalanceChanged);
     pollTimer->start(MODEL_UPDATE_DELAY);
 
-    connect(getOptionsModel(), SIGNAL(setReserveBalance(CAmount)), this, SLOT(setReserveBalance(CAmount)));
-    connect(this, SIGNAL(notifyReservedBalanceChanged(CAmount)), getOptionsModel(), SLOT(updateReservedBalance(CAmount)));
+    connect(getOptionsModel(), &OptionsModel::setReserveBalance, this, &WalletModel::setReserveBalance);
+    connect(this, &WalletModel::notifyReservedBalanceChanged, getOptionsModel(), &OptionsModel::updateReservedBalance);
 
     subscribeToCoreSignals();
 }
