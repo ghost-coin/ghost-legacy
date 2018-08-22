@@ -5690,6 +5690,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         throw std::runtime_error(
             "walletsettings \"setting\" {...}\n"
             "\nManage wallet settings.\n"
+            "Each settings group is set as a block, unspecified options will be set to the default value.\n"
             + HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"setting\"                    (string, required) Settings group to modify.\n"
