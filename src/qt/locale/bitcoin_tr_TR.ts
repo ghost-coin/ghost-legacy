@@ -303,7 +303,7 @@
     </message>
     <message>
         <source>Particl</source>
-        <translation>Bitcoin
+        <translation>Particl
 </translation>
     </message>
     <message>

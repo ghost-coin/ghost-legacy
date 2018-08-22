@@ -1329,8 +1329,8 @@ Per specificare più URL separarli con una barra verticale "|".</translation>
         <translation>Gestione URI</translation>
     </message>
     <message>
-        <source>'bitcoin://' is not a valid URI. Use 'bitcoin:' instead.</source>
-        <translation>'bitcoin: //' non è un URI valido. Usa invece "bitcoin:".</translation>
+        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
+        <translation>'particl: //' non è un URI valido. Usa invece "particl:".</translation>
     </message>
     <message>
         <source>Payment request fetch URL is invalid: %1</source>
