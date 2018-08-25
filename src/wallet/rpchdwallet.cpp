@@ -53,8 +53,9 @@ static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
 static inline uint32_t reversePlace(const uint8_t *p)
 {
     uint32_t rv = 0;
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 4; ++i) {
         rv |= (uint32_t) *(p+i) << (8 * (3-i));
+    }
     return rv;
 };
 
@@ -65,18 +66,15 @@ static int ExtractBip32InfoV(const std::vector<uint8_t> &vchKey, UniValue &keyIn
     vk.DecodeV(&vchKey[4]);
 
     CChainParams::Base58Type typePk = CChainParams::EXT_PUBLIC_KEY;
-    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0)
-    {
+    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0) {
         keyInfo.pushKV("type", "Particl extended secret key");
     } else
-    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0)
-    {
+    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0) {
         keyInfo.pushKV("type", "Bitcoin extended secret key");
         typePk = CChainParams::EXT_PUBLIC_KEY_BTC;
-    } else
-    {
+    } else {
         keyInfo.pushKV("type", "Unknown extended secret key");
-    };
+    }
 
     keyInfo.pushKV("version", strprintf("%02X", reversePlace(&vchKey[0])));
     keyInfo.pushKV("depth", strprintf("%u", vchKey[4]));
@@ -110,17 +108,14 @@ static int ExtractBip32InfoP(const std::vector<uint8_t> &vchKey, UniValue &keyIn
 {
     CExtPubKey pk;
 
-    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4) == 0)
-    {
+    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4) == 0) {
         keyInfo.pushKV("type", "Particl extended public key");
     } else
-    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4) == 0)
-    {
+    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4) == 0)  {
         keyInfo.pushKV("type", "Bitcoin extended public key");
-    } else
-    {
+    } else {
         keyInfo.pushKV("type", "Unknown extended public key");
-    };
+    }
 
     keyInfo.pushKV("version", strprintf("%02X", reversePlace(&vchKey[0])));
     keyInfo.pushKV("depth", strprintf("%u", vchKey[4]));
@@ -145,8 +140,9 @@ static int ExtractBip32InfoP(const std::vector<uint8_t> &vchKey, UniValue &keyIn
 
 static int ExtKeyPathV(const std::string &sPath, const std::vector<uint8_t> &vchKey, UniValue &keyInfo, std::string &sError)
 {
-    if (sPath.compare("info") == 0)
+    if (sPath.compare("info") == 0) {
         return ExtractBip32InfoV(vchKey, keyInfo, sError);
+    }
 
     CExtKey vk;
     vk.Decode(&vchKey[4]);
@@ -154,15 +150,16 @@ static int ExtKeyPathV(const std::string &sPath, const std::vector<uint8_t> &vch
 
     std::vector<uint32_t> vPath;
     int rv;
-    if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0)
+    if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0) {
         return errorN(1, sError, __func__, "ExtractExtKeyPath failed %s", ExtKeyGetString(rv));
+    }
 
-    for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it)
-    {
-        if (!vkWork.Derive(vkOut, *it))
+    for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it) {
+        if (!vkWork.Derive(vkOut, *it)) {
             return errorN(1, sError, __func__, "CExtKey Derive failed");
+        }
         vkWork = vkOut;
-    };
+    }
 
     CBitcoinExtKey ekOut;
     ekOut.SetKey(vkOut);
@@ -170,8 +167,9 @@ static int ExtKeyPathV(const std::string &sPath, const std::vector<uint8_t> &vch
 
     // Display path, the quotes can go missing through the debug console. eg: m/44'/1', m/44\'/1\' works
     std::string sPathOut;
-    if (0 != PathToString(vPath, sPathOut))
+    if (0 != PathToString(vPath, sPathOut)) {
         return errorN(1, sError, __func__, "PathToString failed");
+    }
     keyInfo.pushKV("path", sPathOut);
 
     return 0;
@@ -179,8 +177,9 @@ static int ExtKeyPathV(const std::string &sPath, const std::vector<uint8_t> &vch
 
 static int ExtKeyPathP(const std::string &sPath, const std::vector<uint8_t> &vchKey, UniValue &keyInfo, std::string &sError)
 {
-    if (sPath.compare("info") == 0)
+    if (sPath.compare("info") == 0) {
         return ExtractBip32InfoP(vchKey, keyInfo, sError);
+    }
 
     CExtPubKey pk;
     pk.Decode(&vchKey[4]);
@@ -189,17 +188,19 @@ static int ExtKeyPathP(const std::string &sPath, const std::vector<uint8_t> &vch
 
     std::vector<uint32_t> vPath;
     int rv;
-    if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0)
+    if ((rv = ExtractExtKeyPath(sPath, vPath)) != 0) {
         return errorN(1, sError, __func__, "ExtractExtKeyPath failed %s", ExtKeyGetString(rv));
+    }
 
-    for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it)
-    {
-        if ((*it >> 31) == 1)
+    for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it) {
+        if ((*it >> 31) == 1) {
             return errorN(1, sError, __func__, "Can't derive hardened keys from public ext key");
-        if (!pkWork.Derive(pkOut, *it))
+        }
+        if (!pkWork.Derive(pkOut, *it)) {
             return errorN(1, sError, __func__, "CExtKey Derive failed");
+        }
         pkWork = pkOut;
-    };
+    }
 
     CBitcoinExtPubKey ekOut;
     ekOut.SetKey(pkOut);
@@ -207,8 +208,9 @@ static int ExtKeyPathP(const std::string &sPath, const std::vector<uint8_t> &vch
 
     // Display path, the quotes can go missing through the debug console. eg: m/44'/1', m/44\'/1\' works
     std::string sPathOut;
-    if (0 != PathToString(vPath, sPathOut))
+    if (0 != PathToString(vPath, sPathOut)) {
         return errorN(1, sError, __func__, "PathToString failed");
+    }
     keyInfo.pushKV("path", sPathOut);
 
     return 0;
@@ -402,99 +404,90 @@ static int KeyInfo(CHDWallet *pwallet, CKeyID &idMaster, CKeyID &idKey, CStoredE
     obj.pushKV("hardware_device", sek.nFlags & EAF_HARDWARE_DEVICE ? "true" : "false");
     obj.pushKV("label", sek.sLabel);
 
-    if (reversePlace(&sek.kp.vchFingerprint[0]) == 0)
-    {
+    if (reversePlace(&sek.kp.vchFingerprint[0]) == 0) {
         obj.pushKV("path", "Root");
-    } else
-    {
+    } else {
         mapEKValue_t::iterator mvi = sek.mapValue.find(EKVT_PATH);
-        if (mvi != sek.mapValue.end())
-        {
+        if (mvi != sek.mapValue.end()) {
             std::string sPath;
-            if (0 == PathToString(mvi->second, sPath, 'h'))
+            if (0 == PathToString(mvi->second, sPath, 'h')) {
                 obj.pushKV("path", sPath);
-        };
-    };
+            }
+        }
+    }
 
     mapEKValue_t::iterator mvi = sek.mapValue.find(EKVT_KEY_TYPE);
-    if (mvi != sek.mapValue.end())
-    {
+    if (mvi != sek.mapValue.end()) {
         uint8_t type = EKT_MAX_TYPES;
-        if (mvi->second.size() == 1)
+        if (mvi->second.size() == 1) {
             type = mvi->second[0];
+        }
 
         std::string sType;
-        switch (type)
-        {
+        switch (type) {
             case EKT_MASTER      : sType = "Master"; break;
             case EKT_BIP44_MASTER:
                 sType = "BIP44 Root Key";
                 fBip44Root = true;
                 break;
             default              : sType = "Unknown"; break;
-        };
+        }
         obj.pushKV("key_type", sType);
-    };
+    }
 
-    if (idMaster == idKey)
+    if (idMaster == idKey) {
         obj.pushKV("current_master", "true");
+    }
 
     CBitcoinAddress addr;
     mvi = sek.mapValue.find(EKVT_ROOT_ID);
-    if (mvi != sek.mapValue.end())
-    {
+    if (mvi != sek.mapValue.end()) {
         CKeyID idRoot;
 
-        if (GetCKeyID(mvi->second, idRoot))
-        {
+        if (GetCKeyID(mvi->second, idRoot)) {
             addr.Set(idRoot, CChainParams::EXT_KEY_HASH);
             obj.pushKV("root_key_id", addr.ToString());
-        } else
-        {
+        } else {
             obj.pushKV("root_key_id", "malformed");
-        };
-    };
+        }
+    }
 
     mvi = sek.mapValue.find(EKVT_CREATED_AT);
-    if (mvi != sek.mapValue.end())
-    {
+    if (mvi != sek.mapValue.end()) {
         int64_t nCreatedAt;
         GetCompressedInt64(mvi->second, (uint64_t&)nCreatedAt);
         obj.pushKV("created_at", nCreatedAt);
-    };
+    }
 
     addr.Set(idKey, CChainParams::EXT_KEY_HASH);
     obj.pushKV("id", addr.ToString());
 
-
     if (nShowKeys > 1
-        && pwallet->ExtKeyUnlock(&sek) == 0)
-    {
+        && pwallet->ExtKeyUnlock(&sek) == 0) {
         std::string sKey;
-        if (sek.kp.IsValidV())
-        {
-            if (fBip44Root)
+        if (sek.kp.IsValidV()) {
+            if (fBip44Root) {
                 eKey58.SetKey(sek.kp, CChainParams::EXT_SECRET_KEY_BTC);
-            else
+            } else {
                 eKey58.SetKeyV(sek.kp);
+            }
             sKey = eKey58.ToString();
-        } else
-        {
+        } else {
             sKey = "Unknown";
-        };
+        }
 
         obj.pushKV("evkey", sKey);
-    };
+    }
 
-    if (nShowKeys > 0)
-    {
-        if (fBip44Root)
+    if (nShowKeys > 0) {
+        if (fBip44Root) {
             eKey58.SetKey(sek.kp, CChainParams::EXT_PUBLIC_KEY_BTC);
-        else
+        } else {
             eKey58.SetKeyP(sek.kp);
+        }
 
         obj.pushKV("epkey", eKey58.ToString());
-    };
+    }
 
     obj.pushKV("num_derives", strprintf("%u", sek.nGenerated));
     obj.pushKV("num_derives_hardened", strprintf("%u", sek.nHGenerated));
@@ -509,11 +502,10 @@ static int KeyInfo(CHDWallet *pwallet, CKeyID &idMaster, CKeyID &idKey, int nSho
         LOCK(pwallet->cs_wallet);
         CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
 
-        if (!wdb.ReadExtKey(idKey, sek))
-        {
+        if (!wdb.ReadExtKey(idKey, sek)) {
             sError = "Key not found in wallet.";
             return 1;
-        };
+        }
     }
 
     return KeyInfo(pwallet, idMaster, idKey, sek, nShowKeys, obj, sError);
@@ -529,19 +521,19 @@ public:
         rvArray = arr;
         nShowKeys = _nShowKeys;
 
-        if (pwallet && pwallet->pEKMaster)
+        if (pwallet && pwallet->pEKMaster) {
             idMaster = pwallet->pEKMaster->GetID();
+        }
     };
 
     int ProcessKey(CKeyID &id, CStoredExtKey &sek)
     {
         nItems++;
         UniValue obj(UniValue::VOBJ);
-        if (0 != KeyInfo(pwallet, idMaster, id, sek, nShowKeys, obj, sError))
-        {
+        if (0 != KeyInfo(pwallet, idMaster, id, sek, nShowKeys, obj, sError)) {
             obj.pushKV("id", sek.GetIDString58());
             obj.pushKV("error", sError);
-        };
+        }
 
         rvArray->push_back(obj);
         return 0;
@@ -553,11 +545,10 @@ public:
         UniValue obj(UniValue::VOBJ);
 
         bool fAllChains = nShowKeys > 2 ? true : false;
-        if (0 != AccountInfo(pwallet, &sea, nShowKeys, fAllChains, obj, sError))
-        {
+        if (0 != AccountInfo(pwallet, &sea, nShowKeys, fAllChains, obj, sError)) {
             obj.pushKV("id", sea.GetIDString58());
             obj.pushKV("error", sError);
-        };
+        }
 
         rvArray->push_back(obj);
         return 0;
@@ -574,8 +565,9 @@ int ListLooseExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &n
 {
     ListExtCallback cbc(pwallet, &ret, nShowKeys);
 
-    if (0 != LoopExtKeysInDB(pwallet, true, false, cbc))
+    if (0 != LoopExtKeysInDB(pwallet, true, false, cbc)) {
         return errorN(1, "LoopExtKeys failed.");
+    }
 
     nKeys = cbc.nItems;
 
@@ -586,8 +578,9 @@ int ListAccountExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t 
 {
     ListExtCallback cbc(pwallet, &ret, nShowKeys);
 
-    if (0 != LoopExtAccountsInDB(pwallet, true, cbc))
+    if (0 != LoopExtAccountsInDB(pwallet, true, cbc)) {
         return errorN(1, "LoopExtKeys failed.");
+    }
 
     nKeys = cbc.nItems;
 
@@ -596,110 +589,101 @@ int ListAccountExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t 
 
 static int ManageExtKey(CStoredExtKey &sek, std::string &sOptName, std::string &sOptValue, UniValue &result, std::string &sError)
 {
-    if (sOptName == "label")
-    {
-        if (sOptValue.length() == 0)
+    if (sOptName == "label") {
+        if (sOptValue.length() == 0) {
             sek.sLabel = sOptValue;
+        }
 
         result.pushKV("set_label", sek.sLabel);
     } else
-    if (sOptName == "active")
-    {
-        if (sOptValue.length() > 0)
-        {
-            if (part::IsStringBoolPositive(sOptValue))
+    if (sOptName == "active") {
+        if (sOptValue.length() > 0) {
+            if (part::IsStringBoolPositive(sOptValue)) {
                 sek.nFlags |= EAF_ACTIVE;
-            else
+            } else {
                 sek.nFlags &= ~EAF_ACTIVE;
-        };
+            }
+        }
 
         result.pushKV("set_active", sek.nFlags & EAF_ACTIVE ? "true" : "false");
     } else
-    if (sOptName == "receive_on")
-    {
-        if (sOptValue.length() > 0)
-        {
-            if (part::IsStringBoolPositive(sOptValue))
+    if (sOptName == "receive_on") {
+        if (sOptValue.length() > 0) {
+            if (part::IsStringBoolPositive(sOptValue)) {
                 sek.nFlags |= EAF_RECEIVE_ON;
-            else
+            } else {
                 sek.nFlags &= ~EAF_RECEIVE_ON;
-        };
+            }
+        }
 
         result.pushKV("receive_on", sek.nFlags & EAF_RECEIVE_ON ? "true" : "false");
     } else
-    if (sOptName == "look_ahead")
-    {
+    if (sOptName == "look_ahead") {
         uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", N_DEFAULT_LOOKAHEAD);
 
-        if (sOptValue.length() > 0)
-        {
-            if (!ParseUInt64(sOptValue, &nLookAhead))
+        if (sOptValue.length() > 0) {
+            if (!ParseUInt64(sOptValue, &nLookAhead)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed: look_ahead invalid number.");
+            }
 
-            if (nLookAhead < 1 || nLookAhead > 1000)
+            if (nLookAhead < 1 || nLookAhead > 1000) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed: look_ahead number out of range.");
+            }
 
             std::vector<uint8_t> v;
             sek.mapValue[EKVT_N_LOOKAHEAD] = SetCompressedInt64(v, nLookAhead);
             result.pushKV("note", "Wallet must be restarted to reload lookahead pool.");
-        };
+        }
 
         mapEKValue_t::iterator itV = sek.mapValue.find(EKVT_N_LOOKAHEAD);
-        if (itV != sek.mapValue.end())
-        {
+        if (itV != sek.mapValue.end()) {
             nLookAhead = GetCompressedInt64(itV->second, nLookAhead);
             result.pushKV("look_ahead", (int)nLookAhead);
-        } else
-        {
+        } else {
             result.pushKV("look_ahead", "default");
-        };
-    } else
-    {
+        }
+    } else {
         // List all possible
         result.pushKV("label", sek.sLabel);
         result.pushKV("active", sek.nFlags & EAF_ACTIVE ? "true" : "false");
         result.pushKV("receive_on", sek.nFlags & EAF_RECEIVE_ON ? "true" : "false");
 
         mapEKValue_t::iterator itV = sek.mapValue.find(EKVT_N_LOOKAHEAD);
-        if (itV != sek.mapValue.end())
-        {
+        if (itV != sek.mapValue.end()) {
             uint64_t nLookAhead = GetCompressedInt64(itV->second, nLookAhead);
             result.pushKV("look_ahead", (int)nLookAhead);
-        } else
-        {
+        } else {
             result.pushKV("look_ahead", "default");
-        };
-    };
+        }
+    }
 
     return 0;
 };
 
 static int ManageExtAccount(CExtKeyAccount &sea, std::string &sOptName, std::string &sOptValue, UniValue &result, std::string &sError)
 {
-    if (sOptName == "label")
-    {
-        if (sOptValue.length() > 0)
+    if (sOptName == "label") {
+        if (sOptValue.length() > 0) {
             sea.sLabel = sOptValue;
+        }
 
         result.pushKV("set_label", sea.sLabel);
     } else
-    if (sOptName == "active")
-    {
-        if (sOptValue.length() > 0)
-        {
-            if (part::IsStringBoolPositive(sOptValue))
+    if (sOptName == "active") {
+        if (sOptValue.length() > 0) {
+            if (part::IsStringBoolPositive(sOptValue)) {
                 sea.nFlags |= EAF_ACTIVE;
-            else
+            } else {
                 sea.nFlags &= ~EAF_ACTIVE;
-        };
+            }
+        }
 
         result.pushKV("set_active", sea.nFlags & EAF_ACTIVE ? "true" : "false");
-    } else
-    {
+    } else {
         // List all possible
         result.pushKV("label", sea.sLabel);
         result.pushKV("active", sea.nFlags & EAF_ACTIVE ? "true" : "false");
-    };
+    }
 
     return 0;
 };
@@ -712,18 +696,15 @@ static int ExtractExtKeyId(const std::string &sInKey, CKeyID &keyId, CChainParam
 
     if (addr.SetString(sInKey)
         && addr.IsValid(prefix)
-        && addr.GetKeyID(keyId, prefix))
-    {
+        && addr.GetKeyID(keyId, prefix)) {
         // keyId is set
     } else
-    if (eKey58.Set58(sInKey.c_str()) == 0)
-    {
+    if (eKey58.Set58(sInKey.c_str()) == 0) {
         ekp = eKey58.GetKey();
         keyId = ekp.GetID();
-    } else
-    {
+    } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid key.");
-    };
+    }
 
     return 0;
 };
@@ -749,10 +730,6 @@ static UniValue extkey(const JSONRPCRequest &request)
         "    Show default account when called without parameters.\n"
         "extkey key \"key/id\" ( show_secrets )\n"
         "    Display details of loose extkey in wallet.\n"
-        "extkey gen \"passphrase\" ( numhashes \"seedstring\" )\n"
-        "    DEPRECATED\n"
-        "    If no passhrase is specified key will be generated from random data.\n"
-        "    Warning: It is not recommended to use this feature.\n"
         "extkey import \"key\" ( \"label\" bip44 save_bip44_key )\n"
         "    Add loose key to wallet.\n"
         "    If bip44 is set import will add the key derived from <key> on the bip44 path.\n"
@@ -792,8 +769,9 @@ static UniValue extkey(const JSONRPCRequest &request)
     // accounts to receive must be non-hardened
     //   - locked wallets must be able to derive new keys as they receive
 
-    if (request.fHelp || request.params.size() > 5) // defaults to info, will always take at least 1 parameter
+    if (request.fHelp || request.params.size() > 5) { // defaults to info, will always take at least 1 parameter
         throw std::runtime_error(help);
+    }
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -801,24 +779,21 @@ static UniValue extkey(const JSONRPCRequest &request)
     std::string sInKey = "";
 
     uint32_t nParamOffset = 0;
-    if (request.params.size() > 0)
-    {
+    if (request.params.size() > 0) {
         std::string s = request.params[0].get_str();
         std::string st = " " + s + " "; // Note the spaces
         std::transform(st.begin(), st.end(), st.begin(), ::tolower);
         static const char *pmodes = " info list gen account key import importaccount setmaster setdefaultaccount deriveaccount options ";
-        if (strstr(pmodes, st.c_str()) != nullptr)
-        {
+        if (strstr(pmodes, st.c_str()) != nullptr) {
             st.erase(std::remove(st.begin(), st.end(), ' '), st.end());
             mode = st;
             nParamOffset = 1;
-        } else
-        {
+        } else {
             sInKey = s;
             mode = "info";
             nParamOffset = 1;
-        };
-    };
+        }
+    }
 
     CBitcoinExtKey bvk;
     CBitcoinExtPubKey bpk;
@@ -828,67 +803,66 @@ static UniValue extkey(const JSONRPCRequest &request)
 
     UniValue result(UniValue::VOBJ);
 
-    if (mode == "info")
-    {
+    if (mode == "info") {
         std::string sMode = "info"; // info lists details of bip32 key, m displays internal key
 
-        if (sInKey.length() == 0)
-        {
-            if (request.params.size() > nParamOffset)
-            {
+        if (sInKey.length() == 0) {
+            if (request.params.size() > nParamOffset) {
                 sInKey = request.params[nParamOffset].get_str();
                 nParamOffset++;
-            };
-        };
+            }
+        }
 
-        if (request.params.size() > nParamOffset)
+        if (request.params.size() > nParamOffset) {
             sMode = request.params[nParamOffset].get_str();
+        }
 
         UniValue keyInfo(UniValue::VOBJ);
         std::vector<uint8_t> vchOut;
 
-        if (!DecodeBase58(sInKey.c_str(), vchOut))
+        if (!DecodeBase58(sInKey.c_str(), vchOut)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "DecodeBase58 failed.");
-        if (!VerifyChecksum(vchOut))
+        }
+        if (!VerifyChecksum(vchOut)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "VerifyChecksum failed.");
+        }
 
         size_t keyLen = vchOut.size();
         std::string sError;
 
-        if (keyLen != BIP32_KEY_LEN)
+        if (keyLen != BIP32_KEY_LEN) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Unknown ext key length '%d'", keyLen));
+        }
 
         if (memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0
-            || memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0)
-        {
-            if (ExtKeyPathV(sMode, vchOut, keyInfo, sError) != 0)
+            || memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0) {
+            if (ExtKeyPathV(sMode, vchOut, keyInfo, sError) != 0) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("ExtKeyPathV failed %s.", sError.c_str()));
+            }
         } else
         if (memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4) == 0
-            || memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4) == 0)
-        {
-            if (ExtKeyPathP(sMode, vchOut, keyInfo, sError) != 0)
+            || memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4) == 0) {
+            if (ExtKeyPathP(sMode, vchOut, keyInfo, sError) != 0) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("ExtKeyPathP failed %s.", sError.c_str()));
-        } else
-        {
+            }
+        } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Unknown prefix '%s'", sInKey.substr(0, 4)));
-        };
+        }
 
         result.pushKV("key_info", keyInfo);
     } else
-    if (mode == "list")
-    {
+    if (mode == "list") {
         UniValue ret(UniValue::VARR);
 
         int nListFull = 0; // 0 id only, 1 id+pubkey, 2 id+pubkey+secret
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             std::string st = request.params[nParamOffset].get_str();
-            if (part::IsStringBoolPositive(st))
+            if (part::IsStringBoolPositive(st)) {
                 nListFull = 2;
+            }
 
             nParamOffset++;
-        };
+        }
 
         size_t nKeys = 0, nAcc = 0;
 
@@ -898,182 +872,126 @@ static UniValue extkey(const JSONRPCRequest &request)
             ListAccountExtKeys(pwallet, nListFull, ret, nAcc);
         } // cs_wallet
 
-        if (nKeys + nAcc > 0)
+        if (nKeys + nAcc > 0) {
             return ret;
+        }
 
         result.pushKV("result", "No keys to list.");
     } else
     if (mode == "account"
-        || mode == "key")
-    {
+        || mode == "key") {
         CKeyID keyId;
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             sInKey = request.params[nParamOffset].get_str();
             nParamOffset++;
 
-            if (mode == "account" && sInKey == "default")
+            if (mode == "account" && sInKey == "default") {
                 keyId = pwallet->idDefaultAccount;
-            else
+            } else {
                 ExtractExtKeyId(sInKey, keyId, mode == "account" ? CChainParams::EXT_ACC_HASH : CChainParams::EXT_KEY_HASH);
-        } else
-        {
-            if (mode == "account")
-            {
+            }
+        } else {
+            if (mode == "account") {
                 // Display default account
                 keyId = pwallet->idDefaultAccount;
-            };
-        };
-        if (keyId.IsNull())
+            }
+        }
+
+        if (keyId.IsNull()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Must specify ext key or id %s.", mode == "account" ? "or 'default'" : ""));
+        }
 
         int nListFull = 0; // 0 id only, 1 id+pubkey, 2 id+pubkey+secret
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             std::string st = request.params[nParamOffset].get_str();
-            if (part::IsStringBoolPositive(st))
+            if (part::IsStringBoolPositive(st)) {
                 nListFull = 2;
+            }
 
             nParamOffset++;
-        };
+        }
 
         std::string sError;
-        if (mode == "account")
-        {
-            if (0 != AccountInfo(pwallet, keyId, nListFull, true, result, sError))
+        if (mode == "account") {
+            if (0 != AccountInfo(pwallet, keyId, nListFull, true, result, sError)) {
                 throw JSONRPCError(RPC_MISC_ERROR, "AccountInfo failed: " + sError);
-        } else
-        {
+            }
+        } else {
             CKeyID idMaster;
-            if (pwallet->pEKMaster)
+            if (pwallet->pEKMaster) {
                 idMaster = pwallet->pEKMaster->GetID();
-            else
+            } else {
                 LogPrintf("%s: Warning: Master key isn't set!\n", __func__);
-            if (0 != KeyInfo(pwallet, idMaster, keyId, nListFull, result, sError))
+            }
+            if (0 != KeyInfo(pwallet, idMaster, keyId, nListFull, result, sError)) {
                 throw JSONRPCError(RPC_MISC_ERROR, "KeyInfo failed: " + sError);
-        };
+            }
+        }
     } else
-    if (mode == "gen")
-    {
-        // Make a new master key
-        // from random or passphrase + int + seed string
-
-        CExtKey newKey;
-        CBitcoinExtKey b58Key;
-
-        if (request.params.size() > 1)
-        {
-            std::string sPassphrase = request.params[1].get_str();
-            int32_t nHashes = 100;
-            std::string sSeed = "Bitcoin seed";
-
-            // Generate from passphrase
-            //   allow generator string and nhashes to be specified
-            //   To allow importing of bip32 strings from other systems
-            //   Match bip32.org: bip32 gen "pass" 50000 "Bitcoin seed"
-
-            if (request.params.size() > 2)
-            {
-                std::stringstream sstr(request.params[2].get_str());
-
-                sstr >> nHashes;
-                if (!sstr)
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid num hashes");
-
-                if (nHashes < 1)
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Num hashes must be 1 or more.");
-            };
-
-            if (request.params.size() > 3)
-            {
-                sSeed = request.params[3].get_str();
-            };
-
-            if (request.params.size() > 4)
-                throw std::runtime_error(help);
-
-            pwallet->ExtKeyNew32(newKey, sPassphrase.c_str(), nHashes, sSeed.c_str());
-
-            result.pushKV("warning",
-                "If the same passphrase is used by another your privacy and coins will be compromised.\n"
-                "It is not recommended to use this feature - if you must, pick very unique values for passphrase, num hashes and generator parameters.");
-        } else
-        {
-             pwallet->ExtKeyNew32(newKey);
-        };
-
-        b58Key.SetKey(newKey);
-
-        result.pushKV("result", b58Key.ToString());
-    } else
-    if (mode == "import")
-    {
-        if (sInKey.length() == 0)
-        {
-            if (request.params.size() > nParamOffset)
-            {
+    if (mode == "import") {
+        if (sInKey.length() == 0) {
+            if (request.params.size() > nParamOffset) {
                 sInKey = request.params[nParamOffset].get_str();
                 nParamOffset++;
-            };
-        };
+            }
+        }
 
         CStoredExtKey sek;
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             sek.sLabel = request.params[nParamOffset].get_str();
             nParamOffset++;
-        };
+        }
 
         bool fBip44 = false;
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             fBip44 = GetBool(request.params[nParamOffset]);
             nParamOffset++;
-        };
+        }
 
         bool fSaveBip44 = false;
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             fSaveBip44 = GetBool(request.params[nParamOffset]);
             nParamOffset++;
-        };
+        }
 
         std::vector<uint8_t> v;
         sek.mapValue[EKVT_CREATED_AT] = SetCompressedInt64(v, GetTime());
 
         CExtKey58 eKey58;
-        if (eKey58.Set58(sInKey.c_str()) != 0)
+        if (eKey58.Set58(sInKey.c_str()) != 0) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Import failed - Invalid key.");
+        }
 
-        if (fBip44)
-        {
-            if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC))
+        if (fBip44) {
+            if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Import failed - BIP44 key must begin with a bitcoin secret key prefix.");
-        } else
-        {
+            }
+        } else {
             if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY)
-                && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC))
+                && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Import failed - Key must begin with a particl prefix.");
-        };
+            }
+        }
 
         sek.kp = eKey58.GetKey();
 
         {
             LOCK(pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
-            if (!wdb.TxnBegin())
+            if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
+            }
 
             int rv;
             CKeyID idDerived;
-            if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44)))
-            {
+            if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44))) {
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("ExtKeyImportLoose failed, %s", ExtKeyGetString(rv)));
-            };
+            }
 
-            if (!wdb.TxnCommit())
+            if (!wdb.TxnCommit()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
+            }
 
             CBitcoinAddress addr;
             addr.Set(fBip44 ? idDerived : sek.GetID(), CChainParams::EXT_KEY_HASH);
@@ -1083,38 +1001,33 @@ static UniValue extkey(const JSONRPCRequest &request)
             result.pushKV("note", "Please backup your wallet."); // TODO: check for child of existing key?
         } // cs_wallet
     } else
-    if (mode == "importaccount")
-    {
-        if (sInKey.length() == 0)
-        {
-            if (request.params.size() > nParamOffset)
-            {
+    if (mode == "importaccount") {
+        if (sInKey.length() == 0) {
+            if (request.params.size() > nParamOffset) {
                 sInKey = request.params[nParamOffset].get_str();
                 nParamOffset++;
-            };
-        };
+            }
+        }
 
         int64_t nTimeStartScan = 1; // scan from start, 0 means no scan
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             std::string sVar = request.params[nParamOffset].get_str();
             nParamOffset++;
 
-            if (sVar == "N")
-            {
+            if (sVar == "N") {
                 nTimeStartScan = 0;
             } else
-            if (part::IsStrOnlyDigits(sVar))
-            {
+            if (part::IsStrOnlyDigits(sVar)) {
                 // Setting timestamp directly
-                if (sVar.length() && !ParseInt64(sVar, &nTimeStartScan))
+                if (sVar.length() && !ParseInt64(sVar, &nTimeStartScan)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Import Account failed - Parse time error.");
-            } else
-            {
+                }
+            } else {
                 int year, month, day;
 
-                if (sscanf(sVar.c_str(), "%d-%d-%d", &year, &month, &day) != 3)
+                if (sscanf(sVar.c_str(), "%d-%d-%d", &year, &month, &day) != 3) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Import Account failed - Parse time error.");
+                }
 
                 struct tm tmdate;
                 tmdate.tm_year = year - 1900;
@@ -1123,27 +1036,24 @@ static UniValue extkey(const JSONRPCRequest &request)
                 time_t t = mktime(&tmdate);
 
                 nTimeStartScan = t;
-            };
-        };
+            }
+        }
 
         int64_t nCreatedAt = nTimeStartScan ? nTimeStartScan : GetTime();
 
         std::string sLabel;
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             sLabel = request.params[nParamOffset].get_str();
             nParamOffset++;
-        };
+        }
 
         CStoredExtKey sek;
         CExtKey58 eKey58;
-        if (eKey58.Set58(sInKey.c_str()) == 0)
-        {
+        if (eKey58.Set58(sInKey.c_str()) == 0)  {
             sek.kp = eKey58.GetKey();
-        } else
-        {
+        } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Import Account failed - Invalid key.");
-        };
+        }
 
         {
             WalletRescanReserver reserver(pwallet);
@@ -1153,32 +1063,32 @@ static UniValue extkey(const JSONRPCRequest &request)
 
             LOCK2(cs_main, pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
-            if (!wdb.TxnBegin())
+            if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
+            }
 
             int rv = pwallet->ExtKeyImportAccount(&wdb, sek, nCreatedAt, sLabel);
-            if (rv == 1)
-            {
+            if (rv == 1) {
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - ExtKeyImportAccount failed.");
             } else
-            if (rv == 2)
-            {
+            if (rv == 2) {
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - account exists.");
-            } else
-            {
-                if (!wdb.TxnCommit())
+            } else {
+                if (!wdb.TxnCommit()) {
                     throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
+                }
                 result.pushKV("result", "Success.");
 
-                if (rv == 3)
+                if (rv == 3) {
                     result.pushKV("result", "secret added to existing account.");
+                }
 
                 result.pushKV("account_label", sLabel);
                 result.pushKV("scanned_from", nTimeStartScan);
                 result.pushKV("note", "Please backup your wallet."); // TODO: check for child of existing key?
-            };
+            }
 
             pwallet->RescanFromTime(nTimeStartScan, reserver, true /* update */);
             pwallet->MarkDirty();
@@ -1186,19 +1096,15 @@ static UniValue extkey(const JSONRPCRequest &request)
 
         } // cs_wallet
     } else
-    if (mode == "setmaster")
-    {
-        if (sInKey.length() == 0)
-        {
-            if (request.params.size() > nParamOffset)
-            {
+    if (mode == "setmaster") {
+        if (sInKey.length() == 0) {
+            if (request.params.size() > nParamOffset) {
                 sInKey = request.params[nParamOffset].get_str();
                 nParamOffset++;
-            } else
-            {
+            } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Must specify ext key or id.");
-            };
-        };
+            }
+        }
 
         CKeyID idNewMaster;
         ExtractExtKeyId(sInKey, idNewMaster, CChainParams::EXT_KEY_HASH);
@@ -1206,34 +1112,31 @@ static UniValue extkey(const JSONRPCRequest &request)
         {
             LOCK(pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
-            if (!wdb.TxnBegin())
+            if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
+            }
 
             int rv;
-            if (0 != (rv = pwallet->ExtKeySetMaster(&wdb, idNewMaster)))
-            {
+            if (0 != (rv = pwallet->ExtKeySetMaster(&wdb, idNewMaster))) {
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeySetMaster failed, %s.", ExtKeyGetString(rv)));
-            };
-            if (!wdb.TxnCommit())
+            }
+            if (!wdb.TxnCommit()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
+            }
             result.pushKV("result", "Success.");
         } // cs_wallet
 
     } else
-    if (mode == "setdefaultaccount")
-    {
-        if (sInKey.length() == 0)
-        {
-            if (request.params.size() > nParamOffset)
-            {
+    if (mode == "setdefaultaccount") {
+        if (sInKey.length() == 0) {
+            if (request.params.size() > nParamOffset) {
                 sInKey = request.params[nParamOffset].get_str();
                 nParamOffset++;
-            } else
-            {
+            } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Must specify ext key or id.");
-            };
-        };
+            }
+        }
 
         CKeyID idNewDefault;
         CKeyID idOldDefault = pwallet->idDefaultAccount;
@@ -1243,242 +1146,217 @@ static UniValue extkey(const JSONRPCRequest &request)
 
         if (addr.SetString(sInKey)
             && addr.IsValid(CChainParams::EXT_ACC_HASH)
-            && addr.GetKeyID(idNewDefault, CChainParams::EXT_ACC_HASH))
-        {
+            && addr.GetKeyID(idNewDefault, CChainParams::EXT_ACC_HASH)) {
             // idNewDefault is set
-        };
+        }
 
         int rv;
         {
             LOCK(pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
 
-            if (!wdb.TxnBegin())
-            {
+            if (!wdb.TxnBegin()) {
                 delete sea;
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
-            };
-            if (0 != (rv = pwallet->ExtKeySetDefaultAccount(&wdb, idNewDefault)))
-            {
+            }
+
+            if (0 != (rv = pwallet->ExtKeySetDefaultAccount(&wdb, idNewDefault))) {
                 delete sea;
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeySetDefaultAccount failed, %s.", ExtKeyGetString(rv)));
-            };
-            if (!wdb.TxnCommit())
-            {
+            }
+
+            if (!wdb.TxnCommit()) {
                 delete sea;
                 pwallet->idDefaultAccount = idOldDefault;
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
-            };
+            }
 
             result.pushKV("result", "Success.");
         } // cs_wallet
 
     } else
-    if (mode == "deriveaccount")
-    {
+    if (mode == "deriveaccount") {
         std::string sLabel, sPath;
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             sLabel = request.params[nParamOffset].get_str();
             nParamOffset++;
-        };
+        }
 
-        if (request.params.size() > nParamOffset)
-        {
+        if (request.params.size() > nParamOffset) {
             sPath = request.params[nParamOffset].get_str();
             nParamOffset++;
-        };
+        }
 
-        for (; nParamOffset < request.params.size(); nParamOffset++)
-        {
+        for (; nParamOffset < request.params.size(); nParamOffset++) {
             std::string strParam = request.params[nParamOffset].get_str();
             std::transform(strParam.begin(), strParam.end(), strParam.begin(), ::tolower);
 
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", strParam.c_str()));
-        };
+        }
 
         CExtKeyAccount *sea = new CExtKeyAccount();
 
         {
             LOCK(pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
-            if (!wdb.TxnBegin())
+            if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
+            }
 
             int rv;
-            if ((rv = pwallet->ExtKeyDeriveNewAccount(&wdb, sea, sLabel, sPath)) != 0)
-            {
+            if ((rv = pwallet->ExtKeyDeriveNewAccount(&wdb, sea, sLabel, sPath)) != 0) {
                 wdb.TxnAbort();
                 result.pushKV("result", "Failed.");
                 result.pushKV("reason", ExtKeyGetString(rv));
-            } else
-            {
-                if (!wdb.TxnCommit())
+            } else {
+                if (!wdb.TxnCommit()) {
                     throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
+                }
 
                 result.pushKV("result", "Success.");
                 result.pushKV("account", sea->GetIDString58());
                 CStoredExtKey *sekAccount = sea->ChainAccount();
-                if (sekAccount)
-                {
+                if (sekAccount) {
                     CExtKey58 eKey58;
                     eKey58.SetKeyP(sekAccount->kp);
                     result.pushKV("public key", eKey58.ToString());
-                };
+                }
 
-                if (sLabel != "")
+                if (sLabel != "") {
                     result.pushKV("label", sLabel);
-            };
+                }
+            }
         } // cs_wallet
     } else
-    if (mode == "options")
-    {
+    if (mode == "options") {
         std::string sOptName, sOptValue, sError;
-        if (sInKey.length() == 0)
-        {
-            if (request.params.size() > nParamOffset)
-            {
+        if (sInKey.length() == 0) {
+            if (request.params.size() > nParamOffset) {
                 sInKey = request.params[nParamOffset].get_str();
                 nParamOffset++;
-            } else
-            {
+            } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Must specify ext key or id.");
-            };
-        };
-        if (request.params.size() > nParamOffset)
-        {
+            }
+        }
+
+        if (request.params.size() > nParamOffset) {
             sOptName = request.params[nParamOffset].get_str();
             nParamOffset++;
-        };
-        if (request.params.size() > nParamOffset)
-        {
+        }
+
+        if (request.params.size() > nParamOffset) {
             sOptValue = request.params[nParamOffset].get_str();
             nParamOffset++;
-        };
+        }
 
         CBitcoinAddress addr;
 
         CKeyID id;
-        if (!addr.SetString(sInKey))
+        if (!addr.SetString(sInKey)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid key or account id.");
+        }
 
         bool fAccount = false;
         bool fKey = false;
         if (addr.IsValid(CChainParams::EXT_KEY_HASH)
-            && addr.GetKeyID(id, CChainParams::EXT_KEY_HASH))
-        {
+            && addr.GetKeyID(id, CChainParams::EXT_KEY_HASH)) {
             // id is set
             fKey = true;
         } else
         if (addr.IsValid(CChainParams::EXT_ACC_HASH)
-            && addr.GetKeyID(id, CChainParams::EXT_ACC_HASH))
-        {
+            && addr.GetKeyID(id, CChainParams::EXT_ACC_HASH)) {
             // id is set
             fAccount = true;
         } else
-        if (addr.IsValid(CChainParams::EXT_PUBLIC_KEY))
-        {
+        if (addr.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
             CExtKeyPair ek = boost::get<CExtKeyPair>(addr.Get());
 
             id = ek.GetID();
 
             ExtKeyAccountMap::iterator it = pwallet->mapExtAccounts.find(id);
-            if (it != pwallet->mapExtAccounts.end())
+            if (it != pwallet->mapExtAccounts.end()) {
                 fAccount = true;
-            else
+            } else {
                 fKey = true;
-        } else
-        {
+            }
+        } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid key or account id.");
-        };
+        }
 
         CStoredExtKey sek;
         CExtKeyAccount sea;
         {
             LOCK(pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
-            if (!wdb.TxnBegin())
+            if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
+            }
 
-            if (fKey)
-            {
+            if (fKey) {
                 // Try key in memory first
                 CStoredExtKey *pSek;
                 ExtKeyMap::iterator it = pwallet->mapExtKeys.find(id);
-                if (it != pwallet->mapExtKeys.end())
-                {
+                if (it != pwallet->mapExtKeys.end()) {
                     pSek = it->second;
                 } else
-                if (wdb.ReadExtKey(id, sek))
-                {
+                if (wdb.ReadExtKey(id, sek)) {
                     pSek = &sek;
-                } else
-                {
+                } else {
                     wdb.TxnAbort();
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Key not in wallet.");
-                };
+                }
 
-                if (0 != ManageExtKey(*pSek, sOptName, sOptValue, result, sError))
-                {
+                if (0 != ManageExtKey(*pSek, sOptName, sOptValue, result, sError)) {
                     wdb.TxnAbort();
                     throw std::runtime_error("Error: " + sError);
-                };
+                }
 
                 if (sOptValue.length() > 0
-                    && !wdb.WriteExtKey(id, *pSek))
-                {
+                    && !wdb.WriteExtKey(id, *pSek)) {
                     wdb.TxnAbort();
                     throw JSONRPCError(RPC_MISC_ERROR, "WriteExtKey failed.");
-                };
-            };
+                }
+            }
 
-            if (fAccount)
-            {
+            if (fAccount) {
                 CExtKeyAccount *pSea;
                 ExtKeyAccountMap::iterator it = pwallet->mapExtAccounts.find(id);
-                if (it != pwallet->mapExtAccounts.end())
-                {
+                if (it != pwallet->mapExtAccounts.end()) {
                     pSea = it->second;
                 } else
-                if (wdb.ReadExtAccount(id, sea))
-                {
+                if (wdb.ReadExtAccount(id, sea)) {
                     pSea = &sea;
-                } else
-                {
+                } else {
                     wdb.TxnAbort();
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Account not in wallet.");
-                };
+                }
 
-                if (0 != ManageExtAccount(*pSea, sOptName, sOptValue, result, sError))
-                {
+                if (0 != ManageExtAccount(*pSea, sOptName, sOptValue, result, sError)) {
                     wdb.TxnAbort();
                     throw std::runtime_error("Error: " + sError);
-                };
+                }
 
                 if (sOptValue.length() > 0
-                    && !wdb.WriteExtAccount(id, *pSea))
-                {
+                    && !wdb.WriteExtAccount(id, *pSea)) {
                     wdb.TxnAbort();
                     throw JSONRPCError(RPC_WALLET_ERROR,"WriteExtAccount failed.");
-                };
-            };
+                }
+            }
 
-            if (sOptValue.length() == 0)
-            {
+            if (sOptValue.length() == 0) {
                 wdb.TxnAbort();
-            } else
-            {
-                if (!wdb.TxnCommit())
+            } else {
+                if (!wdb.TxnCommit()) {
                     throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
+                }
                 result.pushKV("result", "Success.");
-            };
+            }
         } // cs_wallet
 
-    } else
-    {
+    } else {
         throw std::runtime_error(help);
-    };
+    }
 
     return result;
 };
@@ -1492,8 +1370,9 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
 
     EnsureWalletIsUnlocked(pwallet);
 
-    if (request.params.size() < 1)
+    if (request.params.size() < 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Please specify a private extkey or mnemonic phrase.");
+    }
 
     std::string sMnemonic = request.params[0].get_str();
     bool fSaveBip44Root = false;
@@ -1503,34 +1382,37 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     std::string sError;
     int64_t nScanFrom = 1;
 
-    if (request.params.size() > 1)
+    if (request.params.size() > 1) {
         sPassphrase = request.params[1].get_str();
+    }
 
-    if (request.params.size() > 2)
-    {
+    if (request.params.size() > 2) {
         std::string s = request.params[2].get_str();
 
-        if (!part::GetStringBool(s, fSaveBip44Root))
+        if (!part::GetStringBool(s, fSaveBip44Root)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown argument for save_bip44_root: %s.", s.c_str()));
-    };
+        }
+    }
 
-    if (request.params.size() > 3)
+    if (request.params.size() > 3) {
         sLblMaster = request.params[3].get_str();
-    if (request.params.size() > 4)
+    }
+    if (request.params.size() > 4) {
         sLblAccount = request.params[4].get_str();
+    }
 
-    if (request.params[5].isStr())
-    {
+    if (request.params[5].isStr()) {
         std::string s = request.params[5].get_str();
-        if (s.length() && !ParseInt64(s, &nScanFrom))
+        if (s.length() && !ParseInt64(s, &nScanFrom)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown argument for scan_chain_from: %s.", s.c_str()));
+        }
     } else
-    if (request.params[5].isNum())
-    {
+    if (request.params[5].isNum()) {
         nScanFrom = request.params[5].get_int64();
-    };
-    if (request.params.size() > 6)
+    }
+    if (request.params.size() > 6) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", request.params[6].get_str()));
+    }
 
     LogPrintf("Importing master key and account with labels '%s', '%s'.\n", sLblMaster.c_str(), sLblAccount.c_str());
 
@@ -1541,28 +1423,29 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
 
     CExtKey58 eKey58;
     CExtKeyPair ekp;
-    if (eKey58.Set58(sMnemonic.c_str()) == 0)
-    {
+    if (eKey58.Set58(sMnemonic.c_str()) == 0) {
         if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY)
-            && !eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC))
+            && !eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Please specify a private extkey or mnemonic phrase.");
+        }
 
         // Key was provided directly
         ekp = eKey58.GetKey();
-    } else
-    {
+    } else {
         std::vector<uint8_t> vSeed, vEntropy;
 
         // First check the mnemonic is valid
         int nLanguage = -1;
-        if (0 != MnemonicDecode(nLanguage, sMnemonic, vEntropy, sError))
+        if (0 != MnemonicDecode(nLanguage, sMnemonic, vEntropy, sError)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("MnemonicDecode failed: %s", sError.c_str()));
+        }
 
-        if (0 != MnemonicToSeed(sMnemonic, sPassphrase, vSeed))
+        if (0 != MnemonicToSeed(sMnemonic, sPassphrase, vSeed)) {
             throw JSONRPCError(RPC_MISC_ERROR, "MnemonicToSeed failed.");
+        }
 
         ekp.SetSeed(&vSeed[0], vSeed.size());
-    };
+    }
 
     CStoredExtKey sek;
     sek.sLabel = sLblMaster;
@@ -1581,80 +1464,71 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     {
         LOCK(pwallet->cs_wallet);
         CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
-        if (!wdb.TxnBegin())
+        if (!wdb.TxnBegin()) {
             throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
+        }
 
-        if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44Root)))
-        {
+        if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44Root))) {
             wdb.TxnAbort();
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeyImportLoose failed, %s", ExtKeyGetString(rv)));
-        };
+        }
 
-        if (0 != (rv = pwallet->ExtKeySetMaster(&wdb, idDerived)))
-        {
+        if (0 != (rv = pwallet->ExtKeySetMaster(&wdb, idDerived))) {
             wdb.TxnAbort();
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeySetMaster failed, %s.", ExtKeyGetString(rv)));
-        };
+        }
 
         sea = new CExtKeyAccount();
-        if (0 != (rv = pwallet->ExtKeyDeriveNewAccount(&wdb, sea, sLblAccount)))
-        {
+        if (0 != (rv = pwallet->ExtKeyDeriveNewAccount(&wdb, sea, sLblAccount))) {
             pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);
             wdb.TxnAbort();
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeyDeriveNewAccount failed, %s.", ExtKeyGetString(rv)));
-        };
+        }
 
         CKeyID idNewDefaultAccount = sea->GetID();
         CKeyID idOldDefault = pwallet->idDefaultAccount;
 
-        if (0 != (rv = pwallet->ExtKeySetDefaultAccount(&wdb, idNewDefaultAccount)))
-        {
+        if (0 != (rv = pwallet->ExtKeySetDefaultAccount(&wdb, idNewDefaultAccount))) {
             pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);
             wdb.TxnAbort();
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeySetDefaultAccount failed, %s.", ExtKeyGetString(rv)));
-        };
+        }
 
-        if (fGenesisChain)
-        {
+        if (fGenesisChain) {
             std::string genesisChainLabel = "Genesis Import";
             CStoredExtKey *sekGenesisChain = new CStoredExtKey();
 
             if (0 != (rv = pwallet->NewExtKeyFromAccount(&wdb, idNewDefaultAccount,
-                genesisChainLabel, sekGenesisChain, nullptr, &CHAIN_NO_GENESIS)))
-            {
+                genesisChainLabel, sekGenesisChain, nullptr, &CHAIN_NO_GENESIS))) {
                 delete sekGenesisChain;
                 pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf(_("NewExtKeyFromAccount failed, %s."), ExtKeyGetString(rv)));
-            };
-        };
+            }
+        }
 
-        if (!wdb.TxnCommit())
-        {
+        if (!wdb.TxnCommit()) {
             pwallet->idDefaultAccount = idOldDefault;
             pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);
             throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
-        };
+        }
     } // cs_wallet
 
-    if (nScanFrom >= 0)
-    {
+    if (nScanFrom >= 0) {
         pwallet->RescanFromTime(nScanFrom, reserver, true);
         pwallet->MarkDirty();
         pwallet->ReacceptWalletTransactions();
-    };
+    }
 
     UniValue warnings(UniValue::VARR);
     // Check for coldstaking outputs without coldstakingaddress set
-    if (pwallet->CountColdstakeOutputs() > 0)
-    {
+    if (pwallet->CountColdstakeOutputs() > 0) {
         UniValue jsonSettings;
         if (!pwallet->GetSetting("changeaddress", jsonSettings)
-            || !jsonSettings["coldstakingaddress"].isStr())
-        {
+            || !jsonSettings["coldstakingaddress"].isStr()) {
             warnings.push_back("Wallet has coldstaking outputs. Please remember to set a coldstakingaddress.");
-        };
-    };
+        }
+    }
 
     CBitcoinAddress addr;
     addr.Set(idDerived, CChainParams::EXT_KEY_HASH);
@@ -1667,8 +1541,9 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
 
     result.pushKV("note", "Please backup your wallet.");
 
-    if (warnings.size() > 0)
+    if (warnings.size() > 0) {
         result.pushKV("warnings", warnings);
+    }
 
     return result;
 }
@@ -1749,19 +1624,24 @@ static UniValue extkeyaltversion(const JSONRPCRequest &request)
 
     CExtKey58 eKey58;
     CExtKeyPair ekp;
-    if (eKey58.Set58(sKeyIn.c_str()) != 0)
+    if (eKey58.Set58(sKeyIn.c_str()) != 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid input key."));
+    }
 
     // TODO: handle testnet keys on main etc
-    if (eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC))
+    if (eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC)) {
         return eKey58.ToStringVersion(CChainParams::EXT_SECRET_KEY);
-    if (eKey58.IsValid(CChainParams::EXT_SECRET_KEY))
+    }
+    if (eKey58.IsValid(CChainParams::EXT_SECRET_KEY)) {
         return eKey58.ToStringVersion(CChainParams::EXT_SECRET_KEY_BTC);
+    }
 
-    if (eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC))
+    if (eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC)) {
         return eKey58.ToStringVersion(CChainParams::EXT_PUBLIC_KEY);
-    if (eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY))
+    }
+    if (eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
         return eKey58.ToStringVersion(CChainParams::EXT_PUBLIC_KEY_BTC);
+    }
 
     throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown input key version."));
 }
@@ -5969,21 +5849,22 @@ static UniValue transactionblinds(const JSONRPCRequest &request)
 
     MapRecords_t::const_iterator mri = pwallet->mapRecords.find(hash);
 
-    if (mri == pwallet->mapRecords.end())
+    if (mri == pwallet->mapRecords.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid or non-wallet transaction id");
+    }
     //const CTransactionRecord &rtx = mri->second;
 
     UniValue result(UniValue::VOBJ);
     CStoredTransaction stx;
-    if (!CHDWalletDB(pwallet->GetDBHandle()).ReadStoredTx(hash, stx))
+    if (!CHDWalletDB(pwallet->GetDBHandle()).ReadStoredTx(hash, stx)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No stored data found for txn");
+    }
 
-    for (size_t i = 0; i < stx.tx->vpout.size(); ++i)
-    {
+    for (size_t i = 0; i < stx.tx->vpout.size(); ++i) {
         uint256 tmp;
         if (stx.GetBlind(i, tmp.begin()))
             result.pushKV(strprintf("%d", i), tmp.ToString());
-    };
+    }
 
     return result;
 };
@@ -6016,8 +5897,9 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
         );
 
     CBitcoinAddress addr(request.params[0].get_str());
-    if (!addr.IsValidStealthAddress())
+    if (!addr.IsValidStealthAddress()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must input a stealthaddress."));
+    }
 
     CStealthAddress sx = boost::get<CStealthAddress>(addr.Get());
 
@@ -6028,72 +5910,74 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
     CPubKey pkEphem, pkDest;
     CTxDestination dest;
 
-    if (request.params[1].isStr())
-    {
+    if (request.params[1].isStr()) {
         EnsureWalletIsUnlocked(pwallet);
 
         std::string s = request.params[1].get_str();
-        if (!IsHex(s))
+        if (!IsHex(s)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "ephemeralvalue must be hex encoded.");
+        }
 
-        if (s.size() == 64)
-        {
+        if (s.size() == 64) {
             std::vector<uint8_t> v = ParseHex(s);
             sEphem.Set(v.data(), true);
             if (!sEphem.IsValid())
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid ephemeral private key.");
         } else
-        if (s.size() == 66)
-        {
+        if (s.size() == 66) {
             std::vector<uint8_t> v = ParseHex(s);
             pkEphem = CPubKey(v.begin(), v.end());
 
-            if (!pkEphem.IsValid())
+            if (!pkEphem.IsValid()) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid ephemeral public key.");
+            }
 
             CKey sSpend;
-            if (!pwallet->GetStealthAddressScanKey(sx))
+            if (!pwallet->GetStealthAddressScanKey(sx)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Scan key not found for stealth address.");
-            if (!pwallet->GetStealthAddressSpendKey(sx, sSpend))
+            }
+            if (!pwallet->GetStealthAddressSpendKey(sx, sSpend)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Spend key not found for stealth address.");
+            }
 
             ec_point pEphem;;
             pEphem.resize(EC_COMPRESSED_SIZE);
             memcpy(&pEphem[0], pkEphem.begin(), pkEphem.size());
 
-            if (StealthSecretSpend(sx.scan_secret, pEphem, sSpend, sSpendR) != 0)
+            if (StealthSecretSpend(sx.scan_secret, pEphem, sSpend, sSpendR) != 0) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "StealthSecretSpend failed.");
+            }
 
             pkDest = sSpendR.GetPubKey();
-        } else
-        {
+        } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "ephemeralvalue must be 33 byte public key or 32 byte private key.");
         }
-    } else
-    {
+    } else {
         sEphem.MakeNewKey(true);
-    };
+    }
 
-    if (sEphem.IsValid())
-    {
+    if (sEphem.IsValid()) {
         ec_point pkSendTo;
-        if (0 != StealthSecret(sEphem, sx.scan_pubkey, sx.spend_pubkey, sShared, pkSendTo))
+        if (0 != StealthSecret(sEphem, sx.scan_pubkey, sx.spend_pubkey, sShared, pkSendTo)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, _("StealthSecret failed, try again."));
+        }
 
         pkEphem = sEphem.GetPubKey();
         pkDest = CPubKey(pkSendTo);
-    };
+    }
 
     dest = GetDestinationForKey(pkDest, OutputType::LEGACY);
 
     result.pushKV("address", EncodeDestination(dest));
     result.pushKV("pubkey", HexStr(pkDest));
     result.pushKV("ephemeral_pubkey", HexStr(pkEphem));
-    if (sEphem.IsValid())
+    if (sEphem.IsValid()) {
         result.pushKV("ephemeral_privatekey", HexStr(sEphem.begin(), sEphem.end()));
+    }
 
-    if (sSpendR.IsValid())
+    if (sSpendR.IsValid()) {
         result.pushKV("privatekey", CBitcoinSecret(sSpendR).ToString());
+    }
 
     return result;
 };
