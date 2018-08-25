@@ -175,7 +175,6 @@ static const CRPCConvertParam vRPCConvertParams[] =
 
 
     { "reservebalance", 0, "enabled" },
-    { "scanchain", 0, "from_height" },
     { "deriverangekeys", 0, "start" },
     { "deriverangekeys", 1, "end" },
     { "filtertransactions", 0, "options" },
