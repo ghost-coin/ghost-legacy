@@ -2118,41 +2118,6 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
     return result;
 }
 
-
-static UniValue scanchain(const JSONRPCRequest &request)
-{
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
-        return NullUniValue;
-
-    if (request.fHelp || request.params.size() > 1)
-        throw std::runtime_error(
-            "scanchain [from_height]\n"
-            "\nDEPRECATED, will be removed in 0.17. Replaced by rescanblockchain.\n"
-            "Scan blockchain for owned transactions.");
-
-    if (!IsDeprecatedRPCEnabled("scanchain")) {
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "scanchain is deprecated and will be fully removed in v0.18. "
-            "To use scanchain in v0.17, restart particld with -deprecatedrpc=scanchain.\n"
-            "Projects should transition to using rescanblockchain before upgrading to v0.18");
-    }
-
-    //EnsureWalletIsUnlocked(pwallet);
-
-    UniValue result(UniValue::VOBJ);
-    int32_t nFromHeight = 0;
-
-    if (request.params.size() > 0)
-        nFromHeight = request.params[0].get_int();
-
-    pwallet->ScanChainFromHeight(nFromHeight);
-
-    result.pushKV("result", "Scan complete.");
-
-    return result;
-}
-
 static UniValue reservebalance(const JSONRPCRequest &request)
 {
     // Reserve balance from being staked for network protection
@@ -7430,7 +7395,6 @@ static const CRPCCommand commands[] =
     { "wallet",             "importstealthaddress",             &importstealthaddress,          {"scan_secret","spend_secret","label","num_prefix_bits","prefix_num","bech32"} },
     { "wallet",             "liststealthaddresses",             &liststealthaddresses,          {"show_secrets"} },
 
-    { "wallet",             "scanchain",                        &scanchain,                     {"from_height"} },
     { "wallet",             "reservebalance",                   &reservebalance,                {"enabled","amount"} },
     { "wallet",             "deriverangekeys",                  &deriverangekeys,               {"start","end","key/id","hardened","save","add_to_addressbook","256bithash"} },
     { "wallet",             "clearwallettransactions",          &clearwallettransactions,       {"remove_all"} },
