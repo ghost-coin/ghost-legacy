@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         txnouttype whichType;
         CScript s;
         s << ToByteVector(key[0].GetPubKey()) << OP_CHECKSIG;
-        BOOST_CHECK(Solver(s, whichType, solutions));
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
         BOOST_CHECK(solutions.size() == 1);
         CTxDestination addr;
         BOOST_CHECK(ExtractDestination(s, addr));
@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         txnouttype whichType;
         CScript s;
         s << OP_DUP << OP_HASH160 << ToByteVector(key[0].GetPubKey().GetID()) << OP_EQUALVERIFY << OP_CHECKSIG;
-        BOOST_CHECK(Solver(s, whichType, solutions));
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
         BOOST_CHECK(solutions.size() == 1);
         CTxDestination addr;
         BOOST_CHECK(ExtractDestination(s, addr));
@@ -232,7 +232,7 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         txnouttype whichType;
         CScript s;
         s << OP_2 << ToByteVector(key[0].GetPubKey()) << ToByteVector(key[1].GetPubKey()) << OP_2 << OP_CHECKMULTISIG;
-        BOOST_CHECK(Solver(s, whichType, solutions));
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
         BOOST_CHECK_EQUAL(solutions.size(), 4U);
         CTxDestination addr;
         BOOST_CHECK(!ExtractDestination(s, addr));
@@ -245,7 +245,7 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         txnouttype whichType;
         CScript s;
         s << OP_1 << ToByteVector(key[0].GetPubKey()) << ToByteVector(key[1].GetPubKey()) << OP_2 << OP_CHECKMULTISIG;
-        BOOST_CHECK(Solver(s, whichType, solutions));
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
         BOOST_CHECK_EQUAL(solutions.size(), 4U);
         std::vector<CTxDestination> addrs;
         int nRequired;
@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         txnouttype whichType;
         CScript s;
         s << OP_2 << ToByteVector(key[0].GetPubKey()) << ToByteVector(key[1].GetPubKey()) << ToByteVector(key[2].GetPubKey()) << OP_3 << OP_CHECKMULTISIG;
-        BOOST_CHECK(Solver(s, whichType, solutions));
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
         BOOST_CHECK(solutions.size() == 5);
     }
 }

@@ -14,6 +14,7 @@
 #include <smsg/keystore.h>
 #include <interfaces/handler.h>
 
+#include <boost/signals2/signal.hpp>
 
 class CWallet;
 

@@ -70,36 +70,35 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
     int nBestHeight;
     size_t nStaked = 0;
     size_t k, nTries = 10000;
-    for (k = 0; k < nTries; ++k)
-    {
+    for (k = 0; k < nTries; ++k) {
         {
             LOCK(cs_main);
             nBestHeight = chainActive.Height();
         }
 
         int64_t nSearchTime = GetAdjustedTime() & ~Params().GetStakeTimestampMask(nBestHeight+1);
-        if (nSearchTime <= pwallet->nLastCoinStakeSearchTime)
-        {
+        if (nSearchTime <= pwallet->nLastCoinStakeSearchTime) {
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
             continue;
-        };
+        }
 
         CScript coinbaseScript;
         std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript, true, false));
         BOOST_REQUIRE(pblocktemplate.get());
 
-        if (pwallet->SignBlock(pblocktemplate.get(), nBestHeight+1, nSearchTime))
-        {
+        if (pwallet->SignBlock(pblocktemplate.get(), nBestHeight+1, nSearchTime)) {
             CBlock *pblock = &pblocktemplate->block;
 
-            if (CheckStake(pblock))
-                 nStaked++;
-        };
+            if (CheckStake(pblock)) {
+                nStaked++;
+            }
+        }
 
-        if (nStaked >= nBlocks)
+        if (nStaked >= nBlocks) {
             break;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    };
+    }
     BOOST_REQUIRE(k < nTries);
 };
 

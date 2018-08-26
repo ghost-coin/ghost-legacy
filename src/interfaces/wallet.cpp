@@ -60,7 +60,7 @@ public:
 };
 
 //! Construct wallet tx struct.
-WalletTx MakeWalletTx(CWallet& wallet, const CWalletTx& wtx)
+static WalletTx MakeWalletTx(CWallet& wallet, const CWalletTx& wtx) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     WalletTx result;
     result.tx = wtx.tx;
@@ -128,7 +128,7 @@ WalletTx MakeWalletTx(CHDWallet& wallet, MapRecords_t::const_iterator irtx)
 }
 
 //! Construct wallet tx status struct.
-WalletTxStatus MakeWalletTxStatus(const CWalletTx& wtx)
+static WalletTxStatus MakeWalletTxStatus(const CWalletTx& wtx) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     WalletTxStatus result;
     auto mi = ::mapBlockIndex.find(wtx.hashBlock);
@@ -167,7 +167,7 @@ WalletTxStatus MakeWalletTxStatus(CHDWallet &wallet, const uint256 &hash, const 
 }
 
 //! Construct wallet TxOut struct.
-WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n, int depth)
+static WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     WalletTxOut result;
     result.txout.nValue = wtx.tx->vpout[n]->GetValue();
@@ -178,7 +178,7 @@ WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n, int de
     return result;
 }
 
-WalletTxOut MakeWalletTxOut(CHDWallet& wallet, const COutputR& r, int n, int depth)
+WalletTxOut MakeWalletTxOut(CHDWallet& wallet, const COutputR& r, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     WalletTxOut result;
     const COutputRecord *oR = r.rtx->second.GetOutput(r.i);

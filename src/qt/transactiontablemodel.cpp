@@ -16,11 +16,11 @@
 #include <core_io.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
-#include <validation.h>
 #include <sync.h>
 #include <uint256.h>
 #include <util.h>
 #include <wallet/hdwallet.h>
+#include <validation.h>
 
 #include <QColor>
 #include <QDateTime>
@@ -28,7 +28,9 @@
 #include <QIcon>
 #include <QList>
 
-// Amount columns are right-aligned
+#include <boost/bind.hpp>
+
+// Amount column is right-aligned it contains numbers
 static int column_alignments[] = {
         Qt::AlignLeft|Qt::AlignVCenter, /* status */
         Qt::AlignLeft|Qt::AlignVCenter, /* watchonly */

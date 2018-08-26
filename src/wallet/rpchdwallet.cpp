@@ -1365,8 +1365,9 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
+    }
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -2602,11 +2603,13 @@ static void ParseOutputs(
     }
     WalletTxToJSON(wtx, entry, true);
 
-    if (!listStaked.empty() || !listSent.empty())
+    if (!listStaked.empty() || !listSent.empty()) {
         entry.pushKV("abandoned", wtx.isAbandoned());
+    }
 
     // staked
     if (!listStaked.empty()) {
+        LOCK(cs_main);
         if (wtx.GetDepthInMainChain() < 1) {
             entry.pushKV("category", "orphaned_stake");
         } else {
@@ -2690,6 +2693,7 @@ static void ParseOutputs(
         }
 
         if (wtx.IsCoinBase()) {
+            LOCK(cs_main);
             if (wtx.GetDepthInMainChain() < 1) {
                 entry.pushKV("category", "orphan");
             } else if (wtx.GetBlocksToMaturity() > 0) {
@@ -2707,10 +2711,12 @@ static void ParseOutputs(
             entry.pushKV("category", "send");
 
             // Handle txns partially funded by wallet
-            if (nFee < 0)
+            if (nFee < 0) {
+                LOCK(cs_main);
                 amount = wtx.GetCredit(ISMINE_ALL) - wtx.GetDebit(ISMINE_ALL);
-            else
+            } else {
                 entry.pushKV("fee", ValueFromAmount(-nFee));
+            }
         }
     };
 

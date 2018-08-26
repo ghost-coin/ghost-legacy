@@ -84,12 +84,7 @@ isminetype IsMineInner(const CKeyStore& keystore, const CScript& scriptPubKey, b
     isInvalid = false;
 
     std::vector<valtype> vSolutions;
-    txnouttype whichType;
-    if (!Solver(scriptPubKey, whichType, vSolutions)) {
-        if (keystore.HaveWatchOnly(scriptPubKey))
-            return ISMINE_WATCH_ONLY_;
-        return ISMINE_NO;
-    }
+    txnouttype whichType = Solver(scriptPubKey, vSolutions);
 
     CKeyID keyID;
 

@@ -1535,7 +1535,7 @@ std::map<CTxDestination, CAmount> CHDWallet::GetAddressBalances()
             if (!pcoin->IsTrusted())
                 continue;
 
-            if (pcoin->GetBlocksToMaturity() > 0)
+            if (pcoin->IsImmatureCoinBase())
                 continue;
 
             int nDepth = pcoin->GetDepthInMainChain();
@@ -1781,13 +1781,7 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
     };
 
     std::vector<valtype> vSolutions;
-    txnouttype whichType;
-
-    if (!Solver(scriptPubKey, whichType, vSolutions)) {
-        if (HaveWatchOnly(scriptPubKey))
-            return ISMINE_WATCH_ONLY_;
-        return ISMINE_NO;
-    }
+    txnouttype whichType = Solver(scriptPubKey, vSolutions);
 
     isminetype mine = ISMINE_NO;
     switch (whichType)
@@ -1874,10 +1868,9 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         return ISMINE_NO;
     };
 
-    if (HaveWatchOnly(scriptPubKey))
-    {
+    if (HaveWatchOnly(scriptPubKey)) {
         return ISMINE_WATCH_ONLY_;
-    };
+    }
     return ISMINE_NO;
 };
 
@@ -2421,7 +2414,6 @@ CAmount CHDWallet::GetStaked()
     for (const auto &item : mapWallet) {
         const CWalletTx &wtx = item.second;
 
-        //printf("[rm] GetBlocksToMaturity2 %d\n", wtx.GetBlocksToMaturity(wtx.GetDepthInMainChainCached()));
         int depth;
         if (wtx.IsCoinStake()
             && (depth = wtx.GetDepthInMainChainCached()) > 0 // checks for hashunset
@@ -8071,12 +8063,10 @@ bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& 
     std::vector<CTempRecipient> vecSend;
 
     // Turn the txout set into a CRecipient vector
-    for (size_t idx = 0; idx < tx.vpout.size(); idx++)
-    {
+    for (size_t idx = 0; idx < tx.vpout.size(); idx++) {
         const auto &txOut = tx.vpout[idx];
 
-        if (txOut->IsType(OUTPUT_STANDARD))
-        {
+        if (txOut->IsType(OUTPUT_STANDARD)) {
             CTempRecipient tr;
             tr.nType = OUTPUT_STANDARD;
             tr.SetAmount(txOut->GetValue());
@@ -8086,51 +8076,50 @@ bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& 
 
             vecSend.emplace_back(tr);
         } else
-        if (txOut->IsType(OUTPUT_DATA))
-        {
+        if (txOut->IsType(OUTPUT_DATA)) {
             CTempRecipient tr;
             tr.nType = OUTPUT_DATA;
             tr.vData = ((CTxOutData*)txOut.get())->vData;
 
             vecSend.emplace_back(tr);
-        } else
-        {
+        } else {
             strFailReason = _("Output isn't standard.");
             return false;
-        };
-    };
+        }
+    }
 
     coinControl.fAllowOtherInputs = true;
 
-    for (const auto &txin : tx.vin)
-    {
+    for (const auto &txin : tx.vin) {
         coinControl.Select(txin.prevout);
-        if (txin.scriptWitness.stack.size() > 0) // Keep existing signatures
-        {
+        if (txin.scriptWitness.stack.size() > 0) { // Keep existing signatures
             CInputData im;
             im.scriptWitness.stack = txin.scriptWitness.stack;
             coinControl.m_inputData[txin.prevout] = im;
-        };
-    };
+        }
+    }
 
     CReserveKey reservekey(this);
 
-    if (nChangePosInOut != -1)
+    if (nChangePosInOut != -1) {
         coinControl.nChangePos = nChangePosInOut;
+    }
 
     CTransactionRef tx_new;
-    if (!CreateTransaction(vecSend, tx_new, reservekey, nFeeRet, nChangePosInOut, strFailReason, coinControl, false))
+    if (!CreateTransaction(vecSend, tx_new, reservekey, nFeeRet, nChangePosInOut, strFailReason, coinControl, false)) {
         return false;
+    }
 
-    if (nChangePosInOut != -1)
+    if (nChangePosInOut != -1) {
         tx.vpout.insert(tx.vpout.begin() + nChangePosInOut, tx_new->vpout[nChangePosInOut]);
+    }
 
     // Copy output sizes from new transaction; they may have had the fee subtracted from them
-    for (unsigned int idx = 0; idx < tx.vpout.size(); idx++)
-    {
-        if (tx.vpout[idx]->IsType(OUTPUT_STANDARD))
+    for (unsigned int idx = 0; idx < tx.vpout.size(); idx++) {
+        if (tx.vpout[idx]->IsType(OUTPUT_STANDARD)) {
             tx.vpout[idx]->SetValue(tx_new->vpout[idx]->GetValue());
-    };
+        }
+    }
 
     // Add new txins (keeping original txin scriptSig/order)
     for (const auto &txin : tx_new->vin) {
@@ -8235,17 +8224,16 @@ bool CHDWallet::CreateTransaction(std::vector<CTempRecipient>& vecSend, CTransac
 
     CTransactionRecord rtxTemp;
     CWalletTx wtxNew(this, tx);
-    if (0 != AddStandardInputs(wtxNew, rtxTemp, vecSend, sign, nFeeRet, &coin_control, strFailReason))
+    if (0 != AddStandardInputs(wtxNew, rtxTemp, vecSend, sign, nFeeRet, &coin_control, strFailReason)) {
         return false;
+    }
 
-    for (const auto &r : vecSend)
-    {
-        if (r.fChange)
-        {
+    for (const auto &r : vecSend) {
+        if (r.fChange) {
             nChangePosInOut = r.n;
             break;
-        };
-    };
+        }
+    }
 
     tx = wtxNew.tx;
     return true;
@@ -10127,11 +10115,12 @@ void CHDWallet::ResendWalletTransactions(int64_t nBestBlockTime, CConnman *connm
 
 void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const CCoinControl *coinControl, const CAmount &nMinimumAmount, const CAmount &nMaximumAmount, const CAmount &nMinimumSumAmount, const uint64_t nMaximumCount, const int nMinDepth, const int nMaxDepth, bool fIncludeImmature) const
 {
-    vCoins.clear();
+    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_wallet);
 
+    vCoins.clear();
     CAmount nTotal = 0;
 
-    LOCK2(cs_main, cs_wallet);
     for (const auto& item : mapWallet) {
         const uint256& wtxid = item.first;
         const CWalletTx& wtx = item.second;
@@ -10436,7 +10425,9 @@ bool CHDWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const C
 
 void CHDWallet::AvailableBlindedCoins(std::vector<COutputR>& vCoins, bool fOnlySafe, const CCoinControl *coinControl, const CAmount& nMinimumAmount, const CAmount& nMaximumAmount, const CAmount& nMinimumSumAmount, const uint64_t& nMaximumCount, const int& nMinDepth, const int& nMaxDepth, bool fIncludeImmature) const
 {
-    LOCK2(cs_main, cs_wallet);
+    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_wallet);
+
     vCoins.clear();
 
     if (coinControl && coinControl->HasSelected())
@@ -10635,11 +10626,12 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
 
 void CHDWallet::AvailableAnonCoins(std::vector<COutputR> &vCoins, bool fOnlySafe, const CCoinControl *coinControl, const CAmount& nMinimumAmount, const CAmount& nMaximumAmount, const CAmount& nMinimumSumAmount, const uint64_t& nMaximumCount, const int& nMinDepth, const int& nMaxDepth, bool fIncludeImmature) const
 {
-    vCoins.clear();
+    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_wallet);
 
+    vCoins.clear();
     CAmount nTotal = 0;
 
-    LOCK2(cs_main, cs_wallet);
     const Consensus::Params& consensusParams = Params().GetConsensus();
     for (MapRecords_t::const_iterator it = mapRecords.begin(); it != mapRecords.end(); ++it)
     {
@@ -10805,6 +10797,8 @@ std::map<CTxDestination, std::vector<COutputR>> CHDWallet::ListCoins(OutputTypes
 {
     std::map<CTxDestination, std::vector<COutputR>> result;
     std::vector<COutputR> availableCoins;
+
+    LOCK2(cs_main, cs_wallet);
 
     CCoinControl coinControl;
     coinControl.fAllowLocked = true;
@@ -11445,6 +11439,8 @@ bool CHDWallet::GetPrevout(const COutPoint &prevout, CTxOutBaseRef &txout)
 
 size_t CHDWallet::CountColdstakeOutputs()
 {
+    LOCK2(cs_main, cs_wallet);
+
     size_t nColdstakeOutputs = 0;
 
     CCoinControl coinControl;
@@ -11454,15 +11450,16 @@ size_t CHDWallet::CountColdstakeOutputs()
     int nMinDepth = 0, nMaxDepth = 0x7FFFFFFF;
     bool fIncludeImmature = true;
     AvailableCoins(vAvailableCoins, false, &coinControl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount, nMinDepth, nMaxDepth, fIncludeImmature);
-    for (auto &coin : vAvailableCoins)
-    {
+    for (auto &coin : vAvailableCoins) {
         assert(coin.i < (int)coin.tx->tx->GetNumVOuts());
         auto txoutBase = coin.tx->tx->vpout[coin.i];
-        if (!txoutBase->IsStandardOutput())
+        if (!txoutBase->IsStandardOutput()) {
             continue;
-        if (HasIsCoinstakeOp(*txoutBase->GetPScriptPubKey()))
+        }
+        if (HasIsCoinstakeOp(*txoutBase->GetPScriptPubKey())) {
             nColdstakeOutputs++;
-    };
+        }
+    }
 
     return nColdstakeOutputs;
 };
@@ -11798,10 +11795,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
                 pscriptPubKey = &coinstakePath;
             }
 
-            if (!Solver(*pscriptPubKey, whichType, vSolutions)) {
-                LogPrint(BCLog::POS, "%s: Failed to parse kernel.\n", __func__);
-                break;
-            }
+            whichType = Solver(*pscriptPubKey, vSolutions);
 
             LogPrint(BCLog::POS, "%s: Parsed kernel type=%d.\n", __func__, whichType);
             CKeyID spendId;

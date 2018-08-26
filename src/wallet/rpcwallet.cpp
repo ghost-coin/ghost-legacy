@@ -95,7 +95,7 @@ void EnsureWalletIsUnlocked(CWallet * const pwallet)
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet is unlocked for staking only.");
 }
 
-void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry, bool fFilterMode)
+void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry, bool fFilterMode) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     int confirms = wtx.GetDepthInMainChain();
     entry.pushKV("confirmations", confirms);
@@ -1825,7 +1825,7 @@ struct tallyitem
     }
 };
 
-static UniValue ListReceived(CWallet * const pwallet, const UniValue& params, bool by_label)
+static UniValue ListReceived(CWallet * const pwallet, const UniValue& params, bool by_label) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     // Minimum confirmations
     int nMinDepth = 1;
@@ -2114,7 +2114,7 @@ static void MaybePushAddress(UniValue & entry, const CTxDestination &dest)
  * @param  ret        The UniValue into which the result is stored.
  * @param  filter     The "is mine" filter bool.
  */
-static void ListTransactions(CWallet* const pwallet, const CWalletTx& wtx, const std::string& strAccount, int nMinDepth, bool fLong, UniValue& ret, const isminefilter& filter)
+static void ListTransactions(CWallet* const pwallet, const CWalletTx& wtx, const std::string& strAccount, int nMinDepth, bool fLong, UniValue& ret, const isminefilter& filter) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     CAmount nFee;
     std::string strSentAccount;
@@ -2197,7 +2197,7 @@ static void ListTransactions(CWallet* const pwallet, const CWalletTx& wtx, const
                 {
                     if (wtx.GetDepthInMainChain() < 1)
                         entry.pushKV("category", "orphan");
-                    else if (wtx.GetBlocksToMaturity() > 0)
+                    else if (wtx.IsImmatureCoinBase())
                         entry.pushKV("category", "immature");
                     else
                     {
@@ -2701,7 +2701,7 @@ static UniValue listaccounts(const JSONRPCRequest& request)
         std::list<COutputEntry> listSent;
         std::list<COutputEntry> listStaked;
         int nDepth = wtx.GetDepthInMainChain();
-        if (wtx.GetBlocksToMaturity() > 0 || nDepth < 0)
+        if (wtx.IsImmatureCoinBase() || nDepth < 0)
             continue;
         wtx.GetAmounts(listReceived, listSent, listStaked, nFee, strSentAccount, includeWatchonly);
         mapAccountBalances[strSentAccount] -= nFee;
@@ -4005,15 +4005,15 @@ static UniValue resendwallettransactions(const JSONRPCRequest& request)
     std::vector<uint256> txids = pwallet->ResendWalletTransactionsBefore(GetTime(), g_connman.get());
 
     UniValue result(UniValue::VARR);
-    if (IsParticlWallet(pwallet))
-    {
+    if (IsParticlWallet(pwallet)) {
         CHDWallet *phdw = GetParticlWallet(pwallet);
         std::vector<uint256> txidsRec;
         txidsRec = phdw->ResendRecordTransactionsBefore(GetTime(), g_connman.get());
 
-        for (auto &txid : txidsRec)
+        for (auto &txid : txidsRec) {
             result.push_back(txid.ToString());
-    };
+        }
+    }
 
     for (const uint256& txid : txids)
     {
@@ -4846,9 +4846,8 @@ public:
     void ProcessSubScript(const CScript& subscript, UniValue& obj, bool include_addresses = false) const
     {
         // Always present: script type and redeemscript
-        txnouttype which_type;
         std::vector<std::vector<unsigned char>> solutions_data;
-        Solver(subscript, which_type, solutions_data);
+        txnouttype which_type = Solver(subscript, solutions_data);
         obj.pushKV("script", GetTxnOutputType(which_type));
         obj.pushKV("hex", HexStr(subscript.begin(), subscript.end()));
 
