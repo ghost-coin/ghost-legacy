@@ -650,10 +650,9 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
             "                            to which you're sending the transaction. This is not part of the \n"
             "                            transaction, just kept in your wallet.\n"
             "5. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
-            "                            The recipient will receive less " + CURRENCY_UNIT + " than you enter in the amount field.\n"
+            "                            The recipient will receive less particl than you enter in the amount field.\n"
             "6. \"narration\"   (string, optional) Up to 24 characters sent with the transaction.\n"
             "                            The narration is stored in the blockchain and is sent encrypted when destination is a stealth address and unencrypted otherwise.\n"
-            "                            The recipient will receive less bitcoins than you enter in the amount field.\n"
             "7. replaceable            (boolean, optional) Allow this transaction to be replaced by a transaction with higher fees via BIP 125\n"
             "8. conf_target            (numeric, optional) Confirmation target (in blocks)\n"
             "9. \"estimate_mode\"      (string, optional, default=UNSET) The fee estimate mode, must be one of:\n"
@@ -1354,7 +1353,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
             "4. \"comment\"             (string, optional) A comment\n"
             "5. subtractfeefrom         (array, optional) A json array with addresses.\n"
             "                           The fee will be equally deducted from the amount of each selected address.\n"
-            "                           Those recipients will receive less bitcoins than you enter in their corresponding amount field.\n"
+            "                           Those recipients will receive less particl than you enter in their corresponding amount field.\n"
             "                           If no addresses are specified here, the sender pays the fee.\n"
             "    [\n"
             "      \"address\"          (string) Subtract fee from this address\n"
@@ -1371,13 +1370,13 @@ static UniValue sendmany(const JSONRPCRequest& request)
             "                                    the number of addresses.\n"
             "\nExamples:\n"
             "\nSend two amounts to two different addresses:\n"
-            + HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\"") +
+            + HelpExampleCli("sendmany", "\"\" \"{\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\":0.01,\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\":0.02}\"") +
             "\nSend two amounts to two different addresses setting the confirmation and comment:\n"
-            + HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 6 \"testing\"") +
+            + HelpExampleCli("sendmany", "\"\" \"{\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\":0.01,\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\":0.02}\" 6 \"testing\"") +
             "\nSend two amounts to two different addresses, subtract fee from amount:\n"
-            + HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 1 \"\" \"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\",\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
+            + HelpExampleCli("sendmany", "\"\" \"{\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\":0.01,\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\":0.02}\" 1 \"\" \"[\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\",\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\"]\"") +
             "\nAs a json rpc call\n"
-            + HelpExampleRpc("sendmany", "\"\", {\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\":0.01,\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\":0.02}, 6, \"testing\"");
+            + HelpExampleRpc("sendmany", "\"\", {\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\":0.01,\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\":0.02}, 6, \"testing\"");
     } else {
         help_text = "sendmany \"\" \"fromaccount\" {\"address\":amount,...} ( minconf \"comment\" [\"address\",...] replaceable conf_target \"estimate_mode\")\n"
             "\nSend multiple times. Amounts are double-precision floating point numbers."
@@ -1416,7 +1415,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
             "\nSend two amounts to two different addresses, subtract fee from amount:\n"
             + HelpExampleCli("sendmany", "\"\" \"{\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\":0.01,\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\":0.02}\" 1 \"\" \"[\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\",\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\"]\"") +
             "\nAs a json rpc call\n"
-            + HelpExampleRpc("sendmany", "\"\", {\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\":0.01,\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\":0.02}, 6, \"testing\"");
+            + HelpExampleRpc("sendmany", "\"\", {\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\":0.01,\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\":0.02}, 6, \"testing\"");
     }
 
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 8) throw std::runtime_error(help_text);
@@ -4421,7 +4420,7 @@ static UniValue fundrawtransaction(const JSONRPCRequest& request)
                             "     \"subtractFeeFromOutputs\" (array, optional) A json array of integers.\n"
                             "                              The fee will be equally deducted from the amount of each specified output.\n"
                             "                              The outputs are specified by their zero-based index, before any change output is added.\n"
-                            "                              Those recipients will receive less bitcoins than you enter in their corresponding amount field.\n"
+                            "                              Those recipients will receive less particl than you enter in their corresponding amount field.\n"
                             "                              If no outputs are specified here, the sender pays the fee.\n"
                             "                                  [vout_index,...]\n"
                             "     \"replaceable\"            (boolean, optional) Marks this transaction as BIP125 replaceable.\n"
@@ -5608,7 +5607,7 @@ UniValue walletcreatefundedpsbt(const JSONRPCRequest& request)
                             "     \"subtractFeeFromOutputs\" (array, optional) A json array of integers.\n"
                             "                              The fee will be equally deducted from the amount of each specified output.\n"
                             "                              The outputs are specified by their zero-based index, before any change output is added.\n"
-                            "                              Those recipients will receive less bitcoins than you enter in their corresponding amount field.\n"
+                            "                              Those recipients will receive less particl than you enter in their corresponding amount field.\n"
                             "                              If no outputs are specified here, the sender pays the fee.\n"
                             "                                  [vout_index,...]\n"
                             "     \"replaceable\"            (boolean, optional) Marks this transaction as BIP125 replaceable.\n"
