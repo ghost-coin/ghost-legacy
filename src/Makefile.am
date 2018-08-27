@@ -339,6 +339,7 @@ libparticl_usbdevice_a_SOURCES = \
   usbdevice/trezor/messages.proto \
   usbdevice/trezor/messages-common.proto \
   usbdevice/trezor/messages-management.proto \
+  usbdevice/trezor/messages-bitcoin.proto \
   usbdevice/trezordevice.h \
   usbdevice/trezordevice.cpp \
   usbdevice/rpcusbdevice.cpp
@@ -348,7 +349,10 @@ nodist_libparticl_usbdevice_a_SOURCES = \
   usbdevice/trezor/messages-common.pb.h \
   usbdevice/trezor/messages-common.pb.cc \
   usbdevice/trezor/messages-management.pb.h \
-  usbdevice/trezor/messages-management.pb.cc
+  usbdevice/trezor/messages-management.pb.cc \
+  usbdevice/trezor/messages-bitcoin.pb.h \
+  usbdevice/trezor/messages-bitcoin.pb.cc
+BUILT_SOURCES = $(nodist_libparticl_usbdevice_a_SOURCES)
 endif
 
 # wallet: shared between bitcoind and bitcoin-qt, but only linked

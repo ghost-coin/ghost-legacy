@@ -14,6 +14,7 @@
 #include <univalue.h>
 #include <chainparams.h>
 #include <validation.h>
+#include <compat/byteswap.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
@@ -23,6 +24,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <usbdevice/trezor/messages.pb.h>
 #include <usbdevice/trezor/messages-management.pb.h>
+#include <usbdevice/trezor/messages-bitcoin.pb.h>
 #pragma GCC diagnostic pop
 
 namespace usb_device {
@@ -176,6 +178,181 @@ int CTrezorDevice::GetFirmwareVersion(std::string &sFirmware, std::string &sErro
     }
 
     sFirmware = strprintf("%d.%d.%d", msg_out.major_version(), msg_out.minor_version(), msg_out.patch_version());
+
+    return 0;
+};
+
+int CTrezorDevice::GetPubKey(const std::vector<uint32_t> &vPath, CPubKey &pk, std::string &sError)
+{
+    message::GetPublicKey msg_in;
+    message::PublicKey msg_out;
+
+    for (const auto i : vPath) {
+        msg_in.add_address_n(i);
+    }
+
+    std::vector<uint8_t> vec_in, vec_out;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != Open()) {
+        return errorN(1, sError, __func__, "Failed to open device.");
+    }
+
+    if (0 != WriteV1(handle, MessageType_GetPublicKey, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    uint16_t msg_type_out = MessageType_PublicKey;
+    if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+        Close();
+        return errorN(1, sError, __func__, "ReadV1 failed.");
+    }
+
+    Close();
+
+    if (!msg_out.ParseFromArray(vec_out.data(), vec_out.size())) {
+        return errorN(1, sError, __func__, "ParseFromArray failed.");
+    }
+
+    size_t lenPubkey = msg_out.node().public_key().size();
+    pk.Set(&msg_out.node().public_key().c_str()[0], &msg_out.node().public_key().c_str()[lenPubkey]);
+
+    return 0;
+};
+
+int CTrezorDevice::GetXPub(const std::vector<uint32_t> &vPath, CExtPubKey &ekp, std::string &sError)
+{
+    if (vPath.size() < 1 || vPath.size() > 10) {
+        return errorN(1, sError, __func__, _("Path depth out of range.").c_str());
+    }
+    size_t lenPath = vPath.size();
+
+    message::GetPublicKey msg_in;
+    message::PublicKey msg_out;
+
+    for (const auto i : vPath) {
+        msg_in.add_address_n(i);
+    }
+
+    std::vector<uint8_t> vec_in, vec_out;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != Open()) {
+        return errorN(1, sError, __func__, "Failed to open device.");
+    }
+
+    if (0 != WriteV1(handle, MessageType_GetPublicKey, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    uint16_t msg_type_out = MessageType_PublicKey;
+    if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+        Close();
+        return errorN(1, sError, __func__, "ReadV1 failed.");
+    }
+
+    Close();
+
+    if (!msg_out.ParseFromArray(vec_out.data(), vec_out.size())) {
+        return errorN(1, sError, __func__, "ParseFromArray failed.");
+    }
+
+    if (vPath.back() != msg_out.node().child_num() || lenPath != msg_out.node().depth()) {
+        return errorN(1, sError, __func__, "Mismatched key returned.");
+    }
+
+    ekp.nDepth = msg_out.node().depth();
+    uint32_t fingerprint = bswap_32(msg_out.node().fingerprint()); // bswap_32 still necessary when system is big endian?
+    memcpy(ekp.vchFingerprint, ((uint8_t*)&fingerprint), 4);
+    ekp.nChild = msg_out.node().child_num();
+    assert(msg_out.node().chain_code().size() == 32);
+    memcpy(ekp.chaincode, msg_out.node().chain_code().data(), 32);
+
+    size_t lenPubkey = msg_out.node().public_key().size();
+    ekp.pubkey.Set(&msg_out.node().public_key().c_str()[0], &msg_out.node().public_key().c_str()[lenPubkey]);
+
+    if (lenPubkey == 65 && !ekp.pubkey.Compress()) {
+        return errorN(1, sError, __func__, "Pubkey compression failed.");
+    }
+
+    return 0;
+};
+
+int CTrezorDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::string &sMessage, std::vector<uint8_t> &vchSig, std::string &sError)
+{
+    if (vPath.size() < 1 || vPath.size() > 10) {
+        return errorN(1, sError, __func__, _("Path depth out of range.").c_str());
+    }
+
+    message::SignMessage msg_in;
+    message::MessageSignature msg_out;
+
+    for (const auto i : vPath) {
+        msg_in.add_address_n(i);
+    }
+
+    msg_in.set_coin_name("Bitcoin");
+    msg_in.set_message(sMessage);
+
+    std::vector<uint8_t> vec_in, vec_out;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != Open()) {
+        return errorN(1, sError, __func__, "Failed to open device.");
+    }
+
+    if (0 != WriteV1(handle, MessageType_SignMessage, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    uint16_t msg_type_out = MessageType_ButtonRequest;
+    if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+        Close();
+        return errorN(1, sError, __func__, "ReadV1 failed.");
+    }
+
+    ButtonAck msg_in1;
+    vec_in.resize(msg_in1.ByteSize());
+
+    if (0 != WriteV1(handle, MessageType_ButtonAck, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    msg_type_out = MessageType_MessageSignature;
+    if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+        Close();
+        return errorN(1, sError, __func__, "ReadV1 failed.");
+    }
+
+    Close();
+
+    if (!msg_out.ParseFromArray(vec_out.data(), vec_out.size())) {
+        return errorN(1, sError, __func__, "ParseFromArray failed.");
+    }
+
+    size_t lenSignature = msg_out.signature().size();
+    vchSig.resize(lenSignature);
+
+    memcpy(&vchSig[0], msg_out.signature().c_str(), lenSignature);
 
     return 0;
 };
