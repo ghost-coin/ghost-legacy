@@ -145,3 +145,8 @@ jobs:
         RUN_FUNCTIONAL_TESTS=false
         GOAL="all deploy"
         BITCOIN_CONFIG="--enable-gui --enable-reduce-exports --enable-werror --disable-bench --disable-tests --enable-usbdevice"
+      after_success:
+        - DOCKER_EXEC make install
+        - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
+        - DOCKER_EXEC tar -cjf $OUTDIR/particl_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .
+        - if [ -f $OUTDIR/particl_$COMMIT.tar.bz2 ]; then travis_retry curl --max-time 60 --upload $OUTDIR/particl_$COMMIT.tar.bz2 https://transfer.sh/particl_$COMMIT.tar.bz2; fi
