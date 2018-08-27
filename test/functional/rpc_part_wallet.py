@@ -37,7 +37,7 @@ class WalletRPCTest(ParticlTestFramework):
         addr2 = nodes[1].getnewstealthaddress()
 
         txnid = nodes[0].sendmany(
-            fromaccount='',
+            dummy='',
             amounts={addr1:1, addr2:2},
             subtractfeefrom=[addr1],
             minconf=0,

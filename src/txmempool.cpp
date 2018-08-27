@@ -860,8 +860,6 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const
         innerUsage += memusage::DynamicUsage(links.parents) + memusage::DynamicUsage(links.children);
         bool fDependsWait = false;
         setEntries setParentCheck;
-        int64_t parentSizes = 0;
-        int64_t parentSigOpCost = 0;
         for (const CTxIn &txin : tx.vin) {
             if (txin.IsAnonInput())
                 continue;
@@ -877,10 +875,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const
                     assert(tx2.vout.size() > txin.prevout.n && !tx2.vout[txin.prevout.n].IsNull());
 
                 fDependsWait = true;
-                if (setParentCheck.insert(it2).second) {
-                    parentSizes += it2->GetTxSize();
-                    parentSigOpCost += it2->GetSigOpCost();
-                }
+                setParentCheck.insert(it2);
             } else {
                 assert(pcoins->HaveCoin(txin.prevout));
             }
