@@ -346,7 +346,7 @@ class AtomicSwapTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [ ['-debug','-noacceptnonstdtxn'] for i in range(self.num_nodes)]
+        self.extra_args = [ ['-debug','-noacceptnonstdtxn','-reservebalance=10000000'] for i in range(self.num_nodes)]
 
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
@@ -697,10 +697,6 @@ class AtomicSwapTest(ParticlTestFramework):
 
     def run_test(self):
         nodes = self.nodes
-
-        # Stop staking
-        for i in range(len(nodes)):
-            nodes[i].reservebalance(True, 10000000)
 
         nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
         assert(nodes[0].getwalletinfo()['total_balance'] == 100000)

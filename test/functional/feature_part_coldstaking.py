@@ -16,7 +16,7 @@ class ColdStakingTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [ ['-debug',] for i in range(self.num_nodes)]
+        self.extra_args = [ ['-debug','-reservebalance=10000000'] for i in range(self.num_nodes)]
 
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
@@ -29,10 +29,6 @@ class ColdStakingTest(ParticlTestFramework):
 
     def run_test(self):
         nodes = self.nodes
-
-        # Stop staking
-        for i in range(len(nodes)):
-            nodes[i].reservebalance(True, 10000000)
 
         ro = nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
         assert(ro['account_id'] == 'aaaZf2qnNr5T7PWRmqgmusuu5ACnBcX2ev')

@@ -15,7 +15,6 @@ class SpentIndexTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 4
-        self.extra_args = [ ['-debug',] for i in range(self.num_nodes)]
         self.extra_args = [
             # Nodes 0/1 are "wallet" nodes
             ['-debug',],
@@ -40,10 +39,8 @@ class SpentIndexTest(ParticlTestFramework):
         nodes = self.nodes
 
         # Stop staking
-        nodes[0].reservebalance(True, 10000000)
-        nodes[1].reservebalance(True, 10000000)
-        nodes[2].reservebalance(True, 10000000)
-        nodes[3].reservebalance(True, 10000000)
+        for i in range(len(nodes)):
+            nodes[i].reservebalance(True, 10000000)
 
 
         nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')

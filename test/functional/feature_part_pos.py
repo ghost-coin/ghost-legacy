@@ -7,11 +7,12 @@ from test_framework.test_particl import ParticlTestFramework
 from test_framework.test_particl import isclose
 from test_framework.util import *
 
+
 class PosTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 4
-        self.extra_args = [ ['-debug','-noacceptnonstdtxn'] for i in range(self.num_nodes)]
+        self.extra_args = [ ['-debug','-noacceptnonstdtxn','-reservebalance=10000000'] for i in range(self.num_nodes)]
 
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
@@ -25,10 +26,6 @@ class PosTest(ParticlTestFramework):
 
     def run_test(self):
         nodes = self.nodes
-
-        # stop staking
-        for i in range(len(nodes)):
-            nodes[i].reservebalance(True, 10000000)
 
         ro = nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
         assert(ro['account_id'] == 'aaaZf2qnNr5T7PWRmqgmusuu5ACnBcX2ev')
@@ -149,7 +146,6 @@ class PosTest(ParticlTestFramework):
             except:
                 continue
         assert(fFound)
-
 
 
         addrRewardSx = nodes[0].getnewstealthaddress()

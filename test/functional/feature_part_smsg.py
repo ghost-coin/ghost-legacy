@@ -110,7 +110,5 @@ class SmsgTest(ParticlTestFramework):
         assert(ro['messages'][0]['text'] == msg)
 
 
-
-
 if __name__ == '__main__':
     SmsgTest().main()

@@ -11,7 +11,7 @@ class ExtKeyTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [ ['-debug',] for i in range(self.num_nodes)]
+        self.extra_args = [ ['-debug','-reservebalance=10000000'] for i in range(self.num_nodes)]
 
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
@@ -25,9 +25,6 @@ class ExtKeyTest(ParticlTestFramework):
     def run_test(self):
         node = self.nodes[0]
         node1 = self.nodes[1]
-
-        # stop staking
-        node.reservebalance(True, 10000000)
 
         ro = node.extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
         assert(ro['account_id'] == 'aaaZf2qnNr5T7PWRmqgmusuu5ACnBcX2ev')

@@ -11,7 +11,7 @@ class FilterTransactionsTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [ [ '-debug' ] for i in range(self.num_nodes) ]
+        self.extra_args = [ [ '-debug', '-reservebalance=10000000' ] for i in range(self.num_nodes) ]
 
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
@@ -25,11 +25,6 @@ class FilterTransactionsTest(ParticlTestFramework):
 
     def run_test(self):
         nodes = self.nodes
-
-        # Stop staking
-        nodes[0].reservebalance(True, 10000000)
-        nodes[1].reservebalance(True, 10000000)
-        nodes[2].reservebalance(True, 10000000)
 
         # import keys for node wallets
         nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
