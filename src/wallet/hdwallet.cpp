@@ -2424,7 +2424,7 @@ CAmount CHDWallet::GetStaked()
     return nTotal;
 };
 
-CAmount CHDWallet::GetLegacyBalance(const isminefilter& filter, int minDepth, const std::string* account) const
+CAmount CHDWallet::GetLegacyBalance(const isminefilter& filter, int minDepth) const
 {
     LOCK2(cs_main, cs_wallet);
 
@@ -2443,40 +2443,37 @@ CAmount CHDWallet::GetLegacyBalance(const isminefilter& filter, int minDepth, co
         for (const auto &out : wtx.tx->vpout) {
             if (outgoing && IsChange(out.get())) {
                 debit -= out->GetValue();
-            } else if (IsMine(out.get()) & filter && depth >= minDepth && (!account || *account == GetLabelName(*out->GetPScriptPubKey()))) {
+            } else if (IsMine(out.get()) & filter && depth >= minDepth) {
                 balance += out->GetValue();
             }
         }
 
         // For outgoing txs, subtract amount debited.
-        if (outgoing && (!account || *account == wtx.strFromAccount)) {
+        if (outgoing) {
             balance -= debit;
         }
     }
 
-    if (account) {
-        balance += WalletBatch(*database).GetAccountCreditDebit(*account);
-    }
-
-    for (const auto &entry : mapRecords)
-    {
+    for (const auto &entry : mapRecords) {
         const auto &txhash = entry.first;
         const auto &rtx = entry.second;
         const int depth = GetDepthInMainChain(rtx.blockHash, rtx.nIndex);
         //if (depth < 0 || !CheckFinalTx(*wtx.tx) || wtx.GetBlocksToMaturity() > 0) {
-        if (depth < 0)
+        if (depth < 0) {
             continue;
+        }
 
-        for (const auto &r : rtx.vout)
-        {
+        for (const auto &r : rtx.vout) {
             if (r.nType == OUTPUT_STANDARD
-                && r.nFlags & ORF_OWNED && !IsSpent(txhash, r.n))
+                && r.nFlags & ORF_OWNED && !IsSpent(txhash, r.n)) {
                 balance += r.nValue;
-        };
+            }
+        }
 
-        if (!MoneyRange(balance))
+        if (!MoneyRange(balance)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
-    };
+        }
+    }
 
     return balance;
 }
@@ -2486,8 +2483,7 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
     bal.Clear();
 
     LOCK2(cs_main, cs_wallet);
-    for (const auto &item : mapWallet)
-    {
+    for (const auto &item : mapWallet) {
         const CWalletTx &wtx = item.second;
 
         bal.nPartImmature += wtx.GetImmatureCredit();
@@ -2495,48 +2491,41 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
         int depth;
         if (wtx.IsCoinStake()
             && (depth = wtx.GetDepthInMainChainCached()) > 0 // checks for hashunset
-            && wtx.GetBlocksToMaturity(&depth) > 0)
-        {
+            && wtx.GetBlocksToMaturity(&depth) > 0) {
             CAmount nSpendable, nWatchOnly;
             CHDWallet::GetCredit(*wtx.tx, nSpendable, nWatchOnly);
             bal.nPartStaked += nSpendable;
             bal.nPartWatchOnlyStaked += nWatchOnly;
-        };
+        }
 
-        if (wtx.IsTrusted())
-        {
+        if (wtx.IsTrusted()) {
             bal.nPart += wtx.GetAvailableCredit();
             bal.nPartWatchOnly += wtx.GetAvailableCredit(true, ISMINE_WATCH_ONLY);
-        } else
-        {
-            if (wtx.GetDepthInMainChain() == 0 && wtx.InMempool())
-            {
+        } else {
+            if (wtx.GetDepthInMainChain() == 0 && wtx.InMempool()) {
                 bal.nPartUnconf += wtx.GetAvailableCredit();
                 bal.nPartWatchOnlyUnconf += wtx.GetAvailableCredit(true, ISMINE_WATCH_ONLY);
-            };
-        };
-    };
+            }
+        }
+    }
 
-    for (const auto &ri : mapRecords)
-    {
+    for (const auto &ri : mapRecords) {
         const auto &txhash = ri.first;
         const auto &rtx = ri.second;
 
         bool fTrusted = IsTrusted(txhash, rtx.blockHash);
         bool fInMempool = false;
-        if (!fTrusted)
-        {
+        if (!fTrusted) {
             CTransactionRef ptx = mempool.get(txhash);
             fInMempool = !ptx ? false : true;
-        };
+        }
 
-        for (const auto &r : rtx.vout)
-        {
+        for (const auto &r : rtx.vout) {
             if (!(r.nFlags & ORF_OWN_ANY)
-                || IsSpent(txhash, r.n))
+                || IsSpent(txhash, r.n)) {
                 continue;
-            switch (r.nType)
-            {
+            }
+            switch (r.nType) {
                 case OUTPUT_RINGCT:
                     if (!(r.nFlags & ORF_OWNED))
                         continue;
@@ -2554,26 +2543,24 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
                         bal.nBlindUnconf += r.nValue;
                     break;
                 case OUTPUT_STANDARD:
-                    if (r.nFlags & ORF_OWNED)
-                    {
+                    if (r.nFlags & ORF_OWNED) {
                         if (fTrusted)
                             bal.nPart += r.nValue;
                         else if (fInMempool)
                             bal.nPartUnconf += r.nValue;
                     } else
-                    if (r.nFlags & ORF_OWN_WATCH)
-                    {
+                    if (r.nFlags & ORF_OWN_WATCH) {
                         if (fTrusted)
                             bal.nPartWatchOnly += r.nValue;
                         else if (fInMempool)
                             bal.nPartWatchOnlyUnconf += r.nValue;
-                    };
+                    }
                     break;
                 default:
                     break;
-            };
-        };
-    };
+            }
+        }
+    }
 
     //if (!MoneyRange(nBalance))
     //    throw std::runtime_error(std::string(__func__) + ": value out of range");
@@ -5337,11 +5324,12 @@ void CHDWallet::ClearCachedBalances()
 void CHDWallet::LoadToWallet(const CWalletTx& wtxIn)
 {
     uint256 hash = wtxIn.GetHash();
-
-    std::pair<std::map<uint256, CWalletTx>::iterator, bool> ret = mapWallet.insert(std::make_pair(hash, wtxIn));
-    CWalletTx& wtx = (*ret.first).second;
+    const auto& ins = mapWallet.emplace(hash, wtxIn);
+    CWalletTx& wtx = ins.first->second;
     wtx.BindWallet(this);
-    wtxOrdered.insert(make_pair(wtx.nOrderPos, TxPair(&wtx, (CAccountingEntry*)0)));
+    if (/* insertion took place */ ins.second) {
+        wtx.m_it_wtxOrdered = wtxOrdered.insert(std::make_pair(wtx.nOrderPos, &wtx));
+    }
     AddToSpends(hash);
     for (const auto &txin : wtx.tx->vin) {
         auto it = mapWallet.find(txin.prevout.hash);
@@ -5406,7 +5394,7 @@ int CHDWallet::UnloadTransaction(const uint256 &hash)
         RemoveFromTxSpends(hash, pcoin->tx);
 
         for (auto it = wtxOrdered.begin(); it != wtxOrdered.end(); ) {
-            if (it->second.first == pcoin) {
+            if (it->second == pcoin) {
                 wtxOrdered.erase(it++);
                 continue;
             }
@@ -8242,7 +8230,7 @@ bool CHDWallet::CreateTransaction(std::vector<CTempRecipient>& vecSend, CTransac
 /**
  * Call after CreateTransaction unless you want to abort
  */
-bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm, std::string fromAccount, CReserveKey& reservekey, CConnman* connman, CValidationState& state)
+bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm, CReserveKey& reservekey, CConnman* connman, CValidationState& state)
 {
     {
         LOCK2(cs_main, cs_wallet);
@@ -8250,16 +8238,15 @@ bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::
         mapValue_t mapNarr;
         FindStealthTransactions(*tx, mapNarr);
 
-        if (!mapNarr.empty())
-        {
-            for (auto &item : mapNarr)
+        if (!mapNarr.empty()) {
+            for (auto &item : mapNarr) {
                 mapValue[item.first] = item.second;
-        };
+            }
+        }
 
         CWalletTx wtxNew(this, std::move(tx));
         wtxNew.mapValue = std::move(mapValue);
         wtxNew.vOrderForm = std::move(orderForm);
-        wtxNew.strFromAccount = std::move(fromAccount);
         wtxNew.fTimeReceivedIsTxTime = true;
         wtxNew.fFromMe = true;
 
@@ -11358,7 +11345,6 @@ void CHDWallet::SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator> r
         // nTimeReceived not copied on purpose
         copyTo->nTimeSmart = copyFrom->nTimeSmart;
         copyTo->fFromMe = copyFrom->fFromMe;
-        copyTo->strFromAccount = copyFrom->strFromAccount;
         // nOrderPos not copied on purpose
         // cached members not copied on purpose
     }

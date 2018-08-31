@@ -2578,14 +2578,12 @@ static void ParseOutputs(
     std::list<COutputEntry> listStaked;
     CAmount nFee;
     CAmount amount = 0;
-    std::string strSentAccount;
 
     wtx.GetAmounts(
         listReceived,
         listSent,
         listStaked,
         nFee,
-        strSentAccount,
         ISMINE_ALL,
         true);
 
@@ -2597,10 +2595,6 @@ static void ParseOutputs(
     std::vector<std::string> amounts;
 
     UniValue outputs(UniValue::VARR);
-    // common to every type of transaction
-    if (strSentAccount != "") {
-        entry.pushKV("account", strSentAccount);
-    }
     WalletTxToJSON(wtx, entry, true);
 
     if (!listStaked.empty() || !listSent.empty()) {
@@ -3213,7 +3207,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
     const CHDWallet::TxItems &txOrdered = pwallet->wtxOrdered;
     CWallet::TxItems::const_reverse_iterator tit = txOrdered.rbegin();
     while (tit != txOrdered.rend()) {
-        CWalletTx* const pwtx = tit->second.first;
+        CWalletTx* const pwtx = tit->second;
         int64_t txTime = pwtx->GetTxTime();
         if (txTime < timeFrom) break;
         if (txTime <= timeTo)
@@ -4748,8 +4742,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     CValidationState state;
     CReserveKey reservekey(pwallet);
     if (typeIn == OUTPUT_STANDARD && typeOut == OUTPUT_STANDARD) {
-        std::string sFromAccount = "";
-        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, sFromAccount, reservekey, g_connman.get(), state)) {
+        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, reservekey, g_connman.get(), state)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
         }
     } else {
