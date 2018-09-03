@@ -685,8 +685,8 @@ public:
      * Return list of available coins and locked coins grouped by non-change output address.
      */
     const CTxOutBase* FindNonChangeParentOutput(const CTransaction& tx, int output) const;
-    std::map<CTxDestination, std::vector<COutput>> ListCoins() const override;
-    std::map<CTxDestination, std::vector<COutputR>> ListCoins(OutputTypes nType) const;
+    std::map<CTxDestination, std::vector<COutput>> ListCoins() const override EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
+    std::map<CTxDestination, std::vector<COutputR>> ListCoins(OutputTypes nType) const EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
 
     bool SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligibilityFilter& eligibility_filter, std::vector<COutputR> vCoins, std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &setCoinsRet, CAmount &nValueRet) const;
 

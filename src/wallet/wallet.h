@@ -826,7 +826,7 @@ public:
     /**
      * Return list of available coins and locked coins grouped by non-change output address.
      */
-    virtual std::map<CTxDestination, std::vector<COutput>> ListCoins() const;
+    virtual std::map<CTxDestination, std::vector<COutput>> ListCoins() const EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
 
     /**
      * Find non-change parent output.

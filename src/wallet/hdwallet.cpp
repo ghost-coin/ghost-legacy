@@ -10724,10 +10724,12 @@ const CTxOutBase* CHDWallet::FindNonChangeParentOutput(const CTransaction& tx, i
 
 std::map<CTxDestination, std::vector<COutput>> CHDWallet::ListCoins() const
 {
+    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_wallet);
+
     std::map<CTxDestination, std::vector<COutput>> result;
     std::vector<COutput> availableCoins;
 
-    LOCK2(cs_main, cs_wallet);
     AvailableCoins(availableCoins);
 
     for (auto& coin : availableCoins) {
@@ -10782,10 +10784,11 @@ bool GetAddress(const CHDWallet *pw, const COutputRecord *pout, CTxDestination &
 
 std::map<CTxDestination, std::vector<COutputR>> CHDWallet::ListCoins(OutputTypes nType) const
 {
+    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_wallet);
+
     std::map<CTxDestination, std::vector<COutputR>> result;
     std::vector<COutputR> availableCoins;
-
-    LOCK2(cs_main, cs_wallet);
 
     CCoinControl coinControl;
     coinControl.fAllowLocked = true;
