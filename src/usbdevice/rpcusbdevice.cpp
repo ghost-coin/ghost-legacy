@@ -478,7 +478,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     if (0 != pDevice->Open()) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Failed to open dongle."));
     }
-    pDevice->PrepareTransaction(&mtx, view);
+    pDevice->PrepareTransaction(mtx, view, keystore, nHashType);
     if (!pDevice->sError.empty()) {
         pDevice->Close();
         UniValue entry(UniValue::VOBJ);
@@ -491,7 +491,6 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
         }
         return result;
     }
-
 
     // Sign what we can:
     for (unsigned int i = 0; i < mtx.vin.size(); i++) {
@@ -521,10 +520,10 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
                 UniValue entry(UniValue::VOBJ);
                 entry.pushKV("error", pDevice->sError);
                 vErrors.push_back(entry);
+                pDevice->sError.clear();
             }
         }
 
-        //sigdata = CombineSignatures(prevPubKey, TransactionSignatureChecker(&txConst, i, vchAmount), sigdata, DataFromTransaction(mtx, i));
         UpdateInput(txin, sigdata);
 
         ScriptError serror = SCRIPT_ERR_OK;

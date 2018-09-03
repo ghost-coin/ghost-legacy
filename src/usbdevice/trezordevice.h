@@ -11,6 +11,25 @@ namespace usb_device {
 
 class CTrezorDevice : public CUSBDevice
 {
+private:
+    class SignData
+    {
+    public:
+        SignData() {};
+        SignData(const std::vector<uint32_t> &path, const std::vector<uint8_t> &shared_secret,
+                 const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion)
+            : m_path(path), m_shared_secret(shared_secret),
+              m_scriptCode(scriptCode), m_hashType(hashType), m_amount(amount), m_sigversion(sigversion) {};
+        std::vector<uint32_t> m_path;
+        std::vector<uint8_t> m_shared_secret;
+        CScript m_scriptCode;
+        int m_hashType;
+        std::vector<uint8_t> m_amount;
+        SigVersion m_sigversion;
+        std::vector<uint8_t> m_signature;
+    };
+
+    std::string GetCoinName();
 public:
     CTrezorDevice(const DeviceType *pType_, const char *cPath_, const char *cSerialNo_, int nInterface_)
         : CUSBDevice(pType_, cPath_, cSerialNo_, nInterface_) {};
@@ -19,12 +38,23 @@ public:
     int Close() override;
 
     int GetFirmwareVersion(std::string &sFirmware, std::string &sError) override;
+    int GetInfo(UniValue &info, std::string &sError) override;
 
     int GetPubKey(const std::vector<uint32_t> &vPath, CPubKey &pk, std::string &sError) override;
     int GetXPub(const std::vector<uint32_t> &vPath, CExtPubKey &ekp, std::string &sError) override;
 
     int SignMessage(const std::vector<uint32_t> &vPath, const std::string &sMessage, std::vector<uint8_t> &vchSig, std::string &sError) override;
 
+    int PrepareTransaction(CMutableTransaction &tx, const CCoinsViewCache &view, const CKeyStore &keystore, int nHashType) override;
+
+    int SignTransaction(const std::vector<uint32_t> &vPath, const std::vector<uint8_t> &vSharedSecret, const CMutableTransaction *tx,
+        int nIn, const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion,
+        std::vector<uint8_t> &vchSig, std::string &sError) override;
+
+    int CompleteTransaction(CMutableTransaction *tx);
+
+    bool m_preparing = false;
+    std::map<int, SignData> m_cache;
 };
 
 } // usb_device

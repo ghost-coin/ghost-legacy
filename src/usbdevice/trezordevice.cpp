@@ -182,6 +182,47 @@ int CTrezorDevice::GetFirmwareVersion(std::string &sFirmware, std::string &sErro
     return 0;
 };
 
+int CTrezorDevice::GetInfo(UniValue &info, std::string &sError)
+{
+    GetFeatures msg_in;
+    Features msg_out;
+
+    std::vector<uint8_t> vec_in, vec_out;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != Open()) {
+        return errorN(1, sError, __func__, "Failed to open device.");
+    }
+
+    if (0 != WriteV1(handle, MessageType_GetFeatures, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    uint16_t msg_type_out = 0;
+    if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+        Close();
+        return errorN(1, sError, __func__, "ReadV1 failed.");
+    }
+
+    Close();
+
+    if (!msg_out.ParseFromArray(vec_out.data(), vec_out.size())) {
+        return errorN(1, sError, __func__, "ParseFromArray failed.");
+    }
+
+    info.pushKV("device_id", msg_out.device_id());
+    info.pushKV("initialized", msg_out.initialized());
+    info.pushKV("firmware_present", msg_out.firmware_present());
+
+    return 0;
+}
+
 int CTrezorDevice::GetPubKey(const std::vector<uint32_t> &vPath, CPubKey &pk, std::string &sError)
 {
     message::GetPublicKey msg_in;
@@ -355,6 +396,215 @@ int CTrezorDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::st
     memcpy(&vchSig[0], msg_out.signature().c_str(), lenSignature);
 
     return 0;
+};
+
+int CTrezorDevice::PrepareTransaction(CMutableTransaction &mtx, const CCoinsViewCache &view, const CKeyStore &keystore, int nHashType)
+{
+    bool fHashSingle = ((nHashType & ~SIGHASH_ANYONECANPAY) == SIGHASH_SINGLE);
+
+    m_preparing = true;
+    for (unsigned int i = 0; i < mtx.vin.size(); i++) {
+        CTxIn& txin = mtx.vin[i];
+        const Coin& coin = view.AccessCoin(txin.prevout);
+        if (coin.IsSpent()
+            || coin.nType != OUTPUT_STANDARD) {
+            continue;
+        }
+
+        std::vector<uint8_t> vchAmount(8);
+        CScript prevPubKey = coin.out.scriptPubKey;
+        CAmount amount = coin.out.nValue;
+        memcpy(vchAmount.data(), &amount, 8);
+        SignatureData sigdata = DataFromTransaction(mtx, i, vchAmount, prevPubKey);
+
+        // Only sign SIGHASH_SINGLE if there's a corresponding output:
+        if (!fHashSingle || (i < mtx.GetNumVOuts())) {
+            ProduceSignature(keystore, DeviceSignatureCreator(this, &mtx, i, vchAmount, nHashType), prevPubKey, sigdata);
+        }
+    }
+
+    m_preparing = false;
+
+    return CompleteTransaction(&mtx);
+};
+
+int CTrezorDevice::SignTransaction(const std::vector<uint32_t> &vPath, const std::vector<uint8_t> &vSharedSecret, const CMutableTransaction *tx,
+        int nIn, const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion,
+        std::vector<uint8_t> &vchSig, std::string &sError)
+{
+    if (m_preparing) {
+        m_cache[nIn] = SignData(vPath, vSharedSecret, scriptCode, hashType, amount, sigversion);
+    } else {
+        const auto &ci = m_cache.find(nIn);
+        if (ci != m_cache.end()) {
+            vchSig = ci->second.m_signature;
+        }
+    }
+
+    return 0;
+};
+
+int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
+{
+    message::SignTx msg_in;
+    message::TxRequest req;
+    uint16_t msg_type_out = 0;
+
+    msg_in.set_outputs_count(tx->vpout.size());
+    msg_in.set_inputs_count(tx->vin.size());
+    msg_in.set_coin_name(GetCoinName());
+    msg_in.set_version(tx->nVersion);
+    msg_in.set_lock_time(tx->nLockTime);
+
+    std::vector<uint8_t> vec_in, vec_out, serialised_tx;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != WriteV1(handle, MessageType_SignTx, vec_in)) {
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    for (;;) {
+        if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+            return errorN(1, sError, __func__, "ReadV1 failed.");
+        }
+
+        if (msg_type_out == MessageType_Failure) {
+            Failure msg_fail;
+            if (!msg_fail.ParseFromArray(vec_out.data(), vec_out.size())) {
+                return errorN(1, sError, __func__, "ParseFromArray failed.");
+            }
+            return errorN(1, sError, __func__, "Dongle error %s.", msg_fail.message());
+        } else
+        if (msg_type_out == MessageType_ButtonRequest) {
+            ButtonAck msg;
+            vec_in.resize(msg.ByteSize());
+            if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
+                return errorN(1, sError, __func__, "SerializeToArray failed.");
+            }
+            if (0 != WriteV1(handle, MessageType_ButtonAck, vec_in)) {
+                return errorN(1, sError, __func__, "WriteV1 failed.");
+            }
+            continue;
+        } else
+        if (msg_type_out != MessageType_TxRequest) {
+            return errorN(1, "%s: Unknown return type.", __func__);
+        }
+
+        if (!req.ParseFromArray(vec_out.data(), vec_out.size())) {
+            return errorN(1, sError, __func__, "ParseFromArray failed.");
+        }
+
+        if (req.has_serialized()) {
+            const auto &msg_serialized = req.serialized();
+            if (msg_serialized.has_serialized_tx()) {
+                std::string s = msg_serialized.serialized_tx();
+                serialised_tx.insert(serialised_tx.end(), s.begin(), s.end());
+            }
+
+            if (msg_serialized.has_signature()) {
+                size_t i = msg_serialized.signature_index();
+
+                std::string signature = msg_serialized.signature();
+
+                const auto &ci = m_cache.find(i);
+                if (ci == m_cache.end()) {
+                    // TODO
+                    return errorN(1, sError, __func__, "No information for input.");
+                }
+
+                auto &cache_sig = ci->second.m_signature;
+                cache_sig.resize(signature.size()+1);
+                memcpy(cache_sig.data(), signature.data(), signature.size());
+                cache_sig[signature.size()] = ci->second.m_hashType;
+            }
+        }
+
+        message::TxAck msg;
+        if (req.request_type() == message::TxRequest::TXINPUT) {
+            const auto msg_tx = msg.mutable_tx();
+            uint32_t i = req.details().request_index();
+
+            if (i >= tx->vin.size()) {
+                return errorN(1, sError, __func__, "Requested input out of range.");
+            }
+            auto msg_input = msg_tx->add_inputs();
+
+            const auto &ci = m_cache.find(i);
+            if (ci == m_cache.end()) {
+                // TODO
+                return errorN(1, sError, __func__, "No information for input.");
+            }
+            const auto &txin = tx->vin[i];
+
+            for (const auto i : ci->second.m_path) {
+                msg_input->add_address_n(i);
+            }
+
+            std::string hash;
+            hash.resize(32);
+            for (size_t k = 0; k < 32; ++k) {
+                hash[k] = *(txin.prevout.hash.begin()+(31-k));
+            }
+
+            msg_input->set_prev_hash(hash);
+            msg_input->set_prev_index(txin.prevout.n);
+
+            msg_input->set_sequence(txin.nSequence);
+            msg_input->set_script_type(message::SPENDWITNESS);
+            if (ci->second.m_amount.size() != 8) {
+                // TODO
+                return errorN(1, sError, __func__, "Non-standard amount size.");
+            }
+            int64_t amount;
+            memcpy(&amount, ci->second.m_amount.data(), 8);
+            msg_input->set_amount(amount);
+        } else
+        if (req.request_type() == message::TxRequest::TXOUTPUT) {
+            const auto msg_tx = msg.mutable_tx();
+            uint32_t i = req.details().request_index();
+            if (i >= tx->vpout.size()) {
+                return errorN(1, sError, __func__, "Requested output out of range.");
+            }
+            auto msg_output = msg_tx->add_outputs();
+
+            CTxDestination address;
+            const CScript *pscript = tx->vpout[i]->GetPScriptPubKey();
+            if (!pscript || !ExtractDestination(*pscript, address)) {
+                return errorN(1, sError, __func__, "ExtractDestination failed.");
+            }
+
+            msg_output->set_address(EncodeDestination(address));
+            msg_output->set_amount(tx->vpout[i]->GetValue());
+            msg_output->set_script_type(message::TxAck::TransactionType::TxOutputType::PAYTOADDRESS);
+        } else
+        if (req.request_type() == message::TxRequest::TXFINISHED) {
+            break;
+        } else {
+            LogPrintf("%s: Unknown request_type.\n", __func__);
+            break;
+        }
+
+        vec_in.resize(msg.ByteSize());
+        if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
+            return errorN(1, sError, __func__, "SerializeToArray failed.");
+        }
+
+        if (0 != WriteV1(handle, MessageType_TxAck, vec_in)) {
+            return errorN(1, sError, __func__, "WriteV1 failed.");
+        }
+    }
+
+    return 0;
+};
+
+std::string CTrezorDevice::GetCoinName()
+{
+    return Params().NetworkIDString() == "main" ? "Particl" : "Particl Testnet";
 };
 
 } // usb_device
