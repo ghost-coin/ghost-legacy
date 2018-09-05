@@ -415,6 +415,8 @@ int CTrezorDevice::PrepareTransaction(CMutableTransaction &mtx, const CCoinsView
         CScript prevPubKey = coin.out.scriptPubKey;
         CAmount amount = coin.out.nValue;
         memcpy(vchAmount.data(), &amount, 8);
+
+        m_cache[i] = SignData(prevPubKey, nHashType, vchAmount);
         SignatureData sigdata = DataFromTransaction(mtx, i, vchAmount, prevPubKey);
 
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
@@ -513,8 +515,7 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
 
                 const auto &ci = m_cache.find(i);
                 if (ci == m_cache.end()) {
-                    // TODO
-                    return errorN(1, sError, __func__, "No information for input.");
+                    return errorN(1, sError, __func__, "No information for input %d.", i);
                 }
 
                 auto &cache_sig = ci->second.m_signature;
@@ -536,8 +537,7 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
 
             const auto &ci = m_cache.find(i);
             if (ci == m_cache.end()) {
-                // TODO
-                return errorN(1, sError, __func__, "No information for input.");
+                return errorN(1, sError, __func__, "No information for input %d.", i);
             }
             const auto &txin = tx->vin[i];
 
@@ -557,8 +557,7 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
             msg_input->set_sequence(txin.nSequence);
             msg_input->set_script_type(message::SPENDWITNESS);
             if (ci->second.m_amount.size() != 8) {
-                // TODO
-                return errorN(1, sError, __func__, "Non-standard amount size.");
+                return errorN(1, sError, __func__, "Non-standard amount size for input %d.", i);
             }
             int64_t amount;
             memcpy(&amount, ci->second.m_amount.data(), 8);

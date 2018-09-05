@@ -16,6 +16,8 @@ private:
     {
     public:
         SignData() {};
+        SignData(const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount)
+            : m_scriptCode(scriptCode), m_hashType(hashType), m_amount(amount) {};
         SignData(const std::vector<uint32_t> &path, const std::vector<uint8_t> &shared_secret,
                  const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion)
             : m_path(path), m_shared_secret(shared_secret),
@@ -23,9 +25,9 @@ private:
         std::vector<uint32_t> m_path;
         std::vector<uint8_t> m_shared_secret;
         CScript m_scriptCode;
-        int m_hashType;
+        int m_hashType = 0;
         std::vector<uint8_t> m_amount;
-        SigVersion m_sigversion;
+        SigVersion m_sigversion = SigVersion::BASE;
         std::vector<uint8_t> m_signature;
     };
 
