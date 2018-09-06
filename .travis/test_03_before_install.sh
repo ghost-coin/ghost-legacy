@@ -6,6 +6,9 @@
 
 export LC_ALL=C.UTF-8
 
+START_TIME=`date +%s`
+export START_TIME
+
 PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
 export PATH
 
