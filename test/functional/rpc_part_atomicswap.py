@@ -301,7 +301,7 @@ def createClaimTxCT(node, rawtx, output_amounts, script, secret, privKeySign, pu
     ro = node.createrawparttransaction(inputs, outputs)
     rawtxClaim = ro['hex']
 
-    # Need esitmated witnessSize for fee estimation
+    # Need estimated witnessSize for fee estimation
     witnessSize = 6 + 73 + 33 + 32 + 1 + 1 + len(script)
     tempBytes = bytearray(witnessSize)
 

@@ -26,13 +26,13 @@ bool CStealthAddress::SetEncoded(const std::string &encodedAddress)
 
     if (!DecodeBase58(encodedAddress, raw))
     {
-        LogPrint(BCLog::HDWALLET, "%s: DecodeBase58 falied.\n", __func__);
+        LogPrint(BCLog::HDWALLET, "%s: DecodeBase58 failed.\n", __func__);
         return false;
     };
 
     if (!VerifyChecksum(raw))
     {
-        LogPrint(BCLog::HDWALLET, "%s: verify_checksum falied.\n", __func__);
+        LogPrint(BCLog::HDWALLET, "%s: verify_checksum failed.\n", __func__);
         return false;
     };
 
@@ -338,13 +338,13 @@ bool IsStealthAddress(const std::string &encodedAddress)
 
     if (!DecodeBase58(encodedAddress, raw))
     {
-        //LogPrintf("IsStealthAddress DecodeBase58 falied.\n");
+        //LogPrintf("IsStealthAddress DecodeBase58 failed.\n");
         return false;
     };
 
     if (!VerifyChecksum(raw))
     {
-        //LogPrintf("IsStealthAddress verify_checksum falied.\n");
+        //LogPrintf("IsStealthAddress verify_checksum failed.\n");
         return false;
     };
 

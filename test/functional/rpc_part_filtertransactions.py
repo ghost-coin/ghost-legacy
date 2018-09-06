@@ -53,7 +53,7 @@ class FilterTransactionsTest(ParticlTestFramework):
             20,                   # amount
             '',                   # ?
             '',                   # ?
-            False,                # substract fee
+            False,                # subtract fee
             'node0 -> node0 p->b' # narrative
         )
 
@@ -63,7 +63,7 @@ class FilterTransactionsTest(ParticlTestFramework):
             20,                   # amount
             '',                   # ?
             '',                   # ?
-            False,                # substract fee
+            False,                # subtract fee
             'node0 -> node1 p->a' # narrative
         )
 

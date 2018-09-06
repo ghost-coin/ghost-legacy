@@ -785,7 +785,7 @@ bool CExtKeyAccount::SaveKey(const CKeyID &id, const CEKAKey &keyIn)
         else
         if (keyIn.nKey > pc->nGenerated)
         {
-            // Incase keys have been processed out of order, go back and check for received keys
+            // In case keys have been processed out of order, go back and check for received keys
             for (uint32_t i = pc->nGenerated; i <= keyIn.nKey; ++i)
             {
                 uint32_t nChildOut = 0;

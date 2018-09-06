@@ -177,7 +177,7 @@ bool DeviceSignatureCreator::CreateSig(const SigningProvider& provider, std::vec
             return error("%s: HaveKey error.", __func__);
         }
         if (0 != pDevice->SignTransaction(vPath, vSharedSecret, txTo, nIn, scriptCode, nHashType, amount, sigversion, vchSig, pDevice->sError)) {
-            return error("%s: SignTransaction faile.", __func__);
+            return error("%s: SignTransaction failed.", __func__);
         }
         return true;
     }

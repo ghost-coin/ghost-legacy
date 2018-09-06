@@ -487,7 +487,7 @@ public:
 
     bool SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r, std::string &sError);
 
-    /** Update wallet after successfull transaction */
+    /** Update wallet after successful transaction */
     int PostProcessTempRecipients(std::vector<CTempRecipient> &vecSend);
 
     int AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,

@@ -696,7 +696,7 @@ bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
 
     for (auto &v : vVoteTokensRead)
     {
-        if (v.nEnd > nBestHeight - 1000) // 1000 block buffer incase of reorg etc
+        if (v.nEnd > nBestHeight - 1000) // 1000 block buffer in case of reorg etc
         {
             vVoteTokens.push_back(v);
             if (LogAcceptCategory(BCLog::HDWALLET))
@@ -3114,7 +3114,7 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
     return 0;
 };
 
-/** Update wallet after successfull transaction */
+/** Update wallet after successful transaction */
 int CHDWallet::PostProcessTempRecipients(std::vector<CTempRecipient> &vecSend)
 {
     LOCK(cs_wallet);
@@ -4225,7 +4225,7 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 
                 if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT)
                 {
-                    // Need to know the fee before calulating the blind sum
+                    // Need to know the fee before calculating the blind sum
                     if (r.vBlind.size() != 32)
                     {
                         r.vBlind.resize(32);
@@ -6191,7 +6191,7 @@ int CHDWallet::ExtKeySetDefaultAccount(CHDWalletDB *pwdb, CKeyID &idNewDefault)
         delete sea;
     }
 
-    // Set idDefaultAccount last, incase something fails.
+    // Set idDefaultAccount last, in case something fails.
     idDefaultAccount = idNewDefault;
 
     return 0;
@@ -7051,7 +7051,7 @@ int CHDWallet::ExtKeySaveKey(CHDWalletDB *pwdb, CExtKeyAccount *sea, const CKeyI
     if (!pwdb->WriteExtKey(idChain, *pc))
         return errorN(1, "%s WriteExtKey failed.", __func__);
 
-    if (fUpdateAcc) // only neccessary if nPack has changed
+    if (fUpdateAcc) // only necessary if nPack has changed
     {
         CKeyID idAccount = sea->GetID();
         if (!pwdb->WriteExtAccount(idAccount, *sea))
@@ -7094,7 +7094,7 @@ int CHDWallet::ExtKeySaveKey(CHDWalletDB *pwdb, CExtKeyAccount *sea, const CKeyI
     if (0 != ExtKeyAppendToPack(pwdb, sea, keyId, asck, fUpdateAcc))
         return errorN(1, "%s ExtKeyAppendToPack failed.", __func__);
 
-    if (fUpdateAcc) // only neccessary if nPackStealth has changed
+    if (fUpdateAcc) // only necessary if nPackStealth has changed
     {
         CKeyID idAccount = sea->GetID();
         if (!pwdb->WriteExtAccount(idAccount, *sea))
@@ -7915,7 +7915,7 @@ int CHDWallet::ExtKeyGetDestination(const CExtKeyPair &ek, CPubKey &pkDest, uint
     /*
     Get the next destination,
     if key is not saved yet, return 1st key
-    don't save key here, save after derived key has been sucessfully used
+    don't save key here, save after derived key has been successfully used
     */
 
     CKeyID keyId = ek.GetID();

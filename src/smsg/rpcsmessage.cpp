@@ -886,7 +886,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
 
                 messageList.push_back(objM);
 
-                // only set 'read' status if the message decrypted succesfully
+                // only set 'read' status if the message decrypted successfully
                 if (fCheckReadStatus && rv == 0)
                 {
                     smsgStored.status &= ~SMSG_MASK_UNREAD;

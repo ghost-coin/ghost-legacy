@@ -6552,7 +6552,7 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         //r.address = address;
         r.sNarration = sNarr;
 
-        // Need to know the fee before calulating the blind sum
+        // Need to know the fee before calculating the blind sum
         if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT)
         {
             r.vBlind.resize(32);
