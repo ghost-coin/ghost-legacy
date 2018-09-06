@@ -4708,11 +4708,13 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     bool sign, size_t nRingSize, size_t nInputsPerSig, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError)
 {
     assert(coinControl);
-    if (nRingSize < MIN_RINGSIZE || nRingSize > MAX_RINGSIZE)
+    if (nRingSize < MIN_RINGSIZE || nRingSize > MAX_RINGSIZE) {
         return errorN(1, sError, __func__, _("Ring size out of range").c_str());
+    }
 
-    if (nInputsPerSig < 1)
+    if (nInputsPerSig < 1 || nInputsPerSig > MAX_ANON_INPUTS) {
         return errorN(1, sError, __func__, _("Num inputs per signature out of range").c_str());
+    }
 
     nFeeRet = 0;
     CAmount nValue;
@@ -4720,8 +4722,9 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     bool fOnlyStandardOutputs;
     InspectOutputs(vecSend, nValue, nSubtractFeeFromAmount, fOnlyStandardOutputs);
 
-    if (0 != ExpandTempRecipients(vecSend, pc, sError))
+    if (0 != ExpandTempRecipients(vecSend, pc, sError)) {
         return 1; // sError is set
+    }
 
     wtx.fTimeReceivedIsTxTime = true;
     wtx.BindWallet(this);

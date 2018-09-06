@@ -4579,7 +4579,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         nRingSize = request.params[nv].get_int();
     }
     nv++;
-    size_t nInputsPerSig = 64;
+    size_t nInputsPerSig = 32;
     if (request.params.size() > nv) {
         nInputsPerSig = request.params[nv].get_int();
     }
@@ -4836,7 +4836,7 @@ static std::string SendHelp(CHDWallet *pwallet, OutputTypes typeIn, OutputTypes 
     if (typeIn == OUTPUT_RINGCT)
         rv +=
             "7. ringsize        (int, optional, default=4).\n"
-            "8. inputs_per_sig  (int, optional, default=64).\n";
+            "8. inputs_per_sig  (int, optional, default=32).\n";
 
     rv +=
             "\nResult:\n"
@@ -4972,7 +4972,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
             "                            to which you're sending the transaction. This is not part of the \n"
             "                            transaction, just kept in your wallet.\n"
             "6. ringsize         (int, optional, default=4) Only applies when typein is anon.\n"
-            "7. inputs_per_sig   (int, optional, default=64) Only applies when typein is anon.\n"
+            "7. inputs_per_sig   (int, optional, default=32) Only applies when typein is anon.\n"
             "8. test_fee         (bool, optional, default=false) Only return the fee it would cost to send, txn is discarded.\n"
             "9. coin_control     (json, optional) Coincontrol object.\n"
             "   {\"changeaddress\": ,\n"

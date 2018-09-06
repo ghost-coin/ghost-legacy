@@ -41,9 +41,9 @@ void test_mlsag(void)
     uint8_t pc[32];
     uint8_t ki[MAX_N_INPUTS * 33];
     uint8_t ss[(MAX_N_INPUTS+1) * MAX_N_COLUMNS * 33]; /* max_rows * max_cols */
-    
+
     secp256k1_rand256(preimage);
-    
+
     total_value = 0;
     for (i = 0; i < n_outputs; i++)
     {
@@ -56,17 +56,17 @@ void test_mlsag(void)
         total_value -= value[i];
     }
     value[i] = total_value;
-    
+
     for (k = 0; k < n_blinded; ++k)
     {
         random_scalar_order(&s);
         secp256k1_scalar_get_b32(&blinds_out[k * 32], &s);
         pblinds[n_inputs + k] = &blinds_out[k * 32];
-        
+
         CHECK(secp256k1_pedersen_commit(ctx, &cm_out[k], pblinds[n_inputs + k], value[n_inputs + k], secp256k1_generator_h));
         pcm_out[k] = cm_out[k].data;
     }
-    
+
     memset(tmp32, 0, 32); /* use tmp32 for zero here */
     for (k = n_blinded; k < n_outputs; ++k)
     {
@@ -74,7 +74,7 @@ void test_mlsag(void)
         CHECK(secp256k1_pedersen_commit(ctx, &cm_out[k], tmp32, value[n_inputs + k], secp256k1_generator_h));
         pcm_out[k] = cm_out[k].data;
     }
-    
+
     for (k = 0; k < n_inputs; ++k) /* rows */
     for (i = 0; i < n_columns; ++i) /* cols */
     {
@@ -83,64 +83,64 @@ void test_mlsag(void)
             random_scalar_order(&s);
             secp256k1_scalar_get_b32(&keys_in[k * 32], &s);
             pkeys[k] = &keys_in[k * 32];
-            
+
             secp256k1_ecmult_gen(&ctx->ecmult_gen_ctx, &gej, &s);
             secp256k1_ge_set_gej(&ge, &gej);
             secp256k1_eckey_pubkey_serialize(&ge, &m[(i+k*n_columns)*33], &sz, 1);
-            
+
             random_scalar_order(&s);
             secp256k1_scalar_get_b32(&blinds_in[k * 32], &s);
             pblinds[k] = &blinds_in[k * 32];
-            
+
             CHECK(secp256k1_pedersen_commit(ctx, &cm_in[i+k*n_columns], pblinds[k], value[k], secp256k1_generator_h));
             pcm_in[i+k*n_columns] = cm_in[i+k*n_columns].data;
-            
+
             continue;
         }
-        
+
         /* Fake input */
         random_scalar_order(&s);
         secp256k1_ecmult_gen(&ctx->ecmult_gen_ctx, &gej, &s);
         secp256k1_ge_set_gej(&ge, &gej);
         secp256k1_eckey_pubkey_serialize(&ge, &m[(i+k*n_columns)*33], &sz, 1);
-        
+
         random_scalar_order(&s);
         secp256k1_ecmult_gen(&ctx->ecmult_gen_ctx, &gej, &s);
         secp256k1_ge_set_gej(&ge, &gej);
         secp256k1_eckey_pubkey_serialize(&ge, cm_in[i+k*n_columns].data, &sz, 1);
         pcm_in[i+k*n_columns] = cm_in[i+k*n_columns].data;
     }
-    
+
     pkeys[n_inputs] = &keys_in[n_inputs * 32]; /* blind sum */
-    
+
     CHECK(0 == secp256k1_prepare_mlsag(m, pkeys[n_inputs],
         n_outputs, n_blinded, n_columns, n_inputs+1,
         pcm_in, pcm_out, pblinds));
-    
+
     secp256k1_rand256(tmp32); /* random seed */
     CHECK(0 == secp256k1_generate_mlsag(ctx, ki, pc, ss,
         tmp32, preimage, n_columns, n_rows, n_real_col,
         (const uint8_t**)pkeys, m));
-    
+
     CHECK(0 == secp256k1_verify_mlsag(ctx,
-        preimage, n_columns, n_rows, 
+        preimage, n_columns, n_rows,
         m, ki, pc, ss));
-    
-    
+
+
     /* --- Test for failure --- */
-    
+
     /* Bad preimage */
     CHECK(2 == secp256k1_verify_mlsag(ctx,
         tmp32, n_columns, n_rows,
         m, ki, pc, ss));
-    
-    
+
+
     /* Bad c */
     CHECK(2 == secp256k1_verify_mlsag(ctx,
         preimage, n_columns, n_rows,
         m, ki, tmp32, ss));
-    
-    
+
+
     /* Bad sum */
     value[0] -= 1;
     CHECK(secp256k1_pedersen_commit(ctx, &cm_in[n_real_col+0*n_columns], pblinds[0], value[0], secp256k1_generator_h));
@@ -153,7 +153,7 @@ void test_mlsag(void)
     CHECK(2 == secp256k1_verify_mlsag(ctx,
         preimage, n_columns, n_rows,
         m, ki, pc, ss));
-    
+
     /* Pass repaired bad sum */
     value[0] += 1;
     CHECK(secp256k1_pedersen_commit(ctx, &cm_in[n_real_col+0*n_columns], pblinds[0], value[0], secp256k1_generator_h));
@@ -166,8 +166,8 @@ void test_mlsag(void)
     CHECK(0 == secp256k1_verify_mlsag(ctx,
         preimage, n_columns, n_rows,
         m, ki, pc, ss));
-    
-    
+
+
     /* Bad secretkey */
     random_scalar_order(&s);
     secp256k1_scalar_get_b32(&keys_in[0], &s);
@@ -183,7 +183,7 @@ void test_mlsag(void)
 
 void run_mlsag_tests(void) {
     int i;
-    
+
     for (i = 0; i < mlsag_count; i++) {
         test_mlsag();
     }
