@@ -108,7 +108,7 @@ class AnonTest(ParticlTestFramework):
         assert(ro['anon_balance'] > 10)
 
         outputs = [{'address':sxAddrTo0_1, 'amount':10, 'subfee':True},]
-        ro = nodes[1].sendtypeto('anon', 'part', outputs, 'comment_to', 'comment_from', 4, 64, True)
+        ro = nodes[1].sendtypeto('anon', 'part', outputs, 'comment_to', 'comment_from', 4, 32, True)
         assert(ro['bytes'] > 0)
 
         txnHash = nodes[1].sendtypeto('anon', 'part', outputs)

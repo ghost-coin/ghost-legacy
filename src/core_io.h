@@ -19,8 +19,8 @@ struct PartiallySignedTransaction;
 class uint256;
 class UniValue;
 class CTxOutBase;
-class CSpentIndexKey;
-class CSpentIndexValue;
+struct CSpentIndexKey;
+struct CSpentIndexValue;
 
 // core_read.cpp
 CScript ParseScript(const std::string& s);

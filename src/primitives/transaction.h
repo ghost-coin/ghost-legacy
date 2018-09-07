@@ -210,6 +210,7 @@ class CTxOutBase
 {
 public:
     CTxOutBase(uint8_t v) : nVersion(v) {};
+    virtual ~CTxOutBase() {};
     uint8_t nVersion;
 
     template<typename Stream>
@@ -290,7 +291,6 @@ public:
 
     virtual secp256k1_pedersen_commitment *GetPCommitment() { return nullptr; };
     virtual std::vector<uint8_t> *GetPRangeproof() { return nullptr; };
-
 
     virtual bool GetCTFee(CAmount &nFee) const { return false; };
     virtual bool GetDevFundCfwd(CAmount &nCfwd) const { return false; };

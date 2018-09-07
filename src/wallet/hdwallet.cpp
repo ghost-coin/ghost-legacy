@@ -1643,45 +1643,43 @@ std::set< std::set<CTxDestination> > CHDWallet::GetAddressGroupings()
             }
 
             // group change with input addresses
-            if (any_mine)
-            {
-                for (const auto txout : pcoin->tx->vpout)
-                {
-                    if (IsChange(txout.get()))
-                    {
+            if (any_mine) {
+                for (const auto &txout : pcoin->tx->vpout) {
+                    if (IsChange(txout.get())) {
                         CTxDestination txoutAddr;
                         const CScript *pScript = txout->GetPScriptPubKey();
-                        if (!pScript)
+                        if (!pScript) {
                             continue;
-                        if(!ExtractDestination(*pScript, txoutAddr))
+                        }
+                        if (!ExtractDestination(*pScript, txoutAddr)) {
                             continue;
+                        }
                         grouping.insert(txoutAddr);
-                    };
-                };
+                    }
+                }
             }
-            if (grouping.size() > 0)
-            {
+            if (grouping.size() > 0) {
                 groupings.insert(grouping);
                 grouping.clear();
             }
         }
 
         // group lone addrs by themselves
-        for (const auto txout : pcoin->tx->vpout)
-        {
-            if (IsMine(txout.get()))
-            {
+        for (const auto &txout : pcoin->tx->vpout) {
+            if (IsMine(txout.get())) {
                 CTxDestination address;
                 const CScript *pScript = txout->GetPScriptPubKey();
-                if (!pScript)
+                if (!pScript) {
                     continue;
-                if(!ExtractDestination(*pScript, address))
+                }
+                if (!ExtractDestination(*pScript, address)) {
                     continue;
+                }
                 grouping.insert(address);
                 groupings.insert(grouping);
                 grouping.clear();
-            };
-        };
+            }
+        }
     }
 
     std::set< std::set<CTxDestination>* > uniqueGroupings; // a set of pointers to groups of addresses
