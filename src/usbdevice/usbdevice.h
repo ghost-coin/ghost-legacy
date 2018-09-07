@@ -52,6 +52,7 @@ public:
         return true;
     }
 
+    using CBasicKeyStore::GetKey;
     bool GetKey(const CKeyID &address, CPathKey &keyOut) const
     {
         LOCK(cs_KeyStore);
@@ -98,6 +99,7 @@ class CUSBDevice
 {
 public:
     CUSBDevice() {};
+    virtual ~CUSBDevice() {};
     CUSBDevice(const DeviceType *pType_, const char *cPath_, const char *cSerialNo_, int nInterface_) : pType(pType_)
     {
         assert(strlen(cPath_) < sizeof(cPath));

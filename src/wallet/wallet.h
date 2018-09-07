@@ -1018,6 +1018,7 @@ public:
 
     std::set<CTxDestination> GetLabelAddresses(const std::string& label) const;
 
+    using CCryptoKeyStore::IsMine;
     virtual isminetype IsMine(const CTxIn& txin) const;
     /**
      * Returns amount of debit if the input matches the
