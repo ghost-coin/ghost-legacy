@@ -773,6 +773,19 @@ public:
 
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);
+
+    template<typename... Params>
+    bool werror(std::string fmt, Params... parameters) const {
+        return error(("%s " + fmt).c_str(), GetDisplayName(), parameters...);
+    };
+    template<typename... Params>
+    int werrorN(int rv, std::string fmt, Params... parameters) const {
+        return errorN(rv, ("%s " + fmt).c_str(), GetDisplayName(), parameters...);
+    };
+    template<typename... Params>
+    int wserrorN(int rv, std::string &s, const char *func, std::string fmt, Params... parameters) const {
+        return errorN(rv, s, func, ("%s " + fmt).c_str(), GetDisplayName(), parameters...);
+    }
 };
 
 

@@ -339,39 +339,42 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
     view.fForceDisconnect = true;
     CValidationState state;
 
-    for (CBlockIndex *pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
-    {
-        if (pindex->nHeight <= nCheckPointHeight)
+    for (CBlockIndex *pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev) {
+        if (pindex->nHeight <= nCheckPointHeight) {
             break;
+        }
 
         nBlocks++;
 
         std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>();
         CBlock& block = *pblock;
-        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus())) {
             return errorN(false, sError, __func__, "ReadBlockFromDisk failed.");
-        if (DISCONNECT_OK != DisconnectBlock(block, pindex, view))
+        }
+        if (DISCONNECT_OK != DisconnectBlock(block, pindex, view)) {
             return errorN(false, sError, __func__, "DisconnectBlock failed.");
-        if (!FlushView(&view, state, true))
+        }
+        if (!FlushView(&view, state, true)) {
             return errorN(false, sError, __func__, "FlushView failed.");
+        }
 
-        if (!FlushStateToDisk(Params(), state, FlushStateMode::IF_NEEDED))
+        if (!FlushStateToDisk(Params(), state, FlushStateMode::IF_NEEDED)) {
             return errorN(false, sError, __func__, "FlushStateToDisk failed.");
+        }
 
         chainActive.SetTip(pindex->pprev);
         UpdateTip(pindex->pprev, chainparams);
         GetMainSignals().BlockDisconnected(pblock);
-    };
+    }
     nLastRCTOutput = chainActive.Tip()->nAnonOutputs;
 
     int nRemoveOutput = nLastRCTOutput+1;
     CAnonOutput ao;
-    while (pblocktree->ReadRCTOutput(nRemoveOutput, ao))
-    {
+    while (pblocktree->ReadRCTOutput(nRemoveOutput, ao)) {
         pblocktree->EraseRCTOutput(nRemoveOutput);
         pblocktree->EraseRCTOutputLink(ao.pubkey);
         nRemoveOutput++;
-    };
+    }
 
     return true;
 };

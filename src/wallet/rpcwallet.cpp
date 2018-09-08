@@ -337,17 +337,17 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
 
     LOCK(pwallet->cs_wallet);
 
-    if (IsParticlWallet(pwallet))
-    {
+    if (IsParticlWallet(pwallet)) {
         CHDWallet *phdw = GetParticlWallet(pwallet);
         CPubKey pkOut;
 
-        if (0 != phdw->NewKeyFromAccount(pkOut, true))
+        if (0 != phdw->NewKeyFromAccount(pkOut, true)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "NewKeyFromAccount failed.");
+        }
 
         CKeyID keyID = pkOut.GetID();
         return CBitcoinAddress(keyID).ToString();
-    };
+    }
 
     if (!pwallet->IsLocked()) {
         pwallet->TopUpKeyPool();
