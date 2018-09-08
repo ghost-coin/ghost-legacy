@@ -147,6 +147,7 @@ jobs:
         RUN_FUNCTIONAL_TESTS=false
         GOAL="all deploy"
         BITCOIN_CONFIG="--enable-gui --enable-reduce-exports --enable-werror --disable-bench --disable-tests --enable-usbdevice"
+        DEPENDS_TIMEOUT=3600
       after_success:
         - DOCKER_EXEC make install
         - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
