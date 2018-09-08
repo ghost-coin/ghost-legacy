@@ -245,7 +245,7 @@
    <property name="frameShape">
     <enum>QFrame::NoFrame</enum>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="gridLayout_cs">
     <property name="topMargin">
      <number>8</number>
     </property>
@@ -259,7 +259,7 @@
      <number>8</number>
     </property>
     <item row="3" column="1">
-     <layout class="QHBoxLayout" name="horizontalLayoutAmount" stretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayoutAmount_cs" stretch="0,1,0">
       <item>
        <widget class="BitcoinAmountField" name="payAmount_cs"/>
       </item>
@@ -366,7 +366,7 @@
      </layout>
     </item>
     <item row="5" column="0" colspan="2">
-     <widget class="Line" name="line">
+     <widget class="Line" name="line_cs">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
