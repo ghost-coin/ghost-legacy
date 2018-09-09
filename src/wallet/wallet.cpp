@@ -4620,6 +4620,12 @@ int CMerkleTx::GetBlocksToMaturity(const int *pdepth) const
     return std::max(0, (COINBASE_MATURITY+1) - chain_depth);
 }
 
+bool CMerkleTx::IsImmatureCoinBase() const
+{
+    // note GetBlocksToMaturity is 0 for non-coinbase tx
+    return GetBlocksToMaturity() > 0;
+}
+
 bool CWalletTx::AcceptToMemoryPool(const CAmount& nAbsurdFee, CValidationState& state)
 {
     // We must set fInMempool here - while it will be re-set to true by the

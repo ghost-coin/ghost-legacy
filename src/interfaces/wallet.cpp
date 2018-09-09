@@ -167,7 +167,7 @@ WalletTxStatus MakeWalletTxStatus(CHDWallet &wallet, const uint256 &hash, const 
 }
 
 //! Construct wallet TxOut struct.
-WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n, int depth)
+WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     WalletTxOut result;
     result.txout.nValue = wtx.tx->vpout[n]->GetValue();
@@ -178,7 +178,7 @@ WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n, int de
     return result;
 }
 
-WalletTxOut MakeWalletTxOut(CHDWallet& wallet, const COutputR& r, int n, int depth)
+WalletTxOut MakeWalletTxOut(CHDWallet& wallet, const COutputR& r, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     WalletTxOut result;
     const COutputRecord *oR = r.rtx->second.GetOutput(r.i);
