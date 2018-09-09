@@ -6385,8 +6385,9 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
     EnsureWalletIsUnlocked(pwallet);
 
     RPCTypeCheck(request.params, {UniValue::VARR, UniValue::VARR, UniValue::VNUM, UniValue::VBOOL, UniValue::VSTR}, true);
-    if (request.params[0].isNull() || request.params[1].isNull())
+    if (request.params[0].isNull() || request.params[1].isNull()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, arguments 1 and 2 must be non-null");
+    }
 
     UniValue inputs = request.params[0].get_array();
     UniValue outputs = request.params[1].get_array();
@@ -6397,8 +6398,9 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
 
     if (!request.params[2].isNull()) {
         int64_t nLockTime = request.params[2].get_int64();
-        if (nLockTime < 0 || nLockTime > std::numeric_limits<uint32_t>::max())
+        if (nLockTime < 0 || nLockTime > std::numeric_limits<uint32_t>::max()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, locktime out of range");
+        }
         rawTx.nLockTime = nLockTime;
     }
 
@@ -6412,11 +6414,13 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         uint256 txid = ParseHashO(o, "txid");
 
         const UniValue& vout_v = find_value(o, "vout");
-        if (!vout_v.isNum())
+        if (!vout_v.isNum()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, missing vout key");
+        }
         int nOutput = vout_v.get_int();
-        if (nOutput < 0)
+        if (nOutput < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout must be positive");
+        }
 
         uint32_t nSequence;
         if (rbfOptIn) {
@@ -6441,8 +6445,9 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         const UniValue &blindObj = find_value(o, "blindingfactor");
         if (blindObj.isStr()) {
             std::string s = blindObj.get_str();
-            if (!IsHex(s) || !(s.size() == 64))
+            if (!IsHex(s) || !(s.size() == 64)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+            }
 
             uint256 blind;
             blind.SetHex(s);
@@ -6463,26 +6468,21 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         const UniValue &typeObj = find_value(o, "type");
         if (typeObj.isStr()) {
             std::string s = typeObj.get_str();
-            if (s == "standard")
-            {
+            if (s == "standard") {
                 nType = OUTPUT_STANDARD;
             } else
-            if (s == "blind")
-            {
+            if (s == "blind") {
                 nType = OUTPUT_CT;
             } else
-            if (s == "anon")
-            {
+            if (s == "anon") {
                 nType = OUTPUT_RINGCT;
             } else
-            if (s == "data")
-            {
+            if (s == "data") {
                 nType = OUTPUT_DATA;
-            } else
-            {
+            } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown output type.");
-            };
-        };
+            }
+        }
 
         CAmount nAmount = AmountFromValue(o["amount"]);
 
@@ -6490,61 +6490,62 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         //if (o.exists("subfee"))
         //    fSubtractFeeFromAmount = obj["subfee"].get_bool();
 
-        if (o["pubkey"].isStr())
-        {
+        if (o["pubkey"].isStr()) {
             std::string s = o["pubkey"].get_str();
-            if (!IsHex(s) || !(s.size() == 66))
+            if (!IsHex(s) || !(s.size() == 66)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Public key must be 33 bytes and hex encoded.");
+            }
             std::vector<uint8_t> v = ParseHex(s);
             r.pkTo = CPubKey(v.begin(), v.end());
-        };
-        if (o["ephemeral_key"].isStr())
-        {
+        }
+        if (o["ephemeral_key"].isStr()) {
             std::string s = o["ephemeral_key"].get_str();
-            if (!IsHex(s) || !(s.size() == 64))
+            if (!IsHex(s) || !(s.size() == 64)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "\"ephemeral_key\" must be 32 bytes and hex encoded.");
+            }
             std::vector<uint8_t> v = ParseHex(s);
             r.sEphem.Set(v.data(), true);
-        };
-        if (o["nonce"].isStr())
-        {
+        }
+        if (o["nonce"].isStr()) {
             std::string s = o["nonce"].get_str();
-            if (!IsHex(s) || !(s.size() == 64))
+            if (!IsHex(s) || !(s.size() == 64)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "\"nonce\" must be 32 bytes and hex encoded.");
+            }
             std::vector<uint8_t> v = ParseHex(s);
             r.nonce.SetHex(s);
             r.fNonceSet = true;
-        };
+        }
 
-        if (o["data"].isStr())
-        {
+        if (o["data"].isStr()) {
             std::string s = o["data"].get_str();
-            if (!IsHex(s))
+            if (!IsHex(s)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "\"data\" must be hex encoded.");
+            }
             r.vData = ParseHex(s);
-        };
+        }
 
-        if (o["address"].isStr() && o["script"].isStr())
+        if (o["address"].isStr() && o["script"].isStr()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Can't specify both \"address\" and \"script\".");
+        }
 
-        if (o["address"].isStr())
-        {
+        if (o["address"].isStr()) {
             CTxDestination dest = DecodeDestination(o["address"].get_str());
-            if (!IsValidDestination(dest))
+            if (!IsValidDestination(dest)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+            }
             r.address = dest;
-        };
+        }
 
-        if (o["script"].isStr())
-        {
+        if (o["script"].isStr()) {
             r.scriptPubKey = ParseScript(o["script"].get_str());
             r.fScriptSet = true;
-        };
+        }
 
 
         std::string sNarr;
-        if (o["narration"].isStr())
+        if (o["narration"].isStr()) {
             sNarr = o["narration"].get_str();
+        }
 
         r.nType = nType;
         r.SetAmount(nAmount);
@@ -6553,49 +6554,49 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         r.sNarration = sNarr;
 
         // Need to know the fee before calculating the blind sum
-        if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT)
-        {
+        if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT) {
             r.vBlind.resize(32);
-            if (o["blindingfactor"].isStr())
-            {
+            if (o["blindingfactor"].isStr()) {
                 std::string s = o["blindingfactor"].get_str();
-                if (!IsHex(s) || !(s.size() == 64))
+                if (!IsHex(s) || !(s.size() == 64)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+                }
 
                 uint256 blind;
                 blind.SetHex(s);
                 memcpy(r.vBlind.data(), blind.begin(), 32);
-            } else
-            {
+            } else {
                 // Generate a random blinding factor if not provided
                 GetStrongRandBytes(r.vBlind.data(), 32);
-            };
-        };
+            }
+        }
 
         vecSend.push_back(r);
-    };
+    }
 
     std::string sError;
     // Note: wallet is only necessary when sending to  an extkey address
-    if (0 != pwallet->ExpandTempRecipients(vecSend, nullptr, sError))
+    if (0 != pwallet->ExpandTempRecipients(vecSend, nullptr, sError)) {
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExpandTempRecipients failed: %s.", sError));
+    }
 
     UniValue amounts(UniValue::VOBJ);
 
     CAmount nFeeRet = 0;
     //bool fFirst = true;
-    for (size_t i = 0; i < vecSend.size(); ++i)
-    {
+    for (size_t i = 0; i < vecSend.size(); ++i) {
         auto &r = vecSend[i];
 
         //r.ApplySubFee(nFeeRet, nSubtractFeeFromAmount, fFirst);
 
         OUTPUT_PTR<CTxOutBase> txbout;
-        if (0 != CreateOutput(txbout, r, sError))
+        if (0 != CreateOutput(txbout, r, sError)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("CreateOutput failed: %s.", sError));
+        }
 
-        if (!CheckOutputValue(r, &*txbout, nFeeRet, sError))
+        if (!CheckOutputValue(r, &*txbout, nFeeRet, sError)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("CheckOutputValue failed: %s.", sError));
+        }
         /*
         if (r.nType == OUTPUT_STANDARD)
             nValueOutPlain += r.nAmount;
@@ -6609,19 +6610,20 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         UniValue amount(UniValue::VOBJ);
         amount.pushKV("value", ValueFromAmount(r.nAmount));
 
-        if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT)
-        {
+        if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT) {
             uint256 blind(r.vBlind.data(), 32);
             amount.pushKV("blind", blind.ToString());
 
-            if (0 != pwallet->AddCTData(txbout.get(), r, sError))
+            if (0 != pwallet->AddCTData(txbout.get(), r, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddCTData failed: %s.", sError));
+            }
             amount.pushKV("nonce", r.nonce.ToString());
-        };
+        }
 
-        if (r.nType != OUTPUT_DATA)
+        if (r.nType != OUTPUT_DATA) {
             amounts.pushKV(strprintf("%d", r.n), amount);
-    };
+        }
+    }
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("hex", EncodeHexTx(rawTx));
@@ -6725,8 +6727,9 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
 
     std::string sInputType = request.params[0].get_str();
 
-    if (sInputType != "standard" && sInputType != "anon" && sInputType != "blind")
+    if (sInputType != "standard" && sInputType != "anon" && sInputType != "blind") {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown input type.");
+    }
 
     CCoinControl coinControl;
     int changePosition = -1;
@@ -6766,8 +6769,9 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
             coinControl.destChange = dest;
         }
 
-        if (options.exists("changePosition"))
+        if (options.exists("changePosition")) {
             changePosition = options["changePosition"].get_int();
+        }
 
         if (options.exists("change_type")) {
             if (options.exists("changeAddress")) {
@@ -6779,20 +6783,22 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
             }
         }
 
-        if (options.exists("includeWatching"))
+        if (options.exists("includeWatching")) {
             coinControl.fAllowWatchOnly = options["includeWatching"].get_bool();
+        }
 
-        if (options.exists("lockUnspents"))
+        if (options.exists("lockUnspents")) {
             lockUnspents = options["lockUnspents"].get_bool();
+        }
 
-        if (options.exists("feeRate"))
-        {
+        if (options.exists("feeRate")) {
             coinControl.m_feerate = CFeeRate(AmountFromValue(options["feeRate"]));
             coinControl.fOverrideFeeRate = true;
         }
 
-        if (options.exists("subtractFeeFromOutputs"))
+        if (options.exists("subtractFeeFromOutputs")) {
             subtractFeeFromOutputs = options["subtractFeeFromOutputs"].get_array();
+        }
 
         if (options.exists("replaceable")) {
             coinControl.m_signal_bip125_rbf = options["replaceable"].get_bool();
@@ -6827,21 +6833,26 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
     }
 
     size_t nOutputs = tx.GetNumVOuts();
-    if (nOutputs == 0)
+    if (nOutputs == 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "TX must have at least one output");
+    }
 
-    if (changePosition != -1 && (changePosition < 0 || (unsigned int)changePosition > nOutputs))
+    if (changePosition != -1 && (changePosition < 0 || (unsigned int)changePosition > nOutputs)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "changePosition out of bounds");
+    }
     coinControl.nChangePos = changePosition;
 
     for (unsigned int idx = 0; idx < subtractFeeFromOutputs.size(); idx++) {
         int pos = subtractFeeFromOutputs[idx].get_int();
-        if (setSubtractFeeFromOutputs.count(pos))
+        if (setSubtractFeeFromOutputs.count(pos)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid parameter, duplicated position: %d", pos));
-        if (pos < 0)
+        }
+        if (pos < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid parameter, negative position: %d", pos));
-        if (pos >= int(nOutputs))
+        }
+        if (pos >= int(nOutputs)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid parameter, position too large: %d", pos));
+        }
         setSubtractFeeFromOutputs.insert(pos);
     }
 
@@ -6854,52 +6865,54 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
 
     const std::vector<std::string> &vInputKeys = inputAmounts.getKeys();
     pwallet->mapTempRecords.clear();
-    for (const std::string &sKey : vInputKeys)
-    {
+    for (const std::string &sKey : vInputKeys) {
         int64_t n;
-        if (!ParseInt64(sKey, &n) || n >= (int64_t)tx.vin.size() || n < 0)
+        if (!ParseInt64(sKey, &n) || n >= (int64_t)tx.vin.size() || n < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Bad index for input blinding factor.");
+        }
 
         CInputData im;
         COutputRecord r;
         r.nType = OUTPUT_STANDARD;
 
-        if (tx.vin[n].prevout.n >= OR_PLACEHOLDER_N)
+        if (tx.vin[n].prevout.n >= OR_PLACEHOLDER_N) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Input offset too large for output record.");
+        }
         r.n = tx.vin[n].prevout.n;
 
         uint256 blind;
-        if (inputAmounts[sKey]["blind"].isStr())
-        {
+        if (inputAmounts[sKey]["blind"].isStr()) {
             std::string s = inputAmounts[sKey]["blind"].get_str();
-            if (!IsHex(s) || !(s.size() == 64))
+            if (!IsHex(s) || !(s.size() == 64)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+            }
 
             blind.SetHex(s);
             mInputBlinds[n] = blind;
             r.nType = OUTPUT_CT;
-        };
+        }
 
-        if (inputAmounts[sKey]["value"].isNull())
+        if (inputAmounts[sKey]["value"].isNull()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing 'value' for input.");
+        }
 
         r.nValue = AmountFromValue(inputAmounts[sKey]["value"]);
 
-        if (inputAmounts[sKey]["witnessstack"].isArray())
-        {
+        if (inputAmounts[sKey]["witnessstack"].isArray()) {
             const UniValue &stack = inputAmounts[sKey]["witnessstack"].get_array();
 
-            for (size_t k = 0; k < stack.size(); ++k)
-            {
-                if (!stack[k].isStr())
+            for (size_t k = 0; k < stack.size(); ++k) {
+                if (!stack[k].isStr()) {
                     continue;
+                }
                 std::string s = stack.get_str();
-                if (!IsHex(s))
+                if (!IsHex(s)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Input witness must be hex encoded.");
+                }
                 std::vector<uint8_t> v = ParseHex(s);
                 im.scriptWitness.stack.push_back(v);
-            };
-        };
+            }
+        }
 
         //r.scriptPubKey = ; // TODO
         std::pair<MapRecords_t::iterator, bool> ret = pwallet->mapTempRecords.insert(std::make_pair(tx.vin[n].prevout.hash, CTransactionRecord()));
@@ -6909,27 +6922,28 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
         im.blind = blind;
 
         coinControl.m_inputData[tx.vin[n].prevout] = im;
-    };
+    }
 
     const std::vector<std::string> &vOutputKeys = outputAmounts.getKeys();
-    for (const std::string &sKey : vOutputKeys)
-    {
+    for (const std::string &sKey : vOutputKeys) {
         int64_t n;
-        if (!ParseInt64(sKey, &n) || n >= (int64_t)tx.GetNumVOuts() || n < 0)
+        if (!ParseInt64(sKey, &n) || n >= (int64_t)tx.GetNumVOuts() || n < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Bad index for output blinding factor.");
+        }
 
         const auto &txout = tx.vpout[n];
 
-        if (!outputAmounts[sKey]["value"].isNull())
+        if (!outputAmounts[sKey]["value"].isNull()) {
             mOutputAmounts[n] = AmountFromValue(outputAmounts[sKey]["value"]);
+        }
 
         if (outputAmounts[sKey]["nonce"].isStr()
-            && txout->GetPRangeproof())
-        {
+            && txout->GetPRangeproof()) {
             CTempRecipient &r = vecSend[n];
             std::string s = outputAmounts[sKey]["nonce"].get_str();
-            if (!IsHex(s) || !(s.size() == 64))
+            if (!IsHex(s) || !(s.size() == 64)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Nonce must be 32 bytes and hex encoded.");
+            }
 
             r.fNonceSet = true;
             r.nonce.SetHex(s);
@@ -6945,8 +6959,9 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                 &min_value, &max_value,
                 txout->GetPCommitment(), txout->GetPRangeproof()->data(), txout->GetPRangeproof()->size(),
                 nullptr, 0,
-                secp256k1_generator_h))
+                secp256k1_generator_h)) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("secp256k1_rangeproof_rewind failed, output %d.", n));
+            }
             uint256 blind;
             memcpy(blind.begin(), blindOut, 32);
 
@@ -6955,13 +6970,14 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
 
             msg[mlen-1] = '\0';
             size_t nNarr = strlen((const char*)msg);
-            if (nNarr > 0)
+            if (nNarr > 0) {
                 r.sNarration.assign((const char*)msg, nNarr);
-        } else
-        {
-            if (txout->GetPRangeproof())
+            }
+        } else {
+            if (txout->GetPRangeproof()) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Missing nonce for output %d.", n));
-        };
+            }
+        }
         /*
         if (outputAmounts[sKey]["blind"].isStr())
         {
@@ -6979,68 +6995,66 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
 
     CAmount nTotalOutput = 0;
 
-    for (size_t i = 0; i < tx.vpout.size(); ++i)
-    {
+    for (size_t i = 0; i < tx.vpout.size(); ++i) {
         const auto &txout = tx.vpout[i];
         CTempRecipient &r = vecSend[i];
 
-        if (txout->IsType(OUTPUT_CT) || txout->IsType(OUTPUT_RINGCT))
-        {
+        if (txout->IsType(OUTPUT_CT) || txout->IsType(OUTPUT_RINGCT)) {
             // Check commitment matches
             std::map<int, CAmount>::iterator ita = mOutputAmounts.find(i);
             std::map<int, uint256>::iterator itb = mOutputBlinds.find(i);
 
-            if (ita == mOutputAmounts.end())
+            if (ita == mOutputAmounts.end()) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Missing amount for blinded output %d.", i));
-            if (itb == mOutputBlinds.end())
+            }
+            if (itb == mOutputBlinds.end()) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Missing blinding factor for blinded output %d.", i));
+            }
 
             secp256k1_pedersen_commitment commitment;
             if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
                 &commitment, (const uint8_t*)(itb->second.begin()),
-                ita->second, secp256k1_generator_h))
+                ita->second, secp256k1_generator_h)) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("secp256k1_pedersen_commit failed, output %d.", i));
+            }
 
-            if (memcmp(txout->GetPCommitment()->data, commitment.data, 33) != 0)
+            if (memcmp(txout->GetPCommitment()->data, commitment.data, 33) != 0) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad blinding factor, output %d.", i));
+            }
             nTotalOutput += mOutputAmounts[i];
 
             r.vBlind.resize(32);
             memcpy(r.vBlind.data(), itb->second.begin(), 32);
         } else
-        if (txout->IsType(OUTPUT_STANDARD))
-        {
+        if (txout->IsType(OUTPUT_STANDARD)) {
             mOutputAmounts[i] = txout->GetValue();
             nTotalOutput += mOutputAmounts[i];
-        };
-
+        }
 
         r.nType = txout->GetType();
-        if (txout->IsType(OUTPUT_DATA))
-        {
+        if (txout->IsType(OUTPUT_DATA)) {
             r.vData = ((CTxOutData*)txout.get())->vData;
-        } else
-        {
+        } else {
             r.SetAmount(mOutputAmounts[i]);
             r.fSubtractFeeFromAmount = setSubtractFeeFromOutputs.count(i);
 
-            if (txout->IsType(OUTPUT_CT))
+            if (txout->IsType(OUTPUT_CT)) {
                 r.vData = ((CTxOutCT*)txout.get())->vData;
-            else
-            if (txout->IsType(OUTPUT_RINGCT))
+            } else
+            if (txout->IsType(OUTPUT_RINGCT)) {
                 r.vData = ((CTxOutRingCT*)txout.get())->vData;
+            }
 
-            if (txout->GetPScriptPubKey())
-            {
+            if (txout->GetPScriptPubKey()) {
                 r.fScriptSet = true;
                 r.scriptPubKey = *txout->GetPScriptPubKey();
-            };
-        };
-    };
+            }
+        }
+    }
 
     for (const CTxIn& txin : tx.vin) {
         coinControl.Select(txin.prevout);
-    };
+    }
 
 
     CTransactionRef tx_new;
@@ -7050,60 +7064,52 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
     std::string sError;
     {
         LOCK2(cs_main, pwallet->cs_wallet);
-        if (sInputType == "standard")
-        {
-            if (0 != pwallet->AddStandardInputs(wtx, rtx, vecSend, false, nFee, &coinControl, sError))
+        if (sInputType == "standard") {
+            if (0 != pwallet->AddStandardInputs(wtx, rtx, vecSend, false, nFee, &coinControl, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddStandardInputs failed: %s.", sError));
+            }
         } else
-        if (sInputType == "anon")
-        {
+        if (sInputType == "anon") {
             sError = "TODO";
             //if (0 != pwallet->AddAnonInputs(wtx, rtx, vecSend, false, nFee, &coinControl, sError))
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddAnonInputs failed: %s.", sError));
         } else
-        if (sInputType == "blind")
-        {
-            if (0 != pwallet->AddBlindedInputs(wtx, rtx, vecSend, false, nFee, &coinControl, sError))
+        if (sInputType == "blind") {
+            if (0 != pwallet->AddBlindedInputs(wtx, rtx, vecSend, false, nFee, &coinControl, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddBlindedInputs failed: %s.", sError));
-        } else
-        {
+            }
+        } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown input type.");
-        };
+        }
     }
 
     tx.vpout = wtx.tx->vpout;
     // keep existing sequences
-    for (const auto &txin : wtx.tx->vin)
-    {
-        if (!coinControl.IsSelected(txin.prevout))
-        {
+    for (const auto &txin : wtx.tx->vin) {
+        if (!coinControl.IsSelected(txin.prevout)) {
             tx.vin.push_back(txin);
-        };
-        if (lockUnspents)
-        {
+        }
+        if (lockUnspents) {
             LOCK2(cs_main, pwallet->cs_wallet);
             pwallet->LockCoin(txin.prevout);
-        };
-    };
+        }
+    }
 
 
     UniValue outputValues(UniValue::VOBJ);
-    for (size_t i = 0; i < vecSend.size(); ++i)
-    {
+    for (size_t i = 0; i < vecSend.size(); ++i) {
         auto &r = vecSend[i];
 
         UniValue outputValue(UniValue::VOBJ);
-        if (r.vBlind.size() == 32)
-        {
+        if (r.vBlind.size() == 32) {
             uint256 blind(r.vBlind.data(), 32);
             outputValue.pushKV("blind", blind.ToString());
-        };
-        if (r.nType != OUTPUT_DATA)
-        {
+        }
+        if (r.nType != OUTPUT_DATA) {
             outputValue.pushKV("value", ValueFromAmount(r.nAmount));
             outputValues.pushKV(strprintf("%d", r.n), outputValue);
-        };
-    };
+        }
+    }
 
     pwallet->mapTempRecords.clear();
 
@@ -7143,29 +7149,32 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
 
     {
         std::string s = request.params[0].get_str();
-        if (!IsHex(s) || !(s.size() == 66))
+        if (!IsHex(s) || !(s.size() == 66)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "commitment must be 33 bytes and hex encoded.");
+        }
         vchCommitment = ParseHex(s);
     }
 
     {
         std::string s = request.params[1].get_str();
-        if (!IsHex(s) || !(s.size() == 64))
+        if (!IsHex(s) || !(s.size() == 64)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+        }
         blind.SetHex(s);
-    };
+    }
 
     CAmount nValue = AmountFromValue(request.params[2]);
 
     secp256k1_pedersen_commitment commitment;
     if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
         &commitment, blind.begin(),
-        nValue, secp256k1_generator_h))
+        nValue, secp256k1_generator_h)) {
         throw JSONRPCError(RPC_MISC_ERROR, strprintf("secp256k1_pedersen_commit failed."));
+    }
 
-    if (memcmp(vchCommitment.data(), commitment.data, 33) != 0)
+    if (memcmp(vchCommitment.data(), commitment.data, 33) != 0) {
         throw JSONRPCError(RPC_MISC_ERROR, strprintf("Mismatched commitment."));
-
+    }
 
     UniValue result(UniValue::VOBJ);
     bool rv = true;
@@ -7285,23 +7294,24 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
             newcoin.out.scriptPubKey = scriptPubKey;
             newcoin.out.nValue = 0;
             if (prevOut.exists("amount")) {
-                if (prevOut.exists("amount_commitment"))
+                if (prevOut.exists("amount_commitment")) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Both \"amount\" and \"amount_commitment\" found.");
+                }
                 newcoin.nType = OUTPUT_STANDARD;
                 newcoin.out.nValue = AmountFromValue(find_value(prevOut, "amount"));
             } else
             if (prevOut.exists("amount_commitment")) {
                 std::string s = prevOut["amount_commitment"].get_str();
-                if (!IsHex(s) || !(s.size() == 66))
+                if (!IsHex(s) || !(s.size() == 66)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "\"amount_commitment\" must be 33 bytes and hex encoded.");
+                }
                 std::vector<uint8_t> vchCommitment = ParseHex(s);
                 assert(vchCommitment.size() == 33);
                 memcpy(newcoin.commitment.data, vchCommitment.data(), 33);
                 newcoin.nType = OUTPUT_CT;
-            } else
-            {
+            } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "\"amount\" or \"amount_commitment\" is required");
-            };
+            }
 
             newcoin.nHeight = 1;
             view.AddCoin(out, std::move(newcoin), true);
@@ -7327,8 +7337,9 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
     {
         CValidationState state;
         CAmount nFee = 0;
-        if (!Consensus::CheckTxInputs(txConst, state, view, nSpendHeight, nFee))
+        if (!Consensus::CheckTxInputs(txConst, state, view, nSpendHeight, nFee)) {
             vErrors.push_back("CheckTxInputs: \"" + state.GetRejectReason() + "\"");
+        }
     }
 
     // Sign what we can:
@@ -7343,19 +7354,16 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
         CScript prevPubKey = coin.out.scriptPubKey;
 
         std::vector<uint8_t> vchAmount;
-        if (coin.nType == OUTPUT_STANDARD)
-        {
+        if (coin.nType == OUTPUT_STANDARD) {
             vchAmount.resize(8);
             memcpy(vchAmount.data(), &coin.out.nValue, 8);
         } else
-        if (coin.nType == OUTPUT_CT)
-        {
+        if (coin.nType == OUTPUT_CT) {
             vchAmount.resize(33);
             memcpy(vchAmount.data(), coin.commitment.data, 33);
-        } else
-        {
+        } else {
             throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad input type: %d", coin.nType));
-        };
+        }
 
         ScriptError serror = SCRIPT_ERR_OK;
         if (!VerifyScript(txin.scriptSig, prevPubKey, &txin.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&txConst, i, vchAmount), &serror)) {
@@ -7366,12 +7374,11 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
 
     UniValue result(UniValue::VOBJ);
 
-    if (!request.params[2].isNull() && request.params[2].get_bool())
-    {
+    if (!request.params[2].isNull() && request.params[2].get_bool()) {
         UniValue txn(UniValue::VOBJ);
         TxToUniv(CTransaction(std::move(mtx)), uint256(), txn, false);
         result.pushKV("txn", txn);
-    };
+    }
 
     //result.pushKV("hex", EncodeHexTx(mtx));
     result.pushKV("complete", fComplete);
