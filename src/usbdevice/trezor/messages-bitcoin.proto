@@ -208,6 +208,7 @@ message TxAck {
             optional uint32 decred_script_version = 10;
             optional bytes prev_block_hash_bip115 = 11;                         // block hash of previous transaction output (for bip115 implementation)
             optional uint32 prev_block_height_bip115 = 12;                      // block height of previous transaction output (for bip115 implementation)
+            optional bytes particl_shared_secret = 13;
         }
         /**
         * Structure representing compiled transaction output
@@ -216,6 +217,7 @@ message TxAck {
             required uint64 amount = 1;
             required bytes script_pubkey = 2;
             optional uint32 decred_script_version = 3;
+            optional uint32 particl_output_type = 4;
         }
         /**
         * Structure representing transaction output
@@ -237,6 +239,7 @@ message TxAck {
                 PAYTOOPRETURN = 3;      // op_return
                 PAYTOWITNESS = 4;       // only for change output
                 PAYTOP2SHWITNESS = 5;   // only for change output
+                PAYTOPARTICLDATA = 6;
             }
         }
     }

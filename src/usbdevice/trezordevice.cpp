@@ -531,7 +531,7 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
             uint32_t i = req.details().request_index();
 
             if (i >= tx->vin.size()) {
-                return errorN(1, sError, __func__, "Requested input out of range.");
+                return errorN(1, sError, __func__, "Requested input %d out of range.", i);
             }
             auto msg_input = msg_tx->add_inputs();
 
@@ -543,6 +543,12 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
 
             for (const auto i : ci->second.m_path) {
                 msg_input->add_address_n(i);
+            }
+
+            if (ci->second.m_shared_secret.size() == 32) {
+                const std::vector<uint8_t> &shared_secret = ci->second.m_shared_secret;
+                std::string s(shared_secret.begin(), shared_secret.end());
+                msg_input->set_particl_shared_secret(s);
             }
 
             std::string hash;
@@ -567,21 +573,35 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
             const auto msg_tx = msg.mutable_tx();
             uint32_t i = req.details().request_index();
             if (i >= tx->vpout.size()) {
-                return errorN(1, sError, __func__, "Requested output out of range.");
+                return errorN(1, sError, __func__, "Requested output %d out of range.", i);
             }
             auto msg_output = msg_tx->add_outputs();
 
-            CTxDestination address;
-            const CScript *pscript = tx->vpout[i]->GetPScriptPubKey();
-            if (!pscript || !ExtractDestination(*pscript, address)) {
-                return errorN(1, sError, __func__, "ExtractDestination failed.");
-            }
+            if (tx->vpout[i]->IsType(OUTPUT_STANDARD)) {
+                CTxDestination address;
+                const CScript *pscript = tx->vpout[i]->GetPScriptPubKey();
+                if (!pscript || !ExtractDestination(*pscript, address)) {
+                    return errorN(1, sError, __func__, "ExtractDestination failed.");
+                }
 
-            msg_output->set_address(EncodeDestination(address));
-            msg_output->set_amount(tx->vpout[i]->GetValue());
-            msg_output->set_script_type(message::TxAck::TransactionType::TxOutputType::PAYTOADDRESS);
+                msg_output->set_address(EncodeDestination(address));
+                msg_output->set_amount(tx->vpout[i]->GetValue());
+                msg_output->set_script_type(message::TxAck::TransactionType::TxOutputType::PAYTOADDRESS);
+            } else
+            if (tx->vpout[i]->IsType(OUTPUT_DATA)) {
+                CTxOutData *txd = (CTxOutData*) tx->vpout[i].get();
+                std::string s(txd->vData.begin(), txd->vData.end());
+                msg_output->set_op_return_data(s);
+                msg_output->set_amount(0);
+                msg_output->set_script_type(message::TxAck::TransactionType::TxOutputType::PAYTOPARTICLDATA);
+            } else {
+                return errorN(1, sError, __func__, "Unknown type of output %d.", i);
+            }
         } else
         if (req.request_type() == message::TxRequest::TXFINISHED) {
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                LogPrintf("%s: Debug, serialised_tx %s.\n", __func__, HexStr(serialised_tx));
+            }
             break;
         } else {
             LogPrintf("%s: Unknown request_type.\n", __func__);
