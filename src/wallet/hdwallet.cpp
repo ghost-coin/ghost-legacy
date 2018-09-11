@@ -3744,7 +3744,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     CKeyID idNull;
                     CScript scriptChange = GetScriptForDestination(idNull);
                     CTxOut change_prototype_txout(0, scriptChange);
-                    size_t change_prototype_size = GetSerializeSize(change_prototype_txout, SER_DISK, 0);
+                    size_t change_prototype_size = GetSerializeSize(change_prototype_txout);
                     unsigned int tx_size_with_change = nBytes + change_prototype_size + 2; // Add 2 as a buffer in case increasing # of outputs changes compact size
                     CAmount fee_needed_with_change = GetMinimumFee(*this, tx_size_with_change, *coinControl, ::mempool, ::feeEstimator, nullptr);
                     CAmount minimum_value_for_change = GetDustThreshold(change_prototype_txout, discard_rate);
@@ -12048,7 +12048,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
     }
 
     // Limit size
-    unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
+    unsigned int nBytes = ::GetSerializeSize(txNew);
     if (nBytes >= DEFAULT_BLOCK_MAX_SIZE / 5) {
         return werror("%s: Exceeded coinstake size limit.", __func__);
     }

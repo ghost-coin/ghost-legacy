@@ -35,7 +35,7 @@ CAmount GetDustThreshold(const CTxOut& txout, const CFeeRate& dustRelayFeeIn)
     if (txout.scriptPubKey.IsUnspendable())
         return 0;
 
-    size_t nSize = GetSerializeSize(txout, SER_DISK, 0);
+    size_t nSize = GetSerializeSize(txout);
     int witnessversion = 0;
     std::vector<unsigned char> witnessprogram;
 
@@ -71,10 +71,11 @@ CAmount GetDustThreshold(const CTxOutStandard *txout, const CFeeRate& dustRelayF
     // so dust is a spendable txout less than
     // 98*dustRelayFee/1000 (in satoshis).
     // 294 satoshis at the default rate of 3000 sat/kB.
-    if (txout->scriptPubKey.IsUnspendable())
+    if (txout->scriptPubKey.IsUnspendable()) {
         return 0;
+    }
 
-    size_t nSize = GetSerializeSize(*txout, SER_DISK, 0);
+    size_t nSize = GetSerializeSize(*txout);
     int witnessversion = 0;
     std::vector<unsigned char> witnessprogram;
 
@@ -100,18 +101,16 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
 {
     const Consensus::Params& consensusParams = Params().GetConsensus();
 
-    if (chainActive.Time() >= consensusParams.OpIsCoinstakeTime)
-    {
+    if (chainActive.Time() >= consensusParams.OpIsCoinstakeTime) {
         // TODO: better method
-        if (HasIsCoinstakeOp(scriptPubKey))
-        {
+        if (HasIsCoinstakeOp(scriptPubKey)) {
             CScript scriptA, scriptB;
-            if (!SplitConditionalCoinstakeScript(scriptPubKey, scriptA, scriptB))
+            if (!SplitConditionalCoinstakeScript(scriptPubKey, scriptA, scriptB)) {
                 return false;
-
+            }
             return IsStandard(scriptA, whichType) && IsStandard(scriptB, whichType);
-        };
-    };
+        }
+    }
 
     std::vector<std::vector<unsigned char> > vSolutions;
     whichType = Solver(scriptPubKey, vSolutions);

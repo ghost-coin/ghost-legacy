@@ -311,6 +311,10 @@ libparticl_server_a_SOURCES = \
   insight/rpc.cpp \
   $(BITCOIN_CORE_H)
 
+if !ENABLE_WALLET
+libparticl_server_a_SOURCES += dummywallet.cpp
+endif
+
 if ENABLE_ZMQ
 libparticl_zmq_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(ZMQ_CFLAGS)
 libparticl_zmq_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
