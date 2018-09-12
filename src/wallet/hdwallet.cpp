@@ -631,8 +631,9 @@ bool CHDWallet::LoadAddressBook(CHDWalletDB *pwdb)
     LOCK(cs_wallet);
 
     Dbc *pcursor;
-    if (!(pcursor = pwdb->GetCursor()))
+    if (!(pcursor = pwdb->GetCursor())) {
         throw std::runtime_error(strprintf("%s: cannot create DB cursor", __func__).c_str());
+    }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
@@ -644,12 +645,12 @@ bool CHDWallet::LoadAddressBook(CHDWalletDB *pwdb)
     size_t nCount = 0;
     unsigned int fFlags = DB_SET_RANGE;
     ssKey << sPrefix;
-    while (pwdb->ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0)
-    {
+    while (pwdb->ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
         ssKey >> strType;
-        if (strType != sPrefix)
+        if (strType != sPrefix) {
             break;
+        }
 
         ssKey >> strAddress;
 
@@ -659,18 +660,16 @@ bool CHDWallet::LoadAddressBook(CHDWalletDB *pwdb)
         std::pair<std::map<CTxDestination, CAddressBookData>::iterator, bool> ret;
         ret = mapAddressBook.insert(std::pair<CTxDestination, CAddressBookData>
             (CBitcoinAddress(strAddress).Get(), data));
-        if (!ret.second)
-        {
+        if (!ret.second) {
             // update existing record
             CAddressBookData &entry = ret.first->second;
             entry.name = data.name;
             entry.purpose = data.purpose;
             entry.vPath = data.vPath;
-        } else
-        {
+        } else {
             nCount++;
         }
-    };
+    }
 
     LogPrint(BCLog::HDWALLET, "Loaded %d addresses.\n", nCount);
     pcursor->close();
@@ -715,17 +714,18 @@ bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
 
 bool CHDWallet::GetVote(int nHeight, uint32_t &token)
 {
-    for (auto i = vVoteTokens.size(); i-- > 0; )
-    {
+    for (auto i = vVoteTokens.size(); i-- > 0; ) {
         auto &v = vVoteTokens[i];
 
         if (v.nEnd < nHeight
-            || v.nStart > nHeight)
+            || v.nStart > nHeight) {
             continue;
+        }
 
         if ((v.nToken >> 16) < 1
-            || (v.nToken & 0xFFFF) < 1)
+            || (v.nToken & 0xFFFF) < 1) {
             continue;
+        }
 
         token = v.nToken;
         return true;
@@ -941,8 +941,9 @@ bool CHDWallet::Lock()
 {
     LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
-    if (IsLocked())
+    if (IsLocked()) {
         return true;
+    }
 
     WalletLogPrintf("Locking wallet.\n");
 
@@ -1105,8 +1106,9 @@ isminetype CHDWallet::HaveExtKey(const CKeyID &keyID) const
     //       There may be other extkeys in the db.
 
     ExtKeyMap::const_iterator it = mapExtKeys.find(keyID);
-    if (it != mapExtKeys.end())
+    if (it != mapExtKeys.end()) {
         return it->second->IsMine();
+    }
 
     return ISMINE_NO;
 };
@@ -1118,11 +1120,10 @@ bool CHDWallet::GetExtKey(const CKeyID &keyID, CStoredExtKey &extKeyOut) const
     //       There may be other extkeys in the db.
 
     ExtKeyMap::const_iterator it = mapExtKeys.find(keyID);
-    if (it != mapExtKeys.end())
-    {
+    if (it != mapExtKeys.end()) {
         extKeyOut = *it->second;
         return true;
-    };
+    }
 
     return false;
 };
@@ -1140,15 +1141,15 @@ int CHDWallet::GetKey(const CKeyID &address, CKey &keyOut, CExtKeyAccount *&pa, 
     LOCK(cs_wallet);
 
     ExtKeyAccountMap::const_iterator it;
-    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it)
-    {
+    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it) {
         rv = it->second->GetKey(address, keyOut, ak, idStealth);
 
-        if (!rv)
+        if (!rv) {
             continue;
+        }
         pa = it->second;
         return rv;
-    };
+    }
 
     pa = nullptr;
     return CCryptoKeyStore::GetKey(address, keyOut);
@@ -1159,11 +1160,11 @@ bool CHDWallet::GetKey(const CKeyID &address, CKey &keyOut) const
     LOCK(cs_wallet);
 
     ExtKeyAccountMap::const_iterator it;
-    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it)
-    {
-        if (it->second->GetKey(address, keyOut))
+    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it) {
+        if (it->second->GetKey(address, keyOut)) {
             return true;
-    };
+        }
+    }
     return CCryptoKeyStore::GetKey(address, keyOut);
 };
 
@@ -1171,11 +1172,11 @@ bool CHDWallet::GetPubKey(const CKeyID &address, CPubKey& pkOut) const
 {
     LOCK(cs_wallet);
     ExtKeyAccountMap::const_iterator it;
-    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it)
-    {
-        if (it->second->GetPubKey(address, pkOut))
+    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it) {
+        if (it->second->GetPubKey(address, pkOut)) {
             return true;
-    };
+        }
+    }
 
     return CCryptoKeyStore::GetPubKey(address, pkOut);
 };
@@ -1191,33 +1192,32 @@ isminetype CHDWallet::HaveStealthAddress(const CStealthAddress &sxAddr) const
     AssertLockHeld(cs_wallet);
 
     std::set<CStealthAddress>::const_iterator si = stealthAddresses.find(sxAddr);
-    if (si != stealthAddresses.end())
-    {
+    if (si != stealthAddresses.end()) {
         isminetype imSpend = IsMine(si->spend_secret_id);
-        if (imSpend & ISMINE_SPENDABLE)
+        if (imSpend & ISMINE_SPENDABLE) {
             return imSpend; // Retain ISMINE_HARDWARE_DEVICE flag if present
+        }
         return ISMINE_WATCH_ONLY_;
-    };
+    }
 
     CKeyID sxId = CPubKey(sxAddr.scan_pubkey).GetID();
 
     ExtKeyAccountMap::const_iterator mi;
-    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi)
-    {
+    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi) {
         CExtKeyAccount *ea = mi->second;
 
         if (ea->mapStealthKeys.size() < 1)
             continue;
         AccStealthKeyMap::const_iterator it = ea->mapStealthKeys.find(sxId);
-        if (it != ea->mapStealthKeys.end())
-        {
+        if (it != ea->mapStealthKeys.end()) {
             const CStoredExtKey *sek = ea->GetChain(it->second.akSpend.nParent);
-            if (sek)
+            if (sek) {
                 return sek->IsMine();
+            }
 
             break;
-        };
-    };
+        }
+    }
 
     return ISMINE_NO;
 };
@@ -1225,29 +1225,27 @@ isminetype CHDWallet::HaveStealthAddress(const CStealthAddress &sxAddr) const
 bool CHDWallet::GetStealthAddressScanKey(CStealthAddress &sxAddr) const
 {
     std::set<CStealthAddress>::const_iterator si = stealthAddresses.find(sxAddr);
-    if (si != stealthAddresses.end())
-    {
+    if (si != stealthAddresses.end()) {
         sxAddr.scan_secret = si->scan_secret;
         return true;
-    };
+    }
 
     CKeyID sxId = CPubKey(sxAddr.scan_pubkey).GetID();
 
     ExtKeyAccountMap::const_iterator mi;
-    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi)
-    {
+    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi) {
         CExtKeyAccount *ea = mi->second;
 
-        if (ea->mapStealthKeys.size() < 1)
+        if (ea->mapStealthKeys.size() < 1) {
             continue;
+        }
 
         AccStealthKeyMap::iterator it = ea->mapStealthKeys.find(sxId);
-        if (it != ea->mapStealthKeys.end())
-        {
+        if (it != ea->mapStealthKeys.end()) {
             sxAddr.scan_secret = it->second.skScan;
             return true;
-        };
-    };
+        }
+    }
 
     return false;
 };
@@ -1260,16 +1258,15 @@ bool CHDWallet::GetStealthAddressSpendKey(CStealthAddress &sxAddr, CKey &key) co
     CKeyID sxId = CPubKey(sxAddr.scan_pubkey).GetID();
 
     ExtKeyAccountMap::const_iterator mi;
-    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi)
-    {
+    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi) {
         CExtKeyAccount *ea = mi->second;
         AccStealthKeyMap::iterator it = ea->mapStealthKeys.find(sxId);
-        if (it != ea->mapStealthKeys.end())
-        {
-            if (ea->GetKey(it->second.akSpend, key))
+        if (it != ea->mapStealthKeys.end()) {
+            if (ea->GetKey(it->second.akSpend, key)) {
                 return true;
-        };
-    };
+            }
+        }
+    }
     return false;
 };
 
@@ -1320,8 +1317,9 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
         LOCK(cs_wallet);
 
         std::map<CTxDestination, CAddressBookData>::const_iterator mi = mapAddressBook.find(address);
-        if (mi == mapAddressBook.end())
+        if (mi == mapAddressBook.end()) {
             return false;
+        }
         entry = mi->second;
 
         tIsMine = ::IsMine(*this, address);
@@ -1330,11 +1328,10 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
     NotifyAddressBookChanged(this, address, entry.name, tIsMine != ISMINE_NO, entry.purpose, nMode);
 
     if (tIsMine == ISMINE_SPENDABLE
-        && address.type() == typeid(CKeyID))
-    {
+        && address.type() == typeid(CKeyID)) {
         CKeyID id = boost::get<CKeyID>(address);
         smsgModule.WalletKeyChanged(id, entry.name, nMode);
-    };
+    }
 
     return true;
 };
@@ -1366,15 +1363,15 @@ bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address,
 
         //if (fFileBacked)
         {
-            if (pwdb)
-            {
-                if (!pwdb->WriteAddressBookEntry(CBitcoinAddress(address).ToString(), *entry))
+            if (pwdb) {
+                if (!pwdb->WriteAddressBookEntry(CBitcoinAddress(address).ToString(), *entry)) {
                     return false;
-            } else
-            {
-                if (!CHDWalletDB(*database).WriteAddressBookEntry(CBitcoinAddress(address).ToString(), *entry))
+                }
+            } else {
+                if (!CHDWalletDB(*database).WriteAddressBookEntry(CBitcoinAddress(address).ToString(), *entry)) {
                     return false;
-            };
+                }
+            }
         };
     }
 
