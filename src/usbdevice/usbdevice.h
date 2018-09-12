@@ -127,6 +127,8 @@ public:
         int nIn, const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion,
         std::vector<uint8_t> &vchSig, std::string &sError) { return 0; };
 
+    virtual int LoadMnemonic(const std::string &sMnemonic, std::string &sError) { return 0; };   
+
     const DeviceType *pType = nullptr;
     char cPath[128];
     char cSerialNo[128];

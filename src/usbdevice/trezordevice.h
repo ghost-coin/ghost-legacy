@@ -55,6 +55,8 @@ public:
 
     int CompleteTransaction(CMutableTransaction *tx);
 
+    int LoadMnemonic(const std::string &sMnemonic, std::string &sError) override;
+
     bool m_preparing = false;
     std::map<int, SignData> m_cache;
 };

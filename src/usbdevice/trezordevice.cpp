@@ -626,4 +626,66 @@ std::string CTrezorDevice::GetCoinName()
     return Params().NetworkIDString() == "main" ? "Particl" : "Particl Testnet";
 };
 
+int CTrezorDevice::LoadMnemonic(const std::string &sMnemonic, std::string &sError) 
+{
+    LoadDevice msg_in;
+    uint16_t msg_type_out = 0;
+
+    msg_in.set_mnemonic(sMnemonic);
+
+    std::vector<uint8_t> vec_in, vec_out;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != Open()) {
+        return errorN(1, sError, __func__, "Failed to open device.");
+    }
+
+    if (0 != WriteV1(handle, MessageType_LoadDevice, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+
+    for (;;) {
+		if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+			Close();
+			return errorN(1, sError, __func__, "ReadV1 failed.");
+		}
+
+		if (msg_type_out == MessageType_Failure) {
+			Failure msg_fail;
+			if (!msg_fail.ParseFromArray(vec_out.data(), vec_out.size())) {
+				Close();
+				return errorN(1, sError, __func__, "ParseFromArray failed.");
+			}
+			Close();
+			return errorN(1, sError, __func__, "Dongle error %s.", msg_fail.message());
+		}
+
+		if (msg_type_out == MessageType_ButtonRequest) {
+			ButtonAck msg;
+			vec_in.resize(msg.ByteSize());
+			if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
+				Close();
+				return errorN(1, sError, __func__, "SerializeToArray failed.");
+			}
+			if (0 != WriteV1(handle, MessageType_ButtonAck, vec_in)) {
+				Close();
+				return errorN(1, sError, __func__, "WriteV1 failed.");
+			}
+		}
+		if (msg_type_out == MessageType_Success) {
+			break;
+		}
+    }
+    Close();
+
+    return 0;
+};
+
 } // usb_device

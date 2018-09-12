@@ -74,6 +74,31 @@ static usb_device::CUSBDevice *SelectDevice(std::vector<std::unique_ptr<usb_devi
     return rv;
 };
 
+static UniValue deviceloadmnemonic(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
+        throw std::runtime_error(
+            "getdevicexpub \"path\" (\"accountpath\")\n"
+            "Load mnemonic into hardware device.\n"
+            "\nArguments:\n"
+            "1. \"mnemonic\"              (string, required) The mnemonic to be loaded.\n"
+            "\nExamples\n"
+            + HelpExampleCli("deviceloadmnemonic", "\"mnemonic\""));
+
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
+
+    UniValue result(UniValue::VOBJ);
+    std::string sError, sMnemonic = request.params[0].get_str();
+    if (0 == pDevice->LoadMnemonic(sMnemonic, sError)) {
+        result.pushKV("complete", "Device loaded");
+    } else {
+        result.pushKV("error", sError);
+    }
+
+    return result;
+};
+
 static UniValue listdevices(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 0)
@@ -961,6 +986,7 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
 static const CRPCCommand commands[] =
 { //  category              name                            actor (function)            argNames
   //  --------------------- ------------------------        -----------------------     ----------
+    { "usbdevice",          "deviceloadmnemonic",           &deviceloadmnemonic,        {"mnemonic"} },
     { "usbdevice",          "listdevices",                  &listdevices,               {} },
     { "usbdevice",          "getdeviceinfo",                &getdeviceinfo,             {} },
     { "usbdevice",          "getdevicepublickey",           &getdevicepublickey,        {"path","accountpath"} },
