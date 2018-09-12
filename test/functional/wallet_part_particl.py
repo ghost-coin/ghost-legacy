@@ -199,8 +199,19 @@ class WalletParticlTest(ParticlTestFramework):
             break
         assert(fFound)
 
+        # Test dumpwallet from an unlocked encrypted wallet
+        nodes[0].dumpwallet(tmpdir + '/node0/wallet.encrypted.dump')
+        sJson, nLines = read_dump(tmpdir + '/node0/wallet.encrypted.dump')
+        assert(nLines == 0)
+        o = json.loads(sJson)
+        assert(len(o['loose_extkeys']) == 1)
+        assert(o['loose_extkeys'][0]['evkey'].startswith('xpar'))
+        assert(len(o['accounts']) == 2)
+        assert(o['accounts'][0]['evkey'].startswith('xpar'))
+        assert(o['accounts'][1]['evkey'].startswith('xpar'))
 
-        # test encrypting empty wallet
+
+        # Test encrypting empty wallet
         nodes[1].dumpwallet(tmpdir + '/node1/wallet.unencrypted.dump')
         sJson, nLines = read_dump(tmpdir + '/node1/wallet.unencrypted.dump')
         assert(nLines == 0)
