@@ -837,20 +837,18 @@ UniValue dumpwallet(const JSONRPCRequest& request)
         }
     }
 
-    if (IsParticlWallet(pwallet))
-    {
+    if (IsParticlWallet(pwallet)) {
         std::string sError;
         file << "\n# --- Begin JSON --- \n";
 
         UniValue rv(UniValue::VOBJ);
-        if (!GetParticlWallet(pwallet)->DumpJson(rv, sError))
+        if (!GetParticlWallet(pwallet)->DumpJson(rv, sError)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "DumpJson failed " + sError);
+        }
         file << rv.write(1);
 
         file << "\n# --- End JSON --- \n";
-    };
-
-
+    }
 
     file << "\n";
     for (const CScriptID &scriptid : scripts) {

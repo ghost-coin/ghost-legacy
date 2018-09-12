@@ -326,8 +326,12 @@ static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bo
 
             if (nShowKeys > 2 // dumpwallet
                 && pa->nFlags & EAF_HAVE_SECRET) {
-                eKey58.SetKeyV(sek->kp);
-                objC.pushKV("evkey", eKey58.ToString());
+                if (pwallet->ExtKeyUnlock(sek) == 0) {
+                    eKey58.SetKeyV(sek->kp);
+                    objC.pushKV("evkey", eKey58.ToString());
+                } else {
+                    objC.pushKV("evkey", "Decryption failed");
+                }
 
                 mvi = sek->mapValue.find(EKVT_CREATED_AT);
                 if (mvi != sek->mapValue.end()) {
