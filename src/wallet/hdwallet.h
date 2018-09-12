@@ -240,6 +240,11 @@ public:
     uint256 nonce;
 
     // TODO: range proof parameters, try to keep similar for fee
+    // Allow an overwrite of the parameters.
+    bool fOverwriteRangeProofParams = false;
+    uint64_t min_value;
+    int ct_exponent;
+    int ct_bits;
 
     CKey sEphem;
     CPubKey pkTo;

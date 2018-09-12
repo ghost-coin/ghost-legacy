@@ -293,6 +293,7 @@ public:
     virtual std::vector<uint8_t> *GetPRangeproof() { return nullptr; };
 
     virtual bool GetCTFee(CAmount &nFee) const { return false; };
+    virtual bool SetCTFee(CAmount &nFee) { return false; };
     virtual bool GetDevFundCfwd(CAmount &nCfwd) const { return false; };
 
     std::string ToString() const;
@@ -501,6 +502,13 @@ public:
         size_t nb;
         return (0 == GetVarInt(vData, 1, (uint64_t&)nFee, nb));
     };
+
+    bool SetCTFee(CAmount &nFee) override
+    {
+        vData.clear();
+        vData.push_back(DO_FEE);
+        return (0 == PutVarInt(vData, nFee));
+    }
 
     bool GetDevFundCfwd(CAmount &nCfwd) const override
     {

@@ -3079,6 +3079,12 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
         return wserrorN(1, sError, __func__, "SelectRangeProofParameters failed.");
     }
 
+    if (r.fOverwriteRangeProofParams == true) {
+        min_value = r.min_value;
+        ct_exponent = r.ct_exponent;
+        ct_bits = r.ct_bits;
+    }
+
     if (1 != secp256k1_rangeproof_sign(secp256k1_ctx_blind,
         &(*pvRangeproof)[0], &nRangeProofLen,
         min_value, pCommitment,

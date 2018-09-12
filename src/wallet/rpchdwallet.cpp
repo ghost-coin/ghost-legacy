@@ -6359,12 +6359,19 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             "         \"address\": \"str\"          (string, required) The particl address\n"
             "         \"amount\": x.xxx           (numeric or string, required) The numeric value (can be string) in " + CURRENCY_UNIT + " of the output\n"
             "         \"data\": \"hex\",            (string, required) The key is \"data\", the value is hex encoded data\n"
+            "         \"data_ct_fee\": x.xxx,     (numeric, optional) If type is \"data\" and output is at index 0, then it will be treated as a CT fee output\n"
             "         \"script\": \"str\",          (string, optional) Specify script directly.\n"
             "         \"type\": \"str\",            (string, optional, default=\"plain\") The type of output to create, plain, blind or anon.\n"
             "         \"pubkey\": \"hex\",          (string, optional) The key is \"pubkey\", the value is hex encoded public key for encrypting the metadata\n"
 //            "         \"subfee\":bool      (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
             "         \"narration\" \"str\",        (string, optional) Up to 24 character narration sent with the transaction.\n"
             "         \"blindingfactor\" \"hex\",   (string, optional) Blinding factor to use. Blinding factor is randomly generated if not specified.\n"
+            "         \"rangeproof_params\":  ,     (object, optional) Overwrite the rangeproof parameters of an output \n"
+            "           {\n"
+            "             \"min_value\": x.xxx            (numeric, required) the minimum value to prove for.\n"
+            "             \"ct_exponent\": x              (numeric, required) the exponent to  use.\n"
+            "             \"ct_bits\": x                  (numeric, required) the amount of bits to prove for.\n"
+            "           }\n"
             "         \"ephemeral_key\" \"hex\",    (string, optional) Ephemeral secret key for blinded outputs.\n"
             "         \"nonce\":\"hex\"\n           (string, optional) Nonce for blinded outputs.\n"
             "       }\n"
@@ -6410,6 +6417,7 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
 
     bool rbfOptIn = request.params[3].isTrue();
 
+    CAmount nCtFee = 0;
     std::map<int, uint256> mInputBlinds;
     for (unsigned int idx = 0; idx < inputs.size(); idx++) {
         const UniValue& input = inputs[idx];
@@ -6528,6 +6536,18 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             r.vData = ParseHex(s);
         }
 
+        if (o["data_ct_fee"].isStr() || o["data_ct_fee"].isNum())
+        {
+            if (nType != OUTPUT_DATA) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "\"data_ct_fee\" can only appear in output of type \"data\".");
+            }
+
+            if (idx != 0) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "\"data_ct_fee\" can only appear in vout 0.");
+            }
+            nCtFee = AmountFromValue(o["data_ct_fee"]);
+        };
+
         if (o["address"].isStr() && o["script"].isStr()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Can't specify both \"address\" and \"script\".");
         }
@@ -6573,6 +6593,20 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
                 // Generate a random blinding factor if not provided
                 GetStrongRandBytes(r.vBlind.data(), 32);
             }
+
+            if (o["rangeproof_params"].isObject())
+            {
+                const UniValue &rangeproofParams = o["rangeproof_params"].get_obj();
+
+                if (!rangeproofParams["min_value"].isNum() || !rangeproofParams["ct_exponent"].isNum() || !rangeproofParams["ct_bits"].isNum()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "All range proof parameters must be numeric.");
+                }
+
+                r.fOverwriteRangeProofParams = true;
+                r.min_value = rangeproofParams["min_value"].get_int64();
+                r.ct_exponent = rangeproofParams["ct_exponent"].get_int();
+                r.ct_bits = rangeproofParams["ct_bits"].get_int();
+            }
         }
 
         vecSend.push_back(r);
@@ -6610,6 +6644,11 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         */
         r.n = rawTx.vpout.size();
         rawTx.vpout.push_back(txbout);
+
+        if (nCtFee != 0 && i == 0) {
+            txbout->SetCTFee(nCtFee);
+            continue;
+        }
 
         UniValue amount(UniValue::VOBJ);
         amount.pushKV("value", ValueFromAmount(r.nAmount));
