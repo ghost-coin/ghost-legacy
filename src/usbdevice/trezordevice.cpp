@@ -580,11 +580,41 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
             if (tx->vpout[i]->IsType(OUTPUT_STANDARD)) {
                 CTxDestination address;
                 const CScript *pscript = tx->vpout[i]->GetPScriptPubKey();
-                if (!pscript || !ExtractDestination(*pscript, address)) {
-                    return errorN(1, sError, __func__, "ExtractDestination failed.");
+                if (!pscript) {
+                    return errorN(1, sError, __func__, "GetPScriptPubKey failed.");
                 }
 
-                msg_output->set_address(EncodeDestination(address));
+                if (pscript->StartsWithICS()) {
+                    CScript scriptA, scriptB;
+                    if (!SplitConditionalCoinstakeScript(*pscript, scriptA, scriptB)) {
+                        return errorN(1, sError, __func__, "Output %d, failed to split script.", i);
+                    }
+                    CTxDestination addrStake, addrSpend;
+                    if (!ExtractDestination(scriptA, addrStake)) {
+                        return errorN(1, sError, __func__, "ExtractDestination failed.");
+                    }
+                    if (!ExtractDestination(scriptB, addrSpend)) {
+                        return errorN(1, sError, __func__, "ExtractDestination failed.");
+                    }
+                    if (addrStake.type() != typeid(CKeyID) || addrSpend.type() != typeid(CKeyID256)) {
+                        return errorN(1, sError, __func__, "Unsupported coldstake script types.");
+                    }
+                    CKeyID idStake = boost::get<CKeyID>(addrStake);
+                    CKeyID256 idSpend = boost::get<CKeyID256>(addrSpend);
+
+                    // Construct joined address, p2pkh prefix +2
+                    std::vector<uint8_t> addr_raw(53);
+                    addr_raw[0] = Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS)[0] + 2;
+                    memcpy(&addr_raw[1], idStake.begin(), 20);
+                    memcpy(&addr_raw[21], idSpend.begin(), 32);
+                    msg_output->set_address(EncodeBase58Check(addr_raw));
+                } else {
+                    if (!ExtractDestination(*pscript, address)) {
+                        return errorN(1, sError, __func__, "ExtractDestination failed.");
+                    }
+                    msg_output->set_address(EncodeDestination(address));
+                }
+
                 msg_output->set_amount(tx->vpout[i]->GetValue());
                 msg_output->set_script_type(message::TxAck::TransactionType::TxOutputType::PAYTOADDRESS);
             } else
