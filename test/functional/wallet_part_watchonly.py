@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017 The Particl Core developers
+# Copyright (c) 2017-2018 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,6 +12,9 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 4
         self.extra_args = [ ['-debug','-reservebalance=10000000'] for i in range(self.num_nodes)]
+
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
 
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)

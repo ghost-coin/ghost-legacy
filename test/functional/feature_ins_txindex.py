@@ -23,6 +23,9 @@ class TxIndexTest(ParticlTestFramework):
             ['-debug','-txindex'],
             ['-debug','-txindex'],]
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def setup_network(self):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
