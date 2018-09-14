@@ -34,7 +34,11 @@ def read_dump(file_name, addrs, script_addrs, hd_master_addr_old):
                 # key = key_date_label[0]
                 date = key_date_label[1]
                 keytype = key_date_label[2]
-                if not len(comment) or date.startswith('1970'):
+
+                imported_key = date == '1970-01-01T00:00:01Z'
+                if imported_key:
+                    # Imported keys have multiple addresses, no label (keypath) and timestamp
+                    # Skip them
                     continue
 
                 addr_keypath = comment.split(" addr=")[1]
@@ -128,8 +132,7 @@ class WalletDumpTest(BitcoinTestFramework):
         assert_equal(witness_addr_ret, witness_addr)  # p2sh-p2wsh address added to the first key
 
         #encrypt wallet, restart, unlock and dump
-        self.nodes[0].node_encrypt_wallet('test')
-        self.start_node(0)
+        self.nodes[0].encryptwallet('test')
         self.nodes[0].walletpassphrase('test', 10)
         # Should be a no-op:
         self.nodes[0].keypoolrefill()

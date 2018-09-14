@@ -111,13 +111,11 @@ class StealthTest(ParticlTestFramework):
         assert(ro['stealth_address'] == sxAddrTo2_2)
 
 
-        nodes[2].node_encrypt_wallet('qwerty234')
-        self.start_node(2)
+        nodes[2].encryptwallet('qwerty234')
 
         ro = nodes[2].walletpassphrase('qwerty234', 300)
         ro = nodes[2].reservebalance(True, 10000000)
         ro = nodes[2].walletlock()
-        connect_nodes_bi(self.nodes, 0, 2)
 
         # Test send to locked wallet
         txnHash = nodes[0].sendtoaddress(sxAddrTo2_1, 0.4, '', '', False, 'narration test node2')
