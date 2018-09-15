@@ -1162,6 +1162,11 @@ void CWallet::SyncTransaction(const CTransactionRef& ptx, const CBlockIndex *pin
     if (!AddToWalletIfInvolvingMe(ptx, pindex, posInBlock, update_tx))
         return; // Not one of ours
 
+    auto it = mapWallet.find(ptx->GetHash());
+    if (it != mapWallet.end()) {
+        it->second.m_cached_height = 0;
+    }
+
     // If a transaction changes 'conflicted' state, that changes the balance
     // available of the outputs it spends. So force those to be
     // recomputed, also:
@@ -4416,31 +4421,6 @@ void CMerkleTx::SetMerkleBranch(const CBlockIndex* pindex, int posInBlock)
     nIndex = posInBlock;
 }
 
-int CMerkleTx::GetDepthInMainChainCached() const
-{
-    // NOTE: Don't use where accuracy is critical
-    if (hashUnset())
-        return 0;
-
-    AssertLockHeld(cs_main);
-
-    int nChainHeight = chainActive.Height();
-
-    if (fHeightCached)
-        return nChainHeight - nCachedHeight;
-
-    int nDepth = GetDepthInMainChain();
-
-    if (nDepth > 0)
-    {
-        fHeightCached = true;
-        nCachedHeight = nChainHeight - nDepth;
-    };
-
-    return nDepth;
-
-};
-
 int CMerkleTx::GetDepthInMainChain() const
 {
     if (hashUnset())
@@ -4448,11 +4428,16 @@ int CMerkleTx::GetDepthInMainChain() const
 
     AssertLockHeld(cs_main);
 
+    if (m_cached_height) {
+        return ((nIndex == -1) ? (-1) : 1) * (chainActive.Height() - m_cached_height + 1);
+    }
+
     // Find the block it claims to be in
     CBlockIndex* pindex = LookupBlockIndex(hashBlock);
     if (!pindex || !chainActive.Contains(pindex))
         return 0;
 
+    m_cached_height = pindex->nHeight;
     return ((nIndex == -1) ? (-1) : 1) * (chainActive.Height() - pindex->nHeight + 1);
 }
 

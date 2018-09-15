@@ -770,6 +770,8 @@ public:
     CBitcoinAddress rewardAddress;
     int nStakeLimitHeight = 0; // for regtest, don't stake above nStakeLimitHeight
 
+    mutable bool m_have_cached_stakeable_coins = false;
+    mutable std::vector<COutput> m_cached_stakeable_coins;
 
     bool fUnlockForStakingOnly = false; // Use coldstaking instead
 

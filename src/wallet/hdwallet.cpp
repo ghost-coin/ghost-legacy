@@ -2407,7 +2407,7 @@ CAmount CHDWallet::GetStaked()
 
         int depth;
         if (wtx.IsCoinStake()
-            && (depth = wtx.GetDepthInMainChainCached()) > 0 // checks for hashunset
+            && (depth = wtx.GetDepthInMainChain()) > 0 // checks for hashunset
             && wtx.GetBlocksToMaturity(&depth) > 0) {
             nTotal += CHDWallet::GetCredit(*wtx.tx, ISMINE_SPENDABLE);
         }
@@ -2481,7 +2481,7 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
 
         int depth;
         if (wtx.IsCoinStake()
-            && (depth = wtx.GetDepthInMainChainCached()) > 0 // checks for hashunset
+            && (depth = wtx.GetDepthInMainChain()) > 0 // checks for hashunset
             && wtx.GetBlocksToMaturity(&depth) > 0) {
             CAmount nSpendable, nWatchOnly;
             CHDWallet::GetCredit(*wtx.tx, nSpendable, nWatchOnly);
@@ -5271,6 +5271,7 @@ void CHDWallet::ClearCachedBalances()
 {
     // Clear cache when a new txn is added to the wallet or a block is added or removed from the chain.
     m_have_spendable_balance_cached = false;
+    m_have_cached_stakeable_coins = false;
     return;
 }
 
@@ -11545,7 +11546,7 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
             const CWalletTx *pcoin = &walletEntry.second;
             CTransactionRef tx = pcoin->tx;
 
-            int nDepth = pcoin->GetDepthInMainChainCached();
+            int nDepth = pcoin->GetDepthInMainChain();
 
             if (nDepth > m_greatest_txn_depth) {
                 m_greatest_txn_depth = nDepth;
@@ -11662,19 +11663,27 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
 
 bool CHDWallet::SelectCoinsForStaking(int64_t nTargetValue, int64_t nTime, int nHeight, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const
 {
-    std::vector<COutput> vCoins;
-    AvailableCoinsForStaking(vCoins, nTime, nHeight);
+    if (m_have_cached_stakeable_coins) {
+        random_shuffle(m_cached_stakeable_coins.begin(), m_cached_stakeable_coins.end(), GetRandInt);
+    } else {
+        m_cached_stakeable_coins.clear();
+        AvailableCoinsForStaking(m_cached_stakeable_coins, nTime, nHeight);
+        m_have_cached_stakeable_coins = true;
+    }
+
+    std::vector<COutput> &vCoins = m_cached_stakeable_coins;
 
     setCoinsRet.clear();
     nValueRet = 0;
 
-    for (auto &output : vCoins) {
+    for (const auto &output : vCoins) {
         const CWalletTx *pcoin = output.tx;
         int i = output.i;
 
         // Stop if we've chosen enough inputs
-        if (nValueRet >= nTargetValue)
+        if (nValueRet >= nTargetValue) {
             break;
+        }
 
         int64_t n = pcoin->tx->vpout[i]->GetValue();
 

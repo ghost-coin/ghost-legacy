@@ -248,8 +248,7 @@ public:
      */
     int nIndex;
 
-    mutable bool fHeightCached;
-    mutable int nCachedHeight;
+    mutable int m_cached_height = 0;
 
     CMerkleTx()
     {
@@ -267,7 +266,6 @@ public:
     {
         hashBlock = uint256();
         nIndex = -1;
-        fHeightCached = false;
     }
 
     void SetTx(CTransactionRef arg)
@@ -293,7 +291,6 @@ public:
      *  0  : in memory pool, waiting to be included in a block
      * >=1 : this many blocks deep in the main chain
      */
-    int GetDepthInMainChainCached() const;
     int GetDepthInMainChain() const EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool IsInMainChain() const EXCLUSIVE_LOCKS_REQUIRED(cs_main) { return GetDepthInMainChain() > 0; }
 
@@ -307,14 +304,13 @@ public:
     bool isAbandoned() const { return (hashBlock == ABANDON_HASH); }
     void setAbandoned()
     {
-        if (IsCoinStake() && !hashUnset())
-        {
+        if (IsCoinStake() && !hashUnset()) {
             // Store original hash
-            if (vHashes.size() < 1)
+            if (vHashes.size() < 1) {
                 vHashes.resize(1);
-
+            }
             vHashes[0] = hashBlock;
-        };
+        }
 
         hashBlock = ABANDON_HASH;
     }

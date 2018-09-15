@@ -89,6 +89,7 @@ class SmsgPaidTest(ParticlTestFramework):
         assert(ro['messages'][0]['text'] == text_2)
 
         nodes[0].encryptwallet('qwerty234')
+        time.sleep(2)
 
         ro = nodes[0].getwalletinfo()
         assert(ro['encryptionstatus'] == 'Locked')
