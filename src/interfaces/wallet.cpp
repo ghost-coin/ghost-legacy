@@ -560,8 +560,6 @@ public:
             return result;
         }
 
-
-
         for (const auto& entry : m_wallet.ListCoins()) {
             auto& group = result[entry.first];
             for (const auto& coin : entry.second) {

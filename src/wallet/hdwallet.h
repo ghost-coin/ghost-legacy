@@ -379,6 +379,7 @@ public:
     bool Initialise();
 
     bool ProcessStakingSettings(std::string &sError);
+    bool ProcessWalletSettings(std::string &sError);
 
     /* Returns true if HD is enabled, and default account set */
     bool IsHDEnabled() const override;
@@ -421,6 +422,8 @@ public:
     bool GetStealthAddressSpendKey(CStealthAddress &sxAddr, CKey &key) const;
 
     bool ImportStealthAddress(const CStealthAddress &sxAddr, const CKey &skSpend);
+
+    DBErrors LoadWallet(bool& fFirstRunRet) override;
 
     bool AddressBookChangedNotify(const CTxDestination &address, ChangeType nMode);
     bool SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address, const std::string &strName,
@@ -649,6 +652,10 @@ public:
     bool FindStealthTransactions(const CTransaction &tx, mapValue_t &mapNarr);
 
     bool ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t &nRingCT, mapValue_t &mapNarr);
+
+    int UnloadSpent(const uint256& wtxid, int depth, const uint256& wtxid_from);
+    using CWallet::AddToSpends;
+    void AddToSpends(const uint256& wtxid) override;
     bool AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     CWalletTx *GetTempWalletTx(const uint256& hash);
@@ -726,6 +733,8 @@ public:
 
     boost::signals2::signal<void (CAmount nReservedBalance)> NotifyReservedBalanceChanged;
 
+    size_t CountTxSpends() { return mapTxSpends.size(); };
+
     int64_t nLastCoinStakeSearchTime = 0;
     uint32_t nStealth, nFoundStealth; // for reporting, zero before use
     int64_t nReserveBalance = 0;
@@ -777,6 +786,10 @@ public:
 
     int64_t nRCTOutSelectionGroup1 = 2400;
     int64_t nRCTOutSelectionGroup2 = 24000;
+
+    int m_collapse_spent_mode = 0;
+    int m_min_collapse_depth = 3;
+    std::multimap<uint256, COutPoint> mapTxCollapsedSpends;
 
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);

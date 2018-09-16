@@ -96,7 +96,7 @@ COutputRecord *CTransactionRecord::GetOutput(int n)
 const COutputRecord *CTransactionRecord::GetOutput(int n) const
 {
     // vout is always in order by asc n
-    for (auto &r : vout) {
+    for (const auto &r : vout) {
         if (r.n > n) {
             return nullptr;
         }
@@ -109,7 +109,7 @@ const COutputRecord *CTransactionRecord::GetOutput(int n) const
 
 const COutputRecord *CTransactionRecord::GetChangeOutput() const
 {
-    for (auto &r : vout) {
+    for (const auto &r : vout) {
         if (r.nFlags & ORF_CHANGE) {
             return &r;
         }
@@ -168,6 +168,7 @@ void CHDWallet::AddOptions()
 
 bool CHDWallet::Initialise()
 {
+    /*
     fParticlWallet = true;
 
     if (!ParseMoney(gArgs.GetArg("-reservebalance", ""), nReserveBalance)) {
@@ -190,6 +191,7 @@ bool CHDWallet::Initialise()
         LoadStealthAddresses();
         PrepareLookahead(); // Must happen after ExtKeyLoadAccountPacks
     }
+    */
 
     {
         LOCK2(cs_main, cs_wallet); // Locking cs_main for MarkConflicted
@@ -347,6 +349,38 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
     if (nWalletDevFundCedePercent > 100) {
         WalletLogPrintf("%s: \"Warning foundationdonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 100);
         nWalletDevFundCedePercent = 100;
+    }
+
+    return true;
+};
+
+bool CHDWallet::ProcessWalletSettings(std::string &sError)
+{
+    LogPrint(BCLog::HDWALLET, "%s ProcessWalletSettings\n", GetDisplayName());
+
+    // Set defaults
+    m_collapse_spent_mode = 0;
+    m_min_collapse_depth = 3;
+
+    UniValue json;
+    if (GetSetting("unloadspent", json)) {
+        if (!json["mode"].isNull()) {
+            try { m_collapse_spent_mode = json["mode"].get_int();
+            } catch (std::exception &e) {
+                sError = "\"mode\" not integer.";
+            }
+        }
+        if (!json["mindepth"].isNull()) {
+            try { m_min_collapse_depth = json["mindepth"].get_int();
+            } catch (std::exception &e) {
+                sError = "\"mode\" not integer.";
+            }
+        }
+    }
+
+    if (m_min_collapse_depth < 2) {
+        sError = "\"mindepth\" must be >= 2.";
+        m_min_collapse_depth = 2;
     }
 
     return true;
@@ -1336,6 +1370,37 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
     return true;
 };
 
+DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
+{
+    fParticlWallet = true;
+
+    if (!ParseMoney(gArgs.GetArg("-reservebalance", ""), nReserveBalance)) {
+        InitError(_("Invalid amount for -reservebalance=<amount>"));
+        return DBErrors::LOAD_FAIL;
+    }
+
+    std::string sError;
+    ProcessStakingSettings(sError);
+    ProcessWalletSettings(sError);
+
+    if (mapMasterKeys.size() > 0
+        && !SetCrypted()) {
+        WalletLogPrintf("SetCrypted failed.\n");
+        return DBErrors::LOAD_FAIL;
+    }
+
+    {
+        // Prepare extended keys
+        ExtKeyLoadMaster();
+        ExtKeyLoadAccounts();
+        ExtKeyLoadAccountPacks();
+        LoadStealthAddresses();
+        PrepareLookahead(); // Must happen after ExtKeyLoadAccountPacks
+    }
+
+    return CWallet::LoadWallet(fFirstRunRet);
+}
+
 bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address, const std::string &strName,
     const std::string &strPurpose, const std::vector<uint32_t> &vPath, bool fNotifyChanged, bool fBech32)
 {
@@ -1504,13 +1569,12 @@ int64_t CHDWallet::CountActiveAccountKeys()
     LOCK(cs_wallet);
     int64_t nKeys = 0;
 
-    for (const auto &mi : mapExtAccounts)
-    {
+    for (const auto &mi : mapExtAccounts) {
         CExtKeyAccount *pa = mi.second;
         nKeys += pa->mapKeys.size();
         nKeys += pa->mapStealthChildKeys.size();
         //nKeys += pa->mapLookAhead.size();
-    };
+    }
 
     return nKeys;
 };
@@ -5323,7 +5387,7 @@ void CHDWallet::LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx)
 
 void CHDWallet::RemoveFromTxSpends(const uint256 &hash, const CTransactionRef pt)
 {
-    for (auto &txin : pt->vin) {
+    for (const auto &txin : pt->vin) {
         std::pair<TxSpends::iterator, TxSpends::iterator> ip = mapTxSpends.equal_range(txin.prevout);
         for (auto it = ip.first; it != ip.second; ) {
             if (it->second == hash) {
@@ -9234,6 +9298,117 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
     return fIsMine;
 };
 
+int CHDWallet::UnloadSpent(const uint256& wtxid, int depth, const uint256& wtxid_from)
+{
+    // Note: txns are loaded out of order
+
+    auto it = mapWallet.find(wtxid);
+    if (it == mapWallet.end()) {
+        return 0;
+    }
+    CWalletTx& thisTx = it->second;
+
+    if (thisTx.GetDepthInMainChain() < 3) {
+        return 0;
+    }
+
+    for (const CTxIn& txin : thisTx.tx->vin) {
+        UnloadSpent(txin.prevout.hash, depth+1, wtxid);
+    }
+
+    // Try unlinking txns over any gaps
+    {
+        auto range = mapTxCollapsedSpends.equal_range(wtxid);
+        std::set<uint256> try_unlink;
+        for (std::multimap<uint256, COutPoint>::const_iterator _it = range.first; _it != range.second; ++_it) {
+            try_unlink.insert(_it->second.hash);
+        }
+        for (const auto &hash : try_unlink) {
+            UnloadSpent(hash, m_min_collapse_depth+1, wtxid); // a txn in mapTxCollapsedSpends will always be > m_min_collapse_depth
+        }
+    }
+
+    if (depth < m_min_collapse_depth) {
+        return 0;
+    }
+
+    if (m_collapse_spent_mode < 2 && !thisTx.IsCoinStake()) {
+        return 0;
+    }
+
+    for (unsigned int i = 0; i < thisTx.tx->GetNumVOuts(); i++) {
+        const auto &txout = thisTx.tx->vpout[i];
+        if (IsMine(txout.get())
+            && !IsSpent(wtxid, i)) {
+            return 0;
+        }
+    }
+
+    // Move fake spent connections from tx being destroyed to wtxid_from
+    std::set<COutPoint> spent_relink;
+    auto range = mapTxCollapsedSpends.equal_range(wtxid);
+    for (std::multimap<uint256, COutPoint>::const_iterator _it = range.first; _it != range.second; ++_it) {
+        std::pair<TxSpends::iterator, TxSpends::iterator> ip = mapTxSpends.equal_range(_it->second);
+        for (auto it = ip.first; it != ip.second; ) {
+            if (it->second == wtxid) {
+                mapTxSpends.erase(it++);
+                continue;
+            }
+            ++it;
+        }
+
+        //if (HaveTransaction(_it->second.hash)) {
+        if (true) {
+            AddToSpends(_it->second, wtxid_from);
+            spent_relink.insert(_it->second);
+        }
+    }
+    mapTxCollapsedSpends.erase(range.first, range.second);
+
+    for (const auto &relink : spent_relink) {
+        mapTxCollapsedSpends.insert(std::make_pair(wtxid_from, relink));
+    }
+
+    TxSpends::const_iterator iter = mapTxSpends.lower_bound(COutPoint(wtxid, 0));
+    while (iter != mapTxSpends.end() && iter->first.hash == wtxid) {
+        auto range = mapTxCollapsedSpends.equal_range(iter->second);
+        for (std::multimap<uint256, COutPoint>::const_iterator _it = range.first; _it != range.second;) {
+            if (_it->second.hash == wtxid) {
+                mapTxCollapsedSpends.erase(_it++);
+                continue;
+            }
+            ++_it;
+        }
+        mapTxSpends.erase(iter++);
+    }
+
+    std::vector<CTxIn> vin = thisTx.tx->vin;
+    UnloadTransaction(wtxid);
+
+    for (const CTxIn& txin : vin) {
+        AddToSpends(txin.prevout, wtxid_from);
+        mapTxCollapsedSpends.insert(std::make_pair(wtxid_from, txin.prevout));
+    }
+
+    return 1;
+};
+
+void CHDWallet::AddToSpends(const uint256& wtxid)
+{
+    auto it = mapWallet.find(wtxid);
+    assert(it != mapWallet.end());
+    CWalletTx& thisTx = it->second;
+    if (thisTx.IsCoinBase()) // Coinbases don't spend anything!
+        return;
+
+    for (const CTxIn& txin : thisTx.tx->vin) {
+        AddToSpends(txin.prevout, wtxid);
+        if (m_collapse_spent_mode > 0) {
+            UnloadSpent(txin.prevout.hash, 1, wtxid);
+        }
+    }
+}
+
 bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate)
 {
     const CTransaction& tx = *ptx;
@@ -9825,7 +10000,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
         MapRecords_t::iterator mri = ret.first;
         rtxOrdered.insert(std::make_pair(rtx.nTimeReceived, mri));
 
-        for (auto &txin : tx.vin) {
+        for (const auto &txin : tx.vin) {
             if (txin.IsAnonInput()) {
                 rtx.nFlags |= ORF_ANON_IN;
             }
@@ -9834,7 +10009,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
 
         if (rtx.nFlags & ORF_ANON_IN) {
             COutPoint op;
-            for (auto &txin : tx.vin) {
+            for (const auto &txin : tx.vin) {
                 if (!txin.IsAnonInput()) {
                     continue;
                 }
@@ -11264,7 +11439,7 @@ void CHDWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx)
                 // available of the outputs it spends. So force those to be recomputed
                 for(const auto &txin : wtx.tx->vin)
                 {
-                     auto it = mapWallet.find(txin.prevout.hash);
+                    auto it = mapWallet.find(txin.prevout.hash);
                     if (it != mapWallet.end()) {
                         it->second.MarkDirty();
                     }

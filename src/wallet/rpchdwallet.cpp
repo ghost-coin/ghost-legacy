@@ -2439,13 +2439,17 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
     {
         LOCK2(cs_main, pwallet->cs_wallet);
 
+        pwallet->ClearCachedBalances(); // Clear stakeable coins cache
+
         CHDWalletDB wdb(pwallet->GetDBHandle());
-        if (!wdb.TxnBegin())
+        if (!wdb.TxnBegin()) {
             throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
+        }
 
         Dbc *pcursor = wdb.GetTxnCursor();
-        if (!pcursor)
+        if (!pcursor) {
             throw JSONRPCError(RPC_MISC_ERROR, "GetTxnCursor failed.");
+        }
 
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
 
@@ -2454,45 +2458,43 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
         uint256 hash;
         uint32_t fFlags = DB_SET_RANGE;
         ssKey << std::string("tx");
-        while (wdb.ReadKeyAtCursor(pcursor, ssKey, fFlags) == 0)
-        {
+        while (wdb.ReadKeyAtCursor(pcursor, ssKey, fFlags) == 0) {
             fFlags = DB_NEXT;
 
             ssKey >> strType;
-            if (strType != "tx")
+            if (strType != "tx") {
                 break;
+            }
             ssKey >> hash;
 
-            if (!fRemoveAll)
-            {
-                if ((itw = pwallet->mapWallet.find(hash)) == pwallet->mapWallet.end())
-                {
+            if (!fRemoveAll) {
+                if ((itw = pwallet->mapWallet.find(hash)) == pwallet->mapWallet.end()) {
                     LogPrintf("Warning: %s - tx not found in mapwallet! %s.\n", __func__, hash.ToString());
                     continue; // err on the side of caution
-                };
+                }
 
                 CWalletTx *pcoin = &itw->second;
-                if (!pcoin->IsCoinStake() || !pcoin->isAbandoned())
+                if (!pcoin->IsCoinStake() || !pcoin->isAbandoned()) {
                     continue;
-            };
+                }
+            }
 
             //if (0 != pwallet->UnloadTransaction(hash))
             //    throw std::runtime_error("UnloadTransaction failed.");
             pwallet->UnloadTransaction(hash); // ignore failure
 
-            if ((rv = pcursor->del(0)) != 0)
+            if ((rv = pcursor->del(0)) != 0) {
                 throw JSONRPCError(RPC_MISC_ERROR, "pcursor->del failed.");
+            }
 
             nRemoved++;
-        };
+        }
 
-        if (fRemoveAll)
-        {
+        if (fRemoveAll) {
             fFlags = DB_SET_RANGE;
             ssKey.clear();
             ssKey << std::string("rtx");
-            while (wdb.ReadKeyAtCursor(pcursor, ssKey, fFlags) == 0)
-            {
+            while (wdb.ReadKeyAtCursor(pcursor, ssKey, fFlags) == 0) {
                 fFlags = DB_NEXT;
 
                 ssKey >> strType;
@@ -2502,20 +2504,20 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
 
                 pwallet->UnloadTransaction(hash); // ignore failure
 
-                if ((rv = pcursor->del(0)) != 0)
+                if ((rv = pcursor->del(0)) != 0) {
                     throw JSONRPCError(RPC_MISC_ERROR, "pcursor->del failed.");
+                }
 
                 // TODO: Remove CStoredTransaction
 
                 nRecordsRemoved++;
-            };
-        };
+            }
+        }
 
         pcursor->close();
-        if (!wdb.TxnCommit())
-        {
+        if (!wdb.TxnCommit()) {
             throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
-        };
+        }
     }
 
     UniValue result(UniValue::VOBJ);
@@ -5302,10 +5304,14 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     size_t nUnabandonedOrphans = 0;
     size_t nCoinStakes = 0;
     size_t nAbandonedOrphans = 0;
-    size_t nMapWallet = 0;
 
     {
         LOCK2(cs_main, pwallet->cs_wallet);
+
+        result.pushKV("mapWallet_size", (int)pwallet->mapWallet.size());
+        result.pushKV("mapRecords_size", (int)pwallet->mapRecords.size());
+        result.pushKV("mapTxSpends_size", (int)pwallet->CountTxSpends());
+        result.pushKV("mapTxCollapsedSpends_size", (int)pwallet->mapTxCollapsedSpends.size());
 
         std::map<uint256, CWalletTx>::const_iterator it;
         for (it = pwallet->mapWallet.begin(); it != pwallet->mapWallet.end(); ++it)
@@ -5313,7 +5319,6 @@ static UniValue debugwallet(const JSONRPCRequest &request)
             const uint256 &wtxid = it->first;
             const CWalletTx &wtx = it->second;
 
-            nMapWallet++;
             if (wtx.IsCoinStake())
             {
                 nCoinStakes++;
@@ -5340,7 +5345,6 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         LogPrintf("nUnabandonedOrphans %d\n", nUnabandonedOrphans);
         LogPrintf("nCoinStakes %d\n", nCoinStakes);
         LogPrintf("nAbandonedOrphans %d\n", nAbandonedOrphans);
-        LogPrintf("nMapWallet %d\n", nMapWallet);
         result.pushKV("unabandoned_orphans", (int)nUnabandonedOrphans);
 
         int64_t rv = 0;
@@ -5468,12 +5472,11 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         {
             UniValue jsonSettings;
             if (!pwallet->GetSetting("changeaddress", jsonSettings)
-                || !jsonSettings["coldstakingaddress"].isStr())
-            {
+                || !jsonSettings["coldstakingaddress"].isStr()) {
                 UniValue tmp(UniValue::VOBJ);
                 tmp.pushKV("type", "Wallet has coldstaking outputs with coldstakingaddress unset.");
                 warnings.push_back(tmp);
-            };
+            }
         };
     }
 
@@ -5556,6 +5559,10 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             "}\n"
             "\"stakelimit\" {\n"
             "  \"height\"                    (int, optional, default=0) Prevent staking above chain height, used in functional testing.\n"
+            "}\n"
+            "\"unloadspent\" {\n             Remove spent outputs from memory, removed outputs still exist in the wallet file."
+            "  \"mode\"                      (int, optional, default=0) Mode, 0 disabled, 1 coinstake only, 2 all txns.\n"
+            "  \"mindepth\"                  (int, optional, default=3) Number of spends before outputs are unloaded.\n"
             "}\n"
             "Omit the json object to print the settings group.\n"
             "Pass an empty json object to clear the settings group.\n"
@@ -5754,7 +5761,6 @@ static UniValue walletsettings(const JSONRPCRequest &request)
 
             const std::vector<std::string> &vKeys = json.getKeys();
             if (vKeys.size() < 1) {
-                pwallet->nStakeLimitHeight = 0;
                 result.pushKV(sSetting, "cleared");
                 return result;
             }
@@ -5780,6 +5786,70 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         }
 
         WakeThreadStakeMiner(pwallet);
+    } else
+    if (sSetting == "unloadspent") {
+        UniValue json;
+        UniValue warnings(UniValue::VARR);
+
+        if (request.params.size() == 1) {
+            if (!pwallet->GetSetting("unloadspent", json)) {
+                result.pushKV(sSetting, "default");
+            } else {
+                result.pushKV(sSetting, json);
+            }
+            return result;
+        }
+
+        if (request.params[1].isObject()) {
+            json = request.params[1].get_obj();
+
+            const std::vector<std::string> &vKeys = json.getKeys();
+            if (vKeys.size() < 1) {
+                if (!pwallet->EraseSetting(sSetting)) {
+                    throw JSONRPCError(RPC_WALLET_ERROR, _("EraseSetting failed."));
+                }
+                result.pushKV(sSetting, "cleared");
+                return result;
+            }
+
+            UniValue jsonOld;
+            bool fHaveOldSetting = pwallet->GetSetting(sSetting, jsonOld);
+            for (const auto &sKey : vKeys) {
+                if (sKey == "mode") {
+                    if (!json["mode"].isNum()) {
+                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("mode must be a number."));
+                    }
+                } else
+                if (sKey == "mindepth") {
+                    if (!json["mindepth"].isNum()) {
+                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("mode must be a number."));
+                    }
+                } else {
+                    warnings.push_back("Unknown key " + sKey);
+                }
+            }
+
+            json.pushKV("time", GetTime());
+            if (!pwallet->SetSetting(sSetting, json)) {
+                throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
+            }
+
+            std::string sError;
+            pwallet->ProcessWalletSettings(sError);
+            if (!sError.empty()) {
+                result.pushKV("error", sError);
+                if (fHaveOldSetting) {
+                    pwallet->SetSetting(sSetting, jsonOld);
+                }
+            }
+
+            if (warnings.size() > 0) {
+                result.pushKV("warnings", warnings);
+            }
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
+        }
+        result.pushKV(sSetting, json);
     } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown setting"));
     }
