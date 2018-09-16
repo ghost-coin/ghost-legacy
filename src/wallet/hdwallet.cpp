@@ -12275,6 +12275,12 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wa
     return GetVirtualTransactionSize(txNew);
 }
 
+void RestartStakingThreads()
+{
+    StopThreadStakeMiner();
+    StartThreadStakeMiner();
+};
+
 bool IsParticlWallet(const CKeyStore *win)
 {
     return win && dynamic_cast<const CHDWallet*>(win);

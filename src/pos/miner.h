@@ -38,6 +38,7 @@ double GetPoSKernelPS();
 
 bool CheckStake(CBlock *pblock);
 
+void StartThreadStakeMiner();
 void StopThreadStakeMiner();
 void WakeThreadStakeMiner(CHDWallet *pwallet);
 bool ThreadStakeMinerStopped(); // replace interruption_point
