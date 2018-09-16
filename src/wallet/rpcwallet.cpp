@@ -33,6 +33,7 @@
 #include <wallet/walletutil.h>
 
 #include <wallet/hdwallet.h>
+#include <pos/miner.h>
 
 
 #include <stdint.h>
@@ -3245,6 +3246,11 @@ static UniValue loadwallet(const JSONRPCRequest& request)
 
     wallet->postInitProcess();
 
+    if (fParticlMode) {
+        StopThreadStakeMiner();
+        StartThreadStakeMiner();
+    }
+
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
     obj.pushKV("warning", warning);
@@ -3348,6 +3354,11 @@ static UniValue unloadwallet(const JSONRPCRequest& request)
     // Just notify the unload intent so that all shared pointers are released.
     // The wallet will be destroyed once the last shared pointer is released.
     wallet->NotifyUnload();
+
+    if (fParticlMode) {
+        StopThreadStakeMiner();
+        StartThreadStakeMiner();
+    }
 
     // There's no point in waiting for the wallet to unload.
     // At this point this method should never fail. The unloading could only

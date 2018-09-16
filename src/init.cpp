@@ -2000,32 +2000,9 @@ bool AppInitMain()
 
     // ********************************************************* Step 12.5: start staking
     #ifdef ENABLE_WALLET
-    if (fParticlWallet)
-    {
-        nMinStakeInterval = gArgs.GetArg("-minstakeinterval", 0);
-        nMinerSleep = gArgs.GetArg("-minersleep", 500);
-        if (!gArgs.GetBoolArg("-staking", true))
-            LogPrintf("Staking disabled\n");
-        else
-        {
-            auto vpwallets = GetWallets();
-            size_t nWallets = vpwallets.size();
-            assert(nWallets > 0);
-            size_t nThreads = std::min(nWallets, (size_t)gArgs.GetArg("-stakingthreads", 1));
-
-            size_t nPerThread = nWallets / nThreads;
-            for (size_t i = 0; i < nThreads; ++i)
-            {
-                size_t nStart = nPerThread * i;
-                size_t nEnd = (i == nThreads-1) ? nWallets : nPerThread * (i+1);
-                StakeThread *t = new StakeThread();
-                vStakeThreads.push_back(t);
-                GetParticlWallet(vpwallets[i].get())->nStakeThread = i;
-                t->sName = strprintf("miner%d", i);
-                t->thread = std::thread(&TraceThread<std::function<void()> >, t->sName.c_str(), std::function<void()>(std::bind(&ThreadStakeMiner, i, vpwallets, nStart, nEnd)));
-            };
-        }
-    };
+    if (fParticlWallet) {
+        StartThreadStakeMiner();
+    }
     #endif
 
     // ********************************************************* Step 13: finished
