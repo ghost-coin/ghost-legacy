@@ -792,7 +792,9 @@ public:
 
     int m_collapse_spent_mode = 0;
     int m_min_collapse_depth = 3;
-    std::multimap<uint256, COutPoint> mapTxCollapsedSpends;
+    std::map<uint256, std::set<uint256> > mapTxCollapsedSpends;
+    std::set<uint256> m_collapsed_txns;
+    std::set<COutPoint> m_collapsed_txn_inputs;
 
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);

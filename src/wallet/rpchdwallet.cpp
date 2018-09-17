@@ -5333,6 +5333,8 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         result.pushKV("mapRecords_size", (int)pwallet->mapRecords.size());
         result.pushKV("mapTxSpends_size", (int)pwallet->CountTxSpends());
         result.pushKV("mapTxCollapsedSpends_size", (int)pwallet->mapTxCollapsedSpends.size());
+        result.pushKV("m_collapsed_txns_size", (int)pwallet->m_collapsed_txns.size());
+        result.pushKV("m_collapsed_txn_inputs_size", (int)pwallet->m_collapsed_txn_inputs.size());
 
         std::map<uint256, CWalletTx>::const_iterator it;
         for (it = pwallet->mapWallet.begin(); it != pwallet->mapWallet.end(); ++it)
