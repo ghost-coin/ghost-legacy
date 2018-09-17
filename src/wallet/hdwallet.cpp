@@ -845,8 +845,9 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
 {
     LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
-    if (IsCrypted())
+    if (IsCrypted()) {
         return false;
+    }
 
     CKeyingMaterial vMasterKey;
     vMasterKey.resize(WALLET_CRYPTO_KEY_SIZE);
@@ -1362,6 +1363,8 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
     ProcessStakingSettings(sError);
     ProcessWalletSettings(sError);
 
+    LoadMasterKeys();
+
     if (mapMasterKeys.size() > 0
         && !SetCrypted()) {
         WalletLogPrintf("SetCrypted failed.\n");
@@ -1376,7 +1379,6 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
         LoadStealthAddresses();
         PrepareLookahead(); // Must happen after ExtKeyLoadAccountPacks
     }
-
     return CWallet::LoadWallet(fFirstRunRet);
 }
 
@@ -6523,8 +6525,9 @@ int CHDWallet::ExtKeyLoadMaster()
     int64_t nCreatedAt = 0;
     GetCompressedInt64(pEKMaster->mapValue[EKVT_CREATED_AT], (uint64_t&)nCreatedAt);
 
-    if (!nTimeFirstKey || (nCreatedAt && nCreatedAt < nTimeFirstKey))
+    if (!nTimeFirstKey || (nCreatedAt && nCreatedAt < nTimeFirstKey)) {
         nTimeFirstKey = nCreatedAt;
+    }
 
     return 0;
 };
@@ -8426,6 +8429,51 @@ int CHDWallet::LoadStealthAddresses()
     pcursor->close();
 
     LogPrint(BCLog::HDWALLET, "Loaded %u stealth address.\n", stealthAddresses.size());
+
+    return 0;
+};
+
+int CHDWallet::LoadMasterKeys()
+{
+    LogPrint(BCLog::HDWALLET, "%s\n", __func__);
+
+    LOCK(cs_wallet);
+
+    CHDWalletDB wdb(*database);
+
+    Dbc *pcursor;
+    if (!(pcursor = wdb.GetCursor())) {
+        return werrorN(1, "%s: cannot create DB cursor", __func__);
+    }
+
+    CDataStream ssKey(SER_DISK, CLIENT_VERSION), ssValue(SER_DISK, CLIENT_VERSION);
+
+    unsigned int fFlags = DB_SET_RANGE;
+    std::string strType;
+    ssKey << std::string("mkey");
+    while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
+        fFlags = DB_NEXT;
+
+        ssKey >> strType;
+        if (strType != "mkey") {
+            break;
+        }
+
+        unsigned int nID;
+        CMasterKey kMasterKey;
+
+        ssKey >> nID;
+        ssValue >> kMasterKey;
+
+        if (mapMasterKeys.count(nID) != 0)  {
+            return werrorN(1, "%s: reading wallet database: duplicate CMasterKey id %u", __func__, nID);
+        }
+        mapMasterKeys[nID] = kMasterKey;
+        if (nMasterKeyMaxID < nID) {
+            nMasterKeyMaxID = nID;
+        }
+    }
+    pcursor->close();
 
     return 0;
 };
@@ -11526,7 +11574,7 @@ bool CHDWallet::GetSetting(const std::string &setting, UniValue &json)
 {
     LOCK(cs_wallet);
 
-    CHDWalletDB wdb(*database, "r");
+    CHDWalletDB wdb(*database, "cr");
 
     std::string sJson;
 

@@ -36,7 +36,6 @@ struct StakeTestingSetup: public TestingSetup {
         bool fFirstRun;
         pwalletMain = std::make_shared<CHDWallet>("mock_part", WalletDatabase::CreateMock());
         AddWallet(pwalletMain);
-        fParticlWallet = true;
         pwalletMain->LoadWallet(fFirstRun);
         RegisterValidationInterface(pwalletMain.get());
 
@@ -340,8 +339,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
         BOOST_CHECK(chainActive.Tip()->nAnonOutputs == 4);
 
-        for (size_t i = 0; i < 2; ++i)
-        {
+        for (size_t i = 0; i < 2; ++i) {
             // Disconnect last block
             uint256 prevTipHash = chainActive.Tip()->pprev->GetBlockHash();
             CBlockIndex *pindexDelete = chainActive.Tip();
@@ -359,7 +357,6 @@ BOOST_AUTO_TEST_CASE(stake_test)
         BOOST_CHECK(chainActive.Tip()->nAnonOutputs == 0);
         BOOST_CHECK(chainActive.Tip()->nMoneySupply == 12500000153511);
     }
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()

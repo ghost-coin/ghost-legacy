@@ -101,6 +101,7 @@ jobs:
         GOAL="install"
         BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++ --enable-usbdevice "
         CONFIG_SHELL="/bin/dash"
+      after_success:
 # x86_64 Linux (uses qt5 dev package instead of depends Qt to speed up build and avoid timeout)
     - stage: test
       env: >-
@@ -119,6 +120,7 @@ jobs:
         TEST_ZMQ=0
         GOAL="install"
         BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --with-incompatible-bdb --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\""
+      after_success:
 # x86_64 Linux (sanitizers)
     - stage: test
       env: >-
@@ -129,6 +131,7 @@ jobs:
         RUN_FUNCTIONAL_TESTS=false # Disabled for now, can be combined with the other x86_64 linux NO_DEPENDS job when functional tests pass the sanitizers
         GOAL="install"
         BITCOIN_CONFIG="--enable-zmq --with-incompatible-bdb --enable-glibc-back-compat --enable-reduce-exports --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER --with-sanitizers=undefined CC=clang CXX=clang++"
+      after_success:
 # x86_64 Linux, No wallet
     - stage: test
       env: >-
@@ -137,6 +140,7 @@ jobs:
         DEP_OPTS="NO_USB=1 NO_WALLET=1"
         GOAL="install"
         BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports --disable-bench"
+      after_success:
 # Cross-Mac
     - stage: test
       env: >-

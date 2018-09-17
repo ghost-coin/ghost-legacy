@@ -102,7 +102,7 @@ static int AppInitRawTx(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    fParticlMode = !gArgs.GetBoolArg("-legacymode", false); // qa tests
+    fParticlMode = !gArgs.GetBoolArg("-btcmode", false); // qa tests
     fCreateBlank = gArgs.GetBoolArg("-create", false);
 
     if (argc < 2 || HelpRequested(gArgs)) {

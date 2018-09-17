@@ -238,8 +238,7 @@ class WalletParticlTest(ParticlTestFramework):
         assert(ro['encryptionstatus'] == 'Unlocked')
         assert(ro['unlocked_until'] > int(time.time()) and ro['unlocked_until'] < int(time.time()) + 500)
 
-        ro = nodes[1].mnemonic('decode', '', 'abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb', 'false')
-        decodedRoot = ro['master']
+        decodedRoot = nodes[1].mnemonic('decode', '', 'abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb', 'false')['master']
 
         roImport1 = nodes[1].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
         assert(roImport1['master_id'] == 'xHRmcdjD2kssaM5ZY8Cyzj8XWJsBweydyP')
@@ -284,13 +283,13 @@ class WalletParticlTest(ParticlTestFramework):
             assert('passphrase entered was incorrect' in e.error['message'])
 
 
-        ro = nodes[1].walletpassphrasechange('qwerty234', 'changedPass')
+        nodes[1].walletpassphrasechange('qwerty234', 'changedPass')
 
         # Restart node
         self.stop_node(1)
         self.start_node(1, self.extra_args[1])
 
-        ro = nodes[1].walletpassphrase('changedPass', 300)
+        nodes[1].walletpassphrase('changedPass', 300)
 
         ro = nodes[1].extkey('list', 'true')
         assert(len(ro) == 2)

@@ -144,9 +144,9 @@ class TestNode():
         if extra_args is None:
             extra_args = self.extra_args
 
-        if kwargs.pop('legacymode',True):
-            extra_args.append("-legacymode")
-            extra_args.append("-nosmsg")
+        if kwargs.pop('btcmode',True):
+            extra_args.append('-btcmode')
+            extra_args.append('-nosmsg')
 
         # Add a new stdout and stderr file each time bitcoind is started
         if stderr is None:

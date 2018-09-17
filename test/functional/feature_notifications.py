@@ -40,7 +40,7 @@ class NotificationsTest(BitcoinTestFramework):
 
         # file content should equal the generated blocks hashes
         with open(self.block_filename, 'r', encoding="utf-8") as f:
-            assert_equal(sorted(blocks), sorted(l.strip() for l in f.read().splitlines()))
+            assert_equal(sorted(blocks), sorted(l.strip() for l in f.read().splitlines()[1:])) # skip genesis hash
 
         self.log.info("test -walletnotify")
         # wait at most 10 seconds for expected file size before reading the content

@@ -12,7 +12,7 @@ WalletTestingSetup::WalletTestingSetup(const std::string& chainName):
 {
     bool fFirstRun;
 
-    gArgs.ForceSetArg("-legacymode", "1");
+    gArgs.ForceSetArg("-btcmode", "1");
     fParticlWallet = false;
 
     m_wallet.LoadWallet(fFirstRun);

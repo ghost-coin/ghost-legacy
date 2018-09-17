@@ -304,7 +304,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 return false;
             }
         }
-        else if (strType == "mkey")
+        else if (strType == "mkey" && !fParticlMode)
         {
             unsigned int nID;
             ssKey >> nID;

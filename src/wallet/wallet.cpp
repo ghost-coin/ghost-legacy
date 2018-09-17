@@ -1452,7 +1452,7 @@ void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
 
 bool CWallet::IsHDEnabled() const
 {
-    if (!gArgs.GetBoolArg("-legacymode", false))
+    if (!gArgs.GetBoolArg("-btcmode", false))
         return true;
 
     return !hdChain.seed_id.IsNull();
@@ -3300,7 +3300,7 @@ const std::string& CWallet::GetLabelName(const CScript& scriptPubKey) const
  */
 bool CWallet::NewKeyPool()
 {
-    if (!gArgs.GetBoolArg("-legacymode", false)) {
+    if (!gArgs.GetBoolArg("-btcmode", false)) {
         return false;
     }
 
@@ -3366,7 +3366,7 @@ void CWallet::LoadKeyPool(int64_t nIndex, const CKeyPool &keypool)
 
 bool CWallet::TopUpKeyPool(unsigned int kpSize)
 {
-    if (!gArgs.GetBoolArg("-legacymode", false)) {
+    if (!gArgs.GetBoolArg("-btcmode", false)) {
         return false;
     }
 

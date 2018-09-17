@@ -637,6 +637,7 @@ public:
     bool DummySignTx(CMutableTransaction &txNew, const std::vector<CTxOutBaseRef> &txouts) const;
 
     int LoadStealthAddresses();
+    int LoadMasterKeys();
     bool IndexStealthKey(CHDWalletDB *pwdb, uint160 &hash, const CStealthAddressIndexed &sxi, uint32_t &id);
     bool GetStealthKeyIndex(const CStealthAddressIndexed &sxi, uint32_t &id);
     bool UpdateStealthAddressIndex(const CKeyID &idK, const CStealthAddressIndexed &sxi, uint32_t &id); // Get stealth index or create new index if none found

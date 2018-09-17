@@ -29,12 +29,12 @@ def getIndexAtProperty(arr, name, value):
 
 class ParticlTestFramework(BitcoinTestFramework):
     def start_node(self, i, *args, **kwargs):
-        kwargs['legacymode'] = False
+        kwargs['btcmode'] = False
         return super().start_node(i, *args, **kwargs)
 
     def start_nodes(self, extra_args=None, *args, **kwargs):
         """Start multiple bitcoinds"""
-        kwargs['legacymode'] = False
+        kwargs['btcmode'] = False
         if extra_args is None:
             extra_args = [None] * self.num_nodes
         assert_equal(len(extra_args), self.num_nodes)

@@ -16,7 +16,6 @@ HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
     bool fFirstRun;
     pwalletMain = std::make_shared<CHDWallet>("mock_part", WalletDatabase::CreateMock());
     AddWallet(pwalletMain);
-    fParticlWallet = true;
     pwalletMain->LoadWallet(fFirstRun);
     RegisterValidationInterface(pwalletMain.get());
 

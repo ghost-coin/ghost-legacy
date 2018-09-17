@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Particl Core developers
+// Copyright (c) 2017-2018 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -37,8 +37,7 @@ BOOST_AUTO_TEST_CASE(new_ext_key)
 
     CHDWallet *pwallet = pwalletMain.get();
 
-    for (auto it = vTestVector1.begin(); it != vTestVector1.end(); ++it)
-    {
+    for (auto it = vTestVector1.begin(); it != vTestVector1.end(); ++it) {
         CExtKey ekTest;
 
         BOOST_CHECK(0 == pwallet->ExtKeyNew32(ekTest, it->sPassphrase.c_str(), it->nHash, it->sSeed.c_str()));
@@ -47,7 +46,7 @@ BOOST_AUTO_TEST_CASE(new_ext_key)
         CExtKey58 ek58;
         ek58.SetKey(ekp, CChainParams::EXT_SECRET_KEY_BTC);
         BOOST_CHECK(ek58.ToString() == it->sOutput);
-    };
+    }
 }
 
 static const std::string strSecret1C("GzFRfngjf5aHMuAzWDZWzJ8eYqMzp29MmkCp6NgzkXFibrh45tTc");
@@ -62,10 +61,7 @@ BOOST_AUTO_TEST_CASE(stealth)
     BOOST_CHECK(true == sx.SetEncoded("SPGyji8uZFip6H15GUfj6bsutRVLsCyBFL3P7k7T7MUDRaYU8GfwUHpfxonLFAvAwr2RkigyGfTgWMfzLAAP8KMRHq7RE8cwpEEekH"));
 
     CAmount nValue = 1;
-
-    std::string strError;
-    std::string sNarr;
-
+    std::string strError, sNarr;
 
     // No bitfield, no narration
     std::vector<CTempRecipient> vecSend;
