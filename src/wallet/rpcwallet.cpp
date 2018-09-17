@@ -33,7 +33,6 @@
 #include <wallet/walletutil.h>
 
 #include <wallet/hdwallet.h>
-#include <pos/miner.h>
 
 
 #include <stdint.h>
@@ -3247,8 +3246,7 @@ static UniValue loadwallet(const JSONRPCRequest& request)
     wallet->postInitProcess();
 
     if (fParticlMode) {
-        StopThreadStakeMiner();
-        StartThreadStakeMiner();
+        RestartStakingThreads();
     }
 
     UniValue obj(UniValue::VOBJ);
@@ -3356,8 +3354,7 @@ static UniValue unloadwallet(const JSONRPCRequest& request)
     wallet->NotifyUnload();
 
     if (fParticlMode) {
-        StopThreadStakeMiner();
-        StartThreadStakeMiner();
+        RestartStakingThreads();
     }
 
     // There's no point in waiting for the wallet to unload.

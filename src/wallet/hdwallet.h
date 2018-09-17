@@ -654,6 +654,8 @@ public:
     bool ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t &nRingCT, mapValue_t &mapNarr);
 
     int UnloadSpent(const uint256& wtxid, int depth, const uint256& wtxid_from);
+    void PostProcessUnloadSpent();
+
     using CWallet::AddToSpends;
     void AddToSpends(const uint256& wtxid) override;
     bool AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
@@ -832,6 +834,8 @@ int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string 
 // be IsAllFromMe).
 int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wallet);
 int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wallet, const std::vector<CTxOutBaseRef>& txouts);
+
+void RestartStakingThreads();
 
 bool IsParticlWallet(const CKeyStore *win);
 CHDWallet *GetParticlWallet(CKeyStore *win);
