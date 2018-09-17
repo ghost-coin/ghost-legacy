@@ -251,6 +251,9 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "verifyrawtransaction", 1, "prevtxs" },
     { "verifyrawtransaction", 2, "returndecoded" },
 
+    { "generatematchingblindfactor", 0, "inputs" },
+    { "generatematchingblindfactor", 1, "outputs" },
+
 
 
     { "smsgsend", 3, "paid_msg" },
