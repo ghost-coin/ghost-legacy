@@ -4370,7 +4370,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
 
 
 static int AddOutput(uint8_t nType, std::vector<CTempRecipient> &vecSend, const CTxDestination &address, CAmount nValue,
-    bool fSubtractFeeFromAmount, std::string &sNarr, std::string &sError)
+    bool fSubtractFeeFromAmount, std::string &sNarr, std::string &sBlind, std::string &sError)
 {
     CTempRecipient r;
     r.nType = nType;
@@ -4378,6 +4378,14 @@ static int AddOutput(uint8_t nType, std::vector<CTempRecipient> &vecSend, const 
     r.fSubtractFeeFromAmount = fSubtractFeeFromAmount;
     r.address = address;
     r.sNarration = sNarr;
+
+    if (!sBlind.empty()) {
+        uint256 blind;
+        blind.SetHex(sBlind);
+
+        r.vBlind.resize(32);
+        memcpy(r.vBlind.data(), blind.begin(), 32);
+    }
 
     vecSend.push_back(r);
     return 0;
@@ -4471,7 +4479,16 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 sNarr = obj["narr"].get_str();
             }
 
-            if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sError)) {
+            std::string sBlind;
+            if (obj.exists("blindingfactor")) {
+                std::string s = obj["blindingfactor"].get_str();
+                if (!IsHex(s) || !(s.size() == 64))
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+
+                sBlind = s;
+            }
+
+            if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sBlind, sError)) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("AddOutput failed: %s.", sError));
             }
 
@@ -4528,7 +4545,10 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             }
         }
 
-        if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sError)) {
+        // Always empty
+        std::string sBlind;
+
+        if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sBlind, sError)) {
             throw JSONRPCError(RPC_MISC_ERROR, strprintf("AddOutput failed: %s.", sError));
         }
     }
@@ -4964,19 +4984,20 @@ UniValue sendtypeto(const JSONRPCRequest &request)
             "\nSend part to multiple outputs.\n"
             + HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
-            "1. \"typein\"          (string, required) part/blind/anon\n"
-            "2. \"typeout\"         (string, required) part/blind/anon\n"
-            "3. \"outputs\"         (json, required) Array of output objects\n"
-            "    3.1 \"address\"    (string, required) The particl address to send to.\n"
-            "    3.2 \"amount\"     (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
-            "    3.x \"narr\"       (string, optional) Up to 24 character narration sent with the transaction.\n"
-            "    3.x \"subfee\"     (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
-            "    3.x \"script\"     (string, optional) Hex encoded script, will override the address.\n"
-            "4. \"comment\"         (string, optional) A comment used to store what the transaction is for. \n"
-            "                            This is not part of the transaction, just kept in your wallet.\n"
-            "5. \"comment_to\"      (string, optional) A comment to store the name of the person or organization \n"
-            "                            to which you're sending the transaction. This is not part of the \n"
-            "                            transaction, just kept in your wallet.\n"
+            "1. \"typein\"                  (string, required) part/blind/anon\n"
+            "2. \"typeout\"                 (string, required) part/blind/anon\n"
+            "3. \"outputs\"                 (json, required) Array of output objects\n"
+            "    3.1 \"address\"            (string, required) The particl address to send to.\n"
+            "    3.2 \"amount\"             (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
+            "    3.x \"narr\"               (string, optional) Up to 24 character narration sent with the transaction.\n"
+            "    3.x \"blindingfactor\"     (string, optional) The blinding factor, 32 bytes and hex encoded.\n"
+            "    3.x \"subfee\"             (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
+            "    3.x \"script\"             (string, optional) Hex encoded script, will override the address.\n"
+            "4. \"comment\"                 (string, optional) A comment used to store what the transaction is for. \n"
+            "                                   This is not part of the transaction, just kept in your wallet.\n"
+            "5. \"comment_to\"              (string, optional) A comment to store the name of the person or organization \n"
+            "                                   to which you're sending the transaction. This is not part of the \n"
+            "                                   transaction, just kept in your wallet.\n"
             "6. ringsize         (int, optional, default=4) Only applies when typein is anon.\n"
             "7. inputs_per_sig   (int, optional, default=32) Only applies when typein is anon.\n"
             "8. test_fee         (bool, optional, default=false) Only return the fee it would cost to send, txn is discarded.\n"
@@ -7297,6 +7318,107 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
     return result;
 };
 
+static UniValue generatematchingblindfactor(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 2)
+        throw std::runtime_error(
+            "generatematchingblindfactor [\"blind_in\"] [\"blind_out\"] \n"
+            "\nGenerates the last blinding factor for a set of inputs and outputs.\n"
+
+            "\nArguments:\n"
+            "1. \"inputs\"                     (array, required) 32byte blind factor hex strings\n"
+            "2. \"outputs\"                    (array, required) 32byte blind factor hex strings\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"blind\": true,                (string) 32byte blind factor.\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]")
+            + HelpExampleRpc("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]")
+        );
+
+    RPCTypeCheck(request.params, {UniValue::VARR, UniValue::VARR});
+
+    std::vector<uint8_t> vBlinds;
+    std::vector<uint8_t*> vpBlinds;
+
+    if (!request.params[0].isArray()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Inputs must be an array of hex encoded blind factors.");
+    }
+
+    if (!request.params[1].isArray()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Outputs must be an array of hex encoded blind factors.");
+    }
+
+    UniValue inputs = request.params[0].get_array();
+    UniValue outputs = request.params[1].get_array();
+
+    if (inputs.size() < 1) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Inputs should contain at least one element.");
+    }
+
+    if (outputs.size() < 1) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Outputs should contain at least one element.");
+    }
+
+    if (inputs.size() < outputs.size()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Outputs should be at least one element smaller than the inputs array.");
+    }
+
+    vBlinds.resize((inputs.size() + outputs.size()) * 32);
+
+    for (unsigned int idx = 0; idx < inputs.size(); idx++)
+    {
+        std::string sBlind = inputs[idx].get_str();
+        if (!IsHex(sBlind) || !(sBlind.size() == 64))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+
+        uint256 blind;
+        blind.SetHex(sBlind);
+
+        const int index = idx * 32;
+        memcpy(&vBlinds[index], blind.begin(), 32);
+
+        vpBlinds.push_back(&vBlinds[index]);
+    }
+
+    // size of inputs
+    size_t nBlindedInputs = vpBlinds.size();
+
+    for (unsigned int idx = 0; idx < outputs.size(); idx++)
+    {
+        std::string sBlind = outputs[idx].get_str();
+        if (!IsHex(sBlind) || !(sBlind.size() == 64))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+
+        uint256 blind;
+        blind.SetHex(sBlind);
+
+        const int index = nBlindedInputs * 32 + idx * 32;
+        memcpy(&vBlinds[index], blind.begin(), 32);
+
+        vpBlinds.push_back(&vBlinds[index]);
+    }
+
+    // final matching blind factor
+    std::vector<uint8_t> final;
+    final.resize(32);
+
+    // Last to-be-blinded value: compute from all other blinding factors.
+    // sum of output blinding values must equal sum of input blinding values
+    if (!secp256k1_pedersen_blind_sum(secp256k1_ctx_blind, &final[0], &vpBlinds[0], vpBlinds.size(), nBlindedInputs)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "secp256k1_pedersen_blind_sum failed");
+    }
+
+    UniValue result(UniValue::VOBJ);
+    if (final.size() == 32)
+    {
+        uint256 blind(final.data(), 32);
+        result.pushKV("blind", blind.ToString());
+    };
+    return result;
+};
+
 static UniValue verifyrawtransaction(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
@@ -7567,6 +7689,7 @@ static const CRPCCommand commands[] =
     { "rawtransactions",    "createrawparttransaction",         &createrawparttransaction,      {"inputs","outputs","locktime","replaceable"} },
     { "rawtransactions",    "fundrawtransactionfrom",           &fundrawtransactionfrom,        {"input_type","hexstring","input_amounts","output_amounts","options"} },
     { "rawtransactions",    "verifycommitment",                 &verifycommitment,              {"commitment","blind","amount"} },
+    { "rawtransactions",    "generatematchingblindfactor",      &generatematchingblindfactor,   {"inputs","outputs"} },
     { "rawtransactions",    "verifyrawtransaction",             &verifyrawtransaction,          {"hexstring","prevtxs","returndecoded"} },
 };
 
