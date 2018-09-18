@@ -5395,13 +5395,7 @@ int CHDWallet::UnloadTransaction(const uint256 &hash)
 
         RemoveFromTxSpends(hash, pcoin->tx);
 
-        for (auto it = wtxOrdered.begin(); it != wtxOrdered.end(); ) {
-            if (it->second == pcoin) {
-                wtxOrdered.erase(it++);
-                continue;
-            }
-            ++it;
-        }
+        wtxOrdered.erase(pcoin->m_it_wtxOrdered);
 
         mapWallet.erase(itw);
     } else
@@ -5417,7 +5411,7 @@ int CHDWallet::UnloadTransaction(const uint256 &hash)
             //if (it->second->first == hash)
             if (it->second == itr) {
                 rtxOrdered.erase(it++);
-                continue;
+                break;
             }
             ++it;
         }
@@ -9328,7 +9322,7 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
     return fIsMine;
 };
 
-int CHDWallet::UnloadSpent(const uint256& wtxid, int depth, const uint256& wtxid_from)
+int CHDWallet::UnloadSpent(const uint256 &wtxid, int depth, const uint256 &wtxid_from)
 {
     LOCK2(cs_main, cs_wallet);
 
@@ -9337,7 +9331,7 @@ int CHDWallet::UnloadSpent(const uint256& wtxid, int depth, const uint256& wtxid
     if (it == mapWallet.end()) {
         return 0;
     }
-    CWalletTx& thisTx = it->second;
+    CWalletTx &thisTx = it->second;
 
     for (const CTxIn& txin : thisTx.tx->vin) {
         UnloadSpent(txin.prevout.hash, depth+1, wtxid);
@@ -9388,7 +9382,7 @@ int CHDWallet::UnloadSpent(const uint256& wtxid, int depth, const uint256& wtxid
         mapTxCollapsedSpends.erase(mcsi_r);
     }
 
-    for (const CTxIn& txin : thisTx.tx->vin) {
+    for (const CTxIn &txin : thisTx.tx->vin) {
         if (m_collapsed_txns.find(txin.prevout.hash) == m_collapsed_txns.end()) {
             m_collapsed_txn_inputs.insert(txin.prevout);
             mapTxCollapsedSpends[wtxid_from].insert(txin.prevout.hash);

@@ -654,7 +654,7 @@ public:
 
     bool ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t &nRingCT, mapValue_t &mapNarr);
 
-    int UnloadSpent(const uint256& wtxid, int depth, const uint256& wtxid_from);
+    int UnloadSpent(const uint256 &wtxid, int depth, const uint256 &wtxid_from);
     void PostProcessUnloadSpent();
 
     using CWallet::AddToSpends;
