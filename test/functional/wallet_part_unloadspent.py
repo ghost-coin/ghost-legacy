@@ -20,6 +20,7 @@ class WalletParticlUnloadSpentTest(ParticlTestFramework):
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
+        connect_nodes_bi(self.nodes, 0, 1)
 
     def run_test (self):
         nodes = self.nodes
@@ -39,6 +40,19 @@ class WalletParticlUnloadSpentTest(ParticlTestFramework):
 
         assert(w0['total_balance'] == w1['watchonly_total_balance'])
         assert(w0['txcount'] == w1['txcount'])
+
+        self.stakeBlocks(40)
+
+        w0 = nodes[0].getwalletinfo()
+        w1 = nodes[1].getwalletinfo()
+        assert(w0['total_balance'] == w1['watchonly_total_balance'])
+        assert(w0['txcount'] < w1['txcount'])
+
+        d0 = nodes[0].debugwallet()
+        d1 = nodes[1].debugwallet()
+        assert(d0['mapWallet_size'] + d0['m_collapsed_txns_size'] == d1['mapWallet_size'])
+        assert(d1['m_collapsed_txns_size'] == 0)
+
 
 
 if __name__ == '__main__':

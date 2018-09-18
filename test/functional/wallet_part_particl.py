@@ -487,9 +487,7 @@ class WalletParticlTest(ParticlTestFramework):
 
         assert(len(sTestAddress) > 0), 'Could not find 1st owned address.'
 
-        ro = nodes[0].manageaddressbook('edit', sTestAddress, 'lblEditedOwned')
-        assert(ro['result'] == 'success')
-
+        assert(nodes[0].manageaddressbook('edit', sTestAddress, 'lblEditedOwned')['result'] == 'success')
         ro = nodes[0].filteraddresses(0, 100)
         assert(nOrigLen == len(ro))
 
@@ -501,10 +499,9 @@ class WalletParticlTest(ParticlTestFramework):
                 fPass = True
         assert(fPass)
 
-        ro = nodes[0].manageaddressbook('del', 'piNdRiuL2BqUA8hh2A6AtEbBkKqKxK13LT')
+        nodes[0].manageaddressbook('del', 'piNdRiuL2BqUA8hh2A6AtEbBkKqKxK13LT')
 
-        ro = nodes[0].filteraddresses(0, 100)
-        assert(nOrigLen-1 == len(ro))
+        assert(nOrigLen-1 == len(nodes[0].filteraddresses(0, 100)))
 
         # Restart node
         self.stop_node(0)
@@ -512,7 +509,6 @@ class WalletParticlTest(ParticlTestFramework):
 
         ro = nodes[0].filteraddresses(0, 100)
         assert(nOrigLen-1 == len(ro))
-
 
         fPass = False
         for r in ro:
@@ -525,21 +521,17 @@ class WalletParticlTest(ParticlTestFramework):
         ro = nodes[0].manageaddressbook('info', sTestAddress)
 
 
-        ro = nodes[1].walletlock()
+        nodes[1].walletlock()
         time.sleep(1)
-        ro = nodes[1].getwalletinfo()
-        assert(ro['encryptionstatus'] == 'Locked')
+        assert(nodes[1].getwalletinfo()['encryptionstatus'] == 'Locked')
 
-        ro = nodes[1].walletpassphrase('changedPass', 2)
-        ro = nodes[1].getwalletinfo()
-        assert(ro['encryptionstatus'] == 'Unlocked')
+        nodes[1].walletpassphrase('changedPass', 2)
+        assert(nodes[1].getwalletinfo()['encryptionstatus'] == 'Unlocked')
 
         time.sleep(4)
-        ro = nodes[1].getwalletinfo()
-        assert(ro['encryptionstatus'] == 'Locked')
+        assert(nodes[1].getwalletinfo()['encryptionstatus'] == 'Locked')
 
-        ro = nodes[1].walletpassphrase('changedPass', 2)
-
+        nodes[1].walletpassphrase('changedPass', 2)
 
         nodes[0].walletpassphrase('qwerty123', 3000)
 
@@ -554,11 +546,8 @@ class WalletParticlTest(ParticlTestFramework):
         assert(nHardened == '0')
 
 
-        ro = nodes[0].deriverangekeys(0, 0, sExternalChainId, 'true')
-        sCheckAddr = ro[0]
-
-        ro = nodes[0].getnewaddress('h1','false','true')
-        sHardenedAddr = ro
+        sCheckAddr = nodes[0].deriverangekeys(0, 0, sExternalChainId, 'true')[0]
+        sHardenedAddr = nodes[0].getnewaddress('h1','false','true')
         assert(sHardenedAddr == sCheckAddr)
 
         ro = nodes[0].extkey('account')
@@ -581,10 +570,8 @@ class WalletParticlTest(ParticlTestFramework):
         assert(sPath == "m/0/0'")
 
         addr = nodes[0].getnewaddress('', 'false', 'false', 'true')
-        ro = nodes[0].validateaddress(addr)
-        assert(ro['isvalid'] == True)
-        ro = nodes[0].getaddressinfo(addr)
-        assert(ro['ismine'] == True)
+        assert(nodes[0].validateaddress(addr)['isvalid'] == True)
+        assert(nodes[0].getaddressinfo(addr)['ismine'] == True)
 
         addr = nodes[0].getnewaddress('', 'true', 'false', 'true')
         ro = nodes[0].validateaddress(addr)

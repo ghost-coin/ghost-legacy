@@ -94,9 +94,9 @@ BASE_SCRIPTS = [
     'interface_zmq.py',
     'interface_bitcoin_cli.py',
     'mempool_resurrect.py',
-    #'wallet_txn_doublespend.py --mineblock',
-    #'wallet_txn_clone.py',
-    #'wallet_txn_clone.py --segwit',
+    'wallet_txn_doublespend.py --mineblock',
+    'wallet_txn_clone.py',
+    'wallet_txn_clone.py --segwit',
     'rpc_getchaintips.py',
     'interface_rest.py',
     'mempool_spend_coinbase.py',
@@ -177,6 +177,8 @@ EXTENDED_SCRIPTS = [
     # Longest test should go first, to favor running tests in parallel
     'feature_pruning.py',
     'feature_dbcrash.py',
+
+    'wallet_part_unloadspent.py',
 ]
 
 PARTICL_SCRIPTS = [
@@ -198,7 +200,6 @@ PARTICL_SCRIPTS = [
     'rpc_part_wallet.py',
     'feature_part_usbdevice.py',
     'wallet_part_watchonly.py',
-    'wallet_part_unloadspent.py',
     'rpc_part_atomicswap.py',
 ]
 
@@ -293,26 +294,21 @@ def main():
                 test_list.append(test)
             else:
                 print("{}WARNING!{} Test '{}' not found in full test list.".format(BOLD[1], BOLD[0], test))
-    elif args.extended:
+    #elif args.extended:
         # Include extended tests
-        test_list += ALL_SCRIPTS
+    #    test_list += ALL_SCRIPTS
     else:
         # No individual tests have been specified.
         # Run all base tests, and optionally run extended tests.
         test_list = []
+        if args.extended:
+            test_list += EXTENDED_SCRIPTS
         if args.particl:
             test_list += PARTICL_SCRIPTS
         if args.insight:
             test_list += INSIGHT_SCRIPTS
         if args.bitcoin:
             test_list += BASE_SCRIPTS
-
-        if len(test_list) == 0:
-            test_list = BASE_SCRIPTS
-            if args.extended:
-                # place the EXTENDED_SCRIPTS first since the three longest ones
-                # are there and the list is shorter
-                test_list = EXTENDED_SCRIPTS + test_list
 
     # Remove the test cases that the user has explicitly asked to exclude.
     if args.exclude:
