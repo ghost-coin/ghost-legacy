@@ -143,13 +143,6 @@ protected:
 void ListDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices);
 CUSBDevice *SelectDevice(std::vector<std::unique_ptr<CUSBDevice> > &vDevices, std::string &sError);
 
-/*
-class QueuedSignature
-{
-public:
-
-};
-*/
 /** A signature creator for transactions. */
 class DeviceSignatureCreator : public BaseSignatureCreator {
     const CMutableTransaction* txTo;

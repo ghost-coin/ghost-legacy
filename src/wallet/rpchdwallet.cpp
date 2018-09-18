@@ -722,7 +722,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
     static const char *help = ""
         "extkey \"mode\"\n"
-        "\"mode\" can be: info|list|account|gen|import|importAccount|setMaster|setDefaultAccount|deriveAccount|options\n"
+        "\"mode\" can be: info|list|account|import|importAccount|setMaster|setDefaultAccount|deriveAccount|options\n"
         "    Default: list, or info when called like: extkey \"key\"\n"
         "\n"
         "extkey info \"key\" ( \"path\" )\n"
@@ -731,7 +731,7 @@ static UniValue extkey(const JSONRPCRequest &request)
         "    List loose and account ext keys.\n"
         "extkey account ( \"key/id\" show_secrets )\n"
         "    Display details of account.\n"
-        "    Show default account when called without parameters.\n"
+        "    Show default account when called without parameters or \"key/id\" = \"default\".\n"
         "extkey key \"key/id\" ( show_secrets )\n"
         "    Display details of loose extkey in wallet.\n"
         "extkey import \"key\" ( \"label\" bip44 save_bip44_key )\n"
@@ -785,9 +785,9 @@ static UniValue extkey(const JSONRPCRequest &request)
     uint32_t nParamOffset = 0;
     if (request.params.size() > 0) {
         std::string s = request.params[0].get_str();
-        std::string st = " " + s + " "; // Note the spaces
+        std::string st = " " + s + " "; // Requires the spaces
         std::transform(st.begin(), st.end(), st.begin(), ::tolower);
-        static const char *pmodes = " info list gen account key import importaccount setmaster setdefaultaccount deriveaccount options ";
+        static const char *pmodes = " info list account key import importaccount setmaster setdefaultaccount deriveaccount options ";
         if (strstr(pmodes, st.c_str()) != nullptr) {
             st.erase(std::remove(st.begin(), st.end(), ' '), st.end());
             mode = st;
@@ -1013,7 +1013,7 @@ static UniValue extkey(const JSONRPCRequest &request)
             }
         }
 
-        int64_t nTimeStartScan = 1; // scan from start, 0 means no scan
+        int64_t nTimeStartScan = 1; // Scan from start, 0 means no scan
         if (request.params.size() > nParamOffset) {
             std::string sVar = request.params[nParamOffset].get_str();
             nParamOffset++;
@@ -1089,6 +1089,9 @@ static UniValue extkey(const JSONRPCRequest &request)
                     result.pushKV("result", "secret added to existing account.");
                 }
 
+                result.pushKV("account_id", HDAccIDToString(sek.GetID()));
+                result.pushKV("has_secret", sek.kp.IsValidV() ? "true" : "false");
+                result.pushKV("account_label", sLabel);
                 result.pushKV("account_label", sLabel);
                 result.pushKV("scanned_from", nTimeStartScan);
                 result.pushKV("note", "Please backup your wallet."); // TODO: check for child of existing key?

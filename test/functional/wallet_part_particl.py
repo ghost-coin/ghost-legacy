@@ -6,6 +6,7 @@
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import *
 
+
 def read_dump(file_name):
     nLines = 0
     sJson = ''

@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2015 The ShadowCoin developers
-// Copyright (c) 2017 The Particl developers
+// Copyright (c) 2017-2018 The Particl developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -149,8 +149,9 @@ struct CExtKey {
 
         char fValid = key.IsValid();
         s.write((char*)&fValid, 1);
-        if (fValid)
+        if (fValid) {
             s.write((char*)key.begin(), 32);
+        }
     }
     template<typename Stream>
     void Unserialize(Stream &s)
@@ -162,12 +163,11 @@ struct CExtKey {
 
         char tmp[33];
         s.read((char*)tmp, 1); // key.IsValid()
-        if (tmp[0])
-        {
+        if (tmp[0]) {
             s.read((char*)tmp+1, 32);
             key.Set((uint8_t*)tmp+1, 1);
-        };
-    };
+        }
+    }
 };
 
 class CExtKeyPair
@@ -258,8 +258,9 @@ public:
 
         char fValid = key.IsValid();
         s.write((char*)&fValid, 1);
-        if (fValid)
+        if (fValid) {
             s.write((char*)key.begin(), 32);
+        }
 
         pubkey.Serialize(s);
     }
@@ -273,14 +274,12 @@ public:
 
         char tmp[33];
         s.read((char*)tmp, 1); // key.IsValid()
-        if (tmp[0])
-        {
+        if (tmp[0]) {
             s.read((char*)tmp+1, 32);
             key.Set((uint8_t*)tmp+1, 1);
-        } else
-        {
+        } else {
             key.Clear();
-        };
+        }
         pubkey.Unserialize(s);
     }
 };
@@ -318,27 +317,25 @@ public:
     template<typename T>
     int DeriveKey(T &keyOut, uint32_t nChildIn, uint32_t &nChildOut, bool fHardened = false) const
     {
-        if (fHardened && !kp.IsValidV())
+        if (fHardened && !kp.IsValidV()) {
             return errorN(1, "Ext key does not contain a secret.");
+        }
 
-        for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i)
-        {
-            if ((nChildIn >> 31) == 1)
-            {
+        for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i) {
+            if ((nChildIn >> 31) == 1) {
                 // TODO: auto spawn new master key
                 return errorN(1, "No more %skeys can be derived from master.", fHardened ? "hardened " : "");
-            };
+            }
 
             uint32_t nNum = fHardened ? nChildIn | 1 << 31 : nChildIn;
 
-            if (kp.Derive(keyOut, nNum))
-            {
+            if (kp.Derive(keyOut, nNum)) {
                 nChildOut = nNum; // nChildOut has bit 31 set for harnened keys
                 return 0;
-            };
+            }
 
             nChildIn++;
-        };
+        }
         return 1;
     };
 
@@ -348,22 +345,25 @@ public:
         uint32_t nChild = fHardened ? nHGenerated : nGenerated;
         nChildOut = 0; // Silence compiler warning, uninitialised
         int rv;
-        if ((rv = DeriveKey(keyOut, nChild, nChildOut, fHardened)) != 0)
+        if ((rv = DeriveKey(keyOut, nChild, nChildOut, fHardened)) != 0) {
             return rv;
+        }
 
         nChild = nChildOut & ~(1 << 31); // Clear the hardened bit
-        if (fUpdate)
+        if (fUpdate) {
             SetCounter(nChild+1, fHardened);
+        }
 
         return 0;
     };
 
     int SetCounter(uint32_t nC, bool fHardened)
     {
-        if (fHardened)
+        if (fHardened) {
             nHGenerated = nC;
-        else
+        } else {
             nGenerated = nC;
+        }
         return 0;
     };
 
@@ -376,10 +376,12 @@ public:
 
     isminetype IsMine() const
     {
-        if (kp.key.IsValid() || (nFlags & EAF_IS_CRYPTED))
+        if (kp.key.IsValid() || (nFlags & EAF_IS_CRYPTED)) {
             return ISMINE_SPENDABLE;
-        if ((nFlags & EAF_HARDWARE_DEVICE))
+        }
+        if ((nFlags & EAF_HARDWARE_DEVICE)) {
             return (isminetype)((int)ISMINE_SPENDABLE | (int)ISMINE_HARDWARE_DEVICE);
+        }
         return ISMINE_WATCH_ONLY_;
     };
 
@@ -387,14 +389,12 @@ public:
     void Serialize(Stream &s) const
     {
         // Never save secret data when key is encrypted
-        if (vchCryptedSecret.size() > 0)
-        {
+        if (vchCryptedSecret.size() > 0) {
             CExtKeyPair kpt = kp.Neutered();
             s << kpt;
-        } else
-        {
+        } else {
             s << kp;
-        };
+        }
 
         s << vchCryptedSecret;
         s << sLabel;
@@ -664,11 +664,10 @@ public:
     {
         // Keys are normally freed by the wallet
         std::vector<CStoredExtKey*>::iterator it;
-        for (it = vExtKeys.begin(); it != vExtKeys.end(); ++it)
-        {
+        for (it = vExtKeys.begin(); it != vExtKeys.end(); ++it) {
             delete *it;
             *it = nullptr;
-        };
+        }
         return 0;
     };
 
@@ -676,8 +675,9 @@ public:
 
     CKeyID GetID() const
     {
-        if (vExtKeyIDs.size() < 1)
+        if (vExtKeyIDs.size() < 1) {
             return CKeyID(); // CKeyID inits to 0
+        }
         return vExtKeyIDs[0];
     };
 
@@ -702,20 +702,21 @@ public:
 
     bool GetChainNum(CStoredExtKey *p, uint32_t &nChain) const
     {
-        for (size_t i = 0; i < vExtKeys.size(); ++i)
-        {
-            if (vExtKeys[i] != p)
+        for (size_t i = 0; i < vExtKeys.size(); ++i) {
+            if (vExtKeys[i] != p) {
                 continue;
+            }
             nChain = i;
             return true;
-        };
+        }
         return false;
     };
 
     CStoredExtKey *GetChain(uint32_t nChain) const
     {
-        if (nChain >= vExtKeys.size())
+        if (nChain >= vExtKeys.size()) {
             return nullptr;
+        }
         return vExtKeys[nChain];
     };
 
@@ -752,8 +753,9 @@ public:
 
     size_t NumChains() const
     {
-        if (vExtKeys.size() < 1) // vExtKeys[0] is account key
+        if (vExtKeys.size() < 1) { // vExtKeys[0] is account key
             return 0;
+        }
         return vExtKeys.size() - 1;
     };
 
@@ -860,11 +862,10 @@ const char *ExtKeyGetString(int ind);
 inline int GetNumBytesReqForInt(uint64_t v)
 {
     int n = 0;
-    while (v != 0)
-    {
+    while (v != 0) {
         v >>= 8;
         n ++;
-    };
+    }
     return n;
 };
 
