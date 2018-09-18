@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
 
     uint32_t nSequence = 0;
 
-    int32_t nTime = 2880 / (2 << CTxIn::SEQUENCE_LOCKTIME_GRANULARITY); // 48 hours
+    int32_t nTime = 2880 / (1 << CTxIn::SEQUENCE_LOCKTIME_GRANULARITY); // 48 minutes
     nSequence |= CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG;
     nSequence |= nTime;
 

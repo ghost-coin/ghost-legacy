@@ -5691,11 +5691,9 @@ int CHDWallet::ExtKeyImportAccount(CHDWalletDB *pwdb, CStoredExtKey &sekIn, int6
 
     CKeyID idAccount = sekIn.GetID();
 
-    CStoredExtKey *sek = new CStoredExtKey();
+    CStoredExtKey sekExist, *sek = new CStoredExtKey();
     *sek = sekIn;
 
-    // NOTE: is this confusing behaviour?
-    CStoredExtKey sekExist;
     if (pwdb->ReadExtKey(idAccount, sekExist)) {
         // Add secret if exists in db
         *sek = sekExist;
@@ -5705,14 +5703,6 @@ int CHDWallet::ExtKeyImportAccount(CHDWalletDB *pwdb, CStoredExtKey &sekIn, int6
             std::vector<uint8_t> v;
             sek->mapValue[EKVT_ADDED_SECRET_AT] = SetCompressedInt64(v, GetTime());
         }
-    }
-
-    // TODO: before allowing import of 'watch only' accounts
-    //       txns must be linked to accounts.
-
-    if (!sek->kp.IsValidV()) {
-        delete sek;
-        return werrorN(1, "Accounts must be derived from a valid private key.");
     }
 
     CExtKeyAccount *sea = new CExtKeyAccount();
@@ -5959,55 +5949,76 @@ int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, 
         ekaOut.nFlags |= EAF_HAVE_SECRET;
     }
 
-    CExtKey evExternal, evInternal, evStealth;
     uint32_t nExternal, nInternal, nStealth;
-    if (sekAccount->DeriveNextKey(evExternal, nExternal, false) != 0
-        || sekAccount->DeriveNextKey(evInternal, nInternal, false) != 0
-        || sekAccount->DeriveNextKey(evStealth, nStealth, true) != 0) {
-        return werrorN(1, "Could not derive account chain keys.");
+    CStoredExtKey *sekExternal = new CStoredExtKey(), *sekInternal = new CStoredExtKey(), *sekStealth;
+
+    if (sekAccount->kp.IsValidV()) {
+        CExtKey evExternal, evInternal, evStealth;
+        if (sekAccount->DeriveNextKey(evExternal, nExternal, false) != 0
+            || sekAccount->DeriveNextKey(evInternal, nInternal, false) != 0
+            || sekAccount->DeriveNextKey(evStealth, nStealth, true) != 0) {
+            return werrorN(1, "Could not derive account chain keys.");
+        }
+
+        sekExternal->kp = evExternal;
+        sekInternal->kp = evInternal;
+
+        sekStealth = new CStoredExtKey();
+        sekStealth->kp = evStealth;
+    } else {
+        CExtPubKey epExternal, epInternal;
+        if (sekAccount->DeriveNextKey(epExternal, nExternal, false) != 0
+            || sekAccount->DeriveNextKey(epInternal, nInternal, false) != 0) {
+            return werrorN(1, "Could not derive account chain keys.");
+        }
+        sekExternal->kp = epExternal;
+        sekInternal->kp = epInternal;
     }
 
-    CStoredExtKey *sekExternal = new CStoredExtKey();
-    sekExternal->kp = evExternal;
     vSubKeyPath = vAccountPath;
     sekExternal->mapValue[EKVT_PATH] = PushUInt32(vSubKeyPath, nExternal);
     sekExternal->nFlags |= EAF_ACTIVE | EAF_RECEIVE_ON | EAF_IN_ACCOUNT;
 
-    CStoredExtKey *sekInternal = new CStoredExtKey();
-    sekInternal->kp = evInternal;
     vSubKeyPath = vAccountPath;
     sekInternal->mapValue[EKVT_PATH] = PushUInt32(vSubKeyPath, nInternal);
     sekInternal->nFlags |= EAF_ACTIVE | EAF_RECEIVE_ON | EAF_IN_ACCOUNT;
 
-    CStoredExtKey *sekStealth = new CStoredExtKey();
-    sekStealth->kp = evStealth;
-    vSubKeyPath = vAccountPath;
-    sekStealth->mapValue[EKVT_PATH] = PushUInt32(vSubKeyPath, nStealth);
-    sekStealth->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
-
     ekaOut.vExtKeyIDs.push_back(sekAccount->GetID());
     ekaOut.vExtKeyIDs.push_back(sekExternal->GetID());
     ekaOut.vExtKeyIDs.push_back(sekInternal->GetID());
-    ekaOut.vExtKeyIDs.push_back(sekStealth->GetID());
 
     ekaOut.vExtKeys.push_back(sekAccount);
     ekaOut.vExtKeys.push_back(sekExternal);
     ekaOut.vExtKeys.push_back(sekInternal);
-    ekaOut.vExtKeys.push_back(sekStealth);
 
     sekExternal->mapValue[EKVT_KEY_TYPE] = SetChar(v, EKT_EXTERNAL);
     sekInternal->mapValue[EKVT_KEY_TYPE] = SetChar(v, EKT_INTERNAL);
-    sekStealth->mapValue[EKVT_KEY_TYPE] = SetChar(v, EKT_STEALTH);
 
     ekaOut.nActiveExternal = 1;
     ekaOut.nActiveInternal = 2;
-    ekaOut.nActiveStealth = 3;
+
+    if (sekAccount->kp.IsValidV()) {
+        vSubKeyPath = vAccountPath;
+        sekStealth->mapValue[EKVT_PATH] = PushUInt32(vSubKeyPath, nStealth);
+        sekStealth->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
+
+        sekStealth->mapValue[EKVT_KEY_TYPE] = SetChar(v, EKT_STEALTH);
+
+        ekaOut.vExtKeyIDs.push_back(sekStealth->GetID());
+        ekaOut.vExtKeys.push_back(sekStealth);
+        ekaOut.nActiveStealth = 3;
+    } else {
+        // Step over hardened chain 1 (stealth v1 chain)
+        sekAccount->SetCounter(1, true);
+    }
 
     if (IsCrypted()
         && ExtKeyEncrypt(&ekaOut, vMasterKey, false) != 0) {
         delete sekExternal;
         delete sekInternal;
-        delete sekStealth;
+        if (sekStealth) {
+            delete sekStealth;
+        }
         // sekAccount should be freed in calling function
         return werrorN(1, "ExtKeyEncrypt failed.");
     }

@@ -10,8 +10,9 @@
 
 uint32_t BitcoinChecksum(uint8_t *p, uint32_t nBytes)
 {
-    if (!p || nBytes == 0)
+    if (!p || nBytes == 0) {
         return 0;
+    }
 
     uint8_t hash1[32];
     CSHA256().Write(p, nBytes).Finalize((uint8_t*)hash1);
@@ -37,8 +38,9 @@ void AppendChecksum(std::vector<uint8_t> &data)
 
 bool VerifyChecksum(const std::vector<uint8_t> &data)
 {
-    if (data.size() < 4)
+    if (data.size() < 4) {
         return false;
+    }
 
     uint32_t checksum;
     memcpy(&checksum, &(*(data.end() - 4)), 4);

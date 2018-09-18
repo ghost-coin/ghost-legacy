@@ -26,16 +26,17 @@ int GetLanguageOffset(std::string sIn)
     int nLanguage = -1;
     std::transform(sIn.begin(), sIn.end(), sIn.begin(), ::tolower);
 
-    for (size_t k = 1; k < WLL_MAX; ++k)
-    {
-        if (sIn != mnLanguagesTag[k])
+    for (size_t k = 1; k < WLL_MAX; ++k) {
+        if (sIn != mnLanguagesTag[k]) {
             continue;
+        }
         nLanguage = k;
         break;
-    };
+    }
 
-    if (nLanguage < 1 || nLanguage >= WLL_MAX)
+    if (nLanguage < 1 || nLanguage >= WLL_MAX) {
         throw std::runtime_error("Unknown language.");
+    }
 
     return nLanguage;
 };
@@ -63,150 +64,151 @@ UniValue mnemonic(const JSONRPCRequest &request)
         "    Print list of supported languages.\n"
         "\n";
 
-    if (request.fHelp || request.params.size() > 5) // defaults to info, will always take at least 1 parameter
+    if (request.fHelp || request.params.size() > 5) { // defaults to info, will always take at least 1 parameter
         throw std::runtime_error(help);
+    }
 
     std::string mode = "";
 
-    if (request.params.size() > 0)
-    {
+    if (request.params.size() > 0) {
         std::string s = request.params[0].get_str();
         std::string st = " " + s + " "; // Note the spaces
         std::transform(st.begin(), st.end(), st.begin(), ::tolower);
         static const char *pmodes = " new decode addchecksum dumpwords listlanguages ";
-        if (strstr(pmodes, st.c_str()) != nullptr)
-        {
+        if (strstr(pmodes, st.c_str()) != nullptr) {
             st.erase(std::remove(st.begin(), st.end(), ' '), st.end());
             mode = st;
-        } else
-        {
+        } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown mode.");
-        };
-    };
-
+        }
+    }
 
     UniValue result(UniValue::VOBJ);
 
-    if (mode == "new")
-    {
+    if (mode == "new") {
         int nLanguage = WLL_ENGLISH;
         int nBytesEntropy = 32;
-        std::string sPassword = "";
-        std::string sError;
+        std::string sPassword, sError;
 
-        if (request.params.size() > 1)
+        if (request.params.size() > 1) {
             sPassword = request.params[1].get_str();
+        }
 
-        if (request.params.size() > 2)
+        if (request.params.size() > 2) {
             nLanguage = GetLanguageOffset(request.params[2].get_str());
+        }
 
-        if (request.params.size() > 3)
-        {
+        if (request.params.size() > 3) {
             std::stringstream sstr(request.params[3].get_str());
 
             sstr >> nBytesEntropy;
-            if (!sstr)
+            if (!sstr) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid num bytes entropy");
+            }
 
-            if (nBytesEntropy < 16 || nBytesEntropy > 64)
+            if (nBytesEntropy < 16 || nBytesEntropy > 64) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Num bytes entropy out of range [16,64].");
-        };
+            }
+        }
 
         bool fBip44 = request.params.size() > 4 ? GetBool(request.params[4]) : true;
 
-        if (request.params.size() > 5)
+        if (request.params.size() > 5) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
+        }
 
-        std::vector<uint8_t> vEntropy;
-        std::vector<uint8_t> vSeed;
+        std::vector<uint8_t> vEntropy, vSeed;
         vEntropy.resize(nBytesEntropy);
 
         std::string sMnemonic;
         CExtKey ekMaster;
 
-        for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i)
-        {
+        for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i) {
             GetStrongRandBytes2(&vEntropy[0], nBytesEntropy);
 
-            if (0 != MnemonicEncode(nLanguage, vEntropy, sMnemonic, sError))
+            if (0 != MnemonicEncode(nLanguage, vEntropy, sMnemonic, sError)) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("MnemonicEncode failed %s.", sError.c_str()).c_str());
+            }
 
-            if (0 != MnemonicToSeed(sMnemonic, sPassword, vSeed))
+            if (0 != MnemonicToSeed(sMnemonic, sPassword, vSeed)) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "MnemonicToSeed failed.");
+            }
 
             ekMaster.SetSeed(&vSeed[0], vSeed.size());
 
-            if (!ekMaster.IsValid())
+            if (!ekMaster.IsValid()) {
                 continue;
+            }
             break;
-        };
+        }
 
         CExtKey58 eKey58;
         result.pushKV("mnemonic", sMnemonic);
 
-        if (fBip44)
-        {
+        if (fBip44) {
             eKey58.SetKey(ekMaster, CChainParams::EXT_SECRET_KEY_BTC);
             result.pushKV("master", eKey58.ToString());
 
             // m / purpose' / coin_type' / account' / change / address_index
             // path "44' Params().BIP44ID()
-        } else
-        {
+        } else {
             eKey58.SetKey(ekMaster, CChainParams::EXT_SECRET_KEY);
             result.pushKV("master", eKey58.ToString());
-        };
+        }
 
         // In c++11 strings are definitely contiguous, and before they're very unlikely not to be
-        if (sMnemonic.size() > 0)
+        if (sMnemonic.size() > 0) {
             memory_cleanse(&sMnemonic[0], sMnemonic.size());
-        if (sPassword.size() > 0)
+        }
+        if (sPassword.size() > 0) {
             memory_cleanse(&sPassword[0], sPassword.size());
+        }
     } else
-    if (mode == "decode")
-    {
-        std::string sPassword;
-        std::string sMnemonic;
-        std::string sError;
+    if (mode == "decode") {
+        std::string sPassword, sMnemonic, sError;
 
-        if (request.params.size() > 1)
+        if (request.params.size() > 1) {
             sPassword = request.params[1].get_str();
-        else
+        } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Must specify password.");
+        }
 
-        if (request.params.size() > 2)
+        if (request.params.size() > 2) {
             sMnemonic = request.params[2].get_str();
-        else
+        } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Must specify mnemonic.");
+        }
 
         bool fBip44 = request.params.size() > 3 ? GetBool(request.params[3]) : true;
 
-        if (request.params.size() > 4)
+        if (request.params.size() > 4) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
+        }
 
-        if (sMnemonic.empty())
+        if (sMnemonic.empty()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Mnemonic can't be blank.");
-
-        std::vector<uint8_t> vEntropy;
-        std::vector<uint8_t> vSeed;
+        }
 
         // Decode to determine validity of mnemonic
+        std::vector<uint8_t> vEntropy, vSeed;
         int nLanguage = -1;
-        if (0 != MnemonicDecode(nLanguage, sMnemonic, vEntropy, sError))
+        if (0 != MnemonicDecode(nLanguage, sMnemonic, vEntropy, sError)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("MnemonicDecode failed %s.", sError.c_str()).c_str());
+        }
 
-        if (0 != MnemonicToSeed(sMnemonic, sPassword, vSeed))
+        if (0 != MnemonicToSeed(sMnemonic, sPassword, vSeed)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "MnemonicToSeed failed.");
+        }
 
         CExtKey ekMaster;
         CExtKey58 eKey58;
         ekMaster.SetSeed(&vSeed[0], vSeed.size());
 
-        if (!ekMaster.IsValid())
+        if (!ekMaster.IsValid()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid key.");
+        }
 
-        if (fBip44)
-        {
+        if (fBip44) {
             eKey58.SetKey(ekMaster, CChainParams::EXT_SECRET_KEY_BTC);
             result.pushKV("master", eKey58.ToString());
 
@@ -217,39 +219,39 @@ UniValue mnemonic(const JSONRPCRequest &request)
 
             eKey58.SetKey(ekDerived, CChainParams::EXT_SECRET_KEY);
             result.pushKV("derived", eKey58.ToString());
-        } else
-        {
+        } else {
             eKey58.SetKey(ekMaster, CChainParams::EXT_SECRET_KEY);
             result.pushKV("master", eKey58.ToString());
-        };
+        }
 
         result.pushKV("language", MnemonicGetLanguage(nLanguage));
 
-        if (sMnemonic.size() > 0)
+        if (sMnemonic.size() > 0) {
             memory_cleanse(&sMnemonic[0], sMnemonic.size());
-        if (sPassword.size() > 0)
+        }
+        if (sPassword.size() > 0) {
             memory_cleanse(&sPassword[0], sPassword.size());
+        }
     } else
-    if (mode == "addchecksum")
-    {
-        std::string sMnemonicIn;
-        std::string sMnemonicOut;
-        std::string sError;
-        if (request.params.size() != 2)
+    if (mode == "addchecksum") {
+        std::string sMnemonicIn, sMnemonicOut, sError;
+        if (request.params.size() != 2) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Must provide input mnemonic.");
+        }
 
         sMnemonicIn = request.params[1].get_str();
 
-        if (0 != MnemonicAddChecksum(-1, sMnemonicIn, sMnemonicOut, sError))
+        if (0 != MnemonicAddChecksum(-1, sMnemonicIn, sMnemonicOut, sError)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("MnemonicAddChecksum failed %s", sError.c_str()).c_str());
+        }
         result.pushKV("result", sMnemonicOut);
     } else
-    if (mode == "dumpwords")
-    {
+    if (mode == "dumpwords") {
         int nLanguage = WLL_ENGLISH;
 
-        if (request.params.size() > 1)
+        if (request.params.size() > 1) {
             nLanguage = GetLanguageOffset(request.params[1].get_str());
+        }
 
         int nWords = 0;
         UniValue arrayWords(UniValue::VARR);
@@ -264,18 +266,15 @@ UniValue mnemonic(const JSONRPCRequest &request)
         result.pushKV("words", arrayWords);
         result.pushKV("num_words", nWords);
     } else
-    if (mode == "listlanguages")
-    {
-        for (size_t k = 1; k < WLL_MAX; ++k)
-        {
+    if (mode == "listlanguages") {
+        for (size_t k = 1; k < WLL_MAX; ++k) {
             std::string sName(mnLanguagesTag[k]);
             std::string sDesc(mnLanguagesDesc[k]);
             result.pushKV(sName, sDesc);
-        };
-    } else
-    {
+        }
+    } else {
         throw std::runtime_error(help);
-    };
+    }
 
     return result;
 };

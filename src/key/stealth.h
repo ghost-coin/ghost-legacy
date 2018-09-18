@@ -91,8 +91,9 @@ public:
 
         bool fHaveScanSecret = scan_secret.IsValid();
         s << fHaveScanSecret;
-        if (fHaveScanSecret)
+        if (fHaveScanSecret) {
             s.write((char*)scan_secret.begin(), EC_SECRET_SIZE);
+        }
     }
     template <typename Stream>
     void Unserialize(Stream &s)
@@ -110,15 +111,15 @@ public:
         bool fHaveScanSecret;
         s >> fHaveScanSecret;
 
-        if (fHaveScanSecret)
-        {
+        if (fHaveScanSecret) {
             s.read((char*)scan_secret.begin(), EC_SECRET_SIZE);
             scan_secret.SetFlags(true, true);
 
             // Only derive spend_secret_id if also have the scan secret.
-            if (spend_pubkey.size() == EC_COMPRESSED_SIZE) // TODO: won't work for multiple spend pubkeys
+            if (spend_pubkey.size() == EC_COMPRESSED_SIZE) { // TODO: won't work for multiple spend pubkeys
                 spend_secret_id = GetSpendKeyID();
-        };
+            }
+        }
     }
 };
 
