@@ -139,8 +139,7 @@ void ECC_Stop_Blinding()
     secp256k1_context *ctx = secp256k1_ctx_blind;
     secp256k1_ctx_blind = nullptr;
 
-    if (ctx)
-    {
+    if (ctx) {
         secp256k1_context_destroy(ctx);
-    };
+    }
 };
