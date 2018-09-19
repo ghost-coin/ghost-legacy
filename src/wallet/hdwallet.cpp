@@ -6042,9 +6042,6 @@ int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, 
         ekaOut.vExtKeyIDs.push_back(sekStealth->GetID());
         ekaOut.vExtKeys.push_back(sekStealth);
         ekaOut.nActiveStealth = 3;
-    } else {
-        // Step over hardened chain 1 (stealth v1 chain)
-        sekAccount->SetCounter(1, true);
     }
 
     if (IsCrypted()

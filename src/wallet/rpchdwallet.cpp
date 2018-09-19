@@ -2050,18 +2050,19 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
 
     bool fShowSecrets = request.params.size() > 0 ? GetBool(request.params[0]) : false;
 
-    if (fShowSecrets)
+    if (fShowSecrets) {
         EnsureWalletIsUnlocked(pwallet);
+    }
 
     UniValue result(UniValue::VARR);
 
     ExtKeyAccountMap::const_iterator mi;
-    for (mi = pwallet->mapExtAccounts.begin(); mi != pwallet->mapExtAccounts.end(); ++mi)
-    {
+    for (mi = pwallet->mapExtAccounts.begin(); mi != pwallet->mapExtAccounts.end(); ++mi) {
         CExtKeyAccount *ea = mi->second;
 
-        if (ea->mapStealthKeys.size() < 1)
+        if (ea->mapStealthKeys.size() < 1) {
             continue;
+        }
 
         UniValue rAcc(UniValue::VOBJ);
         UniValue arrayKeys(UniValue::VARR);
@@ -2069,46 +2070,41 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
         rAcc.pushKV("Account", ea->sLabel);
 
         AccStealthKeyMap::iterator it;
-        for (it = ea->mapStealthKeys.begin(); it != ea->mapStealthKeys.end(); ++it)
-        {
+        for (it = ea->mapStealthKeys.begin(); it != ea->mapStealthKeys.end(); ++it) {
             const CEKAStealthKey &aks = it->second;
 
             UniValue objA(UniValue::VOBJ);
             objA.pushKV("Label", aks.sLabel);
             objA.pushKV("Address", aks.ToStealthAddress());
 
-            if (fShowSecrets)
-            {
+            if (fShowSecrets) {
                 objA.pushKV("Scan Secret", HexStr(aks.skScan.begin(), aks.skScan.end()));
                 std::string sSpend;
                 CStoredExtKey *sekAccount = ea->ChainAccount();
-                if (sekAccount && !sekAccount->fLocked)
-                {
+                if (sekAccount && !sekAccount->fLocked) {
                     CKey skSpend;
-                    if (ea->GetKey(aks.akSpend, skSpend))
+                    if (ea->GetKey(aks.akSpend, skSpend)) {
                         sSpend = HexStr(skSpend.begin(), skSpend.end());
-                    else
+                    } else {
                         sSpend = "Extract failed.";
-                } else
-                {
+                    }
+                } else {
                     sSpend = "Account Locked.";
-                };
+                }
                 objA.pushKV("Spend Secret", sSpend);
-            };
+            }
 
             arrayKeys.push_back(objA);
-        };
+        }
 
-        if (arrayKeys.size() > 0)
-        {
+        if (arrayKeys.size() > 0){
             rAcc.pushKV("Stealth Addresses", arrayKeys);
             result.push_back(rAcc);
-        };
-    };
+        }
+    }
 
 
-    if (pwallet->stealthAddresses.size() > 0)
-    {
+    if (pwallet->stealthAddresses.size() > 0) {
         UniValue rAcc(UniValue::VOBJ);
         UniValue arrayKeys(UniValue::VARR);
 
@@ -2116,12 +2112,11 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
 
         ListLooseStealthAddresses(arrayKeys, pwallet, fShowSecrets, false);
 
-        if (arrayKeys.size() > 0)
-        {
+        if (arrayKeys.size() > 0) {
             rAcc.pushKV("Stealth Addresses", arrayKeys);
             result.push_back(rAcc);
-        };
-    };
+        }
+    }
 
     return result;
 }
@@ -3570,22 +3565,24 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     std::string sAddress = request.params[1].get_str();
     std::string sLabel, sPurpose;
 
-    if (sAction != "info")
+    if (sAction != "info") {
         EnsureWalletIsUnlocked(pwallet);
+    }
 
     bool fHavePurpose = false;
-    if (request.params.size() > 2)
+    if (request.params.size() > 2) {
         sLabel = request.params[2].get_str();
-    if (request.params.size() > 3)
-    {
+    }
+    if (request.params.size() > 3) {
         sPurpose = request.params[3].get_str();
         fHavePurpose = true;
-    };
+    }
 
     CBitcoinAddress address(sAddress);
 
-    if (!address.IsValid())
+    if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid Particl address."));
+    }
 
     CTxDestination dest = address.Get();
 
@@ -3596,46 +3593,50 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
 
     UniValue objDestData(UniValue::VOBJ);
 
-    if (sAction == "add")
-    {
-        if (mabi != pwallet->mapAddressBook.end())
+    if (sAction == "add") {
+        if (mabi != pwallet->mapAddressBook.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Address '%s' is recorded in the address book."), sAddress));
+        }
 
-        if (!pwallet->SetAddressBook(nullptr, dest, sLabel, sPurpose, vPath, true))
+        if (!pwallet->SetAddressBook(nullptr, dest, sLabel, sPurpose, vPath, true)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "SetAddressBook failed.");
+        }
     } else
-    if (sAction == "edit")
-    {
-        if (request.params.size() < 3)
+    if (sAction == "edit") {
+        if (request.params.size() < 3) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("Need a parameter to change."));
-        if (mabi == pwallet->mapAddressBook.end())
+        }
+        if (mabi == pwallet->mapAddressBook.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Address '%s' is not in the address book."), sAddress));
+        }
 
         if (!pwallet->SetAddressBook(nullptr, dest, sLabel,
-            fHavePurpose ? sPurpose : mabi->second.purpose, mabi->second.vPath, true))
+            fHavePurpose ? sPurpose : mabi->second.purpose, mabi->second.vPath, true)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "SetAddressBook failed.");
+        }
 
         sLabel = mabi->second.name;
         sPurpose = mabi->second.purpose;
 
-        for (const auto &pair : mabi->second.destdata)
+        for (const auto &pair : mabi->second.destdata) {
             objDestData.pushKV(pair.first, pair.second);
-
+        }
     } else
-    if (sAction == "del")
-    {
-        if (mabi == pwallet->mapAddressBook.end())
+    if (sAction == "del") {
+        if (mabi == pwallet->mapAddressBook.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Address '%s' is not in the address book."), sAddress));
+        }
         sLabel = mabi->second.name;
         sPurpose = mabi->second.purpose;
 
-        if (!pwallet->DelAddressBook(dest))
+        if (!pwallet->DelAddressBook(dest)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "DelAddressBook failed.");
+        }
     } else
-    if (sAction == "info")
-    {
-        if (mabi == pwallet->mapAddressBook.end())
+    if (sAction == "info") {
+        if (mabi == pwallet->mapAddressBook.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Address '%s' is not in the address book."), sAddress));
+        }
 
         UniValue result(UniValue::VOBJ);
 
@@ -3645,54 +3646,61 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
         result.pushKV("label", mabi->second.name);
         result.pushKV("purpose", mabi->second.purpose);
 
-        if (mabi->second.nOwned == 0)
+        if (mabi->second.nOwned == 0) {
             mabi->second.nOwned = pwallet->HaveAddress(mabi->first) ? 1 : 2;
+        }
 
         result.pushKV("owned", mabi->second.nOwned == 1 ? "true" : "false");
 
-        if (mabi->second.vPath.size() > 1)
-        {
+        if (mabi->second.vPath.size() > 1) {
             std::string sPath;
-            if (0 == PathToString(mabi->second.vPath, sPath, '\'', 1))
+            if (0 == PathToString(mabi->second.vPath, sPath, '\'', 1)) {
                 result.pushKV("path", sPath);
-        };
+            }
+        }
 
-        for (const auto &pair : mabi->second.destdata)
+        for (const auto &pair : mabi->second.destdata) {
             objDestData.pushKV(pair.first, pair.second);
-        if (objDestData.size() > 0)
+        }
+        if (objDestData.size() > 0) {
             result.pushKV("destdata", objDestData);
+        }
 
         result.pushKV("result", "success");
 
         return result;
     } else
-    if (sAction == "newsend")
-    {
+    if (sAction == "newsend") {
         // Only update the purpose field if address does not yet exist
-        if (mabi != pwallet->mapAddressBook.end())
-            sPurpose = "";// "" means don't change purpose
+        if (mabi != pwallet->mapAddressBook.end()) {
+            sPurpose = ""; // "" means don't change purpose
+        }
 
-        if (!pwallet->SetAddressBook(dest, sLabel, sPurpose))
+        if (!pwallet->SetAddressBook(dest, sLabel, sPurpose)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "SetAddressBook failed.");
+        }
 
-        if (mabi != pwallet->mapAddressBook.end())
+        if (mabi != pwallet->mapAddressBook.end()) {
             sPurpose = mabi->second.purpose;
-    } else
-    {
+        }
+    } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown action, must be one of 'add/edit/del'."));
-    };
+    }
 
     UniValue result(UniValue::VOBJ);
 
     result.pushKV("action", sAction);
     result.pushKV("address", sAddress);
 
-    if (sLabel.size() > 0)
+    if (sLabel.size() > 0) {
         result.pushKV("label", sLabel);
-    if (sPurpose.size() > 0)
+    }
+    if (sPurpose.size() > 0) {
         result.pushKV("purpose", sPurpose);
-    if (objDestData.size() > 0)
+    }
+    if (objDestData.size() > 0) {
         result.pushKV("destdata", objDestData);
+    }
 
     result.pushKV("result", "success");
 
@@ -3761,8 +3769,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
 
     obj.pushKV("enabled", gArgs.GetBoolArg("-staking", true)); // enabled on node, vs enabled on wallet
     obj.pushKV("staking", fStaking && pwallet->nIsStaking == CHDWallet::IS_STAKING);
-    switch (pwallet->nIsStaking)
-    {
+    switch (pwallet->nIsStaking) {
         case CHDWallet::NOT_STAKING_BALANCE:
             obj.pushKV("cause", "low_balance");
             break;
@@ -3780,22 +3787,25 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
             break;
         default:
             break;
-    };
+    }
 
     obj.pushKV("errors", GetWarnings("statusbar"));
 
     obj.pushKV("percentyearreward", rCoinYearReward);
     obj.pushKV("moneysupply", ValueFromAmount(nMoneySupply));
 
-    if (pwallet->nReserveBalance > 0)
+    if (pwallet->nReserveBalance > 0) {
         obj.pushKV("reserve", ValueFromAmount(pwallet->nReserveBalance));
+    }
 
-    if (pwallet->nWalletDevFundCedePercent > 0)
+    if (pwallet->nWalletDevFundCedePercent > 0) {
         obj.pushKV("walletfoundationdonationpercent", pwallet->nWalletDevFundCedePercent);
+    }
 
     const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTipTime);
-    if (pDevFundSettings && pDevFundSettings->nMinDevStakePercent > 0)
+    if (pDevFundSettings && pDevFundSettings->nMinDevStakePercent > 0) {
         obj.pushKV("foundationdonationpercent", pDevFundSettings->nMinDevStakePercent);
+    }
 
     obj.pushKV("currentblocksize", (uint64_t)nLastBlockSize);
     obj.pushKV("currentblocktx", (uint64_t)nLastBlockTx);
@@ -3869,48 +3879,47 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
 
     CKeyID keyID;
     CScript coinstakePath;
-    for (const auto &out : vecOutputs)
-    {
+    for (const auto &out : vecOutputs) {
         const CScript *scriptPubKey = out.tx->tx->vpout[out.i]->GetPScriptPubKey();
         CAmount nValue = out.tx->tx->vpout[out.i]->GetValue();
 
-        if (scriptPubKey->IsPayToPublicKeyHash() || scriptPubKey->IsPayToPublicKeyHash256())
-        {
-            if (!out.fSpendable)
+        if (scriptPubKey->IsPayToPublicKeyHash() || scriptPubKey->IsPayToPublicKeyHash256()) {
+            if (!out.fSpendable) {
                 continue;
+            }
             nStakeable += nValue;
         } else
-        if (scriptPubKey->IsPayToPublicKeyHash256_CS() || scriptPubKey->IsPayToScriptHash256_CS() || scriptPubKey->IsPayToScriptHash_CS())
-        {
+        if (scriptPubKey->IsPayToPublicKeyHash256_CS() || scriptPubKey->IsPayToScriptHash256_CS() || scriptPubKey->IsPayToScriptHash_CS()) {
             // Show output on both the spending and staking wallets
-            if (!out.fSpendable)
-            {
+            if (!out.fSpendable) {
                 if (!ExtractStakingKeyID(*scriptPubKey, keyID)
-                    || !pwallet->HaveKey(keyID))
+                    || !pwallet->HaveKey(keyID)) {
                     continue;
-            };
+                }
+            }
             nColdStakeable += nValue;
-        } else
-        {
+        } else {
             continue;
-        };
+        }
 
-        if (out.nDepth < nRequiredDepth)
+        if (out.nDepth < nRequiredDepth) {
             continue;
+        }
 
-        if (!ExtractStakingKeyID(*scriptPubKey, keyID))
+        if (!ExtractStakingKeyID(*scriptPubKey, keyID)) {
             continue;
-        if (pwallet->HaveKey(keyID))
+        }
+        if (pwallet->HaveKey(keyID)) {
             nWalletStaking += nValue;
-    };
+        }
+    }
 
 
     bool fEnabled = false;
     UniValue jsonSettings;
     CBitcoinAddress addrColdStaking;
     if (pwallet->GetSetting("changeaddress", jsonSettings)
-        && jsonSettings["coldstakingaddress"].isStr())
-    {
+        && jsonSettings["coldstakingaddress"].isStr()) {
         std::string sAddress;
         try { sAddress = jsonSettings["coldstakingaddress"].get_str();
         } catch (std::exception &e) {
@@ -3921,18 +3930,17 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
         if (addrColdStaking.IsValid()) {
             fEnabled = true;
         }
-    };
+    }
 
     obj.pushKV("enabled", fEnabled);
-    if (addrColdStaking.IsValid(CChainParams::EXT_PUBLIC_KEY))
-    {
+    if (addrColdStaking.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
         CTxDestination dest = addrColdStaking.Get();
         CExtKeyPair kp = boost::get<CExtKeyPair>(dest);
         CKeyID idk = kp.GetID();
         CBitcoinAddress addr;
         addr.Set(idk, CChainParams::EXT_KEY_HASH);
         obj.pushKV("coldstaking_extkey_id", addr.ToString());
-    };
+    }
     obj.pushKV("coin_in_stakeable_script", ValueFromAmount(nStakeable));
     obj.pushKV("coin_in_coldstakeable_script", ValueFromAmount(nColdStakeable));
     CAmount nTotal = nColdStakeable + nStakeable;
@@ -7428,7 +7436,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
-            "verifyrawtransaction \"hexstring\" ( [{\"txid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\",\"redeemScript\":\"hex\"},...] returndecoded )\n"
+            "verifyrawtransaction \"hexstring\" ( [{\"txid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\",\"redeemScript\":\"hex\"},...] { \"options\" } )\n"
             "\nVerify inputs for raw transaction (serialized, hex-encoded).\n"
             "The second optional argument (may be null) is an array of previous transaction outputs that\n"
             "this transaction depends on but may not yet be in the block chain.\n"
@@ -7446,7 +7454,11 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
             "       }\n"
             "       ,...\n"
             "    ]\n"
-            "3. returndecoded                     (bool, optional) Return the decoded txn as a json object\n"
+            "3. \"options\"             (object, optional)\n"
+            "   {\n"
+            "     \"returndecoded\"          (bool, optional, default false) Return the decoded txn as a json object\n"
+            "     \"checkvalues\"            (bool, optional, default true) Check amounts and amount commitments match up.\n"
+            "   }\n"
             "\nResult:\n"
             "{\n"
             "  \"complete\" : true|false,          (boolean) If the transaction has a complete set of signatures\n"
@@ -7466,9 +7478,27 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
             + HelpExampleRpc("verifyrawtransaction", "\"myhex\"")
         );
 
-    // TODO: verify amounts / commitment sum
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR, UniValue::VOBJ}, true);
 
-    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR, UniValue::VBOOL}, true);
+    bool return_decoded = false;
+    bool check_values = true;
+
+    if (!request.params[2].isNull()) {
+        const UniValue& options = request.params[2].get_obj();
+
+        RPCTypeCheckObj(options,
+            {
+                {"returndecoded",            UniValueType(UniValue::VBOOL)},
+                {"checkvalues",              UniValueType(UniValue::VBOOL)},
+            }, true, false);
+
+        if (options.exists("returndecoded")) {
+            return_decoded = options["returndecoded"].get_bool();
+        }
+        if (options.exists("checkvalues")) {
+            check_values = options["checkvalues"].get_bool();
+        }
+    }
 
     CMutableTransaction mtx;
     if (!DecodeHexTx(mtx, request.params[0].get_str(), true)) {
@@ -7576,7 +7606,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
         nSpendHeight = chainActive.Tip()->nHeight;
     }
 
-    {
+    if (check_values) {
         CValidationState state;
         CAmount nFee = 0;
         if (!Consensus::CheckTxInputs(txConst, state, view, nSpendHeight, nFee)) {
@@ -7616,13 +7646,12 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
 
     UniValue result(UniValue::VOBJ);
 
-    if (!request.params[2].isNull() && request.params[2].get_bool()) {
+    if (return_decoded) {
         UniValue txn(UniValue::VOBJ);
         TxToUniv(CTransaction(std::move(mtx)), uint256(), txn, false);
         result.pushKV("txn", txn);
     }
 
-    //result.pushKV("hex", EncodeHexTx(mtx));
     result.pushKV("complete", fComplete);
     if (!vErrors.empty()) {
         result.pushKV("errors", vErrors);
@@ -7695,7 +7724,7 @@ static const CRPCCommand commands[] =
     { "rawtransactions",    "fundrawtransactionfrom",           &fundrawtransactionfrom,        {"input_type","hexstring","input_amounts","output_amounts","options"} },
     { "rawtransactions",    "verifycommitment",                 &verifycommitment,              {"commitment","blind","amount"} },
     { "rawtransactions",    "generatematchingblindfactor",      &generatematchingblindfactor,   {"inputs","outputs"} },
-    { "rawtransactions",    "verifyrawtransaction",             &verifyrawtransaction,          {"hexstring","prevtxs","returndecoded"} },
+    { "rawtransactions",    "verifyrawtransaction",             &verifyrawtransaction,          {"hexstring","prevtxs","options"} },
 };
 
 void RegisterHDWalletRPCCommands(CRPCTable &t)
