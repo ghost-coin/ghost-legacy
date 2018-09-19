@@ -120,11 +120,10 @@ class PosTest(ParticlTestFramework):
                 break
         assert(fFound)
 
-        # Test staking pkh256 outputs
-        ro = nodes[2].walletsettings('stakelimit', {'height':1})
-        ro = nodes[2].reservebalance(False)
-        ro = nodes[2].getstakinginfo()
-        assert(ro['weight'] == 400000000000)
+        self.log.info("Test staking pkh256 outputs")
+        nodes[2].walletsettings('stakelimit', {'height':1})
+        nodes[2].reservebalance(False)
+        assert(nodes[2].getstakinginfo()['weight'] == 400000000000)
 
         self.stakeBlocks(1, nStakeNode=2)
 

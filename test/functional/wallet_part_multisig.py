@@ -47,7 +47,8 @@ class MultiSigTest(ParticlTestFramework):
         ro = nodes[0].getaddressinfo(ro)
         pubkeys.append(ro['pubkey'])
 
-        ro = nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
+
+        nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
 
         ro = nodes[1].getnewaddress()
         addrs.append(ro)
@@ -55,12 +56,13 @@ class MultiSigTest(ParticlTestFramework):
         pubkeys.append(ro['pubkey'])
 
 
-        ro = nodes[2].extkeyimportmaster(nodes[2].mnemonic('new', '', 'french')['mnemonic'])
+        nodes[2].extkeyimportmaster(nodes[2].mnemonic('new', '', 'french')['mnemonic'])
 
         ro = nodes[2].getnewaddress()
         addrs.append(ro)
         ro = nodes[2].getaddressinfo(ro)
         pubkeys.append(ro['pubkey'])
+
 
         v = [addrs[0],addrs[1],pubkeys[2]]
         msAddr = nodes[0].addmultisigaddress(2, v)['address']
@@ -137,8 +139,7 @@ class MultiSigTest(ParticlTestFramework):
 
         mstxid2 = nodes[0].sendtoaddress(msAddr256, 9)
 
-        ro = nodes[0].gettransaction(mstxid2)
-        hexfund = ro['hex']
+        hexfund = nodes[0].gettransaction(mstxid2)['hex']
         ro = nodes[0].decoderawtransaction(hexfund)
 
         fundscriptpubkey = ''
@@ -245,7 +246,7 @@ class MultiSigTest(ParticlTestFramework):
         assert(txnid_spendMultisig3 in ro['tx'])
 
 
-        # Coldstake script
+        self.log.info("Coldstake script")
 
         stakeAddr = nodes[0].getnewaddress()
         addrTo = nodes[0].getnewaddress()
@@ -324,6 +325,27 @@ class MultiSigTest(ParticlTestFramework):
         block4_hash = nodes[0].getblockhash(4)
         ro = nodes[0].getblock(block4_hash)
         assert(txid in ro['tx'])
+
+
+        self.log.info("Test combinerawtransaction")
+        unspent0 = nodes[0].listunspent()
+        unspent2 = nodes[2].listunspent()
+
+        inputs = [unspent0[0], unspent2[0]]
+        outputs = {nodes[0].getnewaddress() : satoshi_round(unspent0[0]['amount'] + unspent2[0]['amount'] - Decimal(0.1))}
+        rawtx = nodes[0].createrawtransaction(inputs, outputs)
+
+        rawtx0 = nodes[0].signrawtransactionwithwallet(rawtx)
+        assert(rawtx0['complete'] == False)
+
+        rawtx2 = nodes[2].signrawtransactionwithwallet(rawtx0['hex']) # Keeps signature from node0
+        assert(rawtx2['complete'])
+
+        rawtx2 = nodes[2].signrawtransactionwithwallet(rawtx)
+        assert(rawtx2['complete'] == False)
+
+        rawtx_complete = nodes[0].combinerawtransaction([rawtx0['hex'], rawtx2['hex']])
+        nodes[0].sendrawtransaction(rawtx_complete)
 
 
 if __name__ == '__main__':
