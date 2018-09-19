@@ -259,7 +259,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "fundrawtransactionfrom", 4, "options" },
 
     { "verifyrawtransaction", 1, "prevtxs" },
-    { "verifyrawtransaction", 2, "returndecoded" },
+    { "verifyrawtransaction", 2, "options" },
 
 
 

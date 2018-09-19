@@ -1033,23 +1033,21 @@ UniValue SignTransaction(CMutableTransaction& mtx, const UniValue& prevTxsUnival
 
         CAmount amount;
         std::vector<uint8_t> vchAmount;
-        if (coin.nType == OUTPUT_STANDARD)
-        {
+        if (coin.nType == OUTPUT_STANDARD) {
             amount = coin.out.nValue;
             vchAmount.resize(8);
             memcpy(vchAmount.data(), &coin.out.nValue, 8);
         } else
-        if (coin.nType == OUTPUT_CT)
-        {
+        if (coin.nType == OUTPUT_CT) {
             amount = 0; // Bypass amount check
             vchAmount.resize(33);
             memcpy(vchAmount.data(), coin.commitment.data, 33);
-        } else
-        {
+        } else {
             throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad input type: %d", coin.nType));
-        };
+        }
 
         SignatureData sigdata = DataFromTransaction(mtx, i, vchAmount, prevPubKey);
+
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mtx.GetNumVOuts())) {
             ProduceSignature(*keystore, MutableTransactionSignatureCreator(&mtx, i, vchAmount, nHashType), prevPubKey, sigdata);
