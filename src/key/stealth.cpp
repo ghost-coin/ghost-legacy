@@ -8,7 +8,6 @@
 #include <key_io.h>
 #include <key/keyutil.h>
 #include <pubkey.h>
-#include <crypto/sha256.h>
 #include <random.h>
 #include <script/script.h>
 #include <smsg/crypter.h>
@@ -17,6 +16,7 @@
 
 #include <cmath>
 #include <secp256k1.h>
+#include <secp256k1_ecdh.h>
 
 secp256k1_context *secp256k1_ctx_stealth = nullptr;
 
@@ -141,23 +141,6 @@ int SecretToPublicKey(const CKey &secret, ec_point &out)
     CPubKey pkTemp = secret.GetPubKey();
     out.resize(EC_COMPRESSED_SIZE);
     memcpy(&out[0], pkTemp.begin(), EC_COMPRESSED_SIZE);
-
-    /*
-    // Need a secp256k1_ctx that satisfies: secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx)
-    secp256k1_pubkey P;
-
-    if (!secp256k1_ec_pubkey_create(secp256k1_ctx_stealth, &P, secret.begin()))
-        return errorN(1, "%s: secp256k1_ec_pubkey_create failed.", __func__); // Start again with a new ephemeral key
-
-    try {
-        out.resize(EC_COMPRESSED_SIZE);
-    } catch (std::exception &e) {
-        return errorN(8, "%s: out.resize %u threw: %s.", __func__, EC_COMPRESSED_SIZE);
-    };
-
-    if (!secp256k1_ec_pubkey_parse(secp256k1_ctx_stealth, &P, &out[0], EC_COMPRESSED_SIZE))
-        return errorN(1, "%s: secp256k1_ec_pubkey_parse R failed.", __func__);
-    */
     return 0;
 };
 
@@ -171,15 +154,12 @@ int StealthShared(const CKey &secret, const ec_point &pubkey, CKey &sharedSOut)
     if (!secp256k1_ec_pubkey_parse(secp256k1_ctx_stealth, &Q, &pubkey[0], EC_COMPRESSED_SIZE)) {
         return errorN(1, "%s: secp256k1_ec_pubkey_parse Q failed.", __func__);
     }
-    if (!secp256k1_ec_pubkey_tweak_mul(secp256k1_ctx_stealth, &Q, secret.begin())) { // eQ
-        return errorN(1, "%s: secp256k1_ec_pubkey_tweak_mul failed.", __func__);
+
+    // H(eQ)
+    if (!secp256k1_ecdh(secp256k1_ctx_stealth, sharedSOut.begin_nc(), &Q, secret.begin())) {
+        return errorN(1, "%s: secp256k1_ctx_stealth failed.", __func__);
     }
 
-    size_t len = 33;
-    uint8_t tmp33[33];
-    secp256k1_ec_pubkey_serialize(secp256k1_ctx_stealth, tmp33, &len, &Q, SECP256K1_EC_COMPRESSED); // Returns: 1 always.
-
-    CSHA256().Write(tmp33, 33).Finalize(sharedSOut.begin_nc());
     return 0;
 };
 
@@ -227,21 +207,10 @@ int StealthSecret(const CKey &secret, const ec_point &pubkey, const ec_point &pk
         return errorN(1, "%s: secp256k1_ec_pubkey_parse R failed.", __func__);
     }
 
-    // eQ
-    if (!secp256k1_ec_pubkey_tweak_mul(secp256k1_ctx_stealth, &Q, secret.begin())) {
-        return errorN(1, "%s: secp256k1_ec_pubkey_tweak_mul failed.", __func__);
+    // H(eQ)
+    if (!secp256k1_ecdh(secp256k1_ctx_stealth, sharedSOut.begin_nc(), &Q, secret.begin())) {
+        return errorN(1, "%s: secp256k1_ctx_stealth failed.", __func__);
     }
-
-    size_t len = 33;
-    uint8_t tmp33[33];
-    secp256k1_ec_pubkey_serialize(secp256k1_ctx_stealth, tmp33, &len, &Q, SECP256K1_EC_COMPRESSED); // Returns: 1 always.
-
-    CSHA256().Write(tmp33, 33).Finalize(sharedSOut.begin_nc());
-
-    //if (!secp256k1_ec_seckey_verify(secp256k1_ctx_stealth, sharedSOut.begin()))
-    //    return errorN(1, "%s: secp256k1_ec_seckey_verify failed.", __func__); // Start again with a new ephemeral key
-
-    // secp256k1_ec_pubkey_tweak_add verifies secret is in correct range
 
     // C = sharedSOut * G
     // R' = R + C
@@ -255,7 +224,7 @@ int StealthSecret(const CKey &secret, const ec_point &pubkey, const ec_point &pk
         return errorN(8, "%s: pkOut.resize %u threw: %s.", __func__, EC_COMPRESSED_SIZE);
     };
 
-    len = 33;
+    size_t len = 33;
     secp256k1_ec_pubkey_serialize(secp256k1_ctx_stealth, &pkOut[0], &len, &R, SECP256K1_EC_COMPRESSED); // Returns: 1 always.
 
     return 0;
@@ -279,20 +248,10 @@ int StealthSecretSpend(const CKey &scanSecret, const ec_point &ephemPubkey, cons
         return errorN(1, "%s: secp256k1_ec_pubkey_parse P failed.", __func__);
     }
 
-    // dP
-    if (!secp256k1_ec_pubkey_tweak_mul(secp256k1_ctx_stealth, &P, scanSecret.begin())) {
-        return errorN(1, "%s: secp256k1_ec_pubkey_tweak_mul failed.", __func__);
-    }
-
-    size_t len = 33;
-    uint8_t tmp33[33];
     uint8_t tmp32[32];
-    secp256k1_ec_pubkey_serialize(secp256k1_ctx_stealth, tmp33, &len, &P, SECP256K1_EC_COMPRESSED); // Returns: 1 always.
-
-    CSHA256().Write(tmp33, 33).Finalize(tmp32);
-
-    if (!secp256k1_ec_seckey_verify(secp256k1_ctx_stealth, tmp32)) {
-        return errorN(1, "%s: secp256k1_ec_seckey_verify failed.", __func__);
+    // H(dP)
+    if (!secp256k1_ecdh(secp256k1_ctx_stealth, tmp32, &P, scanSecret.begin())) {
+        return errorN(1, "%s: secp256k1_ctx_stealth failed.", __func__);
     }
 
     secretOut = spendSecret;
@@ -481,8 +440,16 @@ void ECC_Start_Stealth()
 {
     assert(secp256k1_ctx_stealth == nullptr);
 
-    secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_VERIFY);
+    secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
     assert(ctx != nullptr);
+
+    {
+        // Pass in a random blinding seed to the secp256k1 context.
+        std::vector<unsigned char, secure_allocator<unsigned char>> vseed(32);
+        GetRandBytes(vseed.data(), 32);
+        bool ret = secp256k1_context_randomize(ctx, vseed.data());
+        assert(ret);
+    }
 
     secp256k1_ctx_stealth = ctx;
 };
