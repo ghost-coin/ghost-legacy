@@ -12,6 +12,7 @@ from test_framework.script import *
 from test_framework.messages import sha256
 from test_framework.address import chars as __b58chars, script_to_p2sh
 import binascii
+from random import random
 
 from test_framework.test_particl import jsonDecimal
 
@@ -341,6 +342,9 @@ def createClaimTxCT(node, rawtx, output_amounts, script, secret, privKeySign, pu
 
     return rawtxClaim
 
+# Return a random amount lower than 10
+def getRandomAmount():
+    return round(Decimal(random()) * 9 + Decimal(1.2), 8)
 
 class AtomicSwapTest(ParticlTestFramework):
     def set_test_params(self):
@@ -697,6 +701,63 @@ class AtomicSwapTest(ParticlTestFramework):
         ro = nodes[0].getwalletinfo()
         assert(ro['unconfirmed_blind'] > 14.0 and ro['unconfirmed_blind'] < 14.1)
 
+    def test_generatematchingblindfactor(self):
+        nodes = self.nodes
+
+        bfA = binascii.hexlify(os.urandom(32)).decode("utf-8")
+        bfB = binascii.hexlify(os.urandom(32)).decode("utf-8")
+
+        # A + B = A + ?
+        # B = ?
+        ro = nodes[0].generatematchingblindfactor([bfA, bfB], [bfA])
+        assert(ro['blind'] == bfB)
+
+    def test_generatecustomfeeoutput(self):
+        nodes = self.nodes
+
+        addrA_sx = nodes[0].getnewstealthaddress()
+        amount = getRandomAmount()
+
+        outputs = [ {
+            'type':'data',
+            'data_ct_fee': amount,
+            'amount': 0
+        },{
+            'address':addrA_sx,
+            'type':'blind',
+            'amount': amount,
+        }, ]
+        ro = nodes[0].createrawparttransaction([], outputs)
+
+        ro = nodes[1].decoderawtransaction(ro['hex'])
+        assert(ro['vout'][0]['ct_fee'] == amount)
+
+    def test_deterministicrangeproof(self):
+        nodes = self.nodes
+
+        addrA_sx = nodes[0].getnewstealthaddress()
+        ephem = nodes[0].derivefromstealthaddress(addrA_sx)['ephemeral_privatekey']
+        blind = binascii.hexlify(os.urandom(32)).decode("utf-8")
+        amount = getRandomAmount()
+
+        outputs = [{
+            'address':addrA_sx,
+            'type':'blind',
+            'amount': amount,
+            'rangeproof_params': {
+                'ct_exponent': 2,
+                'ct_bits': 32,
+                'min_value': 0,
+            },
+            'blindingfactor': blind,
+            'ephemeral_key': ephem
+        }, ]
+        txA = nodes[1].createrawparttransaction([], outputs)
+        txB = nodes[0].createrawparttransaction([], outputs)
+
+        rangeproofA = nodes[1].decoderawtransaction(txA['hex'])['vout'][0]['rangeproof']
+        rangeproofB = nodes[0].decoderawtransaction(txB['hex'])['vout'][0]['rangeproof']
+        assert(rangeproofA == rangeproofB)
 
     def run_test(self):
         nodes = self.nodes
@@ -713,6 +774,11 @@ class AtomicSwapTest(ParticlTestFramework):
 
         self.test_cttx()
 
+        self.test_generatematchingblindfactor()
+
+        self.test_generatecustomfeeoutput()
+
+        self.test_deterministicrangeproof()
 
 if __name__ == '__main__':
     AtomicSwapTest().main()
