@@ -13,6 +13,7 @@
 #include <sync.h>
 #include <net.h>
 #include <validation.h>
+#include <consensus/validation.h>
 #include <base58.h>
 #include <crypto/sha256.h>
 
