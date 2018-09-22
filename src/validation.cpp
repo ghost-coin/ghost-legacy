@@ -4111,13 +4111,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     };
 
     // Check transactions
-    for (const auto& tx : block.vtx)
-    {
-        //if (!CheckTransaction(*tx, state, false))
-        if (!CheckTransaction(*tx, state)) // Check for duplicate inputs, TODO: UpdateCoins should return a bool, db/coinsview txn should be undone
+    for (const auto& tx : block.vtx){
+        if (!CheckTransaction(*tx, state, true)) // Check for duplicate inputs, TODO: UpdateCoins should return a bool, db/coinsview txn should be undone
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
                                  strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), state.GetDebugMessage()));
-    };
+    }
 
     unsigned int nSigOps = 0;
     for (const auto& tx : block.vtx)
