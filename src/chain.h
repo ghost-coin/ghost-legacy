@@ -16,8 +16,10 @@
 
 enum eBlockFlags
 {
-    BLOCK_PROOF_OF_STAKE            = (1 << 0), // is proof-of-stake block
+    BLOCK_PROOF_OF_STAKE            = (1 << 0),
     BLOCK_FAILED_DUPLICATE_STAKE    = (1 << 3),
+    BLOCK_DELAYED                   = (1 << 4),
+    BLOCK_ACCEPTED                  = (1 << 5),
 };
 
 /**

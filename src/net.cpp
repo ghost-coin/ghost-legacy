@@ -88,7 +88,8 @@ std::string strSubVersion;
 
 limitedmap<uint256, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
-extern void DecMisbehaving(NodeId nodeid, int howmuch);
+extern void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+extern void CheckNodeHeaders(NodeId nodeid, int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 void CConnman::AddOneShot(const std::string& strDest)
 {
@@ -2077,13 +2078,14 @@ void CConnman::ThreadMessageHandler()
         }
 
         int64_t nTimeNow = GetTime();
-        if (nTimeNextBanReduced < nTimeNow)
-        {
+        if (nTimeNextBanReduced < nTimeNow) {
             LOCK(cs_main);
-            for (auto *pnode : vNodesCopy)
+            for (auto *pnode : vNodesCopy) {
                 DecMisbehaving(pnode->id, 1);
+                CheckNodeHeaders(pnode->id, nTimeNow);
+            }
             nTimeNextBanReduced = nTimeNow + nTimeDecBanThreshold;
-        };
+        }
 
         {
             LOCK(cs_vNodes);

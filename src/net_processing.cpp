@@ -274,6 +274,12 @@ struct CNodeState {
     //! Time of last new block announcement
     int64_t m_last_block_announcement;
 
+    //! Headers received from this peer, removed when block is received
+    std::map<uint256, int64_t> m_map_loose_headers;
+
+    //! Count of times this nodehas tried to send duplicate headers/blocks, decreased in DecMisbehaving
+    int m_duplicate_count;
+
     CNodeState(CAddress addrIn, std::string addrNameIn) : address(addrIn), name(addrNameIn) {
         fCurrentlyConnected = false;
         nMisbehavior = 0;
@@ -298,6 +304,7 @@ struct CNodeState {
         fSupportsDesiredCmpctVersion = false;
         m_chain_sync = { 0, nullptr, false, false };
         m_last_block_announcement = 0;
+        m_duplicate_count = 0;
     }
 };
 
@@ -820,23 +827,88 @@ void Misbehaving(NodeId pnode, int howmuch, const std::string& message) EXCLUSIV
         LogPrint(BCLog::NET, "%s: %s peer=%d (%d -> %d)%s\n", __func__, state->name, pnode, state->nMisbehavior-howmuch, state->nMisbehavior, message_prefixed);
 }
 
-void DecMisbehaving(NodeId nodeid, int howmuch)
+void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
-    if (howmuch == 0)
+    if (howmuch == 0) {
         return;
+    }
 
     CNodeState *state = State(nodeid);
-    if (state == nullptr)
+    if (state == nullptr) {
         return;
+    }
 
     //LogPrintf("%s: %s peer=%d (%d -> %d)\n", __func__, state->name, nodeid, state->nMisbehavior, state->nMisbehavior - howmuch < 0 ? 0 : state->nMisbehavior - howmuch);
 
     state->nMisbehavior -= howmuch;
-    if (state->nMisbehavior < 0)
+    if (state->nMisbehavior < 0) {
         state->nMisbehavior = 0;
+    }
+    if (state->m_duplicate_count > 0) {
+        --state->m_duplicate_count;
+    }
 }
 
+size_t MAX_LOOSE_HEADERS = 200;
+size_t MAX_DUPLICATE_HEADERS = 1000;
+int64_t MAX_LOOSE_HEADER_TIME = 120;
+bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    CNodeState *state = State(node_id);
+    if (state == nullptr) {
+        return true;
+    }
+    if (state->m_map_loose_headers.size() > MAX_LOOSE_HEADERS) {
+        return false;
+    }
 
+    auto ret = state->m_map_loose_headers.insert(std::make_pair(hash, GetTime()));
+    if (!ret.second) {
+        // Duplicate
+    }
+
+    return true;
+}
+
+bool RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    auto it = mapNodeState.begin();
+    for (; it != mapNodeState.end(); ++it) {
+        it->second.m_map_loose_headers.erase(hash);
+    }
+
+    return true;
+}
+
+void CheckNodeHeaders(NodeId node_id, int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    CNodeState *state = State(node_id);
+    if (state == nullptr) {
+        return;
+    }
+    auto it = state->m_map_loose_headers.begin();
+    for (; it != state->m_map_loose_headers.end();) {
+        if (it->second + MAX_LOOSE_HEADER_TIME < now) {
+            if (RemoveUnreceivedHeader(it->first)) {
+                Misbehaving(node_id, 5, "Block not received.");
+            }
+            state->m_map_loose_headers.erase(it++);
+            continue;
+        }
+        ++it;
+    }
+}
+
+bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    CNodeState *state = State(node_id);
+    if (state == nullptr) {
+        return true;
+    }
+    ++state->m_duplicate_count;
+
+    return state->m_duplicate_count < MAX_DUPLICATE_HEADERS;
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1468,6 +1540,7 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
 
     CValidationState state;
     CBlockHeader first_invalid_header;
+    state.nodeId = pfrom->GetId();
     if (!ProcessNewBlockHeaders(headers, state, chainparams, &pindexLast, &first_invalid_header)) {
         int nDoS;
         if (state.IsInvalid(nDoS)) {

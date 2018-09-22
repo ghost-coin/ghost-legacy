@@ -148,11 +148,10 @@ static bool CheckAge(const CBlockIndex *pindexTip, const uint256 &hashKernelBloc
 }
 
 // Check kernel hash target and coinstake signature
-bool CheckProofOfStake(const CBlockIndex *pindexPrev, const CTransaction &tx, int64_t nTime, unsigned int nBits, uint256 &hashProofOfStake, uint256 &targetProofOfStake)
+bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, const CTransaction &tx, int64_t nTime, unsigned int nBits, uint256 &hashProofOfStake, uint256 &targetProofOfStake)
 {
     // pindexPrev is the current tip, the block the new block will connect on
     // nTime is the time of the new/next block
-    CValidationState state;
 
     if (!tx.IsCoinStake()
         || tx.vin.size() < 1)
