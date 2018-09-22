@@ -13,6 +13,7 @@
 #include <sync.h>
 #include <net.h>
 #include <validation.h>
+#include <consensus/validation.h>
 #include <base58.h>
 #include <crypto/sha256.h>
 
@@ -98,8 +99,9 @@ bool CheckStake(CBlock *pblock)
     if (!chainActive.Contains(mi->second))
         return error("%s: %s prev block in active chain: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
 
-    // verify hash target and signature of coinstake tx
-    if (!CheckProofOfStake(mi->second, *pblock->vtx[0], pblock->nTime, pblock->nBits, proofHash, hashTarget))
+    // Verify hash target and signature of coinstake tx
+    CValidationState state;
+    if (!CheckProofOfStake(state, mi->second, *pblock->vtx[0], pblock->nTime, pblock->nBits, proofHash, hashTarget))
         return error("%s: proof-of-stake checking failed.", __func__);
 
     // debug print
