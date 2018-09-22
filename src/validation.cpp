@@ -4603,7 +4603,7 @@ extern bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_R
 extern bool RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-void EraseDelayedBlock(std::list<DelayedBlock>::iterator p)
+void EraseDelayedBlock(std::list<DelayedBlock>::iterator p) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     if (p->m_node_id > -1) {
         Misbehaving(p->m_node_id, 25, "Delayed block");
@@ -4617,7 +4617,7 @@ void EraseDelayedBlock(std::list<DelayedBlock>::iterator p)
     list_delayed_blocks.erase(p);
 }
 
-bool DelayBlock(const std::shared_ptr<const CBlock>& pblock, CValidationState& state)
+bool DelayBlock(const std::shared_ptr<const CBlock>& pblock, CValidationState& state) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     LogPrintf("Warning: %s - Previous stake modifier is null for block %s from node %d.\n", __func__, pblock->GetHash().ToString(), state.nodeId);
     while (list_delayed_blocks.size() >= MAX_DELAYED_BLOCKS) {
@@ -4630,7 +4630,7 @@ bool DelayBlock(const std::shared_ptr<const CBlock>& pblock, CValidationState& s
     return true;
 }
 
-void CheckDelayedBlocks(const CChainParams& chainparams, const uint256 &block_hash)
+void CheckDelayedBlocks(const CChainParams& chainparams, const uint256 &block_hash) LOCKS_EXCLUDED(cs_main)
 {
     if (list_delayed_blocks.empty()) {
         return;
@@ -4647,6 +4647,7 @@ void CheckDelayedBlocks(const CChainParams& chainparams, const uint256 &block_ha
         }
         if (p->m_time + MAX_DELAY_BLOCK_SECONDS < now) {
             LogPrint(BCLog::NET, "Removing Delayed block %s, timed out.\n", p->m_pblock->GetHash().ToString());
+            LOCK(cs_main);
             EraseDelayedBlock(p++);
             continue;
         }
