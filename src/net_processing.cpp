@@ -565,6 +565,10 @@ static void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vec
         // pindexLastCommonBlock as long as all ancestors are already downloaded, or if it's
         // already part of our chain (and therefore don't need it even if pruned).
         for (const CBlockIndex* pindex : vToFetch) {
+            if (pindex->nFlags & BLOCK_DELAYED) {
+                // Already have block in delayed queue
+                continue;
+            }
             if (!pindex->IsValid(BLOCK_VALID_TREE)) {
                 // We consider the chain that this peer is on invalid.
                 return;
@@ -850,7 +854,7 @@ void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main
 }
 
 size_t MAX_LOOSE_HEADERS = 200;
-size_t MAX_DUPLICATE_HEADERS = 1000;
+int MAX_DUPLICATE_HEADERS = 1000;
 int64_t MAX_LOOSE_HEADER_TIME = 120;
 bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
@@ -1625,7 +1629,8 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
             while (pindexWalk && !chainActive.Contains(pindexWalk) && vToFetch.size() <= MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
                 if (!(pindexWalk->nStatus & BLOCK_HAVE_DATA) &&
                         !mapBlocksInFlight.count(pindexWalk->GetBlockHash()) &&
-                        (!IsWitnessEnabled(pindexWalk->pprev, chainparams.GetConsensus()) || State(pfrom->GetId())->fHaveWitness)) {
+                        (!IsWitnessEnabled(pindexWalk->pprev, chainparams.GetConsensus()) || State(pfrom->GetId())->fHaveWitness) &&
+                        !(pindexWalk->nFlags & BLOCK_DELAYED)) {
                     // We don't have this block, and it's not yet in flight.
                     vToFetch.push_back(pindexWalk);
                 }

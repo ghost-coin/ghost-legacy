@@ -9349,49 +9349,48 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBloc
             };
         };
 
-        if (nCT > 0 || nRingCT > 0)
-        {
+        if (nCT > 0 || nRingCT > 0) {
             bool fExisted = mapRecords.count(tx.GetHash()) != 0;
             if (fExisted && !fUpdate) return false;
 
-            if (fExisted || fIsMine || fIsFromMe)
-            {
+            if (fExisted || fIsMine || fIsFromMe) {
                 CTransactionRecord rtx;
                 bool rv = AddToRecord(rtx, tx, pIndex, posInBlock, false);
                 WakeThreadStakeMiner(this); // wallet balance may have changed
                 return rv;
-            };
+            }
 
             return false;
-        };
+        }
 
         bool fExisted = mapWallet.count(tx.GetHash()) != 0;
         if (fExisted && !fUpdate) return false;
-        if (fExisted || fIsMine || fIsFromMe)
-        {
+        if (fExisted || fIsMine || fIsFromMe) {
             // A coinstake txn not linked to a block is being orphaned
-            if (fExisted && tx.IsCoinStake() && !pIndex)
-            {
+            if (fExisted && tx.IsCoinStake() && !pIndex) {
                 uint256 hashTx = tx.GetHash();
                 WalletLogPrintf("Orphaning stake txn: %s\n", hashTx.ToString());
 
                 // If block is later reconnected tx will be unabandoned by AddToWallet
-                if (!AbandonTransaction(hashTx))
+                if (!AbandonTransaction(hashTx)) {
                     WalletLogPrintf("ERROR: %s - Orphaning stake, AbandonTransaction failed for %s\n", __func__, hashTx.ToString());
-            };
+                }
+            }
 
             CWalletTx wtx(this, MakeTransactionRef(tx));
 
-            if (!mapNarr.empty())
+            if (!mapNarr.empty()) {
                 wtx.mapValue.insert(mapNarr.begin(), mapNarr.end());
+            }
 
             // Get merkle branch if transaction was found in a block
-            if (pIndex != nullptr)
+            if (pIndex != nullptr) {
                 wtx.SetMerkleBranch(pIndex, posInBlock);
+            }
             bool rv = AddToWallet(wtx, false);
             WakeThreadStakeMiner(this); // wallet balance may have changed
             return rv;
-        };
+        }
     }
 
     return false;

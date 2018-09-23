@@ -55,12 +55,9 @@ double GetPoSKernelPS()
     double dStakeKernelsTriedAvg = 0;
     int nStakesHandled = 0, nStakesTime = 0;
 
-    while (pindex && nStakesHandled < nPoSInterval)
-    {
-        if (pindex->IsProofOfStake())
-        {
-            if (pindexPrevStake)
-            {
+    while (pindex && nStakesHandled < nPoSInterval) {
+        if (pindex->IsProofOfStake()) {
+            if (pindexPrevStake) {
                 dStakeKernelsTriedAvg += GetDifficulty(pindexPrevStake) * 4294967296.0;
                 nStakesTime += pindexPrevStake->nTime - pindex->nTime;
                 nStakesHandled++;
@@ -72,8 +69,9 @@ double GetPoSKernelPS()
 
     double result = 0;
 
-    if (nStakesTime)
+    if (nStakesTime)  {
         result = dStakeKernelsTriedAvg / nStakesTime;
+    }
 
     //if (IsProtocolV2(nBestHeight))
         result *= Params().GetStakeTimestampMask(nBestHeight) + 1;
@@ -86,41 +84,46 @@ bool CheckStake(CBlock *pblock)
     uint256 proofHash, hashTarget;
     uint256 hashBlock = pblock->GetHash();
 
-    if (!pblock->IsProofOfStake())
+    if (!pblock->IsProofOfStake()) {
         return error("%s: %s is not a proof-of-stake block.", __func__, hashBlock.GetHex());
+    }
 
-    if (!CheckStakeUnique(*pblock, false)) // Check in SignBlock also
+    if (!CheckStakeUnique(*pblock, false)) { // Check in SignBlock also
         return error("%s: %s CheckStakeUnique failed.", __func__, hashBlock.GetHex());
+    }
 
     BlockMap::const_iterator mi = mapBlockIndex.find(pblock->hashPrevBlock);
-    if (mi == mapBlockIndex.end())
+    if (mi == mapBlockIndex.end()) {
         return error("%s: %s prev block not found: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
+    }
 
-    if (!chainActive.Contains(mi->second))
+    if (!chainActive.Contains(mi->second)) {
         return error("%s: %s prev block in active chain: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
+    }
 
     // Verify hash target and signature of coinstake tx
-    CValidationState state;
-    if (!CheckProofOfStake(state, mi->second, *pblock->vtx[0], pblock->nTime, pblock->nBits, proofHash, hashTarget))
-        return error("%s: proof-of-stake checking failed.", __func__);
+    {
+        LOCK(cs_main);
+        CValidationState state;
+        if (!CheckProofOfStake(state, mi->second, *pblock->vtx[0], pblock->nTime, pblock->nBits, proofHash, hashTarget)) {
+            return error("%s: proof-of-stake checking failed.", __func__);
+        }
+        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash()) { // hashbestchain
+            return error("%s: Generated block is stale.", __func__);
+        }
+    }
 
     // debug print
     LogPrintf("CheckStake(): New proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
-    if (LogAcceptCategory(BCLog::POS))
-    {
+    if (LogAcceptCategory(BCLog::POS)) {
         LogPrintf("block %s\n", pblock->ToString());
         LogPrintf("out %s\n", FormatMoney(pblock->vtx[0]->GetValueOut()));
-    };
-
-    {
-        LOCK(cs_main);
-        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash()) // hashbestchain
-            return error("%s: Generated block is stale.", __func__);
     }
 
     std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
-    if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
+    if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr)) {
         return error("%s: Block not accepted.", __func__);
+    }
 
     return true;
 };

@@ -20,6 +20,7 @@ enum eBlockFlags
     BLOCK_FAILED_DUPLICATE_STAKE    = (1 << 3),
     BLOCK_DELAYED                   = (1 << 4),
     BLOCK_ACCEPTED                  = (1 << 5),
+    BLOCK_STAKE_KERNEL_SPENT        = (1 << 6),
 };
 
 /**

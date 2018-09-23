@@ -981,6 +981,13 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
         }
 
         // If no longer abandoned, update
+        if (wtx.IsCoinStake()) { // A coinstake is unabandoned when it's re-attached to a block
+            if (!wtxIn.hashUnset() && wtx.isAbandoned()) {
+                LogPrintf("%s: Unabandoning txn %s\n", __func__, hash.ToString());
+                wtx.hashBlock = wtxIn.hashBlock;
+                fUpdated = true;
+            }
+        } else
         if (wtxIn.hashBlock.IsNull() && wtx.isAbandoned())
         {
             LogPrintf("%s: Unabandoning txn %s\n", __func__, hash.ToString());
