@@ -1380,7 +1380,7 @@ bool IsInitialBlockDownload()
         return true;
     if (fParticlMode
         && (GetNumPeers() < 1
-            || chainActive.Tip()->nHeight < GetNumBlocksOfPeers()))
+            || chainActive.Tip()->nHeight < GetNumBlocksOfPeers()-10))
         return true;
 
     LogPrintf("Leaving InitialBlockDownload (latching to false)\n");
