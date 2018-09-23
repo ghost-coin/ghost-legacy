@@ -1499,18 +1499,6 @@ void static InvalidChainFound(CBlockIndex* pindexNew) EXCLUSIVE_LOCKS_REQUIRED(c
 }
 
 void CChainState::InvalidBlockFound(CBlockIndex *pindex, const CBlock &block, const CValidationState &state) {
-    if (state.GetRejectReason() == "bad-cs-duplicate")  {
-        pindex->SetProofOfStake();
-        pindex->prevoutStake = block.vtx[0]->vin[0].prevout;
-        if (pindex->pprev && pindex->pprev->bnStakeModifier.IsNull()) {
-            LogPrintf("Warning: %s - Previous stake modifier is null.\n", __func__);
-        } else {
-            pindex->bnStakeModifier = ComputeStakeModifierV2(pindex->pprev, pindex->prevoutStake.hash);
-        }
-
-        pindex->nFlags |= BLOCK_FAILED_DUPLICATE_STAKE;
-        setDirtyBlockIndex.insert(pindex);
-    }
 
     if (!state.CorruptionPossible()) {
         pindex->nStatus |= BLOCK_FAILED_VALID;
@@ -1833,28 +1821,27 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
         return DISCONNECT_FAILED;
     }
 
-    if (!fParticlMode)
-    {
+    if (!fParticlMode) {
         if (blockUndo.vtxundo.size() + 1 != block.vtx.size()) {
             error("DisconnectBlock(): block and undo data inconsistent");
             return DISCONNECT_FAILED;
         }
-    } else
-    {
-        if (blockUndo.vtxundo.size() != block.vtx.size())
-        {
+    } else {
+        if (blockUndo.vtxundo.size() != block.vtx.size()) {
             // Count non coinbase txns, this should only happen in early blocks.
             size_t nExpectTxns = 0;
-            for (auto &tx : block.vtx)
-                if (!tx->IsCoinBase())
+            for (auto &tx : block.vtx) {
+                if (!tx->IsCoinBase()) {
                     nExpectTxns++;
+                }
+            }
 
             if (blockUndo.vtxundo.size() != nExpectTxns) {
                 error("DisconnectBlock(): block and undo data inconsistent");
                 return DISCONNECT_FAILED;
-            };
-        };
-    };
+            }
+        }
+    }
 
     int nVtxundo = blockUndo.vtxundo.size()-1;
     // undo transactions in reverse order
@@ -1863,27 +1850,24 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
         const CTransaction &tx = *(block.vtx[i]);
         uint256 hash = tx.GetHash();
 
-        for (const auto &txin : tx.vin)
-        {
-            if (txin.IsAnonInput())
-            {
+        for (const auto &txin : tx.vin) {
+            if (txin.IsAnonInput()) {
                 uint32_t nInputs, nRingSize;
                 txin.GetAnonInfo(nInputs, nRingSize);
                 if (txin.scriptData.stack.size() != 1
                     || txin.scriptData.stack[0].size() != 33 * nInputs) {
                     error("%s: Bad scriptData stack, %s.", __func__, hash.ToString());
                     return DISCONNECT_FAILED;
-                };
+                }
 
                 const std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
-                for (size_t k = 0; k < nInputs; ++k)
-                {
+                for (size_t k = 0; k < nInputs; ++k) {
                     const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
 
                     view.keyImages.push_back(std::make_pair(ki, hash));
-                };
-            };
-        };
+                }
+            }
+        }
 
         bool is_coinbase = tx.IsCoinBase() || tx.IsCoinStake();
 
@@ -1957,46 +1941,46 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
         };
 
 
-        if (fParticlMode)
-        {
+        if (fParticlMode) {
             // restore inputs
-            if (!tx.IsCoinBase())
-            {
-                if (nVtxundo < 0 || nVtxundo >= (int)blockUndo.vtxundo.size())
-                {
+            if (!tx.IsCoinBase()) {
+                if (nVtxundo < 0 || nVtxundo >= (int)blockUndo.vtxundo.size()) {
                     error("DisconnectBlock(): transaction undo data offset out of range.");
                     return DISCONNECT_FAILED;
-                };
+                }
 
                 size_t nExpectUndo = 0;
                 for (const auto &txin : tx.vin)
-                if (!txin.IsAnonInput())
+                if (!txin.IsAnonInput()) {
                     nExpectUndo++;
+                }
 
                 CTxUndo &txundo = blockUndo.vtxundo[nVtxundo--];
-                if (txundo.vprevout.size() != nExpectUndo)
-                {
+                if (txundo.vprevout.size() != nExpectUndo) {
                     error("DisconnectBlock(): transaction and undo data inconsistent");
                     return DISCONNECT_FAILED;
-                };
+                }
 
-                for (unsigned int j = tx.vin.size(); j-- > 0;)
-                {
-                    if (tx.vin[j].IsAnonInput())
+                for (unsigned int j = tx.vin.size(); j-- > 0;) {
+                    if (tx.vin[j].IsAnonInput()) {
                         continue;
+                    }
 
                     const COutPoint &out = tx.vin[j].prevout;
                     int res = ApplyTxInUndo(std::move(txundo.vprevout[j]), view, out);
-                    if (res == DISCONNECT_FAILED) return DISCONNECT_FAILED;
+                    if (res == DISCONNECT_FAILED) {
+                        error("DisconnectBlock(): ApplyTxInUndo failed");
+                        return DISCONNECT_FAILED;
+                    }
                     fClean = fClean && res != DISCONNECT_UNCLEAN;
 
                     const CTxIn input = tx.vin[j];
 
-                    if (fSpentIndex) // undo and delete the spent index
+                    if (fSpentIndex) { // undo and delete the spent index
                         view.spentIndex.push_back(std::make_pair(CSpentIndexKey(input.prevout.hash, input.prevout.n), CSpentIndexValue()));
+                    }
 
-                    if (fAddressIndex)
-                    {
+                    if (fAddressIndex) {
                         const Coin &coin = view.AccessCoin(tx.vin[j].prevout);
                         const CScript *pScript = &coin.out.scriptPubKey;
 
@@ -2004,16 +1988,17 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
                         std::vector<uint8_t> hashBytes;
                         int scriptType = 0;
                         if (!ExtractIndexInfo(pScript, scriptType, hashBytes)
-                            || scriptType == 0)
+                            || scriptType == 0) {
                             continue;
+                        }
 
                         // undo spending activity
                         view.addressIndex.push_back(std::make_pair(CAddressIndexKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), pindex->nHeight, i, hash, j, true), nValue * -1));
                         // restore unspent index
                         view.addressUnspentIndex.push_back(std::make_pair(CAddressUnspentKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), input.prevout.hash, input.prevout.n), CAddressUnspentValue(nValue, *pScript, coin.nHeight)));
-                    }; // if (fAddressIndex)
-                }; // for (unsigned int j = tx.vin.size(); j-- > 0;)
-            };
+                    }
+                }
+            }
         } else
         {
             // Check that all outputs are available and match the outputs in the block itself
@@ -4316,7 +4301,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
  *  in ConnectBlock().
  *  Note that -reindex-chainstate skips the validation that happens here!
  */
-static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, bool accept_block=false)
+static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, bool accept_block=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
     const int64_t nPrevTime = pindexPrev ? pindexPrev->nTime : 0;
@@ -4397,7 +4382,7 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
             // Blocks are connected at end of import / reindex
             // CheckProofOfStake is run again during connectblock
             if (!IsInitialBlockDownload() // checks (!fImporting && !fReindex)
-                && (!accept_block || chainActive.Height() > Params().GetStakeMinConfirmations())
+                && (!accept_block || chainActive.Height() > (int)Params().GetStakeMinConfirmations())
                 && !CheckProofOfStake(state, pindexPrev, *block.vtx[0], block.nTime, block.nBits, hashProof, targetProofOfStake)) {
                 return error("ContextualCheckBlock(): check proof-of-stake failed for block %s\n", block.GetHash().ToString());
             }
@@ -4574,7 +4559,7 @@ bool ProcessDuplicateStakeHeader(CBlockIndex *pindex, NodeId nodeId)
 }
 
 size_t MAX_DELAYED_BLOCKS = 64;
-size_t MAX_DELAY_BLOCK_SECONDS = 180;
+int64_t MAX_DELAY_BLOCK_SECONDS = 180;
 
 class DelayedBlock
 {
@@ -4583,8 +4568,8 @@ public:
         m_time = GetTime();
     }
     int64_t m_time;
-    int m_node_id;
     std::shared_ptr<const CBlock> m_pblock;
+    int m_node_id;
 };
 std::list<DelayedBlock> list_delayed_blocks;
 
@@ -4867,6 +4852,12 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
             setDirtyBlockIndex.insert(pindex);
         }
         return error("%s: %s", __func__, FormatStateMessage(state));
+    }
+
+    if (state.nFlags & BLOCK_STAKE_KERNEL_SPENT && !(state.nFlags & BLOCK_FAILED_DUPLICATE_STAKE)) {
+        if (state.nodeId > -1) {
+            Misbehaving(state.nodeId, 20, "Spent kernel");
+        }
     }
 
     RemoveNodeHeader(pindex->GetBlockHash());

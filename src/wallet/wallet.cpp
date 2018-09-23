@@ -893,6 +893,13 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
         }
 
         // If no longer abandoned, update
+        if (wtx.IsCoinStake()) { // A coinstake is unabandoned when it's re-attached to a block
+            if (!wtxIn.hashUnset() && wtx.isAbandoned()) {
+                LogPrintf("%s: Unabandoning txn %s\n", __func__, hash.ToString());
+                wtx.hashBlock = wtxIn.hashBlock;
+                fUpdated = true;
+            }
+        } else
         if (wtxIn.hashBlock.IsNull() && wtx.isAbandoned())
         {
             LogPrintf("%s: Unabandoning txn %s\n", __func__, hash.ToString());
@@ -1159,13 +1166,12 @@ void CWallet::MarkConflicted(const uint256& hashBlock, const uint256& hashTx)
 }
 
 void CWallet::SyncTransaction(const CTransactionRef& ptx, const CBlockIndex *pindex, int posInBlock, bool update_tx) {
-    if (!AddToWalletIfInvolvingMe(ptx, pindex, posInBlock, update_tx))
-        return; // Not one of ours
-
     auto it = mapWallet.find(ptx->GetHash());
     if (it != mapWallet.end()) {
         it->second.m_cached_height = 0;
     }
+    if (!AddToWalletIfInvolvingMe(ptx, pindex, posInBlock, update_tx))
+        return; // Not one of ours
 
     // If a transaction changes 'conflicted' state, that changes the balance
     // available of the outputs it spends. So force those to be
