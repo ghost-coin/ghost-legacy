@@ -4651,6 +4651,11 @@ bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_mai
     return false;
 }
 
+size_t CountDelayedBlocks() EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    return list_delayed_blocks.size();
+}
+
 
 
 bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex)

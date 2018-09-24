@@ -119,6 +119,8 @@ static UniValue getpeerinfo(const JSONRPCRequest& request)
             "    \"banscore\": n,             (numeric) The ban score\n"
             "    \"synced_headers\": n,       (numeric) The last header we have in common with this peer\n"
             "    \"synced_blocks\": n,        (numeric) The last block we have in common with this peer\n"
+            "    \"duplicate_count\": n,      (numeric) The number of already received blocks or headers sent by this peer\n"
+            "    \"loose_headers\": n,        (numeric) The number of block headers without blocks sent by this peer\n"
             "    \"inflight\": [\n"
             "       n,                        (numeric) The heights of blocks we're currently asking from this peer\n"
             "       ...\n"
@@ -186,6 +188,8 @@ static UniValue getpeerinfo(const JSONRPCRequest& request)
             obj.pushKV("banscore", statestats.nMisbehavior);
             obj.pushKV("synced_headers", statestats.nSyncHeight);
             obj.pushKV("synced_blocks", statestats.nCommonHeight);
+            obj.pushKV("duplicate_count", statestats.nDuplicateCount);
+            obj.pushKV("loose_headers", statestats.nLooseHeadersCount);
             UniValue heights(UniValue::VARR);
             for (int height : statestats.vHeightInFlight) {
                 heights.push_back(height);

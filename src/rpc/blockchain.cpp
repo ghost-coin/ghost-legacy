@@ -1210,6 +1210,8 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
             "  \"headers\": xxxxxx,            (numeric) the current number of headers we have validated\n"
             "  \"bestblockhash\": \"...\",       (string) the hash of the currently best block\n"
             "  \"moneysupply\": xxxxxxx,       (numeric) the total amount of coin in the network\n"
+            "  \"blockindexsize\": xxxxxxx,    (numeric) the total number of block headers indexed\n"
+            "  \"delayedblocks\": xxxxxxx,     (numeric) the number of delayed blocks\n"
             "  \"difficulty\": xxxxxx,         (numeric) the current difficulty\n"
             "  \"mediantime\": xxxxxx,         (numeric) median time for the current best block\n"
             "  \"verificationprogress\": xxxx, (numeric) estimate of verification progress [0..1]\n"
@@ -1261,6 +1263,8 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex());
     if (fParticlMode) {
         obj.pushKV("moneysupply",           ValueFromAmount(chainActive.Tip()->nMoneySupply));
+        obj.pushKV("blockindexsize",        (int)mapBlockIndex.size());
+        obj.pushKV("delayedblocks",         (int)CountDelayedBlocks());
     }
     obj.pushKV("difficulty",            (double)GetDifficulty(chainActive.Tip()));
     PushTime(obj, "mediantime", chainActive.Tip()->GetMedianTimePast());
