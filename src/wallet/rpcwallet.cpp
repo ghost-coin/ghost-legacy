@@ -2188,9 +2188,8 @@ static UniValue listsinceblock(const JSONRPCRequest& request)
     isminefilter filter = ISMINE_SPENDABLE;
 
     if (!request.params[0].isNull() && !request.params[0].get_str().empty()) {
-        uint256 blockId;
+        uint256 blockId(ParseHashV(request.params[0], "blockhash"));
 
-        blockId.SetHex(request.params[0].get_str());
         paltindex = pindex = LookupBlockIndex(blockId);
         if (!pindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
@@ -2343,8 +2342,7 @@ UniValue gettransaction(const JSONRPCRequest& request)
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    uint256 hash(ParseHashV(request.params[0], "txid"));
 
     isminefilter filter = ISMINE_SPENDABLE;
     if(!request.params[1].isNull())
@@ -2434,8 +2432,7 @@ static UniValue abandontransaction(const JSONRPCRequest& request)
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    uint256 hash(ParseHashV(request.params[0], "txid"));
 
     if (!pwallet->mapWallet.count(hash)) {
         if (!IsParticlWallet(pwallet) || !GetParticlWallet(pwallet)->HaveTransaction(hash)) {
@@ -2867,17 +2864,13 @@ static UniValue lockunspent(const JSONRPCRequest& request)
                 {"vout", UniValueType(UniValue::VNUM)},
             });
 
-        const std::string& txid = find_value(o, "txid").get_str();
-        if (!IsHex(txid)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected hex txid");
-        }
-
+        const uint256 txid(ParseHashO(o, "txid"));
         const int nOutput = find_value(o, "vout").get_int();
         if (nOutput < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout must be positive");
         }
 
-        const COutPoint outpt(uint256S(txid), nOutput);
+        const COutPoint outpt(txid, nOutput);
 
         if (IsParticlWallet(pwallet))
         {
@@ -3996,8 +3989,7 @@ static UniValue bumpfee(const JSONRPCRequest& request)
     }
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VOBJ});
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    uint256 hash(ParseHashV(request.params[0], "txid"));
 
     // optional parameters
     CAmount totalFee = 0;

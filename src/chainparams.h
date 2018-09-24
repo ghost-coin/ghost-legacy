@@ -143,7 +143,6 @@ public:
         nCoinYearReward = nCoinYearReward_;
     }
 
-    void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
 protected:
     CChainParams() {}
 
@@ -219,10 +218,5 @@ void ResetParams(std::string sNetworkId, bool fParticlModeIn);
  * mutable handle to regtest params
  */
 CChainParams &RegtestParams();
-
-/**
- * Allows modifying the Version Bits regtest parameters.
- */
-void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
 
 #endif // BITCOIN_CHAINPARAMS_H

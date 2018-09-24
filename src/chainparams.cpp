@@ -11,10 +11,14 @@
 #include <util.h>
 #include <utilstrencodings.h>
 #include <utilmoneystr.h>
+#include <versionbitsinfo.h>
+
+#include <chainparamsimport.h>
 
 #include <assert.h>
 
-#include <chainparamsimport.h>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 int64_t CChainParams::GetCoinYearReward(int64_t nTime) const
 {
@@ -410,13 +414,6 @@ static CBlock CreateGenesisBlockMainNet(uint32_t nTime, uint32_t nNonce, uint32_
 }
 
 
-
-void CChainParams::UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
-{
-    consensus.vDeployments[d].nStartTime = nStartTime;
-    consensus.vDeployments[d].nTimeout = nTimeout;
-}
-
 /**
  * Main network
  */
@@ -726,7 +723,7 @@ public:
  */
 class CRegTestParams : public CChainParams {
 public:
-    CRegTestParams() {
+    explicit CRegTestParams(const ArgsManager& args) {
         strNetworkID = "regtest";
         consensus.nSubsidyHalvingInterval = 150;
         consensus.BIP16Exception = uint256();
@@ -782,8 +779,10 @@ public:
 
         nPruneAfterHeight = 1000;
 
+        UpdateVersionBitsParametersFromArgs(args);
 
         genesis = CreateGenesisBlockRegTest(1487714923, 0, 0x207fffff);
+
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x6cd174536c0ada5bfa3b8fde16b98ae508fff6586f2ee24cf866867098f25907"));
         assert(genesis.hashMerkleRoot == uint256S("0xf89653c7208af2c76a3070d436229fb782acbd065bd5810307995b9982423ce7"));
@@ -857,7 +856,49 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
     }
+
+    /**
+     * Allows modifying the Version Bits regtest parameters.
+     */
+    void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
+    {
+        consensus.vDeployments[d].nStartTime = nStartTime;
+        consensus.vDeployments[d].nTimeout = nTimeout;
+    }
+    void UpdateVersionBitsParametersFromArgs(const ArgsManager& args);
 };
+
+void CRegTestParams::UpdateVersionBitsParametersFromArgs(const ArgsManager& args)
+{
+    if (!args.IsArgSet("-vbparams")) return;
+
+    for (const std::string& strDeployment : args.GetArgs("-vbparams")) {
+        std::vector<std::string> vDeploymentParams;
+        boost::split(vDeploymentParams, strDeployment, boost::is_any_of(":"));
+        if (vDeploymentParams.size() != 3) {
+            throw std::runtime_error("Version bits parameters malformed, expecting deployment:start:end");
+        }
+        int64_t nStartTime, nTimeout;
+        if (!ParseInt64(vDeploymentParams[1], &nStartTime)) {
+            throw std::runtime_error(strprintf("Invalid nStartTime (%s)", vDeploymentParams[1]));
+        }
+        if (!ParseInt64(vDeploymentParams[2], &nTimeout)) {
+            throw std::runtime_error(strprintf("Invalid nTimeout (%s)", vDeploymentParams[2]));
+        }
+        bool found = false;
+        for (int j=0; j < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; ++j) {
+            if (vDeploymentParams[0] == VersionBitsDeploymentInfo[j].name) {
+                UpdateVersionBitsParameters(Consensus::DeploymentPos(j), nStartTime, nTimeout);
+                found = true;
+                LogPrintf("Setting version bits activation parameters for %s to start=%ld, timeout=%ld\n", vDeploymentParams[0], nStartTime, nTimeout);
+                break;
+            }
+        }
+        if (!found) {
+            throw std::runtime_error(strprintf("Invalid deployment (%s)", vDeploymentParams[0]));
+        }
+    }
+}
 
 static std::unique_ptr<CChainParams> globalChainParams;
 
@@ -877,7 +918,7 @@ std::unique_ptr<CChainParams> CreateChainParams(const std::string& chain)
     else if (chain == CBaseChainParams::TESTNET)
         return std::unique_ptr<CChainParams>(new CTestNetParams());
     else if (chain == CBaseChainParams::REGTEST)
-        return std::unique_ptr<CChainParams>(new CRegTestParams());
+        return std::unique_ptr<CChainParams>(new CRegTestParams(gArgs));
     throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
 }
 
@@ -890,20 +931,21 @@ void SelectParams(const std::string& network)
 
 void SetOldParams(std::unique_ptr<CChainParams> &params)
 {
-    if (params->NetworkID() == CBaseChainParams::MAIN)
+    if (params->NetworkID() == CBaseChainParams::MAIN) {
         return ((CMainParams*)params.get())->SetOld();
-    if (params->NetworkID() == CBaseChainParams::REGTEST)
+    }
+    if (params->NetworkID() == CBaseChainParams::REGTEST) {
         return ((CRegTestParams*)params.get())->SetOld();
+    }
 };
 
 void ResetParams(std::string sNetworkId, bool fParticlModeIn)
 {
     // Hack to pass old unit tests
     globalChainParams = CreateChainParams(sNetworkId);
-    if (!fParticlModeIn)
-    {
+    if (!fParticlModeIn) {
         SetOldParams(globalChainParams);
-    };
+    }
 };
 
 /**
@@ -913,9 +955,3 @@ CChainParams &RegtestParams()
 {
     return *globalChainParams.get();
 };
-
-void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
-{
-    globalChainParams->UpdateVersionBitsParameters(d, nStartTime, nTimeout);
-}
-
