@@ -79,6 +79,8 @@ struct CNodeStateStats {
     int nSyncHeight = -1;
     int nCommonHeight = -1;
     std::vector<int> vHeightInFlight;
+    int nDuplicateCount = 0;
+    int nLooseHeadersCount = 0;
 };
 
 bool IncomingBlockChecked(const CBlock &block, CValidationState &state);

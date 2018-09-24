@@ -679,6 +679,8 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
         if (queue.pindex)
             stats.vHeightInFlight.push_back(queue.pindex->nHeight);
     }
+    stats.nDuplicateCount = state->m_duplicate_count;
+    stats.nLooseHeadersCount = (int)state->m_map_loose_headers.size();
     return true;
 }
 
