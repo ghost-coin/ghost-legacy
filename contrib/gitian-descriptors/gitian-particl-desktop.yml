@@ -3,7 +3,7 @@ name: "particl-desktop"
 enable_cache: true
 sudo: true
 suites:
-- "xenial"
+- "bionic"
 architectures:
 - "amd64"
 packages:
