@@ -55,7 +55,8 @@ public:
 
     int CompleteTransaction(CMutableTransaction *tx);
 
-    int LoadMnemonic(const std::string &sMnemonic, std::string &sError) override;
+    int LoadMnemonic(uint32_t wordcount, bool pinprotection, std::string &sError) override;
+    int Backup(std::string &sError);
 
     bool m_preparing = false;
     std::map<int, SignData> m_cache;

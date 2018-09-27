@@ -76,22 +76,60 @@ static usb_device::CUSBDevice *SelectDevice(std::vector<std::unique_ptr<usb_devi
 
 static UniValue deviceloadmnemonic(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
+    if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
-            "getdevicexpub \"path\" (\"accountpath\")\n"
-            "Load mnemonic into hardware device.\n"
+            "deviceloadmnemonic\n"
+            "Start mnemonic loader.\n"
             "\nArguments:\n"
-            "1. \"mnemonic\"              (string, required) The mnemonic to be loaded.\n"
+            "1. \"wordcount\"              (int, optional) Word count of mnemonic (default=12).\n"
+            "2. \"pinprotection\"          (bool, optional) Make the new account the default account for the wallet (default=false).\n"
             "\nExamples\n"
-            + HelpExampleCli("deviceloadmnemonic", "\"mnemonic\""));
+            + HelpExampleCli("deviceloadmnemonic", ""));
+
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
+
+    uint32_t wordcount = 12;
+    if (request.params.size() > 0) {
+        std::string s = request.params[0].get_str();
+        if (s.length() && !ParseUInt32(s, &wordcount)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, _("wordcount invalid number."));
+        }
+    }
+
+    bool pinprotection = false;
+    if (request.params.size() > 1) {
+    	if(request.params[1].get_str() == "true")
+    		pinprotection = true;
+    }
+
+    UniValue result(UniValue::VOBJ);
+    std::string sError;
+    if (0 == pDevice->LoadMnemonic(wordcount, pinprotection, sError)) {
+        result.pushKV("complete", "Device loaded");
+    } else {
+        result.pushKV("error", sError);
+    }
+
+    return result;
+};
+
+static UniValue devicebackup(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 0)
+        throw std::runtime_error(
+            "devicebackup\n"
+            "Backup device.\n"
+            "\nExamples\n"
+            + HelpExampleCli("devicebackup", ""));
 
     std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
     usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
 
     UniValue result(UniValue::VOBJ);
-    std::string sError, sMnemonic = request.params[0].get_str();
-    if (0 == pDevice->LoadMnemonic(sMnemonic, sError)) {
-        result.pushKV("complete", "Device loaded");
+    std::string sError;
+    if (0 == pDevice->Backup(sError)) {
+        result.pushKV("complete", "Device backed up");
     } else {
         result.pushKV("error", sError);
     }
@@ -986,7 +1024,8 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
 static const CRPCCommand commands[] =
 { //  category              name                            actor (function)            argNames
   //  --------------------- ------------------------        -----------------------     ----------
-    { "usbdevice",          "deviceloadmnemonic",           &deviceloadmnemonic,        {"mnemonic"} },
+    { "usbdevice",          "deviceloadmnemonic",           &deviceloadmnemonic,        {"wordcount", "pinprotection"} },
+    { "usbdevice",          "devicebackup",                 &devicebackup,              {} },
     { "usbdevice",          "listdevices",                  &listdevices,               {} },
     { "usbdevice",          "getdeviceinfo",                &getdeviceinfo,             {} },
     { "usbdevice",          "getdevicepublickey",           &getdevicepublickey,        {"path","accountpath"} },
