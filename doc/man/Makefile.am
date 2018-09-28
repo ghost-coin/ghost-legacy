@@ -8,6 +8,10 @@ if ENABLE_QT
   dist_man1_MANS+=particl-qt.1
 endif
 
-if BUILD_BITCOIN_UTILS
-  dist_man1_MANS+=particl-cli.1 particl-tx.1
+if BUILD_BITCOIN_CLI
+  dist_man1_MANS+=particl-cli.1
+endif
+
+if BUILD_BITCOIN_TX
+  dist_man1_MANS+=particl-tx.1
 endif
