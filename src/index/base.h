@@ -72,7 +72,7 @@ protected:
     virtual bool WriteBlock(const CBlock& block, const CBlockIndex* pindex) { return true; }
 
     /// Undo update index entries for a newly connected block.
-    virtual bool EraseBlock(const CBlock& block) { return true; }
+    virtual bool DisconnectBlock(const CBlock& block) { return true; }
 
     virtual DB& GetDB() const = 0;
 

@@ -772,7 +772,7 @@ bool CExtKeyAccount::GetPubKey(const CEKASCKey &asck, CPubKey &pkOut) const
 
 bool CExtKeyAccount::SaveKey(const CKeyID &id, const CEKAKey &keyIn)
 {
-    // TODO: rename? this is taking a key from lookahead and saving it
+    // Take a key from lookahead and save it to the wallet.
     LOCK(cs_account);
     AccKeyMap::const_iterator mi = mapKeys.find(id);
     if (mi != mapKeys.end()) {

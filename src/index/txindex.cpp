@@ -288,7 +288,7 @@ bool TxIndex::WriteBlock(const CBlock& block, const CBlockIndex* pindex)
     return m_db->WriteTxs(vPos);
 }
 
-bool TxIndex::EraseBlock(const CBlock& block)
+bool TxIndex::DisconnectBlock(const CBlock& block)
 {
     if (!m_cs_index) {
         return true;

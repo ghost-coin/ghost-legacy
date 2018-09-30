@@ -33,6 +33,7 @@
 #include <pos/miner.h>
 #include <crypto/sha256.h>
 #include <warnings.h>
+#include <shutdown.h>
 
 #include <univalue.h>
 #include <stdint.h>
@@ -7660,6 +7661,139 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
     return result;
 };
 
+static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file, size_t &num_blocks_removed) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    fs::path tmp_filepath = GetBlocksDir() / strprintf("tmp.dat");
+
+    FILE *fpt = fopen(tmp_filepath.string().c_str(), "w");
+    if (!fpt) {
+        return error("%s: Couldn't open temp file.\n", __func__);
+    }
+    CAutoFile fileout(fpt, SER_DISK, CLIENT_VERSION);
+
+    const CChainParams& chainparams = Params();
+    CBufferedFile blkdat(fp, 2*MAX_BLOCK_SERIALIZED_SIZE, MAX_BLOCK_SERIALIZED_SIZE+8, SER_DISK, CLIENT_VERSION);
+    uint64_t blk_start_pos, nRewind = blkdat.GetPos();
+
+    while (!blkdat.eof()) {
+        boost::this_thread::interruption_point();
+
+        blkdat.SetPos(nRewind);
+        nRewind++; // start one byte further next time, in case of failure
+        blkdat.SetLimit(); // remove former limit
+        unsigned int nSize = 0;
+        try {
+            // locate a header
+            unsigned char buf[CMessageHeader::MESSAGE_START_SIZE];
+            blkdat.FindByte(chainparams.MessageStart()[0]);
+            blk_start_pos = blkdat.GetPos();
+            nRewind = blkdat.GetPos()+1;
+            blkdat >> buf;
+            if (memcmp(buf, chainparams.MessageStart(), CMessageHeader::MESSAGE_START_SIZE))
+                continue;
+            // read size
+            blkdat >> nSize;
+            if (nSize < 80 || nSize > MAX_BLOCK_SERIALIZED_SIZE)
+                continue;
+        } catch (const std::exception&) {
+            // no valid block header found; don't complain
+            break;
+        }
+        try {
+            // read block
+            uint64_t nBlockPos = blkdat.GetPos();
+            blkdat.SetLimit(nBlockPos + nSize);
+            blkdat.SetPos(nBlockPos);
+            std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>();
+            CBlock& block = *pblock;
+            blkdat >> block;
+            uint256 blockhash = block.GetHash();
+            nRewind = blkdat.GetPos();
+
+            num_blocks_in_file++;
+            BlockMap::iterator mi = mapBlockIndex.find(blockhash);
+            if (mi == mapBlockIndex.end()
+                || !chainActive.Contains(mi->second)) {
+                num_blocks_removed++;
+            } else
+            if (!test_only) {
+                fileout << chainparams.MessageStart() << nSize;
+                fileout << block;
+            }
+        } catch (const std::exception& e) {
+            return error("%s: Deserialize or I/O error - %s\n", __func__, e.what());
+        }
+    }
+
+    return true;
+}
+
+static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 1)
+        throw std::runtime_error(
+            "pruneorphanedblocks ( testonly )\n"
+            "\nRemove blocks not in the main chain.\n"
+            "Will shutdown node and cause a reindex at next startup.\n"
+            "WARNING: Experimental feature.\n"
+            "\nArguments:\n"
+            "1. testonly                           (bool, optional, default=true) Apply changes if false.\n"
+            "\nResult:\n"
+            "{\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("pruneorphanedblocks", "\"myhex\"")
+            + HelpExampleRpc("pruneorphanedblocks", "\"myhex\"")
+        );
+
+    bool test_only = request.params.size() > 0 ? GetBool(request.params[0]) : true;
+
+    UniValue files(UniValue::VARR);
+    {
+        LOCK(cs_main);
+        int nFile = 0;
+        FILE *fp;
+        for (;;) {
+            CDiskBlockPos pos(nFile, 0);
+            fs::path blk_filepath = GetBlockPosFilename(pos, "blk");
+            if (!fs::exists(blk_filepath)
+                || !(fp = OpenBlockFile(pos, true)))
+                break;
+            LogPrintf("Pruning block file blk%05u.dat...\n", (unsigned int)nFile);
+            size_t num_blocks_in_file = 0, num_blocks_removed = 0;
+            PruneBlockFile(fp, test_only, num_blocks_in_file, num_blocks_removed);
+
+            if (!test_only) {
+                fs::path tmp_filepath = GetBlocksDir() / strprintf("tmp.dat");
+                if (!RenameOver(tmp_filepath, blk_filepath)) {
+                    LogPrintf("Unable to rename file %s to %s\n", tmp_filepath.string(), blk_filepath.string());
+                    return false;
+                }
+            }
+
+            UniValue obj(UniValue::VOBJ);
+            obj.pushKV("test_mode", test_only);
+            obj.pushKV("filename", GetBlockPosFilename(pos, "blk").string());
+            obj.pushKV("blocks_in_file", (int)num_blocks_in_file);
+            obj.pushKV("blocks_removed", (int)num_blocks_removed);
+            if (test_only) {
+                obj.pushKV("note", "Node is shutting down.");
+            }
+            files.push_back(obj);
+            nFile++;
+        }
+
+    }
+    if (!test_only) {
+        // Force reindex on next startup
+        pblocktree->WriteFlag("v1", false);
+        StartShutdown();
+    }
+
+    UniValue response(UniValue::VOBJ);
+    response.pushKV("files", files);
+    return response;
+};
 static const CRPCCommand commands[] =
 { //  category              name                                actor (function)                argNames
   //  --------------------- ------------------------            -----------------------         ----------
@@ -7725,6 +7859,8 @@ static const CRPCCommand commands[] =
     { "rawtransactions",    "verifycommitment",                 &verifycommitment,              {"commitment","blind","amount"} },
     { "rawtransactions",    "generatematchingblindfactor",      &generatematchingblindfactor,   {"inputs","outputs"} },
     { "rawtransactions",    "verifyrawtransaction",             &verifyrawtransaction,          {"hexstring","prevtxs","options"} },
+
+    { "blockchain",         "pruneorphanedblocks",              &pruneorphanedblocks,           {"testonly"} },
 };
 
 void RegisterHDWalletRPCCommands(CRPCTable &t)
