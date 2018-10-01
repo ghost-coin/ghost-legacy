@@ -1202,8 +1202,13 @@ bool CHDWallet::GetKeyFromPool(CPubKey &key, bool internal)
 
 isminetype CHDWallet::HaveStealthAddress(const CStealthAddress &sxAddr) const
 {
-    AssertLockHeld(cs_wallet);
+    const CExtKeyAccount *pa;
+    const CEKAStealthKey *pask;
+    return IsMine(sxAddr, pa, pask);
+};
 
+isminetype CHDWallet::IsMine(const CStealthAddress &sxAddr, const CExtKeyAccount *&pa, const CEKAStealthKey *&pask) const
+{
     std::set<CStealthAddress>::const_iterator si = stealthAddresses.find(sxAddr);
     if (si != stealthAddresses.end()) {
         isminetype imSpend = IsMine(si->spend_secret_id);
@@ -1219,15 +1224,17 @@ isminetype CHDWallet::HaveStealthAddress(const CStealthAddress &sxAddr) const
     for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi) {
         CExtKeyAccount *ea = mi->second;
 
-        if (ea->mapStealthKeys.size() < 1)
+        if (ea->mapStealthKeys.size() < 1) {
             continue;
+        }
         AccStealthKeyMap::const_iterator it = ea->mapStealthKeys.find(sxId);
         if (it != ea->mapStealthKeys.end()) {
             const CStoredExtKey *sek = ea->GetChain(it->second.akSpend.nParent);
             if (sek) {
+                pa = ea;
+                pask = &it->second;
                 return sek->IsMine();
             }
-
             break;
         }
     }
@@ -1265,8 +1272,9 @@ bool CHDWallet::GetStealthAddressScanKey(CStealthAddress &sxAddr) const
 
 bool CHDWallet::GetStealthAddressSpendKey(CStealthAddress &sxAddr, CKey &key) const
 {
-    if (GetKey(sxAddr.spend_secret_id, key))
+    if (GetKey(sxAddr.spend_secret_id, key)) {
         return true;
+    }
 
     CKeyID sxId = CPubKey(sxAddr.scan_pubkey).GetID();
 
@@ -1404,8 +1412,9 @@ bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address,
         entry->fBech32 = fBech32;
 
         tIsMine = ::IsMine(*this, address);
-        if (!strPurpose.empty()) /* update purpose only if requested */
+        if (!strPurpose.empty()) { /* update purpose only if requested */
             entry->purpose = strPurpose;
+        }
 
         //if (fFileBacked)
         {
@@ -1418,21 +1427,19 @@ bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address,
                     return false;
                 }
             }
-        };
+        }
     }
 
-    if (fNotifyChanged)
-    {
+    if (fNotifyChanged) {
         // Must run without cs_wallet locked
         NotifyAddressBookChanged(this, address, strName, tIsMine != ISMINE_NO, strPurpose, nMode);
 
         if (tIsMine == ISMINE_SPENDABLE
-            && address.type() == typeid(CKeyID))
-        {
+            && address.type() == typeid(CKeyID)) {
             CKeyID id = boost::get<CKeyID>(address);
             smsgModule.WalletKeyChanged(id, strName, nMode);
-        };
-    };
+        }
+    }
 
     return true;
 };
@@ -1455,17 +1462,17 @@ bool CHDWallet::SetAddressBook(const CTxDestination &address, const std::string 
         fOwned = ::IsMine(*this, address) == ISMINE_SPENDABLE;
 
         entry->name = strName;
-        if (!strPurpose.empty())
+        if (!strPurpose.empty()) {
             entry->purpose = strPurpose;
+        }
         entry->fBech32 = fBech32;
     }
 
     if (fOwned
-        && address.type() == typeid(CKeyID))
-    {
+        && address.type() == typeid(CKeyID)) {
         CKeyID id = boost::get<CKeyID>(address);
         smsgModule.WalletKeyChanged(id, strName, nMode);
-    };
+    }
 
     NotifyAddressBookChanged(this, address, strName, ::IsMine(*this, address) != ISMINE_NO,
                              strPurpose, nMode);
@@ -1485,21 +1492,18 @@ bool CHDWallet::DelAddressBook(const CTxDestination &address)
             LOCK(cs_wallet);
 
             std::set<CStealthAddress>::iterator si = stealthAddresses.find(sxAddr);
-            if (si == stealthAddresses.end())
-            {
+            if (si == stealthAddresses.end()) {
                 WalletLogPrintf("%s: Stealth address not found in wallet.\n", __func__);
                 //return false;
-            } else
-            {
+            } else {
                 //fOwned = si->scan_secret.size() < 32 ? false : true;
 
                 if (stealthAddresses.erase(sxAddr) < 1
-                    || !CHDWalletDB(*database).EraseStealthAddress(sxAddr))
-                {
+                    || !CHDWalletDB(*database).EraseStealthAddress(sxAddr)) {
                     WalletLogPrintf("%s: Error: Remove stealthAddresses failed.\n", __func__);
                     return false;
-                };
-            };
+                }
+            }
         }
 
         //NotifyAddressBookChanged(this, address, "", fOwned, "", CT_DELETED);
@@ -1507,17 +1511,16 @@ bool CHDWallet::DelAddressBook(const CTxDestination &address)
     };
 
     if (::IsMine(*this, address) == ISMINE_SPENDABLE
-        && address.type() == typeid(CKeyID))
-    {
+        && address.type() == typeid(CKeyID)) {
         CKeyID id = boost::get<CKeyID>(address);
         smsgModule.WalletKeyChanged(id, "", CT_DELETED);
-    };
+    }
 
     bool fErased = false; // CWallet::DelAddressBook can return false
     //if (fFileBacked)
     {
         fErased = CHDWalletDB(*database).EraseAddressBookEntry(CBitcoinAddress(address).ToString()) ? true : fErased;
-    };
+    }
     fErased = CWallet::DelAddressBook(address) ? true : fErased;
 
     return fErased;
@@ -1529,18 +1532,16 @@ int64_t CHDWallet::GetOldestActiveAccountTime()
 
     int64_t nTime = GetTime();
 
-    for (const auto &mi : mapExtAccounts)
-    {
+    for (const auto &mi : mapExtAccounts) {
         CExtKeyAccount *pa = mi.second;
         mapEKValue_t::iterator mvi = pa->mapValue.find(EKVT_CREATED_AT);
-        if (mvi != pa->mapValue.end())
-        {
+        if (mvi != pa->mapValue.end()) {
             int64_t nCreatedAt;
             GetCompressedInt64(mvi->second, (uint64_t&)nCreatedAt);
             if (nTime > nCreatedAt)
                 nTime = nCreatedAt;
-        };
-    };
+        }
+    }
 
     return nTime;
 };
@@ -1566,70 +1567,78 @@ std::map<CTxDestination, CAmount> CHDWallet::GetAddressBalances()
 
     {
         LOCK(cs_wallet);
-        for (const auto& walletEntry : mapWallet)
-        {
+        for (const auto& walletEntry : mapWallet) {
             const CWalletTx *pcoin = &walletEntry.second;
 
-            if (!pcoin->IsTrusted())
+            if (!pcoin->IsTrusted()) {
                 continue;
+            }
 
-            if (pcoin->IsImmatureCoinBase())
+            if (pcoin->IsImmatureCoinBase()) {
                 continue;
+            }
 
             int nDepth = pcoin->GetDepthInMainChain();
-            if (nDepth < (pcoin->IsFromMe(ISMINE_ALL) ? 0 : 1))
+            if (nDepth < (pcoin->IsFromMe(ISMINE_ALL) ? 0 : 1)) {
                 continue;
+            }
 
-            for (unsigned int i = 0; i < pcoin->tx->GetNumVOuts(); i++)
-            {
+            for (unsigned int i = 0; i < pcoin->tx->GetNumVOuts(); i++) {
                 const auto &txout = pcoin->tx->vpout[i];
-                if (!txout->IsType(OUTPUT_STANDARD))
+                if (!txout->IsType(OUTPUT_STANDARD)) {
                     continue;
-                if (!IsMine(txout.get()))
+                }
+                if (!IsMine(txout.get())) {
                     continue;
+                }
 
                 CTxDestination addr;
-                if (!ExtractDestination(*txout->GetPScriptPubKey(), addr))
+                if (!ExtractDestination(*txout->GetPScriptPubKey(), addr)) {
                     continue;
+                }
 
                 CAmount n = IsSpent(walletEntry.first, i) ? 0 : txout->GetValue();
 
-                if (!balances.count(addr))
+                if (!balances.count(addr)) {
                     balances[addr] = 0;
+                }
                 balances[addr] += n;
             }
         }
 
-        for (const auto &ri : mapRecords)
-        {
+        for (const auto &ri : mapRecords) {
             const uint256 &txhash = ri.first;
             const CTransactionRecord &rtx = ri.second;
 
-            if (!IsTrusted(txhash, rtx.blockHash, rtx.nIndex))
+            if (!IsTrusted(txhash, rtx.blockHash, rtx.nIndex)) {
                 continue;
+            }
 
-            for (const auto &r : rtx.vout)
-            {
+            for (const auto &r : rtx.vout) {
                 if (r.nType != OUTPUT_STANDARD
                     && r.nType != OUTPUT_CT
-                    && r.nType != OUTPUT_RINGCT)
+                    && r.nType != OUTPUT_RINGCT) {
                     continue;
+                }
 
-                if (!(r.nFlags & ORF_OWNED))
+                if (!(r.nFlags & ORF_OWNED)) {
                     continue;
+                }
 
                 CTxDestination addr;
-                if (!ExtractDestination(r.scriptPubKey, addr))
+                if (!ExtractDestination(r.scriptPubKey, addr)) {
                     continue;
+                }
 
                 CAmount n =  IsSpent(txhash, r.n) ? 0 : r.nValue;
 
                 std::pair<std::map<CTxDestination, CAmount>::iterator, bool> ret;
                 ret = balances.insert(std::pair<CTxDestination, CAmount>(addr, n));
-                if (!ret.second) // update existing record
+                if (!ret.second) { // update existing record
                     ret.first->second += n;
-            };
-        };
+                }
+            }
+        }
     }
 
     return balances;
@@ -1641,41 +1650,39 @@ std::set< std::set<CTxDestination> > CHDWallet::GetAddressGroupings()
     std::set< std::set<CTxDestination> > groupings;
     std::set<CTxDestination> grouping;
 
-    for (const auto& walletEntry : mapWallet)
-    {
+    for (const auto& walletEntry : mapWallet) {
         const CWalletTx *pcoin = &walletEntry.second;
 
-        if (pcoin->tx->vin.size() > 0)
-        {
+        if (pcoin->tx->vin.size() > 0) {
             bool any_mine = false;
             // group all input addresses with each other
-            for (CTxIn txin : pcoin->tx->vin)
-            {
+            for (CTxIn txin : pcoin->tx->vin) {
                 const CScript *pScript = nullptr;
                 CTxDestination address;
 
                 MapRecords_t::const_iterator mri;
                 MapWallet_t::const_iterator mi = mapWallet.find(txin.prevout.hash);
-                if (mi != mapWallet.end())
-                {
+                if (mi != mapWallet.end()) {
                     const CWalletTx &prev = mi->second;
-                    if (txin.prevout.n < prev.tx->vpout.size())
+                    if (txin.prevout.n < prev.tx->vpout.size()) {
                         pScript = prev.tx->vpout[txin.prevout.n]->GetPScriptPubKey();
+                    }
                 } else
-                if ((mri = mapRecords.find(txin.prevout.hash)) != mapRecords.end())
-                {
+                if ((mri = mapRecords.find(txin.prevout.hash)) != mapRecords.end()) {
                     const COutputRecord *oR = mri->second.GetOutput(txin.prevout.n);
-                    if (oR && (oR->nFlags & ORF_OWNED))
+                    if (oR && (oR->nFlags & ORF_OWNED)) {
                         pScript = &oR->scriptPubKey;
-                } else
-                {
+                    }
+                } else {
                     // If this input isn't mine, ignore it
                     continue;
-                };
-                if (!pScript)
+                }
+                if (!pScript) {
                     continue;
-                if(!ExtractDestination(*pScript, address))
+                }
+                if(!ExtractDestination(*pScript, address)) {
                     continue;
+                }
                 grouping.insert(address);
                 any_mine = true;
             }
@@ -1722,19 +1729,19 @@ std::set< std::set<CTxDestination> > CHDWallet::GetAddressGroupings()
 
     std::set< std::set<CTxDestination>* > uniqueGroupings; // a set of pointers to groups of addresses
     std::map< CTxDestination, std::set<CTxDestination>* > setmap;  // map addresses to the unique group containing it
-    for (std::set<CTxDestination> _grouping : groupings)
-    {
+    for (std::set<CTxDestination> _grouping : groupings) {
         // make a set of all the groups hit by this new group
         std::set< std::set<CTxDestination>* > hits;
         std::map< CTxDestination, std::set<CTxDestination>* >::iterator it;
-        for (CTxDestination address : _grouping)
-            if ((it = setmap.find(address)) != setmap.end())
+        for (CTxDestination address : _grouping) {
+            if ((it = setmap.find(address)) != setmap.end()) {
                 hits.insert((*it).second);
+            }
+        }
 
         // merge all hit groups into a new single group and delete old groups
         std::set<CTxDestination>* merged = new std::set<CTxDestination>(_grouping);
-        for (std::set<CTxDestination>* hit : hits)
-        {
+        for (std::set<CTxDestination>* hit : hits) {
             merged->insert(hit->begin(), hit->end());
             uniqueGroupings.erase(hit);
             delete hit;
@@ -1742,13 +1749,13 @@ std::set< std::set<CTxDestination> > CHDWallet::GetAddressGroupings()
         uniqueGroupings.insert(merged);
 
         // update setmap
-        for (CTxDestination element : *merged)
+        for (CTxDestination element : *merged) {
             setmap[element] = merged;
+        }
     }
 
     std::set< std::set<CTxDestination> > ret;
-    for (std::set<CTxDestination>* uniqueGrouping : uniqueGroupings)
-    {
+    for (std::set<CTxDestination>* uniqueGrouping : uniqueGroupings) {
         ret.insert(*uniqueGrouping);
         delete uniqueGrouping;
     }
@@ -1764,29 +1771,28 @@ isminetype CHDWallet::IsMine(const CTxIn& txin) const
 
     LOCK(cs_wallet);
     MapWallet_t::const_iterator mi = mapWallet.find(txin.prevout.hash);
-    if (mi != mapWallet.end())
-    {
+    if (mi != mapWallet.end()) {
         const CWalletTx &prev = (*mi).second;
-        if (txin.prevout.n < prev.tx->vpout.size())
+        if (txin.prevout.n < prev.tx->vpout.size()) {
             return IsMine(prev.tx->vpout[txin.prevout.n].get());
-    };
+        }
+    }
 
     MapRecords_t::const_iterator mri = mapRecords.find(txin.prevout.hash);
-    if (mri != mapRecords.end())
-    {
+    if (mri != mapRecords.end()) {
         const COutputRecord *oR = mri->second.GetOutput(txin.prevout.n);
 
-        if (oR)
-        {
-            if (oR->nFlags & ORF_OWNED)
+        if (oR) {
+            if (oR->nFlags & ORF_OWNED) {
                 return ISMINE_SPENDABLE;
+            }
             /* TODO
             if ((filter & ISMINE_WATCH_ONLY)
                 && (oR->nFlags & ORF_WATCH_ONLY))
                 return ISMINE_WATCH_ONLY;
             */
-        };
-    };
+        }
+    }
 
     return ISMINE_NO;
 };
@@ -1794,24 +1800,24 @@ isminetype CHDWallet::IsMine(const CTxIn& txin) const
 isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
     const CEKAKey *&pak, const CEKASCKey *&pasc, CExtKeyAccount *&pa, bool &isInvalid, SigVersion sigversion) const
 {
-    if (scriptPubKey.StartsWithICS())
-    {
+    if (scriptPubKey.StartsWithICS()) {
         CScript scriptA, scriptB;
-        if (!SplitConditionalCoinstakeScript(scriptPubKey, scriptA, scriptB))
+        if (!SplitConditionalCoinstakeScript(scriptPubKey, scriptA, scriptB)) {
             return ISMINE_NO;
+        }
 
         isminetype typeB = IsMine(scriptB, keyID, pak, pasc, pa, isInvalid, sigversion);
-        if (typeB & ISMINE_SPENDABLE)
+        if (typeB & ISMINE_SPENDABLE) {
             return typeB;
+        }
 
         isminetype typeA = IsMine(scriptA, keyID, pak, pasc, pa, isInvalid, sigversion);
-        if (typeA & ISMINE_SPENDABLE)
-        {
+        if (typeA & ISMINE_SPENDABLE) {
             int ia = (int)typeA;
             ia &= ~ISMINE_SPENDABLE;
             ia |= ISMINE_WATCH_COLDSTAKE;
             typeA = (isminetype)ia;
-        };
+        }
 
         return (isminetype)((int)typeA | (int)typeB);
     };

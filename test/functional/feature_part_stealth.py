@@ -42,6 +42,9 @@ class StealthTest(ParticlTestFramework):
         ro = nodes[1].getaddressinfo(sxAddrTo1)
         assert(ro['ismine'] == True)
         assert(ro['isstealthaddress'] == True)
+        assert(ro['account'] == 'ahL1QdHhzNCtZWJzv36ScfPipJP1cUzAD8')
+        assert(ro['scan_path'] == "m/0'/0'")
+        assert(ro['spend_path'] == "m/0'/1'")
 
         txnHash = nodes[0].sendtoaddress(sxAddrTo1, 1)
         txnHashes.append(txnHash)

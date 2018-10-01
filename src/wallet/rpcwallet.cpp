@@ -4464,7 +4464,30 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
         } else
         if (dest.type() == typeid(CStealthAddress)) {
             const CStealthAddress &sxAddr = boost::get<CStealthAddress>(dest);
-            mine = phdw->HaveStealthAddress(sxAddr);
+            const CExtKeyAccount *pa = nullptr;
+            const CEKAStealthKey *pask = nullptr;
+            mine = phdw->IsMine(sxAddr, pa, pask);
+            if (pa && pask) {
+                ret.pushKV("account", pa->GetIDString58());
+                CStoredExtKey *sek = pa->GetChain(pask->nScanParent);
+                std::string sPath;
+                if (sek) {
+                    std::vector<uint32_t> vPath;
+                    AppendChainPath(sek, vPath);
+                    vPath.push_back(pask->nScanKey);
+                    PathToString(vPath, sPath);
+                    ret.pushKV("scan_path", sPath);
+                }
+                sek = pa->GetChain(pask->akSpend.nParent);
+                if (sek) {
+                    std::vector<uint32_t> vPath;
+                    AppendChainPath(sek, vPath);
+                    vPath.push_back(pask->akSpend.nKey);
+                    PathToString(vPath, sPath);
+                    ret.pushKV("spend_path", sPath);
+                }
+            }
+
         } else
         if (dest.type() == typeid(CKeyID)
             || dest.type() == typeid(CKeyID256)) {
