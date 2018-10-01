@@ -38,6 +38,7 @@
 #include <univalue.h>
 #include <stdint.h>
 
+#include <boost/thread.hpp>
 
 
 static void EnsureWalletIsUnlocked(CHDWallet *pwallet)

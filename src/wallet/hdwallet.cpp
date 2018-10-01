@@ -554,10 +554,12 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
                 if (mi != mapAddressBook.end()) {
                     // TODO: confirm vPath?
 
-                    if (mi->second.name != sxPacked.aks.sLabel)
+                    if (mi->second.name != sxPacked.aks.sLabel) {
                         sxAddr.pushKV("addr_book_label", mi->second.name);
-                    if (!mi->second.purpose.empty())
+                    }
+                    if (!mi->second.purpose.empty()) {
                         sxAddr.pushKV("purpose", mi->second.purpose);
+                    }
 
                     UniValue objDestData(UniValue::VOBJ);
                     for (const auto &pair : mi->second.destdata) {
