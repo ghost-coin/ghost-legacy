@@ -5736,9 +5736,10 @@ bool TryAutoReindex()
 {
     // Force reindex to update version
     bool nV1 = false;
-    if (!pblocktree->ReadFlag("v1", nV1) || !nV1)
+    if (!pblocktree->ReadFlag("v1", nV1) || !nV1) {
+        LogPrintf("%s: v1 Marker not detected, attempting reindex.\n", __func__);
         return true;
-    LogPrintf("%s: v1 Marker not detected, attempting reindex.\n", __func__);
+    }
     return false;
 };
 
