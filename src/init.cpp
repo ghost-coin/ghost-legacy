@@ -1601,13 +1601,12 @@ bool AppInitMain()
                 pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
 
                 // Automatically start reindexing if necessary
-                if (!fReset && TryAutoReindex())
-                {
+                if (!fReset && TryAutoReindex()) {
                     fReindex = true;
                     fReset = true;
                     pblocktree.reset();
                     pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
-                };
+                }
 
                 if (fReset) {
                     pblocktree->WriteReindexing(true);

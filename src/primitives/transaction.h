@@ -115,8 +115,8 @@ public:
     COutPoint prevout;
     CScript scriptSig;
     uint32_t nSequence;
-    CScriptWitness scriptData; // Non prunable
-    CScriptWitness scriptWitness; //! Only serialized through CTransaction
+    CScriptWitness scriptData; //!< Non prunable
+    CScriptWitness scriptWitness; //!< Only serialized through CTransaction
 
     /* Setting nSequence to this value for every input in a transaction
      * disables nLockTime. */
