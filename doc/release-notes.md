@@ -1,8 +1,8 @@
 ## (note: this is a temporary file, to be added-to by anybody, and moved to release-notes at release time)
 
-Bitcoin Core version 0.16.0 is now available from:
+Bitcoin Core version 0.17.x is now available from:
 
-  <https://bitcoincore.org/bin/bitcoin-core-0.16.0/>
+  <https://bitcoincore.org/bin/bitcoin-core-0.17.x/>
 
 This is a new major version release, including new features, various bugfixes
 and performance improvements, as well as updated translations.
@@ -22,6 +22,8 @@ If you are running an older version, shut it down. Wait until it has completely
 shut down (which might take a few minutes for older versions), then run the
 installer (on Windows) or just copy over `/Applications/Bitcoin-Qt` (on Mac)
 or `bitcoind`/`bitcoin-qt` (on Linux).
+
+If your node has a txindex, the txindex db will be migrated the first time you run 0.17.0 or newer, which may take up to a few hours. Your node will not be functional until this migration completes.
 
 The first time you run version 0.15.0 or newer, your chainstate database will be converted to a
 new format, which will take anywhere from a few minutes to half an hour,
@@ -51,117 +53,30 @@ frequently tested on them.
 From 0.17.0 onwards macOS <10.10 is no longer supported. 0.17.0 is built using Qt 5.9.x, which doesn't
 support versions of macOS older than 10.10.
 
+Known issues
+============
+
+...
+
 Notable changes
 ===============
 
-Example item
-------------
+...
+
+0.17.x change log
+=================
+
+...
 
 Credits
 =======
 
 Thanks to everyone who directly contributed to this release:
 
-- 251
-- Aaron Clauson
-- Aaron Golliver
-- aaron-hanson
-- Adam Langley
-- Akio Nakamura
-- Akira Takizawa
-- Alejandro Avilés
-- Alex Morcos
-- Alin Rus
-- Anditto Heristyo
-- Andras Elso
-- Andreas Schildbach
-- Andrew Chow
-- Anthony Towns
-- azuchi
-- Carl Dong
-- Chris Moore
-- Chris Stewart
-- Christian Gentry
-- Cory Fields
-- Cristian Mircea Messel
-- CryptAxe
-- Dan Raviv
-- Daniel Edgecumbe
-- danra
-- david60
-- Donal O'Connor
-- dongsamb
-- Dusty Williams
-- Eelis
-- esneider
-- Evan Klitzke
-- fanquake
-- Ferdinando M. Ametrano
-- fivepiece
-- flack
-- Florian Schmaus
-- gnuser
-- Gregory Maxwell
-- Gregory Sanders
-- Henrik Jonsson
-- Jack Grigg
-- Jacky C
-- James Evans
-- James O'Beirne
-- Jan Sarenik
-- Jeff Rade
-- Jeremiah Buddenhagen
-- Jeremy Rubin
-- Jim Posen
-- jjz
-- Joe Harvell
-- Johannes Kanig
-- John Newbery
-- Johnson Lau
-- Jonas Nick
-- Jonas Schnelli
-- João Barbosa
-- Jorge Timón
-- Karel Bílek
-- Karl-Johan Alm
-- klemens
-- Kyuntae Ethan Kim
-- laudaa
-- Lawrence Nahum
-- Lucas Betschart
-- Luke Dashjr
-- Luke Mlsna
-- MarcoFalke
-- Mark Friedenbach
-- Marko Bencun
-- Martin Ankerl
-- Matt Corallo
-- mruddy
-- Murch
-- NicolasDorier
-- Pablo Fernandez
-- Paul Berg
-- Pedro Branco
-- Pierre Rochard
-- Pieter Wuille
-- practicalswift
-- Randolf Richardson
-- Russell Yanofsky
-- Samuel Dobson
-- Sean Erle Johnson
-- Shooter
-- Sjors Provoost
-- Suhas Daftuar
-- Thomas Snider
-- Thoragh
-- Tim Shimmin
-- Tomas van der Wansem
-- Utsav Gupta
-- Varunram Ganesh
-- Vivek Ganesan
-- Werner Lemberg
-- William Casarin
-- Willy Ko
-- Wladimir J. van der Laan
+...
+
+And to those that reported security issues:
+
+...
 
 As well as everyone that helped translating on [Transifex](https://www.transifex.com/projects/p/bitcoin/).
