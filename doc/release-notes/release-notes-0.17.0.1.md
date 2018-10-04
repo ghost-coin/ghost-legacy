@@ -1,4 +1,4 @@
-Particl Core version 0.17.0.1 is now available from:
+Particl Core version 0.17.0.1 is now available:
 
 This is a new major version release, including new features, various bugfixes
 and performance improvements, as well as updated translations.
@@ -13,21 +13,16 @@ or `particld`/`particl-qt` (on Linux).
 
 If your node has a txindex, the txindex db will be migrated the first time you run 0.17.0 or newer, which may take up to a few hours. Your node will not be functional until this migration completes.
 
-The first time you run version 0.15.0 or newer, your chainstate database will be converted to a
+The first time you run version 0.16.1.0 or newer, your chainstate database will be converted to a
 new format, which will take anywhere from a few minutes to half an hour,
 depending on the speed of your machine.
-
-Note that the block database format also changed in version 0.8.0 and there is no
-automatic upgrade code from before version 0.8 to version 0.15.0. Upgrading
-directly from 0.7.x and earlier without redownloading the blockchain is not supported.
-However, as usual, old wallet versions are still supported.
 
 Downgrading warning
 -------------------
 
 The chainstate database for this release is not compatible with previous
-releases, so if you run 0.15 and then decide to switch back to any
-older version, you will need to run the old release with the `-reindex-chainstate`
+releases, so if you run 0.16.1.0 and then decide to switch back to any
+older version, you will need to run the old release with the `-reindex`
 option to rebuild the chainstate data structures in the old format.
 
 If your node has pruning enabled, this will entail re-downloading and
