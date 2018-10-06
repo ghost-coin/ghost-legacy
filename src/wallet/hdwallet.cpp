@@ -261,6 +261,14 @@ bool CHDWallet::Initialise()
     return true;
 };
 
+static void AppendError(std::string &sError, std::string s)
+{
+    if (!sError.empty()) {
+        sError += "\n";
+    }
+    sError += s;
+};
+
 bool CHDWallet::ProcessStakingSettings(std::string &sError)
 {
     LogPrint(BCLog::HDWALLET, "%s ProcessStakingSettings\n", GetDisplayName());
@@ -277,46 +285,46 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
         if (!json["enabled"].isNull()) {
             try { fStakingEnabled = GetBool(json["enabled"]);
             } catch (std::exception &e) {
-                sError = "Setting \"enabled\" failed.";
+                AppendError(sError, "Setting \"enabled\" failed.");
             }
         }
 
         if (!json["stakecombinethreshold"].isNull()) {
             try { nStakeCombineThreshold = AmountFromValue(json["stakecombinethreshold"]);
             } catch (std::exception &e) {
-                sError = "\"stakecombinethreshold\" not amount.";
+                AppendError(sError, "\"stakecombinethreshold\" not an amount.");
             }
         }
 
         if (!json["stakesplitthreshold"].isNull()) {
             try { nStakeSplitThreshold = AmountFromValue(json["stakesplitthreshold"]);
             } catch (std::exception &e) {
-                sError = "\"stakesplitthreshold\" not amount.";
+                AppendError(sError, "\"stakesplitthreshold\" not an amount.");
             }
         }
 
         if (!json["foundationdonationpercent"].isNull()) {
             try { nWalletDevFundCedePercent = json["foundationdonationpercent"].get_int();
             } catch (std::exception &e) {
-                sError = "\"foundationdonationpercent\" not integer.";
+                AppendError(sError, "\"foundationdonationpercent\" not an integer.");
             }
         }
 
-        if (json["rewardaddress"].isStr()) {
+        if (!json["rewardaddress"].isNull()) {
             try { rewardAddress = CBitcoinAddress(json["rewardaddress"].get_str());
             } catch (std::exception &e) {
-                sError = "Setting \"rewardaddress\" failed.";
+                AppendError(sError, "Setting \"rewardaddress\" failed.");
             }
         }
     }
 
     if (nStakeCombineThreshold < 100 * COIN || nStakeCombineThreshold > 5000 * COIN) {
-        sError = "\"stakecombinethreshold\" must be >= 100 and <= 5000.";
+        AppendError(sError, "\"stakecombinethreshold\" must be >= 100 and <= 5000.");
         nStakeCombineThreshold = 1000 * COIN;
     }
 
     if (nStakeSplitThreshold < nStakeCombineThreshold * 2 || nStakeSplitThreshold > 10000 * COIN) {
-        sError = "\"stakesplitthreshold\" must be >= 2x \"stakecombinethreshold\" and <= 10000.";
+        AppendError(sError, "\"stakesplitthreshold\" must be >= 2x \"stakecombinethreshold\" and <= 10000.");
         nStakeSplitThreshold = nStakeCombineThreshold * 2;
     }
 
@@ -345,19 +353,19 @@ bool CHDWallet::ProcessWalletSettings(std::string &sError)
         if (!json["mode"].isNull()) {
             try { m_collapse_spent_mode = json["mode"].get_int();
             } catch (std::exception &e) {
-                sError = "\"mode\" not integer.";
+                AppendError(sError, "\"mode\" not integer.");
             }
         }
         if (!json["mindepth"].isNull()) {
             try { m_min_collapse_depth = json["mindepth"].get_int();
             } catch (std::exception &e) {
-                sError = "\"mode\" not integer.";
+                AppendError(sError, "\"mode\" not integer.");
             }
         }
     }
 
     if (m_min_collapse_depth < 2) {
-        sError = "\"mindepth\" must be >= 2.";
+        AppendError(sError, "\"mindepth\" must be >= 2.");
         m_min_collapse_depth = 2;
     }
 
@@ -1389,6 +1397,7 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
         LoadStealthAddresses();
         PrepareLookahead(); // Must happen after ExtKeyLoadAccountPacks
     }
+
     return CWallet::LoadWallet(fFirstRunRet);
 }
 
@@ -11587,7 +11596,6 @@ bool CHDWallet::GetSetting(const std::string &setting, UniValue &json)
     if (!json.read(sJson)) {
         return false;
     }
-
     return true;
 };
 
@@ -11595,7 +11603,7 @@ bool CHDWallet::SetSetting(const std::string &setting, const UniValue &json)
 {
     LOCK(cs_wallet);
 
-    CHDWalletDB wdb(*database, "r+");
+    CHDWalletDB wdb(*database, "w");
 
     std::string sJson = json.write();
 
@@ -11610,7 +11618,7 @@ bool CHDWallet::EraseSetting(const std::string &setting)
 {
     LOCK(cs_wallet);
 
-    CHDWalletDB wdb(*database, "r+");
+    CHDWalletDB wdb(*database, "w");
 
     if (!wdb.EraseWalletSetting(setting)) {
         return false;
