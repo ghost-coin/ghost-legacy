@@ -5776,6 +5776,8 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 result.pushKV("error", sError);
                 if (fHaveOldSetting) {
                     pwallet->SetSetting(sSetting, jsonOld);
+                } else {
+                    pwallet->EraseSetting(sSetting);
                 }
             }
 

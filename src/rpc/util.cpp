@@ -156,14 +156,17 @@ UniValue DescribeAddress(const CTxDestination& dest)
 
 bool GetBool(const UniValue &uv)
 {
-    if (uv.isBool())
+    if (uv.isBool()) {
         return uv.get_bool();
-    if (!uv.isStr())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Not a boolean or string value.");
+    }
+    if (!uv.isStr()) {
+        throw std::runtime_error("Not a boolean or string value.");
+    }
     std::string s = uv.get_str();
     bool rv;
-    if (!part::GetStringBool(s, rv))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "String not a boolean value.");
+    if (!part::GetStringBool(s, rv)) {
+        throw std::runtime_error("String not a boolean value.");
+    }
     return rv;
 };
 
