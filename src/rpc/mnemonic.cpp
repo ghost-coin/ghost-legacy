@@ -43,7 +43,7 @@ int GetLanguageOffset(std::string sIn)
 
 UniValue mnemonic(const JSONRPCRequest &request)
 {
-    static const char *help = ""
+    std::string help = ""
         "mnemonic new|decode|addchecksum|dumpwords|listlanguages\n"
         "mnemonic new ( \"password\" language nBytesEntropy bip44 )\n"
         "    Generate a new extended key and mnemonic\n"
@@ -62,7 +62,10 @@ UniValue mnemonic(const JSONRPCRequest &request)
         "    language, default english\n"
          "mnemonic listlanguages\n"
         "    Print list of supported languages.\n"
-        "\n";
+        "\nExamples:\n"
+        + HelpExampleCli("mnemonic", "\"new\" \"my pass phrase\" french 64 true") +
+        "\nAs a JSON-RPC call\n"
+        + HelpExampleRpc("smsgpurge", "\"new\", \"my pass phrase\", french, 64, true");
 
     if (request.fHelp || request.params.size() > 5) { // defaults to info, will always take at least 1 parameter
         throw std::runtime_error(help);

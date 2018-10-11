@@ -110,7 +110,8 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
             "  }\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("getaddressmempool", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'")
+            + HelpExampleCli("getaddressmempool", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressmempool", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
         );
 
@@ -185,7 +186,8 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
             "  }\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("getaddressutxos", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'")
+            + HelpExampleCli("getaddressutxos", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressutxos", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
         );
 
@@ -276,7 +278,8 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
             "  }\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("getaddressdeltas", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'")
+            + HelpExampleCli("getaddressdeltas", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressdeltas", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
         );
 
@@ -396,7 +399,8 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
             "  \"received\"  (string) The total number of satoshis received (including change)\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("getaddressbalance", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'")
+            + HelpExampleCli("getaddressbalance", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressbalance", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
         );
 
@@ -457,7 +461,8 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
             "  ,...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("getaddresstxids", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'")
+            + HelpExampleCli("getaddresstxids", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddresstxids", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
         );
 
@@ -539,7 +544,8 @@ UniValue getspentinfo(const JSONRPCRequest& request)
             "  ,...\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("getspentinfo", "'{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}'")
+            + HelpExampleCli("getspentinfo", "'{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}'") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getspentinfo", "{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}")
         );
 
@@ -769,8 +775,9 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
             "  }\n"
             "]\n"
             "\nExamples:\n"
+            + HelpExampleCli("getblockhashes", "1231614698 1231024505 '{\"noOrphans\":false, \"logicalTimes\":true}'") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getblockhashes", "1231614698, 1231024505")
-            + HelpExampleCli("getblockhashes", "1231614698 1231024505 '{\"noOrphans\":false, \"logicalTimes\":true}'")
             );
 
     unsigned int high = request.params[0].get_int();
@@ -832,7 +839,8 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
             "  \"bestblock\": \"hex\",   (string) the best block hash hex\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("gettxoutsetinfobyscript", "")
+            + HelpExampleCli("gettxoutsetinfobyscript", "") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("gettxoutsetinfobyscript", "")
         );
 
@@ -974,7 +982,8 @@ UniValue getblockreward(const JSONRPCRequest& request)
             "  ]\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("getblockreward", "1000")
+            + HelpExampleCli("getblockreward", "1000") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getblockreward", "1000")
         );
 
@@ -1101,7 +1110,8 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
             " } ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("listcoldstakeunspent", "\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\" 1000")
+            + HelpExampleCli("listcoldstakeunspent", "\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\" 1000") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("listcoldstakeunspent", "\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\", 1000")
         );
 

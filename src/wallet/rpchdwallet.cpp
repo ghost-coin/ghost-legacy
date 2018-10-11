@@ -1583,7 +1583,8 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
         "6. scan_chain_from:        (int, optional) Scan for transactions in blocks after timestamp, negative number to skip (default=0).\n"
         "\nExamples:\n"
         + HelpExampleCli("extkeyimportmaster", "-stdin -stdin false \"label_master\" \"label_account\"")
-        + HelpExampleCli("extkeyimportmaster", "\"word1 ... word24\" \"passphrase\" false \"label_master\" \"label_account\"")
+        + HelpExampleCli("extkeyimportmaster", "\"word1 ... word24\" \"passphrase\" false \"label_master\" \"label_account\"") +
+        "\nAs a JSON-RPC call\n"
         + HelpExampleRpc("extkeyimportmaster", "\"word1 ... word24\", \"passphrase\", false, \"label_master\", \"label_account\""));
 
     return extkeyimportinternal(request, false);
@@ -1614,7 +1615,8 @@ static UniValue extkeygenesisimport(const JSONRPCRequest &request)
         "6. scan_chain_from:        (int, optional) Scan for transactions in blocks after timestamp, negative number to skip (default=0).\n"
         "\nExamples:\n"
         + HelpExampleCli("extkeygenesisimport", "-stdin -stdin false \"label_master\" \"label_account\"")
-        + HelpExampleCli("extkeygenesisimport", "\"word1 ... word24\" \"passphrase\" false \"label_master\" \"label_account\"")
+        + HelpExampleCli("extkeygenesisimport", "\"word1 ... word24\" \"passphrase\" false \"label_master\" \"label_account\"") +
+        "\nAs a JSON-RPC call\n"
         + HelpExampleRpc("extkeygenesisimport", "\"word1 ... word24\", \"passphrase\", false, \"label_master\", \"label_account\""));
 
     return extkeyimportinternal(request, true);
@@ -1677,7 +1679,8 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
             "\nResult:\n"
             "\"address\"              (string) The new particl extended address\n"
             "\nExamples:\n"
-            + HelpExampleCli("getnewextaddress", "")
+            + HelpExampleCli("getnewextaddress", "") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getnewextaddress", ""));
 
     EnsureWalletIsUnlocked(pwallet);
@@ -1746,7 +1749,8 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
             "\nResult:\n"
             "\"address\"              (string) The new particl stealth address\n"
             "\nExamples:\n"
-            + HelpExampleCli("getnewstealthaddress", "\"lblTestSxAddrPrefix\" 3 \"0b101\"")
+            + HelpExampleCli("getnewstealthaddress", "\"lblTestSxAddrPrefix\" 3 \"0b101\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getnewstealthaddress", "\"lblTestSxAddrPrefix\", 3, \"0b101\""));
 
     EnsureWalletIsUnlocked(pwallet);
@@ -1820,7 +1824,8 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
             "\nResult:\n"
             "\"address\"              (string) The new particl stealth address\n"
             "\nExamples:\n"
-            + HelpExampleCli("importstealthaddress", "scan_secret spend_secret \"label\" 3 \"0b101\"")
+            + HelpExampleCli("importstealthaddress", "scan_secret spend_secret \"label\" 3 \"0b101\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("importstealthaddress", "scan_secret, spend_secret, \"label\", 3, \"0b101\""));
 
     EnsureWalletIsUnlocked(pwallet);
@@ -2047,7 +2052,8 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
             "]\n"
             "\"address\"              (string) The new particl stealth address\n"
             "\nExamples:\n"
-            + HelpExampleCli("liststealthaddresses", "")
+            + HelpExampleCli("liststealthaddresses", "") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("liststealthaddresses", ""));
 
     bool fShowSecrets = request.params.size() > 0 ? GetBool(request.params[0]) : false;
@@ -2193,7 +2199,8 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
             "\nResult:\n"
             "\"addresses\"            (json) Array of derived addresses\n"
             "\nExamples:\n"
-            + HelpExampleCli("deriverangekeys", "0 1")
+            + HelpExampleCli("deriverangekeys", "0 1") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("deriverangekeys", "0, 1"));
 
     // TODO: manage nGenerated, nHGenerated properly
@@ -2425,7 +2432,8 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
             "\nArguments:\n"
             "1. remove_all           (bool, optional, default=false) Remove all transactions.\n"
             "\nExamples:\n"
-            + HelpExampleCli("clearwallettransactions", "")
+            + HelpExampleCli("clearwallettransactions", "") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("clearwallettransactions", "true"));
 
     EnsureWalletIsUnlocked(pwallet);
@@ -3743,7 +3751,8 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
             "  \"expectedtime\": xxxxxxx        (numeric) estimated time for next stake\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("getstakinginfo", "")
+            + HelpExampleCli("getstakinginfo", "") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getstakinginfo", ""));
 
     // Make sure the results are valid at least up to the most recent block
@@ -3845,7 +3854,8 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
             "  \"currently_staking\"                (numeric) Amount of coin estimated to be currently staking by this wallet.\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcoldstakinginfo", "")
+            + HelpExampleCli("getcoldstakinginfo", "") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getcoldstakinginfo", ""));
 
     // Make sure the results are valid at least up to the most recent block
@@ -4007,7 +4017,8 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
 
             "\nExamples\n"
             + HelpExampleCli("listunspentanon", "")
-            + HelpExampleCli("listunspentanon", "6 9999999 \"[\\\"PfqK97PXYfqRFtdYcZw82x3dzPrZbEAcYa\\\",\\\"Pka9M2Bva8WetQhQ4ngC255HAbMJf5P5Dc\\\"]\"")
+            + HelpExampleCli("listunspentanon", "6 9999999 \"[\\\"PfqK97PXYfqRFtdYcZw82x3dzPrZbEAcYa\\\",\\\"Pka9M2Bva8WetQhQ4ngC255HAbMJf5P5Dc\\\"]\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("listunspentanon", "6, 9999999, \"[\\\"PfqK97PXYfqRFtdYcZw82x3dzPrZbEAcYa\\\",\\\"Pka9M2Bva8WetQhQ4ngC255HAbMJf5P5Dc\\\"]\"")
         );
 
@@ -4212,7 +4223,8 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
 
             "\nExamples\n"
             + HelpExampleCli("listunspentblind", "")
-            + HelpExampleCli("listunspentblind", "6 9999999 \"[\\\"PfqK97PXYfqRFtdYcZw82x3dzPrZbEAcYa\\\",\\\"Pka9M2Bva8WetQhQ4ngC255HAbMJf5P5Dc\\\"]\"")
+            + HelpExampleCli("listunspentblind", "6 9999999 \"[\\\"PfqK97PXYfqRFtdYcZw82x3dzPrZbEAcYa\\\",\\\"Pka9M2Bva8WetQhQ4ngC255HAbMJf5P5Dc\\\"]\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("listunspentblind", "6, 9999999, \"[\\\"PfqK97PXYfqRFtdYcZw82x3dzPrZbEAcYa\\\",\\\"Pka9M2Bva8WetQhQ4ngC255HAbMJf5P5Dc\\\"]\"")
         );
 
@@ -5261,7 +5273,8 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
             "\nResult:\n"
             "The hex encoded signature.\n"
             "\nExamples:\n"
-            + HelpExampleCli("createsignaturewithwallet", "\"myhex\" \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\" \"myaddress\"")
+            + HelpExampleCli("createsignaturewithwallet", "\"myhex\" \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\" \"myaddress\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("createsignaturewithwallet", "\"myhex\", \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\", \"myaddress\"")
         );
 
@@ -5301,7 +5314,8 @@ static UniValue createsignaturewithkey(const JSONRPCRequest &request)
             "\nResult:\n"
             "The hex encoded signature.\n"
             "\nExamples:\n"
-            + HelpExampleCli("createsignaturewithkey", "\"myhex\" \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\" \"myprivkey\"")
+            + HelpExampleCli("createsignaturewithkey", "\"myhex\" \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\" \"myprivkey\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("createsignaturewithkey", "\"myhex\", \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\", \"myprivkey\"")
         );
 
@@ -5918,7 +5932,8 @@ static UniValue transactionblinds(const JSONRPCRequest &request)
             "     \"n\":\"hex\",                   (string) The blinding factor for output n, hex encoded\n"
             "   }\n"
             "\nExamples:\n"
-            + HelpExampleCli("transactionblinds", "\"txnid\"")
+            + HelpExampleCli("transactionblinds", "\"txnid\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("transactionblinds", "\"txnid\"")
         );
 
@@ -5972,7 +5987,8 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
             "     \"privatekey\":\"wif\",            (string) The derived privatekey, if \"ephempubkey\" is provided\n"
             "   }\n"
             "\nExamples:\n"
-            + HelpExampleCli("derivefromstealthaddress", "\"stealthaddress\"")
+            + HelpExampleCli("derivefromstealthaddress", "\"stealthaddress\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("derivefromstealthaddress", "\"stealthaddress\"")
         );
 
@@ -6084,7 +6100,8 @@ static UniValue setvote(const JSONRPCRequest &request)
             "3. height_start        (int, required) Start voting at this block height.\n"
             "3. height_end          (int, required) Stop voting at this block height.\n"
             "\nExamples:\n"
-            + HelpExampleCli("setvote", "1 1 1000 2000")
+            + HelpExampleCli("setvote", "1 1 1000 2000") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("setvote", "1, 1, 1000, 2000"));
 
     EnsureWalletIsUnlocked(pwallet);
@@ -6164,7 +6181,8 @@ static UniValue votehistory(const JSONRPCRequest &request)
             "  ,...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("votehistory", "true")
+            + HelpExampleCli("votehistory", "true") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("votehistory", "true"));
 
     // Make sure the results are valid at least up to the most recent block
@@ -6245,7 +6263,8 @@ static UniValue tallyvotes(const JSONRPCRequest &request)
             "   \"Option x\": total, %,(string) the number of votes cast for option x.\n"
             " }\n"
             "\nExamples:\n"
-            + HelpExampleCli("tallyvotes", "1 2000 30000")
+            + HelpExampleCli("tallyvotes", "1 2000 30000") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("tallyvotes", "1, 2000, 30000"));
 
     int issue = request.params[0].get_int();
@@ -6332,7 +6351,8 @@ static UniValue buildscript(const JSONRPCRequest &request)
             "   \"asm\" : n,        (string) Script as asm\n"
             " }\n"
             "\nExamples:\n"
-            + HelpExampleCli("buildscript", "\"{\\\"recipe\\\":\\\"ifcoinstake\\\", \\\"addrstake\\\":\\\"addrA\\\", \\\"addrspend\\\":\\\"addrB\\\"}\"")
+            + HelpExampleCli("buildscript", "\"{\\\"recipe\\\":\\\"ifcoinstake\\\", \\\"addrstake\\\":\\\"addrA\\\", \\\"addrspend\\\":\\\"addrB\\\"}\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("buildscript", "\"{\\\"recipe\\\":\\\"ifcoinstake\\\", \\\"addrstake\\\":\\\"addrA\\\", \\\"addrspend\\\":\\\"addrB\\\"}\""));
 
     if (!request.params[0].isObject()) {
@@ -6500,7 +6520,8 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"address\\\":0.01}\"")
-            + HelpExampleCli("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"data\\\":\\\"00010203\\\"}\"")
+            + HelpExampleCli("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"data\\\":\\\"00010203\\\"}\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"address\\\":0.01}\"")
             + HelpExampleRpc("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"data\\\":\\\"00010203\\\"}\"")
         );
@@ -7293,7 +7314,8 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
             "  \"result\": true,                   (boolean) If valid commitment, else throw error.\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("verifycommitment", "\"commitment\" \"blind\" 1.1")
+            + HelpExampleCli("verifycommitment", "\"commitment\" \"blind\" 1.1") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("verifycommitment", "\"commitment\", \"blind\", 1.1")
         );
 
@@ -7352,7 +7374,8 @@ static UniValue generatematchingblindfactor(const JSONRPCRequest &request)
             "  \"blind\": true,                (string) 32byte blind factor.\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]")
+            + HelpExampleCli("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]")
         );
 
@@ -7480,7 +7503,8 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
             "  ]\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("verifyrawtransaction", "\"myhex\"")
+            + HelpExampleCli("verifyrawtransaction", "\"myhex\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("verifyrawtransaction", "\"myhex\"")
         );
 
@@ -7747,7 +7771,8 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
             "{\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("pruneorphanedblocks", "\"myhex\"")
+            + HelpExampleCli("pruneorphanedblocks", "\"myhex\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("pruneorphanedblocks", "\"myhex\"")
         );
 

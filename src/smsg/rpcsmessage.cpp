@@ -582,7 +582,8 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
             "  \"publickey\": \"...\"           (string) public key of address\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("smsggetpubkey", "\"myaddress\"")
+            + HelpExampleCli("smsggetpubkey", "\"myaddress\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsggetpubkey", "\"myaddress\""));
 
     EnsureSMSGIsEnabled();
@@ -660,7 +661,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             "  \"fee\": n                          (amount) if paid_msg the fee paid\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("smsgsend", "\"myaddress\" \"toaddress\" \"message\"")
+            + HelpExampleCli("smsgsend", "\"myaddress\" \"toaddress\" \"message\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgsend", "\"myaddress\", \"toaddress\", \"message\""));
 
     EnsureSMSGIsEnabled();
@@ -1477,7 +1479,8 @@ static UniValue smsgone(const JSONRPCRequest &request)
             "  \"from\": \"str\"                     (string) Address the message was sent from\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("smsg", "\"msgid\"")
+            + HelpExampleCli("smsg", "\"msgid\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsg", "\"msgid\""));
 
     EnsureSMSGIsEnabled();
@@ -1618,7 +1621,8 @@ static UniValue smsgpurge(const JSONRPCRequest &request)
             "1. \"msgid\"              (string, required) The id of the message to purge.\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("smsgpurge", "\"msgid\"")
+            + HelpExampleCli("smsgpurge", "\"msgid\"") +
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgpurge", "\"msgid\""));
 
     EnsureSMSGIsEnabled();
