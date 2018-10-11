@@ -51,6 +51,10 @@ int sendApduHidHidapi(hid_device *handle, const unsigned char ledger, const unsi
 	int remaining = apduLength;
 	int offset = 0;
 
+	if (sw != NULL) {
+		*sw = 0;
+	}
+
 	if (ledger) {
 		result = wrapCommandAPDU(DEFAULT_LEDGER_CHANNEL, apdu, apduLength, LEDGER_HID_PACKET_SIZE, buffer, sizeof(buffer));
 		if (result < 0) {
