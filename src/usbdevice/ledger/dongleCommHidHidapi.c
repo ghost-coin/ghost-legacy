@@ -34,14 +34,6 @@
 
 #ifdef HAVE_HIDAPI
 
-int initHidHidapi() {
-	return hid_init();
-}
-
-int exitHidHidapi() {
-	return hid_exit();
-}
-
 int sendApduHidHidapi(hid_device *handle, const unsigned char ledger, const unsigned char *apdu, size_t apduLength, unsigned char *out, size_t outLength, int *sw) {
 	unsigned char buffer[400];
 	unsigned char paddingBuffer[MAX_BLOCK+1];
@@ -64,10 +56,15 @@ int sendApduHidHidapi(hid_device *handle, const unsigned char ledger, const unsi
 	}
 	while (remaining > 0) {
 		int blockSize = (remaining > MAX_BLOCK ? MAX_BLOCK : remaining);
-		// First byte must be 0x00, report ID
 		memset(paddingBuffer, 0, MAX_BLOCK+1);
+#ifdef WIN32
+		// First byte must be 0x00, report ID
 		memcpy(paddingBuffer+1, buffer + offset, blockSize);
 		result = hid_write(handle, paddingBuffer, blockSize+1);
+#else
+		memcpy(paddingBuffer, buffer + offset, blockSize);
+		result = hid_write(handle, paddingBuffer, blockSize);
+#endif
 		if (result < 0) {
 			return result;
 		}
@@ -135,42 +132,6 @@ int sendApduHidHidapi(hid_device *handle, const unsigned char ledger, const unsi
 		}
 	}
 	return length;
-}
-
-hid_device* getFirstDongleHidHidapi(unsigned char *ledger) {
-	hid_device *result = hid_open(BTCHIP_VID, BTCHIP_HID_PID, NULL);
-	if (result != NULL) {
-		return result;
-	}
-	result = hid_open(BTCHIP_VID, BTCHIP_HID_PID_LEDGER, NULL);
-	if (result != NULL) {
-		*ledger = 1;
-		return result;
-	}
-	result = hid_open(BTCHIP_VID, BTCHIP_HID_PID_LEDGER_PROTON, NULL);
-	if (result != NULL) {
-		*ledger = 1;
-		return result;
-	}
-	result = hid_open(BTCHIP_VID, BTCHIP_HID_BOOTLOADER_PID, NULL);
-	if (result != NULL) {
-		return result;
-	}
-	result = hid_open(LEDGER_VID, BLUE_PID, NULL);
-	if (result != NULL) {
-		*ledger = 1;
-		return result;
-	}
-	result = hid_open(LEDGER_VID, NANOS_PID, NULL);
-	if (result != NULL) {
-		*ledger = 1;
-		return result;
-	}
-	return NULL;
-}
-
-void closeDongleHidHidapi(hid_device *handle) {
-	hid_close(handle);
 }
 
 #endif

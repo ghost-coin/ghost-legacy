@@ -24,11 +24,7 @@
 #include <string.h>
 #include <hidapi/hidapi.h>
 
-int initHidHidapi(void);
-int exitHidHidapi(void);
 int sendApduHidHidapi(hid_device *handle, const unsigned char ledger, const unsigned char *apdu, size_t apduLength, unsigned char *out, size_t outLength, int *sw);
-hid_device* getFirstDongleHidHidapi(unsigned char *ledger);
-void closeDongleHidHidapi(hid_device *handle);
 
 #endif
 
