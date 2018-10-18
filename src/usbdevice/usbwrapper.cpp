@@ -59,7 +59,7 @@ static char *make_path(libusb_device *dev, int interface_number)
         libusb_get_device_address(dev),
         interface_number);
     str[sizeof(str)-1] = '\0';
-    
+
     return strdup(str);
 }
 
@@ -85,7 +85,7 @@ webusb_device *webusb_open_path(const char *path)
         struct libusb_config_descriptor *conf_desc = NULL;
         int i,j,k;
         libusb_get_device_descriptor(usb_dev, &desc);
-        
+
         if (desc.bDeviceClass != 0x00) {
             continue;
         }
@@ -97,10 +97,10 @@ webusb_device *webusb_open_path(const char *path)
             for (k = 0; k < intf->num_altsetting; k++) {
                 const struct libusb_interface_descriptor *intf_desc;
                 intf_desc = &intf->altsetting[k];
-                
+
                 if (intf_desc->bInterfaceClass == LIBUSB_CLASS_VENDOR_SPEC && desc.idVendor == 0x1209 && desc.idProduct == 0x53c1) {
                     char *dev_path = make_path(usb_dev, intf_desc->bInterfaceNumber);
-                    
+
                     if (!strcmp(dev_path, path)) {
                         /* Matched Paths. Open this device */
 
@@ -174,7 +174,7 @@ webusb_device *webusb_open_path(const char *path)
     }
 
     libusb_free_device_list(devs, 1);
-    
+
     /* If we have a good handle, return it. */
     if (good_open) {
         return dev;
@@ -235,18 +235,18 @@ static wchar_t *get_usb_string(libusb_device_handle *dev, uint8_t idx)
     //lang = get_usb_code_for_current_locale();
     //if (!is_language_supported(dev, lang))
     lang = get_first_language(dev);
-    
+
     /* Get the string from libusb. */
     len = libusb_get_string_descriptor(dev,
             idx,
             lang,
             (unsigned char*)buf,
             sizeof(buf));
-    
+
     if (len < 0) {
         return NULL;
     }
-    
+
     /* The following code will only work for
        code points that can be represented as a single UTF-16 character,
        and will incorrectly convert any code points which require more
@@ -260,7 +260,7 @@ static wchar_t *get_usb_string(libusb_device_handle *dev, uint8_t idx)
         str[i] = buf[i * 2 + 2] | (buf[i * 2 + 3] << 8);
     }
     str[len / 2] = '\0';
-    
+
     return str;
 }
 
@@ -288,7 +288,7 @@ struct webusb_device_info *webusb_enumerate(unsigned short vendor_id, unsigned s
         int res = libusb_get_device_descriptor(dev, &desc);
         unsigned short dev_vid = desc.idVendor;
         unsigned short dev_pid = desc.idProduct;
-        
+
         if (desc.bDeviceClass != 0x00) {
             continue;
         }
@@ -297,14 +297,14 @@ struct webusb_device_info *webusb_enumerate(unsigned short vendor_id, unsigned s
         if (res < 0) {
             res = libusb_get_config_descriptor(dev, 0, &conf_desc);
         }
-        
+
         if (conf_desc) {
             for (j = 0; j < conf_desc->bNumInterfaces; j++) {
                 const struct libusb_interface *intf = &conf_desc->interface[j];
                 for (k = 0; k < intf->num_altsetting; k++) {
                     const struct libusb_interface_descriptor *intf_desc;
                     intf_desc = &intf->altsetting[k];
-                    
+
                     // TODO: search webusbDeviceTypes
                     if (intf_desc->bInterfaceClass == LIBUSB_CLASS_VENDOR_SPEC && dev_vid == 0x1209 && dev_pid == 0x53c1) {
                         interface_num = intf_desc->bInterfaceNumber;
@@ -331,22 +331,22 @@ struct webusb_device_info *webusb_enumerate(unsigned short vendor_id, unsigned s
                             if (desc.iSerialNumber > 0)
                                 cur_dev->serial_number =
                                     get_usb_string(handle, desc.iSerialNumber);
-                                    
+
                             /* Manufacturer and Product strings */
                             if (desc.iManufacturer > 0)
                                 cur_dev->manufacturer_string =
                                     get_usb_string(handle, desc.iManufacturer);
-                            
+
                             if (desc.iProduct > 0)
                                 cur_dev->product_string =
                                     get_usb_string(handle, desc.iProduct);
-                            
+
                             libusb_close(handle);
                         }
                         /* VID/PID */
                         cur_dev->vendor_id = dev_vid;
                         cur_dev->product_id = dev_pid;
-                        
+
                         /* Release Number */
                         cur_dev->release_number = desc.bcdDevice;
 
@@ -358,7 +358,7 @@ struct webusb_device_info *webusb_enumerate(unsigned short vendor_id, unsigned s
             libusb_free_config_descriptor(conf_desc);
         }
     }
-    
+
     libusb_free_device_list(devs, 1);
 
     return root;
@@ -409,7 +409,7 @@ int webusb_read_timeout(webusb_device *dev, unsigned char *data, size_t length, 
     if (dev->input_endpoint <= 0) {
         return -1;
     }
-    
+
     int transferred, res = libusb_interrupt_transfer(dev->device_handle,
         dev->input_endpoint,
         data,

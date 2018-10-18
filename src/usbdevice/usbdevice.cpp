@@ -131,7 +131,7 @@ void ListWebUSBDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
                 || cur_dev->product_id != type.nProductId) {
                 continue;
             }
-            
+
             if (type.type == USBDEVICE_TREZOR_ONE
                 && cur_dev->interface_number == 0) {
                 std::unique_ptr<CUSBDevice> device(new CTrezorDevice(&type, cur_dev->path, (char*)cur_dev->serial_number, cur_dev->interface_number));
@@ -143,7 +143,7 @@ void ListWebUSBDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
     webusb_free_enumeration(devs);
 
     webusb_exit();
-    
+
     return;
 };
 
@@ -153,10 +153,10 @@ void ListAllDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
         vDevices.push_back(std::unique_ptr<CUSBDevice>(new CDebugDevice()));
         return;
     }
-    
+
     ListHIDDevices(vDevices);
     ListWebUSBDevices(vDevices);
-    
+
     return;
 };
 

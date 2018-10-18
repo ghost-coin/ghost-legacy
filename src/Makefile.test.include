@@ -52,6 +52,7 @@ BITCOIN_TESTS =\
   test/cuckoocache_tests.cpp \
   test/denialofservice_tests.cpp \
   test/descriptor_tests.cpp \
+  test/fs_tests.cpp \
   test/getarg_tests.cpp \
   test/hash_tests.cpp \
   test/key_io_tests.cpp \
@@ -120,6 +121,7 @@ BITCOIN_TESTS += \
   wallet/test/wallet_tests.cpp \
   wallet/test/wallet_crypto_tests.cpp \
   wallet/test/coinselector_tests.cpp \
+  wallet/test/init_tests.cpp \
   wallet/test/rpc_wallet_tests.cpp \
   wallet/test/hdwallet_tests.cpp \
   wallet/test/rpc_hdwallet_tests.cpp \
@@ -129,7 +131,9 @@ BITCOIN_TEST_SUITE += \
   wallet/test/hdwallet_test_fixture.cpp \
   wallet/test/hdwallet_test_fixture.h \
   wallet/test/wallet_test_fixture.cpp \
-  wallet/test/wallet_test_fixture.h
+  wallet/test/wallet_test_fixture.h \
+  wallet/test/init_test_fixture.cpp \
+  wallet/test/init_test_fixture.h
 endif
 
 test_test_particl_SOURCES = $(BITCOIN_TEST_SUITE) $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)

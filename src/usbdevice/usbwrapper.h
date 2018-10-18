@@ -32,7 +32,7 @@ typedef struct webusb_device {
     int manufacturer_index;
     int product_index;
     int serial_index;
-    
+
     struct libusb_transfer *transfer;
 } webusb_device;
 

@@ -1139,13 +1139,13 @@ if test x$use_pkgconfig = xyes; then
             [AC_MSG_WARN(protobuf not found.)
              enable_usbdevice=no])
         fi
-        
+
         PKG_CHECK_MODULES([USB], [libusb-1.0 >= 1.0.9],
           [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
           [AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
            AC_MSG_WARN([libusb-1.0 version 1.0.9 or greater not found, disabling])
            enable_usbdevice=no])
-        
+
         PKG_CHECK_MODULES([HIDAPI],[$LIBHIDAPINAME >= 0],
           [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
           [AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
@@ -1205,18 +1205,18 @@ else
        [AC_MSG_WARN([hidapi.h not found, disabling usbdevice support])
         enable_usbdevice=no
         AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])])
-    
+
     AC_CHECK_LIB([$LIBHIDAPINAME],[hid_open],HIDAPI_LIBS=$HIDAPILIBS,
        [AC_MSG_WARN([$LIBHIDAPINAME not found, disabling usbdevice support])
         enable_usbdevice=no
         AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])],[-lsetupapi])
-    
+
     AC_CHECK_HEADER([libusb-1.0/libusb.h],
        [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
        [AC_MSG_WARN([libusb.h not found, disabling usbdevice support])
         enable_usbdevice=no
         AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])])
-    
+
     USB_LIBS=" -lusb-1.0"
   else
     AC_DEFINE_UNQUOTED([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
