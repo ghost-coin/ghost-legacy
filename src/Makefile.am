@@ -336,6 +336,8 @@ libparticl_usbdevice_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(AM_CPPFLAGS) $(PROTOBUF_
 libparticl_usbdevice_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libparticl_usbdevice_a_CFLAGS = -DHAVE_HIDAPI $(AM_CFLAGS)
 libparticl_usbdevice_a_SOURCES = \
+  usbdevice/usbwrapper.cpp \
+  usbdevice/usbwrapper.h \
   usbdevice/ledger/btchipApdu.h \
   usbdevice/ledger/ledgerLayer.h \
   usbdevice/ledger/ledgerLayer.c \
@@ -594,7 +596,7 @@ particld_LDADD = \
 
 particld_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 if ENABLE_USBDEVICE
-particld_LDADD += $(USB_LIBS) $(PROTOBUF_LIBS)
+particld_LDADD += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
 
 # bitcoin-cli binary #

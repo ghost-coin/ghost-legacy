@@ -92,7 +92,7 @@ static UniValue listdevices(const JSONRPCRequest &request)
             + HelpExampleRpc("listdevices", ""));
 
     std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
-    ListDevices(vDevices);
+    ListAllDevices(vDevices);
 
     UniValue result(UniValue::VARR);
 
@@ -107,6 +107,11 @@ static UniValue listdevices(const JSONRPCRequest &request)
             obj.pushKV("firmwareversion", sValue);
         } else {
             obj.pushKV("error", sError);
+#ifndef WIN32
+#ifndef MAC_OSX
+            obj.pushKV("tip", "Have you set udev rules?");
+#endif
+#endif
         }
 
         result.push_back(obj);

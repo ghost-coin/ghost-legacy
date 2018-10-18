@@ -7,6 +7,9 @@
 
 #include <usbdevice/usbdevice.h>
 
+struct hid_device_;
+typedef struct hid_device_ hid_device;
+
 namespace usb_device {
 
 class CLedgerDevice : public CUSBDevice
@@ -31,6 +34,9 @@ public:
     int SignTransaction(const std::vector<uint32_t> &vPath, const std::vector<uint8_t> &vSharedSecret, const CMutableTransaction *tx,
         int nIn, const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion,
         std::vector<uint8_t> &vchSig, std::string &sError) override;
+    
+protected:
+    hid_device *handle = nullptr;
 };
 
 } // usb_device

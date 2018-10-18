@@ -97,7 +97,6 @@ upnp_packages_$(NO_UPNP) = $(upnp_packages)
 usb_packages_$(NO_USB) = $(usb_packages)
 
 ifeq ($(NO_USB),)
-    linux_packages += $(linux_packages_usb)
     native_packages += $(usb_native_packages)
 endif
 

@@ -42,6 +42,7 @@ after_script:
   - echo $TRAVIS_COMMIT_RANGE
   - echo $TRAVIS_COMMIT_LOG
 after_success:
+  - echo "Uploading"
   - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
   - DOCKER_EXEC tar -cjf $OUTDIR/particl_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .
   - if [ -f $OUTDIR/particl_$COMMIT.tar.bz2 ]; then travis_retry curl --max-time 60 --upload $OUTDIR/particl_$COMMIT.tar.bz2 https://transfer.sh/particl_$COMMIT.tar.bz2; fi
@@ -102,6 +103,7 @@ jobs:
         BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++ --enable-usbdevice "
         CONFIG_SHELL="/bin/dash"
       after_success:
+        - echo "Skipped upload"
 # x86_64 Linux (uses qt5 dev package instead of depends Qt to speed up build and avoid timeout)
     - stage: test
       env: >-
@@ -121,6 +123,7 @@ jobs:
         GOAL="install"
         BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --with-incompatible-bdb --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\""
       after_success:
+        - echo "Skipped upload"
 # x86_64 Linux (sanitizers)
     - stage: test
       env: >-
@@ -132,6 +135,7 @@ jobs:
         GOAL="install"
         BITCOIN_CONFIG="--enable-zmq --with-incompatible-bdb --enable-glibc-back-compat --enable-reduce-exports --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER --with-sanitizers=undefined CC=clang CXX=clang++"
       after_success:
+        - echo "Skipped upload"
 # x86_64 Linux, No wallet
     - stage: test
       env: >-
@@ -141,6 +145,7 @@ jobs:
         GOAL="install"
         BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports --disable-bench"
       after_success:
+        - echo "Skipped upload"
 # Cross-Mac
     - stage: test
       env: >-
@@ -153,6 +158,7 @@ jobs:
         BITCOIN_CONFIG="--enable-gui --enable-reduce-exports --enable-werror --disable-bench --disable-tests --enable-usbdevice"
         DEPENDS_TIMEOUT=3600
       after_success:
+        - echo "Uploading"
         - DOCKER_EXEC make install
         - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
         - DOCKER_EXEC tar -cjf $OUTDIR/particl_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .

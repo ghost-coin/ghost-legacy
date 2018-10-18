@@ -7,7 +7,10 @@
 
 #include <usbdevice/usbdevice.h>
 
+
 namespace usb_device {
+
+typedef struct webusb_device webusb_device;
 
 class CTrezorDevice : public CUSBDevice
 {
@@ -25,6 +28,8 @@ public:
 
     int SignMessage(const std::vector<uint32_t> &vPath, const std::string &sMessage, std::vector<uint8_t> &vchSig, std::string &sError) override;
 
+protected:
+    webusb_device *handle = nullptr;
 };
 
 } // usb_device

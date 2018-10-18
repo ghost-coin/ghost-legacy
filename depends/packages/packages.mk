@@ -1,5 +1,4 @@
 packages:=boost openssl libevent zeromq
-linux_packages_usb := libusb
 
 qt_native_packages = native_protobuf
 qt_packages = qrencode protobuf zlib
@@ -14,7 +13,7 @@ qt_mingw32_packages=qt
 wallet_packages=bdb
 
 upnp_packages=miniupnpc
-usb_packages=hidapi protobuf
+usb_packages=libusb hidapi protobuf
 usb_native_packages=native_protobuf
 
 darwin_native_packages = native_biplist native_ds_store native_mac_alias

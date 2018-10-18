@@ -17,8 +17,6 @@
 
 
 class UniValue;
-struct hid_device_;
-typedef struct hid_device_ hid_device;
 class CCoinsViewCache;
 
 namespace usb_device {
@@ -102,11 +100,14 @@ public:
     virtual ~CUSBDevice() {};
     CUSBDevice(const DeviceType *pType_, const char *cPath_, const char *cSerialNo_, int nInterface_) : pType(pType_)
     {
+        
         assert(strlen(cPath_) < sizeof(cPath));
-        assert(strlen(cSerialNo_) < sizeof(cSerialNo));
-
         strcpy(cPath, cPath_);
-        strcpy(cSerialNo, cSerialNo_);
+        
+        if (cSerialNo_) {
+            assert(strlen(cSerialNo_) < sizeof(cSerialNo));
+            strcpy(cSerialNo, cSerialNo_);
+        }
 
         nInterface = nInterface_;
     };
@@ -134,12 +135,12 @@ public:
     char cSerialNo[128];
     int nInterface;
     std::string sError;
-
-protected:
-    hid_device *handle = nullptr;
 };
 
-void ListDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices);
+
+void ListHIDDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices);
+void ListWebUSBDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices);
+void ListAllDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices);
 CUSBDevice *SelectDevice(std::vector<std::unique_ptr<CUSBDevice> > &vDevices, std::string &sError);
 
 /** A signature creator for transactions. */
