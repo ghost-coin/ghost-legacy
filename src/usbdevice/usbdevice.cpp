@@ -98,12 +98,16 @@ void ListHIDDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
 
             if (type.type == USBDEVICE_LEDGER_NANO_S
                 && MatchLedgerInterface(cur_dev)) {
-                std::unique_ptr<CUSBDevice> device(new CLedgerDevice(&type, cur_dev->path, (char*)cur_dev->serial_number, cur_dev->interface_number));
+                char mbs[128];
+                wcstombs(mbs, cur_dev->serial_number, sizeof(mbs));
+                std::unique_ptr<CUSBDevice> device(new CLedgerDevice(&type, cur_dev->path, mbs, cur_dev->interface_number));
                 vDevices.push_back(std::move(device));
             } else
             if (type.type == USBDEVICE_TREZOR_ONE
                 && MatchTrezorInterface(cur_dev)) {
-                std::unique_ptr<CUSBDevice> device(new CTrezorDevice(&type, cur_dev->path, (char*)cur_dev->serial_number, cur_dev->interface_number));
+                char mbs[128];
+                wcstombs(mbs, cur_dev->serial_number, sizeof(mbs));
+                std::unique_ptr<CUSBDevice> device(new CTrezorDevice(&type, cur_dev->path, mbs, cur_dev->interface_number));
                 vDevices.push_back(std::move(device));
             }
         }
@@ -134,7 +138,9 @@ void ListWebUSBDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
 
             if (type.type == USBDEVICE_TREZOR_ONE
                 && cur_dev->interface_number == 0) {
-                std::unique_ptr<CUSBDevice> device(new CTrezorDevice(&type, cur_dev->path, (char*)cur_dev->serial_number, cur_dev->interface_number));
+                char mbs[128];
+                wcstombs(mbs, cur_dev->serial_number, sizeof(mbs));
+                std::unique_ptr<CUSBDevice> device(new CTrezorDevice(&type, cur_dev->path, mbs, cur_dev->interface_number));
                 vDevices.push_back(std::move(device));
             }
         }

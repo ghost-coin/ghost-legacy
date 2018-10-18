@@ -100,10 +100,10 @@ public:
     virtual ~CUSBDevice() {};
     CUSBDevice(const DeviceType *pType_, const char *cPath_, const char *cSerialNo_, int nInterface_) : pType(pType_)
     {
-
         assert(strlen(cPath_) < sizeof(cPath));
         strcpy(cPath, cPath_);
 
+        cSerialNo[0] = '\n';
         if (cSerialNo_) {
             assert(strlen(cSerialNo_) < sizeof(cSerialNo));
             strcpy(cSerialNo, cSerialNo_);

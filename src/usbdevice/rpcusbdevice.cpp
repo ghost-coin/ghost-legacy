@@ -101,6 +101,7 @@ static UniValue listdevices(const JSONRPCRequest &request)
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("vendor", device->pType->cVendor);
         obj.pushKV("product", device->pType->cProduct);
+        obj.pushKV("serialno", device->cSerialNo);
 
         std::string sValue, sError;
         if (0 == device->GetFirmwareVersion(sValue, sError)) {

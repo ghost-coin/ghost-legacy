@@ -54,6 +54,7 @@ KNOWN_VIOLATIONS=(
     "src/util.cpp:.*mktime"
     "src/wallet/rpchdwallet.cpp:.*mktime"
     "src/usbdevice/usbwrapper.cpp:.*snprintf"
+    "src/usbdevice/usbdevice.cpp:.*wcstombs"
 )
 
 REGEXP_IGNORE_EXTERNAL_DEPENDENCIES="^src/(crypto/ctaes/|leveldb/|secp256k1/|tinyformat.h|univalue/)"
