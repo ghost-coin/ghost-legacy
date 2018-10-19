@@ -6,6 +6,7 @@
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import *
 
+
 class MnemonicTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -47,7 +48,6 @@ class MnemonicTest(ParticlTestFramework):
 
                 json_obj = node.mnemonic('decode', '', words)
                 assert json_obj['master'] == keyBip44, 'Decoded bip44 key does not match.'
-
 
                 # bip32
                 json_obj = node.mnemonic('new', '', l, '32', 'false')
@@ -126,8 +126,8 @@ class MnemonicTest(ParticlTestFramework):
             ro = node.mnemonic('decode', '', 'abandon  baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
             assert(False), 'Decoded with multiple spaces.'
         except JSONRPCException as e:
-            print('msg', e.error['message'])
             assert("Multiple spaces between words" in e.error['message'])
+
         try:
             ro = node.mnemonic('decode', '', 'abandon  baby cabbage dad eager fabric gadget habit ice   kangaroo lab absorb')
             assert(False), 'Decoded with multiple spaces.'

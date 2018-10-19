@@ -71,6 +71,7 @@ class TxIndexTest(ParticlTestFramework):
             assert(False), 'Sent to stakeonly address'
         except JSONRPCException as e:
             assert('Invalid address' in e.error['message'])
+
         try:
             nodes[1].sendtypeto('part', 'part',
                                 [{'address': addrStake2_stakeonly, 'amount':12}])

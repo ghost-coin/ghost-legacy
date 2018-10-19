@@ -225,11 +225,13 @@ class WalletParticlTest(ParticlTestFramework):
 
         try:
             ro = nodes[1].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
+            raise AssertionError('extkeyimportmaster on locked wallet.')
         except JSONRPCException as e:
             assert('Wallet locked' in e.error['message'])
 
         try:
             ro = nodes[1].walletpassphrase('qwerty123', 300)
+            raise AssertionError('Unlocked with incorrect passphrase.')
         except JSONRPCException as e:
             assert('passphrase entered was incorrect' in e.error['message'])
         assert(nodes[1].getwalletinfo()['encryptionstatus'] == 'Locked')

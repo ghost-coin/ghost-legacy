@@ -100,6 +100,7 @@ class PosTest(ParticlTestFramework):
         addrReward_stakeonly = nodes[0].validateaddress(addrReward, True)['stakeonly_address']
         try:
             ro = nodes[0].walletsettings('stakingoptions', {'rewardaddress':addrReward_stakeonly})
+            raise AssertionError('Should have failed.')
         except JSONRPCException as e:
             assert('Invalid rewardaddress' in e.error['message'])
 

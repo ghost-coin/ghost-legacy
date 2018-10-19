@@ -100,10 +100,9 @@ class USBDeviceTest(ParticlTestFramework):
 
         try:
             nodes[1].getnewstealthaddress()
+            raise AssertionError('Should have failed.')
         except JSONRPCException as e:
             pass
-        else:
-            assert(False)
 
         txnid0 = nodes[0].sendtoaddress(addr1_0, 10)
 

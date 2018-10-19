@@ -183,6 +183,7 @@ class BlindTest(ParticlTestFramework):
 
         try:
             ro = nodes[1].sendtypeto('blind', 'blind', outputs)
+            raise AssertionError('Should have failed.')
         except JSONRPCException as e:
             assert('Insufficient blinded funds' in e.error['message'])
 
