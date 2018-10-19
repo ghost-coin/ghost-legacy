@@ -35,12 +35,12 @@ int CTrezorDevice::Open()
         return 1;
     }
 
-    if (webusb_init()) {
+    if (hid_init()) {
         return 1;
     }
 
-    if (!(handle = webusb_open_path(cPath))) {
-        webusb_exit();
+    if (!(handle = hid_open_path(cPath))) {
+        hid_exit();
         return 1;
     }
 
@@ -50,15 +50,15 @@ int CTrezorDevice::Open()
 int CTrezorDevice::Close()
 {
     if (handle) {
-        webusb_close(handle);
+        hid_close(handle);
     }
     handle = nullptr;
 
-    webusb_exit();
+    hid_exit();
     return 0;
 };
 
-static int WriteV1(webusb_device *handle, uint16_t msg_type, std::vector<uint8_t> &vec)
+static int WriteV1(hid_device *handle, uint16_t msg_type, std::vector<uint8_t> &vec)
 {
     static const size_t BUFFER_LEN = 64;
     uint8_t buffer[BUFFER_LEN];
@@ -90,7 +90,7 @@ static int WriteV1(webusb_device *handle, uint16_t msg_type, std::vector<uint8_t
         if (i + put < BUFFER_LEN) {
             memset(buffer + i + put, 0, BUFFER_LEN - (i + put));
         }
-        int result = webusb_write(handle, buffer, BUFFER_LEN);
+        int result = hid_write(handle, buffer, BUFFER_LEN);
         if (result < 0) {
             return result;
         }
@@ -100,12 +100,12 @@ static int WriteV1(webusb_device *handle, uint16_t msg_type, std::vector<uint8_t
     return 0;
 };
 
-static int ReadV1(webusb_device *handle, uint16_t &msg_type, std::vector<uint8_t> &vec)
+static int ReadV1(hid_device *handle, uint16_t &msg_type, std::vector<uint8_t> &vec)
 {
     static const size_t BUFFER_LEN = 64;
     uint8_t buffer[BUFFER_LEN];
 
-    size_t result = webusb_read_timeout(handle, buffer, BUFFER_LEN, 60000);
+    size_t result = hid_read_timeout(handle, buffer, BUFFER_LEN, 60000);
     if (result < 9) {
         return result;
     }
@@ -128,7 +128,7 @@ static int ReadV1(webusb_device *handle, uint16_t &msg_type, std::vector<uint8_t
     size_t read = get;
 
     while (read < len_full) {
-        int result = webusb_read_timeout(handle, buffer, BUFFER_LEN, 60000);
+        int result = hid_read_timeout(handle, buffer, BUFFER_LEN, 60000);
         if (result < 1) {
             return result;
         }

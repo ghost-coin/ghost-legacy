@@ -84,7 +84,8 @@ static UniValue deviceloadmnemonic(const JSONRPCRequest &request)
             "1. \"wordcount\"              (int, optional) Word count of mnemonic (default=12).\n"
             "2. \"pinprotection\"          (bool, optional) Make the new account the default account for the wallet (default=false).\n"
             "\nExamples\n"
-            + HelpExampleCli("deviceloadmnemonic", ""));
+            + HelpExampleCli("deviceloadmnemonic", "")
+            + HelpExampleRpc("deviceloadmnemonic", ""));
 
     std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
     usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
@@ -119,9 +120,11 @@ static UniValue devicebackup(const JSONRPCRequest &request)
     if (request.fHelp || request.params.size() > 0)
         throw std::runtime_error(
             "devicebackup\n"
-            "Backup device.\n"
+            "Start device backup mnemonic generator.\n"
             "\nExamples\n"
-            + HelpExampleCli("devicebackup", ""));
+            + HelpExampleCli("devicebackup", "")
+            + HelpExampleRpc("devicebackup", ""));
+
 
     std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
     usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
