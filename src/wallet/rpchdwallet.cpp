@@ -7190,7 +7190,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
             secp256k1_pedersen_commitment commitment;
             if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
                 &commitment, (const uint8_t*)(itb->second.begin()),
-                ita->second, secp256k1_generator_h)) {
+                ita->second, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("secp256k1_pedersen_commit failed, output %d.", i));
             }
 
@@ -7345,7 +7345,7 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
     secp256k1_pedersen_commitment commitment;
     if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
         &commitment, blind.begin(),
-        nValue, secp256k1_generator_h)) {
+        nValue, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
         throw JSONRPCError(RPC_MISC_ERROR, strprintf("secp256k1_pedersen_commit failed."));
     }
 

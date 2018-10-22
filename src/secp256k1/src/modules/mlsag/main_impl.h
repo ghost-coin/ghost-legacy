@@ -7,7 +7,6 @@
 #ifndef SECP256K1_MLSAG_MAIN
 #define SECP256K1_MLSAG_MAIN
 
-
 static void pedersen_commitment_load(secp256k1_ge *ge, const uint8_t *commit) {
     secp256k1_fe fe;
     secp256k1_fe_set_b32(&fe, &commit[1]);
@@ -146,7 +145,7 @@ static int hash_to_curve(secp256k1_ge *ge, const uint8_t *pd, size_t len)
     secp256k1_fe x;
     uint8_t hash[32];
     size_t k, safety = 128;
-    secp256k1_sha256_t sha256_m;
+    secp256k1_sha256 sha256_m;
 
     secp256k1_sha256_initialize(&sha256_m);
     secp256k1_sha256_write(&sha256_m, pd, len);
@@ -204,8 +203,8 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
     /* nRows == nInputs + 1, last row sums commitments
     */
 
-    secp256k1_rfc6979_hmac_sha256_t rng;
-    secp256k1_sha256_t sha256_m, sha256_pre;
+    secp256k1_rfc6979_hmac_sha256 rng;
+    secp256k1_sha256 sha256_m, sha256_pre;
     size_t dsRows = nRows-1; /* TODO: pass in dsRows explicitly? */
     /* secp256k1_scalar alpha[nRows]; */
     secp256k1_scalar alpha[MLSAG_MAX_ROWS]; /* To remove MLSAG_MAX_ROWS limit, malloc 32 * nRows for alpha  */
@@ -398,7 +397,7 @@ int secp256k1_verify_mlsag(const secp256k1_context *ctx,
     const uint8_t *preimage, size_t nCols, size_t nRows,
     const uint8_t *pk, const uint8_t *ki, const uint8_t *pc, const uint8_t *ps)
 {
-    secp256k1_sha256_t sha256_m, sha256_pre;
+    secp256k1_sha256 sha256_m, sha256_pre;
     secp256k1_scalar zero, clast, cSig, ss;
     secp256k1_ge ge1;
     secp256k1_gej gej1, gej2, L, R;

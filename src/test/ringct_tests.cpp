@@ -70,7 +70,7 @@ int testCommitmentSum(secp256k1_context *ctx, CAmount nValueIn,
 
     pBlinds.push_back(&blindsin[0][0]);
 
-    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txins[0].commitment, &blindsin[0][0], nValueIn, secp256k1_generator_h));
+    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txins[0].commitment, &blindsin[0][0], nValueIn, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
     size_t nBlinded = 0;
     for (size_t k = 0; k < txouts.size(); ++k)
@@ -87,7 +87,7 @@ int testCommitmentSum(secp256k1_context *ctx, CAmount nValueIn,
             //GetStrongRandBytes(&blind[nBlinded].d[0], 32);
         pBlinds.push_back(&blind[nBlinded++].d[0]);
 
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txout.commitment, (uint8_t*)pBlinds.back(), amountsOut[k], secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txout.commitment, (uint8_t*)pBlinds.back(), amountsOut[k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
         // Generate ephemeral key for ECDH nonce generation
         CKey ephemeral_key;
@@ -156,7 +156,7 @@ int testCommitmentSum(secp256k1_context *ctx, CAmount nValueIn,
         uint8_t blind[32];
         //GetStrongRandBytes(&blind[0], 32);
         InsecureRandBytes(&blind[0], 32);
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &mixin.commitment, blind, nValue, secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &mixin.commitment, blind, nValue, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
         memcpy(&m[(i+k*nCols)*33], mixin.pk.begin(), 33);
         pcm_in[i+k*nCols] = mixin.commitment.data;
@@ -174,7 +174,7 @@ int testCommitmentSum(secp256k1_context *ctx, CAmount nValueIn,
         uint8_t zeroBlind[32];
         memset(zeroBlind, 0, 32);
 
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &feeCommitment, &zeroBlind[0], nValueOutPlain, secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &feeCommitment, &zeroBlind[0], nValueOutPlain, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
         pcm_out[txouts.size()] = feeCommitment.data;
     };
 
@@ -269,7 +269,7 @@ BOOST_AUTO_TEST_CASE(ringct_test)
     pBlinds.push_back(&blindsin[0][0]);
 
     CAmount nValueIn = 45.69 * COIN;
-    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txins[0].commitment, &blindsin[0][0], nValueIn, secp256k1_generator_h));
+    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txins[0].commitment, &blindsin[0][0], nValueIn, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
 
     std::vector<CStealthAddress> txout_addrs(2);
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(ringct_test)
         InsecureRandBytes(&blind[nBlinded].d[0], 32);
         pBlinds.push_back(&blind[nBlinded++].d[0]);
 
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txout.commitment, (uint8_t*)pBlinds.back(), amount_outs[k], secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txout.commitment, (uint8_t*)pBlinds.back(), amount_outs[k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
         // Generate ephemeral key for ECDH nonce generation
         CKey ephemeral_key;
@@ -365,7 +365,7 @@ BOOST_AUTO_TEST_CASE(ringct_test)
         uint8_t blind[32];
         //GetStrongRandBytes(&blind[0], 32);
         InsecureRandBytes(&blind[0], 32);
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &mixin.commitment, blind, nValue, secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &mixin.commitment, blind, nValue, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
         memcpy(&m[(i+k*nCols)*33], mixin.pk.begin(), 33);
         pcm_in[i+k*nCols] = mixin.commitment.data;
@@ -495,7 +495,7 @@ int doTest(secp256k1_context *ctx, size_t nInputs, size_t nOutputs, CAmount nFee
             nValueIn = nFee * 2 + nFee * (rand() % 20000);
         nInputSum += nValueIn;
 
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txins[k].commitment, &blindsIn[k].d[0], nValueIn, secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txins[k].commitment, &blindsIn[k].d[0], nValueIn, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
     };
 
 
@@ -526,7 +526,7 @@ int doTest(secp256k1_context *ctx, size_t nInputs, size_t nOutputs, CAmount nFee
         GetBytes(&blind[k].d[0], 32, fDeterministic);
         pBlinds.push_back(&blind[k].d[0]);
 
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txout.commitment, (uint8_t*)pBlinds.back(), amountsOut[k], secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txout.commitment, (uint8_t*)pBlinds.back(), amountsOut[k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
         // Generate ephemeral key for ECDH nonce generation
         CKey ephemeral_key;
@@ -598,7 +598,7 @@ int doTest(secp256k1_context *ctx, size_t nInputs, size_t nOutputs, CAmount nFee
 
         uint8_t blind[32];
         GetBytes(&blind[0], 32, fDeterministic);
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &mixin.commitment, blind, nValue, secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &mixin.commitment, blind, nValue, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
         memcpy(&m[(i+k*nCols)*33], mixin.pk.begin(), 33);
         pcm_in[i+k*nCols] = mixin.commitment.data;
@@ -622,7 +622,7 @@ int doTest(secp256k1_context *ctx, size_t nInputs, size_t nOutputs, CAmount nFee
         uint8_t zeroBlind[32];
         memset(zeroBlind, 0, 32);
 
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &feeCommitment, &zeroBlind[0], nFee, secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &feeCommitment, &zeroBlind[0], nFee, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
         pcm_out[txouts.size()] = feeCommitment.data;
     };
 

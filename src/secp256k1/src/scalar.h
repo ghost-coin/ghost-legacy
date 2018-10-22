@@ -13,7 +13,9 @@
 #include "libsecp256k1-config.h"
 #endif
 
-#if defined(USE_SCALAR_4X64)
+#if defined(EXHAUSTIVE_TEST_ORDER)
+#include "scalar_low.h"
+#elif defined(USE_SCALAR_4X64)
 #include "scalar_4x64.h"
 #elif defined(USE_SCALAR_8X32)
 #include "scalar_8x32.h"
@@ -103,5 +105,8 @@ static void secp256k1_scalar_split_lambda(secp256k1_scalar *r1, secp256k1_scalar
 
 /** Multiply a and b (without taking the modulus!), divide by 2**shift, and round to the nearest integer. Shift must be at least 256. */
 static void secp256k1_scalar_mul_shift_var(secp256k1_scalar *r, const secp256k1_scalar *a, const secp256k1_scalar *b, unsigned int shift);
+
+/** Generate two scalars from a 32-byte seed and an integer using the chacha20 stream cipher */
+static void secp256k1_scalar_chacha20(secp256k1_scalar *r1, secp256k1_scalar *r2, const unsigned char *seed, uint64_t idx);
 
 #endif /* SECP256K1_SCALAR_H */

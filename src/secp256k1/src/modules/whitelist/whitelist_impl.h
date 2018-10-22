@@ -10,7 +10,7 @@
 static int secp256k1_whitelist_hash_pubkey(secp256k1_scalar* output, secp256k1_gej* pubkey) {
     unsigned char h[32];
     unsigned char c[33];
-    secp256k1_sha256_t sha;
+    secp256k1_sha256 sha;
     int overflow = 0;
     size_t size = 33;
     secp256k1_ge ge;
@@ -35,8 +35,10 @@ static int secp256k1_whitelist_hash_pubkey(secp256k1_scalar* output, secp256k1_g
 
 static int secp256k1_whitelist_tweak_pubkey(const secp256k1_context* ctx, secp256k1_gej* pub_tweaked) {
     secp256k1_scalar tweak;
-    static const secp256k1_scalar zero = SECP256K1_SCALAR_CONST(0, 0, 0, 0, 0, 0, 0, 0);
+    secp256k1_scalar zero;
     int ret;
+
+    secp256k1_scalar_set_int(&zero, 0);
 
     ret = secp256k1_whitelist_hash_pubkey(&tweak, pub_tweaked);
     if (ret) {
@@ -84,7 +86,7 @@ static int secp256k1_whitelist_compute_tweaked_privkey(const secp256k1_context* 
 static int secp256k1_whitelist_compute_keys_and_message(const secp256k1_context* ctx, unsigned char *msg32, secp256k1_gej *keys, const secp256k1_pubkey *online_pubkeys, const secp256k1_pubkey *offline_pubkeys, const int n_keys, const secp256k1_pubkey *sub_pubkey) {
     unsigned char c[33];
     size_t size = 33;
-    secp256k1_sha256_t sha;
+    secp256k1_sha256 sha;
     int i;
     secp256k1_ge subkey_ge;
 

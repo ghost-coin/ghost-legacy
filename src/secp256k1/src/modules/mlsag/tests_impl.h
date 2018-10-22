@@ -63,7 +63,7 @@ void test_mlsag(void)
         secp256k1_scalar_get_b32(&blinds_out[k * 32], &s);
         pblinds[n_inputs + k] = &blinds_out[k * 32];
 
-        CHECK(secp256k1_pedersen_commit(ctx, &cm_out[k], pblinds[n_inputs + k], value[n_inputs + k], secp256k1_generator_h));
+        CHECK(secp256k1_pedersen_commit(ctx, &cm_out[k], pblinds[n_inputs + k], value[n_inputs + k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
         pcm_out[k] = cm_out[k].data;
     }
 
@@ -71,7 +71,7 @@ void test_mlsag(void)
     for (k = n_blinded; k < n_outputs; ++k)
     {
         /* NOTE: fails if value <= 0 */
-        CHECK(secp256k1_pedersen_commit(ctx, &cm_out[k], tmp32, value[n_inputs + k], secp256k1_generator_h));
+        CHECK(secp256k1_pedersen_commit(ctx, &cm_out[k], tmp32, value[n_inputs + k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
         pcm_out[k] = cm_out[k].data;
     }
 
@@ -92,7 +92,7 @@ void test_mlsag(void)
             secp256k1_scalar_get_b32(&blinds_in[k * 32], &s);
             pblinds[k] = &blinds_in[k * 32];
 
-            CHECK(secp256k1_pedersen_commit(ctx, &cm_in[i+k*n_columns], pblinds[k], value[k], secp256k1_generator_h));
+            CHECK(secp256k1_pedersen_commit(ctx, &cm_in[i+k*n_columns], pblinds[k], value[k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
             pcm_in[i+k*n_columns] = cm_in[i+k*n_columns].data;
 
             continue;
@@ -143,7 +143,7 @@ void test_mlsag(void)
 
     /* Bad sum */
     value[0] -= 1;
-    CHECK(secp256k1_pedersen_commit(ctx, &cm_in[n_real_col+0*n_columns], pblinds[0], value[0], secp256k1_generator_h));
+    CHECK(secp256k1_pedersen_commit(ctx, &cm_in[n_real_col+0*n_columns], pblinds[0], value[0], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
     CHECK(0 == secp256k1_prepare_mlsag(m, pkeys[n_inputs],
         n_outputs, n_blinded, n_columns, n_inputs+1,
         pcm_in, pcm_out, pblinds));
@@ -156,7 +156,7 @@ void test_mlsag(void)
 
     /* Pass repaired bad sum */
     value[0] += 1;
-    CHECK(secp256k1_pedersen_commit(ctx, &cm_in[n_real_col+0*n_columns], pblinds[0], value[0], secp256k1_generator_h));
+    CHECK(secp256k1_pedersen_commit(ctx, &cm_in[n_real_col+0*n_columns], pblinds[0], value[0], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
     CHECK(0 == secp256k1_prepare_mlsag(m, pkeys[n_inputs],
         n_outputs, n_blinded, n_columns, n_inputs+1,
         pcm_in, pcm_out, pblinds));
@@ -183,6 +183,7 @@ void test_mlsag(void)
 
 void run_mlsag_tests(void) {
     int i;
+    printf("running mlsag tests.");
 
     for (i = 0; i < mlsag_count; i++) {
         test_mlsag();

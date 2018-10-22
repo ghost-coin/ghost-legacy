@@ -577,14 +577,14 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         memset(blindPlain, 0, 32);
         if (nValueIn > 0)
         {
-            if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainInCommitment, blindPlain, (uint64_t) nValueIn, secp256k1_generator_h))
+            if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainInCommitment, blindPlain, (uint64_t) nValueIn, &secp256k1_generator_const_h, &secp256k1_generator_const_g))
                 return state.Invalid(false, REJECT_INVALID, "commit-failed");
             vpCommitsIn.push_back(&plainInCommitment);
         };
 
         if (nPlainValueOut > 0)
         {
-            if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainOutCommitment, blindPlain, (uint64_t) nPlainValueOut, secp256k1_generator_h))
+            if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainOutCommitment, blindPlain, (uint64_t) nPlainValueOut, &secp256k1_generator_const_h, &secp256k1_generator_const_g))
                 return state.Invalid(false, REJECT_INVALID, "commit-failed");
             vpCommitsOut.push_back(&plainOutCommitment);
         };

@@ -8,6 +8,7 @@
 
 #include <secp256k1.h>
 #include <secp256k1_rangeproof.h>
+#include <secp256k1_bulletproofs.h>
 #include <inttypes.h>
 #include <utilstrencodings.h>
 
@@ -41,7 +42,7 @@ BOOST_AUTO_TEST_CASE(ct_test)
     blindptrs.push_back(&blindsin[0][0]);
 
     CAmount nValueIn = 45.69 * COIN;
-    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txins[0].commitment, &blindsin[0][0], nValueIn, secp256k1_generator_h));
+    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txins[0].commitment, &blindsin[0][0], nValueIn, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
     const int nTxOut = 2;
     std::vector<CTxOutValueTest> txouts(nTxOut);
@@ -78,7 +79,7 @@ BOOST_AUTO_TEST_CASE(ct_test)
             blindptrs.push_back(&blind[nBlinded++][0]);
         };
 
-        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txout.commitment, (uint8_t*)blindptrs.back(), amount_outs[k], secp256k1_generator_h));
+        BOOST_CHECK(secp256k1_pedersen_commit(ctx, &txout.commitment, (uint8_t*)blindptrs.back(), amount_outs[k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
 
         // Generate ephemeral key for ECDH nonce generation
         CKey ephemeral_key;
@@ -193,11 +194,11 @@ BOOST_AUTO_TEST_CASE(ct_commitment_test)
     uint8_t blind[32];
     memset(blind, 0, 32);
 
-    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &commitment1, blind, 10, secp256k1_generator_h));
+    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &commitment1, blind, 10, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
     BOOST_CHECK(HexStr(commitment1.data, commitment1.data+33) == "093806b3e479859dc6dd508eca22257d796bba3e32a6616cc97b51723b50a5f429");
 
     memset(blind, 1, 32);
-    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &commitment2, blind, 10, secp256k1_generator_h));
+    BOOST_CHECK(secp256k1_pedersen_commit(ctx, &commitment2, blind, 10, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
     BOOST_CHECK(HexStr(commitment2.data, commitment2.data+33) == "09badd85325926c329aa62f5a7d37d0a015aabfb52608052d277530bd025ddc971");
 
     secp256k1_pedersen_commitment *pc[2];

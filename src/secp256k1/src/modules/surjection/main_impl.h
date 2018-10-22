@@ -56,7 +56,7 @@ int secp256k1_surjectionproof_parse(const secp256k1_context* ctx, secp256k1_surj
     }
 
     signature_len = 32 * (1 + secp256k1_count_bits_set(&input[2], (n_inputs + 7) / 8));
-    if (inputlen < 2 + (n_inputs + 7) / 8 + signature_len) {
+    if (inputlen != 2 + (n_inputs + 7) / 8 + signature_len) {
         return 0;
     }
     proof->n_inputs = n_inputs;
@@ -122,21 +122,30 @@ static void secp256k1_surjectionproof_csprng_init(secp256k1_surjectionproof_cspr
 }
 
 static size_t secp256k1_surjectionproof_csprng_next(secp256k1_surjectionproof_csprng *csprng, size_t rand_max) {
-    size_t val;
-    secp256k1_sha256_t sha;
+    /* The number of random bytes to read for each random sample */
+    const size_t increment = rand_max > 256 ? 2 : 1;
+    /* The maximum value expressable by the number of random bytes we read */
+    const size_t selection_range = rand_max > 256 ? 0xffff : 0xff;
+    /* The largest multiple of rand_max that fits within selection_range */
+    const size_t limit = ((selection_range + 1) / rand_max) * rand_max;
+
     while (1) {
-        if (csprng->state_i+1 >= 32) {
+        size_t val;
+        if (csprng->state_i + increment >= 32) {
+            secp256k1_sha256 sha;
             secp256k1_sha256_initialize(&sha);
             secp256k1_sha256_write(&sha, csprng->state, 32);
             secp256k1_sha256_finalize(&sha, csprng->state);
             csprng->state_i = 0;
         }
-        val = ((size_t) csprng->state[csprng->state_i] << 8) + csprng->state[csprng->state_i+1];
-        csprng->state_i += 2;
-        /* When 0xffff + 1 is not divisible by rand_max just returning val modulo rand_max would result in a
-         * bias because values <= 0xffff mod rand_max are slightly more likely to be chosen. This is corrected
-         * by redrawing val for some of its values (rejection sampling). */
-        if (val < ((0xffff + 1) / rand_max) * rand_max) {
+        val = csprng->state[csprng->state_i];
+        if (increment > 1) {
+            val = (val << 8) + csprng->state[csprng->state_i + 1];
+        }
+        csprng->state_i += increment;
+        /* Accept only values below our limit. Values equal to or above the limit are
+         * biased because they comprise only a subset of the range (0, rand_max - 1) */
+        if (val < limit) {
             return val % rand_max;
         }
     }
@@ -154,6 +163,7 @@ int secp256k1_surjectionproof_initialize(const secp256k1_context* ctx, secp256k1
     ARG_CHECK(random_seed32 != NULL);
     ARG_CHECK(n_input_tags <= SECP256K1_SURJECTIONPROOF_MAX_N_INPUTS);
     ARG_CHECK(n_input_tags_to_use <= n_input_tags);
+    (void) ctx;
 
     secp256k1_surjectionproof_csprng_init(&csprng, random_seed32);
     memset(proof->data, 0, sizeof(proof->data));
@@ -187,7 +197,7 @@ int secp256k1_surjectionproof_initialize(const secp256k1_context* ctx, secp256k1
 #ifdef VERIFY
             proof->initialized = 1;
 #endif
-            return 1;
+            return n_iterations;
         }
         if (n_iterations >= n_max_iterations) {
 #ifdef VERIFY
@@ -216,6 +226,8 @@ int secp256k1_surjectionproof_generate(const secp256k1_context* ctx, secp256k1_s
     unsigned char msg32[32];
 
     VERIFY_CHECK(ctx != NULL);
+    ARG_CHECK(secp256k1_ecmult_context_is_built(&ctx->ecmult_ctx));
+    ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
     ARG_CHECK(proof != NULL);
     ARG_CHECK(ephemeral_input_tags != NULL);
     ARG_CHECK(ephemeral_output_tag != NULL);
@@ -289,6 +301,7 @@ int secp256k1_surjectionproof_verify(const secp256k1_context* ctx, const secp256
     unsigned char msg32[32];
 
     VERIFY_CHECK(ctx != NULL);
+    ARG_CHECK(secp256k1_ecmult_context_is_built(&ctx->ecmult_ctx));
     ARG_CHECK(proof != NULL);
     ARG_CHECK(ephemeral_input_tags != NULL);
     ARG_CHECK(ephemeral_output_tag != NULL);

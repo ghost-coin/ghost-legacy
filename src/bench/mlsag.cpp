@@ -50,7 +50,7 @@ static void Mlsag(benchmark::State& state)
         vBlindsOut[0].MakeNewKey(true);
         pblinds[nInputs + k] = vBlindsOut[k].begin();
 
-        assert(secp256k1_pedersen_commit(secp256k1_ctx_blind, &cm_out[k], pblinds[nInputs + k], nValues[nInputs + k], secp256k1_generator_h));
+        assert(secp256k1_pedersen_commit(secp256k1_ctx_blind, &cm_out[k], pblinds[nInputs + k], nValues[nInputs + k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
         pcm_out[k] = cm_out[k].data;
     };
 
@@ -58,7 +58,7 @@ static void Mlsag(benchmark::State& state)
     for (size_t k = nBlinded; k < nOutputs; ++k)
     {
         // NOTE: fails if value <= 0
-        assert(secp256k1_pedersen_commit(secp256k1_ctx_blind, &cm_out[k], tmp32, nValues[nInputs + k], secp256k1_generator_h));
+        assert(secp256k1_pedersen_commit(secp256k1_ctx_blind, &cm_out[k], tmp32, nValues[nInputs + k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
         pcm_out[k] = cm_out[k].data;
     };
 
@@ -78,7 +78,7 @@ static void Mlsag(benchmark::State& state)
             vBlindsIn[k].MakeNewKey(true);
             pblinds[k] = vBlindsIn[k].begin();
 
-            assert(secp256k1_pedersen_commit(secp256k1_ctx_blind, &cm_in[i+k*nCols], pblinds[k], nValues[k], secp256k1_generator_h));
+            assert(secp256k1_pedersen_commit(secp256k1_ctx_blind, &cm_in[i+k*nCols], pblinds[k], nValues[k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
             pcm_in[i+k*nCols] = cm_in[i+k*nCols].data;
             continue;
         };
@@ -91,7 +91,7 @@ static void Mlsag(benchmark::State& state)
 
         CAmount v = 10;
         key.MakeNewKey(true);
-        assert(secp256k1_pedersen_commit(secp256k1_ctx_blind, &cm_in[i+k*nCols], key.begin(), v, secp256k1_generator_h));
+        assert(secp256k1_pedersen_commit(secp256k1_ctx_blind, &cm_in[i+k*nCols], key.begin(), v, &secp256k1_generator_const_h, &secp256k1_generator_const_g));
         pcm_in[i+k*nCols] = cm_in[i+k*nCols].data;
     };
 
