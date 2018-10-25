@@ -408,7 +408,7 @@ public:
     isminetype HaveExtKey(const CKeyID &keyID) const;
     bool GetExtKey(const CKeyID &keyID, CStoredExtKey &extKeyOut) const;
 
-    bool HaveTransaction(const uint256 &txhash) const;
+    bool HaveTransaction(const uint256 &txhash) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     int GetKey(const CKeyID &address, CKey &keyOut, CExtKeyAccount *&pa, CEKAKey &ak, CKeyID &idStealth) const;
     bool GetKey(const CKeyID &address, CKey &keyOut) const override;
@@ -464,8 +464,8 @@ public:
 
     void GetCredit(const CTransaction &tx, CAmount &nSpendable, CAmount &nWatchOnly) const;
 
-    CAmount GetOutputValue(const COutPoint &op, bool fAllowTXIndex);
-    CAmount GetOwnedOutputValue(const COutPoint &op, isminefilter filter);
+    CAmount GetOutputValue(const COutPoint &op, bool fAllowTXIndex) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    CAmount GetOwnedOutputValue(const COutPoint &op, isminefilter filter) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     int GetDepthInMainChain(const uint256 &blockhash, int nIndex = 0) const;
     bool InMempool(const uint256 &hash) const;
@@ -528,12 +528,12 @@ public:
 
 
     void ClearCachedBalances() override;
-    void LoadToWallet(const CWalletTx& wtxIn) override;
-    void LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx);
+    void LoadToWallet(const CWalletTx& wtxIn) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /** Remove txn from mapwallet and TxSpends */
-    void RemoveFromTxSpends(const uint256 &hash, const CTransactionRef pt);
-    int UnloadTransaction(const uint256 &hash);
+    void RemoveFromTxSpends(const uint256 &hash, const CTransactionRef pt) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    int UnloadTransaction(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     int GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&sea, CStoredExtKey *&pc);
 
@@ -659,7 +659,7 @@ public:
     void PostProcessUnloadSpent();
 
     using CWallet::AddToSpends;
-    void AddToSpends(const uint256& wtxid) override;
+    void AddToSpends(const uint256& wtxid) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     CWalletTx *GetTempWalletTx(const uint256& hash);
@@ -689,7 +689,7 @@ public:
      */
     void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount& nMinimumAmount = 1, const CAmount& nMaximumAmount = MAX_MONEY, const CAmount& nMinimumSumAmount = MAX_MONEY, const uint64_t nMaximumCount = 0, const int nMinDepth = 0, const int nMaxDepth = 0x7FFFFFFF, bool fIncludeImmature=false) const override EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
     bool SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAmount& nTargetValue, std::set<CInputCoin>& setCoinsRet, CAmount& nValueRet,
-        const CCoinControl& coin_control, CoinSelectionParams& coin_selection_params, bool& bnb_used) const override;
+        const CCoinControl& coin_control, CoinSelectionParams& coin_selection_params, bool& bnb_used) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     void AvailableBlindedCoins(std::vector<COutputR>& vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount& nMinimumAmount = 1, const CAmount& nMaximumAmount = MAX_MONEY, const CAmount& nMinimumSumAmount = MAX_MONEY, const uint64_t& nMaximumCount = 0, const int& nMinDepth = 0, const int& nMaxDepth = 0x7FFFFFFF, bool fIncludeImmature=false) const EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
     bool SelectBlindedCoins(const std::vector<COutputR>& vAvailableCoins, const CAmount& nTargetValue, std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &setCoinsRet, CAmount &nValueRet, const CCoinControl *coinControl = nullptr) const;
@@ -700,13 +700,13 @@ public:
     /**
      * Return list of available coins and locked coins grouped by non-change output address.
      */
-    const CTxOutBase* FindNonChangeParentOutput(const CTransaction& tx, int output) const;
+    const CTxOutBase* FindNonChangeParentOutput(const CTransaction& tx, int output) const EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
     std::map<CTxDestination, std::vector<COutput>> ListCoins() const override EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
     std::map<CTxDestination, std::vector<COutputR>> ListCoins(OutputTypes nType) const EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
 
     bool SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligibilityFilter& eligibility_filter, std::vector<COutputR> vCoins, std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &setCoinsRet, CAmount &nValueRet) const;
 
-    bool IsSpent(const uint256& hash, unsigned int n) const override EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool IsSpent(const uint256& hash, unsigned int n) const override EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
 
     std::set<uint256> GetConflicts(const uint256 &txid) const;
 
@@ -714,14 +714,14 @@ public:
     bool AbandonTransaction(const uint256 &hashTx) override;
 
     void MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx) override;
-    void SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator>) override;
+    void SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator>) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool GetSetting(const std::string &setting, UniValue &json);
     bool SetSetting(const std::string &setting, const UniValue &json);
     bool EraseSetting(const std::string &setting);
 
     /* Return a prevout if it exists in the wallet. */
-    bool GetPrevout(const COutPoint &prevout, CTxOutBaseRef &txout);
+    bool GetPrevout(const COutPoint &prevout, CTxOutBaseRef &txout) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     size_t CountColdstakeOutputs();
 
@@ -737,7 +737,7 @@ public:
 
     boost::signals2::signal<void (CAmount nReservedBalance)> NotifyReservedBalanceChanged;
 
-    size_t CountTxSpends() { return mapTxSpends.size(); };
+    size_t CountTxSpends() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) { return mapTxSpends.size(); };
 
     int64_t nLastCoinStakeSearchTime = 0;
     uint32_t nStealth, nFoundStealth; // for reporting, zero before use
@@ -836,7 +836,7 @@ int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string 
 // Use DummySignatureCreator, which inserts 72 byte signatures everywhere.
 // NOTE: this requires that all inputs must be in mapWallet (eg the tx should
 // be IsAllFromMe).
-int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wallet);
+int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wallet) EXCLUSIVE_LOCKS_REQUIRED(wallet->cs_wallet);
 int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wallet, const std::vector<CTxOutBaseRef>& txouts);
 
 void RestartStakingThreads();

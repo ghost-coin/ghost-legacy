@@ -116,6 +116,9 @@ int secp256k1_bulletproof_rangeproof_verify(const secp256k1_context* ctx, secp25
     return ret;
 }
 
+#define ALIGNMENT 16
+#define scratch_align(S) ((((S) + ALIGNMENT - 1) / ALIGNMENT) * ALIGNMENT)
+
 int secp256k1_bulletproof_rangeproof_verify_multi(const secp256k1_context* ctx, secp256k1_scratch_space *scratch, const secp256k1_bulletproof_generators *gens, const unsigned char* const* proof, size_t n_proofs, size_t plen, const uint64_t* const* min_value, const secp256k1_pedersen_commitment* const* commit, size_t n_commits, size_t nbits, const secp256k1_generator *value_gen, const unsigned char* const* extra_commit, size_t *extra_commit_len) {
     int ret;
     secp256k1_ge **commitp;
@@ -141,7 +144,11 @@ int secp256k1_bulletproof_rangeproof_verify_multi(const secp256k1_context* ctx, 
     }
     ARG_CHECK(secp256k1_ecmult_context_is_built(&ctx->ecmult_ctx));
 
-    if (!secp256k1_scratch_allocate_frame(scratch, n_proofs * (sizeof(*value_genp) + sizeof(*commitp) + n_commits * sizeof(**commitp)), 1 + n_proofs)) {
+    /*if (!secp256k1_scratch_allocate_frame(scratch, n_proofs * (sizeof(*value_genp) + sizeof(*commitp) + n_commits * sizeof(**commitp)), 1 + n_proofs)) { */
+    if (!secp256k1_scratch_allocate_frame(scratch,
+            scratch_align(n_proofs * sizeof(*value_genp)) +
+            scratch_align(n_proofs * sizeof(*commitp)) +
+            n_proofs * scratch_align(n_commits * sizeof(**commitp)), 1)) {
         return 0;
     }
 

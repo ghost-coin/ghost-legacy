@@ -2731,8 +2731,8 @@ static void ParseOutputs(
     entry.pushKV("outputs", outputs);
     entry.pushKV("amount", ValueFromAmount(amount));
 
-    if (fWithReward && !listStaked.empty())
-    {
+    if (fWithReward && !listStaked.empty()) {
+        LOCK(pwallet->cs_wallet);
         CAmount nOutput = wtx.tx->GetValueOut();
         CAmount nInput = 0;
 
@@ -2749,12 +2749,12 @@ static void ParseOutputs(
             }
         };
 
-        for (const auto &vin : wtx.tx->vin)
-        {
-            if (vin.IsAnonInput())
+        for (const auto &vin : wtx.tx->vin) {
+            if (vin.IsAnonInput()) {
                 continue;
+            }
             nInput += pwallet->GetOutputValue(vin.prevout, true);
-        };
+        }
         entry.pushKV("reward", ValueFromAmount(nOutput - nInput));
     };
 
@@ -2939,6 +2939,7 @@ static void ParseRecords(
     if (nOwned && nFrom && nOwned != outputs.size())
     {
         // Must check against the owned input value
+        LOCK(pwallet->cs_wallet);
         CAmount nInput = 0;
         for (const auto &vin : rtx.vin)
         {
@@ -5092,6 +5093,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
     // Find the prevout if it exists in the wallet or chain
     CTxOutBaseRef txout;
     if (pwallet) {
+        LOCK(pwallet->cs_wallet);
         pwallet->GetPrevout(prev_out, txout);
     }
     if (!txout.get()) {

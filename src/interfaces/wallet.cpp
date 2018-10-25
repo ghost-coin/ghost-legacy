@@ -26,7 +26,12 @@
 #include <wallet/wallet.h>
 #include <wallet/hdwallet.h>
 
-extern void LockWallet(CWallet* pWallet);
+void LockWallet(CWallet* pWallet)
+{
+    LOCK(pWallet->cs_wallet);
+    pWallet->nRelockTime = 0;
+    pWallet->Lock();
+}
 
 namespace interfaces {
 namespace {
@@ -166,7 +171,7 @@ WalletTxStatus MakeWalletTxStatus(CHDWallet &wallet, const uint256 &hash, const 
 }
 
 //! Construct wallet TxOut struct.
-static WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+static WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main, wallet.cs_wallet)
 {
     WalletTxOut result;
     result.txout.nValue = wtx.tx->vpout[n]->GetValue();
@@ -177,12 +182,13 @@ static WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n,
     return result;
 }
 
-WalletTxOut MakeWalletTxOut(CHDWallet& wallet, const COutputR& r, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+WalletTxOut MakeWalletTxOut(CHDWallet& wallet, const COutputR& r, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main, wallet.cs_wallet)
 {
     WalletTxOut result;
     const COutputRecord *oR = r.rtx->second.GetOutput(r.i);
-    if (!oR)
+    if (!oR) {
         return result;
+    }
     result.txout.nValue = oR->nValue;
     result.txout.scriptPubKey = oR->scriptPubKey;
     result.time = r.rtx->second.GetTxTime();

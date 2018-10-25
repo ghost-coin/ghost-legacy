@@ -171,16 +171,16 @@ bool CHDWallet::Initialise()
     // Continue from CHDWallet::LoadWallet
     PostProcessUnloadSpent();
 
+
+    LOCK2(cs_main, cs_wallet);
+
     {
-        LOCK2(cs_main, cs_wallet); // Locking cs_main for MarkConflicted
         CHDWalletDB wdb(GetDBHandle());
 
         LoadAddressBook(&wdb);
         LoadTxRecords(&wdb);
         LoadVoteTokens(&wdb);
     }
-
-    LOCK(cs_main);
 
     CBlockIndex *pindexRescan = chainActive.Genesis();
     if (!gArgs.GetBoolArg("-rescan", false))
