@@ -37,12 +37,13 @@ install:
 before_script:
   - set -o errexit; source .travis/test_05_before_script.sh
 script:
-  - set -o errexit; source .travis/test_06_script.sh
+  - if [ $SECONDS -gt 1200 ]; then set +o errexit; echo "Travis early exit to cache current state"; false; else set -o errexit; source .travis/test_06_script.sh; fi
 after_script:
   - echo $TRAVIS_COMMIT_RANGE
   - echo $TRAVIS_COMMIT_LOG
 after_success:
   - echo "Uploading"
+  - DOCKER_EXEC make install
   - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
   - DOCKER_EXEC tar -cjf $OUTDIR/particl_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .
   - if [ -f $OUTDIR/particl_$COMMIT.tar.bz2 ]; then travis_retry curl --max-time 60 --upload $OUTDIR/particl_$COMMIT.tar.bz2 https://transfer.sh/particl_$COMMIT.tar.bz2; fi
@@ -67,8 +68,8 @@ jobs:
     - stage: test
       env: >-
         HOST=arm-linux-gnueabihf
-        PACKAGES="g++-arm-linux-gnueabihf"
-        DEP_OPTS="NO_USB=1 NO_QT=1"
+        DEP_OPTS="NO_USB=1"
+        PACKAGES="python3 g++-arm-linux-gnueabihf"
         RUN_UNIT_TESTS=false
         RUN_FUNCTIONAL_TESTS=false
         GOAL="install"
@@ -80,25 +81,22 @@ jobs:
       env: >-
         HOST=i686-w64-mingw32
         DPKG_ADD_ARCH="i386"
-        DEP_OPTS="NO_QT=1"
         PACKAGES="python3 nsis g++-mingw-w64-i686 wine-binfmt wine32"
-        GOAL="install"
-        BITCOIN_CONFIG="--enable-usbdevice --enable-reduce-exports"
+        GOAL="deploy"
+        BITCOIN_CONFIG="--enable-reduce-exports --disable-gui-tests --enable-usbdevice"
 # Win64
     - stage: test
       env: >-
         HOST=x86_64-w64-mingw32
-        DEP_OPTS="NO_QT=1"
         PACKAGES="python3 nsis g++-mingw-w64-x86-64 wine-binfmt wine64"
-        GOAL="install"
-        BITCOIN_CONFIG="--enable-usbdevice --enable-reduce-exports"
+        GOAL="deploy"
+        BITCOIN_CONFIG="--enable-reduce-exports --disable-gui-tests -enable-usbdevice"
 # 32-bit + dash
     - stage: test
       env: >-
         HOST=i686-pc-linux-gnu
         DPKG_ADD_ARCH="i386"
         PACKAGES="libudev-dev:i386 g++-multilib python3-zmq"
-        DEP_OPTS="NO_QT=1"
         GOAL="install"
         BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++ --enable-usbdevice "
         CONFIG_SHELL="/bin/dash"
@@ -154,12 +152,6 @@ jobs:
         OSX_SDK=10.11
         RUN_UNIT_TESTS=false
         RUN_FUNCTIONAL_TESTS=false
-        GOAL="all deploy"
+        GOAL="deploy"
         BITCOIN_CONFIG="--enable-gui --enable-reduce-exports --enable-werror --disable-bench --disable-tests --enable-usbdevice"
         DEPENDS_TIMEOUT=3600
-      after_success:
-        - echo "Uploading"
-        - DOCKER_EXEC make install
-        - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
-        - DOCKER_EXEC tar -cjf $OUTDIR/particl_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .
-        - if [ -f $OUTDIR/particl_$COMMIT.tar.bz2 ]; then travis_retry curl --max-time 60 --upload $OUTDIR/particl_$COMMIT.tar.bz2 https://transfer.sh/particl_$COMMIT.tar.bz2; fi
