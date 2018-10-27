@@ -451,7 +451,7 @@ int CLedgerDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::st
     return 0;
 };
 
-int CLedgerDevice::PrepareTransaction(const CMutableTransaction *tx, const CCoinsViewCache &view)
+int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewCache &view, const CKeyStore &keystore, int nHashType)
 {
     if (!handle) {
         return errorN(1, sError, __func__, "Device not open.");
@@ -465,21 +465,21 @@ int CLedgerDevice::PrepareTransaction(const CMutableTransaction *tx, const CCoin
     in[apduSize++] = BTCHIP_INS_HASH_INPUT_START;
     in[apduSize++] = 0x00;
     in[apduSize++] = 0x02; // segwit
-    in[apduSize++] = 4 + GetSizeOfVarInt<VarIntMode::DEFAULT>(tx->vin.size());
+    in[apduSize++] = 4 + GetSizeOfVarInt<VarIntMode::DEFAULT>(tx.vin.size());
 
-    in[apduSize++] = tx->nVersion;
+    in[apduSize++] = tx.nVersion;
     in[apduSize++] = 0x00;
     in[apduSize++] = 0x00;
     in[apduSize++] = 0x00;
-    apduSize += PutVarInt(&in[apduSize], tx->vin.size());
+    apduSize += PutVarInt(&in[apduSize], tx.vin.size());
 
     result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
     if (sw != SW_OK) {
         return errorN(1, sError, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
     }
 
-    for (size_t i = 0; i < tx->vin.size(); ++i) {
-        const auto &txin = tx->vin[i];
+    for (size_t i = 0; i < tx.vin.size(); ++i) {
+        const auto &txin = tx.vin[i];
         const Coin &coin = view.AccessCoin(txin.prevout);
         if (coin.IsSpent()) {
             return errorN(1, sError, __func__, _("Input %d not found or already spent").c_str(), i);
@@ -559,8 +559,8 @@ int CLedgerDevice::PrepareTransaction(const CMutableTransaction *tx, const CCoin
     // finalizeInputFull
 
     std::vector<uint8_t> vOutputData;
-    PutVarInt(vOutputData, tx->vpout.size());
-    for (const auto &txout : tx->vpout) {
+    PutVarInt(vOutputData, tx.vpout.size());
+    for (const auto &txout : tx.vpout) {
         std::vector<uint8_t> vchAmount(8);
         if (txout->IsType(OUTPUT_DATA)) {
             memset(vchAmount.data(), 0, vchAmount.size());

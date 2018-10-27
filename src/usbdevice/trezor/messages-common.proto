@@ -1,15 +1,18 @@
 syntax = "proto2";
+package hw.trezor.messages.common;
 
 /**
  * Response: Success of the previous request
+ * @end
  */
- message Success {
+message Success {
     optional string message = 1;    // human readable description of action or request-specific payload
 }
 
 /**
-* Response: Failure of the previous request
-*/
+ * Response: Failure of the previous request
+ * @end
+ */
 message Failure {
     optional FailureType code = 1;  // computer-readable definition of the error state
     optional string message = 2;    // human-readable message of the error state
@@ -32,8 +35,8 @@ message Failure {
 
 /**
  * Response: Device is waiting for HW button press.
+ * @auxstart
  * @next ButtonAck
- * @next Cancel
  */
 message ButtonRequest {
     optional ButtonRequestType code = 1;
@@ -56,20 +59,21 @@ message ButtonRequest {
         ButtonRequest_MnemonicWordCount = 12;
         ButtonRequest_MnemonicInput = 13;
         ButtonRequest_PassphraseType = 14;
+        ButtonRequest_UnknownDerivationPath = 15;
     }
 }
 
 /**
  * Request: Computer agrees to wait for HW button press
- * @prev ButtonRequest
+ * @auxend
  */
 message ButtonAck {
 }
 
 /**
  * Response: Device is asking computer to show PIN matrix and awaits PIN encoded using this matrix scheme
+ * @auxstart
  * @next PinMatrixAck
- * @next Cancel
  */
 message PinMatrixRequest {
     optional PinMatrixRequestType type = 1;
@@ -85,7 +89,7 @@ message PinMatrixRequest {
 
 /**
  * Request: Computer responds with encoded PIN
- * @prev PinMatrixRequest
+ * @auxend
  */
 message PinMatrixAck {
     required string pin = 1;    // matrix encoded PIN entered by user
@@ -93,16 +97,15 @@ message PinMatrixAck {
 
 /**
  * Response: Device awaits encryption passphrase
+ * @auxstart
  * @next PassphraseAck
- * @next Cancel
  */
- message PassphraseRequest {
+message PassphraseRequest {
     optional bool on_device = 1;    // passphrase is being entered on the device
 }
 
 /**
  * Request: Send passphrase back
- * @prev PassphraseRequest
  * @next PassphraseStateRequest
  */
 message PassphraseAck {
@@ -111,7 +114,7 @@ message PassphraseAck {
 }
 
 /**
- * @prev PassphraseAck
+ * Response: Device awaits passphrase state
  * @next PassphraseStateAck
  */
 message PassphraseStateRequest {
@@ -119,7 +122,8 @@ message PassphraseStateRequest {
 }
 
 /**
- * @prev PassphraseStateRequest
+ * Request: Send passphrase state back
+ * @auxend
  */
 message PassphraseStateAck {
 }
@@ -127,6 +131,7 @@ message PassphraseStateAck {
 /**
  * Structure representing BIP32 (hierarchical deterministic) node
  * Used for imports of private key into the device and exporting public key out of device
+ * @embed
  */
 message HDNodeType {
     required uint32 depth = 1;

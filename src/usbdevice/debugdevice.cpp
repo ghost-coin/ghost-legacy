@@ -100,11 +100,6 @@ int CDebugDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::str
     return 0;
 };
 
-int CDebugDevice::PrepareTransaction(const CMutableTransaction *tx, const CCoinsViewCache &view)
-{
-    return 0;
-};
-
 int CDebugDevice::SignTransaction(const std::vector<uint32_t> &vPath, const std::vector<uint8_t> &vSharedSecret, const CMutableTransaction *tx,
     int nIn, const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion,
     std::vector<uint8_t> &vchSig, std::string &sError)
