@@ -1,12 +1,11 @@
 syntax = "proto2";
+package hw.trezor.messages.bitcoin;
 
 // Sugar for easier handling in Java
 option java_package = "com.satoshilabs.trezor.lib.protobuf";
 option java_outer_classname = "TrezorMessageBitcoin";
 
 import "messages-common.proto";
-
-package message;
 
 /**
  * Type of script which will be used for transaction output
@@ -31,8 +30,8 @@ message MultisigRedeemScriptType {
     * Structure representing HDNode + Path
     */
     message HDNodePathType {
-        required HDNodeType node = 1;       // BIP-32 node in deserialized form
-        repeated uint32 address_n = 2;      // BIP-32 path to derive the key from node
+        required hw.trezor.messages.common.HDNodeType node = 1; // BIP-32 node in deserialized form
+        repeated uint32 address_n = 2;                          // BIP-32 path to derive the key from node
     }
 }
 
@@ -43,10 +42,11 @@ message MultisigRedeemScriptType {
  * @next Failure
  */
 message GetPublicKey {
-    repeated uint32 address_n = 1;                      // BIP-32 path to derive the key from master node
-    optional string ecdsa_curve_name = 2;               // ECDSA curve name to use
-    optional bool show_display = 3;                     // optionally show on display before sending the result
-    optional string coin_name = 4 [default='Bitcoin'];  // coin to use for verifying
+    repeated uint32 address_n = 1;                                      // BIP-32 path to derive the key from master node
+    optional string ecdsa_curve_name = 2;                               // ECDSA curve name to use
+    optional bool show_display = 3;                                     // optionally show on display before sending the result
+    optional string coin_name = 4 [default='Bitcoin'];                  // coin to use for verifying
+    optional InputScriptType script_type = 5 [default=SPENDADDRESS];    // used to distinguish between various address formats (non-segwit, segwit, etc.)
 }
 
 /**
@@ -54,7 +54,7 @@ message GetPublicKey {
  * @end
  */
 message PublicKey {
-    required HDNodeType node = 1;        // BIP32 public node
+    required hw.trezor.messages.common.HDNodeType node = 1;        // BIP32 public node
     optional string xpub = 2;        // serialized form of public node
 }
 
@@ -208,6 +208,7 @@ message TxAck {
             optional uint32 decred_script_version = 10;
             optional bytes prev_block_hash_bip115 = 11;                         // block hash of previous transaction output (for bip115 implementation)
             optional uint32 prev_block_height_bip115 = 12;                      // block height of previous transaction output (for bip115 implementation)
+            optional bytes particl_shared_secret = 13;
         }
         /**
         * Structure representing compiled transaction output
@@ -216,6 +217,7 @@ message TxAck {
             required uint64 amount = 1;
             required bytes script_pubkey = 2;
             optional uint32 decred_script_version = 3;
+            optional uint32 particl_output_type = 4;
         }
         /**
         * Structure representing transaction output
@@ -237,6 +239,7 @@ message TxAck {
                 PAYTOOPRETURN = 3;      // op_return
                 PAYTOWITNESS = 4;       // only for change output
                 PAYTOP2SHWITNESS = 5;   // only for change output
+                PAYTOPARTICLDATA = 6;
             }
         }
     }

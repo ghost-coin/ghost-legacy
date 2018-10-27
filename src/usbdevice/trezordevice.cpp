@@ -145,8 +145,8 @@ static int ReadV1(webusb_device *handle, uint16_t &msg_type, std::vector<uint8_t
 
 int CTrezorDevice::GetFirmwareVersion(std::string &sFirmware, std::string &sError)
 {
-    GetFeatures msg_in;
-    Features msg_out;
+    hw::trezor::messages::management::GetFeatures msg_in;
+    hw::trezor::messages::management::Features msg_out;
 
     std::vector<uint8_t> vec_in, vec_out;
 
@@ -160,7 +160,7 @@ int CTrezorDevice::GetFirmwareVersion(std::string &sFirmware, std::string &sErro
         return errorN(1, sError, __func__, "Failed to open device.");
     }
 
-    if (0 != WriteV1(handle, MessageType_GetFeatures, vec_in)) {
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_GetFeatures, vec_in)) {
         Close();
         return errorN(1, sError, __func__, "WriteV1 failed.");
     }
@@ -182,10 +182,51 @@ int CTrezorDevice::GetFirmwareVersion(std::string &sFirmware, std::string &sErro
     return 0;
 };
 
+int CTrezorDevice::GetInfo(UniValue &info, std::string &sError)
+{
+    hw::trezor::messages::management::GetFeatures msg_in;
+    hw::trezor::messages::management::Features msg_out;
+
+    std::vector<uint8_t> vec_in, vec_out;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != Open()) {
+        return errorN(1, sError, __func__, "Failed to open device.");
+    }
+
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_GetFeatures, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    uint16_t msg_type_out = 0;
+    if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+        Close();
+        return errorN(1, sError, __func__, "ReadV1 failed.");
+    }
+
+    Close();
+
+    if (!msg_out.ParseFromArray(vec_out.data(), vec_out.size())) {
+        return errorN(1, sError, __func__, "ParseFromArray failed.");
+    }
+
+    info.pushKV("device_id", msg_out.device_id());
+    info.pushKV("initialized", msg_out.initialized());
+    info.pushKV("firmware_present", msg_out.firmware_present());
+
+    return 0;
+}
+
 int CTrezorDevice::GetPubKey(const std::vector<uint32_t> &vPath, CPubKey &pk, std::string &sError)
 {
-    message::GetPublicKey msg_in;
-    message::PublicKey msg_out;
+    hw::trezor::messages::bitcoin::GetPublicKey msg_in;
+    hw::trezor::messages::bitcoin::PublicKey msg_out;
 
     for (const auto i : vPath) {
         msg_in.add_address_n(i);
@@ -203,12 +244,12 @@ int CTrezorDevice::GetPubKey(const std::vector<uint32_t> &vPath, CPubKey &pk, st
         return errorN(1, sError, __func__, "Failed to open device.");
     }
 
-    if (0 != WriteV1(handle, MessageType_GetPublicKey, vec_in)) {
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_GetPublicKey, vec_in)) {
         Close();
         return errorN(1, sError, __func__, "WriteV1 failed.");
     }
 
-    uint16_t msg_type_out = MessageType_PublicKey;
+    uint16_t msg_type_out = hw::trezor::messages::MessageType_PublicKey;
     if (0 != ReadV1(handle, msg_type_out, vec_out)) {
         Close();
         return errorN(1, sError, __func__, "ReadV1 failed.");
@@ -233,8 +274,8 @@ int CTrezorDevice::GetXPub(const std::vector<uint32_t> &vPath, CExtPubKey &ekp, 
     }
     size_t lenPath = vPath.size();
 
-    message::GetPublicKey msg_in;
-    message::PublicKey msg_out;
+    hw::trezor::messages::bitcoin::GetPublicKey msg_in;
+    hw::trezor::messages::bitcoin::PublicKey msg_out;
 
     for (const auto i : vPath) {
         msg_in.add_address_n(i);
@@ -252,12 +293,12 @@ int CTrezorDevice::GetXPub(const std::vector<uint32_t> &vPath, CExtPubKey &ekp, 
         return errorN(1, sError, __func__, "Failed to open device.");
     }
 
-    if (0 != WriteV1(handle, MessageType_GetPublicKey, vec_in)) {
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_GetPublicKey, vec_in)) {
         Close();
         return errorN(1, sError, __func__, "WriteV1 failed.");
     }
 
-    uint16_t msg_type_out = MessageType_PublicKey;
+    uint16_t msg_type_out = hw::trezor::messages::MessageType_PublicKey;
     if (0 != ReadV1(handle, msg_type_out, vec_out)) {
         Close();
         return errorN(1, sError, __func__, "ReadV1 failed.");
@@ -296,8 +337,8 @@ int CTrezorDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::st
         return errorN(1, sError, __func__, _("Path depth out of range.").c_str());
     }
 
-    message::SignMessage msg_in;
-    message::MessageSignature msg_out;
+    hw::trezor::messages::bitcoin::SignMessage msg_in;
+    hw::trezor::messages::bitcoin::MessageSignature msg_out;
 
     for (const auto i : vPath) {
         msg_in.add_address_n(i);
@@ -318,26 +359,26 @@ int CTrezorDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::st
         return errorN(1, sError, __func__, "Failed to open device.");
     }
 
-    if (0 != WriteV1(handle, MessageType_SignMessage, vec_in)) {
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_SignMessage, vec_in)) {
         Close();
         return errorN(1, sError, __func__, "WriteV1 failed.");
     }
 
-    uint16_t msg_type_out = MessageType_ButtonRequest;
+    uint16_t msg_type_out = hw::trezor::messages::MessageType_ButtonRequest;
     if (0 != ReadV1(handle, msg_type_out, vec_out)) {
         Close();
         return errorN(1, sError, __func__, "ReadV1 failed.");
     }
 
-    ButtonAck msg_in1;
+    hw::trezor::messages::common::ButtonAck msg_in1;
     vec_in.resize(msg_in1.ByteSize());
 
-    if (0 != WriteV1(handle, MessageType_ButtonAck, vec_in)) {
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_ButtonAck, vec_in)) {
         Close();
         return errorN(1, sError, __func__, "WriteV1 failed.");
     }
 
-    msg_type_out = MessageType_MessageSignature;
+    msg_type_out = hw::trezor::messages::MessageType_MessageSignature;
     if (0 != ReadV1(handle, msg_type_out, vec_out)) {
         Close();
         return errorN(1, sError, __func__, "ReadV1 failed.");
@@ -353,6 +394,387 @@ int CTrezorDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::st
     vchSig.resize(lenSignature);
 
     memcpy(&vchSig[0], msg_out.signature().c_str(), lenSignature);
+
+    return 0;
+};
+
+int CTrezorDevice::PrepareTransaction(CMutableTransaction &mtx, const CCoinsViewCache &view, const CKeyStore &keystore, int nHashType)
+{
+    bool fHashSingle = ((nHashType & ~SIGHASH_ANYONECANPAY) == SIGHASH_SINGLE);
+
+    m_preparing = true;
+    for (unsigned int i = 0; i < mtx.vin.size(); i++) {
+        CTxIn& txin = mtx.vin[i];
+        const Coin& coin = view.AccessCoin(txin.prevout);
+        if (coin.IsSpent()
+            || coin.nType != OUTPUT_STANDARD) {
+            continue;
+        }
+
+        std::vector<uint8_t> vchAmount(8);
+        CScript prevPubKey = coin.out.scriptPubKey;
+        CAmount amount = coin.out.nValue;
+        memcpy(vchAmount.data(), &amount, 8);
+
+        m_cache[i] = SignData(prevPubKey, nHashType, vchAmount);
+        SignatureData sigdata = DataFromTransaction(mtx, i, vchAmount, prevPubKey);
+
+        // Only sign SIGHASH_SINGLE if there's a corresponding output:
+        if (!fHashSingle || (i < mtx.GetNumVOuts())) {
+            ProduceSignature(keystore, DeviceSignatureCreator(this, &mtx, i, vchAmount, nHashType), prevPubKey, sigdata);
+        }
+    }
+
+    m_preparing = false;
+
+    return CompleteTransaction(&mtx);
+};
+
+int CTrezorDevice::SignTransaction(const std::vector<uint32_t> &vPath, const std::vector<uint8_t> &vSharedSecret, const CMutableTransaction *tx,
+        int nIn, const CScript &scriptCode, int hashType, const std::vector<uint8_t> &amount, SigVersion sigversion,
+        std::vector<uint8_t> &vchSig, std::string &sError)
+{
+    if (m_preparing) {
+        m_cache[nIn] = SignData(vPath, vSharedSecret, scriptCode, hashType, amount, sigversion);
+    } else {
+        const auto &ci = m_cache.find(nIn);
+        if (ci != m_cache.end()) {
+            vchSig = ci->second.m_signature;
+        }
+    }
+
+    return 0;
+};
+
+int CTrezorDevice::CompleteTransaction(CMutableTransaction *tx)
+{
+    hw::trezor::messages::bitcoin::SignTx msg_in;
+    hw::trezor::messages::bitcoin::TxRequest req;
+    uint16_t msg_type_out = 0;
+
+    msg_in.set_outputs_count(tx->vpout.size());
+    msg_in.set_inputs_count(tx->vin.size());
+    msg_in.set_coin_name(GetCoinName());
+    msg_in.set_version(tx->nVersion);
+    msg_in.set_lock_time(tx->nLockTime);
+
+    std::vector<uint8_t> vec_in, vec_out, serialised_tx;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_SignTx, vec_in)) {
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    for (;;) {
+        if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+            return errorN(1, sError, __func__, "ReadV1 failed.");
+        }
+
+        if (msg_type_out == hw::trezor::messages::MessageType_Failure) {
+            hw::trezor::messages::common::Failure msg_fail;
+            if (!msg_fail.ParseFromArray(vec_out.data(), vec_out.size())) {
+                return errorN(1, sError, __func__, "ParseFromArray failed.");
+            }
+            return errorN(1, sError, __func__, "Dongle error %s.", msg_fail.message());
+        } else
+        if (msg_type_out == hw::trezor::messages::MessageType_ButtonRequest) {
+            hw::trezor::messages::common::ButtonAck msg;
+            vec_in.resize(msg.ByteSize());
+            if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
+                return errorN(1, sError, __func__, "SerializeToArray failed.");
+            }
+            if (0 != WriteV1(handle, hw::trezor::messages::MessageType_ButtonAck, vec_in)) {
+                return errorN(1, sError, __func__, "WriteV1 failed.");
+            }
+            continue;
+        } else
+        if (msg_type_out != hw::trezor::messages::MessageType_TxRequest) {
+            return errorN(1, "%s: Unknown return type.", __func__);
+        }
+
+        if (!req.ParseFromArray(vec_out.data(), vec_out.size())) {
+            return errorN(1, sError, __func__, "ParseFromArray failed.");
+        }
+
+        if (req.has_serialized()) {
+            const auto &msg_serialized = req.serialized();
+            if (msg_serialized.has_serialized_tx()) {
+                std::string s = msg_serialized.serialized_tx();
+                serialised_tx.insert(serialised_tx.end(), s.begin(), s.end());
+            }
+
+            if (msg_serialized.has_signature()) {
+                size_t i = msg_serialized.signature_index();
+
+                std::string signature = msg_serialized.signature();
+
+                const auto &ci = m_cache.find(i);
+                if (ci == m_cache.end()) {
+                    return errorN(1, sError, __func__, "No information for input %d.", i);
+                }
+
+                auto &cache_sig = ci->second.m_signature;
+                cache_sig.resize(signature.size()+1);
+                memcpy(cache_sig.data(), signature.data(), signature.size());
+                cache_sig[signature.size()] = ci->second.m_hashType;
+            }
+        }
+
+        hw::trezor::messages::bitcoin::TxAck msg;
+        if (req.request_type() == hw::trezor::messages::bitcoin::TxRequest::TXINPUT) {
+            const auto msg_tx = msg.mutable_tx();
+            uint32_t i = req.details().request_index();
+
+            if (i >= tx->vin.size()) {
+                return errorN(1, sError, __func__, "Requested input %d out of range.", i);
+            }
+            auto msg_input = msg_tx->add_inputs();
+
+            const auto &ci = m_cache.find(i);
+            if (ci == m_cache.end()) {
+                return errorN(1, sError, __func__, "No information for input %d.", i);
+            }
+            const auto &txin = tx->vin[i];
+
+            for (const auto i : ci->second.m_path) {
+                msg_input->add_address_n(i);
+            }
+
+            if (ci->second.m_shared_secret.size() == 32) {
+                const std::vector<uint8_t> &shared_secret = ci->second.m_shared_secret;
+                std::string s(shared_secret.begin(), shared_secret.end());
+                msg_input->set_particl_shared_secret(s);
+            }
+
+            std::string hash;
+            hash.resize(32);
+            for (size_t k = 0; k < 32; ++k) {
+                hash[k] = *(txin.prevout.hash.begin()+(31-k));
+            }
+
+            msg_input->set_prev_hash(hash);
+            msg_input->set_prev_index(txin.prevout.n);
+
+            msg_input->set_sequence(txin.nSequence);
+            msg_input->set_script_type(hw::trezor::messages::bitcoin::SPENDWITNESS);
+            if (ci->second.m_amount.size() != 8) {
+                return errorN(1, sError, __func__, "Non-standard amount size for input %d.", i);
+            }
+            int64_t amount;
+            memcpy(&amount, ci->second.m_amount.data(), 8);
+            msg_input->set_amount(amount);
+        } else
+        if (req.request_type() == hw::trezor::messages::bitcoin::TxRequest::TXOUTPUT) {
+            const auto msg_tx = msg.mutable_tx();
+            uint32_t i = req.details().request_index();
+            if (i >= tx->vpout.size()) {
+                return errorN(1, sError, __func__, "Requested output %d out of range.", i);
+            }
+            auto msg_output = msg_tx->add_outputs();
+
+            if (tx->vpout[i]->IsType(OUTPUT_STANDARD)) {
+                CTxDestination address;
+                const CScript *pscript = tx->vpout[i]->GetPScriptPubKey();
+                if (!pscript) {
+                    return errorN(1, sError, __func__, "GetPScriptPubKey failed.");
+                }
+
+                if (pscript->StartsWithICS()) {
+                    CScript scriptA, scriptB;
+                    if (!SplitConditionalCoinstakeScript(*pscript, scriptA, scriptB)) {
+                        return errorN(1, sError, __func__, "Output %d, failed to split script.", i);
+                    }
+                    CTxDestination addrStake, addrSpend;
+                    if (!ExtractDestination(scriptA, addrStake)) {
+                        return errorN(1, sError, __func__, "ExtractDestination failed.");
+                    }
+                    if (!ExtractDestination(scriptB, addrSpend)) {
+                        return errorN(1, sError, __func__, "ExtractDestination failed.");
+                    }
+                    if (addrStake.type() != typeid(CKeyID) || addrSpend.type() != typeid(CKeyID256)) {
+                        return errorN(1, sError, __func__, "Unsupported coldstake script types.");
+                    }
+                    CKeyID idStake = boost::get<CKeyID>(addrStake);
+                    CKeyID256 idSpend = boost::get<CKeyID256>(addrSpend);
+
+                    // Construct joined address, p2pkh prefix +2
+                    std::vector<uint8_t> addr_raw(53);
+                    addr_raw[0] = Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS)[0] + 2;
+                    memcpy(&addr_raw[1], idStake.begin(), 20);
+                    memcpy(&addr_raw[21], idSpend.begin(), 32);
+                    msg_output->set_address(EncodeBase58Check(addr_raw));
+                } else {
+                    if (!ExtractDestination(*pscript, address)) {
+                        return errorN(1, sError, __func__, "ExtractDestination failed.");
+                    }
+                    msg_output->set_address(EncodeDestination(address));
+                }
+
+                msg_output->set_amount(tx->vpout[i]->GetValue());
+                msg_output->set_script_type(hw::trezor::messages::bitcoin::TxAck::TransactionType::TxOutputType::PAYTOADDRESS);
+            } else
+            if (tx->vpout[i]->IsType(OUTPUT_DATA)) {
+                CTxOutData *txd = (CTxOutData*) tx->vpout[i].get();
+                std::string s(txd->vData.begin(), txd->vData.end());
+                msg_output->set_op_return_data(s);
+                msg_output->set_amount(0);
+                msg_output->set_script_type(hw::trezor::messages::bitcoin::TxAck::TransactionType::TxOutputType::PAYTOPARTICLDATA);
+            } else {
+                return errorN(1, sError, __func__, "Unknown type of output %d.", i);
+            }
+        } else
+        if (req.request_type() == hw::trezor::messages::bitcoin::TxRequest::TXFINISHED) {
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                LogPrintf("%s: Debug, serialised_tx %s.\n", __func__, HexStr(serialised_tx));
+            }
+            break;
+        } else {
+            LogPrintf("%s: Unknown request_type.\n", __func__);
+            break;
+        }
+
+        vec_in.resize(msg.ByteSize());
+        if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
+            return errorN(1, sError, __func__, "SerializeToArray failed.");
+        }
+
+        if (0 != WriteV1(handle, hw::trezor::messages::MessageType_TxAck, vec_in)) {
+            return errorN(1, sError, __func__, "WriteV1 failed.");
+        }
+    }
+
+    return 0;
+};
+
+std::string CTrezorDevice::GetCoinName()
+{
+    return Params().NetworkIDString() == "main" ? "Particl" : "Particl Testnet";
+};
+
+int CTrezorDevice::LoadMnemonic(uint32_t wordcount, bool pinprotection, std::string &sError)
+{
+    hw::trezor::messages::management::RecoveryDevice msg_in;
+    uint16_t msg_type_out = 0;
+
+    msg_in.set_type(hw::trezor::messages::management::RecoveryDevice_RecoveryDeviceType_RecoveryDeviceType_Matrix);
+    msg_in.set_word_count(wordcount);
+    msg_in.set_pin_protection(pinprotection);
+
+    std::vector<uint8_t> vec_in, vec_out;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != Open()) {
+        return errorN(1, sError, __func__, "Failed to open device.");
+    }
+
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_RecoveryDevice, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+
+    for (;;) {
+        if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+            Close();
+            return errorN(1, sError, __func__, "ReadV1 failed.");
+        }
+
+        if (msg_type_out == hw::trezor::messages::MessageType_Failure) {
+            hw::trezor::messages::common::Failure msg_fail;
+            if (!msg_fail.ParseFromArray(vec_out.data(), vec_out.size())) {
+                Close();
+                return errorN(1, sError, __func__, "ParseFromArray failed.");
+            }
+            Close();
+            return errorN(1, sError, __func__, "Dongle error %s.", msg_fail.message());
+        }
+
+        if (msg_type_out == hw::trezor::messages::MessageType_ButtonRequest) {
+            hw::trezor::messages::common::ButtonAck msg;
+            vec_in.resize(msg.ByteSize());
+            if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
+                Close();
+                return errorN(1, sError, __func__, "SerializeToArray failed.");
+            }
+            if (0 != WriteV1(handle, hw::trezor::messages::MessageType_ButtonAck, vec_in)) {
+                Close();
+                return errorN(1, sError, __func__, "WriteV1 failed.");
+            }
+        }
+        if (msg_type_out == hw::trezor::messages::MessageType_Success) {
+            break;
+        }
+    }
+    Close();
+
+    return 0;
+};
+
+int CTrezorDevice::Backup(std::string &sError)
+{
+    hw::trezor::messages::management::BackupDevice msg_in;
+    uint16_t msg_type_out = 0;
+
+    std::vector<uint8_t> vec_in, vec_out;
+
+    vec_in.resize(msg_in.ByteSize());
+
+    if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
+        return errorN(1, sError, __func__, "SerializeToArray failed.");
+    }
+
+    if (0 != Open()) {
+        return errorN(1, sError, __func__, "Failed to open device.");
+    }
+
+    if (0 != WriteV1(handle, hw::trezor::messages::MessageType_BackupDevice, vec_in)) {
+        Close();
+        return errorN(1, sError, __func__, "WriteV1 failed.");
+    }
+
+    for (;;) {
+        if (0 != ReadV1(handle, msg_type_out, vec_out)) {
+            Close();
+            return errorN(1, sError, __func__, "ReadV1 failed.");
+        }
+
+        if (msg_type_out == hw::trezor::messages::MessageType_Failure) {
+            hw::trezor::messages::common::Failure msg_fail;
+            if (!msg_fail.ParseFromArray(vec_out.data(), vec_out.size())) {
+                Close();
+                return errorN(1, sError, __func__, "ParseFromArray failed.");
+            }
+            Close();
+            return errorN(1, sError, __func__, "Dongle error %s.", msg_fail.message());
+        }
+
+        if (msg_type_out == hw::trezor::messages::MessageType_ButtonRequest) {
+            hw::trezor::messages::common::ButtonAck msg;
+            vec_in.resize(msg.ByteSize());
+            if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
+                Close();
+                return errorN(1, sError, __func__, "SerializeToArray failed.");
+            }
+            if (0 != WriteV1(handle, hw::trezor::messages::MessageType_ButtonAck, vec_in)) {
+                Close();
+                return errorN(1, sError, __func__, "WriteV1 failed.");
+            }
+        }
+        if (msg_type_out == hw::trezor::messages::MessageType_Success) {
+            break;
+        }
+    }
+    Close();
 
     return 0;
 };

@@ -74,6 +74,73 @@ static usb_device::CUSBDevice *SelectDevice(std::vector<std::unique_ptr<usb_devi
     return rv;
 };
 
+static UniValue deviceloadmnemonic(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 2)
+        throw std::runtime_error(
+            "deviceloadmnemonic\n"
+            "Start mnemonic loader.\n"
+            "\nArguments:\n"
+            "1. \"wordcount\"              (int, optional) Word count of mnemonic (default=12).\n"
+            "2. \"pinprotection\"          (bool, optional) Make the new account the default account for the wallet (default=false).\n"
+            "\nExamples\n"
+            + HelpExampleCli("deviceloadmnemonic", "")
+            + HelpExampleRpc("deviceloadmnemonic", ""));
+
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
+
+    uint32_t wordcount = 12;
+    if (request.params.size() > 0) {
+        std::string s = request.params[0].get_str();
+        if (s.length() && !ParseUInt32(s, &wordcount)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, _("wordcount invalid number."));
+        }
+    }
+
+    bool pinprotection = false;
+    if (request.params.size() > 1) {
+        if(request.params[1].get_str() == "true") {
+            pinprotection = true;
+        }
+    }
+
+    UniValue result(UniValue::VOBJ);
+    std::string sError;
+    if (0 == pDevice->LoadMnemonic(wordcount, pinprotection, sError)) {
+        result.pushKV("complete", "Device loaded");
+    } else {
+        result.pushKV("error", sError);
+    }
+
+    return result;
+};
+
+static UniValue devicebackup(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 0)
+        throw std::runtime_error(
+            "devicebackup\n"
+            "Start device backup mnemonic generator.\n"
+            "\nExamples\n"
+            + HelpExampleCli("devicebackup", "")
+            + HelpExampleRpc("devicebackup", ""));
+
+
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
+
+    UniValue result(UniValue::VOBJ);
+    std::string sError;
+    if (0 == pDevice->Backup(sError)) {
+        result.pushKV("complete", "Device backed up");
+    } else {
+        result.pushKV("error", sError);
+    }
+
+    return result;
+};
+
 static UniValue listdevices(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 0)
@@ -185,12 +252,15 @@ static UniValue getdevicepublickey(const JSONRPCRequest &request)
     }
 
     std::string sPath;
-    if (0 != PathToString(vPath, sPath))
+    if (0 != PathToString(vPath, sPath)) {
         sPath = "error";
+    }
+
     UniValue rv(UniValue::VOBJ);
     rv.pushKV("publickey", HexStr(pk));
     rv.pushKV("address", CBitcoinAddress(pk.GetID()).ToString());
     rv.pushKV("path", sPath);
+
     return rv;
 };
 
@@ -490,7 +560,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     if (0 != pDevice->Open()) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Failed to open dongle."));
     }
-    pDevice->PrepareTransaction(&mtx, view);
+    pDevice->PrepareTransaction(mtx, view, keystore, nHashType);
     if (!pDevice->sError.empty()) {
         pDevice->Close();
         UniValue entry(UniValue::VOBJ);
@@ -503,7 +573,6 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
         }
         return result;
     }
-
 
     // Sign what we can:
     for (unsigned int i = 0; i < mtx.vin.size(); i++) {
@@ -533,10 +602,10 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
                 UniValue entry(UniValue::VOBJ);
                 entry.pushKV("error", pDevice->sError);
                 vErrors.push_back(entry);
+                pDevice->sError.clear();
             }
         }
 
-        //sigdata = CombineSignatures(prevPubKey, TransactionSignatureChecker(&txConst, i, vchAmount), sigdata, DataFromTransaction(mtx, i));
         UpdateInput(txin, sigdata);
 
         ScriptError serror = SCRIPT_ERR_OK;
@@ -898,7 +967,6 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unknown stealth spend chain.");
         }
 
-
         uint32_t nSpendGenerated = sekSpend->nHGenerated;
 
         std::vector<uint32_t> vSpendPath;
@@ -976,6 +1044,8 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
 static const CRPCCommand commands[] =
 { //  category              name                            actor (function)            argNames
   //  --------------------- ------------------------        -----------------------     ----------
+    { "usbdevice",          "deviceloadmnemonic",           &deviceloadmnemonic,        {"wordcount", "pinprotection"} },
+    { "usbdevice",          "devicebackup",                 &devicebackup,              {} },
     { "usbdevice",          "listdevices",                  &listdevices,               {} },
     { "usbdevice",          "getdeviceinfo",                &getdeviceinfo,             {} },
     { "usbdevice",          "getdevicepublickey",           &getdevicepublickey,        {"path","accountpath"} },

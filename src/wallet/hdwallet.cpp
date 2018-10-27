@@ -3929,7 +3929,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 
                 uiInterface.NotifyWaitingForDevice(false);
 
-                pDevice->PrepareTransaction(&txNew, view);
+                pDevice->PrepareTransaction(txNew, view, *this, SIGHASH_ALL);
                 if (!pDevice->sError.empty()) {
                     pDevice->Close();
                     uiInterface.NotifyWaitingForDevice(true);
