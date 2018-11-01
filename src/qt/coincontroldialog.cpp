@@ -457,68 +457,46 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     std::vector<COutPoint> vCoinControl;
     coinControl()->ListSelected(vCoinControl);
 
-    if (coinControl()->nCoinType != OUTPUT_STANDARD)
-    {
-        CHDWallet *phdw = model->wallet().getParticlWallet();
+    size_t i = 0;
+    for (const auto& out : model->wallet().getCoins(vCoinControl)) {
+        if (out.depth_in_main_chain < 0) continue;
 
-        for (const auto &op : vCoinControl)
+        // unselect already spent, very unlikely scenario, this could happen
+        // when selected are spent elsewhere, like rpc or another computer
+        const COutPoint& outpt = vCoinControl[i++];
+        if (out.is_spent)
         {
-            MapRecords_t::const_iterator mri = phdw->mapRecords.find(op.hash);
-            if (mri == phdw->mapRecords.end())
-                continue;
-
-            const COutputRecord *oR = mri->second.GetOutput(op.n);
-
-            if (!oR)
-                continue;
-
-            nQuantity++;
-
-            nAmount += oR->nValue;
-        };
-    } else
-    {
-        size_t i = 0;
-        for (const auto& out : model->wallet().getCoins(vCoinControl)) {
-            if (out.depth_in_main_chain < 0) continue;
-
-            // unselect already spent, very unlikely scenario, this could happen
-            // when selected are spent elsewhere, like rpc or another computer
-            const COutPoint& outpt = vCoinControl[i++];
-            if (out.is_spent)
-            {
-                coinControl()->UnSelect(outpt);
-                continue;
-            }
-
-            // Quantity
-            nQuantity++;
-
-            // Amount
-            nAmount += out.txout.nValue;
-
-            // Bytes
-            CTxDestination address;
-            int witnessversion = 0;
-            std::vector<unsigned char> witnessprogram;
-            if (out.txout.scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram))
-            {
-                nBytesInputs += (32 + 4 + 1 + (107 / WITNESS_SCALE_FACTOR) + 4);
-                fWitness = true;
-            }
-            else if(ExtractDestination(out.txout.scriptPubKey, address))
-            {
-                CPubKey pubkey;
-                CKeyID *keyid = boost::get<CKeyID>(&address);
-                if (keyid && model->wallet().getPubKey(*keyid, pubkey))
-                {
-                    nBytesInputs += (pubkey.IsCompressed() ? 148 : 180);
-                }
-                else
-                    nBytesInputs += 148; // in all error cases, simply assume 148 here
-            }
-            else nBytesInputs += 148;
+            coinControl()->UnSelect(outpt);
+            continue;
         }
+
+        // Quantity
+        nQuantity++;
+
+        // Amount
+        nAmount += out.txout.nValue;
+
+        // Bytes
+        CTxDestination address;
+        int witnessversion = 0;
+        std::vector<unsigned char> witnessprogram;
+        if (out.txout.scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram))
+        {
+            nBytesInputs += (32 + 4 + 1 + (107 / WITNESS_SCALE_FACTOR) + 4);
+            fWitness = true;
+        }
+        else if(ExtractDestination(out.txout.scriptPubKey, address))
+        {
+            CPubKey pubkey;
+            CKeyID *keyid = boost::get<CKeyID>(&address);
+            if (keyid && model->wallet().getPubKey(*keyid, pubkey))
+            {
+                nBytesInputs += (pubkey.IsCompressed() ? 148 : 180);
+            }
+            else
+                nBytesInputs += 148; // in all error cases, simply assume 148 here
+        }
+        else nBytesInputs += 148;
     }
 
     // calculation
