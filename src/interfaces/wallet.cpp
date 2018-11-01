@@ -182,18 +182,18 @@ static WalletTxOut MakeWalletTxOut(CWallet& wallet, const CWalletTx& wtx, int n,
     return result;
 }
 
-WalletTxOut MakeWalletTxOut(CHDWallet& wallet, const COutputR& r, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main, wallet.cs_wallet)
+WalletTxOut MakeWalletTxOut(CHDWallet &wallet, const uint256 &hash, const CTransactionRecord &rtx, int n, int depth) EXCLUSIVE_LOCKS_REQUIRED(cs_main, wallet.cs_wallet)
 {
     WalletTxOut result;
-    const COutputRecord *oR = r.rtx->second.GetOutput(r.i);
+    const COutputRecord *oR = rtx.GetOutput(n);
     if (!oR) {
         return result;
     }
     result.txout.nValue = oR->nValue;
     result.txout.scriptPubKey = oR->scriptPubKey;
-    result.time = r.rtx->second.GetTxTime();
+    result.time = rtx.GetTxTime();
     result.depth_in_main_chain = depth;
-    result.is_spent = wallet.IsSpent(r.rtx->first, r.i);
+    result.is_spent = wallet.IsSpent(hash, n);
     return result;
 }
 
@@ -372,8 +372,7 @@ public:
             return MakeWalletTx(m_wallet, mi->second);
         }
 
-        if (m_wallet_part)
-        {
+        if (m_wallet_part) {
             const auto mi = m_wallet_part->mapRecords.find(txid);
             if (mi != m_wallet_part->mapRecords.end()) {
                 return MakeWalletTx(*m_wallet_part, mi);
@@ -390,8 +389,7 @@ public:
         for (const auto& entry : m_wallet.mapWallet) {
             result.emplace_back(MakeWalletTx(m_wallet, entry.second));
         }
-        if (m_wallet_part)
-        {
+        if (m_wallet_part) {
             for (auto mi = m_wallet_part->mapRecords.begin(); mi != m_wallet_part->mapRecords.end(); mi++) {
                 result.emplace_back(MakeWalletTx(*m_wallet_part, mi));
             }
@@ -415,11 +413,9 @@ public:
         auto mi = m_wallet.mapWallet.find(txid);
         if (mi == m_wallet.mapWallet.end()) {
 
-            if (m_wallet_part)
-            {
+            if (m_wallet_part) {
                 auto mi = m_wallet_part->mapRecords.find(txid);
-                if (mi != m_wallet_part->mapRecords.end())
-                {
+                if (mi != m_wallet_part->mapRecords.end()) {
                     num_blocks = ::chainActive.Height();
                     adjusted_time = GetAdjustedTime();
                     tx_status = MakeWalletTxStatus(*m_wallet_part, mi->first, mi->second);
@@ -450,11 +446,9 @@ public:
             tx_status = MakeWalletTxStatus(mi->second);
             return MakeWalletTx(m_wallet, mi->second);
         }
-        if (m_wallet_part)
-        {
+        if (m_wallet_part) {
             auto mi = m_wallet_part->mapRecords.find(txid);
-            if (mi != m_wallet_part->mapRecords.end())
-            {
+            if (mi != m_wallet_part->mapRecords.end()) {
                 num_blocks = ::chainActive.Height();
                 adjusted_time = GetAdjustedTime();
                 in_mempool = m_wallet_part->InMempool(mi->first);
@@ -468,11 +462,11 @@ public:
     WalletBalances getBalances() override
     {
         WalletBalances result;
-        if (m_wallet_part)
-        {
+        if (m_wallet_part) {
             CHDWalletBalances bal;
-            if (!m_wallet_part->GetBalances(bal))
+            if (!m_wallet_part->GetBalances(bal)) {
                 return result;
+            }
 
             result.balance = bal.nPart;
             result.balanceStaked = bal.nPartStaked;
@@ -489,8 +483,7 @@ public:
             }
 
             return result;
-        };
-
+        }
 
         result.balance = m_wallet.GetBalance();
         result.unconfirmed_balance = m_wallet.GetUnconfirmedBalance();
@@ -554,13 +547,12 @@ public:
 
         CoinsList result;
         if (m_wallet_part
-            && nType != OUTPUT_STANDARD)
-        {
+            && nType != OUTPUT_STANDARD) {
             for (const auto& entry : m_wallet_part->ListCoins(nType)) {
                 auto& group = result[entry.first];
                 for (const auto& coin : entry.second) {
                     group.emplace_back(
-                        COutPoint(coin.rtx->first, coin.i), MakeWalletTxOut(*m_wallet_part, coin, coin.i, coin.nDepth));
+                        COutPoint(coin.rtx->first, coin.i), MakeWalletTxOut(*m_wallet_part, coin.txhash, coin.rtx->second, coin.i, coin.nDepth));
                 }
             }
             return result;
@@ -587,6 +579,16 @@ public:
                 int depth = it->second.GetDepthInMainChain();
                 if (depth >= 0) {
                     result.back() = MakeWalletTxOut(m_wallet, it->second, output.n, depth);
+                }
+            } else
+            if (m_wallet_part) {
+                const auto mi = m_wallet_part->mapRecords.find(output.hash);
+                if (mi != m_wallet_part->mapRecords.end()) {
+                    const auto &rtx = mi->second;
+                    int depth = m_wallet_part->GetDepthInMainChain(rtx.blockHash, rtx.nIndex);
+                    if (depth >= 0) {
+                        result.back() = MakeWalletTxOut(*m_wallet_part, output.hash, rtx, output.n, depth);
+                    }
                 }
             }
         }
