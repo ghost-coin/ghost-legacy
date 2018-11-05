@@ -4,7 +4,10 @@
 
 #include <key_io.h>
 
-#include <utilstrencodings.h>
+#include <base58.h>
+#include <bech32.h>
+#include <script/script.h>
+#include <util/strencodings.h>
 #include <insight/addressindex.h>
 
 #include <boost/variant/apply_visitor.hpp>

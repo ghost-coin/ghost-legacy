@@ -10,7 +10,7 @@
 
 #include <primitives/transaction.h>
 #include <script/interpreter.h>
-#include <util.h>
+#include <util/system.h>
 
 bool ExtractIndexInfo(const CScript *pScript, int &scriptType, std::vector<uint8_t> &hashBytes)
 {

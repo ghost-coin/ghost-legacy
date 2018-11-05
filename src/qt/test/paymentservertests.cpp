@@ -13,8 +13,8 @@
 #include <random.h>
 #include <script/script.h>
 #include <script/standard.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/system.h>
+#include <util/strencodings.h>
 #include <key/stealth.h>
 #include <key/extkey.h>
 

@@ -14,13 +14,13 @@
 #include <blind.h>
 #include <anon.h>
 #include <timedata.h>
-#include <util.h>
+#include <util/system.h>
 
 
 // TODO remove the following dependencies
 #include <chain.h>
 #include <coins.h>
-#include <utilmoneystr.h>
+#include <util/moneystr.h>
 
 
 #include <policy/policy.h>

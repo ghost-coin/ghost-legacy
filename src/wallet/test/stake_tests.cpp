@@ -4,6 +4,7 @@
 
 #include <wallet/hdwallet.h>
 #include <wallet/coincontrol.h>
+#include <wallet/rpcwallet.h>
 
 #include <wallet/test/hdwallet_test_fixture.h>
 #include <base58.h>
@@ -34,7 +35,7 @@ struct StakeTestingSetup: public TestingSetup {
         TestingSetup(chainName, true) // fParticlMode = true
     {
         bool fFirstRun;
-        pwalletMain = std::make_shared<CHDWallet>("mock_part", WalletDatabase::CreateMock());
+        pwalletMain = std::make_shared<CHDWallet>(WalletLocation(), WalletDatabase::CreateMock());
         AddWallet(pwalletMain);
         pwalletMain->LoadWallet(fFirstRun);
         RegisterValidationInterface(pwalletMain.get());

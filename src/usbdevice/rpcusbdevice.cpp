@@ -6,7 +6,7 @@
 #include <usbdevice/debugdevice.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 #include <key_io.h>
 #include <key/extkey.h>
 #include <chainparams.h>
@@ -16,6 +16,7 @@
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
 #include <wallet/rpchdwallet.h>
+#include <wallet/rpcwallet.h>
 #endif
 #include <validation.h>
 #include <core_io.h>

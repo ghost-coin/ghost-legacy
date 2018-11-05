@@ -60,6 +60,7 @@ class ZMQTest(ParticlTestFramework):
 
         server_secret = base64.b64encode(b"p%ymQKFW%l[45CJa}+y&<B%R]Q(MZ4G!lH3^H+y2").decode("utf-8")
         self.extra_args = [[
+                        '-wallet=wallet_test',
                         '-serverkeyzmq=%s' % server_secret,
                         '-zmqpubhashblock=%s' % ip_address, '-zmqpubhashtx=%s' % ip_address,
                         '-zmqpubrawblock=%s' % ip_address, '-zmqpubrawtx=%s' % ip_address,
@@ -118,7 +119,7 @@ class ZMQTest(ParticlTestFramework):
                 zmqhash = bytes_to_hex_str(msg[1][0:32])
                 assert(zmqhash == txnHash)
                 walletName = msg[1][32:].decode('utf-8')
-                assert(walletName == 'wallet.dat')
+                assert(walletName == 'wallet_test')
 
             if fFound and fFoundRawTx and fFoundWtx:
                 break

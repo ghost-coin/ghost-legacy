@@ -6,7 +6,7 @@
 #include <rpc/util.h>
 #include <rpc/blockchain.h>
 
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 #include <insight/insight.h>
 #include <insight/csindex.h>
 #include <index/txindex.h>

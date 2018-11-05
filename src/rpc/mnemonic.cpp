@@ -5,8 +5,8 @@
 
 #include <rpc/server.h>
 
-#include <util.h>
-#include <utilstrencodings.h>
+#include <util/system.h>
+#include <util/strencodings.h>
 #include <rpc/util.h>
 #include <key.h>
 #include <key_io.h>

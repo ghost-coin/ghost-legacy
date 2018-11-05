@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(smsg_test)
     smsg::fSecMsgEnabled = true;
     int rv = 0;
     const int nKeys = 12;
-    std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>("dummy", WalletDatabase::CreateDummy());
+    std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(WalletLocation(), WalletDatabase::CreateDummy());
     std::vector<CKey> keyOwn(nKeys);
     for (int i = 0; i < nKeys; i++)
     {

@@ -5,7 +5,7 @@
 
 #include <key/mnemonic.h>
 
-#include <util.h>
+#include <util/system.h>
 #include <crypto/hmac_sha512.h>
 #include <crypto/sha256.h>
 

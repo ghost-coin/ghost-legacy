@@ -7,7 +7,7 @@
 #endif
 
 #include <qt/optionsmodel.h>
-#include <utilmoneystr.h>
+#include <util/moneystr.h>
 
 #include <qt/bitcoinunits.h>
 #include <qt/guiutil.h>

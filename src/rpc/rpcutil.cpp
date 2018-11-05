@@ -7,7 +7,7 @@
 #include <rpc/server.h>
 #include <rpc/client.h>
 #include <rpc/rpcutil.h>
-#include <util.h>
+#include <util/system.h>
 
 #include <support/events.h>
 

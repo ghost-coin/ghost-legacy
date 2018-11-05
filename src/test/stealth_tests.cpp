@@ -9,7 +9,7 @@
 #include <key_io.h>
 #include <keystore.h>
 
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 #include <serialize.h>
 #include <streams.h>
 

@@ -6,7 +6,7 @@
 #ifndef PARTICL_KEY_EXTKEY_H
 #define PARTICL_KEY_EXTKEY_H
 
-#include <util.h>
+#include <util/system.h>
 #include <key.h>
 #include <key/stealth.h>
 #include <key/types.h>

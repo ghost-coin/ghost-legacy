@@ -10,7 +10,7 @@
 #include <secp256k1_rangeproof.h>
 #include <secp256k1_bulletproofs.h>
 #include <inttypes.h>
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 
 #include <boost/test/unit_test.hpp>
 

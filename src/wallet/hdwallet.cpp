@@ -16,7 +16,7 @@
 #include <smsg/crypter.h>
 #include <pos/kernel.h>
 #include <pos/miner.h>
-#include <utilmoneystr.h>
+#include <util/moneystr.h>
 #include <script/script.h>
 #include <script/standard.h>
 #include <script/sign.h>

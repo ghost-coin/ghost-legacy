@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include <bench/bench.h>
-#include <utiltime.h>
+#include <util/time.h>
 
 #include <blind.h>
 #include <random.h>

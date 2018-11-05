@@ -13,7 +13,7 @@
 #include <wallet/hdwallet.h>
 #include <wallet/rpchdwallet.h>
 #include <rpc/rpcutil.h>
-#include <util.h>
+#include <util/system.h>
 #include <univalue.h>
 
 #include <QFont>

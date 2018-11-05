@@ -61,7 +61,7 @@ Notes:
 #include <wallet/wallet.h>
 #endif
 
-#include <utilstrencodings.h>
+#include <util/strencodings.h>
 #include <clientversion.h>
 
 #include <xxhash/xxhash.h>

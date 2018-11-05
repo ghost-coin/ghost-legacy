@@ -7,10 +7,10 @@
 #include <hidapi/hidapi.h>
 #include <stdio.h>
 #include <inttypes.h>
-#include <util.h>
+#include <util/system.h>
+#include <util/strencodings.h>
 #include <pubkey.h>
 #include <crypto/common.h>
-#include <utilstrencodings.h>
 #include <univalue.h>
 #include <chainparams.h>
 #include <validation.h>

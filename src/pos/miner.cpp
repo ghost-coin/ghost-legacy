@@ -7,7 +7,7 @@
 #include <pos/kernel.h>
 #include <miner.h>
 #include <chainparams.h>
-#include <utilmoneystr.h>
+#include <util/moneystr.h>
 
 #include <fs.h>
 #include <sync.h>

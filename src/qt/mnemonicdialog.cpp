@@ -12,7 +12,7 @@
 #include <interfaces/wallet.h>
 
 #include <rpc/rpcutil.h>
-#include <util.h>
+#include <util/system.h>
 #include <key/mnemonic.h>
 #include <key/extkey.h>
 
