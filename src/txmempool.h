@@ -18,6 +18,7 @@
 #include <insight/spentindex.h>
 #include <amount.h>
 #include <coins.h>
+#include <crypto/siphash.h>
 #include <indirectmap.h>
 #include <policy/feerate.h>
 #include <primitives/transaction.h>
