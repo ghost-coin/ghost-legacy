@@ -27,7 +27,6 @@ class ColdStakingTest(ParticlTestFramework):
 
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
-        self.is_network_split = False
         self.sync_all()
 
     def run_test(self):
@@ -105,6 +104,7 @@ class ColdStakingTest(ParticlTestFramework):
             hashOther = asm[10]
 
         assert(hashCoinstake == '65674e752b3a336337510bf5b57794c71c45cd4f')
+        assert(hashOther == 'e5c8967e77fdeecaa46a446a0f71988c65b51432f35f8e58fdfe628c5a169386')
 
         ro = nodes[0].deriverangekeys(0, 0, coldstakingaddr)
         assert(ro[0] == keyhash_to_p2pkh_part(hex_str_to_bytes(hashCoinstake)))

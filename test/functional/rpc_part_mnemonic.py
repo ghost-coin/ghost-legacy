@@ -17,7 +17,6 @@ class MnemonicTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-        self.is_network_split = False
         self.sync_all()
 
     def run_test (self):

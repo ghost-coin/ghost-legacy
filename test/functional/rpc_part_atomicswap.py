@@ -360,7 +360,6 @@ class AtomicSwapTest(ParticlTestFramework):
         self.start_nodes()
 
         connect_nodes_bi(self.nodes, 0, 1)
-        self.is_network_split = False
         self.sync_all()
 
 
@@ -431,7 +430,9 @@ class AtomicSwapTest(ParticlTestFramework):
         rawtxRefundP = createRefundTx(nodes[1], rawtx_p, scriptParticipate, lockTimeP, addrB_0, addrB_0)
 
         txnidParticipate = nodes[1].sendrawtransaction(rawtx_p)
+        self.sync_all()
         self.stakeBlocks(1)
+        assert(txnidParticipate in nodes[0].getblock(nodes[0].getblockhash(nodes[0].getblockcount()))['tx'])
 
         ro = nodes[0].getblockchaininfo()
         assert(ro['mediantime'] < lockTimeP)
@@ -462,6 +463,10 @@ class AtomicSwapTest(ParticlTestFramework):
         txnidBClaim = nodes[0].sendrawtransaction(rawtxclaimB) # send from staking node to avoid syncing
 
         self.stakeBlocks(1)
+        last_block_txns = nodes[0].getblock(nodes[0].getblockhash(nodes[0].getblockcount()))['tx']
+        assert(txnidAClaim in last_block_txns)
+        assert(txnidBClaim in last_block_txns)
+
         ftxB = nodes[1].filtertransactions()
         assert(ftxB[0]['confirmations'] == 1)
         assert(ftxB[0]['outputs'][0]['amount'] < 5.0 and ftxB[-1]['outputs'][0]['amount'] > 4.9)
@@ -637,6 +642,7 @@ class AtomicSwapTest(ParticlTestFramework):
 
         txnid_p = nodes[0].sendrawtransaction(rawtx_p)
         self.stakeBlocks(1)
+        assert(txnid_p in nodes[0].getblock(nodes[0].getblockhash(nodes[0].getblockcount()))['tx'])
 
         # B sends output_amounts to A
 
@@ -655,6 +661,9 @@ class AtomicSwapTest(ParticlTestFramework):
 
         rawtxclaimB = createClaimTxCT(nodes[1], rawtx_i, output_amounts_i, scriptInitiate, secretA, privKeyB, pubKeyB, addrB_sx)
         txnidBClaim = nodes[0].sendrawtransaction(rawtxclaimB)
+
+        nodes[0].getmempoolentry(txnidAClaim)
+        nodes[0].getmempoolentry(txnidBClaim)
 
 
         # Test Refund expired initiate tx
@@ -697,6 +706,7 @@ class AtomicSwapTest(ParticlTestFramework):
         assert(ro['unconfirmed_blind'] > 6.0 and ro['unconfirmed_blind'] < 7.0)
 
         txnidRefund = nodes[0].sendrawtransaction(rawtx_i_refund)
+        nodes[0].getmempoolentry(txnidRefund)
 
         ro = nodes[0].getwalletinfo()
         assert(ro['unconfirmed_blind'] > 14.0 and ro['unconfirmed_blind'] < 14.1)

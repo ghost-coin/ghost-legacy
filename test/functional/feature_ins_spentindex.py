@@ -34,7 +34,6 @@ class SpentIndexTest(ParticlTestFramework):
         connect_nodes(self.nodes[0], 2)
         connect_nodes(self.nodes[0], 3)
 
-        self.is_network_split = False
         self.sync_all()
 
     def run_test(self):
@@ -73,8 +72,6 @@ class SpentIndexTest(ParticlTestFramework):
         txfunded = nodes[0].fundrawtransaction(tx)
 
         txsigned = nodes[0].signrawtransactionwithwallet(txfunded['hex'])
-
-        txd = nodes[0].decoderawtransaction(txsigned['hex'])
 
         sent_txid = nodes[0].sendrawtransaction(txsigned['hex'], True)
 

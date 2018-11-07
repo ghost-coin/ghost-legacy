@@ -23,7 +23,6 @@ class FilterTransactionsTest(ParticlTestFramework):
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
         connect_nodes_bi(self.nodes, 1, 2)
-        self.is_network_split = False
         self.sync_all()
 
     def run_test(self):
@@ -39,10 +38,10 @@ class FilterTransactionsTest(ParticlTestFramework):
         selfAddress2   = nodes[0].getnewaddress('self2')
         selfStealth    = nodes[0].getnewstealthaddress('stealth')
         selfSpending   = nodes[0].getnewaddress('spending', 'false', 'false', 'true')
-        selfExternal   = nodes[0].getnewextaddress('external')
+        #selfExternal   = nodes[0].getnewextaddress('external')
         targetAddress  = nodes[1].getnewaddress('target')
         targetStealth  = nodes[1].getnewstealthaddress('taret stealth')
-        targetExternal = nodes[1].getnewextaddress('target external')
+        #targetExternal = nodes[1].getnewextaddress('target external')
         stakingAddress = nodes[2].getnewaddress('staking')
 
         # simple PART transaction

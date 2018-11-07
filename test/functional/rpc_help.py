@@ -33,15 +33,14 @@ class HelpRpcTest(BitcoinTestFramework):
         # command titles
         titles = [line[3:-3] for line in node.help().splitlines() if line.startswith('==')]
 
-        components = ['Blockchain', 'Control', 'Generating', 'Mining', 'Network', 'Rawtransactions', 'Util']
-
+        components = ['Addressindex', 'Anon', 'Blockchain', 'Control', 'Csindex', 'Generating', 'Governance', 'Mining', 'Mnemonic', 'Network', 'Rawtransactions', 'Smsg', 'Usbdevice', 'Util']
         if self.is_wallet_compiled():
             components.append('Wallet')
 
         if self.is_zmq_compiled():
             components.append('Zmq')
 
-        #assert_equal(titles, components)
+        assert_equal(titles, components)
 
     def dump_help(self):
         dump_dir = os.path.join(self.options.tmpdir, 'rpc_help_dump')

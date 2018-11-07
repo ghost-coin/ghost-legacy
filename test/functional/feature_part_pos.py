@@ -24,7 +24,6 @@ class PosTest(ParticlTestFramework):
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
         connect_nodes_bi(self.nodes, 0, 3)
-        self.is_network_split = False
         self.sync_all()
 
     def run_test(self):

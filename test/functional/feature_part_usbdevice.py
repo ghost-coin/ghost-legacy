@@ -26,7 +26,6 @@ class USBDeviceTest(ParticlTestFramework):
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
         connect_nodes_bi(self.nodes, 1, 2)
-        self.is_network_split = False
         self.sync_all()
 
     def run_test(self):
@@ -107,6 +106,7 @@ class USBDeviceTest(ParticlTestFramework):
         txnid0 = nodes[0].sendtoaddress(addr1_0, 10)
 
         self.stakeBlocks(1)
+        assert(txnid0 in nodes[0].getblock(nodes[0].getblockhash(nodes[0].getblockcount()))['tx'])
 
         ro = nodes[1].getwalletinfo()
         assert(isclose(ro['balance'], 10.0))

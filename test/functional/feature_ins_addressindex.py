@@ -34,7 +34,6 @@ class AddressIndexTest(ParticlTestFramework):
         connect_nodes(self.nodes[0], 2)
         connect_nodes(self.nodes[0], 3)
 
-        self.is_network_split = False
         self.sync_all()
 
     def run_test(self):
@@ -256,6 +255,9 @@ class AddressIndexTest(ParticlTestFramework):
         assert_equal(utxos3[2]["height"], 9)
         assert_equal(utxos3[3]["height"], 10)
 
+        assert(utxos3[2]['txid'] == txidsort1)
+        assert(utxos3[3]['txid'] == txidsort2)
+
         # Check mempool indexing
         self.log.info("Testing mempool indexing...")
 
@@ -263,11 +265,17 @@ class AddressIndexTest(ParticlTestFramework):
 
 
         txidsort1 = self.nodes[2].sendtoaddress(address3, 1)
+        time.sleep(1)
         txidsort2 = self.nodes[2].sendtoaddress(address3, 1)
+        time.sleep(1)
         txidsort3 = self.nodes[2].sendtoaddress(address3, 1)
 
         mempool = self.nodes[2].getaddressmempool({"addresses": [address3]})
         assert_equal(len(mempool), 3)
+        assert(mempool[0]['txid'] == txidsort1)
+        assert(mempool[1]['txid'] == txidsort2)
+        assert(mempool[2]['txid'] == txidsort3)
+
 
 
         addr256 = nodes[3].getnewaddress("", "false", "false", "true")
