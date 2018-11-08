@@ -539,3 +539,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         config.read_file(open(self.options.configfile))
 
         return config["components"].getboolean("ENABLE_ZMQ")
+
+    def is_usbdevice_compiled(self):
+        """Checks whether the usbdevice module was compiled."""
+        config = configparser.ConfigParser()
+        config.read_file(open(self.options.configfile))
+
+        return config["components"].getboolean("ENABLE_USBDEVICE")

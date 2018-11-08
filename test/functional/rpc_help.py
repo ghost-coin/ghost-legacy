@@ -33,12 +33,19 @@ class HelpRpcTest(BitcoinTestFramework):
         # command titles
         titles = [line[3:-3] for line in node.help().splitlines() if line.startswith('==')]
 
-        components = ['Addressindex', 'Anon', 'Blockchain', 'Control', 'Csindex', 'Generating', 'Governance', 'Mining', 'Mnemonic', 'Network', 'Rawtransactions', 'Smsg', 'Usbdevice', 'Util']
+        components = ['Addressindex', 'Anon', 'Blockchain', 'Control', 'Csindex', 'Generating', 'Mining', 'Mnemonic', 'Network', 'Rawtransactions', 'Util', 'Smsg']
+
+        if self.is_usbdevice_compiled():
+            components.append('Usbdevice')
+
         if self.is_wallet_compiled():
             components.append('Wallet')
+            components.append('Governance')
 
         if self.is_zmq_compiled():
             components.append('Zmq')
+
+        components.sort()
 
         assert_equal(titles, components)
 
