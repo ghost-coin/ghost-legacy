@@ -38,29 +38,28 @@ BOOST_AUTO_TEST_CASE(smsg_test)
     smsg::fSecMsgEnabled = true;
     int rv = 0;
     const int nKeys = 12;
-    std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(WalletLocation(), WalletDatabase::CreateDummy());
+    auto chain = interfaces::MakeChain();
+    std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(*chain, WalletLocation(), WalletDatabase::CreateDummy());
     std::vector<CKey> keyOwn(nKeys);
-    for (int i = 0; i < nKeys; i++)
-    {
+    for (int i = 0; i < nKeys; i++) {
         InsecureNewKey(keyOwn[i], true);
         LOCK(wallet->cs_wallet);
         wallet->AddKey(keyOwn[i]);
-    };
+    }
 
     std::vector<CKey> keyRemote(nKeys);
-    for (int i = 0; i < nKeys; i++)
-    {
+    for (int i = 0; i < nKeys; i++) {
         InsecureNewKey(keyRemote[i], true);
         LOCK(wallet->cs_wallet);
         wallet->AddKey(keyRemote[i]); // need pubkey
-    };
+    }
+
     BOOST_CHECK(true == smsgModule.Start(wallet, false, false));
 
     CKeyID idNull;
     BOOST_CHECK(idNull.IsNull());
 
-    for (int i = 0; i < nKeys; i++)
-    {
+    for (int i = 0; i < nKeys; i++) {
         smsg::SecureMessage smsg;
         smsg.SetNull();
         smsg::MessageData msg;
@@ -89,7 +88,7 @@ BOOST_AUTO_TEST_CASE(smsg_test)
 
         rv = smsgModule.Decrypt(false, kFail, smsg, msg);
         BOOST_CHECK_MESSAGE(smsg::SMSG_MAC_MISMATCH == rv, "SecureMsgDecrypt " << smsg::GetString(rv));
-    };
+    }
 
     smsgModule.Shutdown();
 

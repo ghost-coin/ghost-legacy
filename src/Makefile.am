@@ -135,6 +135,7 @@ BITCOIN_CORE_H = \
   init.h \
   anon.h \
   blind.h \
+  interfaces/chain.h \
   interfaces/handler.h \
   interfaces/node.h \
   interfaces/wallet.h \
@@ -277,6 +278,7 @@ libparticl_server_a_SOURCES = \
   httpserver.cpp \
   index/base.cpp \
   index/txindex.cpp \
+  interfaces/chain.cpp \
   interfaces/handler.cpp \
   interfaces/node.cpp \
   init.cpp \

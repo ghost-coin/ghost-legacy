@@ -5,6 +5,7 @@
 #include <wallet/hdwallet.h>
 #include <wallet/coincontrol.h>
 #include <wallet/rpcwallet.h>
+#include <interfaces/chain.h>
 
 #include <wallet/test/hdwallet_test_fixture.h>
 #include <base58.h>
@@ -35,7 +36,7 @@ struct StakeTestingSetup: public TestingSetup {
         TestingSetup(chainName, true) // fParticlMode = true
     {
         bool fFirstRun;
-        pwalletMain = std::make_shared<CHDWallet>(WalletLocation(), WalletDatabase::CreateMock());
+        pwalletMain = std::make_shared<CHDWallet>(*m_chain, WalletLocation(), WalletDatabase::CreateMock());
         AddWallet(pwalletMain);
         pwalletMain->LoadWallet(fFirstRun);
         RegisterValidationInterface(pwalletMain.get());
@@ -59,6 +60,8 @@ struct StakeTestingSetup: public TestingSetup {
         ECC_Stop_Blinding();
     }
 
+    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain();
+    std::unique_ptr<interfaces::Chain::Lock> m_locked_chain = m_chain->assumeLocked();  // Temporary. Removed in upcoming lock cleanup
     std::shared_ptr<CHDWallet> pwalletMain;
 };
 
@@ -105,7 +108,7 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
 static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amount)
 {
     {
-    LOCK(cs_main);
+    auto locked_chain = pwallet->chain().lock();
     CValidationState state;
     BOOST_REQUIRE(address.IsValid());
 
@@ -125,7 +128,7 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     BOOST_CHECK(0 == pwallet->AddStandardInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
 
     wtx.BindWallet(pwallet);
-    BOOST_REQUIRE(wtx.AcceptToMemoryPool(maxTxFee, state));
+    BOOST_REQUIRE(wtx.AcceptToMemoryPool(*locked_chain, maxTxFee, state));
     } // cs_main
     SyncWithValidationInterfaceQueue();
 }
@@ -247,8 +250,10 @@ BOOST_AUTO_TEST_CASE(stake_test)
     vecSend.push_back(recipient);
 
     CCoinControl coinControl;
-    BOOST_CHECK(pwallet->CreateTransaction(vecSend, tx_new, reservekey, nFeeRequired, nChangePosRet, strError, coinControl));
-
+    {
+        auto locked_chain = pwallet->chain().lock();
+        BOOST_CHECK(pwallet->CreateTransaction(*locked_chain, vecSend, tx_new, reservekey, nFeeRequired, nChangePosRet, strError, coinControl));
+    }
     {
         g_connman = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
         CValidationState state;
@@ -331,7 +336,6 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
 
         AddAnonTxn(pwallet, address, 10 * COIN);
-
         AddAnonTxn(pwallet, address, 20 * COIN);
 
         StakeNBlocks(pwallet, 2);

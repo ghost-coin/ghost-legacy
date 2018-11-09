@@ -15,7 +15,7 @@ HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
     TestingSetup(chainName, true) // fParticlMode = true
 {
     bool fFirstRun;
-    pwalletMain = std::make_shared<CHDWallet>(WalletLocation(), WalletDatabase::CreateMock());
+    pwalletMain = std::make_shared<CHDWallet>(*m_chain, WalletLocation(), WalletDatabase::CreateMock());
     AddWallet(pwalletMain);
     pwalletMain->LoadWallet(fFirstRun);
     RegisterValidationInterface(pwalletMain.get());

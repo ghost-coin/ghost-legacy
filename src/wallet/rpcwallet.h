@@ -17,7 +17,6 @@ struct PartiallySignedTransaction;
 class CTransaction;
 
 void RegisterWalletRPCCommands(CRPCTable &t);
-void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry, bool fFilterMode=false);
 
 /**
  * Figures out what wallet, if any, to use for a JSONRPCRequest.
