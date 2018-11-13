@@ -96,9 +96,7 @@ private Q_SLOTS:
     void coinControlClipboardLowOutput();
     void coinControlClipboardChange();
     void cbxTypeFromChanged(int);
-    void setMinimumFee();
     void updateFeeSectionControls();
-    void updateMinFeeLabel();
     void updateSmartFeeLabel();
 
 Q_SIGNALS:
