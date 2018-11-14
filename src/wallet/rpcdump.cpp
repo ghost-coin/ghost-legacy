@@ -3,21 +3,21 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chain.h>
+#include <core_io.h>
 #include <interfaces/chain.h>
 #include <key_io.h>
+#include <merkleblock.h>
 #include <rpc/server.h>
-#include <validation.h>
+#include <rpc/util.h>
 #include <script/script.h>
 #include <script/standard.h>
 #include <sync.h>
 #include <util/system.h>
 #include <util/time.h>
+#include <validation.h>
 #include <wallet/wallet.h>
-#include <wallet/hdwallet.h>
-#include <merkleblock.h>
-#include <core_io.h>
-
 #include <wallet/rpcwallet.h>
+#include <wallet/hdwallet.h>
 
 #include <stdint.h>
 
@@ -348,7 +348,7 @@ UniValue importprunedfunds(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() != 2)
         throw std::runtime_error(
-            "importprunedfunds\n"
+            "importprunedfunds \"rawtransaction\" \"txoutproof\"\n"
             "\nImports funds without rescan. Corresponding address or script must previously be included in wallet. Aimed towards pruned wallets. The end-user is responsible to import additional transactions that subsequently spend the imported outputs or rescan after the point in the blockchain the transaction is included.\n"
             "\nArguments:\n"
             "1. \"rawtransaction\" (string, required) A raw transaction in hex funding an already-existing address in wallet\n"
@@ -1077,8 +1077,9 @@ static UniValue ProcessImport(CWallet * const pwallet, const UniValue& data, con
             throw JSONRPCError(RPC_WALLET_ERROR, "Error adding scriptPubKey script to wallet");
         }
 
-        // add to address book or update label
-        if (IsValidDestination(scriptpubkey_dest)) {
+        // if not internal add to address book or update label
+        if (!internal) {
+            assert(IsValidDestination(scriptpubkey_dest));
             pwallet->SetAddressBook(scriptpubkey_dest, label, "receive");
         }
 
@@ -1153,8 +1154,8 @@ UniValue importmulti(const JSONRPCRequest& mainRequest)
     // clang-format off
     if (mainRequest.fHelp || mainRequest.params.size() < 1 || mainRequest.params.size() > 2)
         throw std::runtime_error(
-            "importmulti \"requests\" ( \"options\" )\n\n"
-            "Import addresses/scripts (with private or public keys, redeem script (P2SH)), rescanning all addresses in one-shot-only (rescan can be disabled via options). Requires a new wallet backup.\n\n"
+            "importmulti \"requests\" ( \"options\" )\n"
+            "\nImport addresses/scripts (with private or public keys, redeem script (P2SH)), rescanning all addresses in one-shot-only (rescan can be disabled via options). Requires a new wallet backup.\n\n"
             "Arguments:\n"
             "1. requests     (array, required) Data to be imported\n"
             "  [     (array of json objects)\n"
@@ -1170,7 +1171,7 @@ UniValue importmulti(const JSONRPCRequest& mainRequest)
             "      \"witnessscript\": \"<script>\"                           , (string, optional) Allowed only if the scriptPubKey is a P2SH-P2WSH or P2WSH address/scriptPubKey\n"
             "      \"pubkeys\": [\"<pubKey>\", ... ]                         , (array, optional) Array of strings giving pubkeys that must occur in the output or redeemscript\n"
             "      \"keys\": [\"<key>\", ... ]                               , (array, optional) Array of strings giving private keys whose corresponding public keys must occur in the output or redeemscript\n"
-            "      \"internal\": <true>                                    , (boolean, optional, default: false) Stating whether matching outputs should be treated as not incoming payments\n"
+            "      \"internal\": <true>                                    , (boolean, optional, default: false) Stating whether matching outputs should be treated as not incoming payments aka change\n"
             "      \"watchonly\": <true>                                   , (boolean, optional, default: false) Stating whether matching outputs should be considered watched even when they're not spendable, only allowed if keys are empty\n"
             "      \"label\": <label>                                      , (string, optional, default: '') Label to assign to the address, only allowed with internal=false\n"
             "    }\n"

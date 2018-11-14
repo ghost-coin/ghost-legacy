@@ -5,9 +5,11 @@
 #include <zmq/zmqrpc.h>
 
 #include <rpc/server.h>
-#include <util/strencodings.h>
+#include <rpc/util.h>
 #include <zmq/zmqabstractnotifier.h>
 #include <zmq/zmqnotificationinterface.h>
+
+#include <util/strencodings.h>
 
 #include <univalue.h>
 
