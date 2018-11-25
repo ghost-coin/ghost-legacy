@@ -2,22 +2,23 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <attributes.h>
 #include <coins.h>
+#include <consensus/validation.h>
 #include <script/standard.h>
+#include <test/test_bitcoin.h>
 #include <uint256.h>
 #include <undo.h>
 #include <util/strencodings.h>
-#include <test/test_bitcoin.h>
 #include <validation.h>
-#include <consensus/validation.h>
+
+#include <map>
+#include <vector>
+
+#include <boost/test/unit_test.hpp>
 
 #include <key/extkey.h>
 #include <key/stealth.h>
-
-#include <vector>
-#include <map>
-
-#include <boost/test/unit_test.hpp>
 
 int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out);
 void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, CTxUndo &txundo, int nHeight);
@@ -39,7 +40,7 @@ class CCoinsViewTest : public CCoinsView
     std::map<COutPoint, Coin> map_;
 
 public:
-    bool GetCoin(const COutPoint& outpoint, Coin& coin) const override
+    NODISCARD bool GetCoin(const COutPoint& outpoint, Coin& coin) const override
     {
         std::map<COutPoint, Coin>::const_iterator it = map_.find(outpoint);
         if (it == map_.end()) {

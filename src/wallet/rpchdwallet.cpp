@@ -1568,9 +1568,18 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 6)
         throw std::runtime_error(
-        "extkeyimportmaster \"mnemonic/key\" ( \"passphrase\" save_bip44_root master_label account_label scan_chain_from )\n"
-        "Import master key from bip44 mnemonic root key and derive default account.\n"
-        + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"extkeyimportmaster",
+                "\nImport master key from bip44 mnemonic root key and derive default account.\n",
+                {
+                    {"mnemonic/key", RPCArg::Type::STR, false},
+                    {"passphrase", RPCArg::Type::STR, true},
+                    {"save_bip44_root", RPCArg::Type::BOOL, true},
+                    {"master_label", RPCArg::Type::STR, true},
+                    {"account_label", RPCArg::Type::STR, true},
+                    {"scan_chain_from", RPCArg::Type::NUM, true},
+                }}
+                .ToString() +
+        HelpRequiringPassphrase(pwallet) +
         "\nArguments:\n"
         "1. \"mnemonic/key\"          (string, required) The mnemonic or root extended key.\n"
         "       Use '-stdin' to be prompted to enter a passphrase.\n"
@@ -1599,10 +1608,19 @@ static UniValue extkeygenesisimport(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 6)
         throw std::runtime_error(
-        "extkeygenesisimport \"mnemonic/key\" ( \"passphrase\" save_bip44_root master_label account_label scan_chain_from )\n"
-        "Import master key from bip44 mnemonic root key and derive default account.\n"
-        "Derives an extra chain from path 444444 to receive imported coin.\n"
-        + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"extkeygenesisimport",
+                "\nImport master key from bip44 mnemonic root key and derive default account.\n"
+                "Derives an extra chain from path 444444 to receive imported coin.\n",
+                {
+                    {"mnemonic/key", RPCArg::Type::STR, false},
+                    {"passphrase", RPCArg::Type::STR, true},
+                    {"save_bip44_root", RPCArg::Type::BOOL, true},
+                    {"master_label", RPCArg::Type::STR, true},
+                    {"account_label", RPCArg::Type::STR, true},
+                    {"scan_chain_from", RPCArg::Type::NUM, true},
+                }}
+                .ToString() +
+        HelpRequiringPassphrase(pwallet) +
         "\nArguments:\n"
         "1. \"mnemonic/key\"          (string, required) The mnemonic or root extended key.\n"
         "       Use '-stdin' to be prompted to enter a passphrase.\n"
@@ -1626,10 +1644,14 @@ static UniValue extkeyaltversion(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "extkeyaltversion \"ext_key\"\n"
-            "Returns the provided ext_key encoded with alternate version bytes.\n"
-            "If the provided ext_key has a Bitcoin prefix the output will be encoded with a Particl prefix.\n"
-            "If the provided ext_key has a Particl prefix the output will be encoded with a Bitcoin prefix.");
+            RPCHelpMan{"extkeyaltversion",
+                "\nReturns the provided ext_key encoded with alternate version bytes.\n"
+                "If the provided ext_key has a Bitcoin prefix the output will be encoded with a Particl prefix.\n"
+                "If the provided ext_key has a Particl prefix the output will be encoded with a Bitcoin prefix.\n",
+                {
+                    {"ext_key", RPCArg::Type::STR, false},
+                }}
+                .ToString());
 
     std::string sKeyIn = request.params[0].get_str();
     std::string sKeyOut;
@@ -1668,9 +1690,16 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 4)
         throw std::runtime_error(
-            "getnewextaddress ( \"label\" childNo bech32 hardened )\n"
-            "Returns a new Particl ext address for receiving payments.\n"
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"getnewextaddress",
+                "\nReturns a new Particl ext address for receiving payments.\n",
+                {
+                    {"label", RPCArg::Type::STR, true},
+                    {"childnum", RPCArg::Type::STR, true},
+                    {"bech32", RPCArg::Type::BOOL, true},
+                    {"hardened", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"label\"             (string, optional) If specified the key is added to the address book.\n"
             "2. \"childNo\"           (string, optional), If specified the account derive counter is not updated.\n"
@@ -1689,36 +1718,34 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
     uint32_t *pChild = nullptr;
     std::string strLabel;
     const char *pLabel = nullptr;
-    if (request.params[0].isStr())
-    {
+    if (request.params[0].isStr()) {
         strLabel = request.params[0].get_str();
-        if (strLabel.size() > 0)
+        if (strLabel.size() > 0) {
             pLabel = strLabel.c_str();
-    };
+        }
+    }
 
-    if (request.params[1].isStr())
-    {
+    if (request.params[1].isStr()) {
         std::string s = request.params[1].get_str();
-        if (!s.empty())
-        {
+        if (!s.empty()) {
             // TODO, make full path work
             std::vector<uint32_t> vPath;
-            if (0 != ExtractExtKeyPath(s, vPath) || vPath.size() != 1)
+            if (0 != ExtractExtKeyPath(s, vPath) || vPath.size() != 1) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, _("bad childNo."));
+            }
             nChild = vPath[0];
             pChild = &nChild;
-        };
-    };
+        }
+    }
 
     bool fBech32 = !request.params[2].isNull() ? request.params[2].get_bool() : false;
     bool fHardened = !request.params[3].isNull() ? request.params[3].get_bool() : false;
 
     CStoredExtKey *sek = new CStoredExtKey();
-    if (0 != pwallet->NewExtKeyFromAccount(strLabel, sek, pLabel, pChild, fHardened, fBech32))
-    {
+    if (0 != pwallet->NewExtKeyFromAccount(strLabel, sek, pLabel, pChild, fHardened, fBech32)) {
         delete sek;
         throw JSONRPCError(RPC_WALLET_ERROR, _("NewExtKeyFromAccount failed."));
-    };
+    }
 
     // CBitcoinAddress displays public key only
     return CBitcoinAddress(sek->kp, fBech32).ToString();
@@ -1733,9 +1760,17 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 5)
         throw std::runtime_error(
-            "getnewstealthaddress ( \"label\" num_prefix_bits prefix_num bech32 makeV2 )\n"
-            "Returns a new Particl stealth address for receiving payments."
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"getnewstealthaddress",
+                "\nReturns a new Particl stealth address for receiving payments.\n",
+                {
+                    {"label", RPCArg::Type::STR, true},
+                    {"num_prefix_bits", RPCArg::Type::NUM, true},
+                    {"prefix_num", RPCArg::Type::NUM, true},
+                    {"bech32", RPCArg::Type::BOOL, true},
+                    {"makeV2", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"label\"             (string, optional) If specified the key is added to the address book.\n"
             "2. num_prefix_bits     (int, optional) If specified and > 0, the stealth address is created with a prefix.\n"
@@ -1756,41 +1791,45 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
     EnsureWalletIsUnlocked(pwallet);
 
     std::string sLabel;
-    if (request.params.size() > 0)
+    if (request.params.size() > 0) {
         sLabel = request.params[0].get_str();
+    }
 
     uint32_t num_prefix_bits = 0;
-    if (request.params.size() > 1)
-    {
+    if (request.params.size() > 1) {
         std::string s = request.params[1].get_str();
-        if (s.length() && !ParseUInt32(s, &num_prefix_bits))
+        if (s.length() && !ParseUInt32(s, &num_prefix_bits)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits invalid number."));
-    };
+        }
+    }
 
-    if (num_prefix_bits > 32)
+    if (num_prefix_bits > 32) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits must be <= 32."));
+    }
 
     std::string sPrefix_num;
-    if (request.params.size() > 2)
+    if (request.params.size() > 2) {
         sPrefix_num = request.params[2].get_str();
+    }
 
     bool fBech32 = request.params.size() > 3 ? request.params[3].get_bool() : false;
     bool fMakeV2 = request.params.size() > 4 ? request.params[4].get_bool() : false;
 
-    if (fMakeV2 && !fBech32)
+    if (fMakeV2 && !fBech32) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("bech32 must be true when using makeV2."));
+    }
 
     CEKAStealthKey akStealth;
     std::string sError;
-    if (fMakeV2)
-    {
-        if (0 != pwallet->NewStealthKeyV2FromAccount(sLabel, akStealth, num_prefix_bits, sPrefix_num.empty() ? nullptr : sPrefix_num.c_str(), fBech32))
+    if (fMakeV2) {
+        if (0 != pwallet->NewStealthKeyV2FromAccount(sLabel, akStealth, num_prefix_bits, sPrefix_num.empty() ? nullptr : sPrefix_num.c_str(), fBech32)) {
             throw JSONRPCError(RPC_WALLET_ERROR, _("NewStealthKeyV2FromAccount failed."));
-    } else
-    {
-        if (0 != pwallet->NewStealthKeyFromAccount(sLabel, akStealth, num_prefix_bits, sPrefix_num.empty() ? nullptr : sPrefix_num.c_str(), fBech32))
+        }
+    } else {
+        if (0 != pwallet->NewStealthKeyFromAccount(sLabel, akStealth, num_prefix_bits, sPrefix_num.empty() ? nullptr : sPrefix_num.c_str(), fBech32)) {
             throw JSONRPCError(RPC_WALLET_ERROR, _("NewStealthKeyFromAccount failed."));
-    };
+        }
+    }
 
     CStealthAddress sxAddr;
     akStealth.SetSxAddr(sxAddr);
@@ -1807,9 +1846,18 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 6)
         throw std::runtime_error(
-            "importstealthaddress \"scan_secret\" \"spend_secret\" ( \"label\" num_prefix_bits prefix_num bech32 )\n"
-            "Import an owned stealth addresses.\n"
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"importstealthaddress",
+                "\nImport a stealth addresses.\n",
+                {
+                    {"scan_secret", RPCArg::Type::STR, false},
+                    {"spend_secret", RPCArg::Type::STR, false},
+                    {"label", RPCArg::Type::STR, true},
+                    {"num_prefix_bits", RPCArg::Type::NUM, true},
+                    {"prefix_num", RPCArg::Type::NUM, true},
+                    {"bech32", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"scan_secret\"       (string, required) The hex or wif encoded scan secret.\n"
             "2. \"spend_secret\"      (string, required) The hex or wif encoded spend secret.\n"
@@ -1834,75 +1882,73 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     std::string sSpendSecret = request.params[1].get_str();
     std::string sLabel;
 
-    if (request.params.size() > 2)
+    if (request.params.size() > 2) {
         sLabel = request.params[2].get_str();
+    }
 
     uint32_t num_prefix_bits = 0;
-    if (request.params.size() > 3)
-    {
+    if (request.params.size() > 3) {
         std::string s = request.params[3].get_str();
-        if (s.length() && !ParseUInt32(s, &num_prefix_bits))
+        if (s.length() && !ParseUInt32(s, &num_prefix_bits)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits invalid number."));
-    };
+        }
+    }
 
-    if (num_prefix_bits > 32)
+    if (num_prefix_bits > 32) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits must be <= 32."));
+    }
 
     uint32_t nPrefix = 0;
     std::string sPrefix_num;
-    if (request.params.size() > 4)
-    {
+    if (request.params.size() > 4) {
         sPrefix_num = request.params[4].get_str();
-        if (!ExtractStealthPrefix(sPrefix_num.c_str(), nPrefix))
+        if (!ExtractStealthPrefix(sPrefix_num.c_str(), nPrefix)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("Could not convert prefix to number."));
-    };
+        }
+    }
 
     bool fBech32 = request.params.size() > 5 ? request.params[5].get_bool() : false;
 
-    std::vector<uint8_t> vchScanSecret;
-    std::vector<uint8_t> vchSpendSecret;
+    std::vector<uint8_t> vchScanSecret, vchSpendSecret;
     CBitcoinSecret wifScanSecret, wifSpendSecret;
     CKey skScan, skSpend;
-    if (IsHex(sScanSecret))
-    {
+    if (IsHex(sScanSecret)) {
         vchScanSecret = ParseHex(sScanSecret);
     } else
-    if (wifScanSecret.SetString(sScanSecret))
-    {
+    if (wifScanSecret.SetString(sScanSecret)) {
         skScan = wifScanSecret.GetKey();
-    } else
-    {
-        if (!DecodeBase58(sScanSecret, vchScanSecret))
+    } else {
+        if (!DecodeBase58(sScanSecret, vchScanSecret)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("Could not decode scan secret as wif, hex or base58."));
-    };
-    if (vchScanSecret.size() > 0)
-    {
-        if (vchScanSecret.size() != 32)
+        }
+    }
+    if (vchScanSecret.size() > 0) {
+        if (vchScanSecret.size() != 32) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("Scan secret is not 32 bytes."));
+        }
         skScan.Set(&vchScanSecret[0], true);
-    };
+    }
 
-    if (IsHex(sSpendSecret))
-    {
+    if (IsHex(sSpendSecret)) {
         vchSpendSecret = ParseHex(sSpendSecret);
     } else
-    if (wifSpendSecret.SetString(sSpendSecret))
-    {
+    if (wifSpendSecret.SetString(sSpendSecret)) {
         skSpend = wifSpendSecret.GetKey();
-    } else
-    {
-        if (!DecodeBase58(sSpendSecret, vchSpendSecret))
+    } else {
+        if (!DecodeBase58(sSpendSecret, vchSpendSecret)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("Could not decode spend secret as hex or base58."));
-    };
-    if (vchSpendSecret.size() > 0)
-    {
-        if (vchSpendSecret.size() != 32)
+        }
+    }
+    if (vchSpendSecret.size() > 0) {
+        if (vchSpendSecret.size() != 32) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("Spend secret is not 32 bytes."));
+        }
         skSpend.Set(&vchSpendSecret[0], true);
-    };
+    }
 
-    if (skSpend == skScan)
+    if (skSpend == skScan) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Spend secret must be different to scan secret."));
+    }
 
     CStealthAddress sxAddr;
     sxAddr.label = sLabel;
@@ -1910,70 +1956,68 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     sxAddr.spend_secret_id = skSpend.GetPubKey().GetID();
 
     sxAddr.prefix.number_bits = num_prefix_bits;
-    if (sxAddr.prefix.number_bits > 0)
-    {
-        if (sPrefix_num.empty())
-        {
+    if (sxAddr.prefix.number_bits > 0) {
+        if (sPrefix_num.empty()) {
             // if pPrefix is null, set nPrefix from the hash of kSpend
             uint8_t tmp32[32];
             CSHA256().Write(skSpend.begin(), 32).Finalize(tmp32);
             memcpy(&nPrefix, tmp32, 4);
-        };
+        }
 
         uint32_t nMask = SetStealthMask(num_prefix_bits);
         nPrefix = nPrefix & nMask;
         sxAddr.prefix.bitfield = nPrefix;
-    };
+    }
 
-    if (0 != SecretToPublicKey(sxAddr.scan_secret, sxAddr.scan_pubkey))
+    if (0 != SecretToPublicKey(sxAddr.scan_secret, sxAddr.scan_pubkey)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, _("Could not get scan public key."));
-    if (0 != SecretToPublicKey(skSpend, sxAddr.spend_pubkey))
+    }
+    if (0 != SecretToPublicKey(skSpend, sxAddr.spend_pubkey)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, _("Could not get spend public key."));
+    }
 
     UniValue result(UniValue::VOBJ);
     bool fFound = false;
     // Find if address already exists, can update
     std::set<CStealthAddress>::iterator it;
-    for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it)
-    {
+    for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it) {
         CStealthAddress &sxAddrIt = const_cast<CStealthAddress&>(*it);
         if (sxAddrIt.scan_pubkey == sxAddr.scan_pubkey
-            && sxAddrIt.spend_pubkey == sxAddr.spend_pubkey)
-        {
+            && sxAddrIt.spend_pubkey == sxAddr.spend_pubkey) {
             CKeyID sid = sxAddrIt.GetSpendKeyID();
 
-            if (!pwallet->HaveKey(sid))
-            {
+            if (!pwallet->HaveKey(sid)) {
                 LOCK(pwallet->cs_wallet);
                 CPubKey pk = skSpend.GetPubKey();
-                if (!pwallet->AddKeyPubKey(skSpend, pk))
+                if (!pwallet->AddKeyPubKey(skSpend, pk)) {
                     throw JSONRPCError(RPC_WALLET_ERROR, _("Import failed - AddKeyPubKey failed."));
+                }
                 fFound = true; // update stealth address with secret
                 break;
-            };
+            }
 
             throw JSONRPCError(RPC_WALLET_ERROR, _("Import failed - stealth address exists."));
-        };
-    };
+        }
+    }
 
     {
         LOCK(pwallet->cs_wallet);
-        if (pwallet->HaveStealthAddress(sxAddr)) // check for extkeys, no update possible
+        if (pwallet->HaveStealthAddress(sxAddr)) { // check for extkeys, no update possible
             throw JSONRPCError(RPC_WALLET_ERROR, _("Import failed - stealth address exists."));
+        }
 
         pwallet->SetAddressBook(sxAddr, sLabel, "", fBech32);
     }
 
-    if (fFound)
-    {
+    if (fFound) {
         result.pushKV("result", "Success, updated " + sxAddr.Encoded(fBech32));
-    } else
-    {
-        if (!pwallet->ImportStealthAddress(sxAddr, skSpend))
+    } else {
+        if (!pwallet->ImportStealthAddress(sxAddr, skSpend)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Could not save to wallet.");
+        }
         result.pushKV("result", "Success");
         result.pushKV("stealth_address", sxAddr.Encoded(fBech32));
-    };
+    }
 
     return result;
 }
@@ -1981,44 +2025,45 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
 int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo)
 {
     std::set<CStealthAddress>::iterator it;
-    for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it)
-    {
+    for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it) {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("Label", it->label);
         obj.pushKV("Address", it->Encoded());
 
-        if (fShowSecrets)
-        {
+        if (fShowSecrets) {
             obj.pushKV("Scan Secret", CBitcoinSecret(it->scan_secret).ToString());
 
             CKeyID sid = it->GetSpendKeyID();
             CKey skSpend;
-            if (pwallet->GetKey(sid, skSpend))
+            if (pwallet->GetKey(sid, skSpend)) {
                 obj.pushKV("Spend Secret", CBitcoinSecret(skSpend).ToString());
-        };
+            }
+        }
 
-        if (fAddressBookInfo)
-        {
+        if (fAddressBookInfo) {
             std::map<CTxDestination, CAddressBookData>::const_iterator mi = pwallet->mapAddressBook.find(*it);
-            if (mi != pwallet->mapAddressBook.end())
-            {
+            if (mi != pwallet->mapAddressBook.end()) {
                 // TODO: confirm vPath?
 
-                if (mi->second.name != it->label)
+                if (mi->second.name != it->label) {
                     obj.pushKV("addr_book_label", mi->second.name);
-                if (!mi->second.purpose.empty())
+                }
+                if (!mi->second.purpose.empty()) {
                     obj.pushKV("purpose", mi->second.purpose);
+                }
 
                 UniValue objDestData(UniValue::VOBJ);
-                for (const auto &pair : mi->second.destdata)
+                for (const auto &pair : mi->second.destdata) {
                     obj.pushKV(pair.first, pair.second);
-                if (objDestData.size() > 0)
+                }
+                if (objDestData.size() > 0) {
                     obj.pushKV("destdata", objDestData);
-            };
-        };
+                }
+            }
+        }
 
         arr.push_back(obj);
-    };
+    }
 
     return 0;
 };
@@ -2032,8 +2077,12 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "liststealthaddresses ( show_secrets )\n"
-            "List owned stealth addresses.\n"
+            RPCHelpMan{"liststealthaddresses",
+                "\nList stealth addresses in this wallet.\n",
+                {
+                    {"show_secrets", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"show_secrets\"      (bool, optional, default = false) Print secret keys to stealth addresses, wallet must be unlocked.\n"
             "\nResult:\n"
@@ -2140,20 +2189,29 @@ static UniValue reservebalance(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
-            "reservebalance reserve ( amount )\n"
-            "reserve is true or false to turn balance reserve on or off.\n"
-            "amount is a real and rounded to cent.\n"
-            "Set reserve amount not participating in network protection.\n"
-            "If no parameters provided current setting is printed.\n"
-            "Wallet must be unlocked to modify.\n");
+            RPCHelpMan{"reservebalance",
+                "\nSet reserve amount not participating in network protection.\n"
+                "If no parameters provided current setting is printed.\n"
+                "Wallet must be unlocked to modify.\n",
+                {
+                    {"reserve", RPCArg::Type::BOOL, true},
+                    {"amount", RPCArg::Type::AMOUNT, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
+            "\nArguments:\n"
+            "1. reserve           (bool, optional, default=false) Turn balance reserve on or off, leave out to display current reserve.\n"
+            "2. amount            (bool, optional) Amount of coin to reserve.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("reservebalance", "true 1000") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("reservebalance", "true, 1000"));
 
-    if (request.params.size() > 0)
-    {
+    if (request.params.size() > 0) {
         EnsureWalletIsUnlocked(pwallet);
 
         bool fReserve = request.params[0].get_bool();
-        if (fReserve)
-        {
+        if (fReserve) {
             if (request.params.size() == 1)
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "must provide amount to reserve balance.");
             int64_t nAmount = AmountFromValue(request.params[1]);
@@ -2161,14 +2219,13 @@ static UniValue reservebalance(const JSONRPCRequest &request)
             if (nAmount < 0)
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "amount cannot be negative.");
             pwallet->SetReserveBalance(nAmount);
-        } else
-        {
+        } else {
             if (request.params.size() > 1)
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "cannot specify amount to turn off reserve.");
             pwallet->SetReserveBalance(0);
-        };
+        }
         WakeThreadStakeMiner(pwallet);
-    };
+    }
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("reserve", (pwallet->nReserveBalance > 0));
@@ -2185,9 +2242,19 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() < 1 ||request.params.size() > 7)
         throw std::runtime_error(
-            "deriverangekeys start ( end \"key/id\" hardened save add_to_addressbook 256bithash )\n"
-            "Derive keys from the specified chain.\n"
-            "Wallet must be unlocked if save or hardened options are set.\n"
+            RPCHelpMan{"deriverangekeys",
+                "\nDerive keys from the specified chain.\n"
+                "Wallet must be unlocked if save or hardened options are set.\n",
+                {
+                    {"start", RPCArg::Type::NUM, false},
+                    {"end", RPCArg::Type::NUM, true},
+                    {"key/id", RPCArg::Type::NUM, true},
+                    {"hardened", RPCArg::Type::BOOL, true},
+                    {"save", RPCArg::Type::BOOL, true},
+                    {"add_to_addressbook", RPCArg::Type::BOOL, true},
+                    {"256bithash", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. start               (int, required) Start from key.\n"
             "2. end                 (int, optional) Stop deriving after key, default set to derive one key.\n"
@@ -2225,36 +2292,32 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
         sInKey = request.params[2].get_str();
 
     bool fHardened = false;
-    if (request.params.size() > 3)
-    {
+    if (request.params.size() > 3) {
         std::string s = request.params[3].get_str();
         if (!part::GetStringBool(s, fHardened))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown argument for hardened: %s.", s.c_str()));
-    };
+    }
 
     bool fSave = false;
-    if (request.params.size() > 4)
-    {
+    if (request.params.size() > 4) {
         std::string s = request.params[4].get_str();
         if (!part::GetStringBool(s, fSave))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown argument for save: %s.", s.c_str()));
-    };
+    }
 
     bool fAddToAddressBook = false;
-    if (request.params.size() > 5)
-    {
+    if (request.params.size() > 5) {
         std::string s = request.params[5].get_str();
         if (!part::GetStringBool(s, fAddToAddressBook))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Unknown argument for add_to_addressbook: %s."), s.c_str()));
-    };
+    }
 
     bool f256bit = false;
-    if (request.params.size() > 6)
-    {
+    if (request.params.size() > 6) {
         std::string s = request.params[6].get_str();
         if (!part::GetStringBool(s, f256bit))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Unknown argument for 256bithash: %s."), s.c_str()));
-    };
+    }
 
     if (!fSave && fAddToAddressBook)
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("add_to_addressbook can't be set without save"));
@@ -2270,8 +2333,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
         CStoredExtKey *sek = nullptr;
         CExtKeyAccount *sea = nullptr;
         uint32_t nChain = 0;
-        if (sInKey.length() == 0)
-        {
+        if (sInKey.length() == 0) {
             if (pwallet->idDefaultAccount.IsNull())
                 throw JSONRPCError(RPC_WALLET_ERROR, _("No default account set."));
 
@@ -2281,63 +2343,56 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
 
             sea = mi->second;
             nChain = sea->nActiveExternal;
-            if (nChain < sea->vExtKeys.size())
+            if (nChain < sea->vExtKeys.size()) {
                 sek = sea->vExtKeys[nChain];
-        } else
-        {
+            }
+        } else {
             CKeyID keyId;
             ExtractExtKeyId(sInKey, keyId, CChainParams::EXT_KEY_HASH);
 
             ExtKeyAccountMap::iterator mi = pwallet->mapExtAccounts.begin();
-            for (; mi != pwallet->mapExtAccounts.end(); ++mi)
-            {
+            for (; mi != pwallet->mapExtAccounts.end(); ++mi) {
                 sea = mi->second;
-                for (uint32_t i = 0; i < sea->vExtKeyIDs.size(); ++i)
-                {
+                for (uint32_t i = 0; i < sea->vExtKeyIDs.size(); ++i) {
                     if (sea->vExtKeyIDs[i] != keyId)
                         continue;
                     nChain = i;
                     sek = sea->vExtKeys[i];
-                };
+                }
                 if (sek)
                     break;
-            };
-        };
+            }
+        }
 
         CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
         CStoredExtKey sekLoose, sekDB;
-        if (!sek)
-        {
+        if (!sek) {
             CExtKey58 eKey58;
             CBitcoinAddress addr;
             CKeyID idk;
 
             if (addr.SetString(sInKey)
                 && addr.IsValid(CChainParams::EXT_KEY_HASH)
-                && addr.GetKeyID(idk, CChainParams::EXT_KEY_HASH))
-            {
+                && addr.GetKeyID(idk, CChainParams::EXT_KEY_HASH)) {
                 // idk is set
             } else
-            if (eKey58.Set58(sInKey.c_str()) == 0)
-            {
+            if (eKey58.Set58(sInKey.c_str()) == 0) {
                 sek = &sekLoose;
                 sek->kp = eKey58.GetKey();
                 idk = sek->kp.GetID();
-            } else
-            {
+            } else {
                 throw JSONRPCError(RPC_WALLET_ERROR, _("Invalid key."));
-            };
+            }
 
-            if (!idk.IsNull())
-            {
-                if (wdb.ReadExtKey(idk, sekDB))
-                {
+            if (!idk.IsNull()) {
+                if (wdb.ReadExtKey(idk, sekDB)) {
                     sek = &sekDB;
-                    if (fHardened && (sek->nFlags & EAF_IS_CRYPTED))
+                    if (fHardened && (sek->nFlags & EAF_IS_CRYPTED)) {
                         throw std::runtime_error("TODO: decrypt key.");
-                };
-            };
-        };
+                    }
+                }
+            }
+        }
 
         if (!sek)
             throw JSONRPCError(RPC_WALLET_ERROR, _("Unknown chain."));
@@ -2350,66 +2405,66 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
 
 
         uint32_t idIndex;
-        if (fAddToAddressBook)
-        {
-            if (0 != pwallet->ExtKeyGetIndex(sea, idIndex))
+        if (fAddToAddressBook) {
+            if (0 != pwallet->ExtKeyGetIndex(sea, idIndex)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, _("ExtKeyGetIndex failed."));
-        };
+            }
+        }
 
         uint32_t nChildIn = (uint32_t)nStart;
         CPubKey newKey;
-        for (int i = nStart; i <= nEnd; ++i)
-        {
+        for (int i = nStart; i <= nEnd; ++i) {
             nChildIn = (uint32_t)i;
             uint32_t nChildOut = 0;
-            if (0 != sek->DeriveKey(newKey, nChildIn, nChildOut, fHardened))
+            if (0 != sek->DeriveKey(newKey, nChildIn, nChildOut, fHardened)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "DeriveKey failed.");
+            }
 
-            if (nChildIn != nChildOut)
+            if (nChildIn != nChildOut) {
                 LogPrintf("Warning: %s - DeriveKey skipped key %d.\n", __func__, nChildIn);
+            }
 
-            if (fHardened)
+            if (fHardened) {
                 SetHardenedBit(nChildOut);
+            }
 
 
             CKeyID idk = newKey.GetID();
             CKeyID256 idk256;
-            if (f256bit)
-            {
+            if (f256bit) {
                 idk256 = newKey.GetID256();
                 result.push_back(CBitcoinAddress(idk256).ToString());
-            } else
-            {
+            } else {
                 result.push_back(CBitcoinAddress(idk).ToString());
-            };
+            }
 
-            if (fSave)
-            {
-                if (HK_YES != sea->HaveSavedKey(idk))
-                {
+            if (fSave) {
+                if (HK_YES != sea->HaveSavedKey(idk)) {
                     CEKAKey ak(nChain, nChildOut);
-                    if (0 != pwallet->ExtKeySaveKey(sea, idk, ak))
+                    if (0 != pwallet->ExtKeySaveKey(sea, idk, ak)) {
                         throw JSONRPCError(RPC_WALLET_ERROR, "ExtKeySaveKey failed.");
-                };
+                    }
+                }
 
-                if (fAddToAddressBook)
-                {
+                if (fAddToAddressBook) {
                     std::vector<uint32_t> vPath;
                     vPath.push_back(idIndex); // first entry is the index to the account / master key
 
-                    if (0 == AppendChainPath(sek, vPath))
+                    if (0 == AppendChainPath(sek, vPath)) {
                         vPath.push_back(nChildOut);
-                    else
+                    } else {
                         vPath.clear();
+                    }
 
                     std::string strAccount = "";
-                    if (f256bit)
+                    if (f256bit) {
                         pwallet->SetAddressBook(&wdb, idk256, strAccount, "receive", vPath, false);
-                    else
+                    } else {
                         pwallet->SetAddressBook(&wdb, idk, strAccount, "receive", vPath, false);
-                };
-            };
-        };
+                    }
+                }
+            }
+        }
     }
 
     return result;
@@ -2424,11 +2479,15 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "clearwallettransactions ( remove_all )\n"
-            "Delete transactions from the wallet.\n"
-            "By default removes only failed stakes.\n"
-            "Warning: Backup your wallet before using!\n"
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"clearwallettransactions",
+                "\nDelete transactions from the wallet.\n"
+                "By default removes only failed stakes.\n"
+                "Warning: Backup your wallet before using!\n",
+                {
+                    {"remove_all", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. remove_all           (bool, optional, default=false) Remove all transactions.\n"
             "\nExamples:\n"
@@ -3002,8 +3061,28 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "filtertransactions ( options )\n"
-            "List transactions.\n"
+            RPCHelpMan{"fundrawtransactionfrom",
+                "\nList transactions.\n",
+                {
+                    {"options", RPCArg::Type::OBJ,
+                        {
+                            {"count", RPCArg::Type::NUM, true},
+                            {"skip", RPCArg::Type::NUM, true},
+                            {"include_watchonly", RPCArg::Type::BOOL, true},
+                            {"search", RPCArg::Type::STR, true},
+                            {"category", RPCArg::Type::STR, true},
+                            {"type", RPCArg::Type::STR, true},
+                            {"sort", RPCArg::Type::STR, true},
+                            {"from", RPCArg::Type::STR, true},
+                            {"to", RPCArg::Type::STR, true},
+                            {"collate", RPCArg::Type::BOOL, true},
+                            {"with_reward", RPCArg::Type::BOOL, true},
+                            {"use_bech32", RPCArg::Type::BOOL, true},
+                        },
+                        true, "options"},
+                }}
+                .ToString() +
+            "\nArguments:\n"
             "1. options (json, optional) : A configuration object for the query\n"
             "\n"
             "  All keys are optional. Default values are:\n"
@@ -3368,8 +3447,18 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 6)
         throw std::runtime_error(
-            "filteraddresses ( offset count sort_code \"match_str\" match_owned show_path )\n"
-            "List addresses."
+            RPCHelpMan{"filteraddresses",
+                "\nList addresses.\n",
+                {
+                    {"offset", RPCArg::Type::NUM, true},
+                    {"count", RPCArg::Type::NUM, true},
+                    {"sort_code", RPCArg::Type::NUM, true},
+                    {"match_str", RPCArg::Type::STR, true},
+                    {"match_owned", RPCArg::Type::BOOL, true},
+                    {"show_path", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+            "\nArguments:\n"
             "filteraddresses offset count will list 'count' addresses starting from 'offset'\n"
             "filteraddresses -1 will count addresses\n"
             "sort_code 0 sort by label ascending, 1 sort by label descending, default 0\n"
@@ -3558,8 +3647,15 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 4)
         throw std::runtime_error(
-            "manageaddressbook \"action\" \"address\" ( \"label\" \"purpose\" )\n"
-            "Manage the address book."
+            RPCHelpMan{"manageaddressbook",
+                "\nManage the address book.\n",
+                {
+                    {"action", RPCArg::Type::STR, false},
+                    {"address", RPCArg::Type::STR, false},
+                    {"label", RPCArg::Type::STR, true},
+                    {"purpose", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"action\"      (string, required) 'add/edit/del/info/newsend' The action to take.\n"
             "2. \"address\"     (string, required) The address to affect.\n"
@@ -3726,8 +3822,11 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() != 0)
         throw std::runtime_error(
-            "getstakinginfo\n"
-            "Returns an object containing staking-related information."
+            RPCHelpMan{"getstakinginfo",
+                "\nReturns an object containing staking-related information.\n",
+                {
+                }}
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"enabled\": true|false,         (boolean) if staking is enabled or not on this wallet\n"
@@ -3841,8 +3940,11 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() != 0)
         throw std::runtime_error(
-            "getcoldstakinginfo\n"
-            "Returns an object containing coldstaking related information."
+            RPCHelpMan{"getcoldstakinginfo",
+                "\nReturns an object containing coldstaking related information.\n",
+                {
+                }}
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"enabled\": true|false,             (boolean) If a valid coldstakingaddress is loaded or not on this wallet.\n"
@@ -3973,10 +4075,29 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 5)
         throw std::runtime_error(
-            "listunspentanon ( minconf maxconf  [\"addresses\",...] [include_unsafe] )\n"
-            "\nReturns array of unspent transaction anon outputs\n"
-            "with between minconf and maxconf (inclusive) confirmations.\n"
-            "Optionally filter to only include txouts paid to specified addresses.\n"
+            RPCHelpMan{"listunspentanon",
+                "\nReturns array of unspent transaction anon outputs\n"
+                "with between minconf and maxconf (inclusive) confirmations.\n"
+                "Optionally filter to only include txouts paid to specified addresses.\n",
+                {
+                    {"minconf", RPCArg::Type::NUM, true},
+                    {"maxconf", RPCArg::Type::NUM, true},
+                    {"addresses", RPCArg::Type::ARR,
+                        {
+                            {"address", RPCArg::Type::STR, true},
+                        },
+                        true},
+                    {"include_unsafe", RPCArg::Type::BOOL, true},
+                    {"query_options", RPCArg::Type::OBJ,
+                        {
+                            {"minimumAmount", RPCArg::Type::AMOUNT, true},
+                            {"maximumAmount", RPCArg::Type::AMOUNT, true},
+                            {"maximumCount", RPCArg::Type::NUM, true},
+                            {"minimumSumAmount", RPCArg::Type::AMOUNT, true},
+                        },
+                        true, "query_options"},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. minconf          (numeric, optional, default=1) The minimum confirmations to filter\n"
             "2. maxconf          (numeric, optional, default=9999999) The maximum confirmations to filter\n"
@@ -4181,10 +4302,29 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 5)
         throw std::runtime_error(
-            "listunspentblind ( minconf maxconf  [\"addresses\",...] [include_unsafe] )\n"
-            "\nReturns array of unspent transaction blind outputs\n"
-            "with between minconf and maxconf (inclusive) confirmations.\n"
-            "Optionally filter to only include txouts paid to specified addresses.\n"
+            RPCHelpMan{"listunspentblind",
+                "\nReturns array of unspent transaction blinded outputs\n"
+                "with between minconf and maxconf (inclusive) confirmations.\n"
+                "Optionally filter to only include txouts paid to specified addresses.\n",
+                {
+                    {"minconf", RPCArg::Type::NUM, true},
+                    {"maxconf", RPCArg::Type::NUM, true},
+                    {"addresses", RPCArg::Type::ARR,
+                        {
+                            {"address", RPCArg::Type::STR, true},
+                        },
+                        true},
+                    {"include_unsafe", RPCArg::Type::BOOL, true},
+                    {"query_options", RPCArg::Type::OBJ,
+                        {
+                            {"minimumAmount", RPCArg::Type::AMOUNT, true},
+                            {"maximumAmount", RPCArg::Type::AMOUNT, true},
+                            {"maximumCount", RPCArg::Type::NUM, true},
+                            {"minimumSumAmount", RPCArg::Type::AMOUNT, true},
+                        },
+                        true, "query_options"},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. minconf          (numeric, optional, default=1) The minimum confirmations to filter\n"
             "2. maxconf          (numeric, optional, default=9999999) The maximum confirmations to filter\n"
@@ -5007,9 +5147,52 @@ UniValue sendtypeto(const JSONRPCRequest &request)
         return NullUniValue;
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 9)
         throw std::runtime_error(
-            "sendtypeto \"typein\" \"typeout\" [{address: , amount: , narr: , subfee:},...] (\"comment\" \"comment-to\" ringsize inputs_per_sig test_fee coin_control)\n"
-            "\nSend part to multiple outputs.\n"
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"sendtypeto",
+                "\nSend part to multiple outputs.\n",
+                {
+                    {"typein", RPCArg::Type::STR, false},
+                    {"typeout", RPCArg::Type::STR, false},
+                    {"outputs", RPCArg::Type::ARR,
+                        {
+                            {"", RPCArg::Type::OBJ,
+                                {
+                                    {"address", RPCArg::Type::STR, true},
+                                    {"amount", RPCArg::Type::AMOUNT, true},
+                                    {"narr", RPCArg::Type::STR, true},
+                                    {"blindingfactor", RPCArg::Type::STR_HEX, true},
+                                    {"subfee", RPCArg::Type::BOOL, true},
+                                    {"script", RPCArg::Type::STR_HEX, true},
+                                },
+                                true},
+                        },
+                        false},
+                    {"comment", RPCArg::Type::STR, false},
+                    {"comment_to", RPCArg::Type::STR, false},
+                    {"ringsize", RPCArg::Type::NUM, false},
+                    {"inputs_per_sig", RPCArg::Type::NUM, false},
+                    {"test_fee", RPCArg::Type::BOOL, false},
+                    {"coin_control", RPCArg::Type::OBJ,
+                        {
+                            {"changeaddress", RPCArg::Type::STR, true},
+                            {"inputs", RPCArg::Type::ARR,
+                                {
+                                    {"", RPCArg::Type::OBJ,
+                                        {
+                                            {"tx", RPCArg::Type::STR_HEX, false},
+                                            {"n", RPCArg::Type::NUM, false},
+                                        },
+                                        true},
+                                },
+                                true},
+                            {"replaceable", RPCArg::Type::BOOL, true},
+                            {"conf_target", RPCArg::Type::NUM, true},
+                            {"estimate_mode", RPCArg::Type::STR, true},
+                            {"feeRate", RPCArg::Type::AMOUNT, true},
+                        },
+                        true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"typein\"                  (string, required) part/blind/anon\n"
             "2. \"typeout\"                 (string, required) part/blind/anon\n"
@@ -5250,10 +5433,29 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 4)
         throw std::runtime_error(
-            "createsignaturewithwallet \"hexstring\" \"prevtx\" \"address\" \"sighashtype\"\n"
-            "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
-            + HelpRequiringPassphrase(pwallet) + "\n"
-
+            RPCHelpMan{"createsignaturewithwallet",
+                "\nSign inputs for raw transaction (serialized, hex-encoded).\n",
+                {
+                    {"hexstring", RPCArg::Type::STR, false},
+                    {"prevtxs", RPCArg::Type::ARR,
+                        {
+                            {"", RPCArg::Type::OBJ,
+                                {
+                                    {"txid", RPCArg::Type::STR_HEX, false},
+                                    {"vout", RPCArg::Type::NUM, false},
+                                    {"scriptPubKey", RPCArg::Type::STR_HEX, true},
+                                    {"redeemScript", RPCArg::Type::STR_HEX, true},
+                                    {"amount", RPCArg::Type::AMOUNT, true},
+                                    {"amount_commitment", RPCArg::Type::STR_HEX, true},
+                                },
+                                true},
+                        },
+                        false},
+                    {"address", RPCArg::Type::STR, false},
+                    {"sighashtype", RPCArg::Type::STR, false},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"hexstring\"                      (string, required) The transaction hex string\n"
             "2. \"prevtx\"                         (json, required) The prevtx signing for\n"
@@ -5292,9 +5494,28 @@ static UniValue createsignaturewithkey(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 4)
         throw std::runtime_error(
-            "createsignaturewithkey \"hexstring\" \"prevtx\" \"address\" \"sighashtype\"\n"
-            "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
-
+            RPCHelpMan{"createsignaturewithkey",
+                "\nSign inputs for raw transaction (serialized, hex-encoded).\n",
+                {
+                    {"hexstring", RPCArg::Type::STR, false},
+                    {"prevtxs", RPCArg::Type::ARR,
+                        {
+                            {"", RPCArg::Type::OBJ,
+                                {
+                                    {"txid", RPCArg::Type::STR_HEX, false},
+                                    {"vout", RPCArg::Type::NUM, false},
+                                    {"scriptPubKey", RPCArg::Type::STR_HEX, true},
+                                    {"redeemScript", RPCArg::Type::STR_HEX, true},
+                                    {"amount", RPCArg::Type::AMOUNT, true},
+                                    {"amount_commitment", RPCArg::Type::STR_HEX, true},
+                                },
+                                true},
+                        },
+                        false},
+                    {"privkey", RPCArg::Type::STR, false},
+                    {"sighashtype", RPCArg::Type::STR, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"hexstring\"                      (string, required) The transaction hex string\n"
             "2. \"prevtx\"                         (json, required) The prevtx signing for\n"
@@ -5334,9 +5555,13 @@ static UniValue debugwallet(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "debugwallet ( attempt_repair )\n"
-            "Detect problems in wallet.\n"
-            + HelpRequiringPassphrase(pwallet));
+            RPCHelpMan{"debugwallet",
+                "\nDetect problems in wallet.\n",
+                {
+                    {"attempt_repair", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet));
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
@@ -5540,9 +5765,15 @@ static UniValue rewindchain(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "rewindchain ( height )\n"
-            + HelpRequiringPassphrase(pwallet) +
-            "height default - tip_height-1.\n");
+            RPCHelpMan{"rewindchain",
+                "\nRemove blocks from chain until \"height\".\n",
+                {
+                    {"height", RPCArg::Type::NUM, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
+            "\nArguments:\n"
+            "1. height                    (int, optional, default=1) Chain height to rewind to.\n");
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -5584,10 +5815,19 @@ static UniValue walletsettings(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
-            "walletsettings \"setting\" {...}\n"
-            "\nManage wallet settings.\n"
-            "Each settings group is set as a block, unspecified options will be set to the default value.\n"
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"walletsettings",
+                "\nManage wallet settings.\n"
+                "Each settings group is set as a block, unspecified options will be set to the default value.\n",
+                {
+                    {"setting", RPCArg::Type::STR, false},
+                    {"value", RPCArg::Type::OBJ,
+                        {
+                            {"...", RPCArg::Type::STR, false},
+                        },
+                        true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"setting\"                    (string, required) Settings group to modify.\n"
             "2. \"value\"                      (json, optional) Settings.\n"
@@ -5917,9 +6157,13 @@ static UniValue transactionblinds(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "transactionblinds \"txnid\"\n"
-            "\nShow known blinding factors for transaction.\n"
-            + HelpRequiringPassphrase(pwallet) + "\n"
+            RPCHelpMan{"transactionblinds",
+                "\nShow known blinding factors for transaction.\n",
+                {
+                    {"txnid", RPCArg::Type::STR_HEX, false},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"txnid\"                          (string, required) The transaction id\n"
             "\nResult:\n"
@@ -5952,8 +6196,9 @@ static UniValue transactionblinds(const JSONRPCRequest &request)
 
     for (size_t i = 0; i < stx.tx->vpout.size(); ++i) {
         uint256 tmp;
-        if (stx.GetBlind(i, tmp.begin()))
+        if (stx.GetBlind(i, tmp.begin())) {
             result.pushKV(strprintf("%d", i), tmp.ToString());
+        }
     }
 
     return result;
@@ -5968,8 +6213,14 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
-            "derivefromstealthaddress \"stealthaddress\" (\"ephempubkey\")\n"
-            "\nDerive a pubkey from a stealth address and random value.\n"
+            RPCHelpMan{"derivefromstealthaddress",
+                "\nDerive a pubkey from a stealth address and random value.\n",
+                {
+                    {"stealthaddress", RPCArg::Type::STR, false},
+                    {"ephemeralvalue", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"stealthaddress\"                 (string, required) The stealth address\n"
             "2. \"ephemeralvalue\"                 (string, optional) The ephemeral value, interpreted as private key if 32 bytes or public key if 33.\n"
@@ -6083,17 +6334,24 @@ static UniValue setvote(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() != 4)
         throw std::runtime_error(
-            "setvote proposal option height_start height_end\n"
-            "Set voting token.\n"
-            "Wallet will include this token in staked blocks from height_start to height_end.\n"
-            "Set proposal and/or option to 0 to stop voting.\n"
-            "The last added option valid for the current chain height will be applied.\n"
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"setvote",
+                "\nSet voting token.\n"
+                "Wallet will include this token in staked blocks from height_start to height_end.\n"
+                "Set proposal and/or option to 0 to stop voting.\n"
+                "The last added option valid for the current chain height will be applied.\n",
+                {
+                    {"proposal", RPCArg::Type::NUM, false},
+                    {"option", RPCArg::Type::NUM, false},
+                    {"height_start", RPCArg::Type::NUM, false},
+                    {"height_end", RPCArg::Type::NUM, false},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. proposal            (int, required) The proposal to vote on.\n"
             "2. option              (int, required) The option to vote for.\n"
             "3. height_start        (int, required) Start voting at this block height.\n"
-            "3. height_end          (int, required) Stop voting at this block height.\n"
+            "4. height_end          (int, required) Stop voting at this block height.\n"
             "\nExamples:\n"
             + HelpExampleCli("setvote", "1 1 1000 2000") +
             "\nAs a JSON-RPC call\n"
@@ -6141,10 +6399,11 @@ static UniValue setvote(const JSONRPCRequest &request)
 
     UniValue result(UniValue::VOBJ);
 
-    if (issue < 1)
+    if (issue < 1) {
         result.pushKV("result", _("Cleared vote token."));
-    else
+    } else {
         result.pushKV("result", strprintf(_("Voting for option %u on proposal %u"), option, issue));
+    }
 
     result.pushKV("from_height", nStartHeight);
     result.pushKV("to_height", nEndHeight);
@@ -6161,8 +6420,12 @@ static UniValue votehistory(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "votehistory ( current_only )\n"
-            "Display voting history.\n"
+            RPCHelpMan{"votehistory",
+                "\nDisplay voting history of wallet.\n",
+                {
+                    {"current_only", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. current_only        (bool, optional, default=false) Show only the currently active vote.\n"
             "\nResult\n"
@@ -6186,34 +6449,33 @@ static UniValue votehistory(const JSONRPCRequest &request)
 
     UniValue result(UniValue::VARR);
 
-    if (request.params.size() > 0)
-    {
-        if (GetBool(request.params[0]))
-        {
+    if (request.params.size() > 0) {
+        if (GetBool(request.params[0])) {
             UniValue vote(UniValue::VOBJ);
 
             int nNextHeight = chainActive.Height() + 1;
 
-            for (auto i = pwallet->vVoteTokens.size(); i-- > 0; )
-            {
+            for (auto i = pwallet->vVoteTokens.size(); i-- > 0; ) {
                 auto &v = pwallet->vVoteTokens[i];
                 if (v.nEnd < nNextHeight
-                    || v.nStart > nNextHeight)
+                    || v.nStart > nNextHeight) {
                     continue;
+                }
 
                 if ((v.nToken >> 16) < 1
-                    || (v.nToken & 0xFFFF) < 1)
+                    || (v.nToken & 0xFFFF) < 1) {
                     continue;
+                }
                 UniValue vote(UniValue::VOBJ);
                 vote.pushKV("proposal", (int)(v.nToken & 0xFFFF));
                 vote.pushKV("option", (int)(v.nToken >> 16));
                 vote.pushKV("from_height", v.nStart);
                 vote.pushKV("to_height", v.nEnd);
                 result.push_back(vote);
-            };
+            }
             return result;
-        };
-    };
+        }
+    }
 
     std::vector<CVoteToken> vVoteTokens;
     {
@@ -6223,8 +6485,7 @@ static UniValue votehistory(const JSONRPCRequest &request)
         wdb.ReadVoteTokens(vVoteTokens);
     }
 
-    for (auto i = vVoteTokens.size(); i-- > 0; )
-    {
+    for (auto i = vVoteTokens.size(); i-- > 0; ) {
         auto &v = vVoteTokens[i];
         UniValue vote(UniValue::VOBJ);
         vote.pushKV("proposal", (int)(v.nToken & 0xFFFF));
@@ -6233,7 +6494,7 @@ static UniValue votehistory(const JSONRPCRequest &request)
         vote.pushKV("to_height", v.nEnd);
         vote.pushKV("added", v.nTimeAdded);
         result.push_back(vote);
-    };
+    }
 
     return result;
 }
@@ -6242,8 +6503,14 @@ static UniValue tallyvotes(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 3)
         throw std::runtime_error(
-            "tallyvotes proposal height_start height_end\n"
-            "Count votes.\n"
+            RPCHelpMan{"tallyvotes",
+                "\nCount votes.\n",
+                {
+                    {"proposal", RPCArg::Type::NUM, false},
+                    {"height_start", RPCArg::Type::NUM, false},
+                    {"height_end", RPCArg::Type::NUM, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. proposal         (int, required) the proposal id.\n"
             "2. height_start     (int, required) the chain starting height.\n"
@@ -6278,40 +6545,40 @@ static UniValue tallyvotes(const JSONRPCRequest &request)
     int nBlocks = 0;
     CBlockIndex *pindex = chainActive.Tip();
     if (pindex)
-    do
-    {
-        if (pindex->nHeight < nStartHeight)
+    do {
+        if (pindex->nHeight < nStartHeight) {
             break;
-        if (pindex->nHeight <= nEndHeight)
-        {
-            if (!ReadBlockFromDisk(block, pindex, consensusParams))
+        }
+        if (pindex->nHeight <= nEndHeight) {
+            if (!ReadBlockFromDisk(block, pindex, consensusParams)) {
                 continue;
+            }
 
             if (block.vtx.size() < 1
-                || !block.vtx[0]->IsCoinStake())
+                || !block.vtx[0]->IsCoinStake()) {
                 continue;
+            }
 
             std::vector<uint8_t> &vData = ((CTxOutData*)block.vtx[0]->vpout[0].get())->vData;
-            if (vData.size() < 9 || vData[4] != DO_VOTE)
-            {
+            if (vData.size() < 9 || vData[4] != DO_VOTE) {
                 ri = mapVotes.insert(std::pair<int, int>(0, 1));
                 if (!ri.second) ri.first->second++;
-            } else
-            {
+            } else {
                 uint32_t voteToken;
                 memcpy(&voteToken, &vData[5], 4);
                 int option = 0; // default to abstain
 
                 // count only if related to current issue:
-                if ((int) (voteToken & 0xFFFF) == issue)
+                if ((int) (voteToken & 0xFFFF) == issue) {
                     option = (voteToken >> 16) & 0xFFFF;
+                }
 
                 ri = mapVotes.insert(std::pair<int, int>(option, 1));
                 if (!ri.second) ri.first->second++;
-            };
+            }
 
             nBlocks++;
-        };
+        }
     } while ((pindex = pindex->pprev));
 
     UniValue result(UniValue::VOBJ);
@@ -6334,7 +6601,17 @@ static UniValue buildscript(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "buildscript json\n"
+            RPCHelpMan{"buildscript",
+                "\nCreate a script from inputs.\n",
+                {
+                    {"recipe", RPCArg::Type::OBJ,
+                        {
+                            {"recipe", RPCArg::Type::STR, false},
+                            {"recipeinputs ...", RPCArg::Type::STR, true},
+                        },
+                        true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. Recipe (json, required)\n"
             " {\"recipe\":\"ifcoinstake\", \"addrstake\":\"addrA\", \"addrspend\":\"addrB\"}\n"
@@ -6462,12 +6739,58 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 4)
         throw std::runtime_error(
+            RPCHelpMan{"createrawparttransaction",
+                "\nCreate a transaction spending the given inputs and creating new confidential outputs.\n"
+                "Outputs can be addresses or data.\n"
+                "Returns hex-encoded raw transaction.\n"
+                "Note that the transaction's inputs are not signed, and\n"
+                "it is not stored in the wallet or transmitted to the network.\n",
+                {
+                    {"inputs", RPCArg::Type::ARR,
+                        {
+                            {"", RPCArg::Type::OBJ,
+                                {
+                                    {"txid", RPCArg::Type::STR_HEX, false},
+                                    {"vout", RPCArg::Type::NUM, false},
+                                    {"sequence", RPCArg::Type::NUM, true},
+                                    {"blindingfactor", RPCArg::Type::STR_HEX, true},
+                                },
+                                true},
+                        },
+                        false},
+                    {"outputs", RPCArg::Type::ARR,
+                        {
+                            {"", RPCArg::Type::OBJ,
+                                {
+                                    {"address", RPCArg::Type::STR, true},
+                                    {"amount", RPCArg::Type::AMOUNT, true},
+                                    {"data", RPCArg::Type::STR_HEX, true},
+                                    {"data_ct_fee", RPCArg::Type::AMOUNT, true},
+                                    {"script", RPCArg::Type::STR_HEX, true},
+                                    {"type", RPCArg::Type::STR, true},
+                                    {"pubkey", RPCArg::Type::STR, true},
+                                    {"narration", RPCArg::Type::STR, true},
+                                    {"blindingfactor", RPCArg::Type::STR_HEX, true},
+                                    {"rangeproof_params", RPCArg::Type::OBJ,
+                                        {
+                                            {"min_value", RPCArg::Type::NUM, false},
+                                            {"ct_exponent", RPCArg::Type::NUM, true},
+                                            {"ct_bits", RPCArg::Type::NUM, true},
+                                        },
+                                        true},
+                                    {"ephemeral_key", RPCArg::Type::STR_HEX, true},
+                                    {"nonce", RPCArg::Type::STR_HEX, true},
+                                },
+                                true},
+                        },
+                        false},
+                    {"locktime", RPCArg::Type::NUM, true},
+                    {"replaceable", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+
             "createrawparttransaction [{\"txid\":\"id\",\"vout\":n},...] [{\"address\":amount,\"data\":\"hex\",...}] ( locktime replaceable \"fundfrombalance\" )\n"
-            "\nCreate a transaction spending the given inputs and creating new confidential outputs.\n"
-            "Outputs can be addresses or data.\n"
-            "Returns hex-encoded raw transaction.\n"
-            "Note that the transaction's inputs are not signed, and\n"
-            "it is not stored in the wallet or transmitted to the network.\n"
+
 
             "\nArguments:\n"
             "1. \"inputs\"                (array, required) A json array of json objects\n"
@@ -6518,8 +6841,7 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             + HelpExampleCli("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"data\\\":\\\"00010203\\\"}\"") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"address\\\":0.01}\"")
-            + HelpExampleRpc("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"data\\\":\\\"00010203\\\"}\"")
-        );
+            + HelpExampleRpc("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"data\\\":\\\"00010203\\\"}\""));
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -6669,7 +6991,6 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             if (nType != OUTPUT_DATA) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "\"data_ct_fee\" can only appear in output of type \"data\".");
             }
-
             if (idx != 0) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "\"data_ct_fee\" can only appear in vout 0.");
             }
@@ -6814,17 +7135,56 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() < 4 || request.params.size() > 5)
         throw std::runtime_error(
-            "fundrawtransactionfrom \"input_type\" \"hexstring\" input_amounts output_amounts ( options iswitness )\n"
-            "\nAdd inputs to a transaction until it has enough in value to meet its out value.\n"
-            "This will not modify existing inputs, and will add at most one change output to the outputs.\n"
-            "No existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified.\n"
-            "Note that inputs which were signed may need to be resigned after completion since in/outputs have been added.\n"
-            "The inputs added will not be signed, use signrawtransaction for that.\n"
-            "Note that all existing inputs must have their previous output transaction be in the wallet or have their amount and blinding factor specified in input_amounts.\n"
-            /*"Note that all inputs selected must be of standard form and P2SH scripts must be\n"
-            "in the wallet using importaddress or addmultisigaddress (to calculate fees).\n"
-            "You can see whether this is the case by checking the \"solvable\" field in the listunspent output.\n"
-            "Only pay-to-pubkey, multisig, and P2SH versions thereof are currently supported for watch-only\n"*/
+            RPCHelpMan{"fundrawtransactionfrom",
+                "\nAdd inputs to a transaction until it has enough in value to meet its out value.\n"
+                "This will not modify existing inputs, and will add at most one change output to the outputs.\n"
+                "No existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified.\n"
+                "Note that inputs which were signed may need to be resigned after completion since in/outputs have been added.\n"
+                "The inputs added will not be signed, use signrawtransaction for that.\n"
+                "Note that all existing inputs must have their previous output transaction be in the wallet or have their amount and blinding factor specified in input_amounts.\n"
+                /*"Note that all inputs selected must be of standard form and P2SH scripts must be\n"
+                "in the wallet using importaddress or addmultisigaddress (to calculate fees).\n"
+                "You can see whether this is the case by checking the \"solvable\" field in the listunspent output.\n"
+                "Only pay-to-pubkey, multisig, and P2SH versions thereof are currently supported for watch-only\n"*/,
+                {
+                    {"input_type", RPCArg::Type::STR, false},
+                    {"hexstring", RPCArg::Type::STR_HEX, false},
+                    {"input_amounts", RPCArg::Type::OBJ,
+                        {
+                            {"value", RPCArg::Type::AMOUNT, false},
+                            {"blind", RPCArg::Type::STR_HEX, false},
+                            {"witnessstack", RPCArg::Type::STR_HEX, false},
+                        },
+                        false},
+                    {"output_amounts", RPCArg::Type::OBJ,
+                        {
+                            {"value", RPCArg::Type::AMOUNT, false},
+                            {"blind", RPCArg::Type::STR_HEX, false},
+                            {"witnessstack", RPCArg::Type::STR_HEX, false},
+                        },
+                        false},
+                    {"options", RPCArg::Type::OBJ,
+                        {
+                            {"changeAddress", RPCArg::Type::STR, true},
+                            {"changePosition", RPCArg::Type::NUM, true},
+                            {"change_type", RPCArg::Type::STR, true},
+                            {"includeWatching", RPCArg::Type::BOOL, true},
+                            {"lockUnspents", RPCArg::Type::BOOL, true},
+                            {"feeRate", RPCArg::Type::AMOUNT, true},
+                            {"subtractFeeFromOutputs", RPCArg::Type::ARR,
+                                {
+                                    {"vout_index", RPCArg::Type::NUM, true},
+                                },
+                                true},
+                            {"replaceable", RPCArg::Type::BOOL, true},
+                            {"allow_other_inputs", RPCArg::Type::BOOL, true},
+                            {"allow_change_output", RPCArg::Type::BOOL, true},
+                            {"conf_target", RPCArg::Type::NUM, true},
+                            {"estimate_mode", RPCArg::Type::STR, true},
+                        },
+                        true, "options"},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"input_type\"          (string, required) The type of inputs to use standard/anon/blind.\n"
             "2. \"hexstring\"           (string, required) The hex string of the raw transaction\n"
@@ -6887,8 +7247,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
             "\nSign the transaction\n"
             + HelpExampleCli("signrawtransactionwithwallet", "\"fundedtransactionhex\"") +
             "\nSend the transaction\n"
-            + HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\"")
-        );
+            + HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\""));
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR, UniValue::VOBJ, UniValue::VOBJ, UniValue::VOBJ}, true);
 
@@ -7297,9 +7656,14 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 3)
         throw std::runtime_error(
-            "verifycommitment \"commitment\" \"blind\" amount\n"
-            "\nVerify value commitment.\n"
-
+            RPCHelpMan{"verifycommitment",
+                "\nVerify a value commitment.\n",
+                {
+                    {"commitment", RPCArg::Type::STR_HEX, false},
+                    {"blind", RPCArg::Type::STR_HEX, false},
+                    {"amount", RPCArg::Type::AMOUNT, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"commitment\"                     (string, required) The 33byte commitment hex string\n"
             "2. \"blind\"                          (string, required) The 32byte blinding factor hex string\n"
@@ -7311,8 +7675,7 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
             "\nExamples:\n"
             + HelpExampleCli("verifycommitment", "\"commitment\" \"blind\" 1.1") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("verifycommitment", "\"commitment\", \"blind\", 1.1")
-        );
+            + HelpExampleRpc("verifycommitment", "\"commitment\", \"blind\", 1.1"));
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR});
 
@@ -7358,9 +7721,19 @@ static UniValue generatematchingblindfactor(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 2)
         throw std::runtime_error(
-            "generatematchingblindfactor [\"blind_in\"] [\"blind_out\"] \n"
-            "\nGenerates the last blinding factor for a set of inputs and outputs.\n"
-
+            RPCHelpMan{"generatematchingblindfactor",
+                "\nGenerates the last blinding factor for a set of inputs and outputs.\n",
+                {
+                    {"blind_in", RPCArg::Type::ARR,
+                        {
+                            {"blindingfactor", RPCArg::Type::STR_HEX, true},
+                        }, false},
+                    {"blind_out", RPCArg::Type::ARR,
+                        {
+                            {"blindingfactor", RPCArg::Type::STR_HEX, true},
+                        }, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"inputs\"                     (array, required) 32byte blind factor hex strings\n"
             "2. \"outputs\"                    (array, required) 32byte blind factor hex strings\n"
@@ -7371,8 +7744,7 @@ static UniValue generatematchingblindfactor(const JSONRPCRequest &request)
             "\nExamples:\n"
             + HelpExampleCli("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]")
-        );
+            + HelpExampleRpc("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]"));
 
     RPCTypeCheck(request.params, {UniValue::VARR, UniValue::VARR});
 
@@ -7404,11 +7776,11 @@ static UniValue generatematchingblindfactor(const JSONRPCRequest &request)
 
     vBlinds.resize((inputs.size() + outputs.size()) * 32);
 
-    for (unsigned int idx = 0; idx < inputs.size(); idx++)
-    {
+    for (unsigned int idx = 0; idx < inputs.size(); idx++) {
         std::string sBlind = inputs[idx].get_str();
-        if (!IsHex(sBlind) || !(sBlind.size() == 64))
+        if (!IsHex(sBlind) || !(sBlind.size() == 64)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+        }
 
         uint256 blind;
         blind.SetHex(sBlind);
@@ -7422,11 +7794,11 @@ static UniValue generatematchingblindfactor(const JSONRPCRequest &request)
     // size of inputs
     size_t nBlindedInputs = vpBlinds.size();
 
-    for (unsigned int idx = 0; idx < outputs.size(); idx++)
-    {
+    for (unsigned int idx = 0; idx < outputs.size(); idx++) {
         std::string sBlind = outputs[idx].get_str();
-        if (!IsHex(sBlind) || !(sBlind.size() == 64))
+        if (!IsHex(sBlind) || !(sBlind.size() == 64)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+        }
 
         uint256 blind;
         blind.SetHex(sBlind);
@@ -7448,11 +7820,11 @@ static UniValue generatematchingblindfactor(const JSONRPCRequest &request)
     }
 
     UniValue result(UniValue::VOBJ);
-    if (final.size() == 32)
-    {
+    if (final.size() == 32) {
         uint256 blind(final.data(), 32);
         result.pushKV("blind", blind.ToString());
-    };
+    }
+
     return result;
 };
 
@@ -7460,10 +7832,34 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
-            "verifyrawtransaction \"hexstring\" ( [{\"txid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\",\"redeemScript\":\"hex\"},...] { \"options\" } )\n"
-            "\nVerify inputs for raw transaction (serialized, hex-encoded).\n"
-            "The second optional argument (may be null) is an array of previous transaction outputs that\n"
-            "this transaction depends on but may not yet be in the block chain.\n"
+            RPCHelpMan{"verifyrawtransaction",
+                "\nVerify inputs for raw transaction (serialized, hex-encoded).\n"
+                "The second optional argument (may be null) is an array of previous transaction outputs that\n"
+                "this transaction depends on but may not yet be in the block chain.\n",
+                {
+                    {"hexstring", RPCArg::Type::STR, false},
+                    {"prevtxs", RPCArg::Type::ARR,
+                        {
+                            {"", RPCArg::Type::OBJ,
+                                {
+                                    {"txid", RPCArg::Type::STR_HEX, false},
+                                    {"vout", RPCArg::Type::NUM, false},
+                                    {"scriptPubKey", RPCArg::Type::STR_HEX, false},
+                                    //{"redeemScript", RPCArg::Type::STR_HEX, false},
+                                    {"amount", RPCArg::Type::AMOUNT, false},
+                                    {"amount_commitment", RPCArg::Type::STR_HEX, false},
+                                },
+                                true},
+                        },
+                        true},
+                    {"options", RPCArg::Type::OBJ,
+                            {
+                                {"returndecoded", RPCArg::Type::BOOL, true},
+                                {"checkvalues", RPCArg::Type::BOOL, true},
+                            },
+                            true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"hexstring\"                      (string, required) The transaction hex string\n"
             "2. \"prevtxs\"                        (string, optional) An json array of previous dependent transaction outputs\n"
@@ -7500,8 +7896,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
             "\nExamples:\n"
             + HelpExampleCli("verifyrawtransaction", "\"myhex\"") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("verifyrawtransaction", "\"myhex\"")
-        );
+            + HelpExampleRpc("verifyrawtransaction", "\"myhex\""));
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR, UniValue::VOBJ}, true);
 
@@ -7756,10 +8151,14 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "pruneorphanedblocks ( testonly )\n"
-            "\nRemove blocks not in the main chain.\n"
-            "Will shutdown node and cause a reindex at next startup.\n"
-            "WARNING: Experimental feature.\n"
+            RPCHelpMan{"pruneorphanedblocks",
+                "\nRemove blocks not in the main chain.\n"
+                "Will shutdown node and cause a reindex at next startup.\n"
+                "WARNING: Experimental feature.\n",
+                {
+                    {"testonly", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. testonly                           (bool, optional, default=true) Apply changes if false.\n"
             "\nResult:\n"

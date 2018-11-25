@@ -37,12 +37,18 @@ static UniValue validateaddress(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
-            "validateaddress \"address\" (showaltversions)\n"
-            "\nReturn information about the given particl address.\n"
-            "DEPRECATION WARNING: Parts of this command have been deprecated and moved to getaddressinfo. Clients must\n"
-            "transition to using getaddressinfo to access this information before upgrading to v0.18. The following deprecated\n"
-            "fields have moved to getaddressinfo and will only be shown here with -deprecatedrpc=validateaddress: ismine, iswatchonly,\n"
-            "script, hex, pubkeys, sigsrequired, pubkey, addresses, embedded, iscompressed, account, timestamp, hdkeypath, kdmasterkeyid.\n"
+            RPCHelpMan{"validateaddress",
+                "\nReturn information about the given bitcoin address.\n"
+                "DEPRECATION WARNING: Parts of this command have been deprecated and moved to getaddressinfo. Clients must\n"
+                "transition to using getaddressinfo to access this information before upgrading to v0.18. The following deprecated\n"
+                "fields have moved to getaddressinfo and will only be shown here with -deprecatedrpc=validateaddress: ismine, iswatchonly,\n"
+                "script, hex, pubkeys, sigsrequired, pubkey, addresses, embedded, iscompressed, account, timestamp, hdkeypath, kdmasterkeyid.\n",
+                {
+                    {"address", RPCArg::Type::STR, false},
+                    {"showaltversions", RPCArg::Type::BOOL, true},
+
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"address\"                    (string, required) The particl address to validate\n"
             "2. showaltversions              (bool, optional) Display all alternative encodings and versions,\n"
@@ -175,8 +181,14 @@ static UniValue verifymessage(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 3)
         throw std::runtime_error(
-            "verifymessage \"address\" \"signature\" \"message\"\n"
-            "\nVerify a signed message\n"
+            RPCHelpMan{"verifymessage",
+                "\nVerify a signed message\n",
+                {
+                    {"address", RPCArg::Type::STR, false},
+                    {"signature", RPCArg::Type::STR, false},
+                    {"message", RPCArg::Type::STR, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"particladdress\"    (string, required) The particl address to use for the signature.\n"
             "2. \"signature\"       (string, required) The signature provided by the signer in base 64 encoding (see signmessage).\n"
@@ -231,8 +243,13 @@ static UniValue signmessagewithprivkey(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 2)
         throw std::runtime_error(
-            "signmessagewithprivkey \"privkey\" \"message\"\n"
-            "\nSign a message with the private key of an address\n"
+            RPCHelpMan{"signmessagewithprivkey",
+                "\nSign a message with the private key of an address\n",
+                {
+                    {"privkey", RPCArg::Type::STR, false},
+                    {"message", RPCArg::Type::STR, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"privkey\"         (string, required) The private key to sign the message with.\n"
             "2. \"message\"         (string, required) The message to create a signature of.\n"
@@ -270,8 +287,13 @@ static UniValue setmocktime(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
-            "setmocktime timestamp (is_offset)\n"
-            "\nSet the local time to given timestamp (-regtest only)\n"
+            RPCHelpMan{"setmocktime",
+                "\nSet the local time to given timestamp (-regtest only)\n",
+                {
+                    {"timestamp", RPCArg::Type::NUM, false},
+                    {"is_offset", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. timestamp  (integer, required) Unix seconds-since-epoch timestamp\n"
             "   Pass 0 to go back to using the system time."
@@ -339,8 +361,12 @@ static UniValue getmemoryinfo(const JSONRPCRequest& request)
      */
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "getmemoryinfo (\"mode\")\n"
-            "Returns an object containing information about memory usage.\n"
+            RPCHelpMan{"getmemoryinfo",
+                "Returns an object containing information about memory usage.\n",
+                {
+                    {"mode", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
             "Arguments:\n"
             "1. \"mode\" determines what kind of information is returned. This argument is optional, the default mode is \"stats\".\n"
             "  - \"stats\" returns general statistics about memory usage in the daemon.\n"
@@ -401,7 +427,7 @@ UniValue logging(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() > 2) {
         throw std::runtime_error(
-            "logging ( <include> <exclude> )\n"
+            RPCHelpMan{"logging",
             "Gets and sets the logging configuration.\n"
             "When called without an argument, returns the list of categories with status that are currently being debug logged or not.\n"
             "When called with arguments, adds or removes categories from debug logging and return the lists above.\n"
@@ -411,6 +437,12 @@ UniValue logging(const JSONRPCRequest& request)
             "In addition, the following are available as category names with special meanings:\n"
             "  - \"all\",  \"1\" : represent all logging categories.\n"
             "  - \"none\", \"0\" : even if other logging categories are specified, ignore all of them.\n"
+            ,
+                {
+                    {"include", RPCArg::Type::STR, true},
+                    {"exclude", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"include\"        (array of strings, optional) A json array of categories to add debug logging\n"
             "     [\n"
@@ -470,11 +502,13 @@ static UniValue echo(const JSONRPCRequest& request)
 {
     if (request.fHelp)
         throw std::runtime_error(
-            "echo|echojson \"message\" ...\n"
-            "\nSimply echo back the input arguments. This command is for testing.\n"
-            "\nThe difference between echo and echojson is that echojson has argument conversion enabled in the client-side table in"
-            "particl-cli and the GUI. There is no server-side difference."
-        );
+            RPCHelpMan{"echo|echojson ...",
+                "\nSimply echo back the input arguments. This command is for testing.\n"
+                "\nThe difference between echo and echojson is that echojson has argument conversion enabled in the client-side table in "
+                "particl-cli and the GUI. There is no server-side difference.",
+                {}}
+                .ToString() +
+            "");
 
     return request.params;
 }
@@ -483,23 +517,30 @@ UniValue runstrings(const JSONRPCRequest& request)
 {
     if (request.params.size() < 2) {
         throw std::runtime_error(
-            "runstrings method wallet arg1 arg2 ...\n"
-            "Run method with all inputs as strings.\n"
+            RPCHelpMan{"runstrings",
+                "Run a method with all inputs passed as strings.\n",
+                {
+                    {"method", RPCArg::Type::STR, false},
+                    {"wallet", RPCArg::Type::STR, false},
+                    {"arg1 arg2 ...", RPCArg::Type::STR, true},
+                }}
+                .ToString()
         );
     }
 
     std::string strMethod = request.params[0].get_str();
     std::string strWallet = request.params[1].get_str();
 
-    if (strMethod == "runstrings")
+    if (strMethod == "runstrings") {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid method.");
+    }
 
     std::vector<std::string> vArgs;
 
-    for (size_t i = 2; i < request.params.size(); ++i)
-    {
-        if (!request.params[i].isStr())
+    for (size_t i = 2; i < request.params.size(); ++i) {
+        if (!request.params[i].isStr()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Parameters must all be strings.");
+        }
         vArgs.push_back(request.params[i].get_str());
     }
 

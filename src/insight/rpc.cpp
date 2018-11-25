@@ -87,8 +87,16 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "getaddressmempool addresses\n"
-            "\nReturns all mempool deltas for an address (requires addressindex to be enabled).\n"
+            RPCHelpMan{"getaddressmempool",
+                "\nReturns all mempool deltas for an address (requires addressindex to be enabled).\n",
+                {
+                    {"addresses", RPCArg::Type::ARR,
+                        {
+                            {"address", RPCArg::Type::STR, false},
+                        },
+                        false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "{\n"
             "  \"addresses\"\n"
@@ -163,8 +171,16 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "getaddressutxos addresses\n"
-            "\nReturns all unspent outputs for an address (requires addressindex to be enabled).\n"
+        RPCHelpMan{"getaddressutxos",
+                "\nReturns all unspent outputs for an address (requires addressindex to be enabled).\n",
+                {
+                    {"addresses", RPCArg::Type::ARR,
+                        {
+                            {"address", RPCArg::Type::STR, false},
+                        },
+                        false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "{\n"
             "  \"addresses\"\n"
@@ -254,8 +270,16 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1 || !request.params[0].isObject())
         throw std::runtime_error(
-            "getaddressdeltas addresses\n"
-            "\nReturns all changes for an address (requires addressindex to be enabled).\n"
+            RPCHelpMan{"getaddressdeltas",
+                "\nReturns all changes for an address (requires addressindex to be enabled).\n",
+                {
+                    {"addresses", RPCArg::Type::ARR,
+                        {
+                            {"address", RPCArg::Type::STR, false},
+                        },
+                        false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "{\n"
             "  \"addresses\"\n"
@@ -383,8 +407,16 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "getaddressbalance addresses\n"
-            "\nReturns the balance for an address(es) (requires addressindex to be enabled).\n"
+            RPCHelpMan{"getaddressbalance",
+                "\nReturns the balance for an address(es) (requires addressindex to be enabled).\n",
+                {
+                    {"addresses", RPCArg::Type::ARR,
+                        {
+                            {"address", RPCArg::Type::STR, false},
+                        },
+                        false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "{\n"
             "  \"addresses\"\n"
@@ -443,8 +475,16 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "getaddresstxids addresses\n"
-            "\nReturns the txids for an address(es) (requires addressindex to be enabled).\n"
+            RPCHelpMan{"getaddresstxids",
+                "\nReturns the txids for an address(es) (requires addressindex to be enabled).\n",
+                {
+                    {"addresses", RPCArg::Type::ARR,
+                        {
+                            {"address", RPCArg::Type::STR, false},
+                        },
+                        false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "{\n"
             "  \"addresses\"\n"
@@ -530,8 +570,19 @@ UniValue getspentinfo(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1 || !request.params[0].isObject())
         throw std::runtime_error(
-            "getspentinfo inputs\n"
-            "\nReturns the txid and index where an output is spent.\n"
+            RPCHelpMan{"getspentinfo",
+                "\nReturns the txid and index where an output is spent.\n",
+                {
+                    {"inputs", RPCArg::Type::ARR,
+                        {
+                            {
+                                {"txid", RPCArg::Type::STR_HEX, false},
+                                {"vout", RPCArg::Type::NUM, false},
+                            },
+                        },
+                        false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "{\n"
             "  \"txid\" (string) The hex string of the txid\n"
@@ -754,8 +805,19 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() < 2)
         throw std::runtime_error(
-            "getblockhashes high low options\n"
-            "\nReturns array of hashes of blocks within the timestamp range provided.\n"
+            RPCHelpMan{"getblockhashes",
+                "\nReturns array of hashes of blocks within the timestamp range provided.\n",
+                {
+                    {"high", RPCArg::Type::NUM, false},
+                    {"low", RPCArg::Type::NUM, false},
+                    {"options", RPCArg::Type::OBJ,
+                        {
+                            {"noOrphans", RPCArg::Type::BOOL, true},
+                            {"logicalTimes", RPCArg::Type::BOOL, true},
+                        },
+                        true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. high         (numeric, required) The newer block timestamp\n"
             "2. low          (numeric, required) The older block timestamp\n"
@@ -830,9 +892,12 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 0)
         throw std::runtime_error(
-            "gettxoutsetinfobyscript\n"
-            "\nReturns statistics about the unspent transaction output set per script type.\n"
-            "Note this call may take some time.\n"
+            RPCHelpMan{"gettxoutsetinfobyscript",
+                "\nReturns statistics about the unspent transaction output set per script type.\n"
+                "This call may take some time.\n",
+                {
+                }}
+                .ToString() +
             "\nResult:\n"
             "{\n"
             "  \"height\":n,     (numeric) The current block height (index)\n"
@@ -954,8 +1019,12 @@ UniValue getblockreward(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "getblockreward height\n"
-            "\nReturns the blockreward for block at height.\n"
+            RPCHelpMan{"getblockreward",
+                "\nReturns the blockreward for block at height.\n",
+                {
+                    {"height", RPCArg::Type::NUM, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. height                (numeric, required) The height index.\n"
             "\nResult:\n"
@@ -1090,8 +1159,20 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
-            "listcoldstakeunspent \"stakeaddress\" (height, options)\n"
-            "\nReturns the unspent outputs of \"stakeaddress\" at height.\n"
+            RPCHelpMan{"listcoldstakeunspent",
+                "\nReturns the unspent outputs of \"stakeaddress\" at height.\n",
+                {
+                    {"stakeaddress", RPCArg::Type::STR, false},
+                    {"height", RPCArg::Type::NUM, true},
+                    {"options", RPCArg::Type::OBJ,
+                        {
+                            {"mature_only", RPCArg::Type::BOOL, true},
+                            {"all_staked", RPCArg::Type::BOOL, true},
+                            {"show_outpoints", RPCArg::Type::BOOL, true},
+                        },
+                        true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"stakeaddress\"        (string, required) The stakeaddress to filter outputs by.\n"
             "2. height                (numeric, optional) The block height to return outputs for, -1 for current height.\n"

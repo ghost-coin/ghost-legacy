@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <rpc/server.h>
+#include <rpc/util.h>
 
 #include <validation.h>
 #include <txdb.h>
@@ -17,43 +18,62 @@ UniValue anonoutput(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
-            "anonoutput [index/hex]\n"
-            "\n");
+            RPCHelpMan{"anonoutput",
+                "\nReturns an anon output at index or by publickey hex.\n",
+                {
+                    {"index/hex", RPCArg::Type::STR, false},
+                }}
+                .ToString() +
+            "\nArguments:\n"
+            "1. \"index/hex\"                    (string, required) index or by publickey hex\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"index\" : num,                 (numeric) Position in chain of anon output.\n"
+            "  \"publickey\" : \"hex\",           (string)\n"
+            "  \"txnhash\" : \"hex\",             (string)\n"
+            "  \"n\" : num,                     (numeric)\n"
+            "  \"blockheight\" : num,           (numeric)\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("anonoutput", "\"1\"")
+            + HelpExampleRpc("anonoutput", "\"2\""));
 
     UniValue result(UniValue::VOBJ);
 
-    if (request.params.size() == 0)
-    {
+    if (request.params.size() == 0) {
         LOCK(cs_main);
         result.pushKV("lastindex", (int)chainActive.Tip()->nAnonOutputs);
         return result;
-    };
+    }
 
     std::string sIn = request.params[0].get_str();
 
     int64_t nIndex;
-    if (IsDigits(sIn))
-    {
-        if (!ParseInt64(sIn, &nIndex))
+    if (IsDigits(sIn)) {
+        if (!ParseInt64(sIn, &nIndex)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid index");
-    } else
-    {
-        if (!IsHex(sIn))
+        }
+    } else {
+        if (!IsHex(sIn)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, sIn+" is not a hexadecimal or decimal string.");
+        }
         std::vector<uint8_t> vIn = ParseHex(sIn);
 
         CCmpPubKey pk(vIn.begin(), vIn.end());
 
-        if (!pk.IsValid())
+        if (!pk.IsValid()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, sIn+" is not a valid compressed public key.");
+        }
 
-        if (!pblocktree->ReadRCTOutputLink(pk, nIndex))
+        if (!pblocktree->ReadRCTOutputLink(pk, nIndex)) {
             throw JSONRPCError(RPC_MISC_ERROR, "Output not indexed.");
+        }
     };
 
     CAnonOutput ao;
-    if (!pblocktree->ReadRCTOutput(nIndex, ao))
+    if (!pblocktree->ReadRCTOutput(nIndex, ao)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Unknown index.");
+    }
 
     result.pushKV("index", (int)nIndex);
     result.pushKV("publickey", HexStr(ao.pubkey.begin(), ao.pubkey.end()));

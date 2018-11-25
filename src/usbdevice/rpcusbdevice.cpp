@@ -79,8 +79,13 @@ static UniValue deviceloadmnemonic(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
-            "deviceloadmnemonic\n"
-            "Start mnemonic loader.\n"
+            RPCHelpMan{"deviceloadmnemonic",
+                "\nStart mnemonic loader.\n",
+                {
+                    {"wordcount", RPCArg::Type::NUM, true},
+                    {"pinprotection", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"wordcount\"              (int, optional) Word count of mnemonic (default=12).\n"
             "2. \"pinprotection\"          (bool, optional) Make the new account the default account for the wallet (default=false).\n"
@@ -121,8 +126,11 @@ static UniValue devicebackup(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 0)
         throw std::runtime_error(
-            "devicebackup\n"
-            "Start device backup mnemonic generator.\n"
+            RPCHelpMan{"devicebackup",
+                "\nStart device backup mnemonic generator.\n",
+                {
+                }}
+                .ToString() +
             "\nExamples\n"
             + HelpExampleCli("devicebackup", "")
             + HelpExampleRpc("devicebackup", ""));
@@ -146,8 +154,11 @@ static UniValue listdevices(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 0)
         throw std::runtime_error(
-            "listdevices\n"
-            "list connected hardware devices.\n"
+            RPCHelpMan{"listdevices",
+                "\nList connected hardware devices.\n",
+                {
+                }}
+                .ToString() +
             "\nResult\n"
             "{\n"
             "  \"vendor\"           (string) USB vendor string.\n"
@@ -194,8 +205,11 @@ static UniValue getdeviceinfo(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 0)
         throw std::runtime_error(
-            "getdeviceinfo\n"
-            "Get information from connected hardware device.\n"
+            RPCHelpMan{"getdeviceinfo",
+                "\nGet information from connected hardware device.\n",
+                {
+                }}
+                .ToString() +
             "\nResult\n"
             "{\n"
             "}\n"
@@ -220,8 +234,13 @@ static UniValue getdevicepublickey(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
-            "getdevicepublickey \"path\" (\"accountpath\")\n"
-            "Get the public key and address at \"path\" from a hardware device.\n"
+            RPCHelpMan{"getdevicepublickey",
+                "\nGet the public key and address at \"path\" from a hardware device.\n",
+                {
+                    {"path", RPCArg::Type::STR, false},
+                    {"accountpath", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"path\"              (string, required) The path to derive the key from.\n"
             "                           The full path is \"accountpath\"/\"path\".\n"
@@ -269,8 +288,13 @@ static UniValue getdevicexpub(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
-            "getdevicexpub \"path\" (\"accountpath\")\n"
-            "Get the extended public key at \"path\" from a hardware device.\n"
+            RPCHelpMan{"getdevicexpub",
+                "\nGet the extended public key at \"path\" from a hardware device.\n",
+                {
+                    {"path", RPCArg::Type::STR, false},
+                    {"accountpath", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"path\"              (string, required) The path to derive the key from.\n"
             "                           The full path is \"accountpath\"/\"path\".\n"
@@ -301,8 +325,14 @@ static UniValue devicesignmessage(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 3)
         throw std::runtime_error(
-            "devicesignmessage \"path\" \"message\" (\"accountpath\")\n"
-            "Sign a message with the key at \"path\" on a hardware device.\n"
+            RPCHelpMan{"devicesignmessage",
+                "\nSign a message with the key at \"path\" on a hardware device.\n",
+                {
+                    {"path", RPCArg::Type::STR, false},
+                    {"message", RPCArg::Type::STR, false},
+                    {"accountpath", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"path\"            (string, required) The path to the key to sign with.\n"
             "                           The full path is \"accountpath\"/\"path\".\n"
@@ -347,12 +377,36 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 5)
         throw std::runtime_error(
-            "devicesignrawtransaction \"hexstring\" ( [{\"txid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\",\"redeemScript\":\"hex\"},...] [\"path1\",...] sighashtype, \"accountpath\" )\n"
-            "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
-            "The second optional argument (may be null) is an array of previous transaction outputs that\n"
-            "this transaction depends on but may not yet be in the block chain.\n"
-            "The third optional argument (may be null) is an array of bip44 paths\n"
-            "that, if given, will be the only keys derived to sign the transaction.\n"
+            RPCHelpMan{"devicesignrawtransaction",
+                "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
+                "The second optional argument (may be null) is an array of previous transaction outputs that\n"
+                "this transaction depends on but may not yet be in the block chain.\n"
+                "The third optional argument (may be null) is an array of bip44 paths\n"
+                "that, if given, will be the only keys derived to sign the transaction.\n",
+                {
+                    {"hexstring", RPCArg::Type::STR, false},
+                    {"prevtxs", RPCArg::Type::ARR,
+                        {
+                            {"", RPCArg::Type::OBJ,
+                                {
+                                    {"txid", RPCArg::Type::STR_HEX, false},
+                                    {"vout", RPCArg::Type::NUM, false},
+                                    {"scriptPubKey", RPCArg::Type::STR_HEX, false},
+                                    {"redeemScript", RPCArg::Type::STR_HEX, false},
+                                    {"amount", RPCArg::Type::AMOUNT, false},
+                                },
+                                true},
+                        },
+                        true},
+                    {"paths", RPCArg::Type::ARR,
+                        {
+                            {"path", RPCArg::Type::STR, true},
+                        },
+                        true},
+                    {"sighashtype", RPCArg::Type::STR, true},
+                    {"accountpath", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"hexstring\"     (string, required) The transaction hex string\n"
             "2. \"prevtxs\"       (string, optional) An json array of previous dependent transaction outputs\n"
@@ -644,9 +698,17 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 5)
         throw std::runtime_error(
-            "initaccountfromdevice (\"label\" \"path\" makedefault scan_chain_from)\n"
-            "Initialise an extended key account from a hardware device.\n"
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"initaccountfromdevice",
+                "\nInitialise an extended key account from a hardware device.\n",
+                {
+                    {"label", RPCArg::Type::STR, true},
+                    {"path", RPCArg::Type::STR, true},
+                    {"makedefault", RPCArg::Type::BOOL, true},
+                    {"scan_chain_from", RPCArg::Type::NUM, true},
+                    {"initstealthchain", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"label\"             (string, optional) A label for the account.\n"
             "2. \"path\"              (string, optional) The path to derive the key from (default=\""+GetDefaultAccountPath()+"\").\n"
@@ -891,9 +953,16 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
 
     if (request.fHelp || request.params.size() > 4)
         throw std::runtime_error(
-            "devicegetnewstealthaddress [label] [num_prefix_bits] [prefix_num] [bech32]\n"
-            "Returns a new Particl stealth address for receiving payments."
-            + HelpRequiringPassphrase(pwallet) +
+            RPCHelpMan{"devicegetnewstealthaddress",
+                "\nReturns a new Particl stealth address for receiving payments.\n",
+                {
+                    {"label", RPCArg::Type::STR, true},
+                    {"num_prefix_bits", RPCArg::Type::NUM, true},
+                    {"prefix_num", RPCArg::Type::NUM, true},
+                    {"bech32", RPCArg::Type::BOOL, true},
+                }}
+                .ToString() +
+            HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"label\"             (string, optional) If specified the key is added to the address book.\n"
             "2. num_prefix_bits     (int, optional) If specified and > 0, the stealth address is created with a prefix.\n"
