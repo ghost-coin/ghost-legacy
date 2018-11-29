@@ -29,7 +29,6 @@ namespace Consensus {
  */
 bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee);
 } // namespace Consensus
-
 /** Auxiliary functions for transaction validation (ideally should not be exposed) */
 
 /**
