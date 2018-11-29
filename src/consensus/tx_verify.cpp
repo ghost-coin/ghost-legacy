@@ -225,7 +225,7 @@ bool CheckBlindOutput(CValidationState &state, const CTxOutCT *p)
         return state.DoS(100, false, REJECT_INVALID, "bad-ctout-ephem-size");
 
     size_t nRangeProofLen = 5134;
-    if (p->vRangeproof.size() > nRangeProofLen)
+    if (p->vRangeproof.size() < 500 || p->vRangeproof.size() > nRangeProofLen)
         return state.DoS(100, false, REJECT_INVALID, "bad-ctout-rangeproof-size");
 
     if ((fBusyImporting) && fSkipRangeproof)
@@ -256,7 +256,7 @@ bool CheckAnonOutput(CValidationState &state, const CTxOutRingCT *p)
         return state.DoS(100, false, REJECT_INVALID, "bad-rctout-ephem-size");
 
     size_t nRangeProofLen = 5134;
-    if (p->vRangeproof.size() > nRangeProofLen)
+    if (p->vRangeproof.size() < 500 || p->vRangeproof.size() > nRangeProofLen)
         return state.DoS(100, false, REJECT_INVALID, "bad-rctout-rangeproof-size");
 
     if ((fBusyImporting) && fSkipRangeproof)
