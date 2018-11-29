@@ -264,7 +264,7 @@ enum ServiceFlags : uint64_t {
     // NODE_XTHIN means the node supports Xtreme Thinblocks
     // If this is turned off then the node will not service nor make xthin requests
     NODE_XTHIN = (1 << 4),
-    // NODE_XTHIN means the node supports Secure Messaging
+    // NODE_SMSG means the node supports Secure Messaging
     NODE_SMSG = (1 << 5),
 
     // NODE_NETWORK_LIMITED means the same as NODE_NETWORK with the limitation of only

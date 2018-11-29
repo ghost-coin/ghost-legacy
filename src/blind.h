@@ -6,12 +6,15 @@
 #define PARTICL_BLIND_H
 
 #include <secp256k1.h>
+#include <secp256k1_bulletproofs.h>
 #include <inttypes.h>
 #include <vector>
 
 #include <amount.h>
 
 extern secp256k1_context *secp256k1_ctx_blind;
+extern secp256k1_scratch_space *blind_scratch;
+extern secp256k1_bulletproof_generators *blind_gens;
 
 int SelectRangeProofParameters(uint64_t nValueIn, uint64_t &minValue, int &exponent, int &nBits);
 

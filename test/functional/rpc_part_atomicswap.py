@@ -536,7 +536,7 @@ class AtomicSwapTest(ParticlTestFramework):
         ro = nodes[0].filtertransactions()
         n = getIndexAtProperty(ro, 'txid', txnid)
         assert(n > -1)
-        assert(isclose(ro[n]['amount'], -100.00581000))
+        assert(isclose(ro[n]['amount'], -100.00203200))
 
         ro = nodes[1].getwalletinfo()
         assert(isclose(ro['blind_balance'], 100.0))

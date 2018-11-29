@@ -65,9 +65,9 @@ class AnonTest(ParticlTestFramework):
             self.log.info(h) # debug
             assert(self.wait_for_mempool(nodes[1], h))
 
-
-        ro = nodes[1].listtransactions()
-        assert(len(ro) == 10)
+        ro = nodes[1].listtransactions('*', 100)
+        assert('node0 -> node1 b->a 4' in json.dumps(ro, default=self.jsonDecimal))
+        assert('node0 -> node1 b->a 4' in json.dumps(nodes[0].listtransactions('*', 100), default=self.jsonDecimal))
 
         self.stakeBlocks(1)
 

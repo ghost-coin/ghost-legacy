@@ -203,9 +203,9 @@ public:
 
     void SetNull()
     {
-        fNonceSet = false; // if true use nonce and vData from CTempRecipient
         fScriptSet = false;
         fChange = false;
+        fNonceSet = false; // if true use nonce and vData from CTempRecipient
         nChildKey = 0;
         nChildKeyColdStaking = 0;
         nStealthPrefix = 0;
@@ -241,7 +241,7 @@ public:
     bool fOverwriteRangeProofParams = false;
     uint64_t min_value;
     int ct_exponent;
-    int ct_bits;
+    int ct_bits;        // set to 0 to mark bulletproof
 
     CKey sEphem;
     CPubKey pkTo;
@@ -826,8 +826,8 @@ int LoopExtKeysInDB(CHDWallet *pwallet, bool fInactive, bool fInAccount, LoopExt
 int LoopExtAccountsInDB(CHDWallet *pwallet, bool fInactive, LoopExtKeyCallback &callback);
 
 bool CheckOutputValue(const CTempRecipient &r, const CTxOutBase *txbout, CAmount nFeeRet, std::string sError);
-void SetCTOutVData(std::vector<uint8_t> &vData, CPubKey &pkEphem, uint32_t nStealthPrefix);
 int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string &sError);
+void ExtractNarration(const uint256 &nonce, const std::vector<uint8_t> &vData, std::string &sNarr);
 
 // Calculate the size of the transaction assuming all signatures are max size
 // Use DummySignatureCreator, which inserts 72 byte signatures everywhere.

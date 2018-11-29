@@ -184,8 +184,8 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
         assert(!coin.IsSpent());
         const CTxOut &prevout = coin.out;
         nSigOps += CountWitnessSigOps(tx.vin[i].scriptSig, prevout.scriptPubKey, &tx.vin[i].scriptWitness, flags);
+    }
 
-    };
     return nSigOps;
 }
 
@@ -202,90 +202,120 @@ bool CheckValue(CValidationState &state, CAmount nValue, CAmount &nValueOut)
 
 bool CheckStandardOutput(CValidationState &state, const Consensus::Params& consensusParams, const CTxOutStandard *p, CAmount &nValueOut)
 {
-    if (!CheckValue(state, p->nValue, nValueOut))
+    if (!CheckValue(state, p->nValue, nValueOut)) {
         return false;
+    }
 
-    if (HasIsCoinstakeOp(p->scriptPubKey))
-    {
-        if (GetAdjustedTime() < consensusParams.OpIsCoinstakeTime)
+    if (HasIsCoinstakeOp(p->scriptPubKey)) {
+        if (GetAdjustedTime() < consensusParams.OpIsCoinstakeTime) {
             return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-opiscoinstake");
-        if (!consensusParams.fAllowOpIsCoinstakeWithP2PKH)
-        {
-            if (IsSpendScriptP2PKH(p->scriptPubKey))
+        }
+        if (!consensusParams.fAllowOpIsCoinstakeWithP2PKH) {
+            if (IsSpendScriptP2PKH(p->scriptPubKey)) {
                 return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-opiscoinstake-spend-p2pkh");
-        };
-    };
+            }
+        }
+    }
 
     return true;
 }
 
 bool CheckBlindOutput(CValidationState &state, const CTxOutCT *p)
 {
-    if (p->vData.size() < 33 || p->vData.size() > 33 + 5)
+    if (p->vData.size() < 33 || p->vData.size() > 33 + 5 + 33) {
         return state.DoS(100, false, REJECT_INVALID, "bad-ctout-ephem-size");
+    }
 
     size_t nRangeProofLen = 5134;
-    if (p->vRangeproof.size() < 500 || p->vRangeproof.size() > nRangeProofLen)
+    if (p->vRangeproof.size() < 500 || p->vRangeproof.size() > nRangeProofLen) {
         return state.DoS(100, false, REJECT_INVALID, "bad-ctout-rangeproof-size");
+    }
 
-    if ((fBusyImporting) && fSkipRangeproof)
+    if ((fBusyImporting) && fSkipRangeproof) {
         return true;
+    }
 
-    uint64_t min_value, max_value;
-    int rv = secp256k1_rangeproof_verify(secp256k1_ctx_blind, &min_value, &max_value,
-        &p->commitment, p->vRangeproof.data(), p->vRangeproof.size(),
-        nullptr, 0,
-        secp256k1_generator_h);
+    uint64_t min_value = 0, max_value = 0;
+    int rv = 0;
 
-    if (LogAcceptCategory(BCLog::RINGCT))
+    if (state.fBulletproofsActive) {
+        rv = secp256k1_bulletproof_rangeproof_verify(secp256k1_ctx_blind,
+            blind_scratch, blind_gens, p->vRangeproof.data(), p->vRangeproof.size(),
+            nullptr, &p->commitment, 1, 64, &secp256k1_generator_const_h, nullptr, 0);
+    } else {
+        rv = secp256k1_rangeproof_verify(secp256k1_ctx_blind, &min_value, &max_value,
+            &p->commitment, p->vRangeproof.data(), p->vRangeproof.size(),
+            nullptr, 0,
+            secp256k1_generator_h);
+    }
+
+    if (LogAcceptCategory(BCLog::RINGCT)) {
         LogPrintf("%s: rv, min_value, max_value %d, %s, %s\n", __func__,
             rv, FormatMoney((CAmount)min_value), FormatMoney((CAmount)max_value));
+    }
 
-    if (rv != 1)
+    if (rv != 1) {
         return state.DoS(100, false, REJECT_INVALID, "bad-ctout-rangeproof-verify");
+    }
 
     return true;
 }
 
 bool CheckAnonOutput(CValidationState &state, const CTxOutRingCT *p)
 {
-    if (Params().NetworkID() == "main")
+    if (Params().NetworkID() == "main") {
         return state.DoS(100, false, REJECT_INVALID, "AnonOutput in mainnet");
+    }
 
-    if (p->vData.size() < 33 || p->vData.size() > 33 + 5)
+    if (p->vData.size() < 33 || p->vData.size() > 33 + 5 + 33) {
         return state.DoS(100, false, REJECT_INVALID, "bad-rctout-ephem-size");
+    }
 
     size_t nRangeProofLen = 5134;
-    if (p->vRangeproof.size() < 500 || p->vRangeproof.size() > nRangeProofLen)
+    if (p->vRangeproof.size() < 500 || p->vRangeproof.size() > nRangeProofLen) {
         return state.DoS(100, false, REJECT_INVALID, "bad-rctout-rangeproof-size");
+    }
 
-    if ((fBusyImporting) && fSkipRangeproof)
+    if ((fBusyImporting) && fSkipRangeproof) {
         return true;
+    }
 
-    uint64_t min_value, max_value;
-    int rv = secp256k1_rangeproof_verify(secp256k1_ctx_blind, &min_value, &max_value,
-        &p->commitment, p->vRangeproof.data(), p->vRangeproof.size(),
-        nullptr, 0,
-        secp256k1_generator_h);
+    uint64_t min_value = 0, max_value = 0;
+    int rv = 0;
 
-    if (LogAcceptCategory(BCLog::RINGCT))
+    if (state.fBulletproofsActive) {
+        rv = secp256k1_bulletproof_rangeproof_verify(secp256k1_ctx_blind,
+            blind_scratch, blind_gens, p->vRangeproof.data(), p->vRangeproof.size(),
+            nullptr, &p->commitment, 1, 64, &secp256k1_generator_const_h, nullptr, 0);
+    } else {
+        rv = secp256k1_rangeproof_verify(secp256k1_ctx_blind, &min_value, &max_value,
+            &p->commitment, p->vRangeproof.data(), p->vRangeproof.size(),
+            nullptr, 0,
+            secp256k1_generator_h);
+    }
+
+    if (LogAcceptCategory(BCLog::RINGCT)) {
         LogPrintf("%s: rv, min_value, max_value %d, %s, %s\n", __func__,
             rv, FormatMoney((CAmount)min_value), FormatMoney((CAmount)max_value));
+    }
 
-    if (rv != 1)
+    if (rv != 1) {
         return state.DoS(100, false, REJECT_INVALID, "bad-rctout-rangeproof-verify");
+    }
 
     return true;
 }
 
 bool CheckDataOutput(CValidationState &state, const CTxOutData *p)
 {
-    if (p->vData.size() < 1)
+    if (p->vData.size() < 1) {
         return state.DoS(100, false, REJECT_INVALID, "bad-output-data-size");
+    }
 
     const size_t MAX_DATA_OUTPUT_SIZE = 34 + 5 + 34; // DO_STEALTH 33, DO_STEALTH_PREFIX 4, DO_NARR_CRYPT (max 32 bytes)
-    if (p->vData.size() > MAX_DATA_OUTPUT_SIZE)
+    if (p->vData.size() > MAX_DATA_OUTPUT_SIZE) {
         return state.DoS(100, false, REJECT_INVALID, "bad-output-data-size");
+    }
 
     return true;
 }
@@ -300,21 +330,20 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     if (::GetSerializeSize(tx, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-oversize");
 
-    if (tx.IsParticlVersion())
-    {
+    if (tx.IsParticlVersion()) {
         const Consensus::Params& consensusParams = Params().GetConsensus();
-        if (tx.vpout.empty())
+        if (tx.vpout.empty()) {
             return state.DoS(10, false, REJECT_INVALID, "bad-txns-vpout-empty");
-        if (!tx.vout.empty())
+        }
+        if (!tx.vout.empty()) {
             return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-not-empty");
+        }
 
         size_t nStandardOutputs = 0;
         CAmount nValueOut = 0;
         size_t nDataOutputs = 0;
-        for (const auto &txout : tx.vpout)
-        {
-            switch (txout->nVersion)
-            {
+        for (const auto &txout : tx.vpout) {
+            switch (txout->nVersion) {
                 case OUTPUT_STANDARD:
                     if (!CheckStandardOutput(state, consensusParams, (CTxOutStandard*) txout.get(), nValueOut))
                         return false;
@@ -335,16 +364,17 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
                     break;
                 default:
                     return state.DoS(100, false, REJECT_INVALID, "bad-txns-unknown-output-version");
-            };
+            }
 
-            if (!MoneyRange(nValueOut))
+            if (!MoneyRange(nValueOut)) {
                 return state.DoS(100, false, REJECT_INVALID, "bad-txns-txouttotal-toolarge");
-        };
+            }
+        }
 
-        if (nDataOutputs > 1 + nStandardOutputs) // extra 1 for ct fee output
+        if (nDataOutputs > 1 + nStandardOutputs) { // extra 1 for ct fee output
             return state.DoS(100, false, REJECT_INVALID, "too-many-data-outputs");
-    } else
-    {
+        }
+    } else {
         if (fParticlMode)
             return state.DoS(100, false, REJECT_INVALID, "bad-txn-version");
 
@@ -363,7 +393,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
             if (!MoneyRange(nValueOut))
                 return state.DoS(100, false, REJECT_INVALID, "bad-txns-txouttotal-toolarge");
         }
-    };
+    }
 
     // Check for duplicate inputs - note that this check is slow so we skip it in CheckBlock
     if (fCheckDuplicateInputs) {

@@ -62,10 +62,12 @@ struct Params {
     /** Time at which OP_ISCOINSTAKE becomes active */
     int64_t OpIsCoinstakeTime;
     bool fAllowOpIsCoinstakeWithP2PKH;
-    /** Block height at which csp2sh becomes active */
-    int csp2shHeight;
     /** Time at which Paid SMSG becomes active */
-    int64_t nPaidSmsgTime;
+    uint32_t nPaidSmsgTime;
+    /** Time at which csp2sh becomes active */
+    uint32_t csp2shTime;
+    /** Time at which bulletproofs become active */
+    uint32_t bulletproofTime;
 
 
     /**

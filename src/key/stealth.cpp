@@ -405,7 +405,7 @@ int MakeStealthData(const std::string &sNarration, stealth_prefix prefix, const 
 
     if (vchNarr.size() > 0) {
         vData[o++] = DO_NARR_CRYPT;
-        memcpy(&vData[o], &vchNarr[0], vchNarr.size());
+        memcpy(&vData[o], vchNarr.data(), vchNarr.size());
         o += vchNarr.size();
     }
 

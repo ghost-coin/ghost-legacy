@@ -2820,23 +2820,21 @@ void CHDWallet::ParseAddressForMetaData(const CTxDestination &addr, COutputRecor
 
 void CHDWallet::AddOutputRecordMetaData(CTransactionRecord &rtx, std::vector<CTempRecipient> &vecSend)
 {
-    for (const auto &r : vecSend)
-    {
-        if (r.nType == OUTPUT_STANDARD)
-        {
+    for (const auto &r : vecSend) {
+        if (r.nType == OUTPUT_STANDARD) {
             COutputRecord rec;
 
             rec.n = r.n;
-            if (r.fChange && HaveAddress(r.address))
+            if (r.fChange && HaveAddress(r.address)) {
                 rec.nFlags |= ORF_CHANGE;
+            }
             rec.nType = r.nType;
             rec.nValue = r.nAmount;
             rec.sNarration = r.sNarration;
             rec.scriptPubKey = r.scriptPubKey;
             rtx.InsertOutput(rec);
         } else
-        if (r.nType == OUTPUT_CT)
-        {
+        if (r.nType == OUTPUT_CT) {
             COutputRecord rec;
 
             rec.n = r.n;
@@ -2844,31 +2842,33 @@ void CHDWallet::AddOutputRecordMetaData(CTransactionRecord &rtx, std::vector<CTe
             rec.nValue = r.nAmount;
             rec.nFlags |= ORF_FROM;
             rec.scriptPubKey = r.scriptPubKey;
-            if (r.fChange && HaveAddress(r.address))
+            if (r.fChange && HaveAddress(r.address)) {
                 rec.nFlags |= ORF_CHANGE;
+            }
             rec.sNarration = r.sNarration;
 
             ParseAddressForMetaData(r.address, rec);
 
             rtx.InsertOutput(rec);
         } else
-        if (r.nType == OUTPUT_RINGCT)
-        {
+        if (r.nType == OUTPUT_RINGCT) {
             COutputRecord rec;
 
             rec.n = r.n;
             rec.nType = r.nType;
             rec.nValue = r.nAmount;
             rec.nFlags |= ORF_FROM;
-            if (r.fChange && HaveAddress(r.address))
+            if (r.fChange && HaveAddress(r.address)) {
                 rec.nFlags |= ORF_CHANGE;
+            }
             rec.sNarration = r.sNarration;
 
             ParseAddressForMetaData(r.address, rec);
 
             rtx.InsertOutput(rec);
-        };
-    };
+        }
+    }
+
     return;
 };
 
@@ -3081,16 +3081,17 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
     return 0;
 };
 
-void SetCTOutVData(std::vector<uint8_t> &vData, CPubKey &pkEphem, uint32_t nStealthPrefix)
+void SetCTOutVData(std::vector<uint8_t> &vData, CPubKey &pkEphem, const CTempRecipient &r)
 {
-    vData.resize(nStealthPrefix > 0 ? 38 : 33);
+    vData.resize((r.nStealthPrefix > 0 ? 38 : 33));
 
     memcpy(&vData[0], pkEphem.begin(), 33);
-    if (nStealthPrefix > 0) {
+    size_t o = 33;
+    if (r.nStealthPrefix > 0) {
         vData[33] = DO_STEALTH_PREFIX;
-        memcpy(&vData[34], &nStealthPrefix, 4);
+        memcpy(&vData[34], &r.nStealthPrefix, 4);
+        o = 38;
     }
-    return;
 };
 
 int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string &sError)
@@ -3114,7 +3115,7 @@ int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string 
                 txout->vData = r.vData;
             } else {
                 CPubKey pkEphem = r.sEphem.GetPubKey();
-                SetCTOutVData(txout->vData, pkEphem, r.nStealthPrefix);
+                SetCTOutVData(txout->vData, pkEphem, r);
             }
 
             txout->scriptPubKey = r.scriptPubKey;
@@ -3128,7 +3129,7 @@ int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string 
             txout->pk = r.pkTo;
 
             CPubKey pkEphem = r.sEphem.GetPubKey();
-            SetCTOutVData(txout->vData, pkEphem, r.nStealthPrefix);
+            SetCTOutVData(txout->vData, pkEphem, r);
             }
             break;
         default:
@@ -3169,36 +3170,71 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
         r.nonce = nonce;
     }
 
-    const char *message = r.sNarration.c_str();
-    size_t mlen = strlen(message);
-
     size_t nRangeProofLen = 5134;
     pvRangeproof->resize(nRangeProofLen);
 
-    uint64_t min_value = 0;
-    int ct_exponent = 2;
-    int ct_bits = 32;
+    if (GetTime() >= Params().GetConsensus().bulletproofTime) {
+        const uint8_t *bp[1];
+        bp[0] = r.vBlind.data();
+        if (1 != secp256k1_bulletproof_rangeproof_prove(secp256k1_ctx_blind, blind_scratch, blind_gens,
+            pvRangeproof->data(), &nRangeProofLen, &nValue, nullptr, bp, 1,
+            &secp256k1_generator_const_h, 64, nonce.begin(), nullptr, 0)) {
+            return wserrorN(1, sError, __func__, "secp256k1_bulletproof_rangeproof_prove failed.");
+        }
 
-    if (0 != SelectRangeProofParameters(nValue, min_value, ct_exponent, ct_bits)) {
-        return wserrorN(1, sError, __func__, "SelectRangeProofParameters failed.");
-    }
+        if (1 != secp256k1_bulletproof_rangeproof_verify(secp256k1_ctx_blind, blind_scratch, blind_gens,
+            pvRangeproof->data(), nRangeProofLen, nullptr, pCommitment, 1, 64, &secp256k1_generator_const_h, nullptr, 0)) {
+            return wserrorN(1, sError, __func__, "secp256k1_bulletproof_rangeproof_verify failed.");
+        }
 
-    if (r.fOverwriteRangeProofParams == true) {
-        min_value = r.min_value;
-        ct_exponent = r.ct_exponent;
-        ct_bits = r.ct_bits;
-    }
+        if (r.sNarration.size() > 0) {
+            std::vector<uint8_t> vchNarr, &vData = *txout->GetPData();
+            CPubKey pkEphem = r.sEphem.GetPubKey();
+            SecMsgCrypter crypter;
+            crypter.SetKey(r.nonce.begin(), pkEphem.begin());
 
-    if (1 != secp256k1_rangeproof_sign(secp256k1_ctx_blind,
-        &(*pvRangeproof)[0], &nRangeProofLen,
-        min_value, pCommitment,
-        &r.vBlind[0], nonce.begin(),
-        ct_exponent, ct_bits,
-        nValue,
-        (const unsigned char*) message, mlen,
-        nullptr, 0,
-        secp256k1_generator_h)) {
-        return wserrorN(1, sError, __func__, "secp256k1_rangeproof_sign failed.");
+            if (!crypter.Encrypt((uint8_t*)r.sNarration.data(), r.sNarration.length(), vchNarr)) {
+                return errorN(1, sError, __func__, "Narration encryption failed.");
+            }
+
+            if (vchNarr.size() > MAX_STEALTH_NARRATION_SIZE) {
+                return errorN(1, sError, __func__, "Encrypted narration is too long.");
+            }
+
+            size_t o = vData.size();
+            vData.resize(o + vchNarr.size() + 1);
+            vData[o++] = DO_NARR_CRYPT;
+            memcpy(&vData[o], vchNarr.data(), vchNarr.size());
+        }
+    } else {
+        uint64_t min_value = 0;
+        int ct_exponent = 2;
+        int ct_bits = 32;
+
+        const char *message = r.sNarration.c_str();
+        size_t mlen = strlen(message);
+
+        if (0 != SelectRangeProofParameters(nValue, min_value, ct_exponent, ct_bits)) {
+            return wserrorN(1, sError, __func__, "SelectRangeProofParameters failed.");
+        }
+
+        if (r.fOverwriteRangeProofParams == true) {
+            min_value = r.min_value;
+            ct_exponent = r.ct_exponent;
+            ct_bits = r.ct_bits;
+        }
+
+        if (1 != secp256k1_rangeproof_sign(secp256k1_ctx_blind,
+            &(*pvRangeproof)[0], &nRangeProofLen,
+            min_value, pCommitment,
+            &r.vBlind[0], nonce.begin(),
+            ct_exponent, ct_bits,
+            nValue,
+            (const unsigned char*) message, mlen,
+            nullptr, 0,
+            secp256k1_generator_h)) {
+            return wserrorN(1, sError, __func__, "secp256k1_rangeproof_sign failed.");
+        }
     }
 
     pvRangeproof->resize(nRangeProofLen);
@@ -5069,8 +5105,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             txin.scriptWitness.stack[1].resize(0);
         }
 
-        std::vector<const uint8_t*> vpOutCommits;
-        std::vector<const uint8_t*> vpOutBlinds;
+        std::vector<const uint8_t*> vpOutCommits, vpOutBlinds;
         std::vector<uint8_t> vBlindPlain;
         secp256k1_pedersen_commitment plainCommitment;
         vBlindPlain.resize(32);
@@ -9169,7 +9204,7 @@ int CHDWallet::CheckForStealthAndNarration(const CTxOutBase *pb, const CTxOutDat
     // returns: -1 error, 0 nothing found, 1 narration, 2 stealth
 
     CKey sShared;
-    std::vector<uint8_t> vchEphemPK, vchENarr;
+    std::vector<uint8_t> vchEphemPK;
     const std::vector<uint8_t> &vData = pdata->vData;
 
     if (vData.size() < 1) {
@@ -9230,14 +9265,12 @@ int CHDWallet::CheckForStealthAndNarration(const CTxOutBase *pb, const CTxOutDat
                 WalletLogPrintf("%s: Invalid narration data length: %d\n", __func__, lenNarr);
                 return 2; // still found
             }
-            vchENarr.resize(lenNarr);
-            memcpy(&vchENarr[0], &vData[nNarrOffset], lenNarr);
 
             SecMsgCrypter crypter;
             crypter.SetKey(sShared.begin(), &vchEphemPK[0]);
 
             std::vector<uint8_t> vchNarr;
-            if (!crypter.Decrypt(&vchENarr[0], vchENarr.size(), vchNarr)) {
+            if (!crypter.Decrypt(&vData[nNarrOffset], lenNarr, vchNarr)) {
                 WalletLogPrintf("%s: Decrypt narration failed.\n", __func__);
                 return 2; // still found
             }
@@ -9317,13 +9350,10 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
             uint32_t prefix = 0;
             bool fHavePrefix = false;
             if (ctout->vData.size() != 33) {
-                if (ctout->vData.size() == 38 // Have prefix
+                if (ctout->vData.size() >= 38 // Have prefix
                     && ctout->vData[33] == DO_STEALTH_PREFIX) {
                     fHavePrefix = true;
                     memcpy(&prefix, &ctout->vData[34], 4);
-                } else {
-                    LogPrint(BCLog::HDWALLET, "Bad blind output data size.\n");
-                    continue;
                 }
             }
 
@@ -9347,13 +9377,10 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
             uint32_t prefix = 0;
             bool fHavePrefix = false;
             if (rctout->vData.size() != 33) {
-                if (rctout->vData.size() == 38 // Have prefix
+                if (rctout->vData.size() >= 38 // Have prefix
                     && rctout->vData[33] == DO_STEALTH_PREFIX) {
                     fHavePrefix = true;
                     memcpy(&prefix, &rctout->vData[34], 4);
-                } else {
-                    LogPrint(BCLog::HDWALLET, "Bad blind output data size.\n");
-                    continue;
                 }
             }
 
@@ -9793,6 +9820,45 @@ int CHDWallet::OwnStandardOut(const CTxOutStandard *pout, const CTxOutData *pdat
     return 1;
 };
 
+
+void ExtractNarration(const uint256 &nonce, const std::vector<uint8_t> &vData, std::string &sNarr)
+{
+    if (vData.size() < 33) {
+        return;
+    }
+
+    CPubKey pkEphem;
+    pkEphem.Set(vData.begin(), vData.begin() + 33);
+
+    int nNarrOffset = -1;
+    if (vData.size() > 38 && vData[38] == DO_NARR_CRYPT) {
+        nNarrOffset = 39;
+    } else
+    if (vData.size() > 33 && vData[33] == DO_NARR_CRYPT) {
+        nNarrOffset = 34;
+    }
+
+    if (nNarrOffset == -1) {
+        return;
+    }
+
+    size_t lenNarr = vData.size() - nNarrOffset;
+    if (lenNarr < 1 || lenNarr > 32) { // min block size 8?
+        LogPrintf("%s: Invalid narration data length: %d\n", __func__, lenNarr);
+        return;
+    }
+
+    SecMsgCrypter crypter;
+    crypter.SetKey(nonce.begin(), pkEphem.begin());
+
+    std::vector<uint8_t> vchNarr;
+    if (!crypter.Decrypt(&vData[nNarrOffset], lenNarr, vchNarr)) {
+        LogPrintf("%s: Decrypt narration failed.\n", __func__);
+        return;
+    }
+    sNarr = std::string(vchNarr.begin(), vchNarr.end());
+};
+
 int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOutCT *pout, const CStoredExtKey *pc, uint32_t &nLastChild,
     COutputRecord &rout, CStoredTransaction &stx, bool &fUpdated)
 {
@@ -9874,6 +9940,16 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     size_t mlen = sizeof(msg);
     memset(msg, 0, mlen);
     uint64_t amountOut;
+
+    if (pout->vRangeproof.size() < 1000) {
+        if (1 != secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
+            &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
+            0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), NULL, 0)) {
+            return werrorN(0, "%s: secp256k1_bulletproof_rangeproof_rewind failed.", __func__);
+        }
+
+        ExtractNarration(nonce, pout->vData, rout.sNarration);
+    } else
     if (1 != secp256k1_rangeproof_rewind(secp256k1_ctx_blind,
         blindOut, &amountOut, msg, &mlen, nonce.begin(),
         &min_value, &max_value,
@@ -9962,6 +10038,16 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
     size_t mlen = sizeof(msg);
     memset(msg, 0, mlen);
     uint64_t amountOut;
+
+    if (pout->vRangeproof.size() < 1000) {
+        if (1 != secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
+            &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
+            0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), NULL, 0)) {
+            return werrorN(0, "%s: secp256k1_bulletproof_rangeproof_rewind failed.", __func__);
+        }
+
+        ExtractNarration(nonce, pout->vData, rout.sNarration);
+    } else
     if (1 != secp256k1_rangeproof_rewind(secp256k1_ctx_blind,
         blindOut, &amountOut, msg, &mlen, nonce.begin(),
         &min_value, &max_value,
@@ -9980,7 +10066,6 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
     rout.nFlags |= ORF_OWNED;
     rout.nValue = amountOut;
 
-
     if (rout.vPath.size() == 0) {
         CStealthAddress sx;
         if (GetStealthLinked(idk, sx)) {
@@ -9994,7 +10079,6 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
             }
         }
     }
-
 
     COutPoint op(txhash, rout.n);
     CCmpPubKey ki;
