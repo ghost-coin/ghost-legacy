@@ -82,8 +82,8 @@ bool fDiscover = true;
 bool fListen = true;
 bool fRelayTxes = true;
 CCriticalSection cs_mapLocalHost;
-std::map<CNetAddr, LocalServiceInfo> mapLocalHost;
-static bool vfLimited[NET_MAX] = {};
+std::map<CNetAddr, LocalServiceInfo> mapLocalHost GUARDED_BY(cs_mapLocalHost);
+static bool vfLimited[NET_MAX] GUARDED_BY(cs_mapLocalHost) = {};
 std::string strSubVersion;
 
 limitedmap<uint256, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
@@ -723,7 +723,10 @@ void CNode::copyStats(CNodeStats &stats)
         X(nRecvBytes);
     }
     X(fWhitelisted);
-    X(minFeeFilter);
+    {
+        LOCK(cs_feeFilter);
+        X(minFeeFilter);
+    }
 
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer.
@@ -882,16 +885,7 @@ const uint256& CNetMessage::GetMessageHash() const
     return data_hash;
 }
 
-
-
-
-
-
-
-
-
-// requires LOCK(cs_vSend)
-size_t CConnman::SocketSendData(CNode *pnode) const
+size_t CConnman::SocketSendData(CNode *pnode) const EXCLUSIVE_LOCKS_REQUIRED(pnode->cs_vSend)
 {
     auto it = pnode->vSendMsg.begin();
     size_t nSentSize = 0;
@@ -1019,6 +1013,7 @@ bool CConnman::AttemptToEvictConnection()
                 continue;
             if (node->fDisconnect)
                 continue;
+            LOCK(node->cs_filter);
             NodeEvictionCandidate candidate = {node->GetId(), node->nTimeConnected, node->nMinPingUsecTime,
                                                node->nLastBlockTime, node->nLastTXTime,
                                                HasAllDesirableServiceFlags(node->nServices),
