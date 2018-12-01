@@ -27,7 +27,6 @@ class DoSTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-        self.is_network_split = False
         self.sync_all()
 
     def create_block_header(self, node, hashPrevBlock, hashMerkleRoot, target_block_hash):
@@ -38,7 +37,7 @@ class DoSTest(ParticlTestFramework):
         block.nVersion = target_block['version']
         block.nBits = int(target_block['bits'], 16) # Will break after a difficulty adjustment...
         block.hashMerkleRoot = hashMerkleRoot
-        block.hashWitnessMerkleRoot = 0
+        #block.hashWitnessMerkleRoot = 0
         #block.vchBlockSig = b"x" * 1024
         #block.hashMerkleRoot = block.calc_merkle_root()
         block.calc_sha256()
@@ -53,7 +52,7 @@ class DoSTest(ParticlTestFramework):
         block.nVersion = target_block['version']
         block.nBits = int(target_block['bits'], 16)
         block.hashMerkleRoot = int(target_block['merkleroot'], 16)
-        block.hashWitnessMerkleRoot = int(target_block['witnessmerkleroot'], 16)
+        #block.hashWitnessMerkleRoot = int(target_block['witnessmerkleroot'], 16)
         block.calc_sha256()
         return block
 
@@ -121,7 +120,7 @@ class DoSTest(ParticlTestFramework):
         self.log.info('Reading log file: ' + log_path)
         found_error_line = False
         found_misbehave_line = False
-        with open(log_path, 'r') as fp:
+        with open(log_path, 'r', encoding='utf8') as fp:
             for line in fp:
                 if not found_error_line and line.find('ERROR: AcceptBlockHeader: DoS limits') > -1:
                     found_error_line = True
@@ -145,12 +144,12 @@ class DoSTest(ParticlTestFramework):
                 index_size = nodes[0].getblockchaininfo()['blockindexsize']
                 self.log.info('waiting %d, blockindexsize: %d' % (i, index_size))
                 if index_size <= 21:
-                    break;
+                    break
             assert(nodes[0].getblockchaininfo()['blockindexsize'] == 21)
 
             self.log.info('Reading log file: ' + log_path)
             found_misbehave_line = False
-            with open(log_path, 'r') as fp:
+            with open(log_path, 'r', encoding='utf8') as fp:
                 for line in fp:
                     if line.find('Block not received') > -1:
                         found_misbehave_line = True
@@ -233,7 +232,7 @@ class DoSTest(ParticlTestFramework):
         # Check log
         self.log.info('Reading log file: ' + log_path)
         found_dos_line = False
-        with open(log_path, 'r') as fp:
+        with open(log_path, 'r', encoding='utf8') as fp:
             for line in fp:
                 if line.find('DoS limits, too many duplicate') > -1:
                     found_dos_line = True
