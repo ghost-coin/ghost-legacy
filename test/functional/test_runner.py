@@ -196,6 +196,7 @@ EXTENDED_SCRIPTS = [
     'feature_dbcrash.py',
 
     'wallet_part_unloadspent.py',
+    'p2p_part_dos.py',
 ]
 
 PARTICL_SCRIPTS = [
