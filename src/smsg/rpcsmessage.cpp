@@ -36,11 +36,9 @@ static UniValue smsgenable(const JSONRPCRequest &request)
                 "Enable secure messaging on the specified wallet.\n"
                 "SMSG can only be enabled on one wallet.\n",
                 {
-                    {"walletname", RPCArg::Type::STR, true},
+                    {"walletname", RPCArg::Type::STR, /* opt */ true, /* default_val */ "wallet.dat", "Enable smsg on a specific wallet."},
                 }}
-                .ToString() +
-            "\nArguments:\n"
-            "1. \"walletname\"      (string, optional, default=\"wallet.dat\") enable smsg on a specific wallet.\n"
+                .ToString()
             );
 
     if (smsg::fSecMsgEnabled)
@@ -110,13 +108,13 @@ static UniValue smsgoptions(const JSONRPCRequest &request)
             RPCHelpMan{"smsgoptions",
                 "\nList and manage options.\n",
                 {
-                    {"list with_description|set \"optname\" \"value\"", RPCArg::Type::STR, true},
+                    {"list with_description|set \"optname\" \"value\"", RPCArg::Type::STR, /* opt */ true, /* default_val */ "list", "Command input."},
                 }}
                 .ToString() +
             "\nExamples\n"
             "\nList possible options with descriptions.\n"
             + HelpExampleCli("smsgoptions", "list 1")
-            );
+        );
 
     std::string mode = "list";
     if (request.params.size() > 0) {
@@ -218,9 +216,10 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             RPCHelpMan{"smsglocalkeys",
                 "\nList and manage keys.\n",
                 {
-                    {"whitelist|all|wallet|recv +/- \"address\"|anon +/- \"address\"", RPCArg::Type::STR, true},
+                    {"whitelist|all|wallet|recv +/- \"address\"|anon +/- \"address\"", RPCArg::Type::STR, /* opt */ true, /* default_val */ "whitelist", "Command input."},
                 }}
-                .ToString());
+                .ToString()
+            );
 
     EnsureSMSGIsEnabled();
 
@@ -441,7 +440,8 @@ static UniValue smsgscanchain(const JSONRPCRequest &request)
                 "\nLook for public keys in the block chain.\n",
                 {
                 }}
-                .ToString());
+                .ToString()
+            );
 
     EnsureSMSGIsEnabled();
 
@@ -464,7 +464,8 @@ static UniValue smsgscanbuckets(const JSONRPCRequest &request)
                 "Wallet must be unlocked if any receiving keys are stored in the wallet.\n",
                 {
                 }}
-                .ToString());
+                .ToString()
+            );
 
     EnsureSMSGIsEnabled();
 
@@ -492,10 +493,11 @@ static UniValue smsgaddaddress(const JSONRPCRequest &request)
             RPCHelpMan{"smsgaddaddress",
                 "\nAdd address and matching public key to database.\n",
                 {
-                    {"address", RPCArg::Type::STR, false},
-                    {"pubkey", RPCArg::Type::STR, false},
+                    {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Address to add."},
+                    {"pubkey", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Public key for \"address\"."},
                 }}
-                .ToString());
+                .ToString()
+            );
 
     EnsureSMSGIsEnabled();
 
@@ -522,9 +524,10 @@ static UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
                 "\nEnable receiving messages on <address>.\n"
                 "Key for \"address\" must exist in the wallet.\n",
                 {
-                    {"address", RPCArg::Type::STR, false},
+                    {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Address to add."},
                 }}
-                .ToString());
+                .ToString()
+            );
 
     EnsureSMSGIsEnabled();
 
@@ -546,17 +549,14 @@ static UniValue smsgimportprivkey(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw std::runtime_error(
-            RPCHelpMan{"smsgaddlocaladdress",
+            RPCHelpMan{"smsgimportprivkey",
                 "\nAdds a private key (as returned by dumpprivkey) to the smsg database.\n"
                 "The imported key can receive messages even if the wallet is locked.\n",
                 {
-                    {"privkey", RPCArg::Type::STR, false},
-                    {"label", RPCArg::Type::STR, true},
+                    {"privkey", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The private key to import (see dumpprivkey)."},
+                    {"label", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "An optional label."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"privkey\"          (string, required) The private key (see dumpprivkey)\n"
-            "2. \"label\"            (string, optional, default=\"\") An optional label\n"
             "\nExamples:\n"
             "\nDump a private key\n"
             + HelpExampleCli("dumpprivkey", "\"myaddress\"") +
@@ -594,11 +594,9 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
             RPCHelpMan{"smsggetpubkey",
                 "\nReturn the base58 encoded compressed public key for an address.\n",
                 {
-                    {"address", RPCArg::Type::STR, false},
+                    {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Return the pubkey matching \"address\"."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"address\"          (string, required) The address to find the pubkey for.\n"
             "\nResult:\n"
             "{\n"
             "  \"address\": \"...\"             (string) address of public key\n"
@@ -607,7 +605,8 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
             "\nExamples:\n"
             + HelpExampleCli("smsggetpubkey", "\"myaddress\"") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("smsggetpubkey", "\"myaddress\""));
+            + HelpExampleRpc("smsggetpubkey", "\"myaddress\"")
+        );
 
     EnsureSMSGIsEnabled();
 
@@ -665,25 +664,16 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             RPCHelpMan{"smsgsend",
                 "\nSend an encrypted message from \"address_from\" to \"address_to\".\n",
                 {
-                    {"address_from", RPCArg::Type::STR, false},
-                    {"address_to", RPCArg::Type::STR, false},
-                    {"message", RPCArg::Type::STR, false},
-                    {"paid_msg", RPCArg::Type::BOOL, true},
-                    {"days_retention", RPCArg::Type::NUM, true},
-                    {"testfee", RPCArg::Type::BOOL, true},
-                    {"fromfile", RPCArg::Type::BOOL, true},
-                    {"decodehex", RPCArg::Type::BOOL, true},
+                    {"address_from", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The address of the sender."},
+                    {"address_to", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The address of the recipient."},
+                    {"message", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The message to send."},
+                    {"paid_msg", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Send as paid message."},
+                    {"days_retention", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "1", "No. of days for which paid message will be retained by network."},
+                    {"testfee", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Don't send the message, only estimate the fee."},
+                    {"fromfile", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Send file as message, path specified in \"message\"."},
+                    {"decodehex", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Decode \"message\" from hex before sending."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"address_from\"       (string, required) The address of the sender.\n"
-            "2. \"address_to\"         (string, required) The address of the recipient.\n"
-            "3. \"message\"            (string, required) The message.\n"
-            "4. paid_msg             (bool, optional, default=false) Send as paid message.\n"
-            "5. days_retention       (int, optional, default=1) Days paid message will be retained by network.\n"
-            "6. testfee              (bool, optional, default=false) Don't send the message, only estimate the fee.\n"
-            "7. fromfile             (bool, optional, default=false) Send file as message, path specified in \"message\".\n"
-            "8. decodehex            (bool, optional, default=false) Decode \"message\" from hex before sending.\n"
             "\nResult:\n"
             "{\n"
             "  \"result\": \"Sent\"/\"Not Sent\"       (string) address of public key\n"
@@ -694,7 +684,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             "\nExamples:\n"
             + HelpExampleCli("smsgsend", "\"myaddress\" \"toaddress\" \"message\"") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("smsgsend", "\"myaddress\", \"toaddress\", \"message\""));
+            + HelpExampleRpc("smsgsend", "\"myaddress\", \"toaddress\", \"message\"")
+        );
 
     EnsureSMSGIsEnabled();
 
@@ -774,10 +765,11 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
             RPCHelpMan{"smsgsendanon",
                 "\nDEPRECATED. Send an anonymous encrypted message to addrTo.\n",
                 {
-                    {"address_to", RPCArg::Type::STR, false},
-                    {"message", RPCArg::Type::STR, false},
+                    {"address_to", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Address to send to."},
+                    {"message", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Message to send."},
                 }}
-                .ToString());
+                .ToString()
+            );
 
     EnsureSMSGIsEnabled();
 
@@ -812,13 +804,10 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                 "\nDecrypt and display received messages.\n"
                 "Warning: clear will delete all messages.\n",
                 {
-                    {"mode", RPCArg::Type::STR, true},
-                    {"filter", RPCArg::Type::STR, true},
+                    {"mode", RPCArg::Type::STR, /* opt */ true, /* default_val */ "unread", "\"all|unread|clear\" List all messages, unread messages or clear all messages."},
+                    {"filter", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"mode\"    (string, optional, default=\"unread\") \"all|unread|clear\" List all messages, unread messages or clear all messages.\n"
-            "2. \"filter\"  (string, optional) Filter messages when in list mode. Applied to from, to and text fields.\n"
             "\nResult:\n"
             "{\n"
             "  \"msgid\": \"str\"                    (string) The message identifier\n"
@@ -829,7 +818,8 @@ static UniValue smsginbox(const JSONRPCRequest &request)
             "  \"from\": \"str\"                     (string) Address the message was sent from\n"
             "  \"to\": \"str\"                       (string) Address the message was sent to\n"
             "  \"text\": \"str\"                     (string) Message text\n"
-            "}\n");
+            "}\n"
+        );
 
     EnsureSMSGIsEnabled();
 
@@ -956,13 +946,10 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                 "\nDecrypt and display all sent messages.\n"
                 "Warning: \"mode\"=\"clear\" will delete all sent messages.\n",
                 {
-                    {"mode", RPCArg::Type::STR, true},
-                    {"filter", RPCArg::Type::STR, true},
+                    {"mode", RPCArg::Type::STR, /* opt */ true, /* default_val */ "all", "all|clear, List or clear messages."},
+                    {"filter", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"mode\"    (string, optional, default=\"all\") \"all|clear\" List or clear messages.\n"
-            "2. \"filter\"  (string, optional) Filter messages when in list mode. Applied to from, to and text fields.\n"
             "\nResult:\n"
             "{\n"
             "  \"msgid\": \"str\"                    (string) The message identifier\n"
@@ -971,7 +958,8 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
             "  \"from\": \"str\"                     (string) Address the message was sent from\n"
             "  \"to\": \"str\"                       (string) Address the message was sent to\n"
             "  \"text\": \"str\"                     (string) Message text\n"
-            "}\n");
+            "}\n"
+        );
 
     EnsureSMSGIsEnabled();
 
@@ -1083,9 +1071,10 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
             RPCHelpMan{"smsgbuckets",
                 "\nDisplay some statistics.\n",
                 {
-                    {"stats|dump", RPCArg::Type::STR, true},
+                    {"mode", RPCArg::Type::STR, /* opt */ true, /* default_val */ "stats", "If mode is \"dump\" delete all buckets."},
                 }}
-                .ToString());
+                .ToString()
+            );
 
     EnsureSMSGIsEnabled();
 
@@ -1210,12 +1199,13 @@ static UniValue smsgview(const JSONRPCRequest &request)
                 "Full date/time format for from and to is yyyy-mm-ddThh:mm:ss\n"
                 "From and to will accept incomplete inputs like: -from 2016\n",
                 {
-                    {"address/label", RPCArg::Type::STR, true},
-                    {"asc/desc", RPCArg::Type::STR, true},
-                    {"-from yyyy-mm-dd", RPCArg::Type::STR, true},
-                    {"-to yyyy-mm-dd", RPCArg::Type::STR, true},
+                    {"address/label", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", ""},
+                    {"asc/desc", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", ""},
+                    {"-from yyyy-mm-dd", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", ""},
+                    {"-to yyyy-mm-dd", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", ""},
                 }}
-                .ToString());
+                .ToString()
+            );
 
     EnsureSMSGIsEnabled();
 
@@ -1484,24 +1474,16 @@ static UniValue smsgone(const JSONRPCRequest &request)
         RPCHelpMan{"smsg",
                 "\nView smsg by msgid.\n",
                 {
-                    {"msgid", RPCArg::Type::STR, false},
-                    {"options", RPCArg::Type::OBJ,
+                    {"msgid", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Id of the message to view."},
+                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
                         {
-                            {"delete", RPCArg::Type::BOOL, true},
-                            {"setread", RPCArg::Type::BOOL, true},
-                            {"encoding", RPCArg::Type::STR, true},
+                            {"delete", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Delete msg if true."},
+                            {"setread", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Set read status to value."},
+                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "ascii", "Display message data in encoding, values: \"hex\"."},
                         },
-                        true},
+                        "options"},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"msgid\"              (string, required) The id of the message to view.\n"
-            "2. options              (json, optional) Options object.\n"
-            "{\n"
-            "       \"delete\": bool                 (bool, optional) Delete msg if true.\n"
-            "       \"setread\": bool                (bool, optional) Set read status to value.\n"
-            "       \"encoding\": str                (string, optional, default=\"ascii\") Display message data in encoding, values: \"hex\".\n"
-            "}\n"
             "\nResult:\n"
             "{\n"
             "  \"msgid\": \"...\"                    (string) The message identifier\n"
@@ -1520,7 +1502,8 @@ static UniValue smsgone(const JSONRPCRequest &request)
             "\nExamples:\n"
             + HelpExampleCli("smsg", "\"msgid\"") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("smsg", "\"msgid\""));
+            + HelpExampleRpc("smsg", "\"msgid\"")
+        );
 
     EnsureSMSGIsEnabled();
 
@@ -1652,16 +1635,15 @@ static UniValue smsgpurge(const JSONRPCRequest &request)
             RPCHelpMan{"smsgpurge",
                 "\nPurge smsg by msgid.\n",
                 {
-                    {"msgid", RPCArg::Type::STR_HEX, true},
+                    {"msgid", RPCArg::Type::STR_HEX, /* opt */ true, /* default_val */ "", "Id of the message to purge."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"msgid\"              (string, required) The id of the message to purge.\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("smsgpurge", "\"msgid\"") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("smsgpurge", "\"msgid\""));
+            + HelpExampleRpc("smsgpurge", "\"msgid\"")
+        );
 
     EnsureSMSGIsEnabled();
 

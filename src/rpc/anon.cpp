@@ -19,13 +19,12 @@ UniValue anonoutput(const JSONRPCRequest &request)
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
             RPCHelpMan{"anonoutput",
-                "\nReturns an anon output at index or by publickey hex.\n",
+                "\nReturns an anon output at index or by publickey hex.\n"
+                "If no output is provided returns the last index.\n",
                 {
-                    {"index/hex", RPCArg::Type::STR, false},
+                    {"output", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Output to view, specified by index or hex of publickey."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"index/hex\"                    (string, required) index or by publickey hex\n"
             "\nResult:\n"
             "{\n"
             "  \"index\" : num,                 (numeric) Position in chain of anon output.\n"
@@ -36,7 +35,8 @@ UniValue anonoutput(const JSONRPCRequest &request)
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("anonoutput", "\"1\"")
-            + HelpExampleRpc("anonoutput", "\"2\""));
+            + HelpExampleRpc("anonoutput", "\"2\"")
+        );
 
     UniValue result(UniValue::VOBJ);
 
@@ -87,7 +87,7 @@ UniValue anonoutput(const JSONRPCRequest &request)
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
-    { "anon",               "anonoutput",             &anonoutput,             {} },
+    { "anon",               "anonoutput",             &anonoutput,             {"output"} },
 };
 
 void RegisterAnonRPCCommands(CRPCTable &tableRPC)

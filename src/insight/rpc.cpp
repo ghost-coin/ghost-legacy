@@ -90,21 +90,13 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
             RPCHelpMan{"getaddressmempool",
                 "\nReturns all mempool deltas for an address (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR,
+                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, false},
+                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
                         },
-                        false},
+                    },
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "{\n"
-            "  \"addresses\"\n"
-            "    [\n"
-            "      \"address\"  (string) The base58check encoded address\n"
-            "      ,...\n"
-            "    ]\n"
-            "}\n"
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -174,22 +166,14 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
         RPCHelpMan{"getaddressutxos",
                 "\nReturns all unspent outputs for an address (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR,
+                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, false},
+                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
                         },
-                        false},
+                    },
+                    {"chainInfo", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include chain info in results, only applies if start and end specified."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "{\n"
-            "  \"addresses\"\n"
-            "    [\n"
-            "      \"address\"  (string) The base58check encoded address\n"
-            "      ,...\n"
-            "    ],\n"
-            "  \"chainInfo\"  (boolean) Include chain info with results\n"
-            "}\n"
             "\nResult\n"
             "[\n"
             "  {\n"
@@ -273,24 +257,16 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
             RPCHelpMan{"getaddressdeltas",
                 "\nReturns all changes for an address (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR,
+                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, false},
+                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
                         },
-                        false},
+                    },
+                    {"start", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The start block height."},
+                    {"end", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The end block height."},
+                    {"chainInfo", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include chain info in results, only applies if start and end specified."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "{\n"
-            "  \"addresses\"\n"
-            "    [\n"
-            "      \"address\"  (string) The base58check encoded address\n"
-            "      ,...\n"
-            "    ]\n"
-            "  \"start\" (number) The start block height\n"
-            "  \"end\" (number) The end block height\n"
-            "  \"chainInfo\" (boolean) Include chain info in results, only applies if start and end specified\n"
-            "}\n"
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -410,21 +386,13 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
             RPCHelpMan{"getaddressbalance",
                 "\nReturns the balance for an address(es) (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR,
+                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, false},
+                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
                         },
-                        false},
+                    },
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "{\n"
-            "  \"addresses\"\n"
-            "    [\n"
-            "      \"address\"  (string) The base58check encoded address\n"
-            "      ,...\n"
-            "    ]\n"
-            "}\n"
             "\nResult:\n"
             "{\n"
             "  \"balance\"  (string) The current balance in satoshis\n"
@@ -478,23 +446,15 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
             RPCHelpMan{"getaddresstxids",
                 "\nReturns the txids for an address(es) (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR,
+                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, false},
+                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
                         },
-                        false},
+                    },
+                    {"start", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The start block height."},
+                    {"end", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The end block height."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "{\n"
-            "  \"addresses\"\n"
-            "    [\n"
-            "      \"address\"  (string) The base58check encoded address\n"
-            "      ,...\n"
-            "    ]\n"
-            "  \"start\" (number) The start block height\n"
-            "  \"end\" (number) The end block height\n"
-            "}\n"
             "\nResult:\n"
             "[\n"
             "  \"transactionid\"  (string) The transaction id\n"
@@ -573,21 +533,16 @@ UniValue getspentinfo(const JSONRPCRequest& request)
             RPCHelpMan{"getspentinfo",
                 "\nReturns the txid and index where an output is spent.\n",
                 {
-                    {"inputs", RPCArg::Type::ARR,
+                    {"inputs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array of json objects",
                         {
                             {
-                                {"txid", RPCArg::Type::STR_HEX, false},
-                                {"vout", RPCArg::Type::NUM, false},
+                                {"txid", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The hex string of the txid."},
+                                {"vout", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The start block height."},
                             },
                         },
-                        false},
+                    },
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "{\n"
-            "  \"txid\" (string) The hex string of the txid\n"
-            "  \"index\" (number) The start block height\n"
-            "}\n"
             "\nResult:\n"
             "{\n"
             "  \"txid\"  (string) The transaction id\n"
@@ -808,24 +763,16 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
             RPCHelpMan{"getblockhashes",
                 "\nReturns array of hashes of blocks within the timestamp range provided.\n",
                 {
-                    {"high", RPCArg::Type::NUM, false},
-                    {"low", RPCArg::Type::NUM, false},
-                    {"options", RPCArg::Type::OBJ,
+                    {"high", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The newer block timestamp."},
+                    {"low", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The older block timestamp."},
+                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
                         {
-                            {"noOrphans", RPCArg::Type::BOOL, true},
-                            {"logicalTimes", RPCArg::Type::BOOL, true},
+                            {"noOrphans", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Only include blocks on the main chain."},
+                            {"logicalTimes", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include logical timestamps with hashes."},
                         },
-                        true},
+                        "options"},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. high         (numeric, required) The newer block timestamp\n"
-            "2. low          (numeric, required) The older block timestamp\n"
-            "3. options      (string, required) A json object\n"
-            "    {\n"
-            "      \"noOrphans\":true   (boolean) will only include blocks on the main chain\n"
-            "      \"logicalTimes\":true   (boolean) will include logical timestamps with hashes\n"
-            "    }\n"
             "\nResult:\n"
             "[\n"
             "  \"hash\"         (string) The block hash\n"
@@ -1022,11 +969,9 @@ UniValue getblockreward(const JSONRPCRequest& request)
             RPCHelpMan{"getblockreward",
                 "\nReturns the blockreward for block at height.\n",
                 {
-                    {"height", RPCArg::Type::NUM, false},
+                    {"height", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The chain height of the block."},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. height                (numeric, required) The height index.\n"
             "\nResult:\n"
             "{\n"
             "  \"blockhash\" : \"id\",     (id) The hash of the block.\n"
@@ -1162,26 +1107,17 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
             RPCHelpMan{"listcoldstakeunspent",
                 "\nReturns the unspent outputs of \"stakeaddress\" at height.\n",
                 {
-                    {"stakeaddress", RPCArg::Type::STR, false},
-                    {"height", RPCArg::Type::NUM, true},
-                    {"options", RPCArg::Type::OBJ,
+                    {"stakeaddress", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The stakeaddress to filter outputs by."},
+                    {"height", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "", "The block height to return outputs for, -1 for current height."},
+                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
                         {
-                            {"mature_only", RPCArg::Type::BOOL, true},
-                            {"all_staked", RPCArg::Type::BOOL, true},
-                            {"show_outpoints", RPCArg::Type::BOOL, true},
+                            {"mature_only", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Return only outputs stakeable at height."},
+                            {"all_staked", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Ignore maturity check for outputs of coinstake transactions."},
+                            {"show_outpoints", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Display txid and index per output."},
                         },
-                        true},
+                        "options"},
                 }}
                 .ToString() +
-            "\nArguments:\n"
-            "1. \"stakeaddress\"        (string, required) The stakeaddress to filter outputs by.\n"
-            "2. height                (numeric, optional) The block height to return outputs for, -1 for current height.\n"
-            "3. options               (object, optional)\n"
-            "   {\n"
-            "     \"mature_only\"         (boolean, optional, default false) Return only outputs stakeable at height.\n"\
-            "     \"all_staked\"          (boolean, optional, default false) Ignore maturity check for outputs of coinstake transactions.\n"
-            "     \"show_outpoints\"      (boolean, optional, default false) Display txid and index per output.\n"
-            "   }\n"
             "\nResult:\n"
             "[\n"
             " {\n"
