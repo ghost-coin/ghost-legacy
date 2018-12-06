@@ -195,6 +195,9 @@ template<typename Stream>
 void SerializeHDKeypaths(Stream& s, const std::map<CPubKey, std::vector<uint32_t>>& hd_keypaths, uint8_t type)
 {
     for (auto keypath_pair : hd_keypaths) {
+        if (!keypath_pair.first.IsValid()) {
+            throw std::ios_base::failure("Invalid CPubKey being serialized");
+        }
         SerializeToVector(s, type, MakeSpan(keypath_pair.first));
         WriteCompactSize(s, keypath_pair.second.size() * sizeof(uint32_t));
         for (auto& path : keypath_pair.second) {
@@ -290,6 +293,7 @@ struct PSBTInput
     template <typename Stream>
     inline void Unserialize(Stream& s) {
         // Read loop
+        bool found_sep = false;
         while(!s.empty()) {
             // Read
             std::vector<unsigned char> key;
@@ -297,7 +301,10 @@ struct PSBTInput
 
             // the key is empty if that was actually a separator byte
             // This is a special case for key lengths 0 as those are not allowed (except for separator)
-            if (key.empty()) return;
+            if (key.empty()) {
+                found_sep = true;
+                break;
+            }
 
             // First byte of key is the type
             unsigned char type = key[0];
@@ -412,6 +419,10 @@ struct PSBTInput
                     break;
             }
         }
+
+        if (!found_sep) {
+            throw std::ios_base::failure("Separator is missing at the end of an input map");
+        }
     }
 
     template <typename Stream>
@@ -465,6 +476,7 @@ struct PSBTOutput
     template <typename Stream>
     inline void Unserialize(Stream& s) {
         // Read loop
+        bool found_sep = false;
         while(!s.empty()) {
             // Read
             std::vector<unsigned char> key;
@@ -472,7 +484,10 @@ struct PSBTOutput
 
             // the key is empty if that was actually a separator byte
             // This is a special case for key lengths 0 as those are not allowed (except for separator)
-            if (key.empty()) return;
+            if (key.empty()) {
+                found_sep = true;
+                break;
+            }
 
             // First byte of key is the type
             unsigned char type = key[0];
@@ -517,6 +532,10 @@ struct PSBTOutput
                 }
             }
         }
+
+        if (!found_sep) {
+            throw std::ios_base::failure("Separator is missing at the end of an output map");
+        }
     }
 
     template <typename Stream>
@@ -538,6 +557,7 @@ struct PartiallySignedTransaction
     bool IsSane() const;
     PartiallySignedTransaction() {}
     PartiallySignedTransaction(const PartiallySignedTransaction& psbt_in) : tx(psbt_in.tx), inputs(psbt_in.inputs), outputs(psbt_in.outputs), unknown(psbt_in.unknown) {}
+    explicit PartiallySignedTransaction(const CTransaction& tx);
 
     // Only checks if they refer to the same transaction
     friend bool operator==(const PartiallySignedTransaction& a, const PartiallySignedTransaction &b)
@@ -592,6 +612,7 @@ struct PartiallySignedTransaction
         }
 
         // Read global data
+        bool found_sep = false;
         while(!s.empty()) {
             // Read
             std::vector<unsigned char> key;
@@ -599,7 +620,10 @@ struct PartiallySignedTransaction
 
             // the key is empty if that was actually a separator byte
             // This is a special case for key lengths 0 as those are not allowed (except for separator)
-            if (key.empty()) break;
+            if (key.empty()) {
+                found_sep = true;
+                break;
+            }
 
             // First byte of key is the type
             unsigned char type = key[0];
@@ -637,6 +661,10 @@ struct PartiallySignedTransaction
                     unknown.emplace(std::move(key), std::move(val_bytes));
                 }
             }
+        }
+
+        if (!found_sep) {
+            throw std::ios_base::failure("Separator is missing at the end of the global map");
         }
 
         // Make sure that we got an unsigned tx
@@ -694,8 +722,11 @@ bool SignSignature(const SigningProvider &provider, const CScript& fromPubKey, C
 bool SignSignature(const SigningProvider &provider, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, CAmount amount, int nHashType);
 bool SignSignature(const SigningProvider &provider, const CTransaction& txFrom, CMutableTransaction& txTo, unsigned int nIn, int nHashType);
 
+/** Checks whether a PSBTInput is already signed. */
+bool PSBTInputSigned(PSBTInput& input);
+
 /** Signs a PSBTInput, verifying that all provided data matches what is being signed. */
-bool SignPSBTInput(const SigningProvider& provider, const CMutableTransaction& tx, PSBTInput& input, SignatureData& sigdata, int index, int sighash = 1);
+bool SignPSBTInput(const SigningProvider& provider, PartiallySignedTransaction& psbt, SignatureData& sigdata, int index, int sighash = SIGHASH_ALL);
 
 /** Extract signature data from a transaction input, and insert it. */
 SignatureData DataFromTransaction(const CMutableTransaction& tx, unsigned int nIn, const CTxOut& txout);

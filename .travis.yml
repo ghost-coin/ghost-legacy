@@ -1,4 +1,3 @@
-sudo: required
 dist: trusty
 os: linux
 language: minimal
@@ -175,7 +174,6 @@ jobs:
         BITCOIN_CONFIG="--enable-gui --enable-reduce-exports --enable-werror --disable-bench --disable-tests --enable-usbdevice"
     - stage: lint
       env:
-      sudo: false
       cache: false
       language: python
       python: '3.6'
