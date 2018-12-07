@@ -18,7 +18,7 @@ class DoSTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [ ['-debug=1', '-noacceptnonstdtxn', '-banscore=2000000', '-reservebalance=1000000'] for i in range(self.num_nodes)]
+        self.extra_args = [ ['-debug=1', '-nosmsg', '-noacceptnonstdtxn', '-banscore=2000000', '-reservebalance=1000000'] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -31,13 +31,13 @@ class DoSTest(ParticlTestFramework):
 
     def create_block_header(self, node, hashPrevBlock, hashMerkleRoot, target_block_hash):
         target_block = node.getblock(target_block_hash, 2)
-        block = CBlockHeader()
+        block = CBlockHeader(is_part=True)
         block.nTime = target_block['time']
         block.hashPrevBlock = hashPrevBlock
         block.nVersion = target_block['version']
         block.nBits = int(target_block['bits'], 16) # Will break after a difficulty adjustment...
         block.hashMerkleRoot = hashMerkleRoot
-        #block.hashWitnessMerkleRoot = 0
+        block.hashWitnessMerkleRoot = 0
         #block.vchBlockSig = b"x" * 1024
         #block.hashMerkleRoot = block.calc_merkle_root()
         block.calc_sha256()
@@ -46,13 +46,13 @@ class DoSTest(ParticlTestFramework):
 
     def get_block_header(self, node, target_block_hash):
         target_block = node.getblock(target_block_hash, 2)
-        block = CBlockHeader()
+        block = CBlockHeader(is_part=True)
         block.nTime = target_block['time']
         block.hashPrevBlock = int(target_block['previousblockhash'], 16)
         block.nVersion = target_block['version']
         block.nBits = int(target_block['bits'], 16)
         block.hashMerkleRoot = int(target_block['merkleroot'], 16)
-        #block.hashWitnessMerkleRoot = int(target_block['witnessmerkleroot'], 16)
+        block.hashWitnessMerkleRoot = int(target_block['witnessmerkleroot'], 16)
         block.calc_sha256()
         return block
 
