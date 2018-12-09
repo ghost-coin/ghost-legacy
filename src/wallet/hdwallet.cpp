@@ -6681,7 +6681,7 @@ int CHDWallet::ExtKeyLoadAccounts()
 
     Dbc *pcursor;
     if (!(pcursor = wdb.GetCursor())) {
-        return werrorN(1, "%s %s: cannot create DB cursor", __func__);
+        return werrorN(1, "%s: cannot create DB cursor", __func__);
     }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -6737,7 +6737,7 @@ int CHDWallet::ExtKeyLoadAccounts()
         ExtKeyLoadAccountKeys(&wdb, sea);
 
         if (0 != ExtKeyAddAccountToMaps(idAccount, sea, false)) {
-            WalletLogPrintf("%s: failed: %s\n", __func__, HDAccIDToString(idAccount));
+            WalletLogPrintf("%s: ExtKeyAddAccountToMaps failed: %s\n", __func__, HDAccIDToString(idAccount));
             sea->FreeChains();
             delete sea;
         }
