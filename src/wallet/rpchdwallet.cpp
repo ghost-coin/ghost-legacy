@@ -5675,6 +5675,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             "  \"stakesplitthreshold\"       (amount, optional, default=2000) Split outputs above this value.\n"
             "  \"foundationdonationpercent\" (int, optional, default=0) Set the percentage of each block reward to donate to the foundation.\n"
             "  \"rewardaddress\"             (string, optional, default=none) An address which the user portion of the block reward gets sent to.\n"
+            "  \"smsgfeeratetarget\"         (amount, optional, default=0) If non-zero an amount to move the smsgfeerate towards.\n"
             "}\n"
             "\"stakelimit\" {\n"
             "  \"height\"                    (int, optional, default=0) Prevent staking above chain height, used in functional testing.\n"
@@ -5816,14 +5817,12 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 if (sKey == "enabled") {
                 } else
                 if (sKey == "stakecombinethreshold") {
-                    CAmount test = AmountFromValue(json["stakecombinethreshold"]);
-                    if (test < 0) {
+                    if (AmountFromValue(json["stakecombinethreshold"]) < 0) {
                         throw JSONRPCError(RPC_INVALID_PARAMETER, _("stakecombinethreshold can't be negative."));
                     }
                 } else
                 if (sKey == "stakesplitthreshold") {
-                    CAmount test = AmountFromValue(json["stakesplitthreshold"]);
-                    if (test < 0) {
+                    if (AmountFromValue(json["stakesplitthreshold"]) < 0) {
                         throw JSONRPCError(RPC_INVALID_PARAMETER, _("stakesplitthreshold can't be negative."));
                     }
                 } else
@@ -5840,6 +5839,11 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                     CBitcoinAddress addr(json["rewardaddress"].get_str());
                     if (!addr.IsValid() || addr.Get().type() == typeid(CNoDestination)) {
                         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid rewardaddress."));
+                    }
+                } else
+                if (sKey == "smsgfeeratetarget") {
+                    if (AmountFromValue(json["smsgfeeratetarget"]) < 0) {
+                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("smsgfeeratetarget can't be negative."));
                     }
                 } else {
                     warnings.push_back("Unknown key " + sKey);

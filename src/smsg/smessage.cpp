@@ -3087,7 +3087,8 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
     }
 
     if (psmsg->version[0] == 3) {
-        if (Params().GetConsensus().nPaidSmsgTime > now) {
+        const Consensus::Params &consensusParams = Params().GetConsensus();
+        if (consensusParams.nPaidSmsgTime > now) {
             LogPrintf("%s: Paid SMSG not yet active on mainnet.\n", __func__);
             return SMSG_GENERAL_ERROR;
         }
@@ -3104,8 +3105,6 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         }
 
         size_t nMsgBytes = SMSG_HDR_LEN + psmsg->nPayload;
-        int64_t nExpectFee = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
-
         uint256 txid;
         uint160 msgId;
         if (0 != HashMsg(*psmsg, pPayload, psmsg->nPayload-32, msgId)
@@ -3118,7 +3117,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         uint256 hashBlock;
         {
             LOCK(cs_main);
-            if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock) || hashBlock.IsNull()) {
+            if (!GetTransaction(txid, txOut, consensusParams, hashBlock) || hashBlock.IsNull()) {
                 return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s not found for message %s.\n", __func__, txid.ToString(), msgId.ToString());
             }
 
@@ -3127,17 +3126,23 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             }
 
             int blockDepth = -1;
+            const CBlockIndex *pindex = nullptr;
             BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
+            int64_t nMsgFeePerKPerDay = 0;
             if (mi != mapBlockIndex.end()) {
-                CBlockIndex *pindex = mi->second;
+                pindex = mi->second;
                 if (pindex && chainActive.Contains(pindex)) {
                     blockDepth = chainActive.Height() - pindex->nHeight + 1;
+                    nMsgFeePerKPerDay = GetSmsgFeeRate(pindex);
                 }
             }
 
             if (blockDepth < 1) {
                 return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s for message %s, low depth %d.\n", __func__, txid.ToString(), msgId.ToString(), blockDepth);
             }
+
+            // blockDepth >= 1 -> nMsgFeePerKPerDay must have been set
+            int64_t nExpectFee = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
 
             bool fFound = false;
             // Find all msg pairs
@@ -3146,21 +3151,35 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
                 if (!v->IsType(OUTPUT_DATA)) {
                     continue;
                 }
-                CTxOutData *txd = (CTxOutData*) v.get();
-                if (txd->vData.size() < 25 || txd->vData[0] != DO_FUND_MSG) {
+                const std::vector<uint8_t> &vData = *v->GetPData();
+                if (vData.size() < 25 || vData[0] != DO_FUND_MSG) {
                     continue;
                 }
 
-                size_t n = (txd->vData.size()-1) / 24;
+                size_t n = (vData.size()-1) / 24;
 
                 for (size_t k = 0; k < n; ++k) {
-                    uint160 *pMsgIdTx = (uint160*)&txd->vData[1+k*24];
-                    uint32_t *nAmount = (uint32_t*)&txd->vData[1+k*24+20];
+                    uint160 *pMsgIdTx = (uint160*)&vData[1+k*24];
+                    uint32_t *nAmount = (uint32_t*)&vData[1+k*24+20];
 
                     if (*pMsgIdTx == msgId) {
                         if (*nAmount < nExpectFee) {
-                            LogPrintf("%s: Transaction %s underfunded message %s, expected %d paid %d.\n", __func__, txid.ToString(), msgId.ToString(), nExpectFee, *nAmount);
-                            return SMSG_FUND_FAILED;
+
+                            // Grace period after fee period transition where prev fee is still allowed
+                            bool matched_last_fee = false;
+                            if (pindex->nHeight % consensusParams.smsg_fee_period < 10) {
+                                int64_t nMsgFeePerKPerDayLast = GetSmsgFeeRate(pindex, true);
+                                int64_t nExpectFeeLast = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
+
+                                if (*nAmount >= nExpectFeeLast) {
+                                    matched_last_fee = true;
+                                }
+                            }
+
+                            if (!matched_last_fee) {
+                                LogPrintf("%s: Transaction %s underfunded message %s, expected %d paid %d.\n", __func__, txid.ToString(), msgId.ToString(), nExpectFee, *nAmount);
+                                return SMSG_FUND_FAILED;
+                            }
                         }
                         fFound = true;
                     }
@@ -3170,7 +3189,6 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             if (!fFound) {
                 return errorN(SMSG_FUND_FAILED, "%s: Transaction %s does not fund message %s.\n", __func__, txid.ToString(), msgId.ToString());
             }
-
         }
 
         return SMSG_NO_ERROR; // smsg is valid and funded
@@ -3712,10 +3730,11 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
 
     size_t nMsgBytes = SMSG_HDR_LEN + smsg.nPayload;
 
+    const Consensus::Params &consensusParams = Params().GetConsensus();
     CCoinControl coinControl;
-    coinControl.m_feerate = CFeeRate(nFundingTxnFeePerK);
+    coinControl.m_feerate = CFeeRate(consensusParams.smsg_fee_funding_tx_per_k);
     coinControl.fOverrideFeeRate = true;
-    coinControl.m_extrafee = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
+    coinControl.m_extrafee = ((GetSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
 
     assert(coinControl.m_extrafee <= std::numeric_limits<uint32_t>::max());
     uint32_t msgFee = coinControl.m_extrafee;

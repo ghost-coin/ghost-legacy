@@ -618,7 +618,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
     }
 
     state.fEnforceSmsgFees = nAcceptTime >= chainparams.GetConsensus().nPaidSmsgTime;
-    state.fBulletproofsActive = nAcceptTime >= chainparams.GetConsensus().bulletproofTime;
+    state.fBulletproofsActive = nAcceptTime >= chainparams.GetConsensus().bulletproof_time;
 
     if (!CheckTransaction(tx, state))
         return false; // state filled in by CheckTransaction
@@ -2239,8 +2239,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     assert(*pindex->phashBlock == block.GetHash());
     int64_t nTimeStart = GetTimeMicros();
 
-    state.fEnforceSmsgFees = block.nTime >= chainparams.GetConsensus().nPaidSmsgTime;
-    state.fBulletproofsActive = block.nTime >= chainparams.GetConsensus().bulletproofTime;
+    const Consensus::Params &consensus = Params().GetConsensus();
+    state.fEnforceSmsgFees = block.nTime >= consensus.nPaidSmsgTime;
+    state.fBulletproofsActive = block.nTime >= consensus.bulletproof_time;
 
     // Check it again in case a previous version let a bad block in
     // NOTE: We don't currently (re-)invoke ContextualCheckBlock() or
@@ -2416,7 +2417,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     }
 
     int nLockTimeFlags = 0;
-    if (fParticlMode || VersionBitsState(pindex->pprev, chainparams.GetConsensus(), Consensus::DEPLOYMENT_CSV, versionbitscache) == ThresholdState::ACTIVE) {
+    if (fParticlMode || VersionBitsState(pindex->pprev, consensus, Consensus::DEPLOYMENT_CSV, versionbitscache) == ThresholdState::ACTIVE) {
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
@@ -2567,8 +2568,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             nMoneyCreated += tx.GetValueOut();
         };
 
-        if (view.nLastRCTOutput == 0)
+        if (view.nLastRCTOutput == 0) {
             view.nLastRCTOutput = pindex->pprev ? pindex->pprev->nAnonOutputs : 0;
+        }
         // Index rct outputs and keyimages
         if (state.fHasAnonOutput || state.fHasAnonInput) {
             COutPoint op(txhash, 0);
@@ -2592,8 +2594,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             }
 
             for (unsigned int k = 0; k < tx.vpout.size(); k++) {
-                if (!tx.vpout[k]->IsType(OUTPUT_RINGCT))
+                if (!tx.vpout[k]->IsType(OUTPUT_RINGCT)) {
                     continue;
+                }
 
                 CTxOutRingCT *txout = (CTxOutRingCT*)tx.vpout[k].get();
 
@@ -2632,20 +2635,22 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 const CTxOutBase *out = tx.vpout[k].get();
 
                 if (!out->IsType(OUTPUT_STANDARD)
-                    && !out->IsType(OUTPUT_CT))
+                    && !out->IsType(OUTPUT_CT)) {
                     continue;
+                }
 
                 const CScript *pScript;
                 std::vector<unsigned char> hashBytes;
                 int scriptType = 0;
                 CAmount nValue;
                 if (!ExtractIndexInfo(out, scriptType, hashBytes, nValue, pScript)
-                    || scriptType == 0)
+                    || scriptType == 0) {
                     continue;
+                }
 
-                // record receiving activity
+                // Record receiving activity
                 view.addressIndex.push_back(std::make_pair(CAddressIndexKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), pindex->nHeight, i, txhash, k, false), nValue));
-                // record unspent output
+                // Record unspent output
                 view.addressUnspentIndex.push_back(std::make_pair(CAddressUnspentKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), txhash, k), CAddressUnspentValue(nValue, *pScript, pindex->nHeight)));
             }
         }
@@ -2658,85 +2663,117 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         return state.DoS(100, error("%s: CheckQueue failed", __func__), REJECT_INVALID, "block-validation-failed");
 
     if (fParticlMode) {
-        if (block.IsProofOfStake()) { // only the genesis block isn't proof of stake
+        if (block.IsProofOfStake()) { // Only the genesis block isn't proof of stake
             CTransactionRef txCoinstake = block.vtx[0];
-            const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(block.nTime);
+            CTransactionRef txPrevCoinstake = nullptr;
+            const DevFundSettings *pDevFundSettings = chainparams.GetDevFundSettings(block.nTime);
+            const CAmount nCalculatedStakeReward = Params().GetProofOfStakeReward(pindex->pprev, nFees); // stake_test
 
-            CAmount nCalculatedStakeReward = Params().GetProofOfStakeReward(pindex->pprev, nFees);
+            if (block.nTime >= consensus.smsg_fee_time) {
+                CAmount smsg_fee_new, smsg_fee_prev;
+                if (pindex->pprev->nHeight > 0 // Skip genesis block (POW)
+                    && pindex->pprev->nTime >= consensus.smsg_fee_time) {
+                    if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)
+                        || !txPrevCoinstake->GetSmsgFeeRate(smsg_fee_prev)) {
+                        return state.DoS(100, error("%s: Failed to get previous smsg fee.", __func__), REJECT_INVALID, "bad-cs-smsg-fee-prev");
+                    }
+                } else {
+                    smsg_fee_prev = consensus.smsg_fee_msg_per_day_per_k;
+                }
+
+                if (!txCoinstake->GetSmsgFeeRate(smsg_fee_new)) {
+                    return state.DoS(100, error("%s: Failed to get smsg fee.", __func__), REJECT_INVALID, "bad-cs-smsg-fee");
+                }
+
+                if (smsg_fee_new < 1) {
+                    return state.DoS(100, error("%s: Smsg fee < 1.", __func__), REJECT_INVALID, "bad-cs-smsg-fee");
+                }
+
+                int64_t delta = std::abs(smsg_fee_new - smsg_fee_prev);
+                int64_t max_delta = chainparams.GetMaxSmsgFeeRateDelta(smsg_fee_prev);
+                if (delta > max_delta) {
+                    return state.DoS(100, error("%s: Bad smsg-fee (delta=%d, max_delta=%d)", __func__, delta, max_delta), REJECT_INVALID, "bad-cs-smsg-fee");
+                }
+            }
 
             if (!pDevFundSettings || pDevFundSettings->nMinDevStakePercent <= 0) {
                 if (nStakeReward < 0 || nStakeReward > nCalculatedStakeReward) {
-                    return state.DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward), REJECT_INVALID, "bad-cs-amount");
+                    return state.DoS(100, error("%s: Coinstake pays too much(actual=%d vs calculated=%d)", __func__, nStakeReward, nCalculatedStakeReward), REJECT_INVALID, "bad-cs-amount");
                 }
             } else {
                 assert(pDevFundSettings->nMinDevStakePercent <= 100);
 
+                CAmount nDevBfwd = 0, nDevCfwdCheck = 0;
                 CAmount nMinDevPart = (nCalculatedStakeReward * pDevFundSettings->nMinDevStakePercent) / 100;
                 CAmount nMaxHolderPart = nCalculatedStakeReward - nMinDevPart;
-                if (nMinDevPart < 0 || nMaxHolderPart < 0)
-                    return state.DoS(100, error("%s: bad coinstake split amount (foundation=%d vs reward=%d)", __func__, nMinDevPart, nMaxHolderPart), REJECT_INVALID, "bad-cs-amount");
+                if (nMinDevPart < 0 || nMaxHolderPart < 0) {
+                    return state.DoS(100, error("%s: Bad coinstake split amount (foundation=%d vs reward=%d)", __func__, nMinDevPart, nMaxHolderPart), REJECT_INVALID, "bad-cs-amount");
+                }
 
-
-                CAmount nDevBfwd = 0, nDevCfwdCheck = 0;
-                if (pindex->pprev->nHeight > 0) { // genesis block is pow
-                    CTransactionRef txPrevCoinstake;
-                    if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake))
-                        return state.DoS(100, error("%s: Failed to get previous coinstake.", __func__), REJECT_INVALID, "bad-cs-amount");
+                if (pindex->pprev->nHeight > 0) { // Genesis block is pow
+                    if (!txPrevCoinstake
+                        && !coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)) {
+                        return state.DoS(100, error("%s: Failed to get previous coinstake.", __func__), REJECT_INVALID, "bad-cs-prev");
+                    }
 
                     assert(txPrevCoinstake->IsCoinStake()); // Sanity check
-
-                    if (!txPrevCoinstake->GetDevFundCfwd(nDevBfwd))
+                    if (!txPrevCoinstake->GetDevFundCfwd(nDevBfwd)) {
                         nDevBfwd = 0;
+                    }
                 }
 
                 if (pindex->nHeight % pDevFundSettings->nDevOutputPeriod == 0) {
                     // Fund output must exist and match cfwd, cfwd data output must be unset
                     // nStakeReward must == nDevBfwd + nCalculatedStakeReward
 
-                    if (nStakeReward != nDevBfwd + nCalculatedStakeReward)
-                        return state.DoS(100, error("%s: bad stake-reward (actual=%d vs expected=%d)", __func__, nStakeReward, nDevBfwd + nCalculatedStakeReward), REJECT_INVALID, "bad-cs-amount");
+                    if (nStakeReward != nDevBfwd + nCalculatedStakeReward) {
+                        return state.DoS(100, error("%s: Bad stake-reward (actual=%d vs expected=%d)", __func__, nStakeReward, nDevBfwd + nCalculatedStakeReward), REJECT_INVALID, "bad-cs-amount");
+                    }
 
                     CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
-                    if (dfDest.type() == typeid(CNoDestination))
+                    if (dfDest.type() == typeid(CNoDestination)) {
                         return error("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
+                    }
                     CScript devFundScriptPubKey = GetScriptForDestination(dfDest);
 
-                    // output 1 must be to the dev fund
+                    // Output 1 must be to the dev fund
                     const CTxOutStandard *outputDF = txCoinstake->vpout[1]->GetStandardOutput();
-                    if (!outputDF)
+                    if (!outputDF) {
                         return state.DoS(100, error("%s: Bad foundation fund output.", __func__), REJECT_INVALID, "bad-cs");
-
-                    if (outputDF->scriptPubKey != devFundScriptPubKey)
+                    }
+                    if (outputDF->scriptPubKey != devFundScriptPubKey) {
                         return state.DoS(100, error("%s: Bad foundation fund output script.", __func__), REJECT_INVALID, "bad-cs");
-
-                    if (outputDF->nValue < nDevBfwd + nMinDevPart) // max value is clamped already
+                    }
+                    if (outputDF->nValue < nDevBfwd + nMinDevPart) { // Max value is clamped already
                         return state.DoS(100, error("%s: Bad foundation-reward (actual=%d vs minfundpart=%d)", __func__, nStakeReward, nDevBfwd + nMinDevPart), REJECT_INVALID, "bad-cs-fund-amount");
-
-                    if (txCoinstake->GetDevFundCfwd(nDevCfwdCheck))
+                    }
+                    if (txCoinstake->GetDevFundCfwd(nDevCfwdCheck)) {
                         return state.DoS(100, error("%s: Coinstake foundation cfwd must be unset.", __func__), REJECT_INVALID, "bad-cs-cfwd");
+                    }
                 } else {
                     // Ensure cfwd data output is correct and nStakeReward is <= nHolderPart
-                    // cfwd must == nDevBfwd + (nCalculatedStakeReward - nStakeReward) // allowing users to set a higher split
+                    // cfwd must == nDevBfwd + (nCalculatedStakeReward - nStakeReward) // Allowing users to set a higher split
 
-                    if (nStakeReward < 0 || nStakeReward > nMaxHolderPart)
+                    if (nStakeReward < 0 || nStakeReward > nMaxHolderPart) {
                         return state.DoS(100, error("%s: Bad stake-reward (actual=%d vs maxholderpart=%d)", __func__, nStakeReward, nMaxHolderPart), REJECT_INVALID, "bad-cs-amount");
-
+                    }
                     CAmount nDevCfwd = nDevBfwd + nCalculatedStakeReward - nStakeReward;
                     if (!txCoinstake->GetDevFundCfwd(nDevCfwdCheck)
-                        || nDevCfwdCheck != nDevCfwd)
+                        || nDevCfwdCheck != nDevCfwd) {
                         return state.DoS(100, error("%s: Coinstake foundation fund carried forward mismatch (actual=%d vs expected=%d)", __func__, nDevCfwdCheck, nDevCfwd), REJECT_INVALID, "bad-cs-cfwd");
+                    }
                 }
 
                 coinStakeCache.InsertCoinStake(blockHash, txCoinstake);
             }
         } else {
-            if (block.GetHash() != Params().GenesisBlock().GetHash()) {
-                return state.DoS(100, error("ConnectBlock() : Found block that isn't coinstake or genesis."), REJECT_INVALID, "bad-cs");
+            if (block.GetHash() != chainparams.GenesisBlock().GetHash()) {
+                return state.DoS(100, error("%s: Block isn't coinstake or genesis.", __func__), REJECT_INVALID, "bad-cs");
             }
         }
     } else {
         CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
-        if (block.vtx[0]->GetValueOut() > blockReward) // particl coins are imported as coinbase txns
+        if (block.vtx[0]->GetValueOut() > blockReward) // Particl coins are imported as coinbase txns
             return state.DoS(100,
                              error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                                    block.vtx[0]->GetValueOut(), blockReward),
@@ -2763,28 +2800,30 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     }
 
 
-    if (fTimestampIndex)
-    {
+    if (fTimestampIndex) {
         unsigned int logicalTS = pindex->nTime;
         unsigned int prevLogicalTS = 0;
 
-        // retrieve logical timestamp of the previous block
-        if (pindex->pprev)
-            if (!pblocktree->ReadTimestampBlockIndex(pindex->pprev->GetBlockHash(), prevLogicalTS))
+        // Retrieve logical timestamp of the previous block
+        if (pindex->pprev) {
+            if (!pblocktree->ReadTimestampBlockIndex(pindex->pprev->GetBlockHash(), prevLogicalTS)) {
                 LogPrintf("%s: Failed to read previous block's logical timestamp\n", __func__);
+            }
+        }
 
-        if (logicalTS <= prevLogicalTS)
-        {
+        if (logicalTS <= prevLogicalTS) {
             logicalTS = prevLogicalTS + 1;
             LogPrintf("%s: Previous logical timestamp is newer Actual[%d] prevLogical[%d] Logical[%d]\n", __func__, pindex->nTime, prevLogicalTS, logicalTS);
         }
 
-        if (!pblocktree->WriteTimestampIndex(CTimestampIndexKey(logicalTS, pindex->GetBlockHash())))
+        if (!pblocktree->WriteTimestampIndex(CTimestampIndexKey(logicalTS, pindex->GetBlockHash()))) {
             return AbortNode(state, "Failed to write timestamp index");
+        }
 
-        if (!pblocktree->WriteTimestampBlockIndex(CTimestampBlockIndexKey(pindex->GetBlockHash()), CTimestampBlockIndexValue(logicalTS)))
+        if (!pblocktree->WriteTimestampBlockIndex(CTimestampBlockIndexKey(pindex->GetBlockHash()), CTimestampBlockIndexValue(logicalTS))) {
             return AbortNode(state, "Failed to write blockhash index");
-    };
+        }
+    }
 
     assert(pindex->phashBlock);
     // add this block to the view's block chain
@@ -3995,7 +4034,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         return false;
 
     state.fEnforceSmsgFees = block.nTime >= consensusParams.nPaidSmsgTime;
-    state.fBulletproofsActive = block.nTime >= consensusParams.bulletproofTime;
+    state.fBulletproofsActive = block.nTime >= consensusParams.bulletproof_time;
 
     // Check the merkle root.
     if (fCheckMerkleRoot) {
@@ -4629,6 +4668,37 @@ size_t CountDelayedBlocks() EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     return list_delayed_blocks.size();
 }
+
+CoinStakeCache smsgFeeCoinstakeCache;
+int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    const Consensus::Params &consensusParams = Params().GetConsensus();
+
+    if ((pindex && pindex->nTime < consensusParams.smsg_fee_time)
+        || (!pindex && GetTime() < consensusParams.smsg_fee_time)) {
+        return consensusParams.smsg_fee_msg_per_day_per_k;
+    }
+
+    int chain_height = pindex ? pindex->nHeight : chainActive.Height();
+    if (reduce_height) { // Grace period, push back to previous period
+        chain_height -= 10;
+    }
+    int fee_height = (chain_height / consensusParams.smsg_fee_period) * consensusParams.smsg_fee_period;
+
+    CBlockIndex *fee_block = chainActive[fee_height];
+    if (!fee_block || fee_block->nTime < consensusParams.smsg_fee_time) {
+        return consensusParams.smsg_fee_msg_per_day_per_k;
+    }
+
+    int64_t smsg_fee_rate;
+    CTransactionRef coinstake = nullptr;
+    if (!smsgFeeCoinstakeCache.GetCoinStake(fee_block->GetBlockHash(), coinstake)
+        || !coinstake->GetSmsgFeeRate(smsg_fee_rate)) {
+        return consensusParams.smsg_fee_msg_per_day_per_k;
+    }
+
+    return smsg_fee_rate;
+};
 
 
 
@@ -6296,22 +6366,23 @@ public:
 
 bool CoinStakeCache::GetCoinStake(const uint256 &blockHash, CTransactionRef &tx)
 {
-
-    for (const auto &i : lData)
-    {
-        if (blockHash != i.first)
+    for (const auto &i : lData) {
+        if (blockHash != i.first) {
             continue;
+        }
         tx = i.second;
         return true;
-    };
+    }
 
     BlockMap::iterator mi = mapBlockIndex.find(blockHash);
-    if (mi == mapBlockIndex.end())
+    if (mi == mapBlockIndex.end()) {
         return false;
+    }
 
     CBlockIndex *pindex = mi->second;
-    if (ReadTransactionFromDiskBlock(pindex, 0, tx))
+    if (ReadTransactionFromDiskBlock(pindex, 0, tx)) {
         return InsertCoinStake(blockHash, tx);
+    }
 
     return false;
 };
@@ -6320,8 +6391,9 @@ bool CoinStakeCache::InsertCoinStake(const uint256 &blockHash, const CTransactio
 {
     lData.emplace_front(blockHash, tx);
 
-    while (lData.size() > nMaxSize)
+    while (lData.size() > nMaxSize) {
         lData.pop_back();
+    }
 
     return true;
 };

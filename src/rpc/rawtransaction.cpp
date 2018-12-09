@@ -317,10 +317,11 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
     if (blockindex) result.pushKV("in_active_chain", in_active_chain);
     result.pushKV("hex", strHex);
 
-    if (fParticlMode)
+    if (fParticlMode) {
         TxToJSONExpanded(*tx, hashBlock, result, nHeight, nConfirmations, nBlockTime);
-    else
+    } else {
         TxToJSON(*tx, hashBlock, result);
+    }
     return result;
 }
 

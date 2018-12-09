@@ -15,6 +15,7 @@
 #include <core_io.h>
 #include <base58.h>
 #include <rpc/util.h>
+#include <validation.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
@@ -1666,6 +1667,39 @@ static UniValue smsgpurge(const JSONRPCRequest &request)
     return NullUniValue;
 }
 
+static UniValue smsggetfeerate(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 1)
+        throw std::runtime_error(
+            RPCHelpMan{"smsggetfeerate",
+                "\nReturn paid SMSG fee.\n",
+                {
+                    {"height", RPCArg::Type::STR_HEX, /* opt */ true, /* default_val */ "", "Chain height to get fee rate for."},
+                }}
+                .ToString() +
+            "\nResult:\n"
+            "Fee rate in satoshis."
+            "\nExamples:\n"
+            + HelpExampleCli("smsggetfeerate", "1000") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("smsggetfeerate", "1000")
+        );
+
+    LOCK(cs_main);
+
+    CBlockIndex *pblockindex = nullptr;
+    if (!request.params[0].isNull()) {
+        int nHeight = request.params[0].get_int();
+        if (nHeight > chainActive.Height()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
+        }
+        pblockindex = chainActive[nHeight];
+    }
+
+    return GetSmsgFeeRate(pblockindex);
+}
+
+
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
@@ -1687,6 +1721,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgview",               &smsgview,               {}},
     { "smsg",               "smsg",                   &smsgone,                {"msgid","options"}},
     { "smsg",               "smsgpurge",              &smsgpurge,              {"msgid"}},
+    { "smsg",               "smsggetfeerate",         &smsggetfeerate,         {"height"}},
 };
 
 void RegisterSmsgRPCCommands(CRPCTable &tableRPC)

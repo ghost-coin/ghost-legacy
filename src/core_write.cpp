@@ -202,17 +202,15 @@ void AddRangeproof(const std::vector<uint8_t> &vRangeproof, UniValue &entry)
 {
     entry.pushKV("rangeproof", HexStr(vRangeproof.begin(), vRangeproof.end()));
 
-    if (vRangeproof.size() > 0)
-    {
+    if (vRangeproof.size() > 0) {
         int exponent, mantissa;
         CAmount min_value, max_value;
-        if (0 == GetRangeProofInfo(vRangeproof, exponent, mantissa, min_value, max_value))
-        {
+        if (0 == GetRangeProofInfo(vRangeproof, exponent, mantissa, min_value, max_value)) {
             entry.pushKV("rp_exponent", exponent);
             entry.pushKV("rp_mantissa", mantissa);
             entry.pushKV("rp_min_value", ValueFromAmount(min_value));
             entry.pushKV("rp_max_value", ValueFromAmount(max_value));
-        };
+        }
     };
 }
 
@@ -220,8 +218,7 @@ void OutputToJSON(uint256 &txid, int i,
     const CTxOutBase *baseOut, UniValue &entry)
 {
     bool fCanSpend = false;
-    switch (baseOut->GetType())
-    {
+    switch (baseOut->GetType()) {
         case OUTPUT_STANDARD:
             {
             fCanSpend = true;
@@ -240,10 +237,15 @@ void OutputToJSON(uint256 &txid, int i,
             entry.pushKV("type", "data");
             entry.pushKV("data_hex", HexStr(s->vData.begin(), s->vData.end()));
             CAmount nValue;
-            if (s->GetCTFee(nValue))
+            if (s->GetCTFee(nValue)) {
                 entry.pushKV("ct_fee", ValueFromAmount(nValue));
-            if (s->GetDevFundCfwd(nValue))
+            }
+            if (s->GetDevFundCfwd(nValue)) {
                 entry.pushKV("dev_fund_cfwd", ValueFromAmount(nValue));
+            }
+            if (s->GetSmsgFeeRate(nValue)) {
+                entry.pushKV("smsgfeerate", ValueFromAmount(nValue));
+            }
             }
             break;
         case OUTPUT_CT:
@@ -274,20 +276,18 @@ void OutputToJSON(uint256 &txid, int i,
         default:
             entry.pushKV("type", "unknown");
             break;
-    };
+    }
 
-    if (fCanSpend)
-    {
+    if (fCanSpend) {
         // Add spent information if spentindex is enabled
         CSpentIndexValue spentInfo;
         CSpentIndexKey spentKey(txid, i);
-        if (pCoreWriteGetSpentIndex && pCoreWriteGetSpentIndex(spentKey, spentInfo))
-        {
+        if (pCoreWriteGetSpentIndex && pCoreWriteGetSpentIndex(spentKey, spentInfo)) {
             entry.pushKV("spentTxId", spentInfo.txid.GetHex());
             entry.pushKV("spentIndex", (int)spentInfo.inputIndex);
             entry.pushKV("spentHeight", spentInfo.blockHeight);
-        };
-    };
+        }
+    }
 };
 
 void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry, bool include_hex, int serialize_flags)

@@ -173,7 +173,7 @@ public:
 class CoinStakeCache
 {
 public:
-    size_t nMaxSize = 10;
+    size_t nMaxSize = 16;
     std::list<std::pair<uint256, CTransactionRef> > lData;
 
     bool GetCoinStake(const uint256 &blockHash, CTransactionRef &tx);
@@ -614,5 +614,6 @@ inline bool IsBlockPruned(const CBlockIndex* pblockindex)
 
 bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 size_t CountDelayedBlocks() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 #endif // BITCOIN_VALIDATION_H

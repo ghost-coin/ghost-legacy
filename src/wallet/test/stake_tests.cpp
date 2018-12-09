@@ -33,7 +33,7 @@ extern UniValue CallRPC(std::string args, std::string wallet="");
 
 struct StakeTestingSetup: public TestingSetup {
     StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
-        TestingSetup(chainName, true) // fParticlMode = true
+        TestingSetup(chainName, /* fParticlMode */ true)
     {
         bool fFirstRun;
         pwalletMain = std::make_shared<CHDWallet>(*m_chain, WalletLocation(), WalletDatabase::CreateMock());
@@ -288,12 +288,12 @@ BOOST_AUTO_TEST_CASE(stake_test)
         BOOST_CHECK(prevTipHash == chainActive.Tip()->GetBlockHash());
 
 
-        // Reduce the reward
-        RegtestParams().SetCoinYearReward(1 * CENT);
-        BOOST_CHECK(Params().GetCoinYearReward(0) == 1 * CENT);
-
         {
             LOCK(cs_main);
+
+            // Reduce the reward
+            RegtestParams().SetCoinYearReward(1 * CENT);
+            BOOST_CHECK(Params().GetCoinYearReward(0) == 1 * CENT);
 
             CValidationState state;
             CCoinsViewCache view(pcoinsTip.get());

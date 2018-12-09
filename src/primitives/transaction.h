@@ -51,6 +51,7 @@ enum DataOutputTypes
     DO_FEE                  = 6,
     DO_DEV_FUND_CFWD        = 7,
     DO_FUND_MSG             = 8,
+    DO_SMSG_FEE             = 9,
 };
 
 inline bool IsParticlTxVersion(int nVersion)
@@ -162,10 +163,9 @@ public:
         READWRITE(scriptSig);
         READWRITE(nSequence);
 
-        if (IsAnonInput())
-        {
+        if (IsAnonInput()) {
             READWRITE(scriptData.stack);
-        };
+        }
     }
 
     friend bool operator==(const CTxIn& a, const CTxIn& b)
@@ -217,8 +217,7 @@ public:
     template<typename Stream>
     void Serialize(Stream &s) const
     {
-        switch (nVersion)
-        {
+        switch (nVersion) {
             case OUTPUT_STANDARD:
                 s << *((CTxOutStandard*) this);
                 break;
@@ -233,14 +232,13 @@ public:
                 break;
             default:
                 assert(false);
-        };
+        }
     };
 
     template<typename Stream>
     void Unserialize(Stream &s)
     {
-        switch (nVersion)
-        {
+        switch (nVersion) {
             case OUTPUT_STANDARD:
                 s >> *((CTxOutStandard*) this);
                 break;
@@ -255,7 +253,7 @@ public:
                 break;
             default:
                 assert(false);
-        };
+        }
     };
 
     uint8_t GetType() const
@@ -298,6 +296,7 @@ public:
     virtual bool GetCTFee(CAmount &nFee) const { return false; };
     virtual bool SetCTFee(CAmount &nFee) { return false; };
     virtual bool GetDevFundCfwd(CAmount &nCfwd) const { return false; };
+    virtual bool GetSmsgFeeRate(CAmount &nCfwd) const { return false; };
 
     std::string ToString() const;
 };
@@ -329,11 +328,10 @@ public:
         s >> *(CScriptBase*)(&scriptPubKey);
     };
 
-
     bool IsEmpty() const override
     {
         return (nValue == 0 && scriptPubKey.empty());
-    }
+    };
 
     bool PutValue(std::vector<uint8_t> &vchAmount) const override
     {
@@ -376,13 +374,11 @@ public:
         s << vData;
         s << *(CScriptBase*)(&scriptPubKey);
 
-        if (fAllowWitness)
-        {
+        if (fAllowWitness) {
             s << vRangeproof;
-        } else
-        {
+        } else {
             WriteCompactSize(s, 0);
-        };
+        }
     };
 
     template<typename Stream>
@@ -446,13 +442,11 @@ public:
         s.write((char*)&commitment.data[0], 33);
         s << vData;
 
-        if (fAllowWitness)
-        {
+        if (fAllowWitness) {
             s << vRangeproof;
-        } else
-        {
+        } else {
             WriteCompactSize(s, 0);
-        };
+        }
     };
 
     template<typename Stream>
@@ -509,8 +503,9 @@ public:
 
     bool GetCTFee(CAmount &nFee) const override
     {
-        if (vData.size() < 2 || vData[0] != DO_FEE)
+        if (vData.size() < 2 || vData[0] != DO_FEE) {
             return false;
+        }
 
         size_t nb;
         return (0 == GetVarInt(vData, 1, (uint64_t&)nFee, nb));
@@ -525,27 +520,73 @@ public:
 
     bool GetDevFundCfwd(CAmount &nCfwd) const override
     {
-        if (vData.size() < 5)
+        if (vData.size() < 5) {
             return false;
+        }
 
-        size_t ofs = 4; // first 4 bytes will be height
-        while (ofs < vData.size())
-        {
-            if (vData[ofs] == DO_VOTE)
-            {
+        size_t nb;
+        size_t ofs = 4; // First 4 bytes will be height
+        while (ofs < vData.size()) {
+            if (vData[ofs] == DO_VOTE) {
                 ofs += 5;
                 continue;
-            };
-            if (vData[ofs] == DO_DEV_FUND_CFWD)
-            {
+            }
+            if (vData[ofs] == DO_DEV_FUND_CFWD) {
                 ofs++;
-                size_t nb;
                 return (0 == GetVarInt(vData, ofs, (uint64_t&)nCfwd, nb));
-            };
+            }
+            if (vData[ofs] == DO_SMSG_FEE) {
+                ofs++;
+                uint64_t nv;
+                if  (0 != GetVarInt(vData, ofs, nv, nb)) {
+                    return false;
+                }
+                ofs += nv;
+                continue;
+            }
             break;
-        };
+        }
 
         return false;
+    };
+
+    bool GetSmsgFeeRate(CAmount &fee_rate) const override
+    {
+        if (vData.size() < 5) {
+            return false;
+        }
+
+        size_t nb;
+        size_t ofs = 4; // First 4 bytes will be height
+        while (ofs < vData.size()) {
+            if (vData[ofs] == DO_VOTE) {
+                ofs += 5;
+                continue;
+            }
+            if (vData[ofs] == DO_DEV_FUND_CFWD) {
+                ofs++;
+                uint64_t nv;
+                if  (0 != GetVarInt(vData, ofs, nv, nb)) {
+                    return false;
+                }
+                ofs += nv;
+                continue;
+            }
+            if (vData[ofs] == DO_SMSG_FEE) {
+                ofs++;
+                return (0 == GetVarInt(vData, ofs, (uint64_t&)fee_rate, nb));
+            }
+            break;
+        }
+
+        return false;
+    };
+
+
+
+    std::vector<uint8_t> *GetPData() override
+    {
+        return &vData;
     };
 };
 
@@ -631,8 +672,7 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
     tx.nVersion = 0;
     s >> bv;
 
-    if (bv >= PARTICL_TXN_VERSION)
-    {
+    if (bv >= PARTICL_TXN_VERSION) {
         tx.nVersion = bv;
 
         s >> bv;
@@ -645,12 +685,10 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
 
         size_t nOutputs = ReadCompactSize(s);
         tx.vpout.resize(nOutputs);
-        for (size_t k = 0; k < tx.vpout.size(); ++k)
-        {
+        for (size_t k = 0; k < tx.vpout.size(); ++k) {
             s >> bv;
 
-            switch (bv)
-            {
+            switch (bv) {
                 case OUTPUT_STANDARD:
                     tx.vpout[k] = MAKE_OUTPUT<CTxOutStandard>();
                     break;
@@ -665,19 +703,18 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
                     break;
                 default:
                     return;
-            };
+            }
 
             tx.vpout[k]->nVersion = bv;
             s >> *tx.vpout[k];
         }
 
-        if (fAllowWitness)
-        {
+        if (fAllowWitness) {
             for (auto &txin : tx.vin)
                 s >> txin.scriptWitness.stack;
-        };
+        }
         return;
-    };
+    }
 
     tx.nVersion |= bv;
     s >> bv;
@@ -722,8 +759,7 @@ template<typename Stream, typename TxType>
 inline void SerializeTransaction(const TxType& tx, Stream& s) {
     const bool fAllowWitness = !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
 
-    if (IsParticlTxVersion(tx.nVersion))
-    {
+    if (IsParticlTxVersion(tx.nVersion)) {
         uint8_t bv = tx.nVersion & 0xFF;
         s << bv;
 
@@ -734,17 +770,16 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
         s << tx.vin;
 
         WriteCompactSize(s, tx.vpout.size());
-        for (size_t k = 0; k < tx.vpout.size(); ++k)
-        {
+        for (size_t k = 0; k < tx.vpout.size(); ++k) {
             s << tx.vpout[k]->nVersion;
             s << *tx.vpout[k];
-        };
+        }
 
-        if (fAllowWitness)
-        {
-            for (auto &txin : tx.vin)
+        if (fAllowWitness) {
+            for (auto &txin : tx.vin) {
                 s << txin.scriptWitness.stack;
-        };
+            }
+        }
         return;
     };
 
@@ -868,9 +903,10 @@ public:
 
     bool IsCoinBase() const
     {
-        if (IsParticlVersion())
+        if (IsParticlVersion()) {
             return (GetType() == TXN_COINBASE
                 && vin.size() == 1 && vin[0].prevout.IsNull()); // TODO [rm]?
+        }
 
         return (vin.size() == 1 && vin[0].prevout.IsNull());
     }
@@ -885,12 +921,14 @@ public:
 
     bool GetCoinStakeHeight(int &height) const
     {
-        if (vpout.size() < 2 || vpout[0]->nVersion != OUTPUT_DATA)
+        if (vpout.size() < 2 || vpout[0]->nVersion != OUTPUT_DATA) {
             return false;
+        }
 
-        std::vector<uint8_t> &vData = ((CTxOutData*)vpout[0].get())->vData;
-        if (vData.size() < 4)
+        std::vector<uint8_t> &vData = *vpout[0]->GetPData();
+        if (vData.size() < 4) {
             return false;
+        }
 
         memcpy(&height, &vData[0], 4);
         return true;
@@ -898,18 +936,29 @@ public:
 
     bool GetCTFee(CAmount &nFee) const
     {
-        if (vpout.size() < 2 || vpout[0]->nVersion != OUTPUT_DATA)
+        if (vpout.size() < 2 || vpout[0]->nVersion != OUTPUT_DATA) {
             return false;
+        }
 
         return vpout[0]->GetCTFee(nFee);
     }
 
     bool GetDevFundCfwd(CAmount &nCfwd) const
     {
-        if (vpout.size() < 1 || vpout[0]->nVersion != OUTPUT_DATA)
+        if (vpout.size() < 1 || vpout[0]->nVersion != OUTPUT_DATA) {
             return false;
+        }
 
         return vpout[0]->GetDevFundCfwd(nCfwd);
+    }
+
+    bool GetSmsgFeeRate(CAmount &fee_rate) const
+    {
+        if (vpout.size() < 1 || vpout[0]->nVersion != OUTPUT_DATA) {
+            return false;
+        }
+
+        return vpout[0]->GetSmsgFeeRate(fee_rate);
     }
 
     friend bool operator==(const CTransaction& a, const CTransaction& b)

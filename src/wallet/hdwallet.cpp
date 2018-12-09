@@ -318,6 +318,13 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
                 AppendError(sError, "Setting \"rewardaddress\" failed.");
             }
         }
+
+        if (!json["smsgfeeratetarget"].isNull()) {
+            try { m_smsg_fee_rate_target = AmountFromValue(json["smsgfeeratetarget"]);
+            } catch (std::exception &e) {
+                AppendError(sError, "\"smsgfeeratetarget\" not an amount.");
+            }
+        }
     }
 
     if (nStakeCombineThreshold < 100 * COIN || nStakeCombineThreshold > 5000 * COIN) {
@@ -3173,7 +3180,7 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
     size_t nRangeProofLen = 5134;
     pvRangeproof->resize(nRangeProofLen);
 
-    if (GetTime() >= Params().GetConsensus().bulletproofTime) {
+    if (GetTime() >= Params().GetConsensus().bulletproof_time) {
         const uint8_t *bp[1];
         bp[0] = r.vBlind.data();
         if (1 != secp256k1_bulletproof_rangeproof_prove(secp256k1_ctx_blind, blind_scratch, blind_gens,
@@ -3954,7 +3961,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         coinControl->nChangePos = nChangePosInOut;
 
         if (!fOnlyStandardOutputs) {
-            std::vector<uint8_t> &vData = ((CTxOutData*)txNew.vpout[0].get())->vData;
+            std::vector<uint8_t> &vData = *txNew.vpout[0]->GetPData();
             vData.resize(1);
             if (0 != PutVarInt(vData, nFeeRet)) {
                 return werrorN(1, "%s: PutVarInt %d failed\n", __func__, nFeeRet);
@@ -4548,7 +4555,7 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         }
 
 
-        std::vector<uint8_t> &vData = ((CTxOutData*)txNew.vpout[0].get())->vData;
+        std::vector<uint8_t> &vData = *txNew.vpout[0]->GetPData();
         vData.resize(1);
         if (0 != PutVarInt(vData, nFeeRet)) {
             return werrorN(1, "%s: PutVarInt %d failed\n", __func__, nFeeRet);
@@ -5149,7 +5156,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         }
 
 
-        std::vector<uint8_t> &vData = ((CTxOutData*)txNew.vpout[0].get())->vData;
+        std::vector<uint8_t> &vData = *txNew.vpout[0]->GetPData();
         vData.resize(1);
         if (0 != PutVarInt(vData, nFeeRet)) {
             return werrorN(1, "%s: PutVarInt %d failed\n", __func__, nFeeRet);
@@ -5205,15 +5212,10 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 GetStrongRandBytes(randSeed, 32);
 
                 std::vector<CKey> vsk(nSigInputs);
-                std::vector<const uint8_t*> vpsk(nRows);
-
-                std::vector<uint8_t> vm(nCols * nRows * 33);
+                std::vector<const uint8_t*> vpsk(nRows), vpBlinds, vpInCommits(nCols * nSigInputs);
+                std::vector<uint8_t> vm(nCols * nRows * 33), &vKeyImages = txin.scriptData.stack[0];
                 std::vector<secp256k1_pedersen_commitment> vCommitments;
                 vCommitments.reserve(nCols * nSigInputs);
-                std::vector<const uint8_t*> vpInCommits(nCols * nSigInputs);
-                std::vector<const uint8_t*> vpBlinds;
-
-                std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
 
 
                 for (size_t k = 0; k < nSigInputs; ++k)
@@ -12324,6 +12326,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         setCoins.erase(itc);
     }
 
+    const Consensus::Params &consensusParams = Params().GetConsensus();
     // Get block reward
     CAmount nReward = Params().GetProofOfStakeReward(pindexPrev, nFees);
     if (nReward < 0) {
@@ -12331,6 +12334,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
     }
 
     // Process development fund
+    CTransactionRef txPrevCoinstake = nullptr;
     CAmount nRewardOut;
     const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTime);
     if (!pDevFundSettings || pDevFundSettings->nMinDevStakePercent <= 0) {
@@ -12343,7 +12347,6 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
         CAmount nDevBfwd = 0;
         if (nBlockHeight > 1) { // genesis block is pow
-            CTransactionRef txPrevCoinstake;
             if (!coinStakeCache.GetCoinStake(pindexPrev->GetBlockHash(), txPrevCoinstake)) {
                 return werror("%s: Failed to get previous coinstake: %s.", __func__, pindexPrev->GetBlockHash().ToString());
             }
@@ -12368,21 +12371,46 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             txNew.vpout.insert(txNew.vpout.begin()+1, outDevSplit);
         } else {
             // Add to carried forward
-            std::vector<uint8_t> &vData = ((CTxOutData*)txNew.vpout[0].get())->vData;
-
-            std::vector<uint8_t> vCfwd(1);
+            std::vector<uint8_t> vCfwd(1), &vData = *txNew.vpout[0]->GetPData();
             vCfwd[0] = DO_DEV_FUND_CFWD;
             if (0 != PutVarInt(vCfwd, nDevCfwd)) {
                 return werror("%s: PutVarInt failed: %d.", __func__, nDevCfwd);
             }
-
             vData.insert(vData.end(), vCfwd.begin(), vCfwd.end());
         }
-
         if (LogAcceptCategory(BCLog::POS)) {
             WalletLogPrintf("%s: Coinstake reward split %d%%, foundation %s, reward %s.\n",
                 __func__, nStakeSplit, FormatMoney(nDevPart), FormatMoney(nRewardOut));
         }
+    }
+
+    // Place SMSG fee rate
+    if (nTime >= consensusParams.smsg_fee_time) {
+        CAmount smsg_fee_rate = consensusParams.smsg_fee_msg_per_day_per_k;
+        if (nBlockHeight > 1) { // genesis block is pow
+            if (!txPrevCoinstake && !coinStakeCache.GetCoinStake(pindexPrev->GetBlockHash(), txPrevCoinstake)) {
+                return werror("%s: Failed to get previous coinstake: %s.", __func__, pindexPrev->GetBlockHash().ToString());
+            }
+            txPrevCoinstake->GetSmsgFeeRate(smsg_fee_rate);
+        }
+
+        if (m_smsg_fee_rate_target > 0) {
+            int64_t diff = m_smsg_fee_rate_target - smsg_fee_rate;
+            int64_t max_delta = Params().GetMaxSmsgFeeRateDelta(smsg_fee_rate);
+            if (diff > max_delta) {
+                diff = max_delta;
+            }
+            if (diff < -max_delta) {
+                diff = -max_delta;
+            }
+            smsg_fee_rate += diff;
+        }
+        std::vector<uint8_t> vSmsgFeeRate(1), &vData = *txNew.vpout[0]->GetPData();
+        vSmsgFeeRate[0] = DO_SMSG_FEE;
+        if (0 != PutVarInt(vSmsgFeeRate, smsg_fee_rate)) {
+            return werror("%s: PutVarInt failed: %d.", __func__, smsg_fee_rate);
+        }
+        vData.insert(vData.end(), vSmsgFeeRate.begin(), vSmsgFeeRate.end());
     }
 
 

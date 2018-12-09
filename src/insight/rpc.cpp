@@ -976,6 +976,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
             "{\n"
             "  \"blockhash\" : \"id\",     (id) The hash of the block.\n"
             "  \"coinstake\" : \"id\",     (id) The hash of the coinstake transaction.\n"
+            "  \"blocktime\" : n,          (id) The time of the block.\n"
             "  \"stakereward\" : n,      (numeric) The stake reward portion, newly minted coin.\n"
             "  \"blockreward\" : n,      (numeric) The block reward, value paid to staker, including fees.\n"
             "  \"foundationreward\" : n, (numeric) The accumulated foundation reward payout, if any.\n"
@@ -1085,6 +1086,8 @@ UniValue getblockreward(const JSONRPCRequest& request)
     if (tx->IsCoinStake()) {
         rv.pushKV("coinstake", tx->GetHash().ToString());
     }
+
+    rv.pushKV("blocktime", pblockindex->GetBlockTime());
     rv.pushKV("stakereward", ValueFromAmount(stake_reward));
     rv.pushKV("blockreward", ValueFromAmount(block_reward));
 

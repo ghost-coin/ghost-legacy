@@ -24,14 +24,14 @@ int64_t CChainParams::GetCoinYearReward(int64_t nTime) const
 {
     static const int64_t nSecondsInYear = 365 * 24 * 60 * 60;
 
-    if (strNetworkID != "regtest")
-    {
+    if (strNetworkID != "regtest") {
         // Y1 5%, Y2 4%, Y3 3%, Y4 2%, ... YN 2%
         int64_t nYearsSinceGenesis = (nTime - genesis.nTime) / nSecondsInYear;
 
-        if (nYearsSinceGenesis >= 0 && nYearsSinceGenesis < 3)
+        if (nYearsSinceGenesis >= 0 && nYearsSinceGenesis < 3) {
             return (5 - nYearsSinceGenesis) * CENT;
-    };
+        }
+    }
 
     return nCoinYearReward;
 };
@@ -45,17 +45,22 @@ int64_t CChainParams::GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64
     return nSubsidy + nFees;
 };
 
+int64_t CChainParams::GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const
+{
+     return (smsg_fee_prev * consensus.smsg_fee_max_delta_percent) / 1000000;
+};
+
 bool CChainParams::CheckImportCoinbase(int nHeight, uint256 &hash) const
 {
-    for (auto &cth : Params().vImportedCoinbaseTxns)
-    {
-        if (cth.nHeight != (uint32_t)nHeight)
+    for (auto &cth : Params().vImportedCoinbaseTxns) {
+        if (cth.nHeight != (uint32_t)nHeight) {
             continue;
-
-        if (hash == cth.hash)
+        }
+        if (hash == cth.hash) {
             return true;
+        }
         return error("%s - Hash mismatch at height %d: %s, expect %s.", __func__, nHeight, hash.ToString(), cth.hash.ToString());
-    };
+    }
 
     return error("%s - Unknown height.", __func__);
 };
@@ -63,11 +68,11 @@ bool CChainParams::CheckImportCoinbase(int nHeight, uint256 &hash) const
 
 const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime) const
 {
-    for (size_t i = vDevFundSettings.size(); i-- > 0; )
-    {
-        if (nTime > vDevFundSettings[i].first)
+    for (size_t i = vDevFundSettings.size(); i-- > 0; ) {
+        if (nTime > vDevFundSettings[i].first) {
             return &vDevFundSettings[i].second;
-    };
+        }
+    }
 
     return nullptr;
 };
@@ -252,13 +257,12 @@ static CBlock CreateGenesisBlockRegTest(uint32_t nTime, uint32_t nNonce, uint32_
     txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp)) << OP_RETURN << nHeight;
 
     txNew.vpout.resize(nGenesisOutputsRegtest);
-    for (size_t k = 0; k < nGenesisOutputsRegtest; ++k)
-    {
+    for (size_t k = 0; k < nGenesisOutputsRegtest; ++k) {
         OUTPUT_PTR<CTxOutStandard> out = MAKE_OUTPUT<CTxOutStandard>();
         out->nValue = regTestOutputs[k].second;
         out->scriptPubKey = CScript() << OP_DUP << OP_HASH160 << ParseHex(regTestOutputs[k].first) << OP_EQUALVERIFY << OP_CHECKSIG;
         txNew.vpout[k] = out;
-    };
+    }
 
     CBlock genesis;
     genesis.nTime    = nTime;
@@ -286,14 +290,12 @@ static CBlock CreateGenesisBlockTestNet(uint32_t nTime, uint32_t nNonce, uint32_
     txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp)) << OP_RETURN << nHeight;
 
     txNew.vpout.resize(nGenesisOutputsTestnet);
-    for (size_t k = 0; k < nGenesisOutputsTestnet; ++k)
-    {
+    for (size_t k = 0; k < nGenesisOutputsTestnet; ++k) {
         OUTPUT_PTR<CTxOutStandard> out = MAKE_OUTPUT<CTxOutStandard>();
         out->nValue = genesisOutputsTestnet[k].second;
         out->scriptPubKey = CScript() << OP_DUP << OP_HASH160 << ParseHex(genesisOutputsTestnet[k].first) << OP_EQUALVERIFY << OP_CHECKSIG;
         txNew.vpout[k] = out;
-    };
-
+    }
 
     // Foundation Fund Raiser Funds
     // rVDQRVBKnQEfNmykMSY9DHgqv8s7XZSf5R fc118af69f63d426f61c6a4bf38b56bcdaf8d069
@@ -357,13 +359,12 @@ static CBlock CreateGenesisBlockMainNet(uint32_t nTime, uint32_t nNonce, uint32_
     txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << std::vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp)) << OP_RETURN << nHeight;
 
     txNew.vpout.resize(nGenesisOutputs);
-    for (size_t k = 0; k < nGenesisOutputs; ++k)
-    {
+    for (size_t k = 0; k < nGenesisOutputs; ++k) {
         OUTPUT_PTR<CTxOutStandard> out = MAKE_OUTPUT<CTxOutStandard>();
         out->nValue = genesisOutputs[k].second;
         out->scriptPubKey = CScript() << OP_DUP << OP_HASH160 << ParseHex(genesisOutputs[k].first) << OP_EQUALVERIFY << OP_CHECKSIG;
         txNew.vpout[k] = out;
-    };
+    }
 
     // Foundation Fund Raiser Funds
     // RHFKJkrB4H38APUDVckr7TDwrK11N7V7mx
@@ -430,7 +431,13 @@ public:
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
         consensus.nPaidSmsgTime = 0xFFFFFFFF; // 2106 TODO: lower
         consensus.csp2shTime = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.bulletproofTime = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.bulletproof_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.smsg_fee_time = 0xFFFFFFFF; // 2106 TODO: lower
+
+        consensus.smsg_fee_period = 5040;
+        consensus.smsg_fee_funding_tx_per_k = 200000;
+        consensus.smsg_fee_msg_per_day_per_k = 50000;
+        consensus.smsg_fee_max_delta_percent = 43;
 
         consensus.powLimit = uint256S("000000000000bfffffffffffffffffffffffffffffffffffffffffffffffffff");
 
@@ -604,7 +611,13 @@ public:
         consensus.fAllowOpIsCoinstakeWithP2PKH = true; // TODO: clear for next testnet
         consensus.nPaidSmsgTime = 0;
         consensus.csp2shTime = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.bulletproofTime = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.bulletproof_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.smsg_fee_time = 0xFFFFFFFF; // 2106 TODO: lower
+
+        consensus.smsg_fee_period = 5040;
+        consensus.smsg_fee_funding_tx_per_k = 200000;
+        consensus.smsg_fee_msg_per_day_per_k = 50000;
+        consensus.smsg_fee_max_delta_percent = 43;
 
         consensus.powLimit = uint256S("000000000005ffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
@@ -739,7 +752,13 @@ public:
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
         consensus.nPaidSmsgTime = 0;
         consensus.csp2shTime = 0;
-        consensus.bulletproofTime = 0;
+        consensus.bulletproof_time = 0;
+        consensus.smsg_fee_time = 0;
+
+        consensus.smsg_fee_period = 50;
+        consensus.smsg_fee_funding_tx_per_k = 200000;
+        consensus.smsg_fee_msg_per_day_per_k = 50000;
+        consensus.smsg_fee_max_delta_percent = 4300;
 
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks

@@ -212,6 +212,7 @@ PARTICL_SCRIPTS = [
     'rpc_part_mnemonic.py',
     'feature_part_smsg.py',
     'feature_part_smsgpaid.py',
+    'feature_part_smsgpaidfee.py',
     'wallet_part_multisig.py',
     'feature_part_coldstaking.py',
     'rpc_part_filtertransactions.py',

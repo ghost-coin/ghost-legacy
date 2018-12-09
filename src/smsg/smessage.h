@@ -83,10 +83,6 @@ const unsigned int SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTE
 
 static const int MIN_SMSG_PROTO_VERSION = 90007;
 
-
-const CAmount nFundingTxnFeePerK = 200000;
-const CAmount nMsgFeePerKPerDay =   50000;
-
 #define SMSG_MASK_UNREAD (1 << 0)
 
 class SecMsgStored;
