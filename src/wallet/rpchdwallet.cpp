@@ -8038,7 +8038,7 @@ static UniValue rehashblock(const JSONRPCRequest &request)
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     block.hashWitnessMerkleRoot = BlockWitnessMerkleRoot(block, &mutated);
 
-    if (request.params.size() > 1) {
+    if (request.params.size() > 1 && request.params[1].get_str() != "") {
         EnsureWalletIsUnlocked(pwallet);
 
         std::string str_address = request.params[1].get_str();

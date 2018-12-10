@@ -149,7 +149,10 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         txb = txb[:55] + bytes([0x09, ]) + varint + txb[55:]
 
         ro = nodes[0].signrawtransactionwithwallet(txb.hex())
-        block_hex = self.nodes[0].rehashblock(blk2_hex, stakedaddress, [{'txn': ro['hex'], 'pos': 0, 'replace': True}])
+        block_hex = self.nodes[0].rehashblock(blk2_hex, '', [{'txn': ro['hex'], 'pos': 0, 'replace': True}])
+        assert('bad-block-signature' == nodes[0].submitblock(block_hex))
+
+        block_hex = self.nodes[0].rehashblock(block_hex, stakedaddress)
         assert(None == nodes[2].submitblock(block_hex))
 
         ro = nodes[2].getblockchaininfo()
