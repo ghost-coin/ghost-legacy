@@ -733,8 +733,9 @@ static UniValue submitblock(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
 
-    if (block.vtx.empty() || !block.vtx[0]->IsCoinBase()) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase");
+    if (block.vtx.empty() || (!block.vtx[0]->IsCoinBase()
+        && !block.vtx[0]->IsCoinStake())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block does not start with a coinbase or coinstake");
     }
 
     uint256 hash = block.GetHash();

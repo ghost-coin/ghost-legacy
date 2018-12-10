@@ -4001,9 +4001,9 @@ bool CheckStakeUnique(const CBlock &block, bool fUpdate)
 
     std::map<COutPoint, uint256>::const_iterator mi = mapStakeSeen.find(kernel);
     if (mi != mapStakeSeen.end()) {
-        if (mi->second == blockHash)
+        if (mi->second == blockHash) {
             return true;
-
+        }
         return error("%s: Stake kernel for %s first seen on %s.", __func__, blockHash.ToString(), mi->second.ToString());
     }
 
@@ -4013,8 +4013,9 @@ bool CheckStakeUnique(const CBlock &block, bool fUpdate)
 
     while (listStakeSeen.size() > MAX_STAKE_SEEN_SIZE) {
         const COutPoint &oldest = listStakeSeen.front();
-        if (1 != mapStakeSeen.erase(oldest))
+        if (1 != mapStakeSeen.erase(oldest)) {
             LogPrintf("%s: Warning: mapStakeSeen did not erase %s %n\n", __func__, oldest.hash.ToString(), oldest.n);
+        }
         listStakeSeen.pop_front();
     }
 
@@ -4989,12 +4990,9 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
                 CBlockIndex *pindex = g_chainstate.AddToBlockIndex(*pblock);
                 g_chainstate.InvalidBlockFound(pindex, *pblock, state);
 
-                if (IncomingBlockChecked(*pblock, state)) { // returns true if it did nothing
-                    GetMainSignals().BlockChecked(*pblock, state);
-                }
-            } else {
-                GetMainSignals().BlockChecked(*pblock, state);
+                IncomingBlockChecked(*pblock, state);
             }
+            GetMainSignals().BlockChecked(*pblock, state);
             return error("%s: AcceptBlock FAILED (%s)", __func__, FormatStateMessage(state));
         }
 

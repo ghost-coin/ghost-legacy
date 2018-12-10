@@ -2813,27 +2813,25 @@ static UniValue lockunspent(const JSONRPCRequest& request)
 
         const COutPoint outpt(txid, nOutput);
 
-        if (IsParticlWallet(pwallet))
-        {
+        if (IsParticlWallet(pwallet))  {
             const auto it = pwallet->mapWallet.find(outpt.hash);
             if (it == pwallet->mapWallet.end()) {
                 CHDWallet *phdw = GetParticlWallet(pwallet);
                 const auto it = phdw->mapRecords.find(outpt.hash);
-                if (it == phdw->mapRecords.end())
+                if (it == phdw->mapRecords.end()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, unknown transaction");
-
+                }
                 const CTransactionRecord &rtx = it->second;
-                if (!rtx.GetOutput(outpt.n))
+                if (!rtx.GetOutput(outpt.n)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout index out of bounds");
-            } else
-            {
+                }
+            } else {
                 const CWalletTx& trans = it->second;
                 if (outpt.n >= trans.tx->GetNumVOuts()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout index out of bounds");
                 }
-            };
-        } else
-        {
+            }
+        } else {
         const auto it = pwallet->mapWallet.find(outpt.hash);
         if (it == pwallet->mapWallet.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, unknown transaction");
@@ -2844,7 +2842,7 @@ static UniValue lockunspent(const JSONRPCRequest& request)
         if (outpt.n >= trans.tx->vout.size()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout index out of bounds");
         }
-        };
+        }
 
         if (pwallet->IsSpent(*locked_chain, outpt.hash, outpt.n)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected unspent output");

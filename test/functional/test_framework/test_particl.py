@@ -103,10 +103,10 @@ class ParticlTestFramework(BitcoinTestFramework):
         self.sync_all()
         assert(self.nodes[nSyncCheckNode].getblockcount() == height)
 
-    def stakeBlocks(self, nBlocks, nStakeNode=0):
+    def stakeBlocks(self, nBlocks, nStakeNode=0, fSync=True):
         height = self.nodes[nStakeNode].getblockcount()
 
-        self.stakeToHeight(height + nBlocks, nStakeNode=nStakeNode)
+        self.stakeToHeight(height + nBlocks, fSync=fSync, nStakeNode=nStakeNode)
 
     def jsonDecimal(self, obj):
         if isinstance(obj, decimal.Decimal):

@@ -1700,7 +1700,7 @@ std::set< std::set<CTxDestination> > CHDWallet::GetAddressGroupings()
                 if (!pScript) {
                     continue;
                 }
-                if(!ExtractDestination(*pScript, address)) {
+                if (!ExtractDestination(*pScript, address)) {
                     continue;
                 }
                 grouping.insert(address);

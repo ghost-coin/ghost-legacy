@@ -7,6 +7,7 @@
 #include <chain.h>
 #include <consensus/validation.h>
 #include <consensus/tx_verify.h>
+#include <consensus/merkle.h>
 #include <core_io.h>
 #include <init.h>
 #include <httpserver.h>
@@ -5593,55 +5594,6 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     return result;
 };
 
-static UniValue rewindchain(const JSONRPCRequest &request)
-{
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
-        return NullUniValue;
-
-    if (request.fHelp || request.params.size() > 1)
-        throw std::runtime_error(
-            RPCHelpMan{"rewindchain",
-                "\nRemove blocks from chain until \"height\"." +
-                HelpRequiringPassphrase(pwallet) + "\n",
-                {
-                    {"height", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "1", "Chain height to rewind to."},
-                }}
-                .ToString()
-        );
-
-    EnsureWalletIsUnlocked(pwallet);
-
-    // Make sure the results are valid at least up to the most recent block
-    // the user could have gotten from another RPC command prior to now
-    pwallet->BlockUntilSyncedToCurrentChain();
-
-
-    LOCK2(cs_main, pwallet->cs_wallet);
-
-    UniValue result(UniValue::VOBJ);
-
-    CCoinsViewCache view(pcoinsTip.get());
-    view.fForceDisconnect = true;
-    CBlockIndex* pindexState = chainActive.Tip();
-    CValidationState state;
-
-    int nBlocks = 0;
-
-    int nToHeight = request.params[0].isNum() ? request.params[0].get_int() : pindexState->nHeight - 1;
-    result.pushKV("to_height", nToHeight);
-
-    std::string sError;
-    if (!RewindToCheckpoint(nToHeight, nBlocks, sError)) {
-        result.pushKV("error", sError);
-    }
-
-    result.pushKV("nBlocks", nBlocks);
-
-    return result;
-};
-
 static UniValue walletsettings(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -7885,7 +7837,57 @@ static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file,
     }
 
     return true;
-}
+};
+
+static UniValue rewindchain(const JSONRPCRequest &request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+        return NullUniValue;
+
+    if (request.fHelp || request.params.size() > 1)
+        throw std::runtime_error(
+            RPCHelpMan{"rewindchain",
+                "\nRemove blocks from chain until \"height\"." +
+                HelpRequiringPassphrase(pwallet) + "\n",
+                {
+                    {"height", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "1", "Chain height to rewind to."},
+                    //{"removeheaders", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Remove block headers too."},
+                }}
+                .ToString()
+        );
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    UniValue result(UniValue::VOBJ);
+
+    CCoinsViewCache view(pcoinsTip.get());
+    view.fForceDisconnect = true;
+    CBlockIndex* pindexState = chainActive.Tip();
+    CValidationState state;
+
+    int nBlocks = 0;
+
+    int nToHeight = request.params[0].isNum() ? request.params[0].get_int() : pindexState->nHeight - 1;
+    result.pushKV("to_height", nToHeight);
+
+    std::string sError;
+    if (!RewindToCheckpoint(nToHeight, nBlocks, sError)) {
+        result.pushKV("error", sError);
+    }
+
+    result.pushKV("nBlocks", nBlocks);
+
+    return result;
+};
 
 static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
 {
@@ -7956,6 +7958,110 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
     response.pushKV("files", files);
     return response;
 };
+
+static UniValue rehashblock(const JSONRPCRequest &request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
+        throw std::runtime_error(
+            RPCHelpMan{"rehashblock",
+                "\nRecalculate merkle tree and block signature of submitted block.\n" +
+                HelpRequiringPassphrase(pwallet) + "\n",
+                {
+                    {"blockhex", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Input block hex."},
+                    {"signwith", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Address of key to sign block with."},
+                    {"addtxns", RPCArg::Type::ARR, /* opt */ true, /* default_val */ "", "Transaction to add to the block. A json array of objects.",
+                        {
+                            {"", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                                {
+                                    {"txn", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The transaction in hex form."},
+                                    {"pos", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "end", "The position to place the txn in the block."},
+                                    {"replace", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Replace the txn at \"pos\"."},
+                                },
+                            },
+                        },
+                    },
+                }}
+                .ToString() +
+            "\nResult:\n"
+            "Output block hex\n"
+            "\nExamples:\n"
+            + HelpExampleCli("rehashblock", "\"myhex\"") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("rehashblock", "\"myhex\"")
+        );
+
+    std::shared_ptr<CBlock> blockptr = std::make_shared<CBlock>();
+    CBlock& block = *blockptr;
+    if (!DecodeHexBlk(block, request.params[0].get_str())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
+    }
+
+    if (request.params.size() > 2) {
+        RPCTypeCheckArgument(request.params[2], UniValue::VARR);
+        const UniValue &addtxns = request.params[2];
+        for (unsigned int idx = 0; idx < addtxns.size(); idx++) {
+            const UniValue& o = addtxns[idx].get_obj();
+            RPCTypeCheckObj(o,
+            {
+                {"txn", UniValueType(UniValue::VSTR)},
+                {"pos", UniValueType(UniValue::VNUM)},
+                {"replace", UniValueType(UniValue::VBOOL)},
+            }, true);
+
+            CMutableTransaction mtx;
+            if (!DecodeHexTx(mtx, o["txn"].get_str(), true)) {
+                throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
+            }
+
+            int pos = !o["pos"].isNull() ? o["pos"].get_int() : -1;
+            bool replace = !o["replace"].isNull() ? o["replace"].get_bool() : false;
+
+            if (pos == -1 || pos >= block.vtx.size()) {
+                block.vtx.push_back(MakeTransactionRef(std::move(mtx)));
+            } else {
+                if (replace) {
+                    block.vtx.erase(block.vtx.begin() + pos);
+                    block.vtx.insert(block.vtx.begin() + pos, MakeTransactionRef(std::move(mtx)));
+                }
+            }
+        }
+    }
+
+
+    bool mutated;
+    block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
+    block.hashWitnessMerkleRoot = BlockWitnessMerkleRoot(block, &mutated);
+
+    if (request.params.size() > 1) {
+        EnsureWalletIsUnlocked(pwallet);
+
+        std::string str_address = request.params[1].get_str();
+        CTxDestination dest = DecodeDestination(str_address);
+        if (!IsValidDestination(dest)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+        }
+        auto keyid = GetKeyForDestination(*pwallet, dest);
+        if (keyid.IsNull()) {
+            throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
+        }
+        CKey key;
+        if (!pwallet->GetKey(keyid, key)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + str_address + " is not known");
+        }
+        key.Sign(block.GetHash(), block.vchBlockSig);
+    }
+
+    CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
+    ssBlock << block;
+    return HexStr(ssBlock.begin(), ssBlock.end());
+};
+
 static const CRPCCommand commands[] =
 { //  category              name                                actor (function)                argNames
   //  --------------------- ------------------------            -----------------------         ----------
@@ -8003,8 +8109,6 @@ static const CRPCCommand commands[] =
     { "rawtransactions",    "createsignaturewithkey",           &createsignaturewithkey,        {"hexstring","prevtx","privkey","sighashtype"} },
 
     { "wallet",             "debugwallet",                      &debugwallet,                   {"attempt_repair"} },
-    { "wallet",             "rewindchain",                      &rewindchain,                   {"height"} },
-
     { "wallet",             "walletsettings",                   &walletsettings,                {"setting","json"} },
 
     { "wallet",             "transactionblinds",                &transactionblinds,             {"txnid"} },
@@ -8022,7 +8126,9 @@ static const CRPCCommand commands[] =
     { "rawtransactions",    "generatematchingblindfactor",      &generatematchingblindfactor,   {"inputs","outputs"} },
     { "rawtransactions",    "verifyrawtransaction",             &verifyrawtransaction,          {"hexstring","prevtxs","options"} },
 
+    { "blockchain",         "rewindchain",                      &rewindchain,                   {"height"} },
     { "blockchain",         "pruneorphanedblocks",              &pruneorphanedblocks,           {"testonly"} },
+    { "blockchain",         "rehashblock",                      &rehashblock,                   {"hexblock","signwith","addtxns"} },
 };
 
 void RegisterHDWalletRPCCommands(CRPCTable &t)

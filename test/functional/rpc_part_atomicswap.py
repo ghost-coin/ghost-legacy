@@ -137,7 +137,7 @@ def createRefundTx(node, rawtx, script, lockTime, addrRefundFrom, addrRefundTo):
 
     amountIn = ro['vout'][n]['value']
 
-    rawtxrefund = node.tx(['-create','in='+txnid+':'+str(n)+':1','outaddr='+str(amountIn)+':'+addrRefundTo,'locktime='+str(lockTime)])
+    rawtxrefund = node.tx(['-create', 'in=' + txnid + ':' + str(n) + ':1','outaddr=' + str(amountIn) + ':' + addrRefundTo, 'locktime=' + str(lockTime)])
 
     refundWeight = estimateRefundSerializeSize(script, rawtxrefund)
 
@@ -147,7 +147,7 @@ def createRefundTx(node, rawtx, script, lockTime, addrRefundFrom, addrRefundTo):
 
     amountOut = Decimal(amountIn) - Decimal(fee)
 
-    rawtxrefund = node.tx([rawtxrefund,'delout=0','outaddr='+str(amountOut)+':'+addrRefundTo])
+    rawtxrefund = node.tx([rawtxrefund, 'delout=0', 'outaddr=' + str(amountOut) + ':' + addrRefundTo])
 
 
     scripthex = binascii.hexlify(script).decode("utf-8")
@@ -169,7 +169,7 @@ def createRefundTx(node, rawtx, script, lockTime, addrRefundFrom, addrRefundTo):
         scripthex
     ]
 
-    rawtxrefund = node.tx([rawtxrefund,'witness=0:'+ ':'.join(witnessStack)])
+    rawtxrefund = node.tx([rawtxrefund, 'witness=0:' + ':'.join(witnessStack)])
     return rawtxrefund
 
 
@@ -192,7 +192,7 @@ def createClaimTx(node, rawtx, script, secret, addrClaimFrom, addrClaimTo):
 
     amountOut = Decimal(amountIn) - Decimal(fee)
 
-    rawtxClaim = node.tx([rawtxClaim,'delout=0','outaddr='+str(amountOut)+':'+addrClaimTo])
+    rawtxClaim = node.tx([rawtxClaim, 'delout=0', 'outaddr=' + str(amountOut) + ':' + addrClaimTo])
 
     scripthex = binascii.hexlify(script).decode("utf-8")
     prevtx = {
@@ -214,7 +214,7 @@ def createClaimTx(node, rawtx, script, secret, addrClaimFrom, addrClaimTo):
         '01',
         scripthex
     ]
-    rawtxClaim = node.tx([rawtxClaim,'witness=0:'+ ':'.join(witnessStack)])
+    rawtxClaim = node.tx([rawtxClaim, 'witness=0:' + ':'.join(witnessStack)])
 
     assert(node.testmempoolaccept([rawtxClaim,])[0]['allowed'] == True)
     return rawtxClaim
@@ -272,7 +272,7 @@ def createRefundTxCT(node, rawtx, output_amounts, script, lockTime, privKeySign,
         '00',
         scripthex
     ]
-    rawtxrefund = node.tx([rawtxrefund,'witness=0:'+ ':'.join(witnessStack)])
+    rawtxrefund = node.tx([rawtxrefund, 'witness=0:' + ':'.join(witnessStack)])
 
     ro = node.decoderawtransaction(rawtxrefund)
     assert(len(ro['vin'][0]['txinwitness']) == 4)
@@ -335,16 +335,18 @@ def createClaimTxCT(node, rawtx, output_amounts, script, secret, privKeySign, pu
         '01',
         scripthex
     ]
-    rawtxClaim = node.tx([rawtxClaim,'witness=0:'+ ':'.join(witnessStack)])
+    rawtxClaim = node.tx([rawtxClaim, 'witness=0:' + ':'.join(witnessStack)])
 
     ro = node.decoderawtransaction(rawtxClaim)
     assert(len(ro['vin'][0]['txinwitness']) == 5)
 
     return rawtxClaim
 
+
 # Return a random amount lower than 10
 def getRandomAmount():
     return round(Decimal(random()) * 9 + Decimal(1.2), 8)
+
 
 class AtomicSwapTest(ParticlTestFramework):
     def set_test_params(self):

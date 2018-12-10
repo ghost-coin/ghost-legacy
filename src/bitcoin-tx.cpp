@@ -205,33 +205,29 @@ static void MutateTxVersion(CMutableTransaction& tx, const std::string& cmdVal)
     if (!ParseInt64(cmdVal, &newVersion) || newVersion < 1 || newVersion > CTransaction::MAX_STANDARD_PARTICL_VERSION)
         throw std::runtime_error("Invalid TX version requested: '" + cmdVal + "'");
 
-    if (!tx.IsParticlVersion() && IsParticlTxVersion(newVersion))
-    {
-        for (const auto& txout : tx.vout)
-        {
+    if (!tx.IsParticlVersion() && IsParticlTxVersion(newVersion)) {
+        for (const auto& txout : tx.vout) {
             tx.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(txout.nValue, txout.scriptPubKey));
-        };
+        }
 
-        for (auto& txin : tx.vin)
-        {
+        for (auto& txin : tx.vin) {
             ScriptError serror;
             std::vector<std::vector<unsigned char> > stack;
-            if (!EvalScript(stack, txin.scriptSig, SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), SigVersion::BASE, &serror))
+            if (!EvalScript(stack, txin.scriptSig, SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), SigVersion::BASE, &serror)) {
                 throw std::runtime_error("EvalScript failed for input.");
-
+            }
             txin.scriptWitness.stack = stack;
             txin.scriptSig.clear();
-        };
+        }
     } else
-    if (tx.IsParticlVersion() && !IsParticlTxVersion(newVersion))
-    {
-        for (const auto &txout : tx.vpout)
-        {
-            if (!txout->IsStandardOutput())
+    if (tx.IsParticlVersion() && !IsParticlTxVersion(newVersion)) {
+        for (const auto &txout : tx.vpout) {
+            if (!txout->IsStandardOutput()) {
                 throw std::runtime_error("Can't convert non-standard output.");
+            }
             tx.vout.emplace_back(txout->GetStandardOutput()->nValue, txout->GetStandardOutput()->scriptPubKey);
-        };
-    };
+        }
+    }
 
     tx.nVersion = (int) newVersion;
 }

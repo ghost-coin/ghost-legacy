@@ -422,11 +422,10 @@ I ReadVarInt(Stream& is)
 inline int PutVarInt(std::vector<uint8_t> &v, uint64_t i)
 {
     uint8_t b = i & 0x7F;
-    while ((i = i >> 7) > 0)
-    {
+    while ((i = i >> 7) > 0) {
         v.push_back(b | 0x80);
         b = i & 0x7F;
-    };
+    }
     v.push_back(b);
     return i; // 0 == success
 };
@@ -435,12 +434,11 @@ inline int PutVarInt(uint8_t *p, uint64_t i)
 {
     int nBytes = 0;
     uint8_t b = i & 0x7F;
-    while ((i = i >> 7) > 0)
-    {
+    while ((i = i >> 7) > 0) {
         *p++ = b | 0x80;
         b = i & 0x7F;
         nBytes++;
-    };
+    }
     *p++ = b;
     nBytes++;
     return nBytes;
@@ -449,22 +447,18 @@ inline int PutVarInt(uint8_t *p, uint64_t i)
 inline int GetVarInt(const std::vector<uint8_t> &v, size_t ofs, uint64_t &i, size_t &nB)
 {
     size_t ml = v.size() - ofs;
-    if (ml <= 0)
+    if (ml <= 0) {
         return 0;
-
+    }
     const uint8_t *p = &v[ofs];
-
     nB = 0;
     i = p[nB++] & 0x7F;
-
-    while (p[nB-1] & 0x80)
-    {
+    while (p[nB-1] & 0x80) {
         if (nB >= ml)
             return 1;
         i += ((uint64_t(p[nB]& 0x7F)) << (7*nB));
         nB++;
-    };
-
+    }
     return 0; // 0 == success
 };
 

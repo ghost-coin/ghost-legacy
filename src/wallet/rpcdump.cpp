@@ -722,28 +722,28 @@ UniValue dumpprivkey(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
     }
 
-    if (IsParticlWallet(pwallet))
-    {
-        if (dest.type() == typeid(CExtKeyPair))
-        {
+    if (IsParticlWallet(pwallet)) {
+        if (dest.type() == typeid(CExtKeyPair)) {
             CHDWallet *phdw = GetParticlWallet(pwallet);
             CExtKeyPair ek = boost::get<CExtKeyPair>(dest);
             CKeyID id = ek.GetID();
             CStoredExtKey sek;
-            if (!phdw->GetExtKey(id, sek))
+            if (!phdw->GetExtKey(id, sek)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Private key for extaddress " + strAddress + " is not known");
+            }
             CExtKey58 eKey58;
 
-            if (0 != phdw->ExtKeyUnlock(&sek))
+            if (0 != phdw->ExtKeyUnlock(&sek)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Unlock extaddress " + strAddress + " failed");
-
-            if (!sek.kp.IsValidV())
+            }
+            if (!sek.kp.IsValidV()) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Private key for extaddress " + strAddress + " is not known");
+            }
 
             eKey58.SetKeyV(sek.kp);
             return eKey58.ToString();
-        };
-    };
+        }
+    }
 
     auto keyid = GetKeyForDestination(*pwallet, dest);
     if (keyid.IsNull()) {
