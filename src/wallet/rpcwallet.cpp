@@ -3234,6 +3234,7 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
     bool fWalletUnlockStakingOnly = false;
     if (request.params.size() > 2)
         fWalletUnlockStakingOnly = request.params[2].get_bool();
+    pwallet->nRelockTime = GetTime() + nSleepTime;
 
     if (IsParticlWallet(pwallet))
     {
@@ -3245,8 +3246,17 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
     // Only allow unlimited timeout (nSleepTime=0) on staking.
     if (nSleepTime > 0 || !fWalletUnlockStakingOnly)
     {
-        pwallet->nRelockTime = GetTime() + nSleepTime;
-        RPCRunLater(strprintf("lockwallet(%s)", pwallet->GetName()), boost::bind(LockWallet, pwallet), nSleepTime);
+        // Keep a weak pointer to the wallet so that it is possible to unload the
+        // wallet before the following callback is called. If a valid shared pointer
+        // is acquired in the callback then the wallet is still loaded.
+        std::weak_ptr<CWallet> weak_wallet = wallet;
+        RPCRunLater(strprintf("lockwallet(%s)", pwallet->GetName()), [weak_wallet] {
+            if (auto shared_wallet = weak_wallet.lock()) {
+                LOCK(shared_wallet->cs_wallet);
+                shared_wallet->Lock();
+                shared_wallet->nRelockTime = 0;
+            }
+        }, nSleepTime);
     } else
     {
         RPCRunLaterErase(strprintf("lockwallet(%s)", pwallet->GetName()));
