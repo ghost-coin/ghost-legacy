@@ -3763,7 +3763,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
             "  \"walletfoundationdonationpercent\": xxxxxxx,\n    (numeric) user set percentage of the block reward ceded to the foundation\n"
             "  \"foundationdonationpercent\": xxxxxxx,\n    (numeric) network enforced percentage of the block reward ceded to the foundation\n"
             "  \"foundationdonationpercent\": xxxxxxx,\n    (numeric) network enforced percentage of the block reward ceded to the foundation\n"
-            "  \"currentblocksize\": nnn,       (numeric) the last block size in bytes\n"
+            "  \"currentblocksize\": nnn,       (numeric) the last approximate block size in bytes\n"
             "  \"currentblockweight\": nnn,     (numeric) the last block weight\n"
             "  \"currentblocktx\": nnn,         (numeric) the number of transactions in the last block\n"
             "  \"pooledtx\": n                  (numeric) the number of transactions in the mempool\n"
