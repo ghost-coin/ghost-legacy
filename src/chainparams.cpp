@@ -103,18 +103,16 @@ bool CChainParams::IsBech32Prefix(const std::vector<unsigned char> &vchPrefixIn,
 
 bool CChainParams::IsBech32Prefix(const char *ps, size_t slen, CChainParams::Base58Type &rtype) const
 {
-    for (size_t k = 0; k < MAX_BASE58_TYPES; ++k)
-    {
+    for (size_t k = 0; k < MAX_BASE58_TYPES; ++k) {
         const auto &hrp = bech32Prefixes[k];
         size_t hrplen = hrp.size();
         if (hrplen > 0
             && slen > hrplen
-            && strncmp(ps, (const char*)&hrp[0], hrplen) == 0)
-        {
+            && strncmp(ps, (const char*)&hrp[0], hrplen) == 0) {
             rtype = static_cast<CChainParams::Base58Type>(k);
             return true;
-        };
-    };
+        }
+    }
 
     return false;
 };

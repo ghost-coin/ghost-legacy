@@ -157,6 +157,9 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext)
         result.pushKV("nextblockhash", pnext->GetBlockHash().GetHex());
+    if (txDetails) { // verbosity >= 2
+        result.pushKV("blocksig", HexStr(block.vchBlockSig));
+    }
     return result;
 }
 
@@ -835,6 +838,7 @@ static UniValue getblock(const JSONRPCRequest& request)
             "  \"nTx\" : n,             (numeric) The number of transactions in the block.\n"
             "  \"previousblockhash\" : \"hash\",  (string) The hash of the previous block\n"
             "  \"nextblockhash\" : \"hash\"       (string) The hash of the next block\n"
+            "  \"blocksig\" : \"xxxx\",           (string) The block signature, verbosity=2\n"
             "}\n"
             "\nResult (for verbosity = 2):\n"
             "{\n"

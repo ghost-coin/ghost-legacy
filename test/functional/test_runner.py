@@ -199,6 +199,7 @@ EXTENDED_SCRIPTS = [
 
     'wallet_part_unloadspent.py',
     'p2p_part_dos.py',
+    'feature_part_smsgpaidfee_ext.py',
 ]
 
 PARTICL_SCRIPTS = [
