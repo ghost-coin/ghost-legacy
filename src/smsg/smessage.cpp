@@ -3734,7 +3734,10 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
     CCoinControl coinControl;
     coinControl.m_feerate = CFeeRate(consensusParams.smsg_fee_funding_tx_per_k);
     coinControl.fOverrideFeeRate = true;
-    coinControl.m_extrafee = ((GetSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
+    {
+        LOCK(cs_main);
+        coinControl.m_extrafee = ((GetSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
+    }
 
     assert(coinControl.m_extrafee <= std::numeric_limits<uint32_t>::max());
     uint32_t msgFee = coinControl.m_extrafee;

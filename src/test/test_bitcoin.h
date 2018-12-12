@@ -16,12 +16,18 @@
 #include <streams.h>
 #include <clientversion.h>
 #include <primitives/transaction.h>
+#include <chain.h>
 #include <memory>
-#include <txdb.h>
+#include <type_traits>
 
 #include <boost/thread.hpp>
 
-
+// Enable BOOST_CHECK_EQUAL for enum class types
+template <typename T>
+std::ostream& operator<<(typename std::enable_if<std::is_enum<T>::value, std::ostream>::type& stream, const T& e)
+{
+    return stream << static_cast<typename std::underlying_type<T>::type>(e);
+}
 
 #if BOOST_VERSION > 105300
 #ifndef BOOST_MESSAGE

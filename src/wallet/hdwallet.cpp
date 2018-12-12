@@ -225,7 +225,18 @@ bool CHDWallet::Initialise()
                 InitError(_("Failed to rescan the wallet during initialization"));
                 return werror("Reserve rescan failed.");
             }
-            ScanForWalletTransactions(pindexRescan, nullptr, reserver, true);
+            const CBlockIndex *stop_block, *failed_block;
+            CWallet::ScanResult result =
+                ScanForWalletTransactions(pindexRescan, nullptr, reserver, failed_block, stop_block, true);
+            switch (result) {
+            case CWallet::ScanResult::SUCCESS:
+                break; // stopBlock set by ScanForWalletTransactions
+            case CWallet::ScanResult::FAILURE:
+                throw JSONRPCError(RPC_MISC_ERROR, "Rescan failed. Potentially corrupted data files.");
+            case CWallet::ScanResult::USER_ABORT:
+                throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted.");
+                // no default case, so the compiler can warn about missing cases
+            }
         }
         WalletLogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
         ChainStateFlushed(chainActive.GetLocator());
@@ -8145,7 +8156,18 @@ int CHDWallet::ScanChainFromHeight(int nHeight)
         if (!reserver.reserve()) {
             return werrorN(1, "%s: Failed to reserve the wallet for scanning.", __func__);
         }
-        ScanForWalletTransactions(pindex, nullptr, reserver, true);
+        const CBlockIndex *stop_block, *failed_block;
+        CWallet::ScanResult result =
+            ScanForWalletTransactions(pindex, nullptr, reserver, failed_block, stop_block, true);
+        switch (result) {
+        case CWallet::ScanResult::SUCCESS:
+            break; // stopBlock set by ScanForWalletTransactions
+        case CWallet::ScanResult::FAILURE:
+            throw JSONRPCError(RPC_MISC_ERROR, "Rescan failed. Potentially corrupted data files.");
+        case CWallet::ScanResult::USER_ABORT:
+            throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted.");
+            // no default case, so the compiler can warn about missing cases
+        }
         ReacceptWalletTransactions();
     }
 
