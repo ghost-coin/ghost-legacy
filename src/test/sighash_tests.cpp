@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(sighash_test)
         int nIn = InsecureRandRange(txTo.vin.size());
 
         uint256 sh, sho;
-        sho = SignatureHashOld(scriptCode, txTo, nIn, nHashType);
+        sho = SignatureHashOld(scriptCode, CTransaction(txTo), nIn, nHashType);
 
         CAmount amount = 0;
         std::vector<uint8_t> vchAmount(8);
