@@ -153,7 +153,7 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         assert('bad-block-signature' == nodes[0].submitblock(block_hex))
 
         block_hex = self.nodes[0].rehashblock(block_hex, stakedaddress)
-        assert(None == nodes[2].submitblock(block_hex))
+        assert(nodes[2].submitblock(block_hex) is None)
 
         ro = nodes[2].getblockchaininfo()
         assert(ro['blocks'] == 2)
