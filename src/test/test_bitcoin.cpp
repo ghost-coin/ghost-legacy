@@ -11,6 +11,7 @@
 #include <crypto/sha256.h>
 #include <miner.h>
 #include <net_processing.h>
+#include <noui.h>
 #include <txdb.h>
 #include <pow.h>
 #include <rpc/register.h>
@@ -37,10 +38,8 @@ void CConnmanTest::ClearNodes()
     g_connman->vNodes.clear();
 }
 
-FastRandomContext insecure_rand_ctx;
-
-extern void noui_connect();
 extern bool fParticlMode;
+thread_local FastRandomContext g_insecure_rand_ctx;
 
 std::ostream& operator<<(std::ostream& os, const uint256& num)
 {
