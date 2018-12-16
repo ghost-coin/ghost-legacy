@@ -3987,9 +3987,7 @@ bool AddToMapStakeSeen(const COutPoint &kernel, const uint256 &blockHash)
 bool CheckStakeUnused(const COutPoint &kernel)
 {
     std::map<COutPoint, uint256>::const_iterator mi = mapStakeSeen.find(kernel);
-    if (mi != mapStakeSeen.end())
-        return false;
-    return true;
+    return (mi == mapStakeSeen.end());
 }
 
 bool CheckStakeUnique(const CBlock &block, bool fUpdate)

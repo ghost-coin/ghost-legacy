@@ -11450,23 +11450,21 @@ std::set<uint256> CHDWallet::GetConflicts(const uint256 &txid) const
 
     MapRecords_t::const_iterator mri = mapRecords.find(txid);
 
-    if (mri != mapRecords.end())
-    {
+    if (mri != mapRecords.end()) {
         const CTransactionRecord &rtx = mri->second;
         std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range;
 
         if (!(rtx.nFlags & ORF_ANON_IN))
-        for (const auto &prevout : rtx.vin)
-        {
+        for (const auto &prevout : rtx.vin) {
             if (mapTxSpends.count(prevout) <= 1)
                 continue;  // No conflict if zero or one spends
             range = mapTxSpends.equal_range(prevout);
             for (TxSpends::const_iterator _it = range.first; _it != range.second; ++_it)
                 result.insert(_it->second);
-        };
+        }
 
         return result;
-    };
+    }
 
     return CWallet::GetConflicts(txid);
 }
@@ -11963,7 +11961,7 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
             }
 
             if (pcoin->IsCoinStake() && min_stake_confirmations < COINBASE_MATURITY) {
-                // min_stake_confirmations is only  less than COINBASE_MATURITY in regtest mode
+                // min_stake_confirmations is only less than COINBASE_MATURITY in regtest mode
                 if (nDepth < std::min(COINBASE_MATURITY, (int)(nHeight / 2))) {
                     continue;
                 }
@@ -12670,16 +12668,14 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wa
         const auto mri = wallet->mapRecords.find(input.prevout.hash);
         if (mri != wallet->mapRecords.end()) {
             const COutputRecord *oR = mri->second.GetOutput(input.prevout.n);
-            if (oR && (oR->nFlags & ORF_OWNED))
-            {
-                if (oR->nType != OUTPUT_STANDARD)
-                {
+            if (oR && (oR->nFlags & ORF_OWNED)) {
+                if (oR->nType != OUTPUT_STANDARD) {
                     wallet->WalletLogPrintf("ERROR: %s non standard output - TODO.\n", __func__);
                     return -1;
-                };
+                }
                 txouts.emplace_back(MAKE_OUTPUT<CTxOutStandard>(oR->nValue, oR->scriptPubKey));
                 continue;
-            };
+            }
         }
 
         return -1;
