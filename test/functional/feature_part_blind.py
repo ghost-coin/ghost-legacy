@@ -193,6 +193,5 @@ class BlindTest(ParticlTestFramework):
         ro = nodes[0].sendtypeto('part', 'blind', outputs)
 
 
-
 if __name__ == '__main__':
     BlindTest().main()
