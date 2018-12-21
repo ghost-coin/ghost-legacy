@@ -7,11 +7,12 @@ from test_framework.test_particl import ParticlTestFramework
 from test_framework.test_particl import isclose
 from test_framework.util import *
 
+
 class BlindTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [ ['-debug','-noacceptnonstdtxn','-reservebalance=10000000'] for i in range(self.num_nodes)]
+        self.extra_args = [['-debug', '-noacceptnonstdtxn', '-reservebalance=10000000'] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -43,7 +44,6 @@ class BlindTest(ParticlTestFramework):
         ro = nodes[0].listtransactions()
         assert(len(ro) == 10)
         assert(ro[9]['narration'] == 'node0 -> node1 p->b')
-
 
         ro = nodes[0].getwalletinfo()
         assert(isclose(ro['total_balance'], 99996.597968))
@@ -169,9 +169,7 @@ class BlindTest(ParticlTestFramework):
         unspentCheck = nodes[1].listunspentblind(minconf=0)
         assert(len(unspentCheck) == len(unspent))
 
-
-
-        outputs = [{'address':sxAddrTo2_3, 'amount':2.691068, 'subfee':True},]
+        outputs = [{'address': sxAddrTo2_3, 'amount': 2.691068, 'subfee': True},]
         ro = nodes[1].sendtypeto('blind', 'part', outputs, 'comment_to', 'comment_from', 4, 64, True)
         feePerKB = (1000.0 / ro['bytes']) * float(ro['fee'])
         assert(feePerKB > 0.001 and feePerKB < 0.004)
@@ -187,6 +185,12 @@ class BlindTest(ParticlTestFramework):
             raise AssertionError('Should have failed.')
         except JSONRPCException as e:
             assert('Insufficient blinded funds' in e.error['message'])
+
+        # Test sending to normal addresses for which the wallet has the pubkey
+        addrPlain = nodes[0].getnewaddress()
+        addrLong = nodes[0].getnewaddress('', False, False, True)
+        outputs = [{'address': addrPlain, 'amount': 1}, {'address': addrLong, 'amount': 1}]
+        ro = nodes[0].sendtypeto('part', 'blind', outputs)
 
 
 

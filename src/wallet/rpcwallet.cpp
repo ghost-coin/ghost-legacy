@@ -242,23 +242,10 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
 
     if (IsParticlWallet(pwallet)) {
         CKeyID keyID;
-        bool fBech32 = false;
-        if (request.params.size() > 1) {
-            std::string s = request.params[1].get_str();
-            fBech32 = part::IsStringBoolPositive(s);
-        }
 
-        bool fHardened = false;
-        if (request.params.size() > 2) {
-            std::string s = request.params[2].get_str();
-            fHardened = part::IsStringBoolPositive(s);
-        }
-
-        bool f256bit = false;
-        if (request.params.size() > 3) {
-            std::string s = request.params[3].get_str();
-            f256bit = part::IsStringBoolPositive(s);
-        }
+        bool fBech32 = request.params.size() > 1 ? GetBool(request.params[1]) : false;
+        bool fHardened = request.params.size() > 2 ? GetBool(request.params[2]) : false;
+        bool f256bit = request.params.size() > 3 ? GetBool(request.params[3]) : false;
 
         CPubKey newKey;
         CHDWallet *phdw = GetParticlWallet(pwallet);
@@ -285,7 +272,7 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
         }
         keyID = newKey.GetID();
         return CBitcoinAddress(keyID, fBech32).ToString();
-    };
+    }
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
