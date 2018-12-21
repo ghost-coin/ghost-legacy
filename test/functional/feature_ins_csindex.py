@@ -12,9 +12,9 @@ class TxIndexTest(ParticlTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 3
         self.extra_args = [
-            ['-debug',],
-            ['-debug','-csindex'],
-            ['-debug','-csindex'],]
+            ['-debug', ],
+            ['-debug', '-csindex'],
+            ['-debug', '-csindex'], ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -43,6 +43,10 @@ class TxIndexTest(ParticlTestFramework):
         assert(nodes[1].getwalletinfo()['total_balance'] == 25000)
 
         nodes[2].extkeyimportmaster(nodes[2].mnemonic('new')['master'])
+
+        r = nodes[1].getindexinfo()
+        assert(r['txindex'] is True)
+        assert(r['coldstakeindex'] is True)
 
         addrStake = nodes[2].getnewaddress('addrStake')
         addrSpend = nodes[2].getnewaddress('addrSpend', 'false', 'false', 'true')

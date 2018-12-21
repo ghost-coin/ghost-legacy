@@ -120,13 +120,11 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
     }
 
     std::vector<std::pair<uint256, int> > addresses;
-
     if (!getAddressesFromParams(request.params, addresses)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
     std::vector<std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta> > indexes;
-
     if (!mempool.getAddressIndex(addresses, indexes)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available for address");
     }
@@ -204,13 +202,11 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
     }
 
     std::vector<std::pair<uint256, int> > addresses;
-
     if (!getAddressesFromParams(request.params, addresses)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
     std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > unspentOutputs;
-
     for (std::vector<std::pair<uint256, int> >::iterator it = addresses.begin(); it != addresses.end(); it++) {
         if (!GetAddressUnspent(it->first, it->second, unspentOutputs)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available for address");
@@ -1263,6 +1259,39 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
     return rv;
 }
 
+UniValue getindexinfo(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 0)
+        throw std::runtime_error(
+            RPCHelpMan{"getindexinfo",
+                "\nReturns an object of enabled indices.\n",
+                {
+                }}
+                .ToString() +
+            "\nResult:\n"
+            "{\n"
+            "  \"txindex\": xxx             (bool) Is the txindex enabled.\n"
+            "  \"addressindex\": xxx        (bool) Is the addressindex enabled.\n"
+            "  \"spentindex\":  xxx         (bool) Is the spentindex enabled.\n"
+            "  \"timestampindex\":  xxx     (bool) Is the timestampindex enabled.\n"
+            "  \"coldstakeindex\":  xxx     (bool) Is the coldstakeindex enabled.\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getindexinfo", "") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("getindexinfo", "")
+        );
+
+    UniValue ret(UniValue::VOBJ);
+
+    ret.pushKV("txindex", (bool) g_txindex);
+    ret.pushKV("addressindex", fAddressIndex);
+    ret.pushKV("spentindex", fSpentIndex);
+    ret.pushKV("timestampindex", fTimestampIndex);
+    ret.pushKV("coldstakeindex", (bool) (g_txindex && g_txindex->m_cs_index));
+
+    return ret;
+}
 
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
@@ -1276,12 +1305,14 @@ static const CRPCCommand commands[] =
 
     /* Blockchain */
     { "blockchain",         "getspentinfo",           &getspentinfo,           {"inputs"} },
-    { "blockchain",         "getblockdeltas",         &getblockdeltas,          {} },
-    { "blockchain",         "getblockhashes",         &getblockhashes,          {"high","low","options"} },
-    { "blockchain",         "gettxoutsetinfobyscript",&gettxoutsetinfobyscript, {} },
+    { "blockchain",         "getblockdeltas",         &getblockdeltas,         {} },
+    { "blockchain",         "getblockhashes",         &getblockhashes,         {"high","low","options"} },
+    { "blockchain",         "gettxoutsetinfobyscript",&gettxoutsetinfobyscript,{} },
     { "blockchain",         "getblockreward",         &getblockreward,         {"height"} },
 
     { "csindex",            "listcoldstakeunspent",   &listcoldstakeunspent,   {"stakeaddress","height","options"} },
+
+    { "blockchain",         "getindexinfo",           &getindexinfo,           {} },
 };
 
 void RegisterInsightRPCCommands(CRPCTable &tableRPC)

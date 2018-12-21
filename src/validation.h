@@ -204,7 +204,6 @@ extern bool fSkipRangeproof;
 extern bool fBusyImporting;
 extern std::atomic_bool fReindex;
 extern int nScriptCheckThreads;
-extern bool fTxIndex;
 extern bool fAddressIndex;
 extern bool fSpentIndex;
 extern bool fTimestampIndex;

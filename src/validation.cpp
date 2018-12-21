@@ -242,7 +242,6 @@ std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
 bool fSkipRangeproof = false;
 bool fBusyImporting = false;        // covers ActivateBestChain too
-bool fTxIndex = true;
 bool fAddressIndex = false;
 bool fTimestampIndex = false;
 bool fSpentIndex = false;
@@ -1041,12 +1040,14 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         pool.addUnchecked(entry, setAncestors, validForFeeEstimation);
 
         // Add memory address index
-        if (fAddressIndex)
+        if (fAddressIndex) {
             pool.addAddressIndex(entry, view);
+        }
 
         // Add memory spent index
-        if (fSpentIndex)
+        if (fSpentIndex) {
             pool.addSpentIndex(entry, view);
+        }
 
         // trim mempool and check if tx was trimmed
         if (!bypass_limits) {
@@ -1873,41 +1874,39 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
 
         bool is_coinbase = tx.IsCoinBase() || tx.IsCoinStake();
 
-        for (size_t k = tx.vpout.size(); k-- > 0;)
-        {
+        for (size_t k = tx.vpout.size(); k-- > 0;) {
             const CTxOutBase *out = tx.vpout[k].get();
 
-            if (out->IsType(OUTPUT_RINGCT))
-            {
+            if (out->IsType(OUTPUT_RINGCT)) {
                 CTxOutRingCT *txout = (CTxOutRingCT*)out;
 
-                if (view.nLastRCTOutput == 0)
-                {
+                if (view.nLastRCTOutput == 0) {
                     view.nLastRCTOutput = pindex->nAnonOutputs;
                     // Verify data matches
                     CAnonOutput ao;
                     if (!pblocktree->ReadRCTOutput(view.nLastRCTOutput, ao)) {
                         error("%s: RCT output missing, txn %s, %d, index %d.", __func__, hash.ToString(), k, view.nLastRCTOutput);
-                        if (!view.fForceDisconnect)
+                        if (!view.fForceDisconnect) {
                             return DISCONNECT_FAILED;
+                        }
                     } else
                     if (ao.pubkey != txout->pk) {
                         error("%s: RCT output mismatch, txn %s, %d, index %d.", __func__, hash.ToString(), k, view.nLastRCTOutput);
-                        if (!view.fForceDisconnect)
+                        if (!view.fForceDisconnect) {
                             return DISCONNECT_FAILED;
-                    };
-                };
+                        }
+                    }
+                }
 
                 view.anonOutputLinks[txout->pk] = view.nLastRCTOutput;
                 view.nLastRCTOutput--;
 
                 continue;
-            };
+            }
 
             // Check that all outputs are available and match the outputs in the block itself
             // exactly.
-            if (out->IsType(OUTPUT_STANDARD) || out->IsType(OUTPUT_CT))
-            {
+            if (out->IsType(OUTPUT_STANDARD) || out->IsType(OUTPUT_CT)) {
                 const CScript *pScript = out->GetPScriptPubKey();
                 if (!pScript->IsUnspendable()) {
                     COutPoint op(hash, k);
@@ -1915,32 +1914,35 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
 
                     CTxOut txout(0, *pScript);
 
-                    if (out->IsType(OUTPUT_STANDARD))
+                    if (out->IsType(OUTPUT_STANDARD)) {
                         txout.nValue = out->GetValue();
+                    }
                     bool is_spent = view.SpendCoin(op, &coin);
                     if (!is_spent || txout != coin.out || pindex->nHeight != coin.nHeight || is_coinbase != coin.fCoinBase) {
                         fClean = false; // transaction output mismatch
                     }
                 }
-            };
+            }
 
             if (!fAddressIndex
                 || (!out->IsType(OUTPUT_STANDARD)
-                && !out->IsType(OUTPUT_CT)))
+                && !out->IsType(OUTPUT_CT))) {
                 continue;
+            }
 
             const CScript *pScript;
             std::vector<unsigned char> hashBytes;
             int scriptType = 0;
             CAmount nValue;
             if (!ExtractIndexInfo(out, scriptType, hashBytes, nValue, pScript)
-                || scriptType == 0)
+                || scriptType == 0) {
                 continue;
+            }
             // undo receiving activity
             view.addressIndex.push_back(std::make_pair(CAddressIndexKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), pindex->nHeight, i, hash, k, false), nValue));
             // undo unspent index
             view.addressUnspentIndex.push_back(std::make_pair(CAddressUnspentKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), hash, k), CAddressUnspentValue()));
-        };
+        }
 
 
         if (fParticlMode) {
@@ -2985,66 +2987,69 @@ bool FlushView(CCoinsViewCache *view, CValidationState& state, bool fDisconnecti
     if (!view->Flush())
         return false;
 
-    if (fAddressIndex)
-    {
-        if (fDisconnecting)
-        {
-            if (!pblocktree->EraseAddressIndex(view->addressIndex))
+    if (fAddressIndex) {
+        if (fDisconnecting) {
+            if (!pblocktree->EraseAddressIndex(view->addressIndex)) {
                 return AbortNode(state, "Failed to delete address index");
-        } else
-        {
-            if (!pblocktree->WriteAddressIndex(view->addressIndex))
+            }
+        } else {
+            if (!pblocktree->WriteAddressIndex(view->addressIndex)) {
                 return AbortNode(state, "Failed to write address index");
-        };
+            }
+        }
 
-        if (!pblocktree->UpdateAddressUnspentIndex(view->addressUnspentIndex))
+        if (!pblocktree->UpdateAddressUnspentIndex(view->addressUnspentIndex)) {
             return AbortNode(state, "Failed to write address unspent index");
-    };
+        }
+    }
 
-    if (fSpentIndex)
-    {
-        if (!pblocktree->UpdateSpentIndex(view->spentIndex))
+    if (fSpentIndex) {
+        if (!pblocktree->UpdateSpentIndex(view->spentIndex)) {
             return AbortNode(state, "Failed to write transaction index");
-    };
+        }
+    }
 
     view->addressIndex.clear();
     view->addressUnspentIndex.clear();
     view->spentIndex.clear();
 
-    if (fDisconnecting)
-    {
-        for (auto &it : view->keyImages)
-            if (!pblocktree->EraseRCTKeyImage(it.first))
+    if (fDisconnecting) {
+        for (auto &it : view->keyImages) {
+            if (!pblocktree->EraseRCTKeyImage(it.first)) {
                 return error("%s: EraseRCTKeyImage failed, txn %s.", __func__, it.second.ToString());
+            }
+        }
 
-        if (view->anonOutputLinks.size() > 0)
-        {
-            for (auto &it : view->anonOutputLinks)
-            {
-                if (!pblocktree->EraseRCTOutput(it.second))
+        if (view->anonOutputLinks.size() > 0) {
+            for (auto &it : view->anonOutputLinks) {
+                if (!pblocktree->EraseRCTOutput(it.second)) {
                     return error("%s: EraseRCTOutput failed.", __func__);
+                }
 
-                if (!pblocktree->EraseRCTOutputLink(it.first))
+                if (!pblocktree->EraseRCTOutputLink(it.first)) {
                     return error("%s: EraseRCTOutput failed.", __func__);
-            };
-
-        };
-    } else
-    {
+                }
+            }
+        }
+    } else {
         CDBBatch batch(*pblocktree);
 
-        for (auto &it : view->keyImages)
+        for (auto &it : view->keyImages) {
             batch.Write(std::make_pair(DB_RCTKEYIMAGE, it.first), it.second);
+        }
 
-        for (auto &it : view->anonOutputs)
+        for (auto &it : view->anonOutputs) {
             batch.Write(std::make_pair(DB_RCTOUTPUT, it.first), it.second);
+        }
 
-        for (auto &it : view->anonOutputLinks)
+        for (auto &it : view->anonOutputLinks) {
             batch.Write(std::make_pair(DB_RCTOUTPUT_LINK, it.first), it.second);
+        }
 
-        if (!pblocktree->WriteBatch(batch))
+        if (!pblocktree->WriteBatch(batch)) {
             return error("%s: Write RCT outputs failed.", __func__);
-    };
+        }
+    }
 
     view->nLastRCTOutput = 0;
     view->anonOutputs.clear();
@@ -5376,10 +5381,6 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams) EXCLUSIVE_LOCKS_RE
     bool fReindexing = false;
     pblocktree->ReadReindexing(fReindexing);
     if(fReindexing) fReindex = true;
-
-    // Check whether we have a transaction index
-    //pblocktree->ReadFlag("txindex", fTxIndex);
-    //LogPrintf("%s: transaction index %s\n", __func__, fTxIndex ? "enabled" : "disabled");
 
     // Check whether we have an address index
     pblocktree->ReadFlag("addressindex", fAddressIndex);
