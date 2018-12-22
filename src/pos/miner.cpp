@@ -413,7 +413,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             }
 
             if (!pblocktemplate.get()) {
-                pblocktemplate = BlockAssembler(Params()).CreateNewBlock(coinbaseScript, true, false);
+                pblocktemplate = BlockAssembler(Params()).CreateNewBlock(coinbaseScript, false);
                 if (!pblocktemplate.get()) {
                     fIsStaking = false;
                     nWaitFor = std::min(nWaitFor, (size_t)nMinerSleep);
