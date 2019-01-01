@@ -455,7 +455,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n aktiivinen yhteys Particl-verkkoon</numerusform><numerusform>%n aktiivista yhteyttä Bitcoin-verkkoon</numerusform></translation>
+        <translation><numerusform>%n aktiivinen yhteys Particl-verkkoon</numerusform><numerusform>%n aktiivista yhteyttä Particl-verkkoon</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>

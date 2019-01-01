@@ -435,7 +435,7 @@
     </message>
     <message>
         <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>בקשת תשלומים (יצירה של קודים מסוג QR וסכימות כתובות משאב של :bitcoin)</translation>
+        <translation>בקשת תשלומים (יצירה של קודים מסוג QR וסכימות כתובות משאב של :particl)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
