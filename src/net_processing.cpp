@@ -1787,8 +1787,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         nSendVersion = std::min(nVersion, PROTOCOL_VERSION);
 
         // Clear NODE_SMSG service flag if old peer version
-        if (nVersion < smsg::MIN_SMSG_PROTO_VERSION)
+        if (nVersion < smsg::MIN_SMSG_PROTO_VERSION) {
             nServiceInt &= ~NODE_SMSG;
+        }
         nServices = ServiceFlags(nServiceInt);
 
         if (!pfrom->fInbound)
@@ -3958,8 +3959,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
         }
     }
 
-    if (smsg::fSecMsgEnabled)
-    {
+    if (smsg::fSecMsgEnabled) {
         bool fSendTrickle = pto->fWhitelisted;
         smsgModule.SendData(pto, fSendTrickle);
     }
