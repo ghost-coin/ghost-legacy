@@ -4906,7 +4906,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             if (pick_new_inputs) {
                 nValueIn = 0;
                 setCoins.clear();
-                if (!SelectBlindedCoins(vAvailableCoins, nValueToSelect, setCoins, nValueIn, coinControl)) {
+                if (!SelectBlindedCoins(vAvailableCoins, nValueToSelect, setCoins, nValueIn, coinControl, true)) {
                     return wserrorN(1, sError, __func__, _("Insufficient funds."));
                 }
             }
@@ -9797,19 +9797,30 @@ int CHDWallet::InsertTempTxn(const uint256 &txid, const CTransactionRecord *rtx)
     wtx.BindWallet(std::remove_const<CWallet*>::type(this));
     wtx.tx = stx.tx;
 
-    if (rtx)
-    {
+    if (rtx) {
         wtx.hashBlock = rtx->blockHash;
         wtx.nIndex = rtx->nIndex;
         wtx.nTimeSmart = rtx->GetTxTime();
         wtx.nTimeReceived = rtx->nTimeReceived;
-    };
+    }
 
     std::pair<MapWallet_t::iterator, bool> ret = mapTempWallet.insert(std::make_pair(txid, wtx));
     if (!ret.second) // silence compiler warning
         WalletLogPrintf("%s: insert failed for %s.\n", __func__, txid.ToString());
 
     return 0;
+};
+
+const CWalletTx *CHDWallet::GetWalletOrTempTx(const uint256& hash, const CTransactionRecord *rtx) const
+{
+    const CWalletTx *pcoin = GetWalletTx(hash);
+    if (pcoin) {
+        return pcoin;
+    }
+    if (0 != InsertTempTxn(hash, rtx)) {
+        return nullptr;
+    }
+    return GetWalletTx(hash);
 };
 
 int CHDWallet::OwnStandardOut(const CTxOutStandard *pout, const CTxOutData *pdata, COutputRecord &rout, bool &fUpdated)
@@ -10444,7 +10455,6 @@ std::vector<uint256> CHDWallet::ResendRecordTransactionsBefore(interfaces::Chain
         }
 
         MapWallet_t::iterator twi = mapTempWallet.find(txhash);
-
         if (twi == mapTempWallet.end()) {
             if (0 != InsertTempTxn(txhash, &rtx)
                 || (twi = mapTempWallet.find(txhash)) == mapTempWallet.end()) {
@@ -10805,19 +10815,16 @@ void CHDWallet::AvailableBlindedCoins(interfaces::Chain::Lock& locked_chain, std
 
     vCoins.clear();
 
-    if (coinControl && coinControl->HasSelected())
-    {
+    if (coinControl && coinControl->HasSelected()) {
         // Add specified coins which may not be in the chain
-        for (MapRecords_t::const_iterator it = mapTempRecords.begin(); it !=  mapTempRecords.end(); ++it)
-        {
+        for (MapRecords_t::const_iterator it = mapTempRecords.begin(); it !=  mapTempRecords.end(); ++it) {
             const uint256 &txid = it->first;
             const CTransactionRecord &rtx = it->second;
-            for (const auto &r : rtx.vout)
-            {
-                if (IsLockedCoin(txid, r.n))
+            for (const auto &r : rtx.vout) {
+                if (IsLockedCoin(txid, r.n)) {
                     continue;
-                if (coinControl->IsSelected(COutPoint(txid, r.n)))
-                {
+                }
+                if (coinControl->IsSelected(COutPoint(txid, r.n))) {
                     int nDepth = 0;
                     bool fSpendable = true;
                     bool fSolvable = true;
@@ -10825,15 +10832,14 @@ void CHDWallet::AvailableBlindedCoins(interfaces::Chain::Lock& locked_chain, std
                     bool fMature = false;
                     bool fNeedHardwareKey = false;
                     vCoins.emplace_back(txid, it, r.n, nDepth, fSpendable, fSolvable, safeTx, fMature, fNeedHardwareKey);
-                };
-            };
-        };
-    };
+                }
+            }
+        }
+    }
 
     CAmount nTotal = 0;
 
-    for (MapRecords_t::const_iterator it = mapRecords.begin(); it != mapRecords.end(); ++it)
-    {
+    for (MapRecords_t::const_iterator it = mapRecords.begin(); it != mapRecords.end(); ++it) {
         const uint256 &txid = it->first;
         const CTransactionRecord &rtx = it->second;
 
@@ -10917,7 +10923,7 @@ void CHDWallet::AvailableBlindedCoins(interfaces::Chain::Lock& locked_chain, std
     return;
 };
 
-bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins, const CAmount &nTargetValue, std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &setCoinsRet, CAmount &nValueRet, const CCoinControl *coinControl) const
+bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins, const CAmount &nTargetValue, std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &setCoinsRet, CAmount &nValueRet, const CCoinControl *coinControl, bool random_selection) const
 {
     std::vector<COutputR> vCoins(vAvailableCoins);
 
@@ -10977,15 +10983,40 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
     size_t max_ancestors = (size_t)std::max<int64_t>(1, gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT));
     size_t max_descendants = (size_t)std::max<int64_t>(1, gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT));
     bool fRejectLongChains = gArgs.GetBoolArg("-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS);
+    bool res = nTargetValue <= nValueFromPresetInputs;
+    if (!res) {
+        if (random_selection) {
+            random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+            for (const auto &r : vCoins) {
+                MapRecords_t::const_iterator rtxi = r.rtx;
+                const CTransactionRecord *rtx = &rtxi->second;
+                const CWalletTx *pcoin = GetWalletOrTempTx(r.txhash, rtx);
+                if (!pcoin) {
+                    return werror("%s: GetWalletOrTempTx failed.\n", __func__);
+                }
 
-    bool res = nTargetValue <= nValueFromPresetInputs ||
-        SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(1, 6, 0), vCoins, setCoinsRet, nValueRet) ||
-        SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(1, 1, 0), vCoins, setCoinsRet, nValueRet) ||
-        (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, 2), vCoins, setCoinsRet, nValueRet)) ||
-        (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, std::min((size_t)4, max_ancestors/3), std::min((size_t)4, max_descendants/3)), vCoins, setCoinsRet, nValueRet)) ||
-        (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, max_ancestors/2, max_descendants/2), vCoins, setCoinsRet, nValueRet)) ||
-        (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, max_ancestors-1, max_descendants-1), vCoins, setCoinsRet, nValueRet)) ||
-        (m_spend_zero_conf_change && !fRejectLongChains && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, std::numeric_limits<uint64_t>::max()), vCoins, setCoinsRet, nValueRet));
+                const COutputRecord *oR = rtx->GetOutput(r.i);
+                if (!oR) {
+                    return werror("%s: GetOutput failed, %s, %d.\n", r.txhash.ToString(), r.i);
+                }
+
+                nValueRet += oR->nValue;
+                setCoinsRet.push_back(std::make_pair(rtxi, r.i));
+                if (nValueRet >= nTargetValue - nValueFromPresetInputs) {
+                    break;
+                }
+            }
+            res = nValueRet >= nTargetValue - nValueFromPresetInputs;
+        } else {
+             res = SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(1, 6, 0), vCoins, setCoinsRet, nValueRet) ||
+                SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(1, 1, 0), vCoins, setCoinsRet, nValueRet) ||
+                (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, 2), vCoins, setCoinsRet, nValueRet)) ||
+                (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, std::min((size_t)4, max_ancestors/3), std::min((size_t)4, max_descendants/3)), vCoins, setCoinsRet, nValueRet)) ||
+                (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, max_ancestors/2, max_descendants/2), vCoins, setCoinsRet, nValueRet)) ||
+                (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, max_ancestors-1, max_descendants-1), vCoins, setCoinsRet, nValueRet)) ||
+                (m_spend_zero_conf_change && !fRejectLongChains && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(0, 1, std::numeric_limits<uint64_t>::max()), vCoins, setCoinsRet, nValueRet));
+        }
+    }
 
 
     // because SelectCoinsMinConf clears the setCoinsRet, we now add the possible inputs to the coinset
@@ -11305,24 +11336,20 @@ bool CHDWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligib
 
     random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
 
-    for (const auto &r : vCoins)
-    {
+    for (const auto &r : vCoins) {
         //if (!r.fSpendable)
         //    continue;
         MapRecords_t::const_iterator rtxi = r.rtx;
         const CTransactionRecord *rtx = &rtxi->second;
 
-        const CWalletTx *pcoin = GetWalletTx(r.txhash);
+        const CWalletTx *pcoin = GetWalletOrTempTx(r.txhash, rtx);
         if (!pcoin) {
-            if (0 != InsertTempTxn(r.txhash, rtx)
-                || !(pcoin = GetWalletTx(r.txhash))) {
-                return werror("%s: InsertTempTxn failed.\n", __func__);
-            }
+            return werror("%s: GetWalletOrTempTx failed.\n", __func__);
         }
 
-
-        if (r.nDepth < (pcoin->IsFromMe(ISMINE_ALL) ? eligibility_filter.conf_mine : eligibility_filter.conf_theirs))
+        if (r.nDepth < (pcoin->IsFromMe(ISMINE_ALL) ? eligibility_filter.conf_mine : eligibility_filter.conf_theirs)) {
             continue;
+        }
 
         size_t ancestors, descendants;
         mempool.GetTransactionAncestry(r.txhash, ancestors, descendants);
@@ -11338,37 +11365,32 @@ bool CHDWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligib
         CAmount nV = oR->nValue;
         std::pair<CAmount,std::pair<MapRecords_t::const_iterator,unsigned int> > coin = std::make_pair(nV, std::make_pair(rtxi, r.i));
 
-        if (nV == nTargetValue)
-        {
+        if (nV == nTargetValue) {
             setCoinsRet.push_back(coin.second);
             nValueRet += coin.first;
             return true;
         } else
-        if (nV < nTargetValue + MIN_CHANGE)
-        {
+        if (nV < nTargetValue + MIN_CHANGE) {
             vValue.push_back(coin);
             nTotalLower += nV;
         } else
-        if (nV < coinLowestLarger.first)
-        {
+        if (nV < coinLowestLarger.first) {
             coinLowestLarger = coin;
         }
-    };
+    }
 
-    if (nTotalLower == nTargetValue)
-    {
-        for (unsigned int i = 0; i < vValue.size(); ++i)
-        {
+    if (nTotalLower == nTargetValue) {
+        for (unsigned int i = 0; i < vValue.size(); ++i) {
             setCoinsRet.push_back(vValue[i].second);
             nValueRet += vValue[i].first;
         }
         return true;
-    };
+    }
 
-    if (nTotalLower < nTargetValue)
-    {
-        if (coinLowestLarger.second.first == mapRecords.end())
+    if (nTotalLower < nTargetValue) {
+        if (coinLowestLarger.second.first == mapRecords.end()) {
             return false;
+        }
         setCoinsRet.push_back(coinLowestLarger.second);
         nValueRet += coinLowestLarger.first;
         return true;
@@ -11381,24 +11403,23 @@ bool CHDWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligib
     CAmount nBest;
 
     ApproximateBestSubset(vValue, nTotalLower, nTargetValue, vfBest, nBest);
-    if (nBest != nTargetValue && nTotalLower >= nTargetValue + MIN_CHANGE)
+    if (nBest != nTargetValue && nTotalLower >= nTargetValue + MIN_CHANGE) {
         ApproximateBestSubset(vValue, nTotalLower, nTargetValue + MIN_CHANGE, vfBest, nBest);
+    }
 
     // If we have a bigger coin and (either the stochastic approximation didn't find a good solution,
     //                                   or the next bigger coin is closer), return the bigger coin
     if (coinLowestLarger.second.first != mapRecords.end() &&
-        ((nBest != nTargetValue && nBest < nTargetValue + MIN_CHANGE) || coinLowestLarger.first <= nBest))
-    {
+        ((nBest != nTargetValue && nBest < nTargetValue + MIN_CHANGE) || coinLowestLarger.first <= nBest)) {
         setCoinsRet.push_back(coinLowestLarger.second);
         nValueRet += coinLowestLarger.first;
-    } else
-    {
-        for (unsigned int i = 0; i < vValue.size(); i++)
-            if (vfBest[i])
-            {
+    } else {
+        for (unsigned int i = 0; i < vValue.size(); i++) {
+            if (vfBest[i]) {
                 setCoinsRet.push_back(vValue[i].second);
                 nValueRet += vValue[i].first;
             }
+        }
 
         if (LogAcceptCategory(BCLog::SELECTCOINS)) {
             WalletLogPrintf("SelectCoins() best subset: "); /* Continued */
