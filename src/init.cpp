@@ -1079,9 +1079,7 @@ bool AppInitBasicSetup()
 bool AppInitParameterInteraction()
 {
     fParticlMode = !gArgs.GetBoolArg("-btcmode", false); // qa tests
-    if (fParticlMode) {
-        maxTxFee = DEFAULT_TRANSACTION_MAXFEE_PART;
-    } else {
+    if (!fParticlMode) {
         WITNESS_SCALE_FACTOR = WITNESS_SCALE_FACTOR_BTC;
         if (gArgs.GetBoolArg("-regtest", false)) {
             ResetParams(CBaseChainParams::REGTEST, fParticlMode);
