@@ -401,6 +401,13 @@ uint256 GetRandHash()
     return hash;
 }
 
+double GetRandDoubleUnit()
+{
+    uint64_t nRand;
+    GetRandBytes((unsigned char*)&nRand, sizeof(nRand));
+    return ((double) nRand) / (double) std::numeric_limits<uint64_t>::max();
+}
+
 void FastRandomContext::RandomSeed()
 {
     uint256 seed = GetRandHash();

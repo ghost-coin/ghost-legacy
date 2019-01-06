@@ -2722,8 +2722,9 @@ CAmount CHDWallet::GetAvailableBlindBalance(const CCoinControl* coinControl) con
     for (const COutputR& out : vCoins) {
         if (out.fSpendable) {
             const COutputRecord *oR = out.rtx->second.GetOutput(out.i);
-            if (!oR)
+            if (!oR) {
                 continue;
+            }
             balance += oR->nValue;
         }
     }
@@ -4753,9 +4754,10 @@ int CHDWallet::PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t 
     return 0;
 };
 
-int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI, size_t nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
-    std::string &sError)
+int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI,
+    size_t nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave, std::string &sError)
 {
+    AssertLockHeld(cs_main);
     if (nRingSize < MIN_RINGSIZE || nRingSize > MAX_RINGSIZE) {
         return wserrorN(1, sError, __func__, _("Ring size out of range [%d, %d]"), MIN_RINGSIZE, MAX_RINGSIZE);
     }
@@ -4764,10 +4766,10 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI, size_t
     const Consensus::Params& consensusParams = Params().GetConsensus();
     size_t nInputs = vMI.size();
 
-    int64_t nLastRCTOutIndex = 0;
-    {
-        AssertLockHeld(cs_main);
-        nLastRCTOutIndex = chainActive.Tip()->nAnonOutputs;
+    int64_t nLastRCTOutIndex = chainActive.Tip()->nAnonOutputs;
+
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("%s: Last index %d, inputs %d, ring size %d.\n", __func__, nLastRCTOutIndex, nInputs, nRingSize);
     }
 
     if (nLastRCTOutIndex < (int64_t)(nInputs * nRingSize)) {
@@ -4777,30 +4779,67 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI, size_t
     int nExtraDepth = gArgs.GetBoolArg("-regtest", false) ? -1 : 2; // if not on regtest pick outputs deeper than consensus checks to prevent banning
 
     // Must add real outputs to setHave before adding the decoys.
+    std::vector<int64_t> real_inputs;
+    real_inputs.reserve(setHave.size());
+    for (auto i : setHave) {
+        real_inputs.push_back(i);
+    }
+
     for (size_t k = 0; k < nInputs; ++k)
     for (size_t i = 0; i < nRingSize; ++i) {
         if (i == nSecretColumn) {
             continue;
         }
 
-        int64_t nMinIndex = 1;
-        if (GetRandInt(100) < 50) { // 50% chance of selecting from the last 2400
-            nMinIndex = std::max((int64_t)1, nLastRCTOutIndex - nRCTOutSelectionGroup1);
-        } else
-        if (GetRandInt(100) < 70) { // further 70% chance of selecting from the last 24000
-            nMinIndex = std::max((int64_t)1, nLastRCTOutIndex - nRCTOutSelectionGroup2);
-        }
-
         int64_t nLastDepthCheckPassed = 0;
         size_t j = 0;
         const static size_t nMaxTries = 1000;
         for (j = 0; j < nMaxTries; ++j) {
-            if (nLastRCTOutIndex <= nMinIndex) {
-                return wserrorN(1, sError, __func__, _("Not enough anon outputs exist, min: %d lastpick: %d, required: %d"), nMinIndex, nLastRCTOutIndex, nInputs * nRingSize);
+            int64_t select_min = 1;
+            int64_t select_max = nLastRCTOutIndex;
+
+            int64_t select_range = 0;
+            int64_t select_near = 0;
+            if (GetRandInt(100) < 50) { // 50% chance of selecting within 5000 places of a random input
+                select_range = nRCTOutSelectionGroup1;
+                select_near = real_inputs[GetRandInt(real_inputs.size())];
+            } else
+            if (GetRandInt(100) < 40) { // Further 40% chance of selecting within 50000 places of a random input
+                select_range = nRCTOutSelectionGroup2;
+                select_near = real_inputs[GetRandInt(real_inputs.size())];
             }
 
-            int64_t nDecoy = nMinIndex + GetRand((nLastRCTOutIndex - nMinIndex) + 1);
+            if (select_near) {
+                // Randomly offset the range
+                select_near = std::max(int64_t(1), int64_t((select_near - select_range) + (select_range * 2.0) * GetRandDoubleUnit()));
 
+                select_min = std::min(nLastRCTOutIndex, std::max(int64_t(1), select_near - select_range));
+                select_max = std::min(nLastRCTOutIndex, select_near + select_range);
+
+                int64_t num_blocks, num_aos = select_max - select_min;
+                CAnonOutput ao_min, ao_max;
+                if (!pblocktree->ReadRCTOutput(select_min, ao_min)) {
+                    return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), select_min);
+                }
+                if (!pblocktree->ReadRCTOutput(select_max, ao_max)) {
+                    return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), select_max);
+                }
+                num_blocks = ao_max.nBlockHeight - ao_min.nBlockHeight;
+
+                if (num_blocks) {
+                    double ratio = ((double) num_aos * 2.0) / ((double) num_blocks);
+                    if (LogAcceptCategory(BCLog::HDWALLET)) {
+                        WalletLogPrintf("%s: Adjusting range, anon-outputs %d, blocks %d, ratio %f.\n", __func__, num_aos, num_blocks, ratio);
+                    }
+                    if (ratio > 1.0) {
+                        select_range *= ratio;
+                        select_min = std::min(nLastRCTOutIndex, std::max(int64_t(1), select_near - select_range));
+                        select_max = std::min(nLastRCTOutIndex, select_near + select_range);
+                    }
+                }
+            }
+
+            int64_t nDecoy = select_min + GetRand(select_max-select_min);
             if (setHave.count(nDecoy) > 0) {
                 if (nDecoy == nLastRCTOutIndex) {
                     nLastRCTOutIndex--;
@@ -4814,7 +4853,7 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI, size_t
                     return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), nDecoy);
                 }
 
-                if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth+nExtraDepth)) {
+                if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth + nExtraDepth)) {
                     if (nLastRCTOutIndex > nDecoy) {
                         nLastRCTOutIndex = nDecoy-1;
                     }
@@ -4825,11 +4864,15 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI, size_t
 
             vMI[k][i] = nDecoy;
             setHave.insert(nDecoy);
+
+            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                WalletLogPrintf("Adding decoy %d, from range (%d, %d).\n", nDecoy, select_min, select_max);
+            }
             break;
         }
 
         if (j >= nMaxTries) {
-            return wserrorN(1, sError, __func__, _("Hit nMaxTries limit, %d, %d"), k, i);
+            return wserrorN(1, sError, __func__, _("Hit nMaxTries limit, %d, %d, have %d, lastindex %d"), k, i, setHave.size(), nLastRCTOutIndex);
         }
     }
 
@@ -4943,19 +4986,10 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 InsertChangeAddress(r, vecSend, nChangePosInOut);
             }
 
-
-            int nSignSigs = 1;
-            if (nInputsPerSig < setCoins.size()) {
-                nSignSigs = setCoins.size() / nInputsPerSig;
-                while (nSignSigs % nInputsPerSig != 0) {
-                    nSignSigs++;
-                }
-            }
-
+            int nSignSigs = 0;
             size_t nRemainingInputs = setCoins.size();
-
-            for (int k = 0; k < nSignSigs; ++k) {
-                size_t nInputs = (k == nSignSigs-1 ? nRemainingInputs : nInputsPerSig);
+            while (nRemainingInputs > 0) {
+                size_t nInputs = nRemainingInputs > nInputsPerSig ? nInputsPerSig : nRemainingInputs;
                 CTxIn txin;
                 txin.nSequence = CTxIn::SEQUENCE_FINAL;
                 txin.prevout.n = COutPoint::ANON_MARKER;
@@ -4963,6 +4997,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 txNew.vin.emplace_back(txin);
 
                 nRemainingInputs -= nInputs;
+                nSignSigs++;
             }
 
             vMI.clear();
@@ -5016,9 +5051,9 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 }
             }
 
-
             std::set<int64_t> setHave; // Anon prev-outputs can only be used once per transaction.
             size_t nTotalInputs = 0;
+
             for (size_t l = 0; l < txNew.vin.size(); ++l) { // Must add real outputs to setHave before picking decoys
                 auto &txin = txNew.vin[l];
                 uint32_t nSigInputs, nSigRingSize;
@@ -5054,7 +5089,6 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 
                 std::vector<uint8_t> vKeyImages(33 * nSigInputs);
                 txin.scriptData.stack.emplace_back(vKeyImages);
-
                 txin.scriptWitness.stack.emplace_back(vPubkeyMatrixIndices);
 
                 std::vector<uint8_t> vDL((1 + (nSigInputs+1) * nSigRingSize) * 32 // extra element for C, extra row for commitment row
@@ -5466,6 +5500,7 @@ void CHDWallet::LoadToWallet(const CWalletTx& wtxIn)
         if (wtx.tx->GetCoinStakeHeight(csHeight)
             && csHeight > nBestHeight - (MAX_STAKE_SEEN_SIZE * 1.5)) {
             // Add to MapStakeSeen to prevent node submitting a block that would be rejected.
+            LOCK(cs_main);
             const COutPoint &kernel = wtx.tx->vin[0].prevout;
             AddToMapStakeSeen(kernel, hash);
         }
@@ -10962,7 +10997,7 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
 
     // Remove preset inputs from vCoins
     if (vPresetCoins.size() > 0) {
-        for (std::vector<COutputR>::iterator it = vCoins.begin(); it != vCoins.end();) {
+        for (auto it = vCoins.begin(); it != vCoins.end();) {
             std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> >::const_iterator it2;
             bool fFound = false;
             for (it2 = vPresetCoins.begin(); it2 != vPresetCoins.end(); it2++) {
@@ -10987,24 +11022,48 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
     if (!res) {
         if (random_selection) {
             random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
-            for (const auto &r : vCoins) {
-                MapRecords_t::const_iterator rtxi = r.rtx;
+
+            CAmount target_val = nTargetValue - nValueFromPresetInputs;
+            std::vector<CAmount> coin_values;
+            for (auto it = vCoins.begin(); it != vCoins.end();) {
+                MapRecords_t::const_iterator rtxi = it->rtx;
                 const CTransactionRecord *rtx = &rtxi->second;
-                const CWalletTx *pcoin = GetWalletOrTempTx(r.txhash, rtx);
+                const CWalletTx *pcoin = GetWalletOrTempTx(it->txhash, rtx);
                 if (!pcoin) {
                     return werror("%s: GetWalletOrTempTx failed.\n", __func__);
                 }
-
-                const COutputRecord *oR = rtx->GetOutput(r.i);
+                const COutputRecord *oR = rtx->GetOutput(it->i);
                 if (!oR) {
-                    return werror("%s: GetOutput failed, %s, %d.\n", r.txhash.ToString(), r.i);
+                    return werror("%s: GetOutput failed, %s, %d.\n", it->txhash.ToString(), it->i);
                 }
 
-                nValueRet += oR->nValue;
-                setCoinsRet.push_back(std::make_pair(rtxi, r.i));
-                if (nValueRet >= nTargetValue - nValueFromPresetInputs) {
-                    break;
+                bool add_input = false;
+                if (nValueRet < target_val) {
+                    add_input = true;
+                } else {
+                    for (size_t k = 0; k < setCoinsRet.size(); ++k) {
+                        if (setCoinsRet.size() + (add_input ? 1 : 0) <= prefer_max_num_anon_inputs) {
+                            break;
+                        }
+                        // Replace output if possible
+                        if ((nValueRet + oR->nValue) - coin_values[k] >= target_val) {
+                            add_input = true;
+                            nValueRet -= coin_values[k];
+                            setCoinsRet.erase(setCoinsRet.begin() + k);
+                            coin_values.erase(coin_values.begin() + k);
+                            k--;
+                            continue;
+                        }
+                    }
                 }
+                if (add_input) {
+                    nValueRet += oR->nValue;
+                    setCoinsRet.push_back(std::make_pair(rtxi, it->i));
+                    coin_values.push_back(oR->nValue);
+                    it = vCoins.erase(it);
+                    continue;
+                }
+                ++it;
             }
             res = nValueRet >= nTargetValue - nValueFromPresetInputs;
         } else {

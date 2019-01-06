@@ -230,7 +230,7 @@ std::map<uint256, StakeConflict> mapStakeConflict;
 std::map<COutPoint, uint256> mapStakeSeen;
 std::list<COutPoint> listStakeSeen;
 
-CoinStakeCache coinStakeCache;
+CoinStakeCache coinStakeCache GUARDED_BY(cs_main);
 std::set<CCmpPubKey> setConnectKi; // hacky workaround
 
 CBlockIndex *pindexBestHeader = nullptr;
@@ -1218,14 +1218,13 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
     }
 
     // Check the header
-    if (fParticlMode)
-    {
+    if (fParticlMode) {
         // only CheckProofOfWork for genesis blocks
         if (block.hashPrevBlock.IsNull()
-            && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams, 0, Params().GetLastImportHeight()))
+            && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams, 0, Params().GetLastImportHeight())) {
             return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
-    } else
-    {
+        }
+    } else {
         if (!CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
             return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
     }
@@ -3972,7 +3971,6 @@ bool CheckBlockSignature(const CBlock &block)
 
 bool AddToMapStakeSeen(const COutPoint &kernel, const uint256 &blockHash)
 {
-    AssertLockHeld(cs_main);
     // Overwrites existing values
 
     std::pair<std::map<COutPoint, uint256>::iterator,bool> ret;
@@ -4508,7 +4506,7 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
     return true;
 }
 
-bool ProcessDuplicateStakeHeader(CBlockIndex *pindex, NodeId nodeId)
+bool ProcessDuplicateStakeHeader(CBlockIndex *pindex, NodeId nodeId) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     if (!pindex) {
         return false;

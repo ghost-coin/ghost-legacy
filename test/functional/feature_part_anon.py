@@ -54,11 +54,14 @@ class AnonTest(ParticlTestFramework):
         txnHash = nodes[0].sendblindtoanon(sxAddrTo1_1, 100, '', '', False, 'node0 -> node1 b->a 3')
         txnHashes.append(txnHash)
 
-        txnHash = nodes[0].sendblindtoanon(sxAddrTo1_1, 100, '', '', False, 'node0 -> node1 b->a 4')
+        txnHash = nodes[0].sendblindtoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 b->a 4')
         txnHashes.append(txnHash)
 
-        for k in range(6):
+        for k in range(4):
             txnHash = nodes[0].sendparttoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 p->a')
+            txnHashes.append(txnHash)
+        for k in range(10):
+            txnHash = nodes[0].sendblindtoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 b->a')
             txnHashes.append(txnHash)
 
         for h in txnHashes:
@@ -92,7 +95,7 @@ class AnonTest(ParticlTestFramework):
             assert(txnHash in ro['tx'])
 
         ro = nodes[1].anonoutput()
-        assert(ro['lastindex'] == 20)
+        assert(ro['lastindex'] == 26)
 
         txnHash = nodes[1].sendanontoanon(sxAddrTo0_1, 101, '', '', False, 'node1 -> node0 a->a', 5, 1)
         txnHashes = [txnHash,]

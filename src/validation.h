@@ -55,6 +55,7 @@ static const bool DEFAULT_WHITELISTFORCERELAY = true;
 static const unsigned int DEFAULT_MIN_RELAY_TX_FEE = 1000;
 //! -maxtxfee default
 static const CAmount DEFAULT_TRANSACTION_MAXFEE = COIN / 2;
+static const CAmount DEFAULT_TRANSACTION_MAXFEE_PART = COIN * 0.1;
 //! Discourage users to set fees higher than this amount (in satoshis) per kB
 static const CAmount HIGH_TX_FEE_PER_KB = COIN / 100;
 //! -maxtxfee will warn if called with a higher fee than this amount (in satoshis)
@@ -489,7 +490,7 @@ bool ReadRawBlockFromDisk(std::vector<uint8_t>& block, const CBlockIndex* pindex
 
 /** Functions for validating blocks and updating the block tree */
 
-bool AddToMapStakeSeen(const COutPoint &kernel, const uint256 &blockHash);
+bool AddToMapStakeSeen(const COutPoint &kernel, const uint256 &blockHash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 bool CheckStakeUnused(const COutPoint &kernel);
 bool CheckStakeUnique(const CBlock &block, bool fUpdate=true);
 

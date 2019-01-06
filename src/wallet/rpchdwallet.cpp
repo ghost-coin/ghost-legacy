@@ -5390,13 +5390,14 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
-    if (request.fHelp || request.params.size() > 1)
+    if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
             RPCHelpMan{"debugwallet",
                 "\nDetect problems in wallet." +
                 HelpRequiringPassphrase(pwallet) + "\n",
                 {
                     {"attempt_repair", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Attempt to repair if possible."},
+                    {"clear_stakes_seen", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Clear seen stakes - for use in regtest networks."},
                 }}
                 .ToString()
             );
@@ -5405,7 +5406,16 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
-    bool fAttemptRepair = request.params.size() > 0 ? GetBool(request.params[0]) : false;
+    bool attempt_repair = request.params.size() > 0 ? GetBool(request.params[0]) : false;
+    bool clear_stakes_seen = request.params.size() > 1 ? GetBool(request.params[1]) : false;
+
+    if (clear_stakes_seen) {
+        LOCK(cs_main);
+        mapStakeConflict.clear();
+        mapStakeSeen.clear();
+        listStakeSeen.clear();
+        return "Cleared stakes seen.";
+    }
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -5444,7 +5454,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                         nUnabandonedOrphans++;
                         LogPrintf("Unabandoned orphaned stake: %s\n", wtxid.ToString());
 
-                        if (fAttemptRepair) {
+                        if (attempt_repair) {
                             if (!pwallet->AbandonTransaction(*locked_chain, wtxid)) {
                                 LogPrintf("ERROR: %s - Orphaning stake, AbandonTransaction failed for %s\n", __func__, wtxid.ToString());
                             }
@@ -5509,7 +5519,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                         tmp.pushKV("position", (int)i);
                         tmp.pushKV("address", CBitcoinAddress(idk).ToString());
 
-                        if (fAttemptRepair) {
+                        if (attempt_repair) {
                             uint32_t nChain;
                             if (!sea->GetChainNum(sek, nChain)) {
                                 throw JSONRPCError(RPC_WALLET_ERROR, "GetChainNum failed.");
@@ -8108,7 +8118,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "createsignaturewithwallet",        &createsignaturewithwallet,     {"hexstring","prevtx","address","sighashtype"} },
     { "rawtransactions",    "createsignaturewithkey",           &createsignaturewithkey,        {"hexstring","prevtx","privkey","sighashtype"} },
 
-    { "wallet",             "debugwallet",                      &debugwallet,                   {"attempt_repair"} },
+    { "wallet",             "debugwallet",                      &debugwallet,                   {"attempt_repair","clear_stakes_seen"} },
     { "wallet",             "walletsettings",                   &walletsettings,                {"setting","json"} },
 
     { "wallet",             "transactionblinds",                &transactionblinds,             {"txnid"} },

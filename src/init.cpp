@@ -1079,12 +1079,14 @@ bool AppInitBasicSetup()
 bool AppInitParameterInteraction()
 {
     fParticlMode = !gArgs.GetBoolArg("-btcmode", false); // qa tests
-    if (!fParticlMode)
-    {
+    if (fParticlMode) {
+        maxTxFee = DEFAULT_TRANSACTION_MAXFEE_PART;
+    } else {
         WITNESS_SCALE_FACTOR = WITNESS_SCALE_FACTOR_BTC;
-        if (gArgs.GetBoolArg("-regtest", false))
+        if (gArgs.GetBoolArg("-regtest", false)) {
             ResetParams(CBaseChainParams::REGTEST, fParticlMode);
-    };
+        }
+    }
 
     const CChainParams& chainparams = Params();
     // ********************************************************* Step 2: parameter interactions
@@ -1909,16 +1911,16 @@ bool AppInitMain(InitInterfaces& interfaces)
     }
 
     // ********************************************************* Step 10.1: start secure messaging
+
+    if (fParticlMode) { // SMSG breaks functional tests with services flag, see version msg
 #ifdef ENABLE_WALLET
-    if (fParticlMode) // SMSG breaks functional tests with services flag, see version msg
-    {
         auto vpwallets = GetWallets();
         smsgModule.Start(vpwallets.size() > 0 ? vpwallets[0] : nullptr, !gArgs.GetBoolArg("-smsg", true), gArgs.GetBoolArg("-smsgscanchain", false));
-    };
 #else
-    if (fParticlMode)
-    smsgModule.Start(nullptr, !gArgs.GetBoolArg("-smsg", true), gArgs.GetBoolArg("-smsgscanchain", false));
+        smsgModule.Start(nullptr, !gArgs.GetBoolArg("-smsg", true), gArgs.GetBoolArg("-smsgscanchain", false));
 #endif
+    }
+
 
     if (ShutdownRequestedMainThread()) {
         return false;

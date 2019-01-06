@@ -253,8 +253,9 @@ void StartThreadStakeMiner()
 void StopThreadStakeMiner()
 {
     if (vStakeThreads.size() < 1 // no thread created
-        || fStopMinerProc)
+        || fStopMinerProc) {
         return;
+    }
     LogPrint(BCLog::POS, "StopThreadStakeMiner\n");
     fStopMinerProc = true;
 
@@ -275,8 +276,9 @@ void WakeThreadStakeMiner(CHDWallet *pwallet)
     // Call when chain is synced, wallet unlocked or balance changed
     LogPrint(BCLog::POS, "WakeThreadStakeMiner thread %d\n", pwallet->nStakeThread);
 
-    if (pwallet->nStakeThread >= vStakeThreads.size())
+    if (pwallet->nStakeThread >= vStakeThreads.size()) {
         return; // stake unit test
+    }
     StakeThread *t = vStakeThreads[pwallet->nStakeThread];
     pwallet->nLastCoinStakeSearchTime = 0;
     {
