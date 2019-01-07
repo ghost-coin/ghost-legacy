@@ -4657,7 +4657,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         nRingSize = request.params[nv].get_int();
     }
     nv++;
-    size_t nInputsPerSig = 32;
+    size_t nInputsPerSig = 4;
     if (request.params.size() > nv) {
         nInputsPerSig = request.params[nv].get_int();
     }
@@ -4914,7 +4914,7 @@ static std::string SendHelp(CHDWallet *pwallet, OutputTypes typeIn, OutputTypes 
     if (typeIn == OUTPUT_RINGCT)
         rv +=
             "7. ringsize        (int, optional, default=4).\n"
-            "8. inputs_per_sig  (int, optional, default=32).\n";
+            "8. inputs_per_sig  (int, optional, default=4).\n";
 
     rv +=
             "\nResult:\n"
@@ -5058,7 +5058,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
             "                             to which you're sending the transaction. This is not part of the \n"
             "                             transaction, just kept in your wallet."},
                     {"ringsize", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "4", "Only applies when typein is anon."},
-                    {"inputs_per_sig", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "32", "Only applies when typein is anon."},
+                    {"inputs_per_sig", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "4", "Only applies when typein is anon."},
                     {"test_fee", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Only return the fee it would cost to send, txn is discarded."},
                     {"coin_control", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
                         {
