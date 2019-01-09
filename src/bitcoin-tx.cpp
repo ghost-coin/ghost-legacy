@@ -297,10 +297,9 @@ static void MutateTxAddInput(CMutableTransaction& tx, const std::string& strInpu
 
 static void MutateTxDelWitness(CMutableTransaction& tx, const std::string& strInIdx)
 {
-    int inIdx = atoi(strInIdx);
-    if (inIdx < 0 || inIdx >= (int)tx.vin.size()) {
-        std::string strErr = "Invalid TX input index '" + strInIdx + "'";
-        throw std::runtime_error(strErr.c_str());
+    int64_t inIdx;
+    if (!ParseInt64(strInIdx, &inIdx) || inIdx < 0 || inIdx >= static_cast<int64_t>(tx.vin.size())) {
+        throw std::runtime_error("Invalid TX input index '" + strInIdx + "'");
     }
 
     CTxIn &txin = tx.vin[inIdx];
@@ -317,10 +316,9 @@ static void MutateTxAddWitness(CMutableTransaction& tx, const std::string& strIn
         throw std::runtime_error(strErr.c_str());
     }
 
-    int inIdx = atoi(vStrInputParts[0]);
-    if (inIdx < 0 || inIdx >= (int)tx.vin.size()) {
-        std::string strErr = "Invalid TX input index '" + vStrInputParts[0] + "'";
-        throw std::runtime_error(strErr.c_str());
+    int64_t inIdx;
+    if (!ParseInt64(vStrInputParts[0], &inIdx) || inIdx < 0 || inIdx >= static_cast<int64_t>(tx.vin.size())) {
+        throw std::runtime_error("Invalid TX input index '" + vStrInputParts[0] + "'");
     }
 
     CTxIn &txin = tx.vin[inIdx];

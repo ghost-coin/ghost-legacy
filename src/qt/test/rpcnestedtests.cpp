@@ -42,7 +42,7 @@ void RPCNestedTests::rpcNestedTests()
 
     TestingSetup test;
 
-    SetRPCWarmupFinished();
+    if (RPCIsInWarmup(nullptr)) SetRPCWarmupFinished();
 
     std::string result;
     std::string result2;

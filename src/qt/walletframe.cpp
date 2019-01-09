@@ -42,6 +42,7 @@ void WalletFrame::setClientModel(ClientModel *_clientModel)
 
 bool WalletFrame::addWallet(WalletModel *walletModel)
 {
+
     if (!gui || !clientModel || !walletModel) {
         return false;
     }
@@ -55,7 +56,6 @@ bool WalletFrame::addWallet(WalletModel *walletModel)
     walletView->setClientModel(clientModel);
     walletView->setWalletModel(walletModel);
     walletView->showOutOfSyncWarning(bOutOfSync);
-
     WalletView* current_wallet_view = currentWalletView();
     if (current_wallet_view) {
         walletView->setCurrentIndex(current_wallet_view->currentIndex());

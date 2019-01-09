@@ -255,7 +255,7 @@ private:
     std::unique_ptr<interfaces::Handler> m_handler_reserved_balance_changed;
 
     bool fHaveWatchOnly;
-    bool fForceCheckBalanceChanged;
+    bool fForceCheckBalanceChanged{false};
 
     // Wallet has an options model for wallet-specific options
     // (transaction fee, for example)
