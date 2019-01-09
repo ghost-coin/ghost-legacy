@@ -261,6 +261,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "smsgsend", 6, "fromfile" },
     { "smsgsend", 7, "decodehex" },
     { "smsg", 1, "options" },
+    { "smsginbox", 2, "options" },
+    { "smsgoutbox", 2, "options" },
 
     { "devicesignrawtransaction", 1, "prevtxs" },
     { "devicesignrawtransaction", 2, "privkeypaths" },

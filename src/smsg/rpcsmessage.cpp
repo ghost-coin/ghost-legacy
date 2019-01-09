@@ -799,7 +799,7 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
 
 static UniValue smsginbox(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 2)
+    if (request.fHelp || request.params.size() > 3)
         throw std::runtime_error(
             RPCHelpMan{"smsginbox",
                 "\nDecrypt and display received messages.\n"
@@ -807,6 +807,12 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                 {
                     {"mode", RPCArg::Type::STR, /* opt */ true, /* default_val */ "unread", "\"all|unread|clear\" List all messages, unread messages or clear all messages."},
                     {"filter", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
+                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                        {
+                            {"updatestatus", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "true", "Update read status if true."},
+                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "ascii", "Display message data in encoding, values: \"hex\"."},
+                        },
+                        "options"},
                 }}
                 .ToString() +
             "\nResult:\n"
@@ -824,10 +830,22 @@ static UniValue smsginbox(const JSONRPCRequest &request)
 
     EnsureSMSGIsEnabled();
 
-    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR}, true);
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR, UniValue::VOBJ}, true);
 
     std::string mode = request.params[0].isStr() ? request.params[0].get_str() : "unread";
     std::string filter = request.params[1].isStr() ? request.params[1].get_str() : "";
+
+    std::string sEnc = "ascii";
+    bool update_status = true;
+    if (request.params[2].isObject()) {
+        UniValue options = request.params[2].get_obj();
+        if (options["updatestatus"].isBool()) {
+            update_status = options["updatestatus"].get_bool();
+        }
+        if (options["encoding"].isStr()) {
+            sEnc = options["encoding"].get_str();
+        }
+    }
 
     UniValue result(UniValue::VOBJ);
 
@@ -906,7 +924,14 @@ static UniValue smsginbox(const JSONRPCRequest &request)
 
                     objM.pushKV("from", msg.sFromAddress);
                     objM.pushKV("to", sAddrTo);
-                    objM.pushKV("text", sText);
+                    if (sEnc == "ascii") {
+                        objM.pushKV("text", sText);
+                    } else
+                    if (sEnc == "hex") {
+                        objM.pushKV("hex", HexStr(sText));
+                    } else {
+                        objM.pushKV("unknown_encoding", sEnc);
+                    }
                 } else {
                     if (filter.size() > 0) {
                         continue;
@@ -918,8 +943,8 @@ static UniValue smsginbox(const JSONRPCRequest &request)
 
                 messageList.push_back(objM);
 
-                // only set 'read' status if the message decrypted successfully
-                if (fCheckReadStatus && rv == 0) {
+                // Only set 'read' status if the message decrypted successfully and update_status is set
+                if (fCheckReadStatus && rv == 0 && update_status) {
                     smsgStored.status &= ~SMSG_MASK_UNREAD;
                     dbInbox.WriteSmesg(chKey, smsgStored);
                 }
@@ -941,7 +966,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
 
 static UniValue smsgoutbox(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 2)
+    if (request.fHelp || request.params.size() > 3)
         throw std::runtime_error(
             RPCHelpMan{"smsgoutbox",
                 "\nDecrypt and display all sent messages.\n"
@@ -949,6 +974,11 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                 {
                     {"mode", RPCArg::Type::STR, /* opt */ true, /* default_val */ "all", "all|clear, List or clear messages."},
                     {"filter", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
+                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                        {
+                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "ascii", "Display message data in encoding, values: \"hex\"."},
+                        },
+                        "options"},
                 }}
                 .ToString() +
             "\nResult:\n"
@@ -969,6 +999,13 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
     std::string mode = request.params[0].isStr() ? request.params[0].get_str() : "all";
     std::string filter = request.params[1].isStr() ? request.params[1].get_str() : "";
 
+    std::string sEnc = "ascii";
+    if (request.params[2].isObject()) {
+        UniValue options = request.params[2].get_obj();
+        if (options["encoding"].isStr()) {
+            sEnc = options["encoding"].get_str();
+        }
+    }
 
     UniValue result(UniValue::VOBJ);
 
@@ -1039,7 +1076,14 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
                     objM.pushKV("from", msg.sFromAddress);
                     objM.pushKV("to", sAddrTo);
-                    objM.pushKV("text", sText);
+                    if (sEnc == "ascii") {
+                        objM.pushKV("text", sText);
+                    } else
+                    if (sEnc == "hex") {
+                        objM.pushKV("hex", HexStr(sText));
+                    } else {
+                        objM.pushKV("unknown_encoding", sEnc);
+                    }
                 } else {
                     if (filter.size() > 0) {
                         continue;
@@ -1715,8 +1759,8 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsggetpubkey",          &smsggetpubkey,          {"address"} },
     { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","fromfile","decodehex"} },
     { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message"} },
-    { "smsg",               "smsginbox",              &smsginbox,              {"mode","filter"} },
-    { "smsg",               "smsgoutbox",             &smsgoutbox,             {"mode","filter"} },
+    { "smsg",               "smsginbox",              &smsginbox,              {"mode","filter","options"} },
+    { "smsg",               "smsgoutbox",             &smsgoutbox,             {"mode","filter","options"} },
     { "smsg",               "smsgbuckets",            &smsgbuckets,            {"mode"} },
     { "smsg",               "smsgview",               &smsgview,               {}},
     { "smsg",               "smsg",                   &smsgone,                {"msgid","options"}},
