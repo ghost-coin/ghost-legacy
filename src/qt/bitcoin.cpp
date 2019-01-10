@@ -207,6 +207,12 @@ void BitcoinApplication::setupPlatformStyle()
     assert(platformStyle);
 }
 
+void BitcoinApplication::setTestMode()
+{
+    assert(window);
+    window->setTestMode();
+};
+
 BitcoinApplication::~BitcoinApplication()
 {
     if(coreThread)

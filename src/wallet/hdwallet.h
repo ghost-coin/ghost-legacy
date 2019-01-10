@@ -787,7 +787,7 @@ public:
 
     int64_t nRCTOutSelectionGroup1 = 5000;
     int64_t nRCTOutSelectionGroup2 = 50000;
-    int prefer_max_num_anon_inputs = 5; // if > x anon inputs are randomly selected attempt to reduce
+    size_t prefer_max_num_anon_inputs = 5; // if > x anon inputs are randomly selected attempt to reduce
 
     int m_collapse_spent_mode = 0;
     int m_min_collapse_depth = 3;

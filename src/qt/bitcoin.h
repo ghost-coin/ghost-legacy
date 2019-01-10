@@ -88,6 +88,9 @@ public:
     /// Setup platform style
     void setupPlatformStyle();
 
+    /// Setup for unit tests
+    void setTestMode();
+
 public Q_SLOTS:
     void initializeResult(bool success);
     void shutdownResult();

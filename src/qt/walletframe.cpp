@@ -42,7 +42,6 @@ void WalletFrame::setClientModel(ClientModel *_clientModel)
 
 bool WalletFrame::addWallet(WalletModel *walletModel)
 {
-
     if (!gui || !clientModel || !walletModel) {
         return false;
     }

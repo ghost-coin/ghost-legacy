@@ -630,7 +630,7 @@ bool BitcoinGUI::setCurrentWallet(WalletModel* wallet_model)
     if (!walletModel) {
         return true;
     }
-    if (!walletModel->wallet().hdEnabled()) {
+    if (!test_mode && !walletModel->wallet().hdEnabled()) {
         showMnemonicClicked();
     }
 

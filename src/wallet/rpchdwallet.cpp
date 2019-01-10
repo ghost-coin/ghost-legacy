@@ -8032,7 +8032,7 @@ static UniValue rehashblock(const JSONRPCRequest &request)
             int pos = !o["pos"].isNull() ? o["pos"].get_int() : -1;
             bool replace = !o["replace"].isNull() ? o["replace"].get_bool() : false;
 
-            if (pos == -1 || pos >= block.vtx.size()) {
+            if (pos == -1 || pos >= (int)block.vtx.size()) {
                 block.vtx.push_back(MakeTransactionRef(std::move(mtx)));
             } else {
                 if (replace) {

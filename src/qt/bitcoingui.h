@@ -92,6 +92,9 @@ public:
     */
     bool hasTrayIcon() const { return trayIcon; }
 
+    bool test_mode = false;
+    void setTestMode() { test_mode = true; };
+
 protected:
     void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *event);
