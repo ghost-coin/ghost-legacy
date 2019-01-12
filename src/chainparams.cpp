@@ -488,6 +488,8 @@ public:
         SetLastImportHeight();
 
         nPruneAfterHeight = 100000;
+        m_assumed_blockchain_size = 1;
+        m_assumed_chain_state_size = 1;
 
         genesis = CreateGenesisBlockMainNet(1500296400, 31429, 0x1f00ffff); // 2017-07-17 13:00:00
         consensus.hashGenesisBlock = genesis.GetHash();
@@ -663,6 +665,8 @@ public:
         SetLastImportHeight();
 
         nPruneAfterHeight = 1000;
+        m_assumed_blockchain_size = 1;
+        m_assumed_chain_state_size = 1;
 
 
         genesis = CreateGenesisBlockTestNet(1502309248, 5924, 0x1f00ffff);
@@ -801,6 +805,8 @@ public:
         SetLastImportHeight();
 
         nPruneAfterHeight = 1000;
+        m_assumed_blockchain_size = 0;
+        m_assumed_chain_state_size = 0;
 
         UpdateVersionBitsParametersFromArgs(args);
 
