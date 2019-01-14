@@ -416,11 +416,12 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     {
         if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
-    } else
-    {
-        for (const auto& txin : tx.vin)
-            if (!txin.IsAnonInput() && txin.prevout.IsNull())
+    } else {
+        for (const auto& txin : tx.vin) {
+            if (!txin.IsAnonInput() && txin.prevout.IsNull()) {
                 return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
+            }
+        }
     }
 
     return true;
