@@ -4765,7 +4765,6 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI,
     int nBestHeight = chainActive.Tip()->nHeight;
     const Consensus::Params& consensusParams = Params().GetConsensus();
     size_t nInputs = vMI.size();
-
     int64_t nLastRCTOutIndex = chainActive.Tip()->nAnonOutputs;
 
     if (LogAcceptCategory(BCLog::HDWALLET)) {
