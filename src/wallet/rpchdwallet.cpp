@@ -4652,12 +4652,12 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     }
 
     nv = nRingSizeOfs;
-    size_t nRingSize = 4; // TODO: default size?
+    size_t nRingSize = 5;
     if (request.params.size() > nv) {
         nRingSize = request.params[nv].get_int();
     }
     nv++;
-    size_t nInputsPerSig = 4;
+    size_t nInputsPerSig = 1;
     if (request.params.size() > nv) {
         nInputsPerSig = request.params[nv].get_int();
     }
@@ -4753,7 +4753,6 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         }
     }
 
-
     CAmount nFeeRet = 0;
     switch (typeIn) {
         case OUTPUT_STANDARD:
@@ -4811,8 +4810,9 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     // Store sent narrations
     for (const auto &r : vecSend) {
         if (r.nType != OUTPUT_STANDARD
-            || r.sNarration.size() < 1)
+            || r.sNarration.size() < 1) {
             continue;
+        }
         std::string sKey = strprintf("n%d", r.n);
         wtx.mapValue[sKey] = r.sNarration;
     }
@@ -4913,8 +4913,8 @@ static std::string SendHelp(CHDWallet *pwallet, OutputTypes typeIn, OutputTypes 
             "                            The narration is stored in the blockchain and is sent encrypted when destination is a stealth address and uncrypted otherwise.\n";
     if (typeIn == OUTPUT_RINGCT)
         rv +=
-            "7. ringsize        (int, optional, default=4).\n"
-            "8. inputs_per_sig  (int, optional, default=4).\n";
+            "7. ringsize        (int, optional, default=5).\n"
+            "8. inputs_per_sig  (int, optional, default=1).\n";
 
     rv +=
             "\nResult:\n"
@@ -5057,8 +5057,8 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                     {"comment_to", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "A comment to store the name of the person or organization\n"
             "                             to which you're sending the transaction. This is not part of the \n"
             "                             transaction, just kept in your wallet."},
-                    {"ringsize", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "4", "Only applies when typein is anon."},
-                    {"inputs_per_sig", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "4", "Only applies when typein is anon."},
+                    {"ringsize", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "5", "Only applies when typein is anon."},
+                    {"inputs_per_sig", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "1", "Only applies when typein is anon."},
                     {"test_fee", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Only return the fee it would cost to send, txn is discarded."},
                     {"coin_control", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
                         {
