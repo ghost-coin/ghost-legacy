@@ -385,7 +385,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             auto pwallet = GetParticlWallet(vpwallets[i].get());
 
             if (!pwallet->fStakingEnabled) {
-                pwallet->nIsStaking = CHDWallet::NOT_STAKING_DISABLED;
+                pwallet->m_is_staking = CHDWallet::NOT_STAKING_DISABLED;
                 continue;
             }
 
@@ -395,19 +395,19 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             }
 
             if (pwallet->nStakeLimitHeight && nBestHeight >= pwallet->nStakeLimitHeight) {
-                pwallet->nIsStaking = CHDWallet::NOT_STAKING_LIMITED;
+                pwallet->m_is_staking = CHDWallet::NOT_STAKING_LIMITED;
                 nWaitFor = std::min(nWaitFor, (size_t)30000);
                 continue;
             }
 
             if (pwallet->IsLocked()) {
-                pwallet->nIsStaking = CHDWallet::NOT_STAKING_LOCKED;
+                pwallet->m_is_staking = CHDWallet::NOT_STAKING_LOCKED;
                 nWaitFor = std::min(nWaitFor, (size_t)30000);
                 continue;
             }
 
             if (pwallet->GetSpendableBalance() <= pwallet->nReserveBalance) {
-                pwallet->nIsStaking = CHDWallet::NOT_STAKING_BALANCE;
+                pwallet->m_is_staking = CHDWallet::NOT_STAKING_BALANCE;
                 nWaitFor = std::min(nWaitFor, (size_t)60000);
                 pwallet->nLastCoinStakeSearchTime = nSearchTime + 60;
                 LogPrint(BCLog::POS, "%s: Wallet %d, low balance.\n", __func__, i);
@@ -432,7 +432,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                 }
             }
 
-            pwallet->nIsStaking = CHDWallet::IS_STAKING;
+            pwallet->m_is_staking = CHDWallet::IS_STAKING;
             nWaitFor = nMinerSleep;
             fIsStaking = true;
             if (pwallet->SignBlock(pblocktemplate.get(), nBestHeight + 1, nSearchTime)) {
@@ -444,7 +444,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             } else {
                 int nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations() - 1), (int)(nBestHeight / 2));
                 if (pwallet->m_greatest_txn_depth < nRequiredDepth - 4) {
-                    pwallet->nIsStaking = CHDWallet::NOT_STAKING_DEPTH;
+                    pwallet->m_is_staking = CHDWallet::NOT_STAKING_DEPTH;
                     size_t nSleep = (nRequiredDepth - pwallet->m_greatest_txn_depth) / 4;
                     nWaitFor = std::min(nWaitFor, (size_t)(nSleep * 1000));
                     pwallet->nLastCoinStakeSearchTime = nSearchTime + nSleep;

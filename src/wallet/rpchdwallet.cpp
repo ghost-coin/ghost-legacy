@@ -3796,8 +3796,8 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
     uint64_t nExpectedTime = fStaking ? (Params().GetTargetSpacing() * nNetworkWeight / nWeight) : 0;
 
     obj.pushKV("enabled", gArgs.GetBoolArg("-staking", true)); // enabled on node, vs enabled on wallet
-    obj.pushKV("staking", fStaking && pwallet->nIsStaking == CHDWallet::IS_STAKING);
-    switch (pwallet->nIsStaking) {
+    obj.pushKV("staking", fStaking && pwallet->m_is_staking == CHDWallet::IS_STAKING);
+    switch (pwallet->m_is_staking) {
         case CHDWallet::NOT_STAKING_BALANCE:
             obj.pushKV("cause", "low_balance");
             break;
@@ -5642,6 +5642,9 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             "\"stakelimit\" {\n"
             "  \"height\"                    (int, optional, default=0) Prevent staking above chain height, used in functional testing.\n"
             "}\n"
+            "\"anonoptions\" {\n"
+            "  \"mixinselection\"            (int, optional, default=1) Switch mixin selection mode.\n"
+            "}\n"
             "\"unloadspent\" Remove spent outputs from memory, removed outputs still exist in the wallet file.\n"
             "WARNING: Experimental feature.\n"
             "{\n"
@@ -5664,13 +5667,13 @@ static UniValue walletsettings(const JSONRPCRequest &request)
     EnsureWalletIsUnlocked(pwallet);
 
     UniValue result(UniValue::VOBJ);
+    UniValue json;
+    UniValue warnings(UniValue::VARR);
 
     std::string sSetting = request.params[0].get_str();
+    std::string sError;
 
     if (sSetting == "changeaddress") {
-        UniValue json;
-        UniValue warnings(UniValue::VARR);
-
         if (request.params.size() == 1) {
             if (!pwallet->GetSetting("changeaddress", json)) {
                 result.pushKV(sSetting, "default");
@@ -5749,9 +5752,6 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         result.pushKV(sSetting, json);
     } else
     if (sSetting == "stakingoptions") {
-        UniValue json;
-        UniValue warnings(UniValue::VARR);
-
         if (request.params.size() == 1) {
             if (!pwallet->GetSetting("stakingoptions", json)) {
                 result.pushKV(sSetting, "default");
@@ -5817,7 +5817,6 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
             }
 
-            std::string sError;
             pwallet->ProcessStakingSettings(sError);
             if (!sError.empty()) {
                 result.pushKV("error", sError);
@@ -5837,9 +5836,6 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         result.pushKV(sSetting, json);
     } else
     if (sSetting == "stakelimit") {
-        UniValue json;
-        UniValue warnings(UniValue::VARR);
-
         if (request.params.size() == 1) {
             result.pushKV(sSetting, pwallet->nStakeLimitHeight);
             return result;
@@ -5876,10 +5872,64 @@ static UniValue walletsettings(const JSONRPCRequest &request)
 
         WakeThreadStakeMiner(pwallet);
     } else
-    if (sSetting == "unloadspent") {
-        UniValue json;
-        UniValue warnings(UniValue::VARR);
+    if (sSetting == "anonoptions") {
+        if (request.params.size() == 1) {
+            if (!pwallet->GetSetting("anonoptions", json)) {
+                result.pushKV(sSetting, "default");
+            } else {
+                result.pushKV(sSetting, json);
+            }
+            return result;
+        }
 
+        if (request.params[1].isObject()) {
+            json = request.params[1].get_obj();
+
+            const std::vector<std::string> &vKeys = json.getKeys();
+            if (vKeys.size() < 1) {
+                if (!pwallet->EraseSetting(sSetting)) {
+                    throw JSONRPCError(RPC_WALLET_ERROR, _("EraseSetting failed."));
+                }
+                result.pushKV(sSetting, "cleared");
+                return result;
+            }
+
+            UniValue jsonOld;
+            bool fHaveOldSetting = pwallet->GetSetting(sSetting, jsonOld);
+            for (const auto &sKey : vKeys) {
+                if (sKey == "mixinselection") {
+                    if (!json["mixinselection"].isNum()) {
+                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("mixinselection must be a number."));
+                    }
+                } else {
+                    warnings.push_back("Unknown key " + sKey);
+                }
+            }
+
+            json.pushKV("time", GetTime());
+            if (!pwallet->SetSetting(sSetting, json)) {
+                throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
+            }
+
+            pwallet->ProcessWalletSettings(sError);
+            if (!sError.empty()) {
+                result.pushKV("error", sError);
+                if (fHaveOldSetting) {
+                    pwallet->SetSetting(sSetting, jsonOld);
+                } else {
+                    pwallet->EraseSetting(sSetting);
+                }
+            }
+
+            if (warnings.size() > 0) {
+                result.pushKV("warnings", warnings);
+            }
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
+        }
+        result.pushKV(sSetting, json);
+    } else
+    if (sSetting == "unloadspent") {
         if (request.params.size() == 1) {
             if (!pwallet->GetSetting("unloadspent", json)) {
                 result.pushKV(sSetting, "default");
@@ -5911,7 +5961,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 } else
                 if (sKey == "mindepth") {
                     if (!json["mindepth"].isNum()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("mode must be a number."));
+                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("mindepth must be a number."));
                     }
                 } else {
                     warnings.push_back("Unknown key " + sKey);
@@ -5923,7 +5973,6 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
             }
 
-            std::string sError;
             pwallet->ProcessWalletSettings(sError);
             if (!sError.empty()) {
                 result.pushKV("error", sError);

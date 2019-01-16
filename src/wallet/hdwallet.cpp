@@ -384,6 +384,15 @@ bool CHDWallet::ProcessWalletSettings(std::string &sError)
         }
     }
 
+    if (GetSetting("anonoptions", json)) {
+        if (!json["mixinselection"].isNull()) {
+            try { m_mixin_selection_mode = json["mixinselection"].get_int();
+            } catch (std::exception &e) {
+                AppendError(sError, "\"mixinselection\" not integer.");
+            }
+        }
+    }
+
     if (m_min_collapse_depth < 2) {
         AppendError(sError, "\"mindepth\" must be >= 2.");
         m_min_collapse_depth = 2;
@@ -4767,15 +4776,26 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI,
     size_t nInputs = vMI.size();
     int64_t nLastRCTOutIndex = chainActive.Tip()->nAnonOutputs;
 
-    if (LogAcceptCategory(BCLog::HDWALLET)) {
-        WalletLogPrintf("%s: Last index %d, inputs %d, ring size %d.\n", __func__, nLastRCTOutIndex, nInputs, nRingSize);
+    // Remove outputs without required depth
+    int nExtraDepth = gArgs.GetBoolArg("-regtest", false) ? -1 : 2; // if not on regtest pick outputs deeper than consensus checks to prevent banning
+    while (nLastRCTOutIndex > 1){
+        CAnonOutput ao;
+        if (!pblocktree->ReadRCTOutput(nLastRCTOutIndex, ao)) {
+            return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), nLastRCTOutIndex);
+        }
+        if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth + nExtraDepth)) {
+            nLastRCTOutIndex--;
+            continue;
+        }
+        break;
     }
 
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("%s: Last index %d, inputs %d, ring size %d, selection mode %d.\n", __func__, nLastRCTOutIndex, nInputs, nRingSize, m_mixin_selection_mode);
+    }
     if (nLastRCTOutIndex < (int64_t)(nInputs * nRingSize)) {
         return wserrorN(1, sError, __func__, _("Not enough anon outputs exist, last: %d, required: %d"), nLastRCTOutIndex, nInputs * nRingSize);
     }
-
-    int nExtraDepth = gArgs.GetBoolArg("-regtest", false) ? -1 : 2; // if not on regtest pick outputs deeper than consensus checks to prevent banning
 
     // Must add real outputs to setHave before adding the decoys.
     std::vector<int64_t> real_inputs;
@@ -4784,56 +4804,105 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI,
         real_inputs.push_back(i);
     }
 
+    static const int max_groups = 4;
+    static const double distribution[] = {0.6, 0.75, 0.85, 0.93};
+    int64_t range_periods[] = {1, 7, 31, 365};
+    int64_t expect_aos_per_period = 500;
+
+    static const double range_blur = 0.3;
+    int64_t ranges[max_groups];
+
+    if (m_mixin_selection_mode == 1) {
+        for (int j = 0; j < max_groups; j++) {
+            ranges[j] = expect_aos_per_period * range_periods[j];
+
+            int64_t output_id = nLastRCTOutIndex - std::min(nLastRCTOutIndex-1, std::max(int64_t(1), ranges[j]));
+            CAnonOutput ao;
+            if (!pblocktree->ReadRCTOutput(output_id, ao)) {
+                return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), output_id);
+            }
+
+            int num_blocks = nBestHeight - ao.nBlockHeight;
+            if (num_blocks) {
+                double ratio = ((double) range_periods[j] / ((double) num_blocks / 720.0));
+                if (ratio > 1.0) {
+                    if (LogAcceptCategory(BCLog::HDWALLET)) {
+                        WalletLogPrintf("%s: Adjusting range, anon-outputs %d, blocks %d, ratio %f.\n", __func__, ranges[j], num_blocks, ratio);
+                    }
+                    ranges[j] *= ratio;
+                }
+            }
+            ranges[j] += GetRandInt(ranges[j] * range_blur);
+        }
+    }
+
     for (size_t k = 0; k < nInputs; ++k)
     for (size_t i = 0; i < nRingSize; ++i) {
         if (i == nSecretColumn) {
             continue;
         }
 
-        int64_t nLastDepthCheckPassed = 0;
         size_t j = 0;
         const static size_t nMaxTries = 1000;
         for (j = 0; j < nMaxTries; ++j) {
             int64_t select_min = 1;
             int64_t select_max = nLastRCTOutIndex;
 
-            int64_t select_range = 0;
-            int64_t select_near = 0;
-            if (GetRandInt(100) < 50) { // 50% chance of selecting within 5000 places of a random input
-                select_range = nRCTOutSelectionGroup1;
-                select_near = real_inputs[GetRandInt(real_inputs.size())];
-            } else
-            if (GetRandInt(100) < 40) { // Further 40% chance of selecting within 50000 places of a random input
-                select_range = nRCTOutSelectionGroup2;
-                select_near = real_inputs[GetRandInt(real_inputs.size())];
-            }
-
-            if (select_near) {
-                // Randomly offset the range
-                select_near = std::max(int64_t(1), int64_t((select_near - select_range) + (select_range * 2.0) * GetRandDoubleUnit()));
-
-                select_min = std::min(nLastRCTOutIndex, std::max(int64_t(1), select_near - select_range));
-                select_max = std::min(nLastRCTOutIndex, select_near + select_range);
-
-                int64_t num_blocks, num_aos = select_max - select_min;
-                CAnonOutput ao_min, ao_max;
-                if (!pblocktree->ReadRCTOutput(select_min, ao_min)) {
-                    return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), select_min);
-                }
-                if (!pblocktree->ReadRCTOutput(select_max, ao_max)) {
-                    return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), select_max);
-                }
-                num_blocks = ao_max.nBlockHeight - ao_min.nBlockHeight;
-
-                if (num_blocks) {
-                    double ratio = ((double) num_aos * 2.0) / ((double) num_blocks);
-                    if (LogAcceptCategory(BCLog::HDWALLET)) {
-                        WalletLogPrintf("%s: Adjusting range, anon-outputs %d, blocks %d, ratio %f.\n", __func__, num_aos, num_blocks, ratio);
+            if (m_mixin_selection_mode == 1) {
+                static const int max_r = 1000;
+                int g_r = GetRandInt(max_r);
+                for (int j = 0; j < max_groups; j++) {
+                    if (g_r <= max_r * distribution[j]) {
+                        select_min = nLastRCTOutIndex - ranges[j];
+                        break;
                     }
-                    if (ratio > 1.0) {
-                        select_range *= ratio;
-                        select_min = std::min(nLastRCTOutIndex, std::max(int64_t(1), select_near - select_range));
-                        select_max = std::min(nLastRCTOutIndex, select_near + select_range);
+                    select_max -= ranges[j];
+                }
+                if (select_max <= 1) { // Select from entire range if too few mixins exist
+                    select_max = nLastRCTOutIndex;
+                }
+                select_min = std::min(nLastRCTOutIndex, std::max(int64_t(1), select_min));
+                select_max = std::min(nLastRCTOutIndex, std::max(int64_t(1), select_max));
+            } else
+            if (m_mixin_selection_mode == 2) {
+                int64_t select_range = 0;
+                int64_t select_near = 0;
+                if (GetRandInt(100) < 50) { // 50% chance of selecting within 5000 places of a random input
+                    select_range = nRCTOutSelectionGroup1;
+                    select_near = real_inputs[GetRandInt(real_inputs.size())];
+                } else
+                if (GetRandInt(100) < 40) { // Further 40% chance of selecting within 50000 places of a random input
+                    select_range = nRCTOutSelectionGroup2;
+                    select_near = real_inputs[GetRandInt(real_inputs.size())];
+                }
+
+                if (select_near) {
+                    // Randomly offset the range
+                    select_near = std::max(int64_t(1), int64_t((select_near - select_range) + (select_range * 2.0) * GetRandDoubleUnit()));
+
+                    select_min = std::min(nLastRCTOutIndex, std::max(int64_t(1), select_near - select_range));
+                    select_max = std::min(nLastRCTOutIndex, select_near + select_range);
+
+                    int64_t num_blocks, num_aos = select_max - select_min;
+                    CAnonOutput ao_min, ao_max;
+                    if (!pblocktree->ReadRCTOutput(select_min, ao_min)) {
+                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), select_min);
+                    }
+                    if (!pblocktree->ReadRCTOutput(select_max, ao_max)) {
+                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), select_max);
+                    }
+                    num_blocks = ao_max.nBlockHeight - ao_min.nBlockHeight;
+
+                    if (num_blocks) {
+                        double ratio = ((double) num_aos * 2.0) / ((double) num_blocks);
+                        if (ratio > 1.0) {
+                            if (LogAcceptCategory(BCLog::HDWALLET)) {
+                                WalletLogPrintf("%s: Adjusting range, anon-outputs %d, blocks %d, ratio %f.\n", __func__, num_aos, num_blocks, ratio);
+                            }
+                            select_range *= ratio;
+                            select_min = std::min(nLastRCTOutIndex, std::max(int64_t(1), select_near - select_range));
+                            select_max = std::min(nLastRCTOutIndex, select_near + select_range);
+                        }
                     }
                 }
             }
@@ -4844,21 +4913,6 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI,
                     nLastRCTOutIndex--;
                 }
                 continue;
-            }
-
-            if (nDecoy > nLastDepthCheckPassed) {
-                CAnonOutput ao;
-                if (!pblocktree->ReadRCTOutput(nDecoy, ao)) {
-                    return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), nDecoy);
-                }
-
-                if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth + nExtraDepth)) {
-                    if (nLastRCTOutIndex > nDecoy) {
-                        nLastRCTOutIndex = nDecoy-1;
-                    }
-                    continue;
-                }
-                nLastDepthCheckPassed = nDecoy;
             }
 
             vMI[k][i] = nDecoy;

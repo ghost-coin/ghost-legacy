@@ -754,7 +754,7 @@ public:
         NOT_STAKING_LOCKED = -3,
         NOT_STAKING_LIMITED = -4,
         NOT_STAKING_DISABLED = -5,
-    } nIsStaking = NOT_STAKING;
+    } m_is_staking = NOT_STAKING;
 
     std::set<CStealthAddress> stealthAddresses;
 
@@ -788,6 +788,7 @@ public:
     int64_t nRCTOutSelectionGroup1 = 5000;
     int64_t nRCTOutSelectionGroup2 = 50000;
     size_t prefer_max_num_anon_inputs = 5; // if > x anon inputs are randomly selected attempt to reduce
+    int m_mixin_selection_mode = 1;
 
     int m_collapse_spent_mode = 0;
     int m_min_collapse_depth = 3;
