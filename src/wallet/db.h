@@ -191,10 +191,29 @@ private:
     bool IsDummy() { return env == nullptr; }
 };
 
-
 /** RAII class that provides access to a Berkeley database */
 class BerkeleyBatch
 {
+    /** RAII class that automatically cleanses its data on destruction */
+    class SafeDbt final
+    {
+        Dbt m_dbt;
+
+    public:
+        // construct Dbt with internally-managed data
+        SafeDbt();
+        // construct Dbt with provided data
+        SafeDbt(void* data, size_t size);
+        ~SafeDbt();
+
+        // delegate to Dbt
+        const void* get_data() const;
+        u_int32_t get_size() const;
+
+        // conversion operator to access the underlying Dbt
+        operator Dbt*();
+    };
+
 public:
     Db* pdb;
     std::string strFile;
@@ -222,7 +241,6 @@ public:
     /* verifies the database file */
     static bool VerifyDatabaseFile(const fs::path& file_path, std::string& warningStr, std::string& errorStr, BerkeleyEnvironment::recoverFunc_type recoverFunc);
 
-public:
     template <typename K, typename T>
     bool Read(const K& key, T& value, uint32_t nFlags=0)
     {
@@ -233,14 +251,11 @@ public:
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
-        Dbt datKey(ssKey.data(), ssKey.size());
+        SafeDbt datKey(ssKey.data(), ssKey.size());
 
         // Read
-        Dbt datValue;
-        datValue.set_flags(DB_DBT_MALLOC);
-
-        int ret = pdb->get(activeTxn, &datKey, &datValue, nFlags);
-        memory_cleanse(datKey.get_data(), datKey.get_size());
+        SafeDbt datValue;
+        int ret = pdb->get(activeTxn, datKey, datValue, nFlags);
         bool success = false;
         if (datValue.get_data() != nullptr) {
             // Unserialize value
@@ -251,10 +266,6 @@ public:
             } catch (const std::exception&) {
                 // In this case success remains 'false'
             }
-
-            // Clear and free memory
-            memory_cleanse(datValue.get_data(), datValue.get_size());
-            free(datValue.get_data());
         }
         return ret == 0 && success;
     }
@@ -271,20 +282,16 @@ public:
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
-        Dbt datKey(ssKey.data(), ssKey.size());
+        SafeDbt datKey(ssKey.data(), ssKey.size());
 
         // Value
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         ssValue.reserve(10000);
         ssValue << value;
-        Dbt datValue(ssValue.data(), ssValue.size());
+        SafeDbt datValue(ssValue.data(), ssValue.size());
 
         // Write
-        int ret = pdb->put(activeTxn, &datKey, &datValue, (fOverwrite ? 0 : DB_NOOVERWRITE));
-
-        // Clear memory in case it was a private key
-        memory_cleanse(datKey.get_data(), datKey.get_size());
-        memory_cleanse(datValue.get_data(), datValue.get_size());
+        int ret = pdb->put(activeTxn, datKey, datValue, (fOverwrite ? 0 : DB_NOOVERWRITE));
         return (ret == 0);
     }
 
@@ -300,13 +307,10 @@ public:
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
-        Dbt datKey(ssKey.data(), ssKey.size());
+        SafeDbt datKey(ssKey.data(), ssKey.size());
 
         // Erase
-        int ret = pdb->del(activeTxn, &datKey, 0);
-
-        // Clear memory
-        memory_cleanse(datKey.get_data(), datKey.get_size());
+        int ret = pdb->del(activeTxn, datKey, 0);
         return (ret == 0 || ret == DB_NOTFOUND);
     }
 
@@ -320,13 +324,10 @@ public:
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
-        Dbt datKey(ssKey.data(), ssKey.size());
+        SafeDbt datKey(ssKey.data(), ssKey.size());
 
         // Exists
-        int ret = pdb->exists(activeTxn, &datKey, 0);
-
-        // Clear memory
-        memory_cleanse(datKey.get_data(), datKey.get_size());
+        int ret = pdb->exists(activeTxn, datKey, 0);
         return (ret == 0);
     }
 
@@ -345,13 +346,13 @@ public:
     {
         // Read at cursor
         Dbt datKey;
+        Dbt datValue;
         unsigned int fFlags = DB_NEXT;
         if (setRange) {
             datKey.set_data(ssKey.data());
             datKey.set_size(ssKey.size());
             fFlags = DB_SET_RANGE;
         }
-        Dbt datValue;
         datKey.set_flags(DB_DBT_MALLOC);
         datValue.set_flags(DB_DBT_MALLOC);
         int ret = pcursor->get(&datKey, &datValue, fFlags);
@@ -367,12 +368,6 @@ public:
         ssValue.SetType(SER_DISK);
         ssValue.clear();
         ssValue.write((char*)datValue.get_data(), datValue.get_size());
-
-        // Clear and free memory
-        memory_cleanse(datKey.get_data(), datKey.get_size());
-        memory_cleanse(datValue.get_data(), datValue.get_size());
-        free(datKey.get_data());
-        free(datValue.get_data());
         return 0;
     }
 
