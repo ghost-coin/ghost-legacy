@@ -37,6 +37,8 @@
 #include <QTextDocument>
 #include <QApplication>
 
+#include <anon.h>
+
 static const std::array<int, 9> confTargets = { {2, 4, 6, 12, 24, 48, 144, 504, 1008} };
 int getConfTargetForIndex(int index) {
     if (index+1 > static_cast<int>(confTargets.size())) {
@@ -135,6 +137,9 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
     ui->customFee->SetAllowEmpty(false);
     ui->customFee->setValue(settings.value("nTransactionFee").toLongLong());
     minimizeFeeSection(settings.value("fFeeSectionMinimized").toBool());
+
+    ui->spinRingSize->setValue(DEFAULT_RING_SIZE);
+    ui->spinMaxInputs->setValue(DEFAULT_INPUTS_PER_SIG);
 }
 
 void SendCoinsDialog::setClientModel(ClientModel *_clientModel)

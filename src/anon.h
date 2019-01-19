@@ -19,6 +19,10 @@ const size_t MAX_ANON_INPUTS = 32; // To raise see MLSAG_MAX_ROWS also
 
 const size_t ANON_FEE_MULTIPLIER = 2;
 
+const size_t DEFAULT_RING_SIZE = 5;
+const size_t DEFAULT_INPUTS_PER_SIG = 1;
+
+
 
 bool VerifyMLSAG(const CTransaction &tx, CValidationState &state);
 
