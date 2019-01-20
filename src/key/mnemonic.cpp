@@ -76,6 +76,9 @@ const char *mnLanguagesTag[WLL_MAX] =
 
 static void NormaliseUnicode(std::string &str)
 {
+    if (str.size() < 1) {
+        return;
+    }
     std::u32string u32;
     ufal::unilib::utf8::decode(str, u32);
     ufal::unilib::uninorms::nfkd(u32);

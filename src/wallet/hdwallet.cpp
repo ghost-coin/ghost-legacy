@@ -765,22 +765,18 @@ bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
 
 bool CHDWallet::GetVote(int nHeight, uint32_t &token)
 {
-    for (auto i = vVoteTokens.size(); i-- > 0; ) {
-        auto &v = vVoteTokens[i];
-
-        if (v.nEnd < nHeight
-            || v.nStart > nHeight) {
+    for (auto i = vVoteTokens.rbegin(); i != vVoteTokens.rend(); ++i) {
+        if (i->nEnd < nHeight
+            || i->nStart > nHeight) {
             continue;
         }
-
-        if ((v.nToken >> 16) < 1
-            || (v.nToken & 0xFFFF) < 1) {
+        if ((i->nToken >> 16) < 1
+            || (i->nToken & 0xFFFF) < 1) {
             continue;
         }
-
-        token = v.nToken;
+        token = i->nToken;
         return true;
-    };
+    }
 
     return false;
 };
@@ -3736,7 +3732,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             const CAmount nChange = nValueIn - nValueToSelect;
 
             // Remove fee outputs from last round
-            for (size_t i = 0; i < vecSend.size(); ++i) {
+            for (int i = 0; i < (int) vecSend.size(); ++i) {
                 if (vecSend[i].fChange) {
                     vecSend.erase(vecSend.begin() + i);
                     i--;
@@ -4112,13 +4108,15 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         return 1;
     }
 
+    double all_est = feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool;
+    if (all_est == 0.0) all_est = 1.0;
     WalletLogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
               nFeeRet, nBytes, nFeeNeeded, feeCalc.returnedTarget, feeCalc.desiredTarget, StringForFeeReason(feeCalc.reason), feeCalc.est.decay,
               feeCalc.est.pass.start, feeCalc.est.pass.end,
-              100 * feeCalc.est.pass.withinTarget / (feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool),
+              100 * feeCalc.est.pass.withinTarget / all_est,
               feeCalc.est.pass.withinTarget, feeCalc.est.pass.totalConfirmed, feeCalc.est.pass.inMempool, feeCalc.est.pass.leftMempool,
               feeCalc.est.fail.start, feeCalc.est.fail.end,
-              100 * feeCalc.est.fail.withinTarget / (feeCalc.est.fail.totalConfirmed + feeCalc.est.fail.inMempool + feeCalc.est.fail.leftMempool),
+              100 * feeCalc.est.fail.withinTarget / all_est,
               feeCalc.est.fail.withinTarget, feeCalc.est.fail.totalConfirmed, feeCalc.est.fail.inMempool, feeCalc.est.fail.leftMempool);
     return 0;
 }
@@ -4292,7 +4290,7 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             const CAmount nChange = nValueIn - nValueToSelect;
 
             // Remove fee outputs from last round
-            for (size_t i = 0; i < vecSend.size(); ++i) {
+            for (int i = 0; i < (int) vecSend.size(); ++i) {
                 if (vecSend[i].fChange) {
                     vecSend.erase(vecSend.begin() + i);
                     i--;
@@ -4635,13 +4633,15 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         return 1;
     }
 
+    double all_est = feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool;
+    if (all_est == 0.0) all_est = 1.0;
     WalletLogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
               nFeeRet, nBytes, nFeeNeeded, feeCalc.returnedTarget, feeCalc.desiredTarget, StringForFeeReason(feeCalc.reason), feeCalc.est.decay,
               feeCalc.est.pass.start, feeCalc.est.pass.end,
-              100 * feeCalc.est.pass.withinTarget / (feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool),
+              100 * feeCalc.est.pass.withinTarget / all_est,
               feeCalc.est.pass.withinTarget, feeCalc.est.pass.totalConfirmed, feeCalc.est.pass.inMempool, feeCalc.est.pass.leftMempool,
               feeCalc.est.fail.start, feeCalc.est.fail.end,
-              100 * feeCalc.est.fail.withinTarget / (feeCalc.est.fail.totalConfirmed + feeCalc.est.fail.inMempool + feeCalc.est.fail.leftMempool),
+              100 * feeCalc.est.fail.withinTarget / all_est,
               feeCalc.est.fail.withinTarget, feeCalc.est.fail.totalConfirmed, feeCalc.est.fail.inMempool, feeCalc.est.fail.leftMempool);
     return 0;
 };
@@ -5010,7 +5010,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             const CAmount nChange = nValueIn - nValueToSelect;
 
             // Remove fee outputs from last round
-            for (size_t i = 0; i < vecSend.size(); ++i) {
+            for (int i = 0; i < (int) vecSend.size(); ++i) {
                 if (vecSend[i].fChange) {
                     vecSend.erase(vecSend.begin() + i);
                     i--;
@@ -5446,13 +5446,15 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         return 1;
     }
 
+    double all_est = feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool;
+    if (all_est == 0.0) all_est = 1.0;
     WalletLogPrintf("Fee Calculation: Fee:%d Bytes:%u Needed:%d Tgt:%d (requested %d) Reason:\"%s\" Decay %.5f: Estimation: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out) Fail: (%g - %g) %.2f%% %.1f/(%.1f %d mem %.1f out)\n",
               nFeeRet, nBytes, nFeeNeeded, feeCalc.returnedTarget, feeCalc.desiredTarget, StringForFeeReason(feeCalc.reason), feeCalc.est.decay,
               feeCalc.est.pass.start, feeCalc.est.pass.end,
-              100 * feeCalc.est.pass.withinTarget / (feeCalc.est.pass.totalConfirmed + feeCalc.est.pass.inMempool + feeCalc.est.pass.leftMempool),
+              100 * feeCalc.est.pass.withinTarget / all_est,
               feeCalc.est.pass.withinTarget, feeCalc.est.pass.totalConfirmed, feeCalc.est.pass.inMempool, feeCalc.est.pass.leftMempool,
               feeCalc.est.fail.start, feeCalc.est.fail.end,
-              100 * feeCalc.est.fail.withinTarget / (feeCalc.est.fail.totalConfirmed + feeCalc.est.fail.inMempool + feeCalc.est.fail.leftMempool),
+              100 * feeCalc.est.fail.withinTarget / all_est,
               feeCalc.est.fail.withinTarget, feeCalc.est.fail.totalConfirmed, feeCalc.est.fail.inMempool, feeCalc.est.fail.leftMempool);
     return 0;
 };

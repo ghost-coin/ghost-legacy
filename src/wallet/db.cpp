@@ -302,6 +302,13 @@ BerkeleyBatch::SafeDbt::operator Dbt*()
     return &m_dbt;
 }
 
+void BerkeleyBatch::SafeDbt::set_data(void* data, size_t size)
+{
+    m_dbt.set_data(data);
+    m_dbt.set_size(size);
+}
+
+
 bool BerkeleyBatch::Recover(const fs::path& file_path, void *callbackDataIn, bool (*recoverKVcallback)(void* callbackData, CDataStream &ssKey, CDataStream &ssValue), std::string& newFilename)
 {
     std::string filename;

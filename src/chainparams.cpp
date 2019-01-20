@@ -68,9 +68,9 @@ bool CChainParams::CheckImportCoinbase(int nHeight, uint256 &hash) const
 
 const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime) const
 {
-    for (size_t i = vDevFundSettings.size(); i-- > 0; ) {
-        if (nTime > vDevFundSettings[i].first) {
-            return &vDevFundSettings[i].second;
+    for (auto i = vDevFundSettings.rbegin(); i != vDevFundSettings.rend(); ++i) {
+        if (nTime > i->first) {
+            return &i->second;
         }
     }
 

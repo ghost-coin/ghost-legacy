@@ -50,6 +50,7 @@ public:
     ~UniValue() {}
 
     void clear();
+    void reverse();
 
     bool setNull();
     bool setBool(bool val);

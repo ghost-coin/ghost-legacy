@@ -844,29 +844,32 @@ bool WalletBatch::EraseLockedUnspentOutput(const COutPoint &o)
 bool WalletBatch::EraseAllByPrefix(std::string sPrefix)
 {
     // Must be in transaction to call pcursor->del
-    if (!TxnBegin())
+    if (!TxnBegin()) {
         return error("%s: TxnBegin failed.\n", __func__);
+    }
 
     // Get cursor
     Dbc *pcursor = nullptr;
     int ret = m_batch.pdb->cursor(m_batch.activeTxn, &pcursor, 0);
-    if (ret != 0 || !pcursor)
+    if (ret != 0 || !pcursor) {
         return error("%s: GetCursor failed.\n", __func__);
+    }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
     std::string strType;
     ssKey << sPrefix;
-    while (m_batch.ReadAtCursor(pcursor, ssKey, ssValue, true) == 0)
-    {
+    while (m_batch.ReadAtCursor(pcursor, ssKey, ssValue, true) == 0) {
         ssKey >> strType;
-        if (IsKeyType(strType) || strType != sPrefix)
+        if (IsKeyType(strType) || strType != sPrefix) {
             break;
+        }
         int rv = pcursor->del(0);
-        if (rv != 0)
+        if (rv != 0) {
             LogPrintf("%s: Erase failed with error %d\n", __func__, rv);
+        }
         m_database.IncrementUpdateCounter();
-    };
+    }
     pcursor->close();
 
     TxnCommit();

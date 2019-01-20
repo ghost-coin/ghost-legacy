@@ -267,7 +267,6 @@ void Shutdown(InitInterfaces& interfaces)
     RenameThread("particl-shutoff");
     mempool.AddTransactionsUpdated(1);
 
-
     StopHTTPRPC();
     StopREST();
     StopRPC();

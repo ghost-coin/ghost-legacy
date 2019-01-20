@@ -222,15 +222,17 @@ public:
 
     Dbc *GetTxnCursor()
     {
-        if (!m_batch.pdb || !m_batch.activeTxn)
+        if (!m_batch.pdb || !m_batch.activeTxn) {
             return nullptr;
+        }
 
         DbTxn *ptxnid = m_batch.activeTxn; // call TxnBegin first
 
         Dbc *pcursor = nullptr;
         int ret = m_batch.pdb->cursor(ptxnid, &pcursor, 0);
-        if (ret != 0)
+        if (ret != 0) {
             return nullptr;
+        }
         return pcursor;
     };
 
@@ -242,11 +244,13 @@ public:
     template< typename T>
     bool Replace(Dbc *pcursor, const T &value)
     {
-        if (!pcursor)
+        if (!pcursor) {
             return false;
+        }
 
-        if (m_batch.fReadOnly)
+        if (m_batch.fReadOnly) {
             assert(!"Replace called on database in read-only mode");
+        }
 
         // Value
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
@@ -257,8 +261,7 @@ public:
         // Write
         int ret = pcursor->put(nullptr, &datValue, DB_CURRENT);
 
-        if (ret != 0)
-        {
+        if (ret != 0) {
             LogPrintf("CursorPut ret %d - %s\n", ret, DbEnv::strerror(ret));
         }
         // Clear memory in case it was a private key
@@ -270,27 +273,20 @@ public:
     int ReadAtCursor(Dbc *pcursor, CDataStream &ssKey, CDataStream &ssValue, unsigned int fFlags=DB_NEXT)
     {
         // Read at cursor
-        Dbt datKey;
-        if (fFlags == DB_SET || fFlags == DB_SET_RANGE || fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE)
-        {
-            datKey.set_data(&ssKey[0]);
-            datKey.set_size(ssKey.size());
-        };
-
-        Dbt datValue;
-        if (fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE)
-        {
-            datValue.set_data(&ssValue[0]);
-            datValue.set_size(ssValue.size());
-        };
-
-        datKey.set_flags(DB_DBT_MALLOC);
-        datValue.set_flags(DB_DBT_MALLOC);
-        int ret = pcursor->get(&datKey, &datValue, fFlags);
-        if (ret != 0)
+        BerkeleyBatch::SafeDbt datKey, datValue;
+        if (fFlags == DB_SET || fFlags == DB_SET_RANGE || fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE) {
+            datKey.set_data(&ssKey[0], ssKey.size());
+        }
+        if (fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE) {
+            datValue.set_data(&ssValue[0], ssValue.size());
+        }
+        int ret = pcursor->get(datKey, datValue, fFlags);
+        if (ret != 0) {
             return ret;
-        else if (datKey.get_data() == nullptr || datValue.get_data() == nullptr)
+        } else
+        if (datKey.get_data() == nullptr || datValue.get_data() == nullptr) {
             return 99999;
+        }
 
         // Convert to streams
         ssKey.SetType(SER_DISK);
@@ -300,43 +296,31 @@ public:
         ssValue.SetType(SER_DISK);
         ssValue.clear();
         ssValue.write((char*)datValue.get_data(), datValue.get_size());
-
-        // Clear and free memory
-        memset(datKey.get_data(), 0, datKey.get_size());
-        memset(datValue.get_data(), 0, datValue.get_size());
-        free(datKey.get_data());
-        free(datValue.get_data());
         return 0;
     }
 
     int ReadKeyAtCursor(Dbc *pcursor, CDataStream &ssKey, unsigned int fFlags=DB_NEXT)
     {
         // Read key at cursor
-        Dbt datKey;
-        if (fFlags == DB_SET || fFlags == DB_SET_RANGE)
-        {
-            datKey.set_data(&ssKey[0]);
-            datKey.set_size(ssKey.size());
+        BerkeleyBatch::SafeDbt datKey;
+        if (fFlags == DB_SET || fFlags == DB_SET_RANGE) {
+            datKey.set_data(&ssKey[0], ssKey.size());
         }
-        datKey.set_flags(DB_DBT_MALLOC);
-
         Dbt datValue;
         datValue.set_flags(DB_DBT_PARTIAL); // don't read data, dlen and doff are 0 after memset
 
-        int ret = pcursor->get(&datKey, &datValue, fFlags);
-        if (ret != 0)
+        int ret = pcursor->get(datKey, &datValue, fFlags);
+        if (ret != 0) {
             return ret;
-        if (datKey.get_data() == nullptr)
+        }
+        if (datKey.get_data() == nullptr) {
             return 99999;
+        }
 
         // Convert to streams
         ssKey.SetType(SER_DISK);
         ssKey.clear();
         ssKey.write((char*)datKey.get_data(), datKey.get_size());
-
-        // Clear and free memory
-        memset(datKey.get_data(), 0, datKey.get_size());
-        free(datKey.get_data());
         return 0;
     }
 
@@ -347,7 +331,6 @@ public:
     bool WriteStealthAddress(const CStealthAddress &sxAddr);
     bool ReadStealthAddress(CStealthAddress &sxAddr);
     bool EraseStealthAddress(const CStealthAddress &sxAddr);
-
 
 
     bool ReadNamedExtKeyId(const std::string &name, CKeyID &identifier, uint32_t nFlags=DB_READ_UNCOMMITTED);

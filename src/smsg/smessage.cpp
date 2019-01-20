@@ -3159,7 +3159,6 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
                 }
 
                 size_t n = (vData.size()-1) / 24;
-
                 for (size_t k = 0; k < n; ++k) {
                     uint160 *pMsgIdTx = (uint160*)&vData[1+k*24];
                     uint32_t *nAmount = (uint32_t*)&vData[1+k*24+20];
@@ -3171,7 +3170,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
                             bool matched_last_fee = false;
                             if (pindex->nHeight % consensusParams.smsg_fee_period < 10) {
                                 int64_t nMsgFeePerKPerDayLast = GetSmsgFeeRate(pindex, true);
-                                int64_t nExpectFeeLast = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
+                                int64_t nExpectFeeLast = ((nMsgFeePerKPerDayLast * nMsgBytes) / 1000) * nDaysRetention;
 
                                 if (*nAmount >= nExpectFeeLast) {
                                     matched_last_fee = true;

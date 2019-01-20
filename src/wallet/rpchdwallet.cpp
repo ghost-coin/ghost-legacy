@@ -6294,13 +6294,12 @@ static UniValue votehistory(const JSONRPCRequest &request)
 
             int nNextHeight = chainActive.Height() + 1;
 
-            for (auto i = pwallet->vVoteTokens.size(); i-- > 0; ) {
-                auto &v = pwallet->vVoteTokens[i];
+            for (auto i = pwallet->vVoteTokens.rbegin(); i != pwallet->vVoteTokens.rend(); ++i) {
+                auto &v = *i;
                 if (v.nEnd < nNextHeight
                     || v.nStart > nNextHeight) {
                     continue;
                 }
-
                 if ((v.nToken >> 16) < 1
                     || (v.nToken & 0xFFFF) < 1) {
                     continue;
@@ -6324,8 +6323,8 @@ static UniValue votehistory(const JSONRPCRequest &request)
         wdb.ReadVoteTokens(vVoteTokens);
     }
 
-    for (auto i = vVoteTokens.size(); i-- > 0; ) {
-        auto &v = vVoteTokens[i];
+    for (auto i = vVoteTokens.rbegin(); i != vVoteTokens.rend(); ++i) {
+        auto &v = *i;
         UniValue vote(UniValue::VOBJ);
         vote.pushKV("proposal", (int)(v.nToken & 0xFFFF));
         vote.pushKV("option", (int)(v.nToken >> 16));

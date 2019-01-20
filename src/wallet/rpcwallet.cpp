@@ -1957,8 +1957,6 @@ UniValue listtransactions(const JSONRPCRequest& request)
     // TODO: Change to count on unique txids?
 
     UniValue ret(UniValue::VARR);
-    UniValue retReversed(UniValue::VARR);
-
     {
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
@@ -1967,16 +1965,12 @@ UniValue listtransactions(const JSONRPCRequest& request)
         // iterate backwards until we have nCount items to return:
         for (CWallet::TxItems::const_reverse_iterator it = txOrdered.rbegin(); it != txOrdered.rend(); ++it) {
             CWalletTx *const pwtx = (*it).second;
-            ListTransactions(*locked_chain, pwallet, *pwtx, 0, true, retReversed, filter, filter_label);
-            if ((int)retReversed.size() >= nCount + nFrom) break;
+            ListTransactions(*locked_chain, pwallet, *pwtx, 0, true, ret, filter, filter_label);
+            if ((int)ret.size() >= nCount + nFrom) break;
         }
     }
-    // ret is newest to oldest
-
-    // TODO: neater to add reverse to Univalue?
-    for (size_t i = retReversed.size(); i-- > 0; ) {
-        ret.push_back(retReversed[i]);
-    }
+    // ret must be newest to oldest
+    ret.reverse();
 
     if (IsParticlWallet(pwallet)) {
         auto locked_chain = pwallet->chain().lock();
@@ -1997,7 +1991,7 @@ UniValue listtransactions(const JSONRPCRequest& request)
         }
 
         size_t nSearchStart = 0;
-        for (size_t i = retRecords.size(); i-- > 0; ) {
+        for(int i = (int)retRecords.size() - 1; i >= 0; --i) {
             int64_t nInsertTime = find_value(retRecords[i], "time").get_int64();
             bool fFound = false;
             for (size_t k = nSearchStart; k < ret.size(); k++) {

@@ -77,9 +77,9 @@ BOOST_AUTO_TEST_CASE(smsg_test)
 
         BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Encrypt(smsg, fSendAnonymous ? idNull : kFrom, kTo, sTestMessage)), "SecureMsgEncrypt " << rv);
 
-        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.SetHash((uint8_t*)&smsg, ((uint8_t*)&smsg) + smsg::SMSG_HDR_LEN, smsg.nPayload)), "SecureMsgSetHash " << rv);
+        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.SetHash((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)), "SecureMsgSetHash " << rv);
 
-        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Validate((uint8_t*)&smsg, ((uint8_t*)&smsg) + smsg::SMSG_HDR_LEN, smsg.nPayload)), "SecureMsgValidate " << rv);
+        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Validate((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)), "SecureMsgValidate " << rv);
 
         BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Decrypt(false, kTo, smsg, msg)), "SecureMsgDecrypt " << rv);
 

@@ -194,6 +194,8 @@ private:
 /** RAII class that provides access to a Berkeley database */
 class BerkeleyBatch
 {
+public:
+
     /** RAII class that automatically cleanses its data on destruction */
     class SafeDbt final
     {
@@ -212,9 +214,10 @@ class BerkeleyBatch
 
         // conversion operator to access the underlying Dbt
         operator Dbt*();
+
+        void set_data(void* data, size_t size);
     };
 
-public:
     Db* pdb;
     std::string strFile;
     DbTxn* activeTxn;
@@ -345,17 +348,14 @@ public:
     int ReadAtCursor(Dbc* pcursor, CDataStream& ssKey, CDataStream& ssValue, bool setRange = false)
     {
         // Read at cursor
-        Dbt datKey;
-        Dbt datValue;
+        SafeDbt datKey;
+        SafeDbt datValue;
         unsigned int fFlags = DB_NEXT;
         if (setRange) {
-            datKey.set_data(ssKey.data());
-            datKey.set_size(ssKey.size());
+            datKey.set_data(ssKey.data(), ssKey.size());
             fFlags = DB_SET_RANGE;
         }
-        datKey.set_flags(DB_DBT_MALLOC);
-        datValue.set_flags(DB_DBT_MALLOC);
-        int ret = pcursor->get(&datKey, &datValue, fFlags);
+        int ret = pcursor->get(datKey, datValue, fFlags);
         if (ret != 0)
             return ret;
         else if (datKey.get_data() == nullptr || datValue.get_data() == nullptr)
