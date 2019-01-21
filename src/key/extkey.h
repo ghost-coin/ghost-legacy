@@ -665,6 +665,7 @@ public:
         // Keys are normally freed by the wallet
         for (auto it = vExtKeys.begin(); it != vExtKeys.end(); ++it) {
             delete *it;
+            *it = nullptr;
         }
         vExtKeys.clear();
         return 0;

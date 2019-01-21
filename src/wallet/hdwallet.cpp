@@ -131,16 +131,14 @@ int CHDWallet::FreeExtKeyMaps()
 {
     LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
-    ExtKeyAccountMap::iterator it = mapExtAccounts.begin();
-    for (it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it) {
+    for (auto it = mapExtAccounts.begin(); it != mapExtAccounts.end(); ++it) {
         if (it->second) {
             delete it->second;
         }
     }
     mapExtAccounts.clear();
 
-    ExtKeyMap::iterator itl = mapExtKeys.begin();
-    for (itl = mapExtKeys.begin(); itl != mapExtKeys.end(); ++itl) {
+    for (auto itl = mapExtKeys.begin(); itl != mapExtKeys.end(); ++itl) {
         if (itl->second) {
             delete itl->second;
         }
@@ -7763,17 +7761,17 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
     CStoredExtKey *sekStealthScan = new CStoredExtKey();
     sekStealthScan->kp = evStealthScan;
     std::vector<uint32_t> vPath;
-    //sekStealthSpend->SetPath(vPath);
+    //sekStealthScan->SetPath(vPath);
     sekStealthScan->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
     sekStealthScan->mapValue[EKVT_KEY_TYPE] = SetChar(vData, EKT_STEALTH_SCAN);
     sea->InsertChain(sekStealthScan);
+    mapExtKeys[sekStealthScan->GetID()] = sekStealthScan;
     uint32_t nStealthScanChain = sea->NumChains();
 
     CExtKey evStealthSpend;
     uint32_t nStealthSpend;
     if ((0 != sekAccount->DeriveKey(evStealthSpend, CHAIN_NO_STEALTH_SPEND, nStealthSpend, true)) != 0) {
-        sea->FreeChains();
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Could not derive account chain keys.");
+        return werrorN(1, "%s: Could not derive account chain keys.", __func__);
     }
 
     vPath.clear();
@@ -7786,6 +7784,7 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
     sekStealthSpend->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
     sekStealthSpend->mapValue[EKVT_KEY_TYPE] = SetChar(vData, EKT_STEALTH_SPEND);
     sea->InsertChain(sekStealthSpend);
+    mapExtKeys[sekStealthSpend->GetID()] = sekStealthSpend;
     uint32_t nStealthSpendChain = sea->NumChains();
 
     sea->mapValue[EKVT_STEALTH_SCAN_CHAIN] = SetCompressedInt64(vData, nStealthScanChain);
@@ -7905,11 +7904,11 @@ int CHDWallet::NewStealthKeyV2FromAccount(
         }
         mvi = sea->mapValue.find(EKVT_STEALTH_SCAN_CHAIN);
     }
+
     if (mvi != sea->mapValue.end()) {
         GetCompressedInt64(mvi->second, nScanChain);
         sekScan = sea->GetChain(nScanChain);
     }
-
     if (!sekScan) {
         return werrorN(1, "%s Unknown stealth scan chain.", __func__);
     }
