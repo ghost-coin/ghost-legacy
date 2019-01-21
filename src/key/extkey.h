@@ -663,11 +663,10 @@ public:
     int FreeChains()
     {
         // Keys are normally freed by the wallet
-        std::vector<CStoredExtKey*>::iterator it;
-        for (it = vExtKeys.begin(); it != vExtKeys.end(); ++it) {
+        for (auto it = vExtKeys.begin(); it != vExtKeys.end(); ++it) {
             delete *it;
-            *it = nullptr;
         }
+        vExtKeys.clear();
         return 0;
     };
 

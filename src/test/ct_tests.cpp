@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(ct_test_bulletproofs)
 {
     SeedInsecureRand();
     secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
-    secp256k1_scratch_space *scratch = secp256k1_scratch_space_create(ctx, 1024 * 1024);
+    secp256k1_scratch_space *scratch = secp256k1_scratch_space_create(ctx, 10000000);
     secp256k1_bulletproof_generators *gens;
 
     gens = secp256k1_bulletproof_generators_create(ctx, &secp256k1_generator_const_g, 256);

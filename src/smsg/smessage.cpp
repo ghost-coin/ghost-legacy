@@ -758,7 +758,7 @@ int CSMSG::ReadIni()
             options.fScanIncoming = (strcmp(pValue, "true") == 0) ? true : false;
         } else
         if (strcmp(pName, "key") == 0) {
-            int rv = sscanf(pValue, "%64[^|]|%d|%d", cAddress, &addrRecv, &addrRecvAnon);
+            int rv = sscanf(pValue, "%63[^|]|%d|%d", cAddress, &addrRecv, &addrRecvAnon);
             if (rv == 3) {
                 CKeyID k;
                 CBitcoinAddress(cAddress).GetKeyID(k);
@@ -2691,7 +2691,7 @@ int CSMSG::Remove(const SecMsgToken &token)
         return errorN(SMSG_GENERAL_ERROR, "%s - read header failed, strerror: %s.", __func__, strerror(errno));
     }
 
-    uint8_t z = 0;
+    uint16_t z = 0;
     if (0 != fseek(fp, token.offset + 4, SEEK_SET)
         || 2 != fwrite(&z, 1, 2, fp)) {
         fclose(fp);
@@ -2704,7 +2704,10 @@ int CSMSG::Remove(const SecMsgToken &token)
     }
 
     size_t zlen = smsg.nPayload - 8;
-    if (smsg.nPayload <= 8 ||  zlen != fwrite(&z, 1, zlen, fp)) {
+    std::vector<uint8_t> zbuf;
+    zbuf.resize(zlen);
+    memset(zbuf.data(), 0, zlen);
+    if (smsg.nPayload <= 8 ||  zlen != fwrite(zbuf.data(), 1, zlen, fp)) {
         fclose(fp);
         return errorN(SMSG_GENERAL_ERROR, "%s - fwrite, zlen %d, strerror: %s.", __func__, zlen, strerror(errno));
     }
@@ -2816,7 +2819,8 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
 
 int CSMSG::CheckPurged(const SecureMessage *psmsg, const uint8_t *pPayload)
 {
-    if (setPurgedTimestamps.find(psmsg->timestamp) != setPurgedTimestamps.end()) {
+    int64_t ts = psmsg->timestamp; // ubsan
+    if (setPurgedTimestamps.find(ts) != setPurgedTimestamps.end()) {
         return SMSG_NO_ERROR;
     }
 
@@ -3160,25 +3164,25 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
 
                 size_t n = (vData.size()-1) / 24;
                 for (size_t k = 0; k < n; ++k) {
-                    uint160 *pMsgIdTx = (uint160*)&vData[1+k*24];
-                    uint32_t *nAmount = (uint32_t*)&vData[1+k*24+20];
+                    const uint8_t *pMsgIdTxStart = &vData[1+k*24];
+                    if (memcmp(pMsgIdTxStart, msgId.begin(), 20) == 0) {
+                        uint32_t nAmount;
+                        memcpy(&nAmount, &vData[1+k*24+20], 4);
 
-                    if (*pMsgIdTx == msgId) {
-                        if (*nAmount < nExpectFee) {
-
+                        if (nAmount < nExpectFee) {
                             // Grace period after fee period transition where prev fee is still allowed
                             bool matched_last_fee = false;
                             if (pindex->nHeight % consensusParams.smsg_fee_period < 10) {
                                 int64_t nMsgFeePerKPerDayLast = GetSmsgFeeRate(pindex, true);
                                 int64_t nExpectFeeLast = ((nMsgFeePerKPerDayLast * nMsgBytes) / 1000) * nDaysRetention;
 
-                                if (*nAmount >= nExpectFeeLast) {
+                                if (nAmount >= nExpectFeeLast) {
                                     matched_last_fee = true;
                                 }
                             }
 
                             if (!matched_last_fee) {
-                                LogPrintf("%s: Transaction %s underfunded message %s, expected %d paid %d.\n", __func__, txid.ToString(), msgId.ToString(), nExpectFee, *nAmount);
+                                LogPrintf("%s: Transaction %s underfunded message %s, expected %d paid %d.\n", __func__, txid.ToString(), msgId.ToString(), nExpectFee, nAmount);
                                 return SMSG_FUND_FAILED;
                             }
                         }

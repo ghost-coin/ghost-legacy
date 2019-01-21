@@ -137,7 +137,7 @@ void ECC_Start_Blinding()
 
     secp256k1_ctx_blind = ctx;
 
-    blind_scratch = secp256k1_scratch_space_create(secp256k1_ctx_blind, 1024 * 1024);
+    blind_scratch = secp256k1_scratch_space_create(secp256k1_ctx_blind, 10000000);
     assert(blind_scratch);
     blind_gens = secp256k1_bulletproof_generators_create(secp256k1_ctx_blind, &secp256k1_generator_const_g, 128);
     assert(blind_gens);

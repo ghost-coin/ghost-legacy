@@ -1187,7 +1187,7 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 
     int min_kernel_depth = Params().GetStakeMinConfirmations();
     std::pair<char, ColdStakeIndexLinkKey> key;
-    while (it->Valid() && it->GetKey(key)) {
+    while (it->Valid() && it->StartsWith(DB_TXINDEX_CSLINK) && it->GetKey(key)) {
         ColdStakeIndexLinkKey &lk = key.second;
 
         if (key.first != DB_TXINDEX_CSLINK

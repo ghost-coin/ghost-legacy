@@ -3212,6 +3212,7 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
     if (GetTime() >= Params().GetConsensus().bulletproof_time) {
         const uint8_t *bp[1];
         bp[0] = r.vBlind.data();
+        assert(r.vBlind.size() == 32);
         if (1 != secp256k1_bulletproof_rangeproof_prove(secp256k1_ctx_blind, blind_scratch, blind_gens,
             pvRangeproof->data(), &nRangeProofLen, &nValue, nullptr, bp, 1,
             &secp256k1_generator_const_h, 64, nonce.begin(), nullptr, 0)) {
@@ -4832,7 +4833,7 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI,
                     ranges[j] *= ratio;
                 }
             }
-            ranges[j] += GetRandInt(ranges[j] * range_blur);
+            ranges[j] += (int64_t) GetRand((uint64_t)((double)ranges[j] * range_blur));
         }
     }
 
@@ -11096,7 +11097,7 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
                 if (nValueRet < target_val) {
                     add_input = true;
                 } else {
-                    for (size_t k = 0; k < setCoinsRet.size(); ++k) {
+                    for (int k = 0; k < (int)setCoinsRet.size(); ++k) {
                         if (setCoinsRet.size() + (add_input ? 1 : 0) <= prefer_max_num_anon_inputs) {
                             break;
                         }

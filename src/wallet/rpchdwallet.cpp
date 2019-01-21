@@ -1152,8 +1152,6 @@ static UniValue extkey(const JSONRPCRequest &request)
         CKeyID idOldDefault = pwallet->idDefaultAccount;
         CBitcoinAddress addr;
 
-        CExtKeyAccount *sea = new CExtKeyAccount();
-
         if (addr.SetString(sInKey)
             && addr.IsValid(CChainParams::EXT_ACC_HASH)
             && addr.GetKeyID(idNewDefault, CChainParams::EXT_ACC_HASH)) {
@@ -1166,18 +1164,15 @@ static UniValue extkey(const JSONRPCRequest &request)
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
 
             if (!wdb.TxnBegin()) {
-                delete sea;
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
             }
 
             if (0 != (rv = pwallet->ExtKeySetDefaultAccount(&wdb, idNewDefault))) {
-                delete sea;
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeySetDefaultAccount failed, %s.", ExtKeyGetString(rv)));
             }
 
             if (!wdb.TxnCommit()) {
-                delete sea;
                 pwallet->idDefaultAccount = idOldDefault;
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
             }
@@ -1211,16 +1206,19 @@ static UniValue extkey(const JSONRPCRequest &request)
             LOCK(pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
             if (!wdb.TxnBegin()) {
+                delete sea;
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
             }
 
             int rv;
             if ((rv = pwallet->ExtKeyDeriveNewAccount(&wdb, sea, sLabel, sPath)) != 0) {
+                delete sea;
                 wdb.TxnAbort();
                 result.pushKV("result", "Failed.");
                 result.pushKV("reason", ExtKeyGetString(rv));
             } else {
                 if (!wdb.TxnCommit()) {
+                    delete sea;
                     throw JSONRPCError(RPC_MISC_ERROR, "TxnCommit failed.");
                 }
 
