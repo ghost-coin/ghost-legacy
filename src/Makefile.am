@@ -103,6 +103,7 @@ BITCOIN_CORE_H = \
   rctindex.h \
   addrman.h \
   attributes.h \
+  banman.h \
   base58.h \
   bech32.h \
   bloom.h \
@@ -267,8 +268,9 @@ libparticl_util_a-clientversion.$(OBJEXT): obj/build.h
 libparticl_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libparticl_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libparticl_server_a_SOURCES = \
-  addrman.cpp \
   addrdb.cpp \
+  addrman.cpp \
+  banman.cpp \
   bloom.cpp \
   blockencodings.cpp \
   blockfilter.cpp \

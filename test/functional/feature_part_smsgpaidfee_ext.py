@@ -4,11 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 from test_framework.test_particl import ParticlTestFramework
-from test_framework.test_particl import isclose, getIndexAtProperty
-from test_framework.util import *
-import struct
-import time
-import binascii
+from test_framework.util import connect_nodes
 
 
 class SmsgPaidFeeExtTest(ParticlTestFramework):

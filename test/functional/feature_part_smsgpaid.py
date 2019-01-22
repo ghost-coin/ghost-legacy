@@ -3,10 +3,17 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_particl import ParticlTestFramework
-from test_framework.test_particl import isclose, getIndexAtProperty
-from test_framework.util import *
+import time
+import json
 import binascii
+
+from test_framework.test_particl import (
+    ParticlTestFramework,
+    isclose,
+    getIndexAtProperty,
+)
+from test_framework.util import connect_nodes
+from test_framework.authproxy import JSONRPCException
 
 
 class SmsgPaidTest(ParticlTestFramework):

@@ -7,8 +7,10 @@
 # Test txindex generation and fetching
 #
 
+import json
+
 from test_framework.test_particl import ParticlTestFramework
-from test_framework.util import *
+from test_framework.util import connect_nodes, assert_equal
 
 
 class TxIndexTest(ParticlTestFramework):

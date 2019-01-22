@@ -3,12 +3,19 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import os
+import json
 import configparser
 
-from test_framework.test_particl import ParticlTestFramework
-from test_framework.test_particl import isclose, getIndexAtProperty
+from test_framework.test_particl import (
+    ParticlTestFramework,
+    isclose,
+    getIndexAtProperty,
+)
 from test_framework.test_framework import SkipTest
-from test_framework.util import *
+from test_framework.util import connect_nodes_bi
+from test_framework.authproxy import JSONRPCException
+
 
 class USBDeviceTest(ParticlTestFramework):
     def set_test_params(self):

@@ -610,7 +610,7 @@ bool IsSolvable(const SigningProvider& provider, const CScript& script)
     return false;
 }
 
-PartiallySignedTransaction::PartiallySignedTransaction(const CTransaction& tx) : tx(tx)
+PartiallySignedTransaction::PartiallySignedTransaction(const CMutableTransaction& tx) : tx(tx)
 {
     inputs.resize(tx.vin.size());
     outputs.resize(tx.vout.size());

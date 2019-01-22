@@ -39,6 +39,7 @@
 
 class CScheduler;
 class CNode;
+class BanMan;
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 2 * 60;
@@ -87,9 +88,6 @@ static const bool DEFAULT_FORCEDNSSEED = false;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER    = 1 * 1000;
 
-// NOTE: When adjusting this, update rpcnet:setban's help ("24h")
-static const unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;  // Default 24-hour ban
-
 typedef int64_t NodeId;
 
 
@@ -119,6 +117,7 @@ struct CSerializedNetMsg
     std::string command;
 };
 
+
 class NetEventsInterface;
 class CConnman
 {
@@ -141,6 +140,7 @@ public:
         int nBestHeight = 0;
         CClientUIInterface* uiInterface = nullptr;
         NetEventsInterface* m_msgproc = nullptr;
+        BanMan* m_banman = nullptr;
         unsigned int nSendBufferMaxSize = 0;
         unsigned int nReceiveFloodSize = 0;
         uint64_t nMaxOutboundTimeframe = 0;
@@ -163,6 +163,7 @@ public:
         nMaxFeeler = connOptions.nMaxFeeler;
         nBestHeight = connOptions.nBestHeight;
         clientInterface = connOptions.uiInterface;
+        m_banman = connOptions.m_banman;
         m_msgproc = connOptions.m_msgproc;
         nSendBufferMaxSize = connOptions.nSendBufferMaxSize;
         nReceiveFloodSize = connOptions.nReceiveFloodSize;
@@ -243,30 +244,6 @@ public:
     void AddNewAddresses(const std::vector<CAddress>& vAddr, const CAddress& addrFrom, int64_t nTimePenalty = 0);
     std::vector<CAddress> GetAddresses();
 
-    // Denial-of-service detection/prevention
-    // The idea is to detect peers that are behaving
-    // badly and disconnect/ban them, but do it in a
-    // one-coding-mistake-won't-shatter-the-entire-network
-    // way.
-    // IMPORTANT:  There should be nothing I can give a
-    // node that it will forward on that will make that
-    // node's peers drop it. If there is, an attacker
-    // can isolate a node and/or try to split the network.
-    // Dropping a node for sending stuff that is invalid
-    // now but might be valid in a later version is also
-    // dangerous, because it can cause a network split
-    // between nodes running old code and nodes running
-    // new code.
-    void Ban(const CNetAddr& netAddr, const BanReason& reason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-    void Ban(const CSubNet& subNet, const BanReason& reason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-    void ClearBanned(); // needed for unit testing
-    bool IsBanned(CNetAddr ip);
-    bool IsBanned(CSubNet subnet);
-    bool Unban(const CNetAddr &ip);
-    bool Unban(const CSubNet &ip);
-    void GetBanned(banmap_t &banmap);
-    void SetBanned(const banmap_t &banmap);
-
     // This allows temporarily exceeding nMaxOutbound, with the goal of finding
     // a peer that is better than all our current peers.
     void SetTryNewOutboundPeer(bool flag);
@@ -287,6 +264,8 @@ public:
     size_t GetNodeCount(NumConnections num);
     void GetNodeStats(std::vector<CNodeStats>& vstats);
     bool DisconnectNode(const std::string& node);
+    bool DisconnectNode(const CSubNet& subnet);
+    bool DisconnectNode(const CNetAddr& addr);
     bool DisconnectNode(NodeId id);
 
     ServiceFlags GetLocalServices() const;
@@ -374,15 +353,7 @@ public:
     NodeId GetNewNodeId();
 
     size_t SocketSendData(CNode *pnode) const;
-    //!check is the banlist has unwritten changes
-    bool BannedSetIsDirty();
-    //!set the "dirty" flag for the banlist
-    void SetBannedSetDirty(bool dirty=true);
-    //!clean unused entries (if bantime has expired)
-    void SweepBanned();
     void DumpAddresses();
-    void DumpData();
-    void DumpBanlist();
 
     // Network stats
     void RecordBytesRecv(uint64_t bytes);
@@ -415,9 +386,6 @@ public:
 
     std::vector<ListenSocket> vhListenSocket;
     std::atomic<bool> fNetworkActive{true};
-    banmap_t setBanned GUARDED_BY(cs_setBanned);
-    CCriticalSection cs_setBanned;
-    bool setBannedIsDirty GUARDED_BY(cs_setBanned){false};
     bool fAddressesInitialized{false};
     CAddrMan addrman;
     std::deque<std::string> vOneShots GUARDED_BY(cs_vOneShots);
@@ -444,6 +412,7 @@ public:
     std::atomic<int> nBestHeight;
     CClientUIInterface* clientInterface;
     NetEventsInterface* m_msgproc;
+    BanMan* m_banman;
 
     /** SipHasher seeds for deterministic randomness */
     const uint64_t nSeed0, nSeed1;
@@ -473,6 +442,7 @@ public:
     friend struct CConnmanTest;
 };
 extern std::unique_ptr<CConnman> g_connman;
+extern std::unique_ptr<BanMan> g_banman;
 void Discover();
 void StartMapPort();
 void InterruptMapPort();
@@ -696,6 +666,8 @@ public:
     bool m_limited_node{false}; //after BIP159, set by version message
     const bool fInbound;
     std::atomic_bool fSuccessfullyConnected{false};
+    // Setting fDisconnect to true will cause the node to be disconnected the
+    // next time DisconnectNodes() runs
     std::atomic_bool fDisconnect{false};
     // We use fRelayTxes for two purposes -
     // a) it allows us to not relay tx invs before receiving the peer's version message

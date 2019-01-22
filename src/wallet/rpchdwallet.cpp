@@ -6912,7 +6912,7 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
     }
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("hex", EncodeHexTx(rawTx));
+    result.pushKV("hex", EncodeHexTx(CTransaction(rawTx)));
     result.pushKV("amounts", amounts);
 
     return result;
@@ -7413,7 +7413,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
     pwallet->mapTempRecords.clear();
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("hex", EncodeHexTx(tx));
+    result.pushKV("hex", EncodeHexTx(CTransaction(tx)));
     result.pushKV("fee", ValueFromAmount(nFee));
     result.pushKV("changepos", coinControl.nChangePos);
     result.pushKV("output_amounts", outputValues);

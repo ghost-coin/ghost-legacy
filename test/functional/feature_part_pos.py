@@ -3,9 +3,9 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_particl import ParticlTestFramework
-from test_framework.test_particl import isclose
-from test_framework.util import *
+from test_framework.test_particl import ParticlTestFramework, isclose
+from test_framework.util import connect_nodes_bi
+from test_framework.authproxy import JSONRPCException
 
 
 class PosTest(ParticlTestFramework):

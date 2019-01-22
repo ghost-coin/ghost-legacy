@@ -589,7 +589,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
         entry.pushKV("error", pDevice->sError);
         vErrors.push_back(entry);
         UniValue result(UniValue::VOBJ);
-        result.pushKV("hex", EncodeHexTx(mtx));
+        result.pushKV("hex", EncodeHexTx(CTransaction(mtx)));
         if (!vErrors.empty()) {
             result.pushKV("errors", vErrors);
         }
@@ -646,7 +646,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     bool fComplete = vErrors.empty();
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("hex", EncodeHexTx(mtx));
+    result.pushKV("hex", EncodeHexTx(CTransaction(mtx)));
     result.pushKV("complete", fComplete);
     if (!vErrors.empty()) {
         result.pushKV("errors", vErrors);

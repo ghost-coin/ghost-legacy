@@ -5,16 +5,35 @@
 
 # Test Decred atomic swap contracts
 
-from test_framework.test_particl import ParticlTestFramework
-from test_framework.test_particl import isclose, getIndexAtProperty
-from test_framework.util import *
-from test_framework.script import *
-from test_framework.messages import sha256
-from test_framework.address import chars as __b58chars, script_to_p2sh
+import os
+import time
 import binascii
 from random import random
+from decimal import Decimal
 
-from test_framework.test_particl import jsonDecimal
+from test_framework.test_particl import (
+    ParticlTestFramework,
+    isclose,
+    getIndexAtProperty,
+)
+from test_framework.util import connect_nodes_bi
+from test_framework.script import (
+    CScript,
+    OP_IF,
+    OP_ENDIF,
+    OP_SIZE,
+    OP_EQUALVERIFY,
+    OP_SHA256,
+    OP_HASH160,
+    OP_ELSE,
+    OP_CHECKLOCKTIMEVERIFY,
+    OP_DROP,
+    OP_DUP,
+    OP_CHECKSIG,
+)
+from test_framework.messages import sha256
+from test_framework.address import chars as __b58chars, script_to_p2sh
+from test_framework.authproxy import JSONRPCException
 
 
 def script_to_p2sh_part(b):

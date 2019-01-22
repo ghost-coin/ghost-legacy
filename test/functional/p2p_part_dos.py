@@ -3,12 +3,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_particl import ParticlTestFramework
-from test_framework.util import *
-from test_framework.messages import *
-
-import io
 import time
+
+from test_framework.test_particl import ParticlTestFramework
+from test_framework.messages import CBlockHeader, msg_headers
+
 
 _compactblocks = __import__('p2p_compactblocks')
 TestP2PConn = _compactblocks.TestP2PConn

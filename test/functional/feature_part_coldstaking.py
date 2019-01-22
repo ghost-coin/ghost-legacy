@@ -3,9 +3,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+from decimal import Decimal
+
 from test_framework.test_particl import ParticlTestFramework
-from test_framework.util import *
-from test_framework.address import *
+from test_framework.util import connect_nodes_bi
+from test_framework.address import keyhash_to_p2pkh, hex_str_to_bytes
+from test_framework.authproxy import JSONRPCException
 
 
 def keyhash_to_p2pkh_part(b):

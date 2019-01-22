@@ -3892,7 +3892,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 }
             }
 
-            nBytes = GetVirtualTransactionSize(txNew);
+            nBytes = GetVirtualTransactionSize(CTransaction(txNew));
 
             // Remove scriptSigs to eliminate the fee calculation dummy signatures
             for (auto &vin : txNew.vin) {
@@ -4404,7 +4404,7 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 nIn++;
             }
 
-            nBytes = GetVirtualTransactionSize(txNew);
+            nBytes = GetVirtualTransactionSize(CTransaction(txNew));
 
             nFeeNeeded = GetMinimumFee(*this, nBytes, *coinControl, ::mempool, ::feeEstimator, &feeCalc);
 
@@ -5148,7 +5148,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 txin.scriptWitness.stack.emplace_back(vDL);
             }
 
-            nBytes = GetVirtualTransactionSize(txNew);
+            nBytes = GetVirtualTransactionSize(CTransaction(txNew));
 
             nFeeNeeded = GetMinimumFee(*this, nBytes, *coinControl, ::mempool, ::feeEstimator, &feeCalc);
 
@@ -12842,7 +12842,7 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wa
         return -1;
     }
 
-    return GetVirtualTransactionSize(txNew);
+    return GetVirtualTransactionSize(CTransaction(txNew));
 }
 
 void RestartStakingThreads()

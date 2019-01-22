@@ -3766,7 +3766,8 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         }
 
         if (nFee) {
-            *nFee = pwallet->GetDebit(txFund, ISMINE_ALL) - pwallet->GetCredit(txFund, ISMINE_ALL);
+            CTransaction tx = CTransaction(txFund);
+            *nFee = pwallet->GetDebit(tx, ISMINE_ALL) - pwallet->GetCredit(tx, ISMINE_ALL);
         }
 
         if (fTestFee) {

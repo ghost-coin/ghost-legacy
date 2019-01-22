@@ -1017,7 +1017,7 @@ static int CommandLineRawTx(int argc, char* argv[])
                 haveSigned = true;
         }
 
-        OutputTx(tx);
+        OutputTx(CTransaction(tx));
     }
     catch (const std::exception& e) {
         strPrint = std::string("error: ") + e.what();
