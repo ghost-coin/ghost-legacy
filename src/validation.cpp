@@ -4585,7 +4585,8 @@ std::list<DelayedBlock> list_delayed_blocks;
 
 extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-extern bool RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+extern void RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+extern void RemoveNonReceivedHeaderFromNodes(BlockMap::iterator mi) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 void EraseDelayedBlock(std::list<DelayedBlock>::iterator p) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
@@ -4645,6 +4646,9 @@ bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_mai
     BlockMap::iterator mi = mapBlockIndex.find(hash);
     if (mi != mapBlockIndex.end() && !(mi->second->nFlags & BLOCK_ACCEPTED)) {
         LogPrint(BCLog::NET, "Removing loose header %s.\n", hash.ToString());
+        setDirtyBlockIndex.erase(mi->second);
+        RemoveNonReceivedHeaderFromNodes(mi);
+        delete mi->second;
         mapBlockIndex.erase(mi);
         return true;
     }

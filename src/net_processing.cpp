@@ -876,14 +876,21 @@ bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED
     return true;
 }
 
-bool RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+void RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     auto it = mapNodeState.begin();
     for (; it != mapNodeState.end(); ++it) {
         it->second.m_map_loose_headers.erase(hash);
     }
+}
 
-    return true;
+void RemoveNonReceivedHeaderFromNodes(BlockMap::iterator mi) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    for (auto it = mapNodeState.begin(); it != mapNodeState.end(); ++it) {
+        if (it->second.pindexBestKnownBlock == mi->second) {
+            it->second.pindexBestKnownBlock = nullptr;
+        }
+    }
 }
 
 void CheckNodeHeaders(NodeId node_id, int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
