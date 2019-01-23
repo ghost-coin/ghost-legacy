@@ -548,7 +548,7 @@ int CSMSG::BuildBucketSet()
                 token.timestamp = smsg.timestamp;
 
                 uint32_t nDaysToLive = smsg.version[0] == 0 && smsg.version[1] == 0 ? 0  // Purged message header
-                    : smsg.version[0] < 3 ? 2 : smsg.nonce[0];
+                    : smsg.version[0] < 3 ? SMSG_FREE_MSG_DAYS : smsg.nonce[0];
 
                 token.ttl = nDaysToLive;
                 if (nDaysToLive > 0 && (bucket.nLeastTTL == 0 || nDaysToLive < bucket.nLeastTTL)) {
@@ -3079,8 +3079,9 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
     SecureMessage *psmsg = (SecureMessage*) pHeader;
 
     if (psmsg->IsPaidVersion()) {
-        if (nPayload > SMSG_MAX_MSG_BYTES_PAID)
+        if (nPayload > SMSG_MAX_MSG_BYTES_PAID) {
             return SMSG_PAYLOAD_OVER_SIZE;
+        }
     } else
     if (nPayload > SMSG_MAX_MSG_WORST) {
         return SMSG_PAYLOAD_OVER_SIZE;
@@ -3092,22 +3093,23 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         return SMSG_TIME_IN_FUTURE;
     }
 
-    if (psmsg->version[0] == 3) {
+    size_t nDaysRetention = psmsg->IsPaidVersion() ? psmsg->nonce[0] : SMSG_FREE_MSG_DAYS;
+    int64_t ttl = SMSGGetSecondsInDay() * nDaysRetention;
+    if (now > psmsg->timestamp + ttl) {
+        LogPrint(BCLog::SMSG, "Time expired %d, ttl %d.\n", psmsg->timestamp, ttl);
+        return SMSG_TIME_EXPIRED;
+    }
+
+    if (psmsg->IsPaidVersion()) {
         const Consensus::Params &consensusParams = Params().GetConsensus();
         if (consensusParams.nPaidSmsgTime > now) {
             LogPrintf("%s: Paid SMSG not yet active on mainnet.\n", __func__);
             return SMSG_GENERAL_ERROR;
         }
 
-        size_t nDaysRetention = psmsg->nonce[0];
-        int64_t ttl = SMSGGetSecondsInDay() * nDaysRetention;
         if (ttl < SMSGGetSecondsInDay() || ttl > SMSG_MAX_PAID_TTL) {
             LogPrint(BCLog::SMSG, "TTL out of range %d.\n", ttl);
             return SMSG_GENERAL_ERROR;
-        }
-        if (now > psmsg->timestamp + ttl) {
-            LogPrint(BCLog::SMSG, "Time expired %d, ttl %d.\n", psmsg->timestamp, ttl);
-            return SMSG_TIME_EXPIRED;
         }
 
         size_t nMsgBytes = SMSG_HDR_LEN + psmsg->nPayload;
@@ -3199,8 +3201,9 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         return SMSG_NO_ERROR; // smsg is valid and funded
     }
 
-    if (psmsg->version[0] != 2)
+    if (psmsg->version[0] != 2) {
         return SMSG_UNKNOWN_VERSION;
+    }
 
     uint8_t civ[32];
     uint8_t sha256Hash[32];
