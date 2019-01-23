@@ -5805,10 +5805,7 @@ int CHDWallet::ExtKeyNew32(CExtKey &out, const char *sPassPhrase, int32_t nHash,
 
     CHMAC_SHA512((const uint8_t*)sSeed, nSeedLen).Write(data, 32).Finalize(data);
 
-    if (out.SetKeyCode(data, &data[32]) != 0) {
-        return werrorN(1, "SetKeyCode failed.");
-    }
-
+    out.SetKeyCode(data, &data[32]);
     return out.IsValid() ? 0 : 1;
 };
 

@@ -40,7 +40,6 @@ std::vector<uint8_t> &SetCompressedInt64(std::vector<uint8_t> &v, uint64_t n)
     if (b > 0) {
         memcpy(&v[0], (uint8_t*) &n, b);
     }
-
     return v;
 };
 
@@ -54,7 +53,6 @@ int64_t GetCompressedInt64(const std::vector<uint8_t> &v, uint64_t &n)
     if (b < 9) {
         memcpy((uint8_t*) &n, &v[0], b);
     }
-
     return (int64_t)n;
 };
 
@@ -70,9 +68,7 @@ bool GetCKeyID(const std::vector<uint8_t> &v, CKeyID &n)
     if (v.size() != 20) {
         return false;
     }
-
     memcpy((uint8_t*) &n, &v[0], 20);
-
     return true;
 };
 
@@ -81,7 +77,6 @@ std::vector<uint8_t> &SetString(std::vector<uint8_t> &v, const char *s)
     size_t len = strlen(s);
     v.resize(len);
     memcpy(&v[0], (uint8_t*) &s, len);
-
     return v;
 };
 
@@ -89,7 +84,6 @@ std::vector<uint8_t> &SetChar(std::vector<uint8_t> &v, const uint8_t c)
 {
     v.resize(1);
     v[0] = c;
-
     return v;
 };
 
@@ -97,7 +91,6 @@ std::vector<uint8_t> &PushUInt32(std::vector<uint8_t> &v, const uint32_t i)
 {
     size_t o = v.size();
     v.resize(o+4);
-
     memcpy(&v[o], (uint8_t*) &i, 4);
     return v;
 };
@@ -327,14 +320,13 @@ void CExtKey::SetSeed(const unsigned char *seed, unsigned int nSeedLen)
     memset(vchFingerprint, 0, sizeof(vchFingerprint));
 };
 
-int CExtKey::SetKeyCode(const unsigned char *pkey, const unsigned char *pcode)
+void CExtKey::SetKeyCode(const unsigned char *pkey, const unsigned char *pcode)
 {
     key.Set(pkey, true);
     memcpy(chaincode, pcode, 32);
     nDepth = 0;
     nChild = 0;
     memset(vchFingerprint, 0, sizeof(vchFingerprint));
-    return 0;
 };
 
 CExtPubKey CExtKey::Neutered() const
@@ -516,7 +508,7 @@ void CExtKeyPair::SetSeed(const unsigned char *seed, unsigned int nSeedLen)
     memset(vchFingerprint, 0, sizeof(vchFingerprint));
 };
 
-int CExtKeyPair::SetKeyCode(const unsigned char *pkey, const unsigned char *pcode)
+void CExtKeyPair::SetKeyCode(const unsigned char *pkey, const unsigned char *pcode)
 {
     key.Set(pkey, true);
     pubkey = key.GetPubKey();
@@ -524,7 +516,6 @@ int CExtKeyPair::SetKeyCode(const unsigned char *pkey, const unsigned char *pcod
     nDepth = 0;
     nChild = 0;
     memset(vchFingerprint, 0, sizeof(vchFingerprint));
-    return 0;
 };
 
 
@@ -545,7 +536,6 @@ int CEKAStealthKey::SetSxAddr(CStealthAddress &sxAddr) const
     sxAddr.scan_pubkey = pkScan;
     sxAddr.spend_pubkey = pkSpend;
     sxAddr.scan_secret.Set(skScan.begin(), true);
-
     return 0;
 };
 

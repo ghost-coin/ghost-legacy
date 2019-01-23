@@ -35,7 +35,7 @@ void CZMQNotificationInterface::ThreadZAP()
     uint8_t buf[10][1024];
     size_t nb[10];
     while (zapActive) {
-        zmq_pollitem_t poll_items[] = { sock, 0, ZMQ_POLLIN, 0 };
+        zmq_pollitem_t poll_items[] = { {sock, 0, ZMQ_POLLIN, 0} };
         int rc = zmq_poll(poll_items, 1, 500);
         if (!(rc > 0 && poll_items[0].revents & ZMQ_POLLIN)) {
             continue;

@@ -132,7 +132,7 @@ struct CExtKey {
     bool Derive(CExtKey &out, unsigned int nChild) const;
     CExtPubKey Neutered() const;
     void SetSeed(const unsigned char *seed, unsigned int nSeedLen);
-    int SetKeyCode(const unsigned char *pkey, const unsigned char *pcode);
+    void SetKeyCode(const unsigned char *pkey, const unsigned char *pcode);
 
     size_t GetSerializeSize(int nType, int nVersion) const
     {
@@ -246,7 +246,7 @@ public:
     CExtPubKey GetExtPubKey() const;
     CExtKeyPair Neutered() const;
     void SetSeed(const unsigned char *seed, unsigned int nSeedLen);
-    int SetKeyCode(const unsigned char *pkey, const unsigned char *pcode);
+    void SetKeyCode(const unsigned char *pkey, const unsigned char *pcode);
 
     template<typename Stream>
     void Serialize(Stream &s) const
@@ -880,10 +880,10 @@ std::vector<uint8_t> &SetChar(std::vector<uint8_t> &v, const uint8_t c);
 std::vector<uint8_t> &PushUInt32(std::vector<uint8_t> &v, const uint32_t i);
 
 
-inline bool IsHardened(uint32_t n)              { return (n & (1 << 31));};
-inline uint32_t &SetHardenedBit(uint32_t &n)    { return (n |= (1 << 31));};
-inline uint32_t &ClearHardenedBit(uint32_t &n)  { return (n &= ~(1 << 31));};
-inline uint32_t WithHardenedBit(uint32_t n)     { return (n |= (1 << 31));};
+inline bool IsHardened(uint32_t n)              { return (n & (1 << 31)); };
+inline uint32_t &SetHardenedBit(uint32_t &n)    { return (n |= (1 << 31)); };
+inline uint32_t &ClearHardenedBit(uint32_t &n)  { return (n &= ~(1 << 31)); };
+inline uint32_t WithHardenedBit(uint32_t n)     { return (n |= (1 << 31)); };
 
 int ExtractExtKeyPath(const std::string &sPath, std::vector<uint32_t> &vPath);
 

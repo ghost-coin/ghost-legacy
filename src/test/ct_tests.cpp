@@ -237,10 +237,6 @@ BOOST_AUTO_TEST_CASE(ct_test_bulletproofs)
         size_t nRangeProofLen = 5134;
         txout.vchRangeproof.resize(nRangeProofLen);
 
-        uint64_t min_value = 0;
-        const char *message = "narration";
-        size_t mlen = strlen(message);
-
         uint8_t *proof = &txout.vchRangeproof[0];
         const uint8_t *blindptrs_[] = {blindptrs.back()};
         BOOST_CHECK(secp256k1_bulletproof_rangeproof_prove(ctx, scratch, gens, proof, &nRangeProofLen, (const uint64_t*)&amount_outs[k], NULL, blindptrs_, 1, &secp256k1_generator_const_h, 64, nonce.begin(), NULL, 0) == 1);
