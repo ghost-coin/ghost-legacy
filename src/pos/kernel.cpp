@@ -93,8 +93,7 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
     ss << nBlockFromTime << prevout.hash << prevout.n << nTime;
     hashProofOfStake = Hash(ss.begin(), ss.end());
 
-    if (fPrintProofOfStake)
-    {
+    if (fPrintProofOfStake) {
         LogPrintf("%s: using modifier=%s at height=%d timestamp=%s\n",
             __func__, bnStakeModifier.ToString(), nStakeModifierHeight,
             FormatISO8601DateTime(nStakeModifierTime));
@@ -102,14 +101,13 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
             __func__, bnStakeModifier.ToString(),
             nBlockFromTime, prevout.n, nTime,
             hashProofOfStake.ToString());
-    };
+    }
 
     // Now check if proof-of-stake hash meets target protocol
     if (UintToArith256(hashProofOfStake) > bnTarget)
         return false;
 
-    if (LogAcceptCategory(BCLog::POS) && !fPrintProofOfStake)
-    {
+    if (LogAcceptCategory(BCLog::POS) && !fPrintProofOfStake) {
         LogPrintf("%s: using modifier=%s at height=%d timestamp=%s\n",
             __func__, bnStakeModifier.ToString(), nStakeModifierHeight,
             FormatISO8601DateTime(nStakeModifierTime));
@@ -117,7 +115,7 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
             __func__, bnStakeModifier.ToString(),
             nBlockFromTime, prevout.n, nTime,
             hashProofOfStake.ToString());
-    };
+    }
 
     return true;
 }

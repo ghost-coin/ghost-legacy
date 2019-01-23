@@ -248,8 +248,8 @@ uint256 g_best_block;
 int nScriptCheckThreads = 0;
 std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
-bool fSkipRangeproof = false;
-bool fBusyImporting = false;        // covers ActivateBestChain too
+std::atomic_bool fSkipRangeproof(false);
+std::atomic_bool fBusyImporting(false);        // covers ActivateBestChain too
 bool fAddressIndex = false;
 bool fTimestampIndex = false;
 bool fSpentIndex = false;
@@ -742,12 +742,11 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         };
 
         if (state.fHasAnonInput
-             && (chainActive.Height() < GetNumBlocksOfPeers()-1))
-        {
+             && (chainActive.Height() < GetNumBlocksOfPeers()-1)) {
             LogPrintf("%s: Ignoring anon transaction while chain syncs height %d - peers %d.\n",
                 __func__, chainActive.Height(), GetNumBlocksOfPeers());
             return false; // Might be missing inputs
-        };
+        }
 
         if (!AllAnonOutputsUnknown(tx, state)) // set state.fHasAnonOutput
             return false; // Already in the blockchain, containing block could have been received before loose tx
@@ -1355,8 +1354,6 @@ int GetNumPeers()
 
 int GetNumBlocksOfPeers()
 {
-    LOCK(cs_main);
-
     int nPeerBlocks = g_connman ? g_connman->cPeerBlockCounts.median() : 0;
     CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(Params().Checkpoints());
     if (pcheckpoint) {

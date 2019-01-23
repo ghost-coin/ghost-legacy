@@ -69,7 +69,7 @@ double GetPoSKernelPS()
 
     double result = 0;
 
-    if (nStakesTime)  {
+    if (nStakesTime) {
         result = dStakeKernelsTriedAvg / nStakesTime;
     }
 
@@ -274,6 +274,7 @@ void StopThreadStakeMiner()
 void WakeThreadStakeMiner(CHDWallet *pwallet)
 {
     // Call when chain is synced, wallet unlocked or balance changed
+    LOCK(pwallet->cs_wallet);
     LogPrint(BCLog::POS, "WakeThreadStakeMiner thread %d\n", pwallet->nStakeThread);
 
     if (pwallet->nStakeThread >= vStakeThreads.size()) {
@@ -324,10 +325,18 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             continue;
         }
 
+        int num_blocks_of_peers, num_nodes;
+        {
+            LOCK(cs_main);
+            nBestHeight = chainActive.Height();
+            nBestTime = chainActive.Tip()->nTime;
+            num_blocks_of_peers = GetNumBlocksOfPeers();
+            num_nodes = g_connman->vNodes.size();
+        }
+
         if (fTryToSync) {
             fTryToSync = false;
-
-            if (g_connman->vNodes.size() < 3 || nBestHeight < GetNumBlocksOfPeers()) {
+            if (num_nodes < 3 || nBestHeight < num_blocks_of_peers) {
                 fIsStaking = false;
                 LogPrint(BCLog::POS, "%s: TryToSync\n", __func__);
                 condWaitFor(nThreadID, 30000);
@@ -335,7 +344,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             }
         }
 
-        if (g_connman->vNodes.empty() || IsInitialBlockDownload()) {
+        if (num_nodes == 0 || IsInitialBlockDownload()) {
             fIsStaking = false;
             fTryToSync = true;
             LogPrint(BCLog::POS, "%s: IsInitialBlockDownload\n", __func__);
@@ -343,16 +352,9 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             continue;
         }
 
-
-        {
-            LOCK(cs_main);
-            nBestHeight = chainActive.Height();
-            nBestTime = chainActive.Tip()->nTime;
-        }
-
-        if (nBestHeight < GetNumBlocksOfPeers() - 1) {
+        if (nBestHeight < num_blocks_of_peers - 1) {
             fIsStaking = false;
-            LogPrint(BCLog::POS, "%s: nBestHeight < GetNumBlocksOfPeers(), %d, %d\n", __func__, nBestHeight, GetNumBlocksOfPeers());
+            LogPrint(BCLog::POS, "%s: nBestHeight < GetNumBlocksOfPeers(), %d, %d\n", __func__, nBestHeight, num_blocks_of_peers);
             condWaitFor(nThreadID, nMinerSleep * 4);
             continue;
         }
@@ -381,6 +383,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
         std::unique_ptr<CBlockTemplate> pblocktemplate;
 
         size_t nWaitFor = 60000;
+        CAmount reserve_balance;
         for (size_t i = nStart; i < nEnd; ++i) {
             auto pwallet = GetParticlWallet(vpwallets[i].get());
 
@@ -389,6 +392,8 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                 continue;
             }
 
+            {
+            LOCK(pwallet->cs_wallet);
             if (nSearchTime <= pwallet->nLastCoinStakeSearchTime) {
                 nWaitFor = std::min(nWaitFor, (size_t)nMinerSleep);
                 continue;
@@ -405,8 +410,12 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                 nWaitFor = std::min(nWaitFor, (size_t)30000);
                 continue;
             }
+            reserve_balance = pwallet->nReserveBalance;
+            }
+            CAmount balance = pwallet->GetSpendableBalance();
 
-            if (pwallet->GetSpendableBalance() <= pwallet->nReserveBalance) {
+            if (balance <= reserve_balance) {
+                LOCK(pwallet->cs_wallet);
                 pwallet->m_is_staking = CHDWallet::NOT_STAKING_BALANCE;
                 nWaitFor = std::min(nWaitFor, (size_t)60000);
                 pwallet->nLastCoinStakeSearchTime = nSearchTime + 60;
@@ -433,6 +442,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             }
 
             pwallet->m_is_staking = CHDWallet::IS_STAKING;
+
             nWaitFor = nMinerSleep;
             fIsStaking = true;
             if (pwallet->SignBlock(pblocktemplate.get(), nBestHeight + 1, nSearchTime)) {
@@ -443,6 +453,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                 }
             } else {
                 int nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations() - 1), (int)(nBestHeight / 2));
+                LOCK(pwallet->cs_wallet);
                 if (pwallet->m_greatest_txn_depth < nRequiredDepth - 4) {
                     pwallet->m_is_staking = CHDWallet::NOT_STAKING_DEPTH;
                     size_t nSleep = (nRequiredDepth - pwallet->m_greatest_txn_depth) / 4;

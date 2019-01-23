@@ -3795,7 +3795,8 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
 
     obj.pushKV("enabled", gArgs.GetBoolArg("-staking", true)); // enabled on node, vs enabled on wallet
     obj.pushKV("staking", fStaking && pwallet->m_is_staking == CHDWallet::IS_STAKING);
-    switch (pwallet->m_is_staking) {
+    CHDWallet::eStakingState state = pwallet->m_is_staking;
+    switch (state) {
         case CHDWallet::NOT_STAKING_BALANCE:
             obj.pushKV("cause", "low_balance");
             break;

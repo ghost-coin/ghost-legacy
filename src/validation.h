@@ -200,9 +200,9 @@ extern Mutex g_best_block_mutex;
 extern std::condition_variable g_best_block_cv;
 extern uint256 g_best_block;
 extern std::atomic_bool fImporting;
-extern bool fSkipRangeproof;
-extern bool fBusyImporting;
 extern std::atomic_bool fReindex;
+extern std::atomic_bool fSkipRangeproof;
+extern std::atomic_bool fBusyImporting;
 extern int nScriptCheckThreads;
 extern bool fAddressIndex;
 extern bool fSpentIndex;
@@ -315,7 +315,7 @@ void UnloadBlockIndex();
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 /** Return the average number of blocks that other nodes claim to have */
-int GetNumBlocksOfPeers();
+int GetNumBlocksOfPeers() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */

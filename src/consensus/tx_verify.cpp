@@ -27,8 +27,8 @@
 #include <smsg/smessage.h>
 
 
-extern bool fBusyImporting;
-extern bool fSkipRangeproof;
+extern std::atomic_bool fBusyImporting;
+extern std::atomic_bool fSkipRangeproof;
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 {

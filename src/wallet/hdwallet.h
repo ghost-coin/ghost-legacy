@@ -754,7 +754,8 @@ public:
         NOT_STAKING_LOCKED = -3,
         NOT_STAKING_LIMITED = -4,
         NOT_STAKING_DISABLED = -5,
-    } m_is_staking = NOT_STAKING;
+    };
+    std::atomic<eStakingState> m_is_staking {NOT_STAKING};
 
     std::set<CStealthAddress> stealthAddresses;
 
@@ -772,7 +773,7 @@ public:
     std::vector<CVoteToken> vVoteTokens;
 
     // Staking Settings
-    bool fStakingEnabled;
+    std::atomic<bool> fStakingEnabled{false};
     CAmount nStakeCombineThreshold;
     CAmount nStakeSplitThreshold;
     size_t nMaxStakeCombine = 3;
