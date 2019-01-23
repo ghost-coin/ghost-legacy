@@ -109,6 +109,8 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
 {
     {
     auto locked_chain = pwallet->chain().lock();
+    LockAnnotation lock(::cs_main);
+
     CValidationState state;
     BOOST_REQUIRE(address.IsValid());
 

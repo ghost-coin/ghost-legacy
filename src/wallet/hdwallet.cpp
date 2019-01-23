@@ -8445,6 +8445,7 @@ bool CHDWallet::CreateTransaction(interfaces::Chain::Lock& locked_chain, const s
 bool CHDWallet::CreateTransaction(interfaces::Chain::Lock& locked_chain, std::vector<CTempRecipient>& vecSend, CTransactionRef& tx, CReserveKey& reservekey, CAmount& nFeeRet,
                                 int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
 {
+    LockAnnotation lock(::cs_main);
     WalletLogPrintf("CHDWallet %s\n", __func__);
 
     CTransactionRecord rtxTemp;
@@ -12002,6 +12003,8 @@ bool CHDWallet::GetScriptForAddress(CScript &script, const CBitcoinAddress &addr
         r.address = sx;
         vecSend.push_back(r);
 
+
+        LockAnnotation lock(::cs_main); // Not locked, output type is always standard, ExpandTempRecipients requires cs_main only for ct
         if (0 != ExpandTempRecipients(vecSend, NULL, strError) || vecSend.size() != 2) {
             return werror("%s: ExpandTempRecipients failed, %s.", __func__, strError);
         }

@@ -4752,6 +4752,9 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     }
 
     CAmount nFeeRet = 0;
+    {
+    auto locked_chain = pwallet->chain().lock();
+    LockAnnotation lock(::cs_main);
     switch (typeIn) {
         case OUTPUT_STANDARD:
             if (0 != pwallet->AddStandardInputs(wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError))
@@ -4767,6 +4770,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             break;
         default:
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unknown input type: %d.", typeIn));
+    }
     }
 
     UniValue result(UniValue::VOBJ);
@@ -6854,6 +6858,10 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
 
         vecSend.push_back(r);
     }
+
+    auto locked_chain = pwallet->chain().lock();
+    LockAnnotation lock(::cs_main);
+    LOCK(pwallet->cs_wallet);
 
     std::string sError;
     // Note: wallet is only necessary when sending to  an extkey address

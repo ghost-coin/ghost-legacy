@@ -538,8 +538,7 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
         }
     }
 
-    if (IsParticlWallet(pwallet))
-    {
+    if (IsParticlWallet(pwallet)) {
         JSONRPCRequest newRequest;
         newRequest.fHelp = false;
         newRequest.fSkipBlock = true; // already blocked in this function
@@ -553,11 +552,11 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
         out.pushKV("address", request.params[0].get_str());
         out.pushKV("amount", request.params[1]);
 
-        if (request.params.size() > 5)
+        if (request.params.size() > 5) {
             out.pushKV("narr", request.params[5].get_str());
+        }
 
-        if (fSubtractFeeFromAmount)
-        {
+        if (fSubtractFeeFromAmount) {
             UniValue uvBool(fSubtractFeeFromAmount);
             out.pushKV("subfee", uvBool);
         }
@@ -565,17 +564,18 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
         params.push_back(arr);
 
         std::string sComment, sCommentTo;
-        if (!request.params[2].isNull() && !request.params[2].get_str().empty())
+        if (!request.params[2].isNull() && !request.params[2].get_str().empty()) {
             sComment = request.params[2].get_str();
-        if (!request.params[3].isNull() && !request.params[3].get_str().empty())
+        }
+        if (!request.params[3].isNull() && !request.params[3].get_str().empty()) {
             sCommentTo = request.params[3].get_str();
+        }
 
         params.push_back(sComment);
         params.push_back(sCommentTo);
 
         // Add coinstake params
-        if (request.params.size() > 6)
-        {
+        if (request.params.size() > 6) {
             UniValue uvRingsize(4);
             params.push_back(uvRingsize);
             UniValue uvNumInputs(32);
@@ -588,19 +588,20 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
             unsigned int target = coin_control.m_confirm_target ? *coin_control.m_confirm_target : pwallet->m_confirm_target;
             uvCoinControl.pushKV("conf_target", (int)target);
             std::string sEstimateMode = "UNSET";
-            if (coin_control.m_fee_mode == FeeEstimateMode::ECONOMICAL)
+            if (coin_control.m_fee_mode == FeeEstimateMode::ECONOMICAL) {
                 sEstimateMode = "ECONOMICAL";
-            else
-            if (coin_control.m_fee_mode == FeeEstimateMode::CONSERVATIVE)
+            } else
+            if (coin_control.m_fee_mode == FeeEstimateMode::CONSERVATIVE) {
                 sEstimateMode = "CONSERVATIVE";
+            }
             uvCoinControl.pushKV("estimate_mode", sEstimateMode);
 
             params.push_back(uvCoinControl);
-        };
+        }
 
         newRequest.params = params;
         return sendtypeto(newRequest);
-    };
+    }
 
     EnsureWalletIsUnlocked(pwallet);
 

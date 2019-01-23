@@ -69,6 +69,9 @@ BOOST_AUTO_TEST_CASE(stealth)
     CAmount nValue = 1;
     std::string strError, sNarr;
 
+    auto locked_chain = pwallet->chain().lock();
+    LockAnnotation lock(::cs_main);
+
     // No bitfield, no narration
     std::vector<CTempRecipient> vecSend;
     CTempRecipient r;
@@ -78,7 +81,6 @@ BOOST_AUTO_TEST_CASE(stealth)
     r.address = sx;
     r.sNarration = sNarr;
     vecSend.push_back(r);
-
     BOOST_CHECK(0 == pwallet->ExpandTempRecipients(vecSend, NULL, strError));
     BOOST_CHECK(2 == vecSend.size());
     BOOST_CHECK(34 == vecSend[1].vData.size());
@@ -250,11 +252,10 @@ BOOST_AUTO_TEST_CASE(ext_key_index)
     CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
     CKeyID dummy;
     uint32_t nIndex;
-    for (size_t k = 0; k < 512; ++k)
-    {
+    for (size_t k = 0; k < 512; ++k) {
         LOCK(pwallet->cs_wallet);
         pwallet->ExtKeyNewIndex(&wdb, dummy, nIndex);
-    };
+    }
     BOOST_CHECK(nIndex == 512);
 }
 
@@ -277,12 +278,12 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     // Send, secret = ephem_secret, pubkey = scan_pubkey
     // NOTE: StealthSecret can fail if hash is out of range, retry with new ephemeral key
     int k, nTries = 24;
-    for (k = 0; k < nTries; ++k)
-    {
+    for (k = 0; k < nTries; ++k) {
         InsecureNewKey(sEphem, true);
-        if (StealthSecret(sEphem, sxAddr.scan_pubkey, sxAddr.spend_pubkey, secretShared, pkSendTo) == 0)
+        if (StealthSecret(sEphem, sxAddr.scan_pubkey, sxAddr.spend_pubkey, secretShared, pkSendTo) == 0) {
             break;
-    };
+        }
+    }
     BOOST_CHECK_MESSAGE(k < nTries, "StealthSecret failed.");
     BOOST_CHECK(pkSendTo.size() == EC_COMPRESSED_SIZE);
 
@@ -329,6 +330,11 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     GetStrongRandBytes(&r.vBlind[0], 32);
     BOOST_CHECK_MESSAGE(r.pkTo.IsValid(), "pubkeyto is not valid");
 
+    {
+    auto locked_chain = wallet->chain().lock();
+    LockAnnotation lock(::cs_main);
+    LOCK(wallet->cs_wallet);
+
     BOOST_MESSAGE("---------------- Make RingCT Output : SetCTOutVData ---------------------\n");
     auto txout = MAKE_OUTPUT<CTxOutRingCT>();
     txout->pk = r.pkTo;
@@ -364,6 +370,7 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
 
     BOOST_MESSAGE("---------------- Check RingCT Output ---------------------\n");
     BOOST_CHECK_MESSAGE(!CheckAnonOutput(state, (CTxOutRingCT*)txout_check.get()), "passed check ringct output");
+    }
 
     ECC_Stop_Stealth();
 }
