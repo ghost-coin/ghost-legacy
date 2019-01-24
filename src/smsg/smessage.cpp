@@ -789,7 +789,7 @@ int CSMSG::ReadIni()
         } else
         if (strcmp(pName, "key") == 0)
         {
-            int rv = sscanf(pValue, "%64[^|]|%d|%d", cAddress, &addrRecv, &addrRecvAnon);
+            int rv = sscanf(pValue, "%63[^|]|%d|%d", cAddress, &addrRecv, &addrRecvAnon);
             if (rv == 3)
             {
                 CKeyID k;
@@ -2790,7 +2790,7 @@ int CSMSG::Remove(const SecMsgToken &token)
         return errorN(SMSG_GENERAL_ERROR, "%s - read header failed, strerror: %s.", __func__, strerror(errno));
     };
 
-    uint8_t z = 0;
+    uint16_t z = 0;
     if (0 != fseek(fp, token.offset + 4, SEEK_SET)
         || 2 != fwrite(&z, 1, 2, fp))
     {
@@ -2805,11 +2805,13 @@ int CSMSG::Remove(const SecMsgToken &token)
     };
 
     size_t zlen = smsg.nPayload - 8;
-    if (smsg.nPayload <= 8 ||  zlen != fwrite(&z, 1, zlen, fp))
-    {
+    std::vector<uint8_t> zbuf;
+    zbuf.resize(zlen);
+    memset(zbuf.data(), 0, zlen);
+    if (smsg.nPayload <= 8 ||  zlen != fwrite(zbuf.data(), 1, zlen, fp)) {
         fclose(fp);
         return errorN(SMSG_GENERAL_ERROR, "%s - fwrite, zlen %d, strerror: %s.", __func__, zlen, strerror(errno));
-    };
+    }
 
     fclose(fp);
     return SMSG_NO_ERROR;
