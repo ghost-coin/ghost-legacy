@@ -7,7 +7,7 @@ import time
 
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.messages import CBlockHeader, msg_headers
-
+from test_framework.util import connect_nodes
 
 _compactblocks = __import__('p2p_compactblocks')
 TestP2PConn = _compactblocks.TestP2PConn
@@ -16,7 +16,7 @@ TestP2PConn = _compactblocks.TestP2PConn
 class DoSTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 1
+        self.num_nodes = 2
         self.extra_args = [ ['-debug=1', '-nosmsg', '-noacceptnonstdtxn', '-banscore=2000000', '-reservebalance=1000000'] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
@@ -60,10 +60,14 @@ class DoSTest(ParticlTestFramework):
         check_blockindex_decay = True
         #check_blockindex_decay = False
 
+        dos_nodes = self.num_nodes
+        dos_nodes = 1
+
         nodes = self.nodes
+        connect_nodes(self.nodes[0], 1)
 
         p2p_conns = []
-        for i in range(self.num_nodes):
+        for i in range(dos_nodes):
             p2p_conns.append(self.nodes[i].add_p2p_connection(TestP2PConn()))
 
         nodes[0].extkeyimportmaster('pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic', '', 'true')
@@ -77,7 +81,7 @@ class DoSTest(ParticlTestFramework):
         self.wait_for_height(nodes[0], 20, 2000)
 
         # Let the test nodes get in sync
-        for i in range(self.num_nodes):
+        for i in range(dos_nodes):
             self.nodes[i].p2p.wait_for_verack()
 
         MAX_HEADERS = 10
@@ -107,7 +111,7 @@ class DoSTest(ParticlTestFramework):
             msg.headers.extend(blocks)
             sent += len(blocks)
             # time.sleep(0.2)
-            for i in range(self.num_nodes):
+            for i in range(dos_nodes):
                 p2p_conns[i].send_message(msg)
 
         time.sleep(2)
@@ -133,8 +137,13 @@ class DoSTest(ParticlTestFramework):
         assert(found_misbehave_line)
 
         peer_info = nodes[0].getpeerinfo()
-        assert(peer_info[0]['loose_headers'] >= 200)
-        assert(peer_info[0]['banscore'] > 100)
+        assert(peer_info[1]['loose_headers'] >= 200)
+        assert(peer_info[1]['banscore'] > 100)
+
+        # Verify node under DOS isn't forwarding bad headers
+        peer_info1 = nodes[1].getpeerinfo()
+        assert(peer_info1[0]['loose_headers'] == 0)
+        assert(peer_info1[0]['banscore'] == 0)
 
         if check_blockindex_decay:
             self.log.info('Waiting for unfilled headers to decay')
@@ -180,7 +189,7 @@ class DoSTest(ParticlTestFramework):
                 msg.headers.extend(blocks)
                 sent += len(blocks)
                 # time.sleep(0.2)
-                for i in range(self.num_nodes):
+                for i in range(dos_nodes):
                     p2p_conns[i].send_message(msg)
 
             self.log.info('Number of headers sent: %d' % (sent))
@@ -191,6 +200,7 @@ class DoSTest(ParticlTestFramework):
         self.stop_node(0)
         self.start_node(0, self.extra_args[0])
         time.sleep(2)
+        connect_nodes(self.nodes[0], 1)
 
         self.log.info('After restart blockindexsize: %d' % (nodes[0].getblockchaininfo()['blockindexsize']))
         assert(nodes[0].getblockchaininfo()['blockindexsize'] == 21)
@@ -198,7 +208,7 @@ class DoSTest(ParticlTestFramework):
         self.log.info('sending many duplicate headers\n\n')
 
         self.nodes[0].add_p2p_connection(p2p_conns[0])
-        for i in range(self.num_nodes):
+        for i in range(dos_nodes):
             self.nodes[i].p2p.wait_for_verack()
 
         self.log.info("Initial blockindexsize: %d\n" % (nodes[0].getblockchaininfo()['blockindexsize']))
@@ -219,7 +229,7 @@ class DoSTest(ParticlTestFramework):
             msg.headers.extend(blocks)
             sent += len(blocks)
             # time.sleep(0.2)
-            for i in range(self.num_nodes):
+            for i in range(dos_nodes):
                 p2p_conns[i].send_message(msg)
 
         time.sleep(2)
