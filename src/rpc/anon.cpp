@@ -23,9 +23,8 @@ UniValue anonoutput(const JSONRPCRequest &request)
                 "If no output is provided returns the last index.\n",
                 {
                     {"output", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Output to view, specified by index or hex of publickey."},
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "{\n"
             "  \"index\" : num,                 (numeric) Position in chain of anon output.\n"
             "  \"publickey\" : \"hex\",           (string)\n"
@@ -33,10 +32,12 @@ UniValue anonoutput(const JSONRPCRequest &request)
             "  \"n\" : num,                     (numeric)\n"
             "  \"blockheight\" : num,           (numeric)\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("anonoutput", "\"1\"")
+                },
+                RPCExamples{
+            HelpExampleCli("anonoutput", "\"1\"")
             + HelpExampleRpc("anonoutput", "\"2\"")
-        );
+            },
+        }.ToString());
 
     UniValue result(UniValue::VOBJ);
 

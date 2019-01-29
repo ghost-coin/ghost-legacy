@@ -95,9 +95,8 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
                             {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
                         },
                     },
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "[\n"
             "  {\n"
             "    \"address\"  (string) The base58check encoded address\n"
@@ -109,11 +108,13 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
             "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
             "  }\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getaddressmempool", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+                },
+                RPCExamples{
+            HelpExampleCli("getaddressmempool", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressmempool", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
-        );
+                },
+        }.ToString());
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -170,9 +171,8 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
                         },
                     },
                     {"chainInfo", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include chain info in results, only applies if start and end specified."},
-                }}
-                .ToString() +
-            "\nResult\n"
+                },
+                RPCResult{
             "[\n"
             "  {\n"
             "    \"address\"  (string) The address base58check encoded\n"
@@ -183,11 +183,13 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
             "    \"satoshis\"  (number) The number of satoshis of the output\n"
             "  }\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getaddressutxos", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+                },
+                RPCExamples{
+            HelpExampleCli("getaddressutxos", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressutxos", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
-        );
+                },
+        }.ToString());
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -261,9 +263,8 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
                     {"start", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The start block height."},
                     {"end", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The end block height."},
                     {"chainInfo", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include chain info in results, only applies if start and end specified."},
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "[\n"
             "  {\n"
             "    \"satoshis\"  (number) The difference of satoshis\n"
@@ -273,11 +274,13 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
             "    \"address\"  (string) The base58check encoded address\n"
             "  }\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getaddressdeltas", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+                },
+                RPCExamples{
+            HelpExampleCli("getaddressdeltas", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressdeltas", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
-        );
+                },
+        }.ToString());
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -387,18 +390,19 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
                             {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
                         },
                     },
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "{\n"
             "  \"balance\"  (string) The current balance in satoshis\n"
             "  \"received\"  (string) The total number of satoshis received (including change)\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getaddressbalance", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+                },
+                RPCExamples{
+            HelpExampleCli("getaddressbalance", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressbalance", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
-        );
+                },
+        }.ToString());
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -449,18 +453,19 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
                     },
                     {"start", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The start block height."},
                     {"end", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The end block height."},
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "[\n"
             "  \"transactionid\"  (string) The transaction id\n"
             "  ,...\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getaddresstxids", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
+                },
+                RPCExamples{
+            HelpExampleCli("getaddresstxids", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddresstxids", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
-        );
+                },
+        }.ToString());
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -537,19 +542,20 @@ UniValue getspentinfo(const JSONRPCRequest& request)
                             },
                         },
                     },
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "{\n"
             "  \"txid\"  (string) The transaction id\n"
             "  \"index\"  (number) The spending input index\n"
             "  ,...\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getspentinfo", "'{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}'") +
+                },
+                RPCExamples{
+            HelpExampleCli("getspentinfo", "'{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}'") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getspentinfo", "{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}")
-        );
+                },
+        }.ToString());
 
     UniValue txidValue = find_value(request.params[0].get_obj(), "txid");
     UniValue indexValue = find_value(request.params[0].get_obj(), "index");
@@ -767,9 +773,8 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
                             {"logicalTimes", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include logical timestamps with hashes."},
                         },
                         "options"},
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "[\n"
             "  \"hash\"         (string) The block hash\n"
             "]\n"
@@ -779,11 +784,13 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
             "    \"logicalts\": (numeric) The logical timestamp\n"
             "  }\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockhashes", "1231614698 1231024505 '{\"noOrphans\":false, \"logicalTimes\":true}'") +
+                },
+                RPCExamples{
+            HelpExampleCli("getblockhashes", "1231614698 1231024505 '{\"noOrphans\":false, \"logicalTimes\":true}'") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getblockhashes", "1231614698, 1231024505")
-            );
+                },
+        }.ToString());
 
     unsigned int high = request.params[0].get_int();
     unsigned int low = request.params[1].get_int();
@@ -839,18 +846,19 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
                 "\nReturns statistics about the unspent transaction output set per script type.\n"
                 "This call may take some time.\n",
                 {
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "{\n"
             "  \"height\":n,     (numeric) The current block height (index)\n"
             "  \"bestblock\": \"hex\",   (string) the best block hash hex\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("gettxoutsetinfobyscript", "") +
+                },
+                RPCExamples{
+            HelpExampleCli("gettxoutsetinfobyscript", "") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("gettxoutsetinfobyscript", "")
-        );
+                },
+        }.ToString());
 
     UniValue ret(UniValue::VOBJ);
 
@@ -966,9 +974,8 @@ UniValue getblockreward(const JSONRPCRequest& request)
                 "\nReturns the blockreward for block at height.\n",
                 {
                     {"height", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The chain height of the block."},
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "{\n"
             "  \"blockhash\" : \"id\",     (id) The hash of the block.\n"
             "  \"coinstake\" : \"id\",     (id) The hash of the coinstake transaction.\n"
@@ -992,11 +999,13 @@ UniValue getblockreward(const JSONRPCRequest& request)
             "    \"value\" : n,          (numeric) The value of the output.\n"
             "  ]\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockreward", "1000") +
+                },
+                RPCExamples{
+            HelpExampleCli("getblockreward", "1000") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getblockreward", "1000")
-        );
+                },
+        }.ToString());
 
     RPCTypeCheck(request.params, {UniValue::VNUM});
 
@@ -1115,9 +1124,8 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
                             {"show_outpoints", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Display txid and index per output."},
                         },
                         "options"},
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "[\n"
             " {\n"
             "  \"height\" : n,           (numeric) The height the output was staked into the chain.\n"
@@ -1125,11 +1133,13 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
             "  \"addrspend\" : \"addr\",   (string) The spending address of the output\n"
             " } ...\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("listcoldstakeunspent", "\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\" 1000") +
+                },
+                RPCExamples{
+            HelpExampleCli("listcoldstakeunspent", "\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\" 1000") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("listcoldstakeunspent", "\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\", 1000")
-        );
+                },
+            }.ToString());
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VNUM}, true);
 
@@ -1266,9 +1276,8 @@ UniValue getindexinfo(const JSONRPCRequest& request)
             RPCHelpMan{"getindexinfo",
                 "\nReturns an object of enabled indices.\n",
                 {
-                }}
-                .ToString() +
-            "\nResult:\n"
+                },
+                RPCResult{
             "{\n"
             "  \"txindex\": xxx             (bool) Is the txindex enabled.\n"
             "  \"addressindex\": xxx        (bool) Is the addressindex enabled.\n"
@@ -1276,11 +1285,13 @@ UniValue getindexinfo(const JSONRPCRequest& request)
             "  \"timestampindex\":  xxx     (bool) Is the timestampindex enabled.\n"
             "  \"coldstakeindex\":  xxx     (bool) Is the coldstakeindex enabled.\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getindexinfo", "") +
+                },
+                RPCExamples{
+            HelpExampleCli("getindexinfo", "") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getindexinfo", "")
-        );
+                },
+        }.ToString());
 
     UniValue ret(UniValue::VOBJ);
 
