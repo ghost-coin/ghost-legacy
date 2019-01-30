@@ -172,7 +172,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         // Find the prevout in the txdb / blocks
 
         CBlock blockKernel; // block containing stake kernel, GetTransaction should only fill the header.
-        if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), blockKernel, true)
+        if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), blockKernel)
             || txin.prevout.n >= txPrev->vpout.size()) {
             return state.DoS(20, error("%s: prevout-not-in-chain", __func__), REJECT_INVALID, "prevout-not-in-chain");
         }
@@ -246,7 +246,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
             const CTxIn &txin = tx.vin[k];
             Coin coin;
             if (!pcoinsTip->GetCoin(txin.prevout, coin) || coin.IsSpent()) {
-                if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), hashBlock, true)
+                if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), hashBlock)
                     || txin.prevout.n >= txPrev->vpout.size()) {
                     return state.DoS(1, error("%s: prevout-not-in-chain %d", __func__, k), REJECT_INVALID, "prevout-not-in-chain");
                 }

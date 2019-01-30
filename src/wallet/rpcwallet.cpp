@@ -108,7 +108,10 @@ void WalletTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_ch
     {
         entry.pushKV("blockhash", wtx.hashBlock.GetHex());
         entry.pushKV("blockindex", wtx.nIndex);
-        PushTime(entry, "blocktime", LookupBlockIndex(wtx.hashBlock)->GetBlockTime());
+        int64_t block_time;
+        bool found_block = chain.findBlock(wtx.hashBlock, nullptr /* block */, &block_time);
+        assert(found_block);
+        PushTime(entry, "blocktime", block_time);
     } else {
         entry.pushKV("trusted", wtx.IsTrusted(locked_chain));
     }
@@ -2108,23 +2111,17 @@ static UniValue listsinceblock(const JSONRPCRequest& request)
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    const CBlockIndex* pindex = nullptr;    // Block index of the specified block or the common ancestor, if the block provided was in a deactivated chain.
-    const CBlockIndex* paltindex = nullptr; // Block index of the specified block, even if it's in a deactivated chain.
+    Optional<int> height;    // Height of the specified block or the common ancestor, if the block provided was in a deactivated chain.
+    Optional<int> altheight; // Height of the specified block, even if it's in a deactivated chain.
     int target_confirms = 1;
     isminefilter filter = ISMINE_SPENDABLE;
 
+    uint256 blockId;
     if (!request.params[0].isNull() && !request.params[0].get_str().empty()) {
-        uint256 blockId(ParseHashV(request.params[0], "blockhash"));
-
-        paltindex = pindex = LookupBlockIndex(blockId);
-        if (!pindex) {
+        blockId = ParseHashV(request.params[0], "blockhash");
+        height = locked_chain->findFork(blockId, &altheight);
+        if (!height) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
-        }
-        if (chainActive[pindex->nHeight] != pindex) {
-            // the block being asked for is a part of a deactivated chain;
-            // we don't want to depend on its perceived height in the block
-            // chain, we want to instead use the last common ancestor
-            pindex = chainActive.FindFork(pindex);
         }
     }
 
@@ -2142,7 +2139,8 @@ static UniValue listsinceblock(const JSONRPCRequest& request)
 
     bool include_removed = (request.params[3].isNull() || request.params[3].get_bool());
 
-    int depth = pindex ? (1 + chainActive.Height() - pindex->nHeight) : -1;
+    const Optional<int> tip_height = locked_chain->getHeight();
+    int depth = tip_height && height ? (1 + *tip_height - *height) : -1;
 
     UniValue transactions(UniValue::VARR);
 
@@ -2170,9 +2168,9 @@ static UniValue listsinceblock(const JSONRPCRequest& request)
     // when a reorg'd block is requested, we also list any relevant transactions
     // in the blocks of the chain that was detached
     UniValue removed(UniValue::VARR);
-    while (include_removed && paltindex && paltindex != pindex) {
+    while (include_removed && altheight && *altheight > *height) {
         CBlock block;
-        if (!ReadBlockFromDisk(block, paltindex, Params().GetConsensus())) {
+        if (!pwallet->chain().findBlock(blockId, &block) || block.IsNull()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
         }
         for (const CTransactionRef& tx : block.vtx) {
@@ -2192,11 +2190,12 @@ static UniValue listsinceblock(const JSONRPCRequest& request)
                 }
             }
         }
-        paltindex = paltindex->pprev;
+        blockId = block.hashPrevBlock;
+        --*altheight;
     }
 
-    CBlockIndex *pblockLast = chainActive[chainActive.Height() + 1 - target_confirms];
-    uint256 lastblock = pblockLast ? pblockLast->GetBlockHash() : uint256();
+    int last_height = tip_height ? *tip_height + 1 - target_confirms : -1;
+    uint256 lastblock = last_height >= 0 ? locked_chain->getBlockHash(last_height) : uint256();
 
     UniValue ret(UniValue::VOBJ);
     ret.pushKV("transactions", transactions);
@@ -4187,12 +4186,12 @@ UniValue rescanblockchain(const JSONRPCRequest& request)
                 "\nRescan the local blockchain for wallet related transactions.\n",
                 {
                     {"start_height", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "block height where the rescan should start"},
-                    {"stop_height", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "tip height", "the last block height that should be scanned"},
+                    {"stop_height", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "", "the last block height that should be scanned. If none is provided it will rescan up to the tip at return time of this call."},
                 },
                 RPCResult{
             "{\n"
-            "  \"start_height\"     (numeric) The block height where the rescan has started. If omitted, rescan started from the genesis block.\n"
-            "  \"stop_height\"      (numeric) The height of the last rescanned block. If omitted, rescan stopped at the chain tip.\n"
+            "  \"start_height\"     (numeric) The block height where the rescan has started.\n"
+            "  \"stop_height\"      (numeric) The height of the last rescanned block.\n"
             "}\n"
                 },
                 RPCExamples{
@@ -4207,50 +4206,48 @@ UniValue rescanblockchain(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet is currently rescanning. Abort existing rescan or wait.");
     }
 
-    CBlockIndex *pindexStart = nullptr;
-    CBlockIndex *pindexStop = nullptr;
-    CBlockIndex *pChainTip = nullptr;
+    int start_height = 0;
+    uint256 start_block, stop_block;
     {
         auto locked_chain = pwallet->chain().lock();
-        pindexStart = chainActive.Genesis();
-        pChainTip = chainActive.Tip();
+        Optional<int> tip_height = locked_chain->getHeight();
 
         if (!request.params[0].isNull()) {
-            pindexStart = chainActive[request.params[0].get_int()];
-            if (!pindexStart) {
+            start_height = request.params[0].get_int();
+            if (start_height < 0 || !tip_height || start_height > *tip_height) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid start_height");
             }
         }
 
+        Optional<int> stop_height;
         if (!request.params[1].isNull()) {
-            pindexStop = chainActive[request.params[1].get_int()];
-            if (!pindexStop) {
+            stop_height = request.params[1].get_int();
+            if (*stop_height < 0 || !tip_height || *stop_height > *tip_height) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid stop_height");
             }
-            else if (pindexStop->nHeight < pindexStart->nHeight) {
+            else if (*stop_height < start_height) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "stop_height must be greater than start_height");
             }
         }
-    }
 
-    // We can't rescan beyond non-pruned blocks, stop and throw an error
-    if (fPruneMode) {
-        auto locked_chain = pwallet->chain().lock();
-        CBlockIndex *block = pindexStop ? pindexStop : pChainTip;
-        while (block && block->nHeight >= pindexStart->nHeight) {
-            if (!(block->nStatus & BLOCK_HAVE_DATA)) {
-                throw JSONRPCError(RPC_MISC_ERROR, "Can't rescan beyond pruned data. Use RPC call getblockchaininfo to determine your pruned height.");
+        // We can't rescan beyond non-pruned blocks, stop and throw an error
+        if (locked_chain->findPruned(start_height, stop_height)) {
+            throw JSONRPCError(RPC_MISC_ERROR, "Can't rescan beyond pruned data. Use RPC call getblockchaininfo to determine your pruned height.");
+        }
+
+        if (tip_height) {
+            start_block = locked_chain->getBlockHash(start_height);
+            if (stop_height) {
+                stop_block = locked_chain->getBlockHash(*stop_height);
             }
-            block = block->pprev;
         }
     }
 
-    const CBlockIndex *failed_block, *stopBlock;
     CWallet::ScanResult result =
-        pwallet->ScanForWalletTransactions(pindexStart, pindexStop, reserver, failed_block, stopBlock, true);
-    switch (result) {
+        pwallet->ScanForWalletTransactions(start_block, stop_block, reserver, true /* fUpdate */);
+    switch (result.status) {
     case CWallet::ScanResult::SUCCESS:
-        break; // stopBlock set by ScanForWalletTransactions
+        break;
     case CWallet::ScanResult::FAILURE:
         throw JSONRPCError(RPC_MISC_ERROR, "Rescan failed. Potentially corrupted data files.");
     case CWallet::ScanResult::USER_ABORT:
@@ -4258,8 +4255,8 @@ UniValue rescanblockchain(const JSONRPCRequest& request)
         // no default case, so the compiler can warn about missing cases
     }
     UniValue response(UniValue::VOBJ);
-    response.pushKV("start_height", pindexStart->nHeight);
-    response.pushKV("stop_height", stopBlock->nHeight);
+    response.pushKV("start_height", start_height);
+    response.pushKV("stop_height", result.stop_height ? *result.stop_height : UniValue());
     return response;
 }
 

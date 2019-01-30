@@ -5167,7 +5167,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
         LOCK(cs_main);
         uint256 hashBlock;
         CTransactionRef txn;
-        if (GetTransaction(prev_out.hash, txn, Params().GetConsensus(), hashBlock, true)) {
+        if (GetTransaction(prev_out.hash, txn, Params().GetConsensus(), hashBlock)) {
             if (txn->GetNumVOuts() > prev_out.n) {
                 txout = txn->vpout[prev_out.n];
             }

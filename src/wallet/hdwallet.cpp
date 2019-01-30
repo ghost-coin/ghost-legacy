@@ -181,63 +181,65 @@ bool CHDWallet::Initialise()
         LoadVoteTokens(&wdb);
     }
 
-    CBlockIndex *pindexRescan = chainActive.Genesis();
+    int rescan_height = 0;
     if (!gArgs.GetBoolArg("-rescan", false))
     {
+        WalletBatch batch(*database);
         CBlockLocator locator;
-        CHDWalletDB walletdb(*database);
-        if (walletdb.ReadBestBlock(locator))
-            pindexRescan = FindForkInGlobalIndex(chainActive, locator);
+        if (batch.ReadBestBlock(locator)) {
+            if (const Optional<int> fork_height = locked_chain->findLocatorFork(locator)) {
+                rescan_height = *fork_height;
+            }
+        }
+    }
+
+    const Optional<int> tip_height = locked_chain->getHeight();
+    if (tip_height) {
+        m_last_block_processed = locked_chain->getBlockHash(*tip_height);
+    } else {
+        m_last_block_processed.SetNull();
     }
 
     if ((mapExtAccounts.size() > 0 || CountKeys() > 0) // Don't scan an empty wallet
-        && chainActive.Tip() && chainActive.Tip() != pindexRescan)
+        && tip_height && *tip_height != rescan_height)
     {
         //We can't rescan beyond non-pruned blocks, stop and throw an error
         //this might happen if a user uses an old wallet within a pruned node
         // or if he ran -disablewallet for a longer time, then decided to re-enable
         if (fPruneMode)
         {
-            CBlockIndex *block = chainActive.Tip();
-            while (block && block->pprev && (block->pprev->nStatus & BLOCK_HAVE_DATA) && block->pprev->nTx > 0 && pindexRescan != block)
-                block = block->pprev;
+            int block_height = *tip_height;
+            while (block_height > 0 && locked_chain->haveBlockOnDisk(block_height - 1) && rescan_height != block_height) {
+                --block_height;
+            }
 
-            if (pindexRescan != block) {
-                return InitError(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)"));
+            if (rescan_height != block_height) {
+                InitError(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)"));
+                return false;
             }
         }
 
         uiInterface.InitMessage(_("Rescanning..."));
-        WalletLogPrintf("Rescanning last %i blocks (from block %i)...\n", chainActive.Height() - pindexRescan->nHeight, pindexRescan->nHeight);
+        WalletLogPrintf("Rescanning last %i blocks (from block %i)...\n", *tip_height - rescan_height, rescan_height);
 
         // No need to read and scan block if block was created before
         // our wallet birthday (as adjusted for block time variability)
-        while (pindexRescan && nTimeFirstKey && (pindexRescan->GetBlockTime() < (nTimeFirstKey - TIMESTAMP_WINDOW))) {
-            pindexRescan = chainActive.Next(pindexRescan);
+        if (nTimeFirstKey) {
+            if (Optional<int> first_block = locked_chain->findFirstBlockWithTimeAndHeight(nTimeFirstKey - TIMESTAMP_WINDOW, rescan_height)) {
+                rescan_height = *first_block;
+            }
         }
 
         int64_t nStart = GetTimeMillis();
         {
             WalletRescanReserver reserver(this);
-            if (!reserver.reserve()) {
+            if (!reserver.reserve() || (ScanResult::SUCCESS != ScanForWalletTransactions(locked_chain->getBlockHash(rescan_height), {} /* stop block */, reserver, true /* update */).status)) {
                 InitError(_("Failed to rescan the wallet during initialization"));
-                return werror("Reserve rescan failed.");
-            }
-            const CBlockIndex *stop_block, *failed_block;
-            CWallet::ScanResult result =
-                ScanForWalletTransactions(pindexRescan, nullptr, reserver, failed_block, stop_block, true);
-            switch (result) {
-            case CWallet::ScanResult::SUCCESS:
-                break; // stopBlock set by ScanForWalletTransactions
-            case CWallet::ScanResult::FAILURE:
-                throw JSONRPCError(RPC_MISC_ERROR, "Rescan failed. Potentially corrupted data files.");
-            case CWallet::ScanResult::USER_ABORT:
-                throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted.");
-                // no default case, so the compiler can warn about missing cases
+                return false;
             }
         }
-        WalletLogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
-        ChainStateFlushed(chainActive.GetLocator());
+        WalletLogPrintf("Rescan completed in %15dms\n", GetTimeMillis() - nStart);
+        ChainStateFlushed(locked_chain->getLocator());
         database->IncrementUpdateCounter();
     }
 
@@ -2195,7 +2197,7 @@ CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex)
 
     uint256 hashBlock;
     CTransactionRef txOut;
-    if (GetTransaction(op.hash, txOut, Params().GetConsensus(), hashBlock, true)) {
+    if (GetTransaction(op.hash, txOut, Params().GetConsensus(), hashBlock)) {
         if (txOut->GetNumVOuts() > op.n) {
             return txOut->vpout[op.n]->GetValue();
         }
@@ -8228,51 +8230,6 @@ bool CHDWallet::GetFullChainPath(const CExtKeyAccount *pa, size_t nChain, std::v
     return true;
 };
 
-int CHDWallet::ScanChainFromHeight(int nHeight)
-{
-    WalletLogPrintf("%s: %d\n", __func__, nHeight);
-
-    CBlockIndex *pnext, *pindex = chainActive.Genesis();
-
-    if (pindex == nullptr) {
-        return werrorN(1, "%s: Genesis Block is not set.", __func__);
-    }
-
-    while (pindex && pindex->nHeight < nHeight
-        && (pnext = chainActive.Next(pindex))) {
-        pindex = pnext;
-    }
-
-    WalletLogPrintf("%s: Starting from height %d.\n", __func__, pindex->nHeight);
-
-    {
-        auto locked_chain = chain().lock();
-        LOCK(cs_wallet);
-
-        MarkDirty();
-
-        WalletRescanReserver reserver(this);
-        if (!reserver.reserve()) {
-            return werrorN(1, "%s: Failed to reserve the wallet for scanning.", __func__);
-        }
-        const CBlockIndex *stop_block, *failed_block;
-        CWallet::ScanResult result =
-            ScanForWalletTransactions(pindex, nullptr, reserver, failed_block, stop_block, true);
-        switch (result) {
-        case CWallet::ScanResult::SUCCESS:
-            break; // stopBlock set by ScanForWalletTransactions
-        case CWallet::ScanResult::FAILURE:
-            throw JSONRPCError(RPC_MISC_ERROR, "Rescan failed. Potentially corrupted data files.");
-        case CWallet::ScanResult::USER_ABORT:
-            throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted.");
-            // no default case, so the compiler can warn about missing cases
-        }
-        ReacceptWalletTransactions();
-    }
-
-    return 0;
-};
-
 bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason, bool lockUnspents, const std::set<int>& setSubtractFeeFromOutputs, CCoinControl coinControl)
 {
     std::vector<CTempRecipient> vecSend;
@@ -8540,7 +8497,9 @@ bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx,
 
         WalletLogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
 
-        AddToRecord(rtx, *wtxNew.tx, nullptr, -1);
+        uint256 null_hash;
+        assert(null_hash.IsNull());
+        AddToRecord(rtx, *wtxNew.tx, null_hash, -1);
 
         if (fBroadcastTransactions) {
             // Broadcast
@@ -9681,39 +9640,34 @@ void CHDWallet::AddToSpends(const uint256& wtxid)
     }
 }
 
-bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate)
+bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint256& block_hash, int posInBlock, bool fUpdate)
 {
     const CTransaction& tx = *ptx;
 
     {
         AssertLockHeld(cs_wallet);
-        if (pIndex != nullptr)
-        {
-            for (const auto &txin : tx.vin)
-            {
-                if (txin.IsAnonInput())
+        if (!block_hash.IsNull()) {
+            for (const auto &txin : tx.vin) {
+                if (txin.IsAnonInput()) {
                     continue;
+                }
                 std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range = mapTxSpends.equal_range(txin.prevout);
-                while (range.first != range.second)
-                {
-                    if (range.first->second != tx.GetHash())
-                    {
+                while (range.first != range.second) {
+                    if (range.first->second != tx.GetHash()) {
                         const CWalletTx *wtxConflicted = GetWalletTx(range.first->second); // coinstakes will only be in mapwallet
-                        if (wtxConflicted && wtxConflicted->isAbandoned() && wtxConflicted->IsCoinStake())
-                        {
+                        if (wtxConflicted && wtxConflicted->isAbandoned() && wtxConflicted->IsCoinStake()) {
                             // Respending input from orphaned coinstake, leave abandoned
                             WalletLogPrintf("Reusing kernel from orphaned stake %s, new tx %s, \n    (kernel %s:%i).\n",
                                 range.first->second.ToString(), tx.GetHash().ToString(), range.first->first.hash.ToString(), range.first->first.n);
-                        } else
-                        {
-                            WalletLogPrintf("Transaction %s (in block %s) conflicts with wallet transaction %s (both spend %s:%i)\n", tx.GetHash().ToString(), pIndex->GetBlockHash().ToString(), range.first->second.ToString(), range.first->first.hash.ToString(), range.first->first.n);
-                            MarkConflicted(pIndex->GetBlockHash(), range.first->second);
-                        };
-                    };
+                        } else {
+                            WalletLogPrintf("Transaction %s (in block %s) conflicts with wallet transaction %s (both spend %s:%i)\n", tx.GetHash().ToString(), block_hash.ToString(), range.first->second.ToString(), range.first->first.hash.ToString(), range.first->first.n);
+                            MarkConflicted(block_hash, range.first->second);
+                        }
+                    }
                     range.first++;
-                };
-            };
-        };
+                }
+            }
+        }
 
         mapValue_t mapNarr;
         size_t nCT = 0, nRingCT = 0;
@@ -9783,7 +9737,7 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBloc
 
             if (fExisted || fIsMine || fIsFromMe) {
                 CTransactionRecord rtx;
-                bool rv = AddToRecord(rtx, tx, pIndex, posInBlock, false);
+                bool rv = AddToRecord(rtx, tx, block_hash, posInBlock, false);
                 WakeThreadStakeMiner(this); // wallet balance may have changed
                 return rv;
             }
@@ -9795,7 +9749,7 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBloc
         if (fExisted && !fUpdate) return false;
         if (fExisted || fIsMine || fIsFromMe) {
             // A coinstake txn not linked to a block is being orphaned
-            if (fExisted && tx.IsCoinStake() && !pIndex) {
+            if (fExisted && tx.IsCoinStake() && block_hash.IsNull()) {
                 auto locked_chain = chain().lock(); // SyncTransaction is called with locked_chain
 
                 uint256 hashTx = tx.GetHash();
@@ -9814,8 +9768,8 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBloc
             }
 
             // Get merkle branch if transaction was found in a block
-            if (pIndex != nullptr) {
-                wtx.SetMerkleBranch(pIndex, posInBlock);
+            if (!block_hash.IsNull()) {
+                wtx.SetMerkleBranch(block_hash, posInBlock);
             }
             bool rv = AddToWallet(wtx, false);
             WakeThreadStakeMiner(this); // wallet balance may have changed
@@ -10301,9 +10255,9 @@ bool CHDWallet::ProcessPlaceholder(CHDWalletDB *pwdb, const CTransaction &tx, CT
 };
 
 bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
-    const CBlockIndex *pIndex, int posInBlock, bool fFlushOnClose)
+    const uint256& block_hash, int posInBlock, bool fFlushOnClose)
 {
-    if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: %s, %p, %d\n", __func__, tx.GetHash().ToString(), pIndex, posInBlock);
+    if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: %s, %s, %d\n", __func__, tx.GetHash().ToString(), block_hash.ToString(), posInBlock);
 
     AssertLockHeld(cs_wallet);
     CHDWalletDB wdb(*database, "r+", fFlushOnClose);
@@ -10315,19 +10269,22 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
     CTransactionRecord &rtx = ret.first->second;
 
     bool fUpdated = false;
-    if (pIndex) {
-        if (rtx.blockHash != pIndex->GetBlockHash()
+    if (!block_hash.IsNull()) {
+        if (rtx.blockHash != block_hash
             || rtx.nIndex != posInBlock) {
             fUpdated = true;
         }
-        rtx.blockHash = pIndex->GetBlockHash();
+        rtx.blockHash = block_hash;
         rtx.nIndex = posInBlock;
-        rtx.nBlockTime = pIndex->nTime;
+        BlockMap::iterator mi = mapBlockIndex.find(block_hash);
+        if (mi != mapBlockIndex.end()) {
+            rtx.nBlockTime = mi->second->nTime;
+        }
 
         // Update blockhash of mapTempWallet if exists
         CWalletTx *ptwtx = GetTempWalletTx(txhash);
         if (ptwtx) {
-            ptwtx->SetMerkleBranch(pIndex, posInBlock);
+            ptwtx->SetMerkleBranch(block_hash, posInBlock);
         }
     }
 
@@ -10383,7 +10340,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
             } else {
                 uint256 hashBlock;
                 CTransactionRef txPrev;
-                if (GetTransaction(prevout0.hash, txPrev, Params().GetConsensus(), hashBlock, true)) {
+                if (GetTransaction(prevout0.hash, txPrev, Params().GetConsensus(), hashBlock)) {
                     if (txPrev->vpout.size() > prevout0.n
                         && txPrev->vpout[prevout0.n]->IsType(OUTPUT_CT)) {
                         rtx.nFlags |= ORF_BLIND_IN;

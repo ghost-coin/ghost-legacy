@@ -612,8 +612,6 @@ public:
 
     bool GetFullChainPath(const CExtKeyAccount *pa, size_t nChain, std::vector<uint32_t> &vPath) const;
 
-    int ScanChainFromHeight(int nHeight); // DEPRECATED
-
     /**
      * Insert additional inputs into the transaction by
      * calling CreateTransaction();
@@ -657,7 +655,7 @@ public:
 
     using CWallet::AddToSpends;
     void AddToSpends(const uint256& wtxid) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    bool AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint256& block_hash, int posInBlock, bool fUpdate) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     CWalletTx *GetTempWalletTx(const uint256& hash);
 
@@ -677,7 +675,7 @@ public:
 
     bool ProcessPlaceholder(CHDWalletDB *pwdb, const CTransaction &tx, CTransactionRecord &rtx);
     bool AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
-        const CBlockIndex *pIndex, int posInBlock, bool fFlushOnClose=true);
+        const uint256& block_hash, int posInBlock, bool fFlushOnClose=true);
 
     std::vector<uint256> ResendRecordTransactionsBefore(interfaces::Chain::Lock& locked_chain, int64_t nTime, CConnman *connman);
     void ResendWalletTransactions(int64_t nBestBlockTime, CConnman *connman) override EXCLUSIVE_LOCKS_REQUIRED(cs_main);

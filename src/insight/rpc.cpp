@@ -1072,7 +1072,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
         CBlockIndex *blockindex = nullptr;
         CTransactionRef tx_prev;
         uint256 hashBlock;
-        if (!GetTransaction(txin.prevout.hash, tx_prev, Params().GetConsensus(), hashBlock, true, blockindex)) {
+        if (!GetTransaction(txin.prevout.hash, tx_prev, Params().GetConsensus(), hashBlock, blockindex)) {
             throw JSONRPCError(RPC_MISC_ERROR, "Transaction not found on disk");
         }
         if (txin.prevout.n > tx_prev->GetNumVOuts()) {
