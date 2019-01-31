@@ -943,7 +943,7 @@ public:
     int64_t nRelockTime = 0;
 
     virtual int ExtKeyUnlock(const CKeyingMaterial &vMKey) {return 0;};
-    virtual bool Unlock(const SecureString& strWalletPassphrase);
+    virtual bool Unlock(const SecureString& strWalletPassphrase, bool accept_no_keys = false);
     bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase);
     virtual bool EncryptWallet(const SecureString& strWalletPassphrase);
 
@@ -1162,6 +1162,9 @@ public:
 
     /** Watch-only address added */
     boost::signals2::signal<void (bool fHaveWatchOnly)> NotifyWatchonlyChanged;
+
+    /** Keypool has new keys */
+    boost::signals2::signal<void ()> NotifyCanGetAddressesChanged;
 
     /** Inquire whether this wallet broadcasts transactions. */
     bool GetBroadcastTransactions() const { return fBroadcastTransactions; }

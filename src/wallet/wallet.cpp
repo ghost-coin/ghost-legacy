@@ -400,7 +400,7 @@ bool CWallet::LoadWatchOnly(const CScript &dest)
     return CCryptoKeyStore::AddWatchOnly(dest);
 }
 
-bool CWallet::Unlock(const SecureString& strWalletPassphrase)
+bool CWallet::Unlock(const SecureString& strWalletPassphrase, bool accept_no_keys)
 {
     CCrypter crypter;
     CKeyingMaterial _vMasterKey;
@@ -413,7 +413,7 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase)
                 return false;
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, _vMasterKey))
                 continue; // try another master key
-            if (CCryptoKeyStore::Unlock(_vMasterKey))
+            if (CCryptoKeyStore::Unlock(_vMasterKey, accept_no_keys))
                 return true;
         }
     }
@@ -437,7 +437,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, _vMasterKey))
                 return false;
             if (0 == ExtKeyUnlock(_vMasterKey)
-                && CCryptoKeyStore::Unlock(_vMasterKey))
+                && CCryptoKeyStore::Unlock(_vMasterKey, true))
             {
                 int64_t nStartTime = GetTimeMillis();
                 crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod);
@@ -1421,6 +1421,7 @@ void CWallet::SetHDSeed(const CPubKey& seed)
     newHdChain.nVersion = CanSupportFeature(FEATURE_HD_SPLIT) ? CHDChain::VERSION_HD_CHAIN_SPLIT : CHDChain::VERSION_HD_BASE;
     newHdChain.seed_id = seed.GetID();
     SetHDChain(newHdChain, false);
+    NotifyCanGetAddressesChanged();
 }
 
 void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
@@ -1771,7 +1772,8 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(const uint256& start_bloc
         fAbortRescan = false;
         ShowProgress(strprintf("%s " + _("Rescanning..."), GetDisplayName()), 0); // show rescan progress in GUI as dialog or on splashscreen, if -rescan on startup
         uint256 tip_hash;
-        Optional<int> block_height;
+        // The way the 'block_height' is initialized is just a workaround for the gcc bug #47679 since version 4.6.0.
+        Optional<int> block_height = MakeOptional(false, int());
         double progress_begin;
         double progress_end;
         {
@@ -3487,6 +3489,7 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize)
             WalletLogPrintf("keypool added %d keys (%d internal), size=%u (%u internal)\n", missingInternal + missingExternal, missingInternal, setInternalKeyPool.size() + setExternalKeyPool.size() + set_pre_split_keypool.size(), setInternalKeyPool.size());
         }
     }
+    NotifyCanGetAddressesChanged();
     return true;
 }
 
@@ -3531,6 +3534,7 @@ bool CWallet::ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool, bool fRe
         m_pool_key_to_index.erase(keypool.vchPubKey.GetID());
         WalletLogPrintf("keypool reserve %d\n", nIndex);
     }
+    NotifyCanGetAddressesChanged();
     return true;
 }
 
@@ -3555,6 +3559,7 @@ void CWallet::ReturnKey(int64_t nIndex, bool fInternal, const CPubKey& pubkey)
             setExternalKeyPool.insert(nIndex);
         }
         m_pool_key_to_index[pubkey.GetID()] = nIndex;
+        NotifyCanGetAddressesChanged();
     }
     WalletLogPrintf("keypool return %d\n", nIndex);
 }
@@ -4080,6 +4085,9 @@ bool CWallet::Verify(interfaces::Chain& chain, const WalletLocation& location, b
         error_string = strprintf("Error loading wallet %s. Duplicate -wallet filename specified.", location.GetName());
         return false;
     }
+
+    // Keep same database environment instance across Verify/Recover calls below.
+    std::unique_ptr<WalletDatabase> database = WalletDatabase::Create(wallet_path);
 
     try {
         if (!WalletBatch::VerifyEnvironment(wallet_path, error_string)) {

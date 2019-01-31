@@ -5,6 +5,7 @@ src/particl
 src/particld
 src/particl-cli
 src/particl-tx
+src/particl-wallet
 src/test/test_particl
 src/test/test_particl_fuzzy
 src/qt/test/test_particl-qt

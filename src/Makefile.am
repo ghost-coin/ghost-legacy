@@ -42,6 +42,7 @@ LIBPARTICLCONSENSUS=libparticlconsensus.la
 endif
 if ENABLE_WALLET
 LIBPARTICL_WALLET=libparticl_wallet.a
+LIBPARTICL_WALLET_TOOL=libparticl_wallet_tool.a
 endif
 if ENABLE_USBDEVICE
 LIBPARTICL_USBDEVICE=libparticl_usbdevice.a
@@ -74,6 +75,7 @@ EXTRA_LIBRARIES += \
   $(LIBPARTICL_SERVER) \
   $(LIBPARTICL_CLI) \
   $(LIBPARTICL_WALLET) \
+  $(LIBPARTICL_WALLET_TOOL) \
   $(LIBPARTICL_USBDEVICE) \
   $(LIBPARTICL_SMSG) \
   $(LIBPARTICL_ZMQ)
@@ -94,6 +96,11 @@ if BUILD_BITCOIN_CLI
 endif
 if BUILD_BITCOIN_TX
   bin_PROGRAMS += particl-tx
+endif
+if ENABLE_WALLET
+if BUILD_BITCOIN_WALLET
+  bin_PROGRAMS += particl-wallet
+endif
 endif
 
 .PHONY: FORCE check-symbols check-security
@@ -238,11 +245,12 @@ BITCOIN_CORE_H = \
   wallet/rpcwallet.h \
   wallet/wallet.h \
   wallet/walletdb.h \
+  wallet/wallettool.h \
+  wallet/walletutil.h \
+  wallet/coinselection.h \
   wallet/rpchdwallet.h \
   wallet/hdwalletdb.h \
   wallet/hdwallet.h \
-  wallet/walletutil.h \
-  wallet/coinselection.h \
   warnings.h \
   zmq/zmqabstractnotifier.h \
   zmq/zmqconfig.h\
@@ -399,6 +407,12 @@ libparticl_wallet_a_SOURCES = \
   policy/rbf.cpp \
   wallet/walletutil.cpp \
   wallet/coinselection.cpp \
+  $(BITCOIN_CORE_H)
+
+libparticl_wallet_tool_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libparticl_wallet_tool_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libparticl_wallet_tool_a_SOURCES = \
+  wallet/wallettool.cpp \
   $(BITCOIN_CORE_H)
 
 # crypto primitives library
@@ -648,6 +662,39 @@ particl_tx_LDADD = \
   $(LIBSECP256K1)
 
 particl_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
+#
+
+# bitcoin-wallet binary #
+particl_wallet_SOURCES = bitcoin-wallet.cpp
+particl_wallet_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+particl_wallet_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+particl_wallet_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+
+if TARGET_WINDOWS
+particl_wallet_SOURCES += bitcoin-wallet-res.rc
+endif
+
+particl_wallet_LDADD = \
+  $(LIBPARTICL_WALLET_TOOL) \
+  $(LIBPARTICL_SERVER) \
+  $(LIBPARTICL_WALLET) \
+  $(LIBPARTICL_COMMON) \
+  $(LIBPARTICL_CONSENSUS) \
+  $(LIBPARTICL_UTIL) \
+  $(LIBPARTICL_CRYPTO) \
+  $(LIBPARTICL_SMSG) \
+  $(LIBPARTICL_USBDEVICE) \
+  $(LIBPARTICL_ZMQ) \
+  $(LIBUNIVALUE) \
+  $(LIBLEVELDB) \
+  $(LIBLEVELDB_SSE42) \
+  $(LIBMEMENV) \
+  $(LIBSECP256K1)
+
+particl_wallet_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+if ENABLE_USBDEVICE
+particl_wallet_LDADD += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
+endif
 #
 
 # bitcoinconsensus library #

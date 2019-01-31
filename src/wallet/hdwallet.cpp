@@ -929,8 +929,7 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
             encrypted_batch->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
         }
 
-        if (!EncryptKeys(vMasterKey))
-        {
+        if (!EncryptKeys(vMasterKey)) {
             //if (fFileBacked)
             {
                 encrypted_batch->TxnAbort();
@@ -941,8 +940,7 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
             assert(false);
         }
 
-        if (0 != ExtKeyEncryptAll((CHDWalletDB*)encrypted_batch, vMasterKey))
-        {
+        if (0 != ExtKeyEncryptAll((CHDWalletDB*)encrypted_batch, vMasterKey)) {
             WalletLogPrintf("Terminating - Error: ExtKeyEncryptAll failed.\n");
             //if (fFileBacked)
             {
@@ -950,7 +948,7 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
                 delete encrypted_batch;
             }
             assert(false); // die and let the user reload the unencrypted wallet.
-        };
+        }
 
         // Encryption was introduced in version 0.4.0
         SetMinVersion(FEATURE_WALLETCRYPT, encrypted_batch, true);
@@ -970,7 +968,7 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
 
         if (!Lock())
             WalletLogPrintf("%s: ERROR: Lock wallet failed!\n", __func__);
-        if (!Unlock(strWalletPassphrase))
+        if (!Unlock(strWalletPassphrase, true))
             WalletLogPrintf("%s: ERROR: Unlock wallet failed!\n", __func__);
         if (!Lock())
             WalletLogPrintf("%s: ERROR: Lock wallet failed!\n", __func__);
@@ -1003,7 +1001,7 @@ bool CHDWallet::Lock()
     return CCryptoKeyStore::Lock();
 };
 
-bool CHDWallet::Unlock(const SecureString &strWalletPassphrase)
+bool CHDWallet::Unlock(const SecureString &strWalletPassphrase, bool accept_no_keys)
 {
     LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
@@ -1036,12 +1034,12 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase)
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, vMasterKeyNew)) {
                 continue; // try another master key
             }
-            if (!CCryptoKeyStore::Unlock(vMasterKeyNew)) {
+            if (!CCryptoKeyStore::Unlock(vMasterKeyNew, true)) {
                 return false;
             }
             if (0 != ExtKeyUnlock(vMasterKeyNew)) {
                 if (fWasUnlocked) {
-                    CCryptoKeyStore::Unlock(vMasterKeyOld);
+                    CCryptoKeyStore::Unlock(vMasterKeyOld, true);
                 }
                 return false;
             }

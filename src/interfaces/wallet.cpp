@@ -674,6 +674,10 @@ public:
     {
         return MakeHandler(m_wallet.NotifyWatchonlyChanged.connect(fn));
     }
+    std::unique_ptr<Handler> handleCanGetAddressesChanged(CanGetAddressesChangedFn fn) override
+    {
+        return MakeHandler(m_wallet.NotifyCanGetAddressesChanged.connect(fn));
+    }
 
     std::unique_ptr<Handler> handleReservedBalanceChanged(ReservedBalanceChangedFn fn) override
     {
