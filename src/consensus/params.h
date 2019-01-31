@@ -70,6 +70,8 @@ struct Params {
     uint32_t bulletproof_time;
     /** Time at which variable smsg fee become active */
     uint32_t smsg_fee_time;
+    /** Time at which RCT become active */
+    uint32_t rct_time;
 
     uint32_t smsg_fee_period;
     int64_t smsg_fee_funding_tx_per_k;

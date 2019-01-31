@@ -94,6 +94,7 @@ public:
 
     bool fEnforceSmsgFees = false; // per block
     bool fBulletproofsActive = false; // per block
+    bool rct_active = false; // per block
     bool fHasAnonOutput = false; // per tx
     bool fHasAnonInput = false; // per tx
 };

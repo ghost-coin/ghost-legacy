@@ -349,6 +349,7 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
 
     BOOST_MESSAGE("---------------- Checking RingCT Output---------------------\n");
     CValidationState state;
+    state.rct_active = true;
     BOOST_CHECK_MESSAGE(CheckAnonOutput(state, (CTxOutRingCT*)txout.get()), "failed to check ringct output");
 
     BOOST_MESSAGE("---------------- Serialize Transaction with No Segwit ---------------------\n");

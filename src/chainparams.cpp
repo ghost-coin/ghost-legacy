@@ -431,6 +431,7 @@ public:
         consensus.csp2shTime = 0xFFFFFFFF; // 2106 TODO: lower
         consensus.bulletproof_time = 0xFFFFFFFF; // 2106 TODO: lower
         consensus.smsg_fee_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.rct_time = 0xFFFFFFFF; // 2106 TODO: lower
 
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;
@@ -614,6 +615,7 @@ public:
         consensus.csp2shTime = 0xFFFFFFFF; // 2106 TODO: lower
         consensus.bulletproof_time = 0xFFFFFFFF; // 2106 TODO: lower
         consensus.smsg_fee_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.rct_time = 0;
 
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;
@@ -759,6 +761,7 @@ public:
         consensus.csp2shTime = 0;
         consensus.bulletproof_time = 0;
         consensus.smsg_fee_time = 0;
+        consensus.rct_time = 0;
 
         consensus.smsg_fee_period = 50;
         consensus.smsg_fee_funding_tx_per_k = 200000;

@@ -624,8 +624,10 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         *pfMissingInputs = false;
     }
 
-    state.fEnforceSmsgFees = nAcceptTime >= chainparams.GetConsensus().nPaidSmsgTime;
-    state.fBulletproofsActive = nAcceptTime >= chainparams.GetConsensus().bulletproof_time;
+    const Consensus::Params &consensus = Params().GetConsensus();
+    state.fEnforceSmsgFees = nAcceptTime >= consensus.nPaidSmsgTime;
+    state.fBulletproofsActive = nAcceptTime >= consensus.bulletproof_time;
+    state.rct_active = nAcceptTime >= consensus.rct_time;
 
     if (!CheckTransaction(tx, state))
         return false; // state filled in by CheckTransaction
@@ -2238,6 +2240,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     const Consensus::Params &consensus = Params().GetConsensus();
     state.fEnforceSmsgFees = block.nTime >= consensus.nPaidSmsgTime;
     state.fBulletproofsActive = block.nTime >= consensus.bulletproof_time;
+    state.rct_active = block.nTime >= consensus.rct_time;
 
     // Check it again in case a previous version let a bad block in
     // NOTE: We don't currently (re-)invoke ContextualCheckBlock() or
@@ -4029,6 +4032,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
 
     state.fEnforceSmsgFees = block.nTime >= consensusParams.nPaidSmsgTime;
     state.fBulletproofsActive = block.nTime >= consensusParams.bulletproof_time;
+    state.rct_active = block.nTime >= consensusParams.rct_time;
 
     // Check the merkle root.
     if (fCheckMerkleRoot) {

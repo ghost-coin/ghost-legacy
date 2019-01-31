@@ -263,8 +263,8 @@ bool CheckBlindOutput(CValidationState &state, const CTxOutCT *p)
 
 bool CheckAnonOutput(CValidationState &state, const CTxOutRingCT *p)
 {
-    if (Params().NetworkID() == "main") {
-        return state.DoS(100, false, REJECT_INVALID, "AnonOutput in mainnet");
+    if (!state.rct_active) {
+        return state.DoS(100, false, REJECT_INVALID, "rctout-before-active");
     }
 
     if (p->vData.size() < 33 || p->vData.size() > 33 + 5 + 33) {
