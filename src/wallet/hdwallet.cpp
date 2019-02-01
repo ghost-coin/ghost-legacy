@@ -6555,8 +6555,7 @@ int CHDWallet::ExtKeyUnlock(CExtKeyAccount *sea)
 
 int CHDWallet::ExtKeyUnlock(CExtKeyAccount *sea, const CKeyingMaterial &vMKey)
 {
-    std::vector<CStoredExtKey*>::iterator it;
-    for (it = sea->vExtKeys.begin(); it != sea->vExtKeys.end(); ++it) {
+    for (auto it = sea->vExtKeys.begin(); it != sea->vExtKeys.end(); ++it) {
         CStoredExtKey *sek = *it;
         if (!(sek->nFlags & EAF_IS_CRYPTED)) {
             continue;

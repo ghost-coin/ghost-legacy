@@ -8,6 +8,7 @@ import json
 
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.authproxy import JSONRPCException
+from test_framework.util import assert_raises_rpc_error
 
 
 def read_dump(file_name):
@@ -227,17 +228,10 @@ class WalletParticlTest(ParticlTestFramework):
         nodes[1].encryptwallet('qwerty234')
 
         try:
-            ro = nodes[1].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
+            nodes[1].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
             raise AssertionError('extkeyimportmaster on locked wallet.')
         except JSONRPCException as e:
             assert('Wallet locked' in e.error['message'])
-
-        try:
-            ro = nodes[1].walletpassphrase('qwerty123', 300)
-            raise AssertionError('Unlocked with incorrect passphrase.')
-        except JSONRPCException as e:
-            assert('passphrase entered was incorrect' in e.error['message'])
-        assert(nodes[1].getwalletinfo()['encryptionstatus'] == 'Locked')
 
         nodes[1].walletpassphrase('qwerty234', 300)
         ro = nodes[1].getwalletinfo()
@@ -263,6 +257,7 @@ class WalletParticlTest(ParticlTestFramework):
 
         assert(ro[1]['type'] == 'Account')
         assert(ro[1]['id'] == roImport1['account_id'])
+        assert(ro[1]['encrypted'] == 'true')
         assert(ro[1]['evkey'] == 'xparFkF1G6Dd5EW9vm2QFXMwseHFDx2hkXqqPExy6E1Pmf3XX1AyBy97PjVq2SAENoG8uVtmX1S9Hm6BE4aEPNxydc8cb3MsRPrcw4rq7V3dGRM')
         assert(ro[1]['root_key_id'] == roImport1['master_id'])
         assert(ro[1]['internal_chain'] == 'pparszMzzW1247AwkMQ1ou7KnV2o9HDHQJdycBVVAkkWeKHVwKwAqcTNVT2jpsxeXfsgvfHJYhyUuiT93r8iqmLTd52nzFeRfTggtVGuHPAAsb7f')
@@ -294,6 +289,13 @@ class WalletParticlTest(ParticlTestFramework):
         # Restart node
         self.stop_node(1)
         self.start_node(1, self.extra_args[1])
+
+        try:
+            nodes[1].walletpassphrase('qwerty234', 300)
+            raise AssertionError('Unlocked with incorrect passphrase.')
+        except JSONRPCException as e:
+            assert('passphrase entered was incorrect' in e.error['message'])
+        assert(nodes[1].getwalletinfo()['encryptionstatus'] == 'Locked')
 
         nodes[1].walletpassphrase('changedPass', 300)
 
@@ -647,6 +649,28 @@ class WalletParticlTest(ParticlTestFramework):
         nodes[1].walletpassphrase('changedPass2', 5)
         txnid = nodes[1].sendtoaddress(address1, 0.01, "", "", False, "", True)
         assert(len(nodes[1].bumpfee(txnid)['errors']) == 0)
+
+        self.log.info('Test createwallet')
+        nodes[0].createwallet('new_wallet_with_privkeys')
+        w_rpc = nodes[0].get_wallet_rpc('new_wallet_with_privkeys')
+        w_rpc.extkeyimportmaster(w_rpc.mnemonic('new')['master'])
+        ek_list = w_rpc.extkey('list', True)
+        evkey1 = ek_list[0]['evkey']
+        epkey1 = ek_list[0]['epkey']
+        epkey2 = ek_list[1]['epkey']
+
+        self.log.info('Test disable_privatekeys')
+        nodes[0].createwallet('new_wallet_no_privkeys', True)
+        w_rpc = nodes[0].get_wallet_rpc('new_wallet_no_privkeys')
+        assert_raises_rpc_error(-4, 'Error: Private keys are disabled for this wallet', w_rpc.getnewaddress)
+        mnemonic = w_rpc.mnemonic('new')['master']
+        assert_raises_rpc_error(-4, 'Error: Private keys are disabled for this wallet', w_rpc.extkeyimportmaster, mnemonic)
+        assert_raises_rpc_error(-4, 'Error: Private keys are disabled for this wallet', w_rpc.extkeygenesisimport, mnemonic)
+        assert_raises_rpc_error(-4, 'Error: Private keys are disabled for this wallet', w_rpc.importstealthaddress, 'fake', 'fake')
+        assert_raises_rpc_error(-4, 'Error: Private keys are disabled for this wallet', w_rpc.extkey, 'import', evkey1)
+        assert_raises_rpc_error(-4, 'Error: Private keys are disabled for this wallet', w_rpc.extkey, 'importAccount', evkey1)
+        w_rpc.extkey('import', epkey1)
+        w_rpc.extkey('importAccount', epkey2)
 
 
 if __name__ == '__main__':

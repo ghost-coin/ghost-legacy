@@ -256,6 +256,10 @@ static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bo
         return 0;
     }
 
+    if (pa->nFlags & EAF_HAVE_SECRET) {
+        obj.pushKV("encrypted", sekAccount->nFlags & EAF_IS_CRYPTED ? "true" : "false");
+    }
+
     CBitcoinAddress addr;
     addr.Set(pa->idMaster, CChainParams::EXT_KEY_HASH);
     obj.pushKV("root_key_id", addr.ToString());
@@ -804,9 +808,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
     CBitcoinExtKey bvk;
     CBitcoinExtPubKey bpk;
-
-    std::vector<uint8_t> vchVersionIn;
-    vchVersionIn.resize(4);
+    std::vector<uint8_t> vchVersionIn(4);
 
     UniValue result(UniValue::VOBJ);
 
@@ -863,8 +865,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
         int nListFull = 0; // 0 id only, 1 id+pubkey, 2 id+pubkey+secret
         if (request.params.size() > nParamOffset) {
-            std::string st = request.params[nParamOffset].get_str();
-            if (part::IsStringBoolPositive(st)) {
+            if (GetBool(request.params[nParamOffset])) {
                 nListFull = 2;
             }
 
@@ -910,8 +911,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
         int nListFull = 0; // 0 id only, 1 id+pubkey, 2 id+pubkey+secret
         if (request.params.size() > nParamOffset) {
-            std::string st = request.params[nParamOffset].get_str();
-            if (part::IsStringBoolPositive(st)) {
+            if (GetBool(request.params[nParamOffset])) {
                 nListFull = 2;
             }
 
@@ -969,13 +969,19 @@ static UniValue extkey(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Import failed - Invalid key.");
         }
 
+        if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)
+            && (eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC) || eKey58.IsValid(CChainParams::EXT_SECRET_KEY))) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
+        }
+
         if (fBip44) {
             if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Import failed - BIP44 key must begin with a bitcoin secret key prefix.");
             }
         } else {
             if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY)
-                && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC)) {
+                && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC)
+                && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Import failed - Key must begin with a particl prefix.");
             }
         }
@@ -1060,6 +1066,11 @@ static UniValue extkey(const JSONRPCRequest &request)
             sek.kp = eKey58.GetKey();
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Import Account failed - Invalid key.");
+        }
+
+        if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)
+            && (eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC) || eKey58.IsValid(CChainParams::EXT_SECRET_KEY))) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
         }
 
         {
@@ -1378,6 +1389,10 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     }
 
     EnsureWalletIsUnlocked(pwallet);
+
+    if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
+    }
 
     if (request.params.size() < 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Please specify a private extkey or mnemonic phrase.");
@@ -1854,6 +1869,10 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
             + HelpExampleRpc("importstealthaddress", "scan_secret, spend_secret, \"label\", 3, \"0b101\"")
                 },
             }.ToString());
+
+    if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
+    }
 
     EnsureWalletIsUnlocked(pwallet);
 
