@@ -137,7 +137,7 @@ class WalletParticlTest(ParticlTestFramework):
         assert(ro['reason'] == 'Account already exists in db.')
 
 
-        # make sure info hasn't been forgotten/overwritten
+        # Ensure info hasn't been forgotten/overwritten
         ro = nodes[0].extkey('account', account0_id)
         fFound = False
         for c in ro['chains']:
@@ -147,9 +147,7 @@ class WalletParticlTest(ParticlTestFramework):
             break
         assert(fFound)
 
-
-        ro = nodes[0].extkey('deriveAccount', 'Should fail', 'abcd')
-        assert(ro['result'] == 'Failed.')
+        assert(nodes[0].extkey('deriveAccount', 'Should fail', 'abcd')['result'] == 'Failed.')
 
         try:
             ro = nodes[0].extkey('deriveAccount', 'Should fail', "0'", 'abcd')
