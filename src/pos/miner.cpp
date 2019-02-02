@@ -248,6 +248,8 @@ void StartThreadStakeMiner()
             t->thread = std::thread(&TraceThread<std::function<void()> >, t->sName.c_str(), std::function<void()>(std::bind(&ThreadStakeMiner, i, vpwallets, nStart, nEnd)));
         }
     }
+
+    fStopMinerProc = false;
 };
 
 void StopThreadStakeMiner()

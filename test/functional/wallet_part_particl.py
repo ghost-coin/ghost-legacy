@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2018 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import time
 import json
+import subprocess
+import textwrap
 
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.authproxy import JSONRPCException
-from test_framework.util import assert_raises_rpc_error
+from test_framework.util import assert_raises_rpc_error, assert_equal
 
 
 def read_dump(file_name):
@@ -45,6 +47,18 @@ class WalletParticlTest(ParticlTestFramework):
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
+
+    def particl_wallet_process(self, *args):
+        binary = self.config["environment"]["BUILDDIR"] + '/src/particl-wallet' + self.config["environment"]["EXEEXT"]
+        args = ['-datadir={}'.format(self.nodes[0].datadir), '-regtest'] + list(args)
+        return subprocess.Popen([binary] + args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+    def assert_tool_output(self, output, *args):
+        p = self.particl_wallet_process(*args)
+        stdout, stderr = p.communicate()
+        assert_equal(p.poll(), 0)
+        assert_equal(stderr, '')
+        assert_equal(stdout, output)
 
     def run_test (self):
         tmpdir = self.options.tmpdir
@@ -669,6 +683,24 @@ class WalletParticlTest(ParticlTestFramework):
         assert_raises_rpc_error(-4, 'Error: Private keys are disabled for this wallet', w_rpc.extkey, 'importAccount', evkey1)
         w_rpc.extkey('import', epkey1)
         w_rpc.extkey('importAccount', epkey2)
+
+        self.log.info('Test load/unloadwallet')
+        nodes[0].unloadwallet('new_wallet_with_privkeys')
+        nodes[0].loadwallet('new_wallet_with_privkeys')
+        w_rpc = nodes[0].get_wallet_rpc('new_wallet_with_privkeys')
+        ek_list = w_rpc.extkey('list', True)
+
+        self.log.info('Test particl-wallet')
+        out = textwrap.dedent('''\
+            Wallet info
+            ===========
+            Encrypted: no
+            HD (hd seed available): no
+            Keypool Size: 0
+            Transactions: 0
+            Address Book: 0
+        ''')
+        self.assert_tool_output(out, '-wallet=w_created', 'create')
 
 
 if __name__ == '__main__':

@@ -3301,8 +3301,9 @@ static UniValue createwallet(const JSONRPCRequest& request)
     if (!wallet) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet creation failed.");
     }
-    if (fParticlMode && !((CHDWallet*)wallet.get())->Initialise())
+    if (fParticlMode && !((CHDWallet*)wallet.get())->Initialise()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet initialise failed.");
+    }
     AddWallet(wallet);
 
     wallet->postInitProcess();

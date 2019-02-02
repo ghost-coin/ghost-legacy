@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -44,11 +44,12 @@
 
 static void EnsureWalletIsUnlocked(CHDWallet *pwallet)
 {
-    if (pwallet->IsLocked())
+    if (pwallet->IsLocked()) {
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet locked, please enter the wallet passphrase with walletpassphrase first.");
-
-    if (pwallet->fUnlockForStakingOnly)
+    }
+    if (pwallet->fUnlockForStakingOnly) {
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet is unlocked for staking only.");
+    }
 };
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";

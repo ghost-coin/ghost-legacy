@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The ShadowCoin developers
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -96,7 +96,6 @@ UniValue mnemonic(const JSONRPCRequest &request)
         if (request.params.size() > 1) {
             sPassword = request.params[1].get_str();
         }
-
         if (request.params.size() > 2) {
             nLanguage = GetLanguageOffset(request.params[2].get_str());
         }
@@ -175,7 +174,6 @@ UniValue mnemonic(const JSONRPCRequest &request)
         } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Must specify password.");
         }
-
         if (request.params.size() > 2) {
             sMnemonic = request.params[2].get_str();
         } else {
@@ -187,7 +185,6 @@ UniValue mnemonic(const JSONRPCRequest &request)
         if (request.params.size() > 4) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
         }
-
         if (sMnemonic.empty()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Mnemonic can't be blank.");
         }
