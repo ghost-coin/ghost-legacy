@@ -522,11 +522,10 @@ int memcmp_nta(const void *cs, const void *ct, size_t count)
 void ReplaceStrInPlace(std::string &subject, const std::string search, const std::string replace)
 {
     size_t pos = 0;
-    while ((pos = subject.find(search, pos)) != std::string::npos)
-    {
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
          subject.replace(pos, search.length(), replace);
          pos += replace.length();
-    };
+    }
 };
 
 bool IsStringBoolPositive(const std::string &value)
@@ -541,18 +540,14 @@ bool IsStringBoolNegative(const std::string &value)
 
 bool GetStringBool(const std::string &value, bool &fOut)
 {
-    if (IsStringBoolPositive(value))
-    {
+    if (IsStringBoolPositive(value)) {
         fOut = true;
         return true;
-    };
-
-    if (IsStringBoolNegative(value))
-    {
+    }
+    if (IsStringBoolNegative(value)) {
         fOut = false;
         return true;
-    };
-
+    }
     return false;
 };
 
@@ -589,8 +584,7 @@ bool stringsMatchI(const std::string &sString, const std::string &sFind, int typ
 {
     // case insensitive
 
-    switch (type)
-    {
+    switch (type) {
         case 0: // full match
             return sString.length() == sFind.length()
                 && std::equal(sFind.begin(), sFind.end(), sString.begin(), icompare_pred);
@@ -602,7 +596,7 @@ bool stringsMatchI(const std::string &sString, const std::string &sFind, int typ
                 && std::equal(sFind.begin(), sFind.end(), sString.begin(), icompare_pred);
         case 3: // contains
             return std::search(sString.begin(), sString.end(), sFind.begin(), sFind.end(), icompare_pred) != sString.end();
-    };
+    }
 
     return 0; // unknown type
 };
@@ -656,7 +650,8 @@ std::string &RTrimWhitespace(std::string &s)
 static int daysInMonth(int year, int month)
 {
     return month == 2 ? (year % 4 ? 28 : (year % 100 ? 29 : (year % 400 ? 28 : 29))) : ((month - 1) % 7 % 2 ? 30 : 31);
-}
+};
+
 int64_t strToEpoch(const char *input, bool fFillMax)
 {
     int year, month, day, hours, minutes, seconds;
@@ -682,11 +677,12 @@ int64_t strToEpoch(const char *input, bool fFillMax)
     return (int64_t) mktime(&tm);
 };
 
-    bool endsWith(const std::string &str, const std::string &suffix)
-    {
-        return str.size() >= suffix.size() &&
-               str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
-    };
+bool endsWith(const std::string &str, const std::string &suffix)
+{
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+};
+
 } // namespace part
 
 bool ArgsManager::IsArgNegated(const std::string& strArg) const

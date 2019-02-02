@@ -164,9 +164,8 @@ bool GetBool(const UniValue &uv)
     if (!uv.isStr()) {
         throw std::runtime_error("Not a boolean or string value.");
     }
-    std::string s = uv.get_str();
     bool rv;
-    if (!part::GetStringBool(s, rv)) {
+    if (!part::GetStringBool(uv.get_str(), rv)) {
         throw std::runtime_error("String not a boolean value.");
     }
     return rv;

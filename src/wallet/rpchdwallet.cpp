@@ -1399,7 +1399,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     }
 
     std::string sMnemonic = request.params[0].get_str();
-    bool fSaveBip44Root = false;
+
     std::string sLblMaster = "Master Key";
     std::string sLblAccount = "Default Account";
     std::string sPassphrase = "";
@@ -1409,15 +1409,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     if (request.params.size() > 1) {
         sPassphrase = request.params[1].get_str();
     }
-
-    if (request.params.size() > 2) {
-        std::string s = request.params[2].get_str();
-
-        if (!part::GetStringBool(s, fSaveBip44Root)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown argument for save_bip44_root: %s.", s.c_str()));
-        }
-    }
-
+    bool fSaveBip44Root = request.params.size() > 2 ? GetBool(request.params[2]) : false;
     if (request.params.size() > 3) {
         sLblMaster = request.params[3].get_str();
     }
@@ -2246,7 +2238,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
                 {
                     {"start", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "Start from key index."},
                     {"end", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "start+1", "Stop deriving after key index."},
-                    {"key/id", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "", "Account to derive from, default external chain of current account."},
+                    {"key/id", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "", "Account to derive from, default external chain of current account, set to empty (\"\") for default."},
                     {"hardened", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Derive hardened keys."},
                     {"save", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Save derived keys to the wallet."},
                     {"add_to_addressbook", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Add derived keys to address book, only applies when saving keys."},
@@ -2266,56 +2258,35 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
 
     int nStart = request.params[0].get_int();
     int nEnd = nStart;
-
-    if (request.params.size() > 1)
-        nEnd = request.params[1].get_int();
-
-    if (nEnd < nStart)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "end can not be before start.");
-
-    if (nStart < 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "start can not be negative.");
-
-    if (nEnd < 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "end can not be positive.");
-
     std::string sInKey;
-    if (request.params.size() > 2)
+
+    if (request.params.size() > 1) {
+        nEnd = request.params[1].get_int();
+    }
+    if (nEnd < nStart) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "end can not be before start.");
+    }
+    if (nStart < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "start can not be negative.");
+    }
+    if (nEnd < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "end can not be positive.");
+    }
+    if (request.params.size() > 2) {
         sInKey = request.params[2].get_str();
-
-    bool fHardened = false;
-    if (request.params.size() > 3) {
-        std::string s = request.params[3].get_str();
-        if (!part::GetStringBool(s, fHardened))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown argument for hardened: %s.", s.c_str()));
     }
 
-    bool fSave = false;
-    if (request.params.size() > 4) {
-        std::string s = request.params[4].get_str();
-        if (!part::GetStringBool(s, fSave))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown argument for save: %s.", s.c_str()));
-    }
+    bool fHardened = request.params.size() > 3 ? GetBool(request.params[3]) : false;
+    bool fSave = request.params.size() > 4 ? GetBool(request.params[4]) : false;
+    bool fAddToAddressBook = request.params.size() > 5 ? GetBool(request.params[5]) : false;
+    bool f256bit = request.params.size() > 6 ? GetBool(request.params[6]) : false;
 
-    bool fAddToAddressBook = false;
-    if (request.params.size() > 5) {
-        std::string s = request.params[5].get_str();
-        if (!part::GetStringBool(s, fAddToAddressBook))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Unknown argument for add_to_addressbook: %s."), s.c_str()));
-    }
-
-    bool f256bit = false;
-    if (request.params.size() > 6) {
-        std::string s = request.params[6].get_str();
-        if (!part::GetStringBool(s, f256bit))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Unknown argument for 256bithash: %s."), s.c_str()));
-    }
-
-    if (!fSave && fAddToAddressBook)
+    if (!fSave && fAddToAddressBook) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("add_to_addressbook can't be set without save"));
-
-    if (fSave || fHardened)
+    }
+    if (fSave || fHardened) {
         EnsureWalletIsUnlocked(pwallet);
+    }
 
     UniValue result(UniValue::VARR);
 
@@ -2326,13 +2297,13 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
         CExtKeyAccount *sea = nullptr;
         uint32_t nChain = 0;
         if (sInKey.length() == 0) {
-            if (pwallet->idDefaultAccount.IsNull())
+            if (pwallet->idDefaultAccount.IsNull()) {
                 throw JSONRPCError(RPC_WALLET_ERROR, _("No default account set."));
-
+            }
             ExtKeyAccountMap::iterator mi = pwallet->mapExtAccounts.find(pwallet->idDefaultAccount);
-            if (mi == pwallet->mapExtAccounts.end())
+            if (mi == pwallet->mapExtAccounts.end()) {
                 throw JSONRPCError(RPC_WALLET_ERROR, _("Unknown account."));
-
+            }
             sea = mi->second;
             nChain = sea->nActiveExternal;
             if (nChain < sea->vExtKeys.size()) {
@@ -2386,15 +2357,15 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
             }
         }
 
-        if (!sek)
+        if (!sek) {
             throw JSONRPCError(RPC_WALLET_ERROR, _("Unknown chain."));
-
-        if (fHardened && !sek->kp.IsValidV())
+        }
+        if (fHardened && !sek->kp.IsValidV()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("extkey must have private key to derive hardened keys."));
-
-        if (fSave && !sea)
+        }
+        if (fSave && !sea) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must have account to save keys."));
-
+        }
 
         uint32_t idIndex;
         if (fAddToAddressBook) {
@@ -2411,15 +2382,12 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
             if (0 != sek->DeriveKey(newKey, nChildIn, nChildOut, fHardened)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "DeriveKey failed.");
             }
-
             if (nChildIn != nChildOut) {
                 LogPrintf("Warning: %s - DeriveKey skipped key %d.\n", __func__, nChildIn);
             }
-
             if (fHardened) {
                 SetHardenedBit(nChildOut);
             }
-
 
             CKeyID idk = newKey.GetID();
             CKeyID256 idk256;
@@ -3426,8 +3394,7 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
         nOffset = request.params[0].get_int();
 
     std::map<CTxDestination, CAddressBookData>::iterator it;
-    if (request.params.size() == 1 && nOffset == -1)
-    {
+    if (request.params.size() == 1 && nOffset == -1) {
         LOCK(pwallet->cs_wallet);
         // Count addresses
         UniValue result(UniValue::VOBJ);
@@ -3435,8 +3402,7 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
         result.pushKV("total", (int)pwallet->mapAddressBook.size());
 
         int nReceive = 0, nSend = 0;
-        for (it = pwallet->mapAddressBook.begin(); it != pwallet->mapAddressBook.end(); ++it)
-        {
+        for (it = pwallet->mapAddressBook.begin(); it != pwallet->mapAddressBook.end(); ++it) {
             if (it->second.nOwned == 0)
                 it->second.nOwned = pwallet->HaveAddress(it->first) ? 1 : 2;
 
@@ -3445,62 +3411,58 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
             else
             if (it->second.nOwned == 2)
                 nSend++;
-        };
+        }
 
         result.pushKV("num_receive", nReceive);
         result.pushKV("num_send", nSend);
         return result;
-    };
+    }
 
-    if (request.params.size() > 1)
+    if (request.params.size() > 1) {
         nCount = request.params[1].get_int();
-
-    if (nOffset < 0)
+    }
+    if (nOffset < 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "offset must be 0 or greater.");
-    if (nCount < 1)
+    }
+    if (nCount < 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "count must be 1 or greater.");
-
+    }
 
     // TODO: Make better
     int nSortCode = SRT_LABEL_ASC;
-    if (request.params.size() > 2)
-    {
+    if (request.params.size() > 2) {
         std::string sCode = request.params[2].get_str();
-        if (sCode == "0")
+        if (sCode == "0") {
             nSortCode = SRT_LABEL_ASC;
-        else
-        if (sCode == "1")
+        } else
+        if (sCode == "1") {
             nSortCode = SRT_LABEL_DESC;
-        else
+        } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown sort_code.");
-    };
+        }
+    }
 
     int nMatchOwned = 0; // 0 off/all, 1 owned, 2 non-owned
     int nMatchMode = 0; // 1 contains
-    int nShowPath = 1;
+
 
     std::string sMatch;
-    if (request.params.size() > 3)
+    if (request.params.size() > 3) {
         sMatch = request.params[3].get_str();
+    }
 
-    if (sMatch != "")
+    if (sMatch != "") {
         nMatchMode = 1;
+    }
 
-    if (request.params.size() > 4)
-    {
+    if (request.params.size() > 4) {
         std::string s = request.params[4].get_str();
-        if (s != "" && !ParseInt32(s, &nMatchOwned))
+        if (s != "" && !ParseInt32(s, &nMatchOwned)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown nMatchOwned.");
-    };
+        }
+    }
 
-    if (request.params.size() > 5)
-    {
-        std::string s = request.params[5].get_str();
-        bool fTemp;
-        if (!part::GetStringBool(s, fTemp))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown argument for show_path: %s.", s.c_str()));
-        nShowPath = !fTemp ? 0 : nShowPath;
-    };
+    int nShowPath = request.params.size() > 5 ? (GetBool(request.params[5]) ? 1 : 0) : 1;
 
     UniValue result(UniValue::VARR);
     {
@@ -3508,27 +3470,27 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
 
         CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
 
-        if (nOffset >= (int)pwallet->mapAddressBook.size())
+        if (nOffset >= (int)pwallet->mapAddressBook.size()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("offset is beyond last address (%d).", nOffset));
+        }
         std::vector<std::map<CTxDestination, CAddressBookData>::iterator> vitMapAddressBook;
         vitMapAddressBook.reserve(pwallet->mapAddressBook.size());
 
-        for (it = pwallet->mapAddressBook.begin(); it != pwallet->mapAddressBook.end(); ++it)
-        {
-            if (it->second.nOwned == 0)
+        for (it = pwallet->mapAddressBook.begin(); it != pwallet->mapAddressBook.end(); ++it) {
+            if (it->second.nOwned == 0) {
                 it->second.nOwned = pwallet->HaveAddress(it->first) ? 1 : 2;
-
-            if (nMatchOwned && it->second.nOwned != nMatchOwned)
+            }
+            if (nMatchOwned && it->second.nOwned != nMatchOwned) {
                 continue;
-
-            if (nMatchMode)
-            {
-                if (!part::stringsMatchI(it->second.name, sMatch, nMatchMode-1))
+            }
+            if (nMatchMode) {
+                if (!part::stringsMatchI(it->second.name, sMatch, nMatchMode-1)) {
                     continue;
-            };
+                }
+            }
 
             vitMapAddressBook.push_back(it);
-        };
+        }
 
         std::sort(vitMapAddressBook.begin(), vitMapAddressBook.end(), AddressComp(nSortCode));
 
@@ -3536,8 +3498,7 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
         std::vector<std::map<CTxDestination, CAddressBookData>::iterator>::iterator vit;
         int nEntries = 0;
         for (vit = vitMapAddressBook.begin()+nOffset;
-            vit != vitMapAddressBook.end() && nEntries < nCount; ++vit)
-        {
+            vit != vitMapAddressBook.end() && nEntries < nCount; ++vit) {
             auto &item = *vit;
             UniValue entry(UniValue::VOBJ);
 
@@ -3546,44 +3507,38 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
             entry.pushKV("label", item->second.name);
             entry.pushKV("owned", item->second.nOwned == 1 ? "true" : "false");
 
-            if (nShowPath > 0)
-            {
-                if (item->second.vPath.size() > 0)
-                {
+            if (nShowPath > 0) {
+                if (item->second.vPath.size() > 0) {
                     uint32_t index = item->second.vPath[0];
                     std::map<uint32_t, std::string>::iterator mi = mapKeyIndexCache.find(index);
 
-                    if (mi != mapKeyIndexCache.end())
-                    {
+                    if (mi != mapKeyIndexCache.end()) {
                         entry.pushKV("root", mi->second);
-                    } else
-                    {
+                    } else {
                         CKeyID accId;
-                        if (!wdb.ReadExtKeyIndex(index, accId))
-                        {
+                        if (!wdb.ReadExtKeyIndex(index, accId)) {
                             entry.pushKV("root", "error");
-                        } else
-                        {
+                        } else {
                             CBitcoinAddress addr;
                             addr.Set(accId, CChainParams::EXT_ACC_HASH);
                             std::string sTmp = addr.ToString();
                             entry.pushKV("root", sTmp);
                             mapKeyIndexCache[index] = sTmp;
-                        };
-                    };
-                };
+                        }
+                    }
+                }
 
-                if (item->second.vPath.size() > 1)
-                {
+                if (item->second.vPath.size() > 1) {
                     std::string sPath;
-                    if (0 == PathToString(item->second.vPath, sPath, '\'', 1))
+                    if (0 == PathToString(item->second.vPath, sPath, '\'', 1)) {
                         entry.pushKV("path", sPath);
-                };
-            };
+                    }
+                }
+            }
 
             result.push_back(entry);
             nEntries++;
-        };
+        }
     } // cs_wallet
 
     return result;

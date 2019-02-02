@@ -170,36 +170,19 @@ static UniValue smsgoptions(const JSONRPCRequest &request)
         }
 
         std::string optname = request.params[1].get_str();
-        std::string value   = request.params[2].get_str();
+        bool fValue = GetBool(request.params[2]);
 
         std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
-
-        bool fValue;
         if (optname == "newaddressrecv") {
-            if (part::GetStringBool(value, fValue)) {
-                smsgModule.options.fNewAddressRecv = fValue;
-            } else {
-                result.pushKV("result", "Unknown value.");
-                return result;
-            }
+            smsgModule.options.fNewAddressRecv = fValue;
             result.pushKV("set option", std::string("newAddressRecv = ") + (smsgModule.options.fNewAddressRecv ? "true" : "false"));
         } else
         if (optname == "newaddressanon") {
-            if (part::GetStringBool(value, fValue)) {
-                smsgModule.options.fNewAddressAnon = fValue;
-            } else {
-                result.pushKV("result", "Unknown value.");
-                return result;
-            }
+            smsgModule.options.fNewAddressAnon = fValue;
             result.pushKV("set option", std::string("newAddressAnon = ") + (smsgModule.options.fNewAddressAnon ? "true" : "false"));
         } else
         if (optname == "scanincoming") {
-            if (part::GetStringBool(value, fValue)) {
-                smsgModule.options.fScanIncoming = fValue;
-            } else {
-                result.pushKV("result", "Unknown value.");
-                return result;
-            }
+            smsgModule.options.fScanIncoming = fValue;
             result.pushKV("set option", std::string("scanIncoming = ") + (smsgModule.options.fScanIncoming ? "true" : "false"));
         } else {
             result.pushKV("result", "Option not found.");
@@ -311,14 +294,8 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             return result;
         }
 
-        std::string op      = request.params[1].get_str();
-        std::string addr    = request.params[2].get_str();
-
-        bool fValue;
-        if (!part::GetStringBool(op, fValue)) {
-            result.pushKV("result", "Unknown value.");
-            return result;
-        }
+        bool fValue = GetBool(request.params[1]);
+        std::string addr = request.params[2].get_str();
 
         CKeyID keyID;
         CBitcoinAddress coinAddress(addr);
@@ -348,14 +325,8 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             return result;
         }
 
-        std::string op      = request.params[1].get_str();
-        std::string addr    = request.params[2].get_str();
-
-        bool fValue;
-        if (!part::GetStringBool(op, fValue)) {
-            result.pushKV("result", "Unknown value.");
-            return result;
-        }
+        bool fValue = GetBool(request.params[1]);
+        std::string addr = request.params[2].get_str();
 
         CKeyID keyID;
         CBitcoinAddress coinAddress(addr);
