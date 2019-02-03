@@ -36,12 +36,6 @@ END_FOLD
 
 cd "particl-$HOST" || (echo "could not enter distdir particl-$HOST"; exit 1)
 
-if [ $((`date +%s`-$START_TIME)) -gt $DEPENDS_TIMEOUT ]; then
-  BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports -disable-bench --disable-tests --with-gui=no --with-incompatible-bdb"
-  RUN_UNIT_TESTS=false
-  RUN_FUNCTIONAL_TESTS=false;
-fi
-
 BEGIN_FOLD configure
 DOCKER_EXEC ./configure --cache-file=../config.cache $BITCOIN_CONFIG_ALL $BITCOIN_CONFIG || ( cat config.log && false)
 END_FOLD
@@ -53,29 +47,4 @@ BEGIN_FOLD build
 DOCKER_EXEC make $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && DOCKER_EXEC make $GOAL V=1 ; false )
 END_FOLD
 
-if [ $((`date +%s`-$START_TIME)) -gt $RUN_TESTS_TIMEOUT ]; then
-  RUN_UNIT_TESTS=false
-  RUN_FUNCTIONAL_TESTS=false;
-fi
-
-echo $((`date +%s`-$START_TIME))
-echo $RUN_TESTS_TIMEOUT
-echo "$RUN_UNIT_TESTS"
-echo "$RUN_FUNCTIONAL_TESTS"
-
-if [ "$RUN_UNIT_TESTS" = "true" ]; then
-  BEGIN_FOLD unit-tests
-  DOCKER_EXEC LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib make $MAKEJOBS check VERBOSE=1
-  END_FOLD
-fi
-
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
-  extended="--extended --exclude feature_pruning"
-fi
-
-if [ "$RUN_FUNCTIONAL_TESTS" = "true" ]; then
-  BEGIN_FOLD functional-tests
-  DOCKER_EXEC test/functional/test_runner.py --ci --combinedlogslen=4000 --coverage --quiet --failfast --particl --insight --bitcoin ${extended} ${FUNCTIONAL_TESTS_CONFIG}
-  END_FOLD
-fi
-
+cd ${TRAVIS_BUILD_DIR} || (echo "could not enter travis build dir $TRAVIS_BUILD_DIR"; exit 1)
