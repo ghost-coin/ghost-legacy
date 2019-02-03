@@ -791,7 +791,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                     {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
                         {
                             {"updatestatus", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "true", "Update read status if true."},
-                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "ascii", "Display message data in encoding, values: \"hex\"."},
+                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
                         },
                         "options"},
                 },
@@ -817,7 +817,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
     std::string mode = request.params[0].isStr() ? request.params[0].get_str() : "unread";
     std::string filter = request.params[1].isStr() ? request.params[1].get_str() : "";
 
-    std::string sEnc = "ascii";
+    std::string sEnc = "text";
     bool update_status = true;
     if (request.params[2].isObject()) {
         UniValue options = request.params[2].get_obj();
@@ -906,7 +906,9 @@ static UniValue smsginbox(const JSONRPCRequest &request)
 
                     objM.pushKV("from", msg.sFromAddress);
                     objM.pushKV("to", sAddrTo);
-                    if (sEnc == "ascii") {
+                    if (sEnc == "none") {
+                    } else
+                    if (sEnc == "text") {
                         objM.pushKV("text", sText);
                     } else
                     if (sEnc == "hex") {
@@ -958,7 +960,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                     {"filter", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
                     {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
                         {
-                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "ascii", "Display message data in encoding, values: \"hex\"."},
+                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
                         },
                         "options"},
                 },
@@ -982,7 +984,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
     std::string mode = request.params[0].isStr() ? request.params[0].get_str() : "all";
     std::string filter = request.params[1].isStr() ? request.params[1].get_str() : "";
 
-    std::string sEnc = "ascii";
+    std::string sEnc = "text";
     if (request.params[2].isObject()) {
         UniValue options = request.params[2].get_obj();
         if (options["encoding"].isStr()) {
@@ -1059,7 +1061,9 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
                     objM.pushKV("from", msg.sFromAddress);
                     objM.pushKV("to", sAddrTo);
-                    if (sEnc == "ascii") {
+                    if (sEnc == "none") {
+                    } else
+                    if (sEnc == "text") {
                         objM.pushKV("text", sText);
                     } else
                     if (sEnc == "hex") {
@@ -1509,7 +1513,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
                         {
                             {"delete", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Delete msg if true."},
                             {"setread", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Set read status to value."},
-                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "ascii", "Display message data in encoding, values: \"hex\"."},
+                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
                         },
                         "options"},
                 },
@@ -1636,6 +1640,8 @@ static UniValue smsgone(const JSONRPCRequest &request)
         &smsgStored.vchMessage[0], &smsgStored.vchMessage[smsg::SMSG_HDR_LEN], nPayload, msg)) == 0) {
         result.pushKV("from", msg.sFromAddress);
 
+        if (sEnc == "none") {
+        } else
         if (sEnc == "") {
             // TODO: detect non ascii chars
             if (msg.vchMessage.size() < smsg::SMSG_MAX_MSG_BYTES) {
@@ -1644,7 +1650,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
                 result.pushKV("hex", HexStr(msg.vchMessage));
             }
         } else
-        if (sEnc == "ascii") {
+        if (sEnc == "text") {
             result.pushKV("text", std::string((char*)msg.vchMessage.data()));
         } else
         if (sEnc == "hex") {

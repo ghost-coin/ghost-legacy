@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2018 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -89,7 +89,6 @@ class SmsgPaidFeeTest(ParticlTestFramework):
 
         ro = nodes[0].getblockchaininfo()
         assert(ro['blocks'] == 1)
-        #assert(ro['headers'] == 1)
 
         txb = bytearray.fromhex(coinstaketx)
         assert(txb[0] == 0xa0)  # tx version
@@ -122,7 +121,7 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         assert('bad-cs-smsg-fee' == nodes[2].submitblock(block_hex))
 
 
-        # Increase too large
+        self.log.info('Increase too large')
         varint = putvarint(50216)
         txb[50] += len(varint) + 1
         txb = txb[:55] + bytes([0x09, ]) + varint + txb[55:]
@@ -132,7 +131,7 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         assert('bad-cs-smsg-fee' == nodes[2].submitblock(block_hex))
 
 
-        # Decrease too large
+        self.log.info('Decrease too large')
         varint = putvarint(49784)
         txb[50] += len(varint) + 1
         txb = txb[:55] + bytes([0x09, ]) + varint + txb[55:]

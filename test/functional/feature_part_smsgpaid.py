@@ -52,9 +52,9 @@ class SmsgPaidTest(ParticlTestFramework):
         ro = nodes[0].smsglocalkeys()
         assert(len(ro['wallet_keys']) == 1)
 
-
         ro = nodes[1].smsgaddaddress(address0, ro['wallet_keys'][0]['public_key'])
         assert(ro['result'] == 'Public key added to db.')
+
 
         text_1 = "['data':'test','value':1]"
         ro = nodes[1].smsgsend(address1, address0, text_1, True, 4, True)
@@ -224,7 +224,7 @@ class SmsgPaidTest(ParticlTestFramework):
         assert(i < 10)
 
 
-        # Test filtering
+        self.log.info('Test filtering')
         ro = nodes[0].smsginbox('all', "'vAlue':2")
         assert(len(ro['messages']) == 1)
 
@@ -232,7 +232,7 @@ class SmsgPaidTest(ParticlTestFramework):
         assert(len(ro['messages']) == 1)
 
 
-        # Test clear and rescan
+        self.log.info('Test clear and rescan')
         ro = nodes[0].smsginbox('clear')
         assert('Deleted 5 messages' in ro['result'])
 
@@ -292,6 +292,25 @@ class SmsgPaidTest(ParticlTestFramework):
 
         with_immature = nodes[1].listunspent(query_options={'include_immature':True})
         assert(len(with_immature) > len(without_immature))
+
+
+        self.log.info('Test encoding options')
+        options = {'encoding': 'hex'}
+        ro = nodes[0].smsginbox('all', '', options)
+        assert(len(ro['messages']) == 5)
+        for msg in ro['messages']:
+            assert('hex' in msg)
+        options = {'encoding': 'text'}
+        ro = nodes[0].smsginbox('all', '', options)
+        assert(len(ro['messages']) == 5)
+        for msg in ro['messages']:
+            assert('text' in msg)
+        options = {'encoding': 'none'}
+        ro = nodes[0].smsginbox('all', '', options)
+        assert(len(ro['messages']) == 5)
+        for msg in ro['messages']:
+            assert('text' not in msg)
+            assert('hex' not in msg)
 
 
 if __name__ == '__main__':
