@@ -303,7 +303,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Envia monedes a una adreça Particl</translation>
+        <translation>Envia monedes a una adreça Particl.</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -326,8 +326,8 @@
         <translation>&amp;Verifica el missatge...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -727,8 +727,8 @@
         <translation>Utilitza un directori de dades personalitzat:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -1922,7 +1922,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Signa el missatge per provar que ets propietari d'esta adreça Particl</translation>
+        <translation>Signa el missatge per provar que ets propietari d'esta adreça Particl.</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>

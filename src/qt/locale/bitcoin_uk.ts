@@ -382,8 +382,8 @@
         <translation>П&amp;еревірити повідомлення...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -411,11 +411,11 @@
     </message>
     <message>
         <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Підтвердіть, що Ви є власником повідомлення підписавши його Вашою Particl-адресою </translation>
+        <translation>Підтвердіть, що Ви є власником повідомлення підписавши його Вашою Particl.адресою </translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Перевірте повідомлення для впевненості, що воно підписано вказаною Particl-адресою</translation>
+        <translation>Перевірте повідомлення для впевненості, що воно підписано вказаною Particl.адресою</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -455,7 +455,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n активне з'єднання з мережею Particl</numerusform><numerusform>%n активні з'єднання з мережею Particl</numerusform><numerusform>%n активних з'єднань з мережею Particl</numerusform><numerusform>%n активних з'єднань з мережею Particl</numerusform></translation>
+        <translation><numerusform>%n активне з'єднання з мережею Particl.</numerusform><numerusform>%n активні з'єднання з мережею Particl.</numerusform><numerusform>%n активних з'єднань з мережею Particl.</numerusform><numerusform>%n активних з'єднань з мережею Particl.</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -853,8 +853,8 @@
         <translation>Використовувати свій каталог даних:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -2514,11 +2514,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Particl address the message was signed with</source>
-        <translation>Адреса Particl, якою було підписано це повідомлення</translation>
+        <translation>Адреса Particl. якою було підписано це повідомлення</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Перевірте повідомлення для впевненості, що воно підписано вказаною Particl-адресою</translation>
+        <translation>Перевірте повідомлення для впевненості, що воно підписано вказаною Particl.адресою</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -3476,12 +3476,6 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     <message>
         <source>Specified -walletdir "%s" is not a directory</source>
         <translation>Вказаний шлях -walletdir "%s" не є каталогом</translation>
-    </message>
-    <message>
-        <source>Specified blocks directory "%s" does not exist.
-</source>
-        <translation>Вказаний шлях до блоків "%s" не існує
-</translation>
     </message>
     <message>
         <source>The transaction amount is too small to pay the fee</source>

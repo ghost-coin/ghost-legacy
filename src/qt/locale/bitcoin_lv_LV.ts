@@ -238,8 +238,8 @@
         <translation>&amp;Pārbaudīt ziņojumu...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -469,8 +469,8 @@
         <translation>Izmantot pielāgotu datu mapi:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Error</source>

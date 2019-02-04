@@ -326,7 +326,7 @@
         <translation>Праверыць паведамленне...</translation>
     </message>
     <message>
-        <source>Particl</source>
+        <source>Particl.</source>
         <translation>Біткойн</translation>
     </message>
     <message>
@@ -659,7 +659,7 @@
         <translation>Вітаем</translation>
     </message>
     <message>
-        <source>Particl</source>
+        <source>Particl.</source>
         <translation>Біткойн</translation>
     </message>
     <message>

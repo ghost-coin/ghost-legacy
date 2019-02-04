@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Nämä ovat Particl-osoitteesi maksujen lähettämistä varten. Tarkista aina määrä ja vastaanotto-osoite ennen kolikoiden lähettämistä.</translation>
+        <translation>Nämä ovat Particl.osoitteesi maksujen lähettämistä varten. Tarkista aina määrä ja vastaanotto-osoite ennen kolikoiden lähettämistä.</translation>
     </message>
     <message>
         <source>These are your Particl addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
@@ -177,7 +177,7 @@
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Varoitus: Jos salaat lompakkosi ja menetät tunnuslauseesi, &lt;b&gt;MENETÄT KAIKKI BITCOINISI&lt;/b&gt;!</translation>
+        <translation>Varoitus: Jos salaat lompakkosi ja menetät tunnuslauseesi, &lt;b&gt;MENETÄT KAIKKI PARTICLISI&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -326,6 +326,14 @@
         <translation>Avaa &amp;URI...</translation>
     </message>
     <message>
+        <source>Wallet:</source>
+        <translation>Lompakko:</translation>
+    </message>
+    <message>
+        <source>default wallet</source>
+        <translation>oletuslompakko</translation>
+    </message>
+    <message>
         <source>Click to disable network activity.</source>
         <translation>Paina poistaaksesi verkkoyhteysilmaisin käytöstä.</translation>
     </message>
@@ -346,8 +354,12 @@
         <translation>Ladataan lohkoindeksiä...</translation>
     </message>
     <message>
+        <source>Proxy is &lt;b&gt;enabled&lt;/b&gt;: %1</source>
+        <translation>Välipalvelin on &lt;b&gt;käytössä&lt;/b&gt;: %1</translation>
+    </message>
+    <message>
         <source>Send coins to a Particl address</source>
-        <translation>Lähetä kolikoita Particl-osoitteeseen</translation>
+        <translation>Lähetä kolikoita Particl.osoitteeseen</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -370,8 +382,8 @@
         <translation>Varmista &amp;viesti...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -391,7 +403,7 @@
     </message>
     <message>
         <source>Show or hide the main Window</source>
-        <translation>Näytä tai piilota Particl-ikkuna</translation>
+        <translation>Näytä tai piilota Particl.ikkuna</translation>
     </message>
     <message>
         <source>Encrypt the private keys that belong to your wallet</source>
@@ -441,6 +453,10 @@
         <source>&amp;Command-line options</source>
         <translation>&amp;Komentorivin valinnat</translation>
     </message>
+    <message numerus="yes">
+        <source>%n active connection(s) to Particl network</source>
+        <translation><numerusform>%n aktiivinen yhteys Particl.verkkoon</numerusform><numerusform>%n aktiivista yhteyttä Particl.verkkoon</numerusform></translation>
+    </message>
     <message>
         <source>Indexing blocks on disk...</source>
         <translation>Ladataan lohkoindeksiä...</translation>
@@ -448,6 +464,10 @@
     <message>
         <source>Processing blocks on disk...</source>
         <translation>Käsitellään lohkoja levyllä...</translation>
+    </message>
+    <message numerus="yes">
+        <source>Processed %n block(s) of transaction history.</source>
+        <translation><numerusform>Käsitelty %n lohko rahansiirtohistoriasta.</numerusform><numerusform>Käsitelty %n lohkoa rahansiirtohistoriasta.</numerusform></translation>
     </message>
     <message>
         <source>%1 behind</source>
@@ -479,7 +499,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
-        <translation>Näytä %1 ohjeet saadaksesi listan mahdollisista Particlin komentorivivalinnoista</translation>
+        <translation>Näytä %1 ohjeet saadaksesi listan mahdollisista Particl.n komentorivivalinnoista</translation>
     </message>
     <message>
         <source>%1 client</source>
@@ -739,7 +759,15 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Particl address.</source>
-        <translation>Antamasi osoite "%1" ei ole kelvollinen Particl-osoite.</translation>
+        <translation>Antamasi osoite "%1" ei ole kelvollinen Particl.osoite.</translation>
+    </message>
+    <message>
+        <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
+        <translation>Osoite "%1" on jo vastaanotto-osoitteena nimellä "%2", joten sitä ei voi lisätä lähetysosoitteeksi.</translation>
+    </message>
+    <message>
+        <source>The entered address "%1" is already in the address book with label "%2".</source>
+        <translation>Syötetty osoite "%1" on jo osoitekirjassa nimellä "%2".</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -827,8 +855,8 @@
         <translation>Määritä oma kansio:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -840,7 +868,7 @@
     </message>
     <message>
         <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 lataa ja tallentaa kopion Particlin lohkoketjusta.</translation>
+        <translation>%1 lataa ja tallentaa kopion Particl.n lohkoketjusta.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -854,7 +882,15 @@
         <source>Error</source>
         <translation>Virhe</translation>
     </message>
-    </context>
+    <message numerus="yes">
+        <source>%n GB of free space available</source>
+        <translation><numerusform>%n GB tilaa vapaana</numerusform><numerusform>%n GB tilaa vapaana</numerusform></translation>
+    </message>
+    <message numerus="yes">
+        <source>(of %n GB needed)</source>
+        <translation><numerusform>(tarvitaan %n GB)</numerusform><numerusform>(tarvitaan %n GB)</numerusform></translation>
+    </message>
+</context>
 <context>
     <name>ModalOverlay</name>
     <message>
@@ -957,7 +993,7 @@
     </message>
     <message>
         <source>Number of script &amp;verification threads</source>
-        <translation>Script &amp;varmistuksen threadien määrä</translation>
+        <translation>Säikeiden määrä skriptien &amp;varmistuksessa</translation>
     </message>
     <message>
         <source>IP address of the proxy (e.g. IPv4: 127.0.0.1 / IPv6: ::1)</source>
@@ -966,6 +1002,10 @@
     <message>
         <source>Shows if the supplied default SOCKS5 proxy is used to reach peers via this network type.</source>
         <translation>Ilmoittaa, mikäli oletetettua SOCKS5-välityspalvelinta käytetään vertaisten tavoittamiseen tämän verkkotyypin kautta.</translation>
+    </message>
+    <message>
+        <source>Use separate SOCKS&amp;5 proxy to reach peers via Tor hidden services:</source>
+        <translation>Käytä SOCKS&amp;5-välityspalvelinta tavoittamaan Tor-verkon piilotetut palvelut:</translation>
     </message>
     <message>
         <source>Hide the icon from the system tray.</source>
@@ -1008,6 +1048,18 @@
         <translation>&amp;Verkko</translation>
     </message>
     <message>
+        <source>Disables some advanced features but all blocks will still be fully validated. Reverting this setting requires re-downloading the entire blockchain. Actual disk usage may be somewhat higher.</source>
+        <translation>Jättää pois joitain edistyneitä ominaisuuksia, mutta silti varmistaa kaikki lohkot kokonaan. Tämän asetuksen muutto vaatii koko lohkoketjun uudelleen lataamisen. Levyn käyttöaste saattaa olla hiukan suurempaa.</translation>
+    </message>
+    <message>
+        <source>Prune &amp;block storage to</source>
+        <translation>Karsi lohkovaraston kooksi</translation>
+    </message>
+    <message>
+        <source>Reverting this setting requires re-downloading the entire blockchain.</source>
+        <translation>Tämän asetuksen muuttaminen vaatii koko lohkoketjun uudelleenlataamista.</translation>
+    </message>
+    <message>
         <source>(0 = auto, &lt;0 = leave that many cores free)</source>
         <translation>(0 = auto, &lt;0 = jätä näin monta ydintä vapaaksi)</translation>
     </message>
@@ -1033,7 +1085,7 @@
     </message>
     <message>
         <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Avaa Particl-asiakasohjelman portti reitittimellä automaattisesti. Tämä toimii vain, jos reitittimesi tukee UPnP:tä ja se on käytössä.</translation>
+        <translation>Avaa Particl.asiakasohjelman portti reitittimellä automaattisesti. Tämä toimii vain, jos reitittimesi tukee UPnP:tä ja se on käytössä.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1049,7 +1101,7 @@
     </message>
     <message>
         <source>Connect to the Particl network through a SOCKS5 proxy.</source>
-        <translation>Yhdistä Particl-verkkoon SOCKS5-välityspalvelimen kautta.</translation>
+        <translation>Yhdistä Particl.verkkoon SOCKS5-välityspalvelimen kautta.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1085,7 +1137,7 @@
     </message>
     <message>
         <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Yhdistä Particl-verkkoon erillisen SOCKS5-välityspalvelimen kautta piilotettuja Tor-palveluja varten.</translation>
+        <translation>Yhdistä Particl.verkkoon erillisen SOCKS5-välityspalvelimen kautta piilotettuja Tor-palveluja varten.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1192,7 +1244,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
-        <translation>Näytetyt tiedot eivät välttämättä ole ajantasalla. Lompakkosi synkronoituu Particl-verkon kanssa automaattisesti yhteyden muodostamisen jälkeen, mutta synkronointi on vielä meneillään.</translation>
+        <translation>Näytetyt tiedot eivät välttämättä ole ajantasalla. Lompakkosi synkronoituu Particl.verkon kanssa automaattisesti yhteyden muodostamisen jälkeen, mutta synkronointi on vielä meneillään.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1232,7 +1284,7 @@
     </message>
     <message>
         <source>Your current total balance</source>
-        <translation>Tililläsi tällä hetkellä olevien Particlien määrä</translation>
+        <translation>Tililläsi tällä hetkellä olevien Particl.en määrä</translation>
     </message>
     <message>
         <source>Your current balance in watch-only addresses</source>
@@ -1267,11 +1319,15 @@
     </message>
     <message>
         <source>Cannot start particl: click-to-pay handler</source>
-        <translation>Particlia ei voi käynnistää: klikkaa-maksaaksesi -käsittelijän virhe</translation>
+        <translation>Particl.a ei voi käynnistää: klikkaa-maksaaksesi -käsittelijän virhe</translation>
     </message>
     <message>
         <source>URI handling</source>
         <translation>URI käsittely</translation>
+    </message>
+    <message>
+        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
+        <translation>'particl://' ei ole kelvollinen URI. Käytä 'particl:' sen sijaan.</translation>
     </message>
     <message>
         <source>Payment request fetch URL is invalid: %1</source>
@@ -1283,7 +1339,7 @@
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
-        <translation>URIa ei voitu jäsentää! Tämä voi johtua virheellisestä Particl-osoitteesta tai väärin muotoilluista URI parametreista.</translation>
+        <translation>URIa ei voitu jäsentää! Tämä voi johtua virheellisestä Particl.osoitteesta tai väärin muotoilluista URI parametreista.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1385,7 +1441,7 @@
     </message>
     <message>
         <source>Enter a Particl address (e.g. %1)</source>
-        <translation>Syötä Particl-osoite (esim. %1)</translation>
+        <translation>Syötä Particl.osoite (esim. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1447,8 +1503,16 @@
 <context>
     <name>QObject::QObject</name>
     <message>
+        <source>Error parsing command line arguments: %1.</source>
+        <translation>Virhe käsitellessä komentorivin valintaa: %1.</translation>
+    </message>
+    <message>
         <source>Error: Specified data directory "%1" does not exist.</source>
         <translation>Virhe: Annettua data-hakemistoa "%1" ei ole olemassa.</translation>
+    </message>
+    <message>
+        <source>Error: Cannot parse configuration file: %1.</source>
+        <translation>Virhe: Asetustiedostoa ei voida käsitellä: %1.</translation>
     </message>
     <message>
         <source>Error: %1</source>
@@ -1709,6 +1773,10 @@
         <translation>&amp;Poista esto</translation>
     </message>
     <message>
+        <source>default wallet</source>
+        <translation>oletuslompakko</translation>
+    </message>
+    <message>
         <source>Welcome to the %1 RPC console.</source>
         <translation>Tervetuloa %1 RPC-konsoliin.</translation>
     </message>
@@ -1777,7 +1845,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
-        <translation>Valinnainen viesti liitetään maksupyyntöön ja näytetään avattaessa. Viestiä ei lähetetä Particl-verkkoon.</translation>
+        <translation>Valinnainen viesti liitetään maksupyyntöön ja näytetään avattaessa. Viestiä ei lähetetä Particl.verkkoon.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -1798,6 +1866,10 @@
     <message>
         <source>Clear</source>
         <translation>Tyhjennä</translation>
+    </message>
+    <message>
+        <source>Generate native segwit (Bech32) address</source>
+        <translation>Luo natiivi segwit (Bech32) -osoite</translation>
     </message>
     <message>
         <source>Requested payments history</source>
@@ -2013,6 +2085,10 @@
         <translation>Piilota</translation>
     </message>
     <message>
+        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
+        <translation>Vähimmäispalkkion maksaminen käy hyvin, kunhan verkossa on vähemmän siirtotapahtumia kuin lohkoissa on tilaa. Huomaa, että tämä saattaa johtaa ei-koskaan-vahvistuvaan siirtoon, jos verkon käsittelykyky ylittyy.</translation>
+    </message>
+    <message>
         <source>(read the tooltip)</source>
         <translation>(lue työkaluvinkki)</translation>
     </message>
@@ -2051,6 +2127,10 @@
     <message>
         <source>Enable Replace-By-Fee</source>
         <translation>Käytä Replace-By-Fee:tä</translation>
+    </message>
+    <message>
+        <source>With Replace-By-Fee (BIP-125) you can increase a transaction's fee after it is sent. Without this, a higher fee may be recommended to compensate for increased transaction delay risk.</source>
+        <translation>Replace-By-Fee:tä (BIP-125) käyttämällä voit korottaa siirtotapahtuman palkkiota sen lähettämisen jälkeen. Ilman tätä saatetaan suositella käyttämään suurempaa palkkiota kompensoimaan viiveen kasvamisen riskiä.</translation>
     </message>
     <message>
         <source>Clear &amp;All</source>
@@ -2113,6 +2193,14 @@
         <translation>tai</translation>
     </message>
     <message>
+        <source>You can increase the fee later (signals Replace-By-Fee, BIP-125).</source>
+        <translation>Voit korottaa palkkiota myöhemmin (osoittaa Replace-By-Fee:tä, BIP-125).</translation>
+    </message>
+    <message>
+        <source>Please, review your transaction.</source>
+        <translation>Tarkistathan siirtosi.</translation>
+    </message>
+    <message>
         <source>Transaction fee</source>
         <translation>Siirtokulu</translation>
     </message>
@@ -2160,9 +2248,13 @@
         <source>Pay only the required fee of %1</source>
         <translation>Maksa vain vaadittu kulu %1 </translation>
     </message>
+    <message numerus="yes">
+        <source>Estimated to begin confirmation within %n block(s).</source>
+        <translation><numerusform>Vahvistuminen alkaa arviolta %n lohkon sisällä.</numerusform><numerusform>Vahvistuminen alkaa arviolta %n lohkon sisällä.</numerusform></translation>
+    </message>
     <message>
         <source>Warning: Invalid Particl address</source>
-        <translation>Varoitus: Virheellinen Particl-osoite </translation>
+        <translation>Varoitus: Virheellinen Particl.osoite </translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2205,7 +2297,7 @@
     </message>
     <message>
         <source>The Particl address to send the payment to</source>
-        <translation>Particl-osoite johon maksu lähetetään</translation>
+        <translation>Particl.osoite johon maksu lähetetään</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2253,7 +2345,7 @@
     </message>
     <message>
         <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Viesti joka liitettiin particl: URI:iin tallennetaan rahansiirtoon viitteeksi. Tätä viestiä ei lähetetä Particl-verkkoon.</translation>
+        <translation>Viesti joka liitettiin particl: URI:iin tallennetaan rahansiirtoon viitteeksi. Tätä viestiä ei lähetetä Particl.verkkoon.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2302,7 +2394,7 @@
     </message>
     <message>
         <source>The Particl address to sign the message with</source>
-        <translation>Particl-osoite jolla viesti allekirjoitetaan</translation>
+        <translation>Particl.osoite jolla viesti allekirjoitetaan</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2334,7 +2426,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Allekirjoita viesti todistaaksesi, että omistat tämän Particl-osoitteen</translation>
+        <translation>Allekirjoita viesti todistaaksesi, että omistat tämän Particl.osoitteen</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2358,11 +2450,11 @@
     </message>
     <message>
         <source>The Particl address the message was signed with</source>
-        <translation>Particl-osoite jolla viesti on allekirjoitettu</translation>
+        <translation>Particl.osoite jolla viesti on allekirjoitettu</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Tarkista viestin allekirjoitus varmistaaksesi, että se allekirjoitettiin tietyllä Particl-osoitteella</translation>
+        <translation>Tarkista viestin allekirjoitus varmistaaksesi, että se allekirjoitettiin tietyllä Particl.osoitteella</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -2441,6 +2533,10 @@
 </context>
 <context>
     <name>TransactionDesc</name>
+    <message numerus="yes">
+        <source>Open for %n more block(s)</source>
+        <translation><numerusform>Avoinna vielä %n lohkon ajan</numerusform><numerusform>Avoinna vielä %n lohkon ajan</numerusform></translation>
+    </message>
     <message>
         <source>Open until %1</source>
         <translation>Avoinna %1 asti</translation>
@@ -2614,6 +2710,10 @@
     <message>
         <source>Label</source>
         <translation>Nimike</translation>
+    </message>
+    <message numerus="yes">
+        <source>Open for %n more block(s)</source>
+        <translation><numerusform>Avoinna vielä %n lohkon ajan</numerusform><numerusform>Avoinna vielä %n lohkon ajan</numerusform></translation>
     </message>
     <message>
         <source>Open until %1</source>
@@ -2884,6 +2984,10 @@
         <translation>Lähetä kolikoita</translation>
     </message>
     <message>
+        <source>Fee bump error</source>
+        <translation>Virhe nostaessa palkkiota.</translation>
+    </message>
+    <message>
         <source>Increasing transaction fee failed</source>
         <translation>Siirtokulun nosto epäonnistui</translation>
     </message>
@@ -2950,7 +3054,11 @@
         <source>The wallet data was successfully saved to %1.</source>
         <translation>Lompakko tallennettiin onnistuneesti tiedostoon %1.</translation>
     </message>
-    </context>
+    <message>
+        <source>Cancel</source>
+        <translation>Peruuta</translation>
+    </message>
+</context>
 <context>
     <name>bitcoin-core</name>
     <message>
@@ -2983,7 +3091,7 @@
     </message>
     <message>
         <source>Particl Core</source>
-        <translation>Particl-ydin</translation>
+        <translation>Particl.ydin</translation>
     </message>
     <message>
         <source>The %s developers</source>
@@ -3122,6 +3230,14 @@
         <translation>Virheellinen määrä -fallbackfee=&lt;amount&gt;: '%s'</translation>
     </message>
     <message>
+        <source>Specified blocks directory "%s" does not exist.</source>
+        <translation>Määrättyä lohkohakemistoa "%s" ei ole olemassa.</translation>
+    </message>
+    <message>
+        <source>Upgrading txindex database</source>
+        <translation>Päivitetään txindex -tietokantaa</translation>
+    </message>
+    <message>
         <source>Loading P2P addresses...</source>
         <translation>Ladataan P2P-vertaisten osoitteita...</translation>
     </message>
@@ -3142,6 +3258,10 @@
         <translation>Karsittu tila ei ole yhteensopiva -txindex:n kanssa.</translation>
     </message>
     <message>
+        <source>Replaying blocks...</source>
+        <translation>Tarkastetaan lohkoja..</translation>
+    </message>
+    <message>
         <source>Rewinding blocks...</source>
         <translation>Varmistetaan lohkoja...</translation>
     </message>
@@ -3156,6 +3276,10 @@
     <message>
         <source>Unable to bind to %s on this computer. %s is probably already running.</source>
         <translation>Kytkeytyminen kohteeseen %s ei onnistu tällä tietokoneella. %s on luultavasti jo käynnissä.</translation>
+    </message>
+    <message>
+        <source>Unable to generate keys</source>
+        <translation>Avaimia ei voitu luoda</translation>
     </message>
     <message>
         <source>Unsupported argument -benchmark ignored, use -debug=bench.</source>
@@ -3206,6 +3330,10 @@
         <translation>Virheitä tietokantaa luettaessa, ohjelma pysäytetään.</translation>
     </message>
     <message>
+        <source>Error upgrading chainstate database</source>
+        <translation>Virhe päivittäessä chainstate-tietokantaa</translation>
+    </message>
+    <message>
         <source>Information</source>
         <translation>Tietoa</translation>
     </message>
@@ -3238,6 +3366,14 @@
         <translation>Siirron vahvistus epäonnistui</translation>
     </message>
     <message>
+        <source>Specified -walletdir "%s" does not exist</source>
+        <translation>Määriteltyä lompakon hakemistoa "%s" ei ole olemassa.</translation>
+    </message>
+    <message>
+        <source>Specified -walletdir "%s" is a relative path</source>
+        <translation>Määritelty lompakkohakemisto "%s" sijaitsee suhteellisessa polussa</translation>
+    </message>
+    <message>
         <source>The transaction amount is too small to pay the fee</source>
         <translation>Rahansiirron määrä on liian pieni kattaakseen maksukulun</translation>
     </message>
@@ -3266,6 +3402,10 @@
         <translation>Varmistetaan lompakko(ja)...</translation>
     </message>
     <message>
+        <source>Wallet %s resides outside wallet directory %s</source>
+        <translation>Lompakko %s sijaitsee lompakkohakemiston %s ulkopuolella.</translation>
+    </message>
+    <message>
         <source>Warning</source>
         <translation>Varoitus</translation>
     </message>
@@ -3284,6 +3424,10 @@
     <message>
         <source>Error loading %s: You can't enable HD on an already existing non-HD wallet</source>
         <translation>Virhe ladattaessa %s: Et voi ottaa HD:ta käyttöön jo olemassa olevalle ei-HD -lompakolle.</translation>
+    </message>
+    <message>
+        <source>This is the transaction fee you may pay when fee estimates are not available.</source>
+        <translation>Tämän siirtomaksun maksat, kun siirtomaksun arviointi ei ole käytettävissä.</translation>
     </message>
     <message>
         <source>Unsupported argument -socks found. Setting SOCKS version isn't possible anymore, only SOCKS5 proxies are supported.</source>
@@ -3314,6 +3458,10 @@
         <translation>Käynnistetään verkkoa...</translation>
     </message>
     <message>
+        <source>The wallet will avoid paying less than the minimum relay fee.</source>
+        <translation>Lompakko välttää maksamasta alle vähimmäisen välityskulun.</translation>
+    </message>
+    <message>
         <source>This is the minimum transaction fee you pay on every transaction.</source>
         <translation>Tämä on jokaisesta siirrosta maksettava vähimmäismaksu.</translation>
     </message>
@@ -3340,6 +3488,14 @@
     <message>
         <source>Insufficient funds</source>
         <translation>Lompakon saldo ei riitä</translation>
+    </message>
+    <message>
+        <source>Can't generate a change-address key. Private keys are disabled for this wallet.</source>
+        <translation>Vaihtorahaosoitetteen avainta ei voitu luoda. Yksityisavaimet on poistettu käytöstä tässä lompakossa.</translation>
+    </message>
+    <message>
+        <source>Fee estimation failed. Fallbackfee is disabled. Wait a few blocks or enable -fallbackfee.</source>
+        <translation>Siirtomaksun arviointi epäonnistui. Odota muutama lohko tai käytä -fallbackfee -valintaa..</translation>
     </message>
     <message>
         <source>Loading block index...</source>

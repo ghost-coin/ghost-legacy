@@ -382,7 +382,7 @@
         <translation>&amp;Верификовање поруке...</translation>
     </message>
     <message>
-        <source>Particl</source>
+        <source>Particl.</source>
         <translation>Биткоин</translation>
     </message>
     <message>
@@ -826,7 +826,7 @@
         <translation>Користите прилагођени директоријум података:</translation>
     </message>
     <message>
-        <source>Particl</source>
+        <source>Particl.</source>
         <translation>Биткоин</translation>
     </message>
     <message>

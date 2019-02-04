@@ -177,7 +177,7 @@
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Προσόχη! Εάν κρυπτογραφήσεις το πορτοφόλι σου και χάσεις τη φράση αποκατάστασης, θα &lt;b&gt; ΧΑΣΕΙΣ ΟΛΑ ΣΟΥ ΤΑ BITCOIN &lt;/b&gt;!</translation>
+        <translation>Προσόχη! Εάν κρυπτογραφήσεις το πορτοφόλι σου και χάσεις τη φράση αποκατάστασης, θα &lt;b&gt; ΧΑΣΕΙΣ ΟΛΑ ΣΟΥ ΤΑ PARTICL &lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -234,7 +234,11 @@
         <source>IP/Netmask</source>
         <translation>IP/Netmask</translation>
     </message>
-    </context>
+    <message>
+        <source>Banned Until</source>
+        <translation>Απαγορευμένο έως</translation>
+    </message>
+</context>
 <context>
     <name>BitcoinGUI</name>
     <message>
@@ -326,6 +330,10 @@
         <translation>Πορτοφόλι</translation>
     </message>
     <message>
+        <source>default wallet</source>
+        <translation>Προεπιλεγμένο πορτοφόλι</translation>
+    </message>
+    <message>
         <source>Click to disable network activity.</source>
         <translation>Κάντε κλικ για να απενεργοποιήσετε το δίκτυο.</translation>
     </message>
@@ -336,6 +344,10 @@
     <message>
         <source>Click to enable network activity again.</source>
         <translation>Κάντε κλικ για να ενεργοποιήσετε τo δίκτυο ξανά.</translation>
+    </message>
+    <message>
+        <source>Syncing Headers (%1%)...</source>
+        <translation>Συγχρονισμός Επικεφαλίδων (%1%)...</translation>
     </message>
     <message>
         <source>Reindexing blocks on disk...</source>
@@ -366,8 +378,8 @@
         <translation>&amp;Επιβεβαίωση μηνύματος</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -399,7 +411,7 @@
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Υπογράψτε ένα μήνυμα για ν' αποδείξετε πως ανήκει μια συγκεκριμένη διεύθυνση Particl</translation>
+        <translation>Υπογράψτε ένα μήνυμα για ν' αποδείξετε πως ανήκει μια συγκεκριμένη διεύθυνση Particl.</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -487,6 +499,12 @@
         <source>Amount: %1
 </source>
         <translation>Ποσό: %1
+</translation>
+    </message>
+    <message>
+        <source>Wallet: %1
+</source>
+        <translation>Πορτοφόλι: %1
 </translation>
     </message>
     <message>
@@ -611,6 +629,14 @@
         <translation>Αντιγραφή ταυτότητας συναλλαγής</translation>
     </message>
     <message>
+        <source>Copy quantity</source>
+        <translation>Αντιγραφή ποσότητας</translation>
+    </message>
+    <message>
+        <source>Copy fee</source>
+        <translation>Αντιγραφή τελών</translation>
+    </message>
+    <message>
         <source>yes</source>
         <translation>ναι</translation>
     </message>
@@ -661,7 +687,27 @@
         <source>Edit sending address</source>
         <translation> Επεξεργασία διεύθυνσης αποστολής</translation>
     </message>
-    </context>
+    <message>
+        <source>The entered address "%1" is not a valid Particl address.</source>
+        <translation>Η διεύθυνση "%1" δεν είναι έγκυρη Particl διεύθυνση.</translation>
+    </message>
+    <message>
+        <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
+        <translation>Η διεύθυνση "%1"  υπάρχει ήδη ως διεύθυνσης λήψης με ετικέτα "%2" και γιαυτό τον λόγο δεν μπορεί να προστεθεί ως διεύθυνση αποστολής.</translation>
+    </message>
+    <message>
+        <source>The entered address "%1" is already in the address book with label "%2".</source>
+        <translation>Η διεύθυνση "%1" βρίσκεται ήδη στο βιβλίο διευθύνσεων με ετικέτα "%2".</translation>
+    </message>
+    <message>
+        <source>Could not unlock wallet.</source>
+        <translation>Δεν είναι δυνατό το ξεκλείδωμα του πορτοφολιού.</translation>
+    </message>
+    <message>
+        <source>New key generation failed.</source>
+        <translation>Η δημιουργία νέου κλειδιού απέτυχε.</translation>
+    </message>
+</context>
 <context>
     <name>FreespaceChecker</name>
     <message>
@@ -696,6 +742,10 @@
         <translation>(%1-bit)</translation>
     </message>
     <message>
+        <source>About %1</source>
+        <translation>Σχετικά %1</translation>
+    </message>
+    <message>
         <source>Command-line options</source>
         <translation>Επιλογές γραμμής εντολών</translation>
     </message>
@@ -715,8 +765,8 @@
         <translation>Προσαρμογή του φακέλου δεδομένων: </translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -828,6 +878,10 @@
         <translation>&amp;Δίκτυο</translation>
     </message>
     <message>
+        <source>GB</source>
+        <translation>GB</translation>
+    </message>
+    <message>
         <source>(0 = auto, &lt;0 = leave that many cores free)</source>
         <translation>(0 = αυτόματο, &lt;0 = ελεύθεροι πυρήνες)</translation>
     </message>
@@ -878,6 +932,18 @@
     <message>
         <source>Port of the proxy (e.g. 9050)</source>
         <translation>Θύρα διαμεσολαβητή</translation>
+    </message>
+    <message>
+        <source>IPv4</source>
+        <translation>IPv4</translation>
+    </message>
+    <message>
+        <source>IPv6</source>
+        <translation>IPv6</translation>
+    </message>
+    <message>
+        <source>Tor</source>
+        <translation>Tor</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1181,6 +1247,10 @@
         <translation>Τρέχον αριθμός μπλοκ</translation>
     </message>
     <message>
+        <source>Memory usage</source>
+        <translation>χρήση Μνήμης</translation>
+    </message>
+    <message>
         <source>Received</source>
         <translation>Παραλήφθησαν</translation>
     </message>
@@ -1199,6 +1269,14 @@
     <message>
         <source>Version</source>
         <translation>Έκδοση</translation>
+    </message>
+    <message>
+        <source>Decrease font size</source>
+        <translation>Μείωση μεγέθους γραμματοσειράς</translation>
+    </message>
+    <message>
+        <source>Increase font size</source>
+        <translation>Αύξηση μεγέθους γραμματοσειράς</translation>
     </message>
     <message>
         <source>Services</source>
@@ -1261,6 +1339,26 @@
         <translation>Καθαρισμός κονσόλας</translation>
     </message>
     <message>
+        <source>1 &amp;hour</source>
+        <translation>1 &amp;ώρα</translation>
+    </message>
+    <message>
+        <source>1 &amp;day</source>
+        <translation>1 &amp;μέρα</translation>
+    </message>
+    <message>
+        <source>1 &amp;week</source>
+        <translation>1 &amp;εβδομάδα</translation>
+    </message>
+    <message>
+        <source>1 &amp;year</source>
+        <translation>1 &amp;χρόνος</translation>
+    </message>
+    <message>
+        <source>default wallet</source>
+        <translation>Προεπιλεγμένο πορτοφόλι</translation>
+    </message>
+    <message>
         <source>via %1</source>
         <translation>μέσω %1</translation>
     </message>
@@ -1275,6 +1373,14 @@
     <message>
         <source>Outbound</source>
         <translation>Εξερχόμενα</translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation>Ναι</translation>
+    </message>
+    <message>
+        <source>No</source>
+        <translation>Όχι</translation>
     </message>
     <message>
         <source>Unknown</source>
@@ -1328,6 +1434,10 @@
         <translation>Αντιγραφή ετικέτας</translation>
     </message>
     <message>
+        <source>Copy message</source>
+        <translation>Αντιγραφή μηνύματος</translation>
+    </message>
+    <message>
         <source>Copy amount</source>
         <translation>Αντιγραφή ποσού</translation>
     </message>
@@ -1351,12 +1461,24 @@
         <translation>&amp;Αποθήκευση εικόνας...</translation>
     </message>
     <message>
+        <source>Payment information</source>
+        <translation>Πληροφορίες πληρωμής</translation>
+    </message>
+    <message>
         <source>Address</source>
         <translation>Διεύθυνση</translation>
     </message>
     <message>
+        <source>Amount</source>
+        <translation>Ποσό</translation>
+    </message>
+    <message>
         <source>Label</source>
         <translation>Ετικέτα</translation>
+    </message>
+    <message>
+        <source>Message</source>
+        <translation>Μήνυμα</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -1372,6 +1494,10 @@
     <message>
         <source>Label</source>
         <translation>Ετικέτα</translation>
+    </message>
+    <message>
+        <source>Message</source>
+        <translation>Μήνυμα</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -1489,8 +1615,20 @@
         <translation>Αποστολή</translation>
     </message>
     <message>
+        <source>Copy quantity</source>
+        <translation>Αντιγραφή ποσότητας</translation>
+    </message>
+    <message>
         <source>Copy amount</source>
         <translation>Αντιγραφή ποσού</translation>
+    </message>
+    <message>
+        <source>Copy fee</source>
+        <translation>Αντιγραφή τελών</translation>
+    </message>
+    <message>
+        <source>or</source>
+        <translation>ή</translation>
     </message>
     <message>
         <source>Transaction fee</source>
@@ -1562,7 +1700,11 @@
     </context>
 <context>
     <name>SendConfirmationDialog</name>
-    </context>
+    <message>
+        <source>Yes</source>
+        <translation>Ναι</translation>
+    </message>
+</context>
 <context>
     <name>ShutdownWindow</name>
     <message>
@@ -1614,7 +1756,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Υπογράψτε το μήνυμα για να αποδείξετε πως σας ανήκει η συγκεκριμένη διεύθυνση Particl</translation>
+        <translation>Υπογράψτε το μήνυμα για να αποδείξετε πως σας ανήκει η συγκεκριμένη διεύθυνση Particl.</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1638,7 +1780,7 @@
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Επαληθεύστε το μήνυμα για να αποδείξετε πως υπογράφθηκε από τη συγκεκριμένη διεύθυνση Particl</translation>
+        <translation>Επαληθεύστε το μήνυμα για να αποδείξετε πως υπογράφθηκε από τη συγκεκριμένη διεύθυνση Particl.</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -1724,6 +1866,14 @@
     <message>
         <source>Transaction fee</source>
         <translation>Κόστος συναλλαγής</translation>
+    </message>
+    <message>
+        <source>Message</source>
+        <translation>Μήνυμα</translation>
+    </message>
+    <message>
+        <source>Amount</source>
+        <translation>Ποσό</translation>
     </message>
     </context>
 <context>
@@ -1815,10 +1965,18 @@
     </context>
 <context>
     <name>WalletModel</name>
+    <message>
+        <source>Increase:</source>
+        <translation>Αύξηση:</translation>
+    </message>
     </context>
 <context>
     <name>WalletView</name>
-    </context>
+    <message>
+        <source>Cancel</source>
+        <translation>Ακύρωση</translation>
+    </message>
+</context>
 <context>
     <name>bitcoin-core</name>
     <message>

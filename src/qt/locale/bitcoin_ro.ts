@@ -315,7 +315,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Trimite monedele către o adresă Particl</translation>
+        <translation>Trimite monedele către o adresă Particl.</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -338,8 +338,8 @@
         <translation>&amp;Verifică mesajul...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -501,6 +501,10 @@
         <translation>Schimbă:</translation>
     </message>
     <message>
+        <source>(un)select all</source>
+        <translation>(de)selectează tot</translation>
+    </message>
+    <message>
         <source>Tree mode</source>
         <translation>Mod arbore</translation>
     </message>
@@ -625,8 +629,8 @@
         <translation>Alege un folder/director personalizat</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>

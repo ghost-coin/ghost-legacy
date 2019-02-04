@@ -174,7 +174,7 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Figyelem: Ha titkosítja a tárcáját és elveszíti a jelszavát, akkor &lt;b&gt;AZ ÖSSZES BITCOINJA ELVESZIK&lt;/b&gt;!</translation>
+        <translation>Figyelem: Ha titkosítja a tárcáját és elveszíti a jelszavát, akkor &lt;b&gt;AZ ÖSSZES PARTICLJA ELVESZIK&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -367,8 +367,8 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <translation>Üzenet &amp;valódiságának ellenőrzése</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -396,11 +396,11 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
     </message>
     <message>
         <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Üzenetek aláírása a Particl-címmeiddel, amivel bizonyítod, hogy a cím a sajátod</translation>
+        <translation>Üzenetek aláírása a Particl.címmeiddel, amivel bizonyítod, hogy a cím a sajátod</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Üzenetek ellenőrzése, hogy valóban a megjelölt Particl-címekkel vannak-e aláírva</translation>
+        <translation>Üzenetek ellenőrzése, hogy valóban a megjelölt Particl.címekkel vannak-e aláírva</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -441,14 +441,6 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
         <translation><numerusform>%n aktív kapcsolat a Particl hálózathoz</numerusform><numerusform>%n aktív kapcsolat a Particl hálózathoz</numerusform></translation>
-    </message>
-    <message>
-        <source>Indexing blocks on disk...</source>
-        <translation>Lemezen lévő blokkok indexelése...</translation>
-    </message>
-    <message>
-        <source>Processing blocks on disk...</source>
-        <translation>Lemezen lévő blokkok feldolgozása...</translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -752,7 +744,7 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
     </message>
     <message>
         <source>The entered address "%1" is not a valid Particl address.</source>
-        <translation>A megadott "%1" cím nem egy érvényes Particl-cím.</translation>
+        <translation>A megadott "%1" cím nem egy érvényes Particl.cím.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -836,8 +828,8 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <translation>Saját adatkönyvtár használata:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -1005,10 +997,6 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <translation>Konfigurációs Fájl Megnyitása</translation>
     </message>
     <message>
-        <source>Active command-line options that override above options:</source>
-        <translation>Aktív parancssori beállítások, melyek felülírják a fenti beállításokat:</translation>
-    </message>
-    <message>
         <source>Reset all client options to default.</source>
         <translation>Minden kliensbeállítás alapértelmezettre állítása.</translation>
     </message>
@@ -1046,7 +1034,7 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
     </message>
     <message>
         <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>A Particl-kliens portjának automatikus megnyitása a routeren. Ez csak akkor működik, ha a routered támogatja az UPnP-t és az engedélyezve is van rajta.</translation>
+        <translation>A Particl.kliens portjának automatikus megnyitása a routeren. Ez csak akkor működik, ha a routered támogatja az UPnP-t és az engedélyezve is van rajta.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1103,14 +1091,6 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
     <message>
         <source>&amp;Window</source>
         <translation>&amp;Ablak</translation>
-    </message>
-    <message>
-        <source>&amp;Hide the icon from the system tray.</source>
-        <translation>&amp;Rejtse el az ikont a rendszer tálcáról.</translation>
-    </message>
-    <message>
-        <source>Hide tray icon</source>
-        <translation>Tálcaikon elrejtése</translation>
     </message>
     <message>
         <source>Show only a tray icon after minimizing the window.</source>
@@ -1366,8 +1346,8 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
 <context>
     <name>PeerTableModel</name>
     <message>
-        <source>Unconfirmed transactions to watch-only addresses</source>
-        <translation>A csak megfigyelt címek hitelesítetlen tranzakciói</translation>
+        <source>User Agent</source>
+        <translation>User Agent</translation>
     </message>
     <message>
         <source>Node/Service</source>
@@ -1760,10 +1740,6 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
     <message>
         <source>Network activity disabled</source>
         <translation>Hálózati tevékenység letiltva.</translation>
-    </message>
-    <message>
-        <source>(node id: %1)</source>
-        <translation>(csomópont azonosító: %1)</translation>
     </message>
     <message>
         <source>(node id: %1)</source>
@@ -2225,20 +2201,20 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
 <context>
     <name>SendCoinsEntry</name>
     <message>
-        <source>Copy quantity</source>
-        <translation>Mennyiség másolása</translation>
+        <source>A&amp;mount:</source>
+        <translation>Összeg:</translation>
     </message>
     <message>
-        <source>Copy amount</source>
-        <translation>Összeg másolása</translation>
+        <source>Pay &amp;To:</source>
+        <translation>Címzett:</translation>
     </message>
     <message>
-        <source>Copy fee</source>
-        <translation>Díj másolása</translation>
+        <source>&amp;Label:</source>
+        <translation>Címke:</translation>
     </message>
     <message>
-        <source>Copy bytes</source>
-        <translation>Byte-ok másolása </translation>
+        <source>Choose previously used address</source>
+        <translation>Válassz egy korábban már használt címet</translation>
     </message>
     <message>
         <source>This is a normal payment.</source>
@@ -2253,16 +2229,16 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <translation>Alt+A</translation>
     </message>
     <message>
-        <source>Copy change</source>
-        <translation>Visszajáró másolása</translation>
+        <source>Paste address from clipboard</source>
+        <translation>Cím beillesztése a vágólapról</translation>
     </message>
     <message>
-        <source>Are you sure you want to send?</source>
-        <translation>Biztosan el akarja küldeni?</translation>
+        <source>Alt+P</source>
+        <translation>Alt+P</translation>
     </message>
     <message>
-        <source>added as transaction fee</source>
-        <translation>hozzáadva, mint tranzakciós díj</translation>
+        <source>Remove this entry</source>
+        <translation>Ez a bejegyzés eltávolítása</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -2293,8 +2269,8 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <translation>Címzett:</translation>
     </message>
     <message>
-        <source>Confirm send coins</source>
-        <translation>Összeg küldésének megerősítése</translation>
+        <source>Memo:</source>
+        <translation>Jegyzet:</translation>
     </message>
     <message>
         <source>Enter a label for this address to add it to your address book</source>
@@ -2318,13 +2294,16 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <source>Do not shut down the computer until this window disappears.</source>
         <translation>Ne állítsd le a számítógépet amíg ez az ablak el nem tűnik.</translation>
     </message>
+</context>
+<context>
+    <name>SignVerifyMessageDialog</name>
     <message>
-        <source>The amount to pay must be larger than 0.</source>
-        <translation>A fizetendő összegnek nagyobbnak kell lennie 0-nál.</translation>
+        <source>Signatures - Sign / Verify a Message</source>
+        <translation>Aláírások - üzenet aláírása/ellenőrzése</translation>
     </message>
     <message>
-        <source>The amount exceeds your balance.</source>
-        <translation>Az összeg meghaladja az egyenlegét.</translation>
+        <source>&amp;Sign Message</source>
+        <translation>Üzenet aláírása...</translation>
     </message>
     <message>
         <source>The Particl address to sign the message with</source>
@@ -2335,44 +2314,44 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <translation>Válassz egy korábban már használt címet</translation>
     </message>
     <message>
-        <source>Duplicate address found: addresses should only be used once each.</source>
-        <translation>Többször szerepel ugyanaz a cím: egy címet csak egyszer használjon.</translation>
+        <source>Alt+A</source>
+        <translation>Alt+A</translation>
     </message>
     <message>
-        <source>Transaction creation failed!</source>
-        <translation>Tranzakció létrehozása sikertelen!</translation>
+        <source>Paste address from clipboard</source>
+        <translation>Cím beillesztése a vágólapról</translation>
     </message>
     <message>
-        <source>The transaction was rejected with the following reason: %1</source>
-        <translation>Tranzakció visszautasítva a következő indokkal: %1</translation>
+        <source>Alt+P</source>
+        <translation>Alt+P</translation>
     </message>
     <message>
-        <source>A fee higher than %1 is considered an absurdly high fee.</source>
-        <translation>Magasabb díj mint %1 abszurd magas díjnak számít.</translation>
+        <source>Enter the message you want to sign here</source>
+        <translation>Ide írja az aláírandó üzenetet</translation>
     </message>
     <message>
-        <source>Payment request expired.</source>
-        <translation>A fizetési kérelem lejárt.</translation>
+        <source>Signature</source>
+        <translation>Aláírás</translation>
     </message>
     <message>
-        <source>Pay only the required fee of %1</source>
-        <translation>Csak a szükséges %1 díj fizetése</translation>
+        <source>Copy the current signature to the system clipboard</source>
+        <translation>A jelenleg kiválasztott aláírás másolása a rendszer-vágólapra</translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
-        <translation>Figyelmeztetés: Érvénytelen Particl cím</translation>
+        <source>Sign the message to prove you own this Particl address</source>
+        <translation>Üzenet </translation>
     </message>
     <message>
-        <source>Warning: Unknown change address</source>
-        <translation>Figyelmeztetés: Ismeretlen visszajáró cím</translation>
+        <source>Sign &amp;Message</source>
+        <translation>Üzenet &amp;aláírása</translation>
     </message>
     <message>
-        <source>Confirm custom change address</source>
-        <translation>Egyedi visszajáró cím jóváhagyása</translation>
+        <source>Clear &amp;All</source>
+        <translation>Mindent &amp;töröl</translation>
     </message>
     <message>
-        <source>The address you selected for change is not part of this wallet. Any or all funds in your wallet may be sent to this address. Are you sure?</source>
-        <translation>A cím, amelyet a visszajárónak megadott, nincs ebben a tárcában. Bármennyi vagy minden összeg elküldhető a tárcájából erre a címre. Biztos benne?</translation>
+        <source>&amp;Verify Message</source>
+        <translation>Üzenet ellenőrzése</translation>
     </message>
     <message>
         <source>The Particl address the message was signed with</source>
@@ -2932,10 +2911,6 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
         <translation>A %s fejlesztők</translation>
     </message>
     <message>
-        <source>The %s developers</source>
-        <translation>A %s fejlesztők</translation>
-    </message>
-    <message>
         <source>This is a pre-release test build - use at your own risk - do not use for mining or merchant applications</source>
         <translation>Ez egy kiadás előtt álló, teszt verzió - csak saját felelősségre - ne használja bányászatra vagy kereskedéshez.</translation>
     </message>
@@ -3090,54 +3065,6 @@ Kérem a kulcsmondatban használjon &lt;b&gt; tíz vagy több véletlenszerű ka
     <message>
         <source>%s is set very high!</source>
         <translation>%s étéke nagyon magas!</translation>
-    </message>
-    <message>
-        <source>Starting network threads...</source>
-        <translation>Hálózati szálak indítása...</translation>
-    </message>
-    <message>
-        <source>This is the minimum transaction fee you pay on every transaction.</source>
-        <translation>Ez a minimum tranzakciós díj, amelyet tranzakciónként kifizet.</translation>
-    </message>
-    <message>
-        <source>This is the transaction fee you will pay if you send a transaction.</source>
-        <translation>Ez a tranzakció díja, amelyet kifizet, ha tranzakciót indít.</translation>
-    </message>
-    <message>
-        <source>Transaction amounts must not be negative</source>
-        <translation>Tranzakció összege nem lehet negatív</translation>
-    </message>
-    <message>
-        <source>Transaction must have at least one recipient</source>
-        <translation>Legalább egy címzett kell a tranzakcióhoz</translation>
-    </message>
-    <message>
-        <source>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: %u)</source>
-        <translation>Kapcsolatonkénti maximum fogadó buffer, &lt;n&gt;*1000 byte (alapértelmezett: %u)</translation>
-    </message>
-    <message>
-        <source>Maximum per-connection send buffer, &lt;n&gt;*1000 bytes (default: %u)</source>
-        <translation>Kapcsolatonkénti maximum küldő buffer, &lt;n&gt;*1000 byte (alapértelmezett: %u)</translation>
-    </message>
-    <message>
-        <source>Set key pool size to &lt;n&gt; (default: %u)</source>
-        <translation>Kulcs halmaz méretének a beállítása &lt;n&gt;(alapértelmezett: %u) </translation>
-    </message>
-    <message>
-        <source>Specify configuration file (default: %s)</source>
-        <translation>Konfigurációs fájl megadása (alapértelmezett: %s)</translation>
-    </message>
-    <message>
-        <source>Specify connection timeout in milliseconds (minimum: 1, default: %d)</source>
-        <translation>Csatlakozás időtúllépése milliszekundumban (minimum: 1, alapértelmezett: %d)</translation>
-    </message>
-    <message>
-        <source>Specify pid file (default: %s)</source>
-        <translation>Pid-fájl megadása (alapértelmezett: %s)</translation>
-    </message>
-    <message>
-        <source>Spend unconfirmed change when sending transactions (default: %u)</source>
-        <translation>Tranzakciók küldésekor a jóváhagyatlan visszajáró elköltése (alapértelmezés: %u)</translation>
     </message>
     <message>
         <source>Starting network threads...</source>

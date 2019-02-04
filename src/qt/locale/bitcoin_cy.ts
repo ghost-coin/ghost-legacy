@@ -335,7 +335,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Anfon arian i gyfeiriad Particl</translation>
+        <translation>Anfon arian i gyfeiriad Particl.</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -354,8 +354,8 @@
         <translation>&amp;Gwirio neges...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -419,7 +419,7 @@
     </message>
     <message>
         <source>Open a particl: URI or payment request</source>
-        <translation>Agor Particl: URI neu ofyn taliad</translation>
+        <translation>Agor Particl. URI neu ofyn taliad</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -631,8 +631,8 @@
         <translation>Croeso</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Error</source>
@@ -1034,12 +1034,12 @@
         <source>Export the data in the current tab to a file</source>
         <translation>Allforio'r data yn y tab presennol i ffeil</translation>
     </message>
-</context>
+    </context>
 <context>
     <name>bitcoin-core</name>
     <message>
         <source>Particl Core</source>
-        <translation>Craidd Particl</translation>
+        <translation>Craidd Particl.</translation>
     </message>
     <message>
         <source>Information</source>

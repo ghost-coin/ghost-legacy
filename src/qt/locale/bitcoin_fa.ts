@@ -342,7 +342,7 @@
         <translation>با&amp;زبینی پیام...</translation>
     </message>
     <message>
-        <source>Particl</source>
+        <source>Particl.</source>
         <translation>بیت‌کوین</translation>
     </message>
     <message>
@@ -731,7 +731,7 @@
         <translation>استفاده از یک مسیر سفارشی:</translation>
     </message>
     <message>
-        <source>Particl</source>
+        <source>Particl.</source>
         <translation>بیت‌کوین</translation>
     </message>
     <message>
@@ -996,6 +996,10 @@
     </context>
 <context>
     <name>PeerTableModel</name>
+    <message>
+        <source>Ping</source>
+        <translation>پینگ</translation>
+    </message>
     <message>
         <source>Sent</source>
         <translation>ارسال شده</translation>
@@ -1811,9 +1815,29 @@
     </context>
 <context>
     <name>WalletModel</name>
+    <message>
+        <source>Send Coins</source>
+        <translation>فرستادن سکه ها</translation>
+    </message>
+    <message>
+        <source>Current fee:</source>
+        <translation>دستمزد فعلی</translation>
+    </message>
+    <message>
+        <source>Increase:</source>
+        <translation>افزایش</translation>
+    </message>
+    <message>
+        <source>New fee:</source>
+        <translation>تعرفه جدید</translation>
+    </message>
     </context>
 <context>
     <name>WalletView</name>
+    <message>
+        <source>&amp;Export</source>
+        <translation>و صدور</translation>
+    </message>
     <message>
         <source>Export the data in the current tab to a file</source>
         <translation>صدور داده‌های برگهٔ فعلی به یک پرونده</translation>

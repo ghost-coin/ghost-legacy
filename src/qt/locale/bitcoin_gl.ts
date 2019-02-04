@@ -135,7 +135,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Enviar moedas a unha dirección Particl</translation>
+        <translation>Enviar moedas a unha dirección Particl.</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -158,8 +158,8 @@
         <translation>&amp;Verificar mensaxe...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -401,8 +401,8 @@
         <translation>Empregar un directorio de datos personalizado</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Error</source>
@@ -924,7 +924,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Asina a mensaxe para probar que posees esta dirección Particl</translation>
+        <translation>Asina a mensaxe para probar que posees esta dirección Particl.</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1001,7 +1001,7 @@
     <name>bitcoin-core</name>
     <message>
         <source>Particl Core</source>
-        <translation>Core de Particl</translation>
+        <translation>Core de Particl </translation>
     </message>
     <message>
         <source>Corrupted block database detected</source>

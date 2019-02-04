@@ -22,12 +22,8 @@ echo $((`date +%s`-$START_TIME))
 echo $RUN_TESTS_TIMEOUT
 echo "$RUN_FUNCTIONAL_TESTS"
 
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
-  extended="--extended --exclude feature_pruning"
-fi
-
 if [ "$RUN_FUNCTIONAL_TESTS" = "true" ]; then
   BEGIN_FOLD functional-tests
-  DOCKER_EXEC test/functional/test_runner.py --ci --combinedlogslen=4000 --coverage --quiet --failfast --particl --insight --bitcoin ${extended}
+  DOCKER_EXEC test/functional/test_runner.py --ci --combinedlogslen=4000 --coverage --quiet --failfast --particl --insight --bitcoin
   END_FOLD
 fi

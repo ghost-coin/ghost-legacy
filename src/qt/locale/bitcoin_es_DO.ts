@@ -251,7 +251,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Enviar monedas a una dirección Particl</translation>
+        <translation>Enviar monedas a una dirección Particl.</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -274,8 +274,8 @@
         <translation>&amp;Verificar mensaje...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -327,7 +327,7 @@
     </message>
     <message>
         <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Solicitar pagos (genera codigo QR y URL's de Particl)</translation>
+        <translation>Solicitar pagos (genera codigo QR y URL's de Particl )</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -521,8 +521,8 @@
         <translation>Utilice un directorio de datos personalizado:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Error</source>
@@ -1132,7 +1132,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Firmar el mensaje para demostrar que se posee esta dirección Particl</translation>
+        <translation>Firmar el mensaje para demostrar que se posee esta dirección Particl.</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1229,7 +1229,7 @@
     <name>bitcoin-core</name>
     <message>
         <source>Particl Core</source>
-        <translation>Núcleo de Particl</translation>
+        <translation>Núcleo de Particl </translation>
     </message>
     <message>
         <source>Corrupted block database detected</source>

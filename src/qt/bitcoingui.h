@@ -96,6 +96,9 @@ public:
     */
     bool hasTrayIcon() const { return trayIcon; }
 
+    /** Disconnect core signals from GUI client */
+    void unsubscribeFromCoreSignals();
+
     bool test_mode = false;
     void setTestMode() { test_mode = true; };
 
@@ -190,8 +193,6 @@ private:
 
     /** Connect core signals to GUI client */
     void subscribeToCoreSignals();
-    /** Disconnect core signals from GUI client */
-    void unsubscribeFromCoreSignals();
 
     /** Update UI with latest network info from model. */
     void updateNetworkState();

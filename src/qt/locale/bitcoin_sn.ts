@@ -98,8 +98,8 @@
         <translation>Vhura &amp;URI</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -165,8 +165,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     </context>
 <context>
@@ -251,6 +251,10 @@
     <message>
         <source>Label</source>
         <translation>Zita</translation>
+    </message>
+    <message>
+        <source>Wallet</source>
+        <translation>Chikwama</translation>
     </message>
     </context>
 <context>

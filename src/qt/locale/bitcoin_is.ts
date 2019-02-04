@@ -169,7 +169,7 @@
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Viðvörun: Ef þú dulkóðar veskið og týnir lykilsetningunn þá munt þú &lt;b&gt;TAPA ALLRI ÞINNI BITCOIN MYNT&lt;/b&gt;!</translation>
+        <translation>Viðvörun: Ef þú dulkóðar veskið og týnir lykilsetningunn þá munt þú &lt;b&gt;TAPA ALLRI ÞINNI PARTICL MYNT&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -362,8 +362,8 @@
         <translation>&amp;Yfirfara skilaboð...</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -638,10 +638,6 @@
         <translation>Nýtt móttökufærslugildi</translation>
     </message>
     <message>
-        <source>New receiving address</source>
-        <translation>Nýtt móttökufærslugildi</translation>
-    </message>
-    <message>
         <source>New sending address</source>
         <translation>Nýtt sendingarfærslugildi</translation>
     </message>
@@ -667,8 +663,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Particl.</source>
+        <translation>Particl.</translation>
     </message>
     <message>
         <source>Error</source>
@@ -807,6 +803,10 @@
         <translation>Merki</translation>
     </message>
     <message>
+        <source>Wallet</source>
+        <translation>Veski</translation>
+    </message>
+    <message>
         <source>Resulting URI too long, try to reduce the text for label / message.</source>
         <translation>URI varð of langt, reyndu að minnka texta í merki / skilaboðum.</translation>
     </message>
@@ -908,10 +908,6 @@
         <translation>Merki</translation>
     </message>
     <message>
-        <source>This block was not received by any other nodes and will probably not be accepted!</source>
-        <translation>Þessi blokk barst ekki í neinn annan hnútpunkt og verður sennilega ekki samþykkt!</translation>
-    </message>
-    <message>
         <source>Mined</source>
         <translation>Námuunnið</translation>
     </message>
@@ -982,10 +978,6 @@
         <translation>Viðvörun: Netið er ekki í fullu samræmi! Einhver námuvinnsla virðist í ólagi.</translation>
     </message>
     <message>
-        <source>Maximum size of data in data carrier transactions we relay and mine (default: %u)</source>
-        <translation>Hámarks gagnastærð í burðarfærslum sem við tökum við til námavinnslu (sjálfgefið: %u)</translation>
-    </message>
-    <message>
         <source>Information</source>
         <translation>Upplýsingar</translation>
     </message>
@@ -996,10 +988,6 @@
     <message>
         <source>Warning: Unknown block versions being mined! It's possible unknown rules are in effect</source>
         <translation>Viðvörun: Óþekkt blokkarútgáfa í námavinnslu! Það er mögulegt að óþekktum reglum sé fylgt</translation>
-    </message>
-    <message>
-        <source>Relay and mine data carrier transactions (default: %u)</source>
-        <translation>Hleypa í gegn og námuvinna gagnaburðarfærslur (sjálfgefið: %u)</translation>
     </message>
     <message>
         <source>Error</source>
