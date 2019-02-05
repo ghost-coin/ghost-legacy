@@ -612,9 +612,9 @@ public:
         consensus.OpIsCoinstakeTime = 0;
         consensus.fAllowOpIsCoinstakeWithP2PKH = true; // TODO: clear for next testnet
         consensus.nPaidSmsgTime = 0;
-        consensus.csp2shTime = 0x5C62B540;          // 2019-02-12 12:00:00
-        consensus.smsg_fee_time = 0x5C62B540;       // 2019-02-12 12:00:00
-        consensus.bulletproof_time = 0x5C62B540;    // 2019-02-12 12:00:00
+        consensus.csp2shTime = 0x5C67FB40;          // 2019-02-16 12:00:00
+        consensus.smsg_fee_time = 0x5C67FB40;       // 2019-02-16 12:00:00
+        consensus.bulletproof_time = 0x5C67FB40;    // 2019-02-16 12:00:00
         consensus.rct_time = 0;
 
         consensus.smsg_fee_period = 5040;

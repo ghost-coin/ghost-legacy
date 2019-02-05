@@ -3809,7 +3809,8 @@ static UniValue fundrawtransaction(const JSONRPCRequest& request)
                 "This will not modify existing inputs, and will add at most one change output to the outputs.\n"
                 "No existing outputs will be modified unless \"subtractFeeFromOutputs\" is specified.\n"
                 "Note that inputs which were signed may need to be resigned after completion since in/outputs have been added.\n"
-                "The inputs added will not be signed, use signrawtransaction for that.\n"
+                "The inputs added will not be signed, use signrawtransactionwithkey\n"
+                " or signrawtransactionwithwallet for that.\n"
                 "Note that all existing inputs must have their previous output transaction be in the wallet.\n"
                 "Note that all inputs selected must be of standard form and P2SH scripts must be\n"
                 "in the wallet using importaddress or addmultisigaddress (to calculate fees).\n"
@@ -3858,7 +3859,7 @@ static UniValue fundrawtransaction(const JSONRPCRequest& request)
                             "\nAdd sufficient unsigned inputs to meet the output value\n"
                             + HelpExampleCli("fundrawtransaction", "\"rawtransactionhex\"") +
                             "\nSign the transaction\n"
-                            + HelpExampleCli("signrawtransaction", "\"fundedtransactionhex\"") +
+                            + HelpExampleCli("signrawtransactionwithwallet", "\"fundedtransactionhex\"") +
                             "\nSend the transaction\n"
                             + HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\"")
                                 },
@@ -4192,8 +4193,8 @@ UniValue rescanblockchain(const JSONRPCRequest& request)
                 },
                 RPCResult{
             "{\n"
-            "  \"start_height\"     (numeric) The block height where the rescan has started.\n"
-            "  \"stop_height\"      (numeric) The height of the last rescanned block.\n"
+            "  \"start_height\"     (numeric) The block height where the rescan started (the requested height or 0)\n"
+            "  \"stop_height\"      (numeric) The height of the last rescanned block. May be null in rare cases if there was a reorg and the call didn't scan any blocks because they were already scanned in the background.\n"
             "}\n"
                 },
                 RPCExamples{
@@ -4239,6 +4240,11 @@ UniValue rescanblockchain(const JSONRPCRequest& request)
 
         if (tip_height) {
             start_block = locked_chain->getBlockHash(start_height);
+            // If called with a stop_height, set the stop_height here to
+            // trigger a rescan to that height.
+            // If called without a stop height, leave stop_height as null here
+            // so rescan continues to the tip (even if the tip advances during
+            // rescan).
             if (stop_height) {
                 stop_block = locked_chain->getBlockHash(*stop_height);
             }
@@ -4258,7 +4264,7 @@ UniValue rescanblockchain(const JSONRPCRequest& request)
     }
     UniValue response(UniValue::VOBJ);
     response.pushKV("start_height", start_height);
-    response.pushKV("stop_height", result.stop_height ? *result.stop_height : UniValue());
+    response.pushKV("stop_height", result.last_scanned_height ? *result.last_scanned_height : UniValue());
     return response;
 }
 
