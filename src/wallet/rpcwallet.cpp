@@ -3972,12 +3972,6 @@ static UniValue unloadwallet(const JSONRPCRequest& request)
     if (!RemoveWallet(wallet)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Requested wallet already unloaded");
     }
-    UnregisterValidationInterface(wallet.get());
-
-    // The wallet can be in use so it's not possible to explicitly unload here.
-    // Just notify the unload intent so that all shared pointers are released.
-    // The wallet will be destroyed once the last shared pointer is released.
-    wallet->NotifyUnload();
 
     if (fParticlMode) {
         RestartStakingThreads();
@@ -3986,6 +3980,7 @@ static UniValue unloadwallet(const JSONRPCRequest& request)
     // There's no point in waiting for the wallet to unload.
     // At this point this method should never fail. The unloading could only
     // fail due to an unexpected error which would cause a process termination.
+    UnloadWallet(std::move(wallet));
 
     return NullUniValue;
 }

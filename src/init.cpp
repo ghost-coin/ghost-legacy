@@ -392,10 +392,10 @@ void Shutdown()
 #else
     CloseMessageWindow();
 #endif
+    g_wallet_init_interface.Close();
     UnregisterAllValidationInterfaces();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
     GetMainSignals().UnregisterWithMempoolSignals(mempool);
-    g_wallet_init_interface.Close();
     globalVerifyHandle.reset();
     ECC_Stop();
     ECC_Stop_Stealth();
