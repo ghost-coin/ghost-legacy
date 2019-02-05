@@ -427,11 +427,11 @@ public:
         consensus.BIP66Height = 0;
         consensus.OpIsCoinstakeTime = 1510272000; // 2017-11-10 00:00:00 UTC
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
-        consensus.nPaidSmsgTime = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.csp2shTime = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.smsg_fee_time = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.bulletproof_time = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.rct_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.nPaidSmsgTime = 0x5C791EC0;       // 2019-03-01 12:00:00
+        consensus.csp2shTime = 0x5C791EC0;          // 2019-03-01 12:00:00
+        consensus.smsg_fee_time = 0xFFFFFFFF;       // 2106 TODO: lower
+        consensus.bulletproof_time = 0xFFFFFFFF;    // 2106 TODO: lower
+        consensus.rct_time = 0xFFFFFFFF;            // 2106 TODO: lower
 
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;

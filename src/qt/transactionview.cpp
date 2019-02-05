@@ -230,7 +230,7 @@ void TransactionView::setModel(WalletModel *_model)
         transactionView->setAlternatingRowColors(true);
         transactionView->setSelectionBehavior(QAbstractItemView::SelectRows);
         transactionView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        transactionView->sortByColumn(TransactionTableModel::Date, Qt::DescendingOrder);
+        transactionView->horizontalHeader()->setSortIndicator(TransactionTableModel::Date, Qt::DescendingOrder);
         transactionView->setSortingEnabled(true);
         transactionView->verticalHeader()->hide();
 
