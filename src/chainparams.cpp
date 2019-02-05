@@ -429,8 +429,8 @@ public:
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
         consensus.nPaidSmsgTime = 0xFFFFFFFF; // 2106 TODO: lower
         consensus.csp2shTime = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.bulletproof_time = 0xFFFFFFFF; // 2106 TODO: lower
         consensus.smsg_fee_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.bulletproof_time = 0xFFFFFFFF; // 2106 TODO: lower
         consensus.rct_time = 0xFFFFFFFF; // 2106 TODO: lower
 
         consensus.smsg_fee_period = 5040;
@@ -612,9 +612,9 @@ public:
         consensus.OpIsCoinstakeTime = 0;
         consensus.fAllowOpIsCoinstakeWithP2PKH = true; // TODO: clear for next testnet
         consensus.nPaidSmsgTime = 0;
-        consensus.csp2shTime = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.bulletproof_time = 0xFFFFFFFF; // 2106 TODO: lower
-        consensus.smsg_fee_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.csp2shTime = 0x5C62B540;          // 2019-02-12 12:00:00
+        consensus.smsg_fee_time = 0x5C62B540;       // 2019-02-12 12:00:00
+        consensus.bulletproof_time = 0x5C62B540;    // 2019-02-12 12:00:00
         consensus.rct_time = 0;
 
         consensus.smsg_fee_period = 5040;
@@ -759,8 +759,8 @@ public:
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
         consensus.nPaidSmsgTime = 0;
         consensus.csp2shTime = 0;
-        consensus.bulletproof_time = 0;
         consensus.smsg_fee_time = 0;
+        consensus.bulletproof_time = 0;
         consensus.rct_time = 0;
 
         consensus.smsg_fee_period = 50;
