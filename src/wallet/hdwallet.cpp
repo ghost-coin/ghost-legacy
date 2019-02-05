@@ -239,7 +239,7 @@ bool CHDWallet::Initialise()
             }
         }
         WalletLogPrintf("Rescan completed in %15dms\n", GetTimeMillis() - nStart);
-        ChainStateFlushed(locked_chain->getLocator());
+        ChainStateFlushed(locked_chain->getTipLocator());
         database->IncrementUpdateCounter();
     }
 
