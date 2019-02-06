@@ -565,35 +565,30 @@ bool WalletModel::tryCallRpc(const QString &sCommand, UniValue &rv, bool returnE
 {
     try {
         rv = CallRPC(sCommand.toStdString(), m_wallet->getWalletName());
-    } catch (UniValue& objError)
-    {
-        if (returnError)
-        {
+    } catch (UniValue& objError) {
+        if (returnError) {
             rv = objError;
             return false;
-        };
+        }
         try { // Nice formatting for standard-format error
             int code = find_value(objError, "code").get_int();
             std::string message = find_value(objError, "message").get_str();
             warningBox(tr("Wallet Model"), QString::fromStdString(message) + " (code " + QString::number(code) + ")");
             return false;
-        } catch (const std::runtime_error&) // raised when converting to invalid type, i.e. missing code or message
-        {   // Show raw JSON object
+        } catch (const std::runtime_error&) { // raised when converting to invalid type, i.e. missing code or message
+            // Show raw JSON object
             warningBox(tr("Wallet Model"), QString::fromStdString(objError.write()));
             return false;
-        };
-    } catch (const std::exception& e)
-    {
-        if (returnError)
-        {
+        }
+    } catch (const std::exception& e) {
+        if (returnError) {
             rv = UniValue(UniValue::VOBJ);
             rv.pushKV("Error", e.what());
-        } else
-        {
+        } else {
             warningBox(tr("Wallet Model"), QString::fromStdString(e.what()));
-        };
+        }
         return false;
-    };
+    }
 
     return true;
 };

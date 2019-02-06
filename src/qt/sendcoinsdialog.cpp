@@ -266,7 +266,6 @@ void SendCoinsDialog::on_sendButton_clicked()
         return;
     }
 
-
     // prepare transaction for getting txFee earlier
     WalletModelTransaction currentTransaction(recipients);
     WalletModel::SendCoinsReturn prepareStatus;
@@ -287,7 +286,6 @@ void SendCoinsDialog::on_sendButton_clicked()
         fNewRecipientAllowed = true;
         return;
     };
-
 
     QString sCommand = "sendtypeto ";
 
@@ -335,7 +333,6 @@ void SendCoinsDialog::on_sendButton_clicked()
     int nMaxInputs = ui->spinMaxInputs->value();
 
     sCommand += "] \"\" \"\" "+QString::number(nRingSize)+" "+QString::number(nMaxInputs);
-
 
     QString sCoinControl;
     sCoinControl += " {";
