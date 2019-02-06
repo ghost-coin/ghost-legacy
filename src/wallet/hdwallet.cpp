@@ -4625,7 +4625,6 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 
         // Embed the constructed transaction data in wtxNew.
         wtx.SetTx(MakeTransactionRef(std::move(txNew)));
-
     }
 
     if (0 != PreAcceptMempoolTx(wtx, sError)) {

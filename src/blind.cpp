@@ -84,7 +84,10 @@ int SelectRangeProofParameters(uint64_t nValueIn, uint64_t &minValue, int &expon
     // TODO: how to pick best?
 
     int eMin = nDiv10 / 2;
-    exponent = eMin + GetRandInt(nDiv10-eMin);
+    exponent = eMin;
+    if (nDiv10-eMin > 0) {
+        exponent += GetRandInt(nDiv10-eMin);
+    }
 
     nTest = nValueIn / ipow(10, exponent);
 
