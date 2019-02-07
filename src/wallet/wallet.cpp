@@ -4521,12 +4521,11 @@ int CMerkleTx::GetBlocksToMaturity(interfaces::Chain::Lock& locked_chain, const 
     //assert(chain_depth >= 0); // coinbase tx should not be conflicted
 
     if (fParticlMode && (chainActive.Height() < COINBASE_MATURITY * 2)) {
-        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-        if (mi == mapBlockIndex.end()) {
+        const Optional<int> blockheight = locked_chain.getBlockHeight(hashBlock);
+        if (!blockheight) {
             return COINBASE_MATURITY;
         }
-        CBlockIndex *pindex = mi->second;
-        int nRequiredDepth = (int)(pindex->nHeight / 2);
+        int nRequiredDepth = (int)(*blockheight / 2);
         return std::max(0, (nRequiredDepth+1) - chain_depth);
     }
 

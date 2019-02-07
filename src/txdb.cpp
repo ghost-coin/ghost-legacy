@@ -363,8 +363,9 @@ bool CBlockTreeDB::ReadTimestampIndex(const unsigned int &high, const unsigned i
 
     pcursor->Seek(std::make_pair(DB_TIMESTAMPINDEX, CTimestampIndexIteratorKey(low)));
 
-    while (pcursor->Valid())
-    {
+    LockAnnotation lock(::cs_main); // cs_main is locked before GetTimestampIndex if fActiveOnly
+
+    while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         std::pair<char, CTimestampIndexKey> key;
         if (pcursor->GetKey(key) && key.first == DB_TIMESTAMPINDEX && key.second.timestamp < high)

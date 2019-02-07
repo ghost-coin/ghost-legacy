@@ -740,8 +740,11 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
 
-    if (mapBlockIndex.count(hash) == 0) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+    {
+        LOCK(cs_main);
+        if (mapBlockIndex.count(hash) == 0) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+        }
     }
 
     CBlock block;

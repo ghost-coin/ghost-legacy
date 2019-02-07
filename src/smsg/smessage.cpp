@@ -321,24 +321,23 @@ void ThreadSecureMsgPow()
 
                 CTransactionRef txOut;
                 uint256 hashBlock;
+                int blockDepth = -1;
                 {
                     LOCK(cs_main);
                     if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock)) {
                         // drop through
                     }
-                }
 
-                int blockDepth = -1;
-                if (!hashBlock.IsNull()) {
-                    BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-                    if (mi != mapBlockIndex.end()) {
-                        CBlockIndex *pindex = mi->second;
-                        if (pindex && chainActive.Contains(pindex)) {
-                            blockDepth = chainActive.Height() - pindex->nHeight + 1;
+                    if (!hashBlock.IsNull()) {
+                        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
+                        if (mi != mapBlockIndex.end()) {
+                            CBlockIndex *pindex = mi->second;
+                            if (pindex && chainActive.Contains(pindex)) {
+                                blockDepth = chainActive.Height() - pindex->nHeight + 1;
+                            }
                         }
                     }
                 }
-
                 if (blockDepth > 0) {
                     LogPrintf("Found txn %s at depth %d\n", txid.ToString(), blockDepth);
                 } else {

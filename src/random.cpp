@@ -534,6 +534,7 @@ uint64_t GetRand(uint64_t nMax) noexcept
 
 int GetRandInt(int nMax) noexcept
 {
+    assert(nMax > 0);
     return GetRand(nMax);
 }
 

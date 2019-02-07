@@ -112,18 +112,14 @@ class CTransactionRecord
 {
 // Stored by uint256 txnHash;
 public:
-    CTransactionRecord() :
-        nFlags(0), nIndex(0), nBlockTime(0) , nTimeReceived(0) , nFee(0) {};
-
-
     // Conflicted state is marked by set blockHash and nIndex -1
     uint256 blockHash;
-    int16_t nFlags;
-    int16_t nIndex;
+    int16_t nFlags = 0;
+    int16_t nIndex = 0;
 
-    int64_t nBlockTime;
-    int64_t nTimeReceived;
-    CAmount nFee;
+    int64_t nBlockTime = 0;
+    int64_t nTimeReceived = 0;
+    CAmount nFee = 0;
     mapRTxValue_t mapValue;
 
     std::vector<COutPoint> vin;
@@ -152,24 +148,28 @@ public:
 
     int64_t GetTxTime() const
     {
-        if (HashUnset() || nIndex < 0)
+        if (HashUnset() || nIndex < 0) {
             return nTimeReceived;
+        }
         return std::min(nTimeReceived, nBlockTime);
     };
 
     bool HaveChange() const
     {
-        for (const auto &r : vout)
-            if (r.nFlags & ORF_CHANGE)
+        for (const auto &r : vout) {
+            if (r.nFlags & ORF_CHANGE) {
                 return true;
+            }
+        }
         return false;
     };
 
     CAmount TotalOutput()
     {
         CAmount nTotal = 0;
-        for (const auto &r : vout)
+        for (const auto &r : vout) {
             nTotal += r.nValue;
+        }
         return nTotal;
     };
 

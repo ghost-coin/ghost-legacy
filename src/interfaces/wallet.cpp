@@ -167,6 +167,8 @@ WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, const C
 
 WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, CHDWallet &wallet, const uint256 &hash, const CTransactionRecord &rtx)
 {
+    LockAnnotation lock(::cs_main); // Temporary, for CheckFinalTx below. Removed in upcoming commit.
+
     WalletTxStatus result;
     auto mi = ::mapBlockIndex.find(rtx.blockHash);
 

@@ -2822,7 +2822,7 @@ static void ParseRecords(
     if (confirmations > 0) {
         push(entry, "blockhash", rtx.blockHash.GetHex());
         push(entry, "blockindex", rtx.nIndex);
-        push(entry, "blocktime", mapBlockIndex[rtx.blockHash]->GetBlockTime());
+        PushTime(entry, "blocktime", rtx.nBlockTime);
     } else {
         push(entry, "trusted", pwallet->IsTrusted(locked_chain, hash, rtx.blockHash));
     };

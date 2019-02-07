@@ -92,18 +92,19 @@ bool CheckStake(CBlock *pblock)
         return error("%s: %s CheckStakeUnique failed.", __func__, hashBlock.GetHex());
     }
 
-    BlockMap::const_iterator mi = mapBlockIndex.find(pblock->hashPrevBlock);
-    if (mi == mapBlockIndex.end()) {
-        return error("%s: %s prev block not found: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
-    }
-
-    if (!chainActive.Contains(mi->second)) {
-        return error("%s: %s prev block in active chain: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
-    }
-
     // Verify hash target and signature of coinstake tx
     {
         LOCK(cs_main);
+
+        BlockMap::const_iterator mi = mapBlockIndex.find(pblock->hashPrevBlock);
+        if (mi == mapBlockIndex.end()) {
+            return error("%s: %s prev block not found: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
+        }
+
+        if (!chainActive.Contains(mi->second)) {
+            return error("%s: %s prev block in active chain: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
+        }
+
         CValidationState state;
         if (!CheckProofOfStake(state, mi->second, *pblock->vtx[0], pblock->nTime, pblock->nBits, proofHash, hashTarget)) {
             return error("%s: proof-of-stake checking failed.", __func__);

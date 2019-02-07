@@ -157,39 +157,13 @@ struct BlockHasher
     size_t operator()(const uint256& hash) const { return ReadLE64(hash.begin()); }
 };
 
-typedef int64_t NodeId;
-class StakeConflict
-{
-public:
-    int64_t nLastUpdated = 0;
-    //COutPoint kernel;
-    std::map<NodeId, int> peerCount;
-
-    //int SetKernel(const COutPoint &kernel_);
-    int Add(NodeId id);
-};
-
-/** Cache recently seen coinstake transactions */
-class CoinStakeCache
-{
-public:
-    size_t nMaxSize = 16;
-    std::list<std::pair<uint256, CTransactionRef> > lData;
-
-    bool GetCoinStake(const uint256 &blockHash, CTransactionRef &tx);
-    bool InsertCoinStake(const uint256 &blockHash, const CTransactionRef &tx);
-};
-
-extern std::map<uint256, StakeConflict> mapStakeConflict;
-extern CoinStakeCache coinStakeCache;
-
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CBlockPolicyEstimator feeEstimator;
 extern CTxMemPool mempool;
 extern std::atomic_bool g_is_mempool_loaded;
 typedef std::unordered_map<uint256, CBlockIndex*, BlockHasher> BlockMap;
-extern BlockMap& mapBlockIndex;
+extern BlockMap& mapBlockIndex GUARDED_BY(cs_main);
 extern std::map<COutPoint, uint256> mapStakeSeen;
 extern std::list<COutPoint> listStakeSeen;
 extern uint64_t nLastBlockTx;
@@ -342,7 +316,7 @@ uint64_t CalculateCurrentUsage();
 /**
  *  Mark one block file as pruned.
  */
-void PruneOneBlockFile(const int fileNumber);
+void PruneOneBlockFile(const int fileNumber) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  *  Actually unlink the specified files
@@ -614,5 +588,33 @@ inline bool IsBlockPruned(const CBlockIndex* pblockindex)
 bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 size_t CountDelayedBlocks() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+typedef int64_t NodeId;
+class StakeConflict
+{
+public:
+    int64_t nLastUpdated = 0;
+    //COutPoint kernel;
+    std::map<NodeId, int> peerCount;
+
+    //int SetKernel(const COutPoint &kernel_);
+    int Add(NodeId id);
+};
+
+/** Cache recently seen coinstake transactions */
+class CoinStakeCache
+{
+public:
+    size_t nMaxSize = 16;
+    std::list<std::pair<uint256, CTransactionRef> > lData;
+
+    bool GetCoinStake(const uint256 &blockHash, CTransactionRef &tx) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool InsertCoinStake(const uint256 &blockHash, const CTransactionRef &tx) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+};
+
+extern std::map<uint256, StakeConflict> mapStakeConflict;
+extern CoinStakeCache coinStakeCache;
+
+
 
 #endif // BITCOIN_VALIDATION_H
