@@ -249,8 +249,11 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
                 }
 
                 UniValue objM(UniValue::VOBJ);
-                std::string sLabel = smsgModule.pwallet->mapAddressBook[keyID].name;
-                std::string sInfo;
+                std::string sInfo, sLabel;
+                {
+                    LOCK(smsgModule.pwallet->cs_wallet);
+                    sLabel = smsgModule.pwallet->mapAddressBook[keyID].name;
+                }
                 if (all) {
                     sInfo = std::string("Receive ") + (it->fReceiveEnabled ? "on,  " : "off, ");
                 }
@@ -355,6 +358,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
         if (!smsgModule.pwallet) {
             throw JSONRPCError(RPC_MISC_ERROR, "No wallet.");
         }
+        LOCK(smsgModule.pwallet->cs_wallet);
         uint32_t nKeys = 0;
         UniValue keys(UniValue::VOBJ);
 
@@ -1289,15 +1293,18 @@ static UniValue smsgview(const JSONRPCRequest &request)
 
                 std::map<CTxDestination, CAddressBookData>::iterator itl;
 
-                for (itl = smsgModule.pwallet->mapAddressBook.begin(); itl != smsgModule.pwallet->mapAddressBook.end(); ++itl) {
-                    if (part::stringsMatchI(itl->second.name, sTemp, matchType)) {
-                        CBitcoinAddress checkValid(itl->first);
-                        if (checkValid.IsValid()) {
-                            CKeyID ki;
-                            checkValid.GetKeyID(ki);
-                            vMatchAddress.push_back(ki);
-                        } else {
-                            LogPrintf("Warning: matched invalid address: %s\n", checkValid.ToString().c_str());
+                {
+                    LOCK(smsgModule.pwallet->cs_wallet);
+                    for (itl = smsgModule.pwallet->mapAddressBook.begin(); itl != smsgModule.pwallet->mapAddressBook.end(); ++itl) {
+                        if (part::stringsMatchI(itl->second.name, sTemp, matchType)) {
+                            CBitcoinAddress checkValid(itl->first);
+                            if (checkValid.IsValid()) {
+                                CKeyID ki;
+                                checkValid.GetKeyID(ki);
+                                vMatchAddress.push_back(ki);
+                            } else {
+                                LogPrintf("Warning: matched invalid address: %s\n", checkValid.ToString().c_str());
+                            }
                         }
                     }
                 }
@@ -1426,8 +1433,8 @@ static UniValue smsgview(const JSONRPCRequest &request)
                         lblFrom = itl->second;
                     } else {
                         CBitcoinAddress address_parsed(kiFrom);
-                        std::map<CTxDestination, CAddressBookData>::iterator
-                            mi(smsgModule.pwallet->mapAddressBook.find(address_parsed.Get()));
+                        LOCK(smsgModule.pwallet->cs_wallet);
+                        auto mi(smsgModule.pwallet->mapAddressBook.find(address_parsed.Get()));
                         if (mi != smsgModule.pwallet->mapAddressBook.end()) {
                             lblFrom = mi->second.name;
                         }
@@ -1438,8 +1445,8 @@ static UniValue smsgview(const JSONRPCRequest &request)
                         lblTo = itl->second;
                     } else {
                         CBitcoinAddress address_parsed(smsgStored.addrTo);
-                        std::map<CTxDestination, CAddressBookData>::iterator
-                            mi(smsgModule.pwallet->mapAddressBook.find(address_parsed.Get()));
+                        LOCK(smsgModule.pwallet->cs_wallet);
+                        auto mi(smsgModule.pwallet->mapAddressBook.find(address_parsed.Get()));
                         if (mi != smsgModule.pwallet->mapAddressBook.end()) {
                             lblTo = mi->second.name;
                         }

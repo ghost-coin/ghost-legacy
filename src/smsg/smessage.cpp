@@ -645,6 +645,7 @@ int CSMSG::AddWalletAddresses()
 
     uint32_t nAdded = 0;
 
+    LOCK(pwallet->cs_wallet);
     for (const auto &entry : pwallet->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
         if (!IsMine(*pwallet, entry.first)) {
             continue;
@@ -3614,19 +3615,22 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
     CKeyID addressOutbox;
 
-    for (const auto &entry : pwallet->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
-        // Get first owned address
-        if (!IsMine(*pwallet, entry.first)) {
-            continue;
-        }
+    {
+        LOCK(pwallet->cs_wallet);
+        for (const auto &entry : pwallet->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
+            // Get first owned address
+            if (!IsMine(*pwallet, entry.first)) {
+                continue;
+            }
 
-        const CBitcoinAddress &address = entry.first;
+            const CBitcoinAddress &address = entry.first;
 
-        if (!address.IsValid()) {
-            continue;
+            if (!address.IsValid()) {
+                continue;
+            }
+            address.GetKeyID(addressOutbox);
+            break;
         }
-        address.GetKeyID(addressOutbox);
-        break;
     }
 
     if (addressOutbox.IsNull()) {
