@@ -124,12 +124,13 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
             ofs += nB;
 
             if (!setHaveI.insert(nIndex).second) {
+                LogPrintf("%s: Duplicate output: %ld\n", __func__, nIndex);
                 return state.DoS(100, false, REJECT_MALFORMED, "bad-anonin-dup-i");
             }
 
             CAnonOutput ao;
             if (!pblocktree->ReadRCTOutput(nIndex, ao)) {
-                LogPrint(BCLog::RINGCT, "bad-anonin-unknown-i %ld\n", nIndex);
+                LogPrintf("%s: ReadRCTOutput failed: %ld\n", __func__, nIndex);
                 return state.DoS(100, false, REJECT_MALFORMED, "bad-anonin-unknown-i");
             }
             memcpy(&vM[(i+k*nCols)*33], ao.pubkey.begin(), 33);
