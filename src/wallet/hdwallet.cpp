@@ -120,6 +120,7 @@ const COutputRecord *CTransactionRecord::GetChangeOutput() const
 
 int CHDWallet::Finalise()
 {
+    LOCK(cs_wallet);
     LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     FreeExtKeyMaps();
@@ -406,7 +407,7 @@ bool CHDWallet::IsHDEnabled() const
     return mapExtAccounts.find(idDefaultAccount) != mapExtAccounts.end();
 }
 
-static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &derivedKeys)
+static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &derivedKeys) EXCLUSIVE_LOCKS_REQUIRED(pw->cs_wallet)
 {
     UniValue keyobj(UniValue::VOBJ);
 
@@ -10272,9 +10273,10 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
         }
         rtx.blockHash = block_hash;
         rtx.nIndex = posInBlock;
-        BlockMap::iterator mi = mapBlockIndex.find(block_hash);
-        if (mi != mapBlockIndex.end()) {
-            rtx.nBlockTime = mi->second->nTime;
+
+        int64_t blocktime;
+        if (chain().findBlock(rtx.blockHash, nullptr /* block */, &blocktime)) {
+            rtx.nBlockTime = blocktime;
         }
 
         // Update blockhash of mapTempWallet if exists
@@ -11683,22 +11685,13 @@ void CHDWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx)
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
-    int conflictconfirms = 0;
-
-    BlockMap::iterator mi = mapBlockIndex.find(hashTx);
-    if (mi != mapBlockIndex.end()) {
-        if (chainActive.Contains(mi->second)) {
-            conflictconfirms = -(chainActive.Height() - mi->second->nHeight + 1);
-        }
-    }
-
+    int conflictconfirms = -locked_chain->getBlockDepth(hashBlock);
     // If number of conflict confirms cannot be determined, this means
     // that the block is still unknown or not yet part of the main chain,
     // for example when loading the wallet during a reindex. Do nothing in that
     // case.
-    if (conflictconfirms >= 0) {
+    if (conflictconfirms >= 0)
         return;
-    }
 
     // Do not flush the wallet here for performance reasons
     CHDWalletDB walletdb(*database, "r+", false);
@@ -12467,6 +12460,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
         CAmount nDevBfwd = 0;
         if (nBlockHeight > 1) { // genesis block is pow
+            LOCK(cs_main);
             if (!coinStakeCache.GetCoinStake(pindexPrev->GetBlockHash(), txPrevCoinstake)) {
                 return werror("%s: Failed to get previous coinstake: %s.", __func__, pindexPrev->GetBlockHash().ToString());
             }
@@ -12508,6 +12502,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
     if (nTime >= consensusParams.smsg_fee_time) {
         CAmount smsg_fee_rate = consensusParams.smsg_fee_msg_per_day_per_k;
         if (nBlockHeight > 1) { // genesis block is pow
+            LOCK(cs_main);
             if (!txPrevCoinstake && !coinStakeCache.GetCoinStake(pindexPrev->GetBlockHash(), txPrevCoinstake)) {
                 return werror("%s: Failed to get previous coinstake: %s.", __func__, pindexPrev->GetBlockHash().ToString());
             }

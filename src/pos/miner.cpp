@@ -92,18 +92,19 @@ bool CheckStake(CBlock *pblock)
         return error("%s: %s CheckStakeUnique failed.", __func__, hashBlock.GetHex());
     }
 
-    BlockMap::const_iterator mi = mapBlockIndex.find(pblock->hashPrevBlock);
-    if (mi == mapBlockIndex.end()) {
-        return error("%s: %s prev block not found: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
-    }
-
-    if (!chainActive.Contains(mi->second)) {
-        return error("%s: %s prev block in active chain: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
-    }
-
     // Verify hash target and signature of coinstake tx
     {
         LOCK(cs_main);
+
+        BlockMap::const_iterator mi = mapBlockIndex.find(pblock->hashPrevBlock);
+        if (mi == mapBlockIndex.end()) {
+            return error("%s: %s prev block not found: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
+        }
+
+        if (!chainActive.Contains(mi->second)) {
+            return error("%s: %s prev block in active chain: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
+        }
+
         CValidationState state;
         if (!CheckProofOfStake(state, mi->second, *pblock->vtx[0], pblock->nTime, pblock->nBits, proofHash, hashTarget)) {
             return error("%s: proof-of-stake checking failed.", __func__);
@@ -333,7 +334,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             nBestHeight = chainActive.Height();
             nBestTime = chainActive.Tip()->nTime;
             num_blocks_of_peers = GetNumBlocksOfPeers();
-            num_nodes = g_connman->vNodes.size();
+            num_nodes = g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL);
         }
 
         if (fTryToSync) {

@@ -167,6 +167,8 @@ WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, const C
 
 WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, CHDWallet &wallet, const uint256 &hash, const CTransactionRecord &rtx)
 {
+    LockAnnotation lock(::cs_main); // Temporary, for CheckFinalTx below. Removed in upcoming commit.
+
     WalletTxStatus result;
     auto mi = ::mapBlockIndex.find(rtx.blockHash);
 
@@ -308,6 +310,7 @@ public:
     }
     std::vector<std::string> getDestValues(const std::string& prefix) override
     {
+        LOCK(m_wallet.cs_wallet);
         return m_wallet.GetDestValues(prefix);
     }
     void lockCoin(const COutPoint& output) override

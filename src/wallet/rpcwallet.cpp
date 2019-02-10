@@ -1610,7 +1610,7 @@ static void MaybePushAddress(UniValue & entry, const CTxDestination &dest)
  * @param  filter_ismine  The "is mine" filter flags.
  * @param  filter_label   Optional label string to filter incoming transactions.
  */
-static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* const pwallet, const CWalletTx& wtx, int nMinDepth, bool fLong, UniValue& ret, const isminefilter& filter_ismine, const std::string* filter_label)
+static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* const pwallet, const CWalletTx& wtx, int nMinDepth, bool fLong, UniValue& ret, const isminefilter& filter_ismine, const std::string* filter_label) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     CAmount nFee;
     std::list<COutputEntry> listReceived;
@@ -1656,10 +1656,8 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
     }
 
     // Received
-    if (listReceived.size() > 0 && wtx.GetDepthInMainChain(locked_chain) >= nMinDepth)
-    {
-        for (const COutputEntry &r : listReceived)
-        {
+    if (listReceived.size() > 0 && wtx.GetDepthInMainChain(locked_chain) >= nMinDepth) {
+        for (const COutputEntry &r : listReceived) {
             std::string label;
             if (pwallet->mapAddressBook.count(r.destination)) {
                 label = pwallet->mapAddressBook[r.destination].name;
@@ -1673,31 +1671,28 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
             }
 
             if (fParticlWallet
-                && r.destination.type() == typeid(CKeyID))
-            {
+                && r.destination.type() == typeid(CKeyID)) {
                 CStealthAddress sx;
                 CKeyID idK = boost::get<CKeyID>(r.destination);
-                if (GetParticlWallet(pwallet)->GetStealthLinked(idK, sx))
-                {
+                if (GetParticlWallet(pwallet)->GetStealthLinked(idK, sx)) {
                     entry.pushKV("stealth_address", sx.Encoded());
-                };
-            };
-
-            MaybePushAddress(entry, r.destination);
-            if (r.destStake.type() != typeid(CNoDestination))
-                entry.pushKV("coldstake_address", EncodeDestination(r.destStake));
-            if (wtx.IsCoinBase())
-            {
-                if (wtx.GetDepthInMainChain(locked_chain) < 1)
-                    entry.pushKV("category", "orphan");
-                else if (wtx.IsImmatureCoinBase(locked_chain))
-                    entry.pushKV("category", "immature");
-                else {
-                    entry.pushKV("category", (fParticlMode ? "coinbase" : "generate"));
                 }
             }
-            else
-            {
+
+            MaybePushAddress(entry, r.destination);
+            if (r.destStake.type() != typeid(CNoDestination)) {
+                entry.pushKV("coldstake_address", EncodeDestination(r.destStake));
+            }
+            if (wtx.IsCoinBase()) {
+                if (wtx.GetDepthInMainChain(locked_chain) < 1) {
+                    entry.pushKV("category", "orphan");
+                } else
+                if (wtx.IsImmatureCoinBase(locked_chain)) {
+                    entry.pushKV("category", "immature");
+                } else {
+                    entry.pushKV("category", (fParticlMode ? "coinbase" : "generate"));
+                }
+            } else {
                 entry.pushKV("category", "receive");
             }
             entry.pushKV("amount", ValueFromAmount(r.amount));
@@ -1707,16 +1702,16 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
             entry.pushKV("vout", r.vout);
             if (fLong) {
                 WalletTxToJSON(pwallet->chain(), locked_chain, wtx, entry);
-            } else
-            {
+            } else {
                 std::string sNarrKey = strprintf("n%d", r.vout);
                 mapValue_t::const_iterator mi = wtx.mapValue.find(sNarrKey);
-                if (mi != wtx.mapValue.end() && !mi->second.empty())
+                if (mi != wtx.mapValue.end() && !mi->second.empty()) {
                     entry.pushKV("narration", mi->second);
+                }
             }
             ret.push_back(entry);
         }
-    };
+    }
 
     // Staked
     if (listStaked.size() > 0 && wtx.GetDepthInMainChain(locked_chain) >= nMinDepth) {
@@ -1747,7 +1742,7 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
 }
 
 static void ListRecord(interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, const uint256 &hash, const CTransactionRecord &rtx,
-    const std::string &strAccount, int nMinDepth, bool fLong, UniValue &ret, const isminefilter &filter)
+    const std::string &strAccount, int nMinDepth, bool fLong, UniValue &ret, const isminefilter &filter) EXCLUSIVE_LOCKS_REQUIRED(phdw->cs_wallet)
 {
     bool fAllAccounts = (strAccount == std::string("*"));
 
@@ -1849,7 +1844,7 @@ static void ListRecord(interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, c
         if (confirms > 0) {
             entry.pushKV("blockhash", rtx.blockHash.GetHex());
             entry.pushKV("blockindex", rtx.nIndex);
-            entry.pushKV("blocktime", mapBlockIndex[rtx.blockHash]->GetBlockTime());
+            PushTime(entry, "blocktime", rtx.nBlockTime);
         } else {
             entry.pushKV("trusted", phdw->IsTrusted(locked_chain, hash, rtx.blockHash));
         }
@@ -4543,7 +4538,6 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
                     ret.pushKV("spend_path", sPath);
                 }
             }
-
         } else
         if (dest.type() == typeid(CKeyID)
             || dest.type() == typeid(CKeyID256)) {

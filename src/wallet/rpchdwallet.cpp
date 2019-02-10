@@ -2013,7 +2013,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     return result;
 }
 
-int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo)
+int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     std::set<CStealthAddress>::iterator it;
     for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it) {
@@ -2102,6 +2102,8 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
     if (fShowSecrets) {
         EnsureWalletIsUnlocked(pwallet);
     }
+
+    LOCK(pwallet->cs_wallet);
 
     UniValue result(UniValue::VARR);
 
@@ -2557,14 +2559,15 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
 }
 
 static bool ParseOutput(
-    UniValue &                 output,
-    const COutputEntry &       o,
-    CHDWallet * const          pwallet,
-    CWalletTx &                wtx,
-    const isminefilter &       watchonly,
-    std::vector<std::string> & addresses,
-    std::vector<std::string> & amounts
-) {
+    UniValue                  &output,
+    const COutputEntry        &o,
+    CHDWallet *const           pwallet,
+    CWalletTx                 &wtx,
+    const isminefilter        &watchonly,
+    std::vector<std::string>  &addresses,
+    std::vector<std::string>  &amounts
+) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
+{
     CBitcoinAddress addr;
 
     std::string sKey = strprintf("n%d", o.vout);
@@ -2805,10 +2808,11 @@ static void ParseRecords(
     UniValue                   &entries,
     const uint256              &hash,
     const CTransactionRecord   &rtx,
-    CHDWallet * const           pwallet,
+    CHDWallet *const            pwallet,
     const isminefilter         &watchonly_filter,
     std::string                 search
-) {
+) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
+{
     std::vector<std::string> addresses, amounts;
     UniValue entry(UniValue::VOBJ);
     UniValue outputs(UniValue::VARR);
@@ -2822,7 +2826,7 @@ static void ParseRecords(
     if (confirmations > 0) {
         push(entry, "blockhash", rtx.blockHash.GetHex());
         push(entry, "blockindex", rtx.nIndex);
-        push(entry, "blocktime", mapBlockIndex[rtx.blockHash]->GetBlockTime());
+        PushTime(entry, "blocktime", rtx.nBlockTime);
     } else {
         push(entry, "trusted", pwallet->IsTrusted(locked_chain, hash, rtx.blockHash));
     };
@@ -2952,7 +2956,6 @@ static void ParseRecords(
 
     if (nOwned && nFrom && nOwned != outputs.size()) {
         // Must check against the owned input value
-        LOCK(pwallet->cs_wallet);
         CAmount nInput = 0;
         for (const auto &vin : rtx.vin) {
             if (vin.IsAnonInput()) {
@@ -3592,6 +3595,8 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid Particl address."));
     }
+
+    LOCK(pwallet->cs_wallet);
 
     CTxDestination dest = address.Get();
 

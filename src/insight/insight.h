@@ -9,10 +9,13 @@
 #include <uint256.h>
 #include <amount.h>
 #include <script/script.h>
+#include <sync.h>
 
 #include <insight/addressindex.h>
 #include <insight/spentindex.h>
 #include <insight/timestampindex.h>
+
+extern CCriticalSection cs_main;
 
 class CTxOutBase;
 
@@ -22,7 +25,7 @@ bool ExtractIndexInfo(const CTxOutBase *out, int &scriptType, std::vector<uint8_
 /** Functions for insight block explorer */
 bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int> > &hashes);
 bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
-bool HashOnchainActive(const uint256 &hash);
+bool HashOnchainActive(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 bool GetAddressIndex(uint256 addressHash, int type,
                      std::vector<std::pair<CAddressIndexKey, CAmount> > &addressIndex,
                      int start = 0, int end = 0);

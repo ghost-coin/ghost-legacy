@@ -15,3 +15,7 @@ endif
 if BUILD_BITCOIN_TX
   dist_man1_MANS+=particl-tx.1
 endif
+
+if BUILD_BITCOIN_WALLET
+  dist_man1_MANS+=particl-wallet.1
+endif

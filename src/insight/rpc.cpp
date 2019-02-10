@@ -737,6 +737,8 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
         throw std::runtime_error("getblockdeltas <blockhash>\n");
     }
 
+    LOCK(cs_main);
+
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
 
