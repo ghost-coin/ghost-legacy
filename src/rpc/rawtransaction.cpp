@@ -61,6 +61,26 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             txin.GetAnonInfo(nSigInputs, nSigRingSize);
             in.pushKV("num_inputs", (int)nSigInputs);
             in.pushKV("ring_size", (int)nSigRingSize);
+
+            if (tx.HasWitness()
+                && !txin.scriptWitness.IsNull()
+                && txin.scriptWitness.stack.size() > 0) {
+                const std::vector<uint8_t> &vMI = txin.scriptWitness.stack[0];
+
+                size_t ofs = 0, nb = 0;
+                for (size_t k = 0; k < nSigInputs; ++k) {
+                    std::string row_out;
+                    for (size_t i = 0; i < nSigRingSize; ++i) {
+                        int64_t anon_index;
+                        if (0 != GetVarInt(vMI, ofs, (uint64_t&)anon_index, nb)) {
+                            throw JSONRPCError(RPC_MISC_ERROR, "Decode anon index failed.");
+                        }
+                        ofs += nb;
+                        row_out += row_out.size() == 0 ? strprintf("%lu", anon_index) : strprintf(", %lu", anon_index); // linter fails (row_out.size() == 0 ? "%lu" : ", %lu", anon_index)
+                    }
+                    in.pushKV(strprintf("ring_row_%d", k), row_out);
+                }
+            }
         } else {
             in.pushKV("txid", txin.prevout.hash.GetHex());
             in.pushKV("vout", (int64_t)txin.prevout.n);
@@ -86,6 +106,15 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                     in.pushKV("address", CBitcoinAddress(CScriptID256(spentInfo.addressHash)).ToString());
                 }
             }
+        }
+
+        if (!txin.scriptData.IsNull()) {
+            UniValue scriptdata(UniValue::VARR);
+            for (unsigned int j = 0; j < txin.scriptData.stack.size(); j++) {
+                std::vector<unsigned char> item = txin.scriptData.stack[j];
+                scriptdata.push_back(HexStr(item.begin(), item.end()));
+            }
+            in.pushKV("scriptdata", scriptdata);
         }
 
         if (tx.HasWitness()) {
@@ -121,8 +150,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             entry.pushKV("confirmations", nConfirmations);
             PushTime(entry, "time", nBlockTime);
             PushTime(entry, "blocktime", nBlockTime);
-        } else
-        {
+        } else {
             entry.pushKV("height", -1);
             entry.pushKV("confirmations", 0);
         }
