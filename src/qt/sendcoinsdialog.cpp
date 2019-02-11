@@ -349,8 +349,7 @@ void SendCoinsDialog::on_sendButton_clicked()
     }
 
     if (!boost::get<CNoDestination>(&ctrl.destChange)) {
-        CBitcoinAddress addrChange(ctrl.destChange);
-        sCoinControl += ",\"changeaddress\":\""+QString::fromStdString(addrChange.ToString())+"\"";
+        sCoinControl += ",\"changeaddress\":\""+QString::fromStdString(EncodeDestination(ctrl.destChange))+"\"";
     }
 
     if (ctrl.NumSelected() > 0)  {

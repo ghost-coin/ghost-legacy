@@ -529,7 +529,7 @@ public:
 
     //! filter decides which addresses will count towards the debit
     CAmount GetDebit(const isminefilter& filter) const;
-    CAmount GetCredit(interfaces::Chain::Lock& locked_chain, const isminefilter& filter) const;
+    CAmount GetCredit(interfaces::Chain::Lock& locked_chain, const isminefilter& filter, bool allow_immature=false) const;
     CAmount GetImmatureCredit(interfaces::Chain::Lock& locked_chain, bool fUseCache=true) const;
     // TODO: Remove "NO_THREAD_SAFETY_ANALYSIS" and replace it with the correct
     // annotation "EXCLUSIVE_LOCKS_REQUIRED(cs_main, pwallet->cs_wallet)". The

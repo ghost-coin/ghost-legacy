@@ -2122,11 +2122,13 @@ bool CHDWallet::IsAllFromMe(const CTransaction& tx, const isminefilter& filter) 
 
 CAmount CHDWallet::GetCredit(const CTxOutBase *txout, const isminefilter &filter) const
 {
-    if (!txout->IsStandardOutput())
+    if (!txout->IsStandardOutput()) {
         return 0;
+    }
     CAmount value = txout->GetValue();
-    if (!MoneyRange(value))
+    if (!MoneyRange(value)) {
         throw std::runtime_error(std::string(__func__) + ": value out of range");
+    }
     return ((IsMine(txout) & filter) ? value : 0);
 }
 
@@ -2136,8 +2138,9 @@ CAmount CHDWallet::GetCredit(const CTransaction &tx, const isminefilter &filter)
 
     for (const auto &txout : tx.vpout) {
         nCredit += GetCredit(txout.get(), filter);
-        if (!MoneyRange(nCredit))
+        if (!MoneyRange(nCredit)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
+        }
     }
     return nCredit;
 };
@@ -2146,23 +2149,27 @@ void CHDWallet::GetCredit(const CTransaction &tx, CAmount &nSpendable, CAmount &
 {
     nSpendable = 0;
     nWatchOnly = 0;
-    for (const auto &txout : tx.vpout)
-    {
-        if (!txout->IsType(OUTPUT_STANDARD))
+    for (const auto &txout : tx.vpout) {
+        if (!txout->IsType(OUTPUT_STANDARD)) {
             continue;
+        }
 
         isminetype ismine = IsMine(txout.get());
 
-        if (ismine & ISMINE_SPENDABLE)
+        if (ismine & ISMINE_SPENDABLE) {
             nSpendable += txout->GetValue();
-        if (ismine & ISMINE_WATCH_ONLY)
+        }
+        if (ismine & ISMINE_WATCH_ONLY) {
             nWatchOnly += txout->GetValue();
-    };
+        }
+    }
 
-    if (!MoneyRange(nSpendable))
+    if (!MoneyRange(nSpendable)) {
         throw std::runtime_error(std::string(__func__) + ": value out of range");
-    if (!MoneyRange(nWatchOnly))
+    }
+    if (!MoneyRange(nWatchOnly)) {
         throw std::runtime_error(std::string(__func__) + ": value out of range");
+    }
     return;
 };
 

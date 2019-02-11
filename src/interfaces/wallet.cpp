@@ -118,8 +118,7 @@ WalletTx MakeWalletTx(interfaces::Chain::Lock& locked_chain, CWallet& wallet, co
         }
     }
 
-    result.credit = wtx.GetCredit(locked_chain, ISMINE_ALL);
-    result.credit = wtx.GetCredit(locked_chain, ISMINE_ALL);
+    result.credit = wtx.GetCredit(locked_chain, ISMINE_ALL, true);
     result.debit = wtx.GetDebit(ISMINE_ALL);
     result.change = wtx.GetChange();
     result.time = wtx.GetTxTime();

@@ -236,6 +236,16 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="showZeroValueCoinstakes">
+            <property name="toolTip">
+             <string>Display zero value stake transactions.</string>
+            </property>
+            <property name="text">
+             <string>&amp;Show zero value stakes</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
