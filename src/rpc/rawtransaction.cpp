@@ -76,7 +76,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                             throw JSONRPCError(RPC_MISC_ERROR, "Decode anon index failed.");
                         }
                         ofs += nb;
-                        row_out += row_out.size() == 0 ? strprintf("%lu", anon_index) : strprintf(", %lu", anon_index); // linter fails (row_out.size() == 0 ? "%lu" : ", %lu", anon_index)
+                        row_out += row_out.size() == 0 ? strprintf("%lu", anon_index) : strprintf(", %lu", anon_index); // linter fails ? "%lu" : ", %lu"
                     }
                     in.pushKV(strprintf("ring_row_%d", k), row_out);
                 }

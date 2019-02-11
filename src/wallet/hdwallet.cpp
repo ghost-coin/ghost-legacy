@@ -423,9 +423,9 @@ static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &deriv
     if (mi != pw->mapAddressBook.end()) {
         // TODO: confirm vPath?
         keyobj.pushKV("label", mi->second.name);
-        if (!mi->second.purpose.empty())
+        if (!mi->second.purpose.empty()) {
             keyobj.pushKV("purpose", mi->second.purpose);
-
+        }
         UniValue objDestData(UniValue::VOBJ);
         for (const auto &pair : mi->second.destdata) {
             objDestData.pushKV(pair.first, pair.second);
@@ -2166,12 +2166,12 @@ void CHDWallet::GetCredit(const CTransaction &tx, CAmount &nSpendable, CAmount &
     return;
 };
 
-CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex)
+CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex) const
 {
-    MapWallet_t::iterator itw;
-    MapRecords_t::iterator itr;
+    MapWallet_t::const_iterator itw;
+    MapRecords_t::const_iterator itr;
     if ((itw = mapWallet.find(op.hash)) != mapWallet.end()) {
-        CWalletTx *pcoin = &itw->second;
+        const CWalletTx *pcoin = &itw->second;
         if (pcoin->tx->GetNumVOuts() > op.n) {
             return pcoin->tx->vpout[op.n]->GetValue();
         }
@@ -2206,12 +2206,12 @@ CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex)
     return 0;
 };
 
-CAmount CHDWallet::GetOwnedOutputValue(const COutPoint &op, isminefilter filter)
+CAmount CHDWallet::GetOwnedOutputValue(const COutPoint &op, isminefilter filter) const
 {
-    MapWallet_t::iterator itw;
-    MapRecords_t::iterator itr;
+    MapWallet_t::const_iterator itw;
+    MapRecords_t::const_iterator itr;
     if ((itw = mapWallet.find(op.hash)) != mapWallet.end()) {
-        CWalletTx *pcoin = &itw->second;
+        const CWalletTx *pcoin = &itw->second;
         if (pcoin->tx->GetNumVOuts() > op.n
             && IsMine(pcoin->tx->vpout[op.n].get()) & filter) {
             return pcoin->tx->vpout[op.n]->GetValue();
@@ -8754,7 +8754,7 @@ bool CHDWallet::GetStealthByIndex(uint32_t sxId, CStealthAddress &sx) const
     return true;
 };
 
-bool CHDWallet::GetStealthLinked(const CKeyID &idK, CStealthAddress &sx)
+bool CHDWallet::GetStealthLinked(const CKeyID &idK, CStealthAddress &sx) const
 {
     LOCK(cs_wallet);
 

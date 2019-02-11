@@ -2561,8 +2561,8 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
 static bool ParseOutput(
     UniValue                  &output,
     const COutputEntry        &o,
-    CHDWallet *const           pwallet,
-    CWalletTx                 &wtx,
+    const CHDWallet           *pwallet,
+    const CWalletTx           &wtx,
     const isminefilter        &watchonly,
     std::vector<std::string>  &addresses,
     std::vector<std::string>  &amounts
@@ -2571,7 +2571,7 @@ static bool ParseOutput(
     CBitcoinAddress addr;
 
     std::string sKey = strprintf("n%d", o.vout);
-    mapValue_t::iterator mvi = wtx.mapValue.find(sKey);
+    mapValue_t::const_iterator mvi = wtx.mapValue.find(sKey);
     if (mvi != wtx.mapValue.end()) {
         output.pushKV("narration", mvi->second);
     }
@@ -2589,8 +2589,9 @@ static bool ParseOutput(
     if (o.destStake.type() != typeid(CNoDestination)) {
         output.pushKV("coldstake_address", EncodeDestination(o.destStake));
     }
-    if (pwallet->mapAddressBook.count(o.destination)) {
-        output.pushKV("label", pwallet->mapAddressBook[o.destination].name);
+    auto mi = pwallet->mapAddressBook.find(o.destination);
+    if (mi != pwallet->mapAddressBook.end()) {
+        output.pushKV("label", mi->second.name);
     }
     output.pushKV("vout", o.vout);
     amounts.push_back(std::to_string(o.amount));
@@ -2598,15 +2599,17 @@ static bool ParseOutput(
 }
 
 extern void WalletTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_chain, const CWalletTx& wtx, UniValue& entry, bool fFilterMode=false);
+
 static void ParseOutputs(
     interfaces::Chain::Lock& locked_chain,
-    UniValue &           entries,
-    CWalletTx &          wtx,
-    CHDWallet * const    pwallet,
-    const isminefilter & watchonly,
-    std::string          search,
+    UniValue            &entries,
+    CWalletTx           &wtx,
+    const CHDWallet     *pwallet,
+    const isminefilter  &watchonly,
+    std::string         &search,
     bool                 fWithReward,
     bool                 fBech32,
+    bool                 hide_zero_coinstakes,
     std::vector<CScript> &vDevFundScripts
 ) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
@@ -2625,7 +2628,11 @@ static void ParseOutputs(
         true);
 
     if (wtx.IsFromMe(ISMINE_WATCH_ONLY) && !(watchonly & ISMINE_WATCH_ONLY)) {
-        return ;
+        return;
+    }
+
+    if (hide_zero_coinstakes && !listStaked.empty() && nFee == 0) {
+        return;
     }
 
     std::vector<std::string> addresses, amounts;
@@ -2639,7 +2646,6 @@ static void ParseOutputs(
 
     // staked
     if (!listStaked.empty()) {
-        LOCK(cs_main);
         if (wtx.GetDepthInMainChain(locked_chain) < 1) {
             entry.pushKV("category", "orphaned_stake");
         } else {
@@ -2654,14 +2660,12 @@ static void ParseOutputs(
                 wtx,
                 watchonly,
                 addresses,
-                amounts
-            )) {
+                amounts)) {
                 return ;
             }
             output.pushKV("amount", ValueFromAmount(s.amount));
             outputs.push_back(output);
         }
-
         amount += -nFee;
     } else {
         // sent
@@ -2674,8 +2678,7 @@ static void ParseOutputs(
                     wtx,
                     watchonly,
                     addresses,
-                    amounts
-                )) {
+                    amounts)) {
                     return ;
                 }
                 output.pushKV("amount", ValueFromAmount(-s.amount));
@@ -2717,13 +2720,13 @@ static void ParseOutputs(
                         fExists = true;
                     }
                 }
-                if (!fExists)
+                if (!fExists) {
                     outputs.push_back(output);
+                }
             }
         }
 
         if (wtx.IsCoinBase()) {
-            LOCK(cs_main);
             if (wtx.GetDepthInMainChain(locked_chain) < 1) {
                 entry.pushKV("category", "orphan");
             } else if (wtx.GetBlocksToMaturity(locked_chain) > 0) {
@@ -2734,8 +2737,9 @@ static void ParseOutputs(
         } else if (!nFee) {
             entry.pushKV("category", "receive");
         } else if (amount == 0) {
-            if (listSent.empty())
+            if (listSent.empty()) {
                 entry.pushKV("fee", ValueFromAmount(-nFee));
+            }
             entry.pushKV("category", "internal_transfer");
         } else {
             entry.pushKV("category", "send");
@@ -2747,7 +2751,7 @@ static void ParseOutputs(
                 entry.pushKV("fee", ValueFromAmount(-nFee));
             }
         }
-    };
+    }
 
     entry.pushKV("outputs", outputs);
     entry.pushKV("amount", ValueFromAmount(amount));
@@ -3053,6 +3057,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
                             {"collate", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Display number of records and sum of amount fields"},
                             {"with_reward", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Calculate reward explicitly from txindex if necessary."},
                             {"use_bech32", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Display addresses in bech32 encoding"},
+                            {"hide_zero_coinstakes", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Hide coinstake transactions without a balance change"},
                         },
                         "options"},
                 },
@@ -3087,9 +3092,10 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
     bool fCollate = false;
     bool fWithReward = false;
     bool fBech32 = false;
+    bool hide_zero_coinstakes = false;
 
     if (!request.params[0].isNull()) {
-        const UniValue & options = request.params[0].get_obj();
+        const UniValue &options = request.params[0].get_obj();
         RPCTypeCheckObj(options,
             {
                 {"count",             UniValueType(UniValue::VNUM)},
@@ -3179,24 +3185,31 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
             }
         }
 
-        if (options["from"].isStr())
+        if (options["from"].isStr()) {
             timeFrom = part::strToEpoch(options["from"].get_str().c_str());
-        else
-        if (options["from"].isNum())
+        } else
+        if (options["from"].isNum()) {
             timeFrom = options["from"].get_int64();
-        if (options["to"].isStr())
+        }
+        if (options["to"].isStr()) {
             timeTo = part::strToEpoch(options["to"].get_str().c_str(), true);
-        else
-        if (options["to"].isNum())
+        } else
+        if (options["to"].isNum()) {
             timeTo = options["to"].get_int64();
-        if (options["collate"].isBool())
+        }
+        if (options["collate"].isBool()) {
             fCollate = options["collate"].get_bool();
-        if (options["with_reward"].isBool())
+        }
+        if (options["with_reward"].isBool()) {
             fWithReward = options["with_reward"].get_bool();
-        if (options["use_bech32"].isBool())
+        }
+        if (options["use_bech32"].isBool()) {
             fBech32 = options["use_bech32"].get_bool();
+        }
+        if (options["hide_zero_coinstakes"].isBool()) {
+            hide_zero_coinstakes = options["hide_zero_coinstakes"].get_bool();
+        }
     }
-
 
     std::vector<CScript> vDevFundScripts;
     if (fWithReward) {
@@ -3211,7 +3224,6 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
         }
     }
 
-
     // for transactions and records
     UniValue transactions(UniValue::VARR);
 
@@ -3219,7 +3231,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
     const CHDWallet::TxItems &txOrdered = pwallet->wtxOrdered;
     CWallet::TxItems::const_reverse_iterator tit = txOrdered.rbegin();
     while (tit != txOrdered.rend()) {
-        CWalletTx* const pwtx = tit->second;
+        CWalletTx *const pwtx = tit->second;
         int64_t txTime = pwtx->GetTxTime();
         if (txTime < timeFrom) break;
         if (txTime <= timeTo)
@@ -3232,6 +3244,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
                 search,
                 fWithReward,
                 fBech32,
+                hide_zero_coinstakes,
                 vDevFundScripts
             );
         tit++;

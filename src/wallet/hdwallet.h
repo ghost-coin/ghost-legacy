@@ -461,8 +461,8 @@ public:
 
     void GetCredit(const CTransaction &tx, CAmount &nSpendable, CAmount &nWatchOnly) const;
 
-    CAmount GetOutputValue(const COutPoint &op, bool fAllowTXIndex) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    CAmount GetOwnedOutputValue(const COutPoint &op, isminefilter filter) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    CAmount GetOutputValue(const COutPoint &op, bool fAllowTXIndex) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    CAmount GetOwnedOutputValue(const COutPoint &op, isminefilter filter) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     int GetDepthInMainChain(interfaces::Chain::Lock& locked_chain, const uint256 &blockhash, int nIndex = 0) const;
     bool InMempool(const uint256 &hash) const;
@@ -638,7 +638,7 @@ public:
     bool GetStealthKeyIndex(const CStealthAddressIndexed &sxi, uint32_t &id);
     bool UpdateStealthAddressIndex(const CKeyID &idK, const CStealthAddressIndexed &sxi, uint32_t &id); // Get stealth index or create new index if none found
     bool GetStealthByIndex(uint32_t sxId, CStealthAddress &sx) const;
-    bool GetStealthLinked(const CKeyID &idK, CStealthAddress &sx);
+    bool GetStealthLinked(const CKeyID &idK, CStealthAddress &sx) const;
     bool ProcessLockedStealthOutputs();
     bool ProcessLockedBlindedOutputs();
     bool CountRecords(std::string sPrefix, int64_t rv);
