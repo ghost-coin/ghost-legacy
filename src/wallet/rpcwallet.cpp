@@ -235,8 +235,17 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
                 },
             }.ToString());
 
+    // Belt and suspenders check for disabled private keys
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
+    }
+
+    if (!IsParticlWallet(pwallet)) {
+        LOCK(pwallet->cs_wallet);
+
+        if (!pwallet->CanGetAddresses()) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error: This wallet has no available keys");
+        }
     }
 
     // Parse the label first so we don't generate a key if there's an error
@@ -330,6 +339,7 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
                 },
             }.ToString());
 
+    // Belt and suspenders check for disabled private keys
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
     }
@@ -343,9 +353,11 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
         if (0 != phdw->NewKeyFromAccount(pkOut, true)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "NewKeyFromAccount failed.");
         }
+        return EncodeDestination(pkOut.GetID());
+    }
 
-        CKeyID keyID = pkOut.GetID();
-        return CBitcoinAddress(keyID).ToString();
+    if (!pwallet->CanGetAddresses(true)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error: This wallet has no available keys");
     }
 
     if (!pwallet->IsLocked()) {
@@ -3254,13 +3266,14 @@ static UniValue loadwallet(const JSONRPCRequest& request)
 
 static UniValue createwallet(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2) {
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3) {
         throw std::runtime_error(
             RPCHelpMan{"createwallet",
                 "\nCreates and loads a new wallet.\n",
                 {
                     {"wallet_name", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The name for the new wallet. If this is a path, the wallet will be created at the path location."},
                     {"disable_private_keys", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Disable the possibility of private keys (only watchonlys are possible in this mode)."},
+                    {"blank", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Create a blank wallet. A blank wallet has no keys or HD seed. One can be set using sethdseed."},
                 },
                 RPCResult{
             "{\n"
@@ -3277,9 +3290,13 @@ static UniValue createwallet(const JSONRPCRequest& request)
     std::string error;
     std::string warning;
 
-    bool disable_privatekeys = false;
-    if (!request.params[1].isNull()) {
-        disable_privatekeys = request.params[1].get_bool();
+    uint64_t flags = 0;
+    if (!request.params[1].isNull() && request.params[1].get_bool()) {
+        flags |= WALLET_FLAG_DISABLE_PRIVATE_KEYS;
+    }
+
+    if (!request.params[2].isNull() && request.params[2].get_bool()) {
+        flags |= WALLET_FLAG_BLANK_WALLET;
     }
 
     WalletLocation location(request.params[0].get_str());
@@ -3292,7 +3309,7 @@ static UniValue createwallet(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet file verification failed: " + error);
     }
 
-    std::shared_ptr<CWallet> const wallet = CWallet::CreateWalletFromFile(*g_rpc_interfaces->chain, location, (disable_privatekeys ? (uint64_t)WALLET_FLAG_DISABLE_PRIVATE_KEYS : 0));
+    std::shared_ptr<CWallet> const wallet = CWallet::CreateWalletFromFile(*g_rpc_interfaces->chain, location, flags);
     if (!wallet) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet creation failed.");
     }
@@ -4782,7 +4799,7 @@ UniValue sethdseed(const JSONRPCRequest& request)
     LOCK(pwallet->cs_wallet);
 
     // Do not do anything to non-HD wallets
-    if (!pwallet->IsHDEnabled()) {
+    if (!pwallet->CanSupportFeature(FEATURE_HD)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Cannot set a HD seed on a non-HD wallet. Start with -upgradewallet in order to upgrade a non-HD wallet to HD");
     }
 
@@ -5091,7 +5108,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "addmultisigaddress",               &addmultisigaddress,            {"nrequired","keys","label|account","bech32","256bit"} },
     { "wallet",             "backupwallet",                     &backupwallet,                  {"destination"} },
     { "wallet",             "bumpfee",                          &bumpfee,                       {"txid", "options"} },
-    { "wallet",             "createwallet",                     &createwallet,                  {"wallet_name", "disable_private_keys"} },
+    { "wallet",             "createwallet",                     &createwallet,                  {"wallet_name", "disable_private_keys", "blank"} },
     { "wallet",             "dumpprivkey",                      &dumpprivkey,                   {"address"}  },
     { "wallet",             "dumpwallet",                       &dumpwallet,                    {"filename"} },
     { "wallet",             "encryptwallet",                    &encryptwallet,                 {"passphrase"} },

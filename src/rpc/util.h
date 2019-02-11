@@ -31,6 +31,9 @@ void TxInErrorToJSON(const CTxIn& txin, UniValue& vErrorsRet, const std::string&
 
 bool GetBool(const UniValue &uv);
 
+//! Parse a confirm target option and raise an RPC error if it is invalid.
+unsigned int ParseConfirmTarget(const UniValue& value);
+
 struct RPCArg {
     enum class Type {
         OBJ,
