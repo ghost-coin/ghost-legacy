@@ -464,6 +464,7 @@ public:
     std::unique_ptr<interfaces::Handler> m_handler_unload;
 
     int64_t nLastProcessedPurged = 0;
+    CAmount m_absurd_smsg_fee = 500 * COIN;
 };
 
 } // namespace smsg
