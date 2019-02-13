@@ -90,9 +90,9 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
             RPCHelpMan{"getaddressmempool",
                 "\nReturns all mempool deltas for an address (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
+                    {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
+                            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The base58check encoded address."},
                         },
                     },
                 },
@@ -165,12 +165,12 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
         RPCHelpMan{"getaddressutxos",
                 "\nReturns all unspent outputs for an address (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
+                    {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
+                            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The base58check encoded address."},
                         },
                     },
-                    {"chainInfo", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include chain info in results, only applies if start and end specified."},
+                    {"chainInfo", RPCArg::Type::BOOL, /* default */ "false", "Include chain info in results, only applies if start and end specified."},
                 },
                 RPCResult{
             "[\n"
@@ -255,14 +255,14 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
             RPCHelpMan{"getaddressdeltas",
                 "\nReturns all changes for an address (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
+                    {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
+                            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The base58check encoded address."},
                         },
                     },
-                    {"start", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The start block height."},
-                    {"end", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The end block height."},
-                    {"chainInfo", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include chain info in results, only applies if start and end specified."},
+                    {"start", RPCArg::Type::NUM, /* default */ "0", "The start block height."},
+                    {"end", RPCArg::Type::NUM, /* default */ "0", "The end block height."},
+                    {"chainInfo", RPCArg::Type::BOOL, /* default */ "false", "Include chain info in results, only applies if start and end specified."},
                 },
                 RPCResult{
             "[\n"
@@ -385,9 +385,9 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
             RPCHelpMan{"getaddressbalance",
                 "\nReturns the balance for an address(es) (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
+                    {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
+                            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The base58check encoded address."},
                         },
                     },
                 },
@@ -446,13 +446,13 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
             RPCHelpMan{"getaddresstxids",
                 "\nReturns the txids for an address(es) (requires addressindex to be enabled).\n",
                 {
-                    {"addresses", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array with addresses.\n",
+                    {"addresses", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array with addresses.\n",
                         {
-                            {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The base58check encoded address."},
+                            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The base58check encoded address."},
                         },
                     },
-                    {"start", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The start block height."},
-                    {"end", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "The end block height."},
+                    {"start", RPCArg::Type::NUM, /* default */ "0", "The start block height."},
+                    {"end", RPCArg::Type::NUM, /* default */ "0", "The end block height."},
                 },
                 RPCResult{
             "[\n"
@@ -534,11 +534,11 @@ UniValue getspentinfo(const JSONRPCRequest& request)
             RPCHelpMan{"getspentinfo",
                 "\nReturns the txid and index where an output is spent.\n",
                 {
-                    {"inputs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array of json objects",
+                    {"inputs", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of json objects",
                         {
                             {
-                                {"txid", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The hex string of the txid."},
-                                {"vout", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The start block height."},
+                                {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The hex string of the txid."},
+                                {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO, "The start block height."},
                             },
                         },
                     },
@@ -767,12 +767,12 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
             RPCHelpMan{"getblockhashes",
                 "\nReturns array of hashes of blocks within the timestamp range provided.\n",
                 {
-                    {"high", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The newer block timestamp."},
-                    {"low", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The older block timestamp."},
-                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                    {"high", RPCArg::Type::NUM, RPCArg::Optional::NO, "The newer block timestamp."},
+                    {"low", RPCArg::Type::NUM, RPCArg::Optional::NO, "The older block timestamp."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
                         {
-                            {"noOrphans", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Only include blocks on the main chain."},
-                            {"logicalTimes", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Include logical timestamps with hashes."},
+                            {"noOrphans", RPCArg::Type::BOOL, /* default */ "false", "Only include blocks on the main chain."},
+                            {"logicalTimes", RPCArg::Type::BOOL, /* default */ "false", "Include logical timestamps with hashes."},
                         },
                         "options"},
                 },
@@ -975,7 +975,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
             RPCHelpMan{"getblockreward",
                 "\nReturns the blockreward for block at height.\n",
                 {
-                    {"height", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The chain height of the block."},
+                    {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "The chain height of the block."},
                 },
                 RPCResult{
             "{\n"
@@ -1117,13 +1117,13 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
             RPCHelpMan{"listcoldstakeunspent",
                 "\nReturns the unspent outputs of \"stakeaddress\" at height.\n",
                 {
-                    {"stakeaddress", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The stakeaddress to filter outputs by."},
-                    {"height", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "", "The block height to return outputs for, -1 for current height."},
-                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                    {"stakeaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "The stakeaddress to filter outputs by."},
+                    {"height", RPCArg::Type::NUM, /* default */ "", "The block height to return outputs for, -1 for current height."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
                         {
-                            {"mature_only", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Return only outputs stakeable at height."},
-                            {"all_staked", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Ignore maturity check for outputs of coinstake transactions."},
-                            {"show_outpoints", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Display txid and index per output."},
+                            {"mature_only", RPCArg::Type::BOOL, /* default */ "false", "Return only outputs stakeable at height."},
+                            {"all_staked", RPCArg::Type::BOOL, /* default */ "false", "Ignore maturity check for outputs of coinstake transactions."},
+                            {"show_outpoints", RPCArg::Type::BOOL, /* default */ "false", "Display txid and index per output."},
                         },
                         "options"},
                 },
