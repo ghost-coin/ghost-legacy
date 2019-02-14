@@ -118,8 +118,7 @@ WalletTx MakeWalletTx(interfaces::Chain::Lock& locked_chain, CWallet& wallet, co
         }
     }
 
-    result.credit = wtx.GetCredit(locked_chain, ISMINE_ALL);
-    result.credit = wtx.GetCredit(locked_chain, ISMINE_ALL);
+    result.credit = wtx.GetCredit(locked_chain, ISMINE_ALL, true);
     result.debit = wtx.GetDebit(ISMINE_ALL);
     result.change = wtx.GetChange();
     result.time = wtx.GetTxTime();
@@ -647,6 +646,7 @@ public:
     }
     unsigned int getConfirmTarget() override { return m_wallet.m_confirm_target; }
     bool hdEnabled() override { return m_wallet.IsHDEnabled(); }
+    bool canGetAddresses() override { return m_wallet.CanGetAddresses(); }
     bool IsWalletFlagSet(uint64_t flag) override { return m_wallet.IsWalletFlagSet(flag); }
     OutputType getDefaultAddressType() override { return m_wallet.m_default_address_type; }
     OutputType getDefaultChangeType() override { return m_wallet.m_default_change_type; }
@@ -806,7 +806,7 @@ public:
 
 } // namespace
 
-std::unique_ptr<Wallet> MakeWallet(const std::shared_ptr<CWallet>& wallet) { return MakeUnique<WalletImpl>(wallet); }
+std::unique_ptr<Wallet> MakeWallet(const std::shared_ptr<CWallet>& wallet) { return wallet ? MakeUnique<WalletImpl>(wallet) : nullptr; }
 
 std::unique_ptr<ChainClient> MakeWalletClient(Chain& chain, std::vector<std::string> wallet_filenames)
 {

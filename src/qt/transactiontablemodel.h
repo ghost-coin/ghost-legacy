@@ -124,6 +124,9 @@ public Q_SLOTS:
     /* Needed to update fProcessingQueuedTransactions through a QueuedConnection */
     void setProcessingQueuedTransactions(bool value) { fProcessingQueuedTransactions = value; }
 
+    /* options affecting display of transactions changed */
+    void updateOptions();
+
     friend class TransactionTablePriv;
 };
 

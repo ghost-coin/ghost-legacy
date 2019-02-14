@@ -55,6 +55,7 @@ public:
         DatabaseCache,          // int
         SpendZeroConfChange,    // bool
         ShowIncomingStakeNotifications, // bool
+        ShowZeroValueCoinstakes, // bool
         Listen,                 // bool
         ReserveBalance,         // int
         OptionIDRowCount,
@@ -80,6 +81,7 @@ public:
     const QString& getOverriddenByCommandLine() { return strOverriddenByCommandLine; }
 
     bool getShowIncomingStakeNotifications() { return fShowIncomingStakeNotifications; }
+    bool getShowZeroValueCoinstakes() { return show_zero_value_coinstakes; }
 
     /* Restart flag helper */
     void setRestartRequired(bool fRequired);
@@ -98,6 +100,7 @@ private:
     QString strThirdPartyTxUrls;
     bool fCoinControlFeatures;
     bool fShowIncomingStakeNotifications;
+    bool show_zero_value_coinstakes;
     /* settings that were overridden by command-line */
     QString strOverriddenByCommandLine;
 
@@ -110,6 +113,7 @@ private:
     void checkAndMigrate();
 Q_SIGNALS:
     void displayUnitChanged(int unit);
+    void txnViewOptionsChanged();
     void coinControlFeaturesChanged(bool);
     void hideTrayIconChanged(bool);
     void setReserveBalance(CAmount);

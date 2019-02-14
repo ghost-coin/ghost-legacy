@@ -3792,10 +3792,8 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
 
         CWalletTx wtx(pwallet.get(), MakeTransactionRef(txFund));
 
-        CAmount maxTxFee = 1 * COIN;
-
         CValidationState state;
-        if (!wtx.AcceptToMemoryPool(*locked_chain, maxTxFee, state)) {
+        if (!wtx.AcceptToMemoryPool(*locked_chain, m_absurd_smsg_fee, state)) {
             return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Transaction cannot be broadcast immediately: %s.", state.GetRejectReason());
         }
 

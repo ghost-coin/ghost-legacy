@@ -33,8 +33,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const interface
 {
     QList<TransactionRecord> parts;
 
-    if (wtx.is_record)
-    {
+    if (wtx.is_record) {
         const CTransactionRecord &rtx = wtx.irtx->second;
 
         const uint256 &hash = wtx.irtx->first;
@@ -43,92 +42,81 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const interface
 
         CTxDestination address = CNoDestination();
         uint8_t nFlags = 0;
-        for (const auto &r : rtx.vout)
-        {
-            if (r.nFlags & ORF_CHANGE)
+        for (const auto &r : rtx.vout) {
+            if (r.nFlags & ORF_CHANGE) {
                 continue;
+            }
 
             nFlags |= r.nFlags;
-
-            if (r.vPath.size() > 0)
-            {
-                if (r.vPath[0] == ORA_STEALTH)
-                {
-                    if (r.vPath.size() < 5)
-                    {
+            if (r.vPath.size() > 0) {
+                if (r.vPath[0] == ORA_STEALTH) {
+                    if (r.vPath.size() < 5) {
                         LogPrintf("%s: Warning, malformed vPath.\n", __func__);
-                    } else
-                    {
+                    } else {
                         uint32_t sidx;
                         memcpy(&sidx, &r.vPath[1], 4);
                         CStealthAddress sx;
                         if (wtx.partWallet->GetStealthByIndex(sidx, sx))
                             address = sx;
-                    };
-                };
-            } else
-            {
-                if (address.type() == typeid(CNoDestination))
+                    }
+                }
+            } else {
+                if (address.type() == typeid(CNoDestination)) {
                     ExtractDestination(r.scriptPubKey, address);
-            };
+                }
+            }
 
-            if (r.nType == OUTPUT_STANDARD)
-            {
+            if (r.nType == OUTPUT_STANDARD) {
                 sub.typeOut = 'P';
             } else
-            if (r.nType == OUTPUT_CT)
-            {
+            if (r.nType == OUTPUT_CT) {
                 sub.typeOut = 'B';
             } else
-            if (r.nType == OUTPUT_RINGCT)
-            {
+            if (r.nType == OUTPUT_RINGCT) {
                 sub.typeOut = 'A';
-            };
+            }
 
-            if (nFlags & ORF_OWNED)
+            if (nFlags & ORF_OWNED) {
                 sub.credit += r.nValue;
-            if (nFlags & ORF_FROM)
+            }
+            if (nFlags & ORF_FROM) {
                 sub.debit -= r.nValue;
-        };
+            }
+        }
 
-        if (address.type() != typeid(CNoDestination))
-            sub.address = CBitcoinAddress(address).ToString();
-
-
-        if (sub.debit != 0)
+        if (address.type() != typeid(CNoDestination)) {
+            sub.address = EncodeDestination(address);
+        }
+        if (sub.debit != 0) {
             sub.debit -= rtx.nFee;
+        }
 
-        if (nFlags & ORF_OWNED && nFlags & ORF_FROM)
-        {
+        if (nFlags & ORF_OWNED && nFlags & ORF_FROM) {
             sub.type = TransactionRecord::SendToSelf;
         } else
-        if (nFlags & ORF_OWNED)
-        {
+        if (nFlags & ORF_OWNED) {
             sub.type = TransactionRecord::RecvWithAddress;
-
         } else
-        if (nFlags & ORF_FROM)
-        {
+        if (nFlags & ORF_FROM) {
             sub.type = TransactionRecord::SendToAddress;
-        };
+        }
 
-        if (rtx.nFlags & ORF_ANON_IN)
+        if (rtx.nFlags & ORF_ANON_IN) {
             sub.typeIn = 'A';
-        else
-        if (rtx.nFlags & ORF_BLIND_IN)
+        } else
+        if (rtx.nFlags & ORF_BLIND_IN) {
             sub.typeIn = 'B';
+        }
 
         sub.involvesWatchAddress = nFlags & ORF_OWN_WATCH;
         parts.append(sub);
         return parts;
     }
 
-    if (wtx.is_coinstake)
-    {
+    if (wtx.is_coinstake) {
         int64_t nTime = wtx.time;
-        //CAmount nCredit = wtx.credit;
+        CAmount nCredit = wtx.credit;
         CAmount nDebit = wtx.debit;
-        //CAmount nNet = nCredit - nDebit;
         uint256 hash = wtx.tx->GetHash();
 
         bool involvesWatchAddress = false;
@@ -136,37 +124,24 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const interface
 
         sub.type = TransactionRecord::Staked;
         sub.debit = -nDebit;
-
-        CAmount nCredit = 0;
-        for (size_t i = 0; i < wtx.tx->vpout.size(); ++i)
-        {
+        for (size_t i = 0; i < wtx.tx->vpout.size(); ++i) {
             const CTxOutBase *txout = wtx.tx->vpout[i].get();
-            if (!txout->IsType(OUTPUT_STANDARD))
+            if (!txout->IsType(OUTPUT_STANDARD)) {
                 continue;
-
-            isminetype mine = wtx.txout_is_mine[i];
-            if (!mine)
-                continue;
-
-            nCredit += txout->GetValue();
-
-            if (sub.address.empty())
-            {
-                CTxDestination address;
-                involvesWatchAddress = involvesWatchAddress || (mine & ISMINE_WATCH_ONLY);
-                if (ExtractDestination(*txout->GetPScriptPubKey(), address))
-                {
-                    sub.address = CBitcoinAddress(address).ToString();
-                };
             }
-        };
-
-        sub.involvesWatchAddress = involvesWatchAddress;
+            isminetype mine = wtx.txout_is_mine[i];
+            if (!mine) {
+                continue;
+            }
+            sub.address = EncodeDestination(wtx.txout_address[i]);
+            break;
+        }
         sub.credit = nCredit;
+        sub.involvesWatchAddress = involvesWatchAddress;
         parts.append(sub);
 
         return parts;
-    };
+    }
 
     int64_t nTime = wtx.time;
     CAmount nCredit = wtx.credit;
@@ -199,10 +174,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const interface
                 if (wtx.txout_address_is_mine[i])
                 {
                     // Received by Bitcoin Address
-                    if (wtx.tx->IsCoinStake())
-                        sub.type = TransactionRecord::Staked;
-                    else
-                        sub.type = TransactionRecord::RecvWithAddress;
+                    sub.type = TransactionRecord::RecvWithAddress;
                     sub.address = EncodeDestination(wtx.txout_address[i]);
                 }
                 else

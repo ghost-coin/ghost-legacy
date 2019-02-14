@@ -61,6 +61,26 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             txin.GetAnonInfo(nSigInputs, nSigRingSize);
             in.pushKV("num_inputs", (int)nSigInputs);
             in.pushKV("ring_size", (int)nSigRingSize);
+
+            if (tx.HasWitness()
+                && !txin.scriptWitness.IsNull()
+                && txin.scriptWitness.stack.size() > 0) {
+                const std::vector<uint8_t> &vMI = txin.scriptWitness.stack[0];
+
+                size_t ofs = 0, nb = 0;
+                for (size_t k = 0; k < nSigInputs; ++k) {
+                    std::string row_out;
+                    for (size_t i = 0; i < nSigRingSize; ++i) {
+                        int64_t anon_index;
+                        if (0 != GetVarInt(vMI, ofs, (uint64_t&)anon_index, nb)) {
+                            throw JSONRPCError(RPC_MISC_ERROR, "Decode anon index failed.");
+                        }
+                        ofs += nb;
+                        row_out += row_out.size() == 0 ? strprintf("%lu", anon_index) : strprintf(", %lu", anon_index); // linter fails ? "%lu" : ", %lu"
+                    }
+                    in.pushKV(strprintf("ring_row_%d", k), row_out);
+                }
+            }
         } else {
             in.pushKV("txid", txin.prevout.hash.GetHex());
             in.pushKV("vout", (int64_t)txin.prevout.n);
@@ -86,6 +106,15 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                     in.pushKV("address", CBitcoinAddress(CScriptID256(spentInfo.addressHash)).ToString());
                 }
             }
+        }
+
+        if (!txin.scriptData.IsNull()) {
+            UniValue scriptdata(UniValue::VARR);
+            for (unsigned int j = 0; j < txin.scriptData.stack.size(); j++) {
+                std::vector<unsigned char> item = txin.scriptData.stack[j];
+                scriptdata.push_back(HexStr(item.begin(), item.end()));
+            }
+            in.pushKV("scriptdata", scriptdata);
         }
 
         if (tx.HasWitness()) {
@@ -121,8 +150,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             entry.pushKV("confirmations", nConfirmations);
             PushTime(entry, "time", nBlockTime);
             PushTime(entry, "blocktime", nBlockTime);
-        } else
-        {
+        } else {
             entry.pushKV("height", -1);
             entry.pushKV("confirmations", 0);
         }
@@ -179,9 +207,9 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
                 "\nIf verbose is 'true', returns an Object with information about 'txid'.\n"
                 "If verbose is 'false' or omitted, returns a string that is serialized, hex-encoded data for 'txid'.\n",
                 {
-                    {"txid", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The transaction id"},
-                    {"verbose", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "If false, return a string, otherwise return a json object"},
-                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ true, /* default_val */ "null", "The block in which to look for the transaction"},
+                    {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id"},
+                    {"verbose", RPCArg::Type::BOOL, /* default */ "false", "If false, return a string, otherwise return a json object"},
+                    {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED_NAMED_ARG, "The block in which to look for the transaction"},
                 },
                 {
                     RPCResult{"if verbose is not set or set to false",
@@ -342,12 +370,12 @@ static UniValue gettxoutproof(const JSONRPCRequest& request)
                 "you need to maintain a transaction index, using the -txindex command line option or\n"
                 "specify the block in which the transaction is included manually (by blockhash).\n",
                 {
-                    {"txids", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array of txids to filter",
+                    {"txids", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of txids to filter",
                         {
-                            {"txid", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "A transaction hash"},
+                            {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED, "A transaction hash"},
                         },
                         },
-                    {"blockhash", RPCArg::Type::STR_HEX, /* opt */ true, /* default_val */ "null", "If specified, looks for txid in the block with this hash"},
+                    {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED_NAMED_ARG, "If specified, looks for txid in the block with this hash"},
                 },
                 RPCResult{
             "\"data\"           (string) A string that is a serialized, hex-encoded data for the proof.\n"
@@ -435,7 +463,7 @@ static UniValue verifytxoutproof(const JSONRPCRequest& request)
                 "\nVerifies that a proof points to a transaction in a block, returning the transaction it commits to\n"
                 "and throwing an RPC error if the block is not in our best chain\n",
                 {
-                    {"proof", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The hex-encoded proof generated by gettxoutproof"},
+                    {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The hex-encoded proof generated by gettxoutproof"},
                 },
                 RPCResult{
             "[\"txid\"]      (array, strings) The txid(s) which the proof commits to, or empty array if the proof can not be validated.\n"
@@ -630,36 +658,36 @@ static UniValue createrawtransaction(const JSONRPCRequest& request)
                 "Note that the transaction's inputs are not signed, and\n"
                 "it is not stored in the wallet or transmitted to the network.\n",
                 {
-                    {"inputs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array of json objects",
+                    {"inputs", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of json objects",
                         {
-                            {"", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                            {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"txid", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The transaction id"},
-                                    {"vout", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The output number"},
-                                    {"sequence", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "depends on the value of the 'replaceable' and 'locktime' arguments", "The sequence number"},
+                                    {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id"},
+                                    {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO, "The output number"},
+                                    {"sequence", RPCArg::Type::NUM, /* default */ "depends on the value of the 'replaceable' and 'locktime' arguments", "The sequence number"},
                                 },
                                 },
                         },
                         },
-                    {"outputs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "a json array with outputs (key-value pairs), where none of the keys are duplicated.\n"
+                    {"outputs", RPCArg::Type::ARR, RPCArg::Optional::NO, "a json array with outputs (key-value pairs), where none of the keys are duplicated.\n"
                             "That is, each address can only appear once and there can only be one 'data' object.\n"
                             "For compatibility reasons, a dictionary, which holds the key-value pairs directly, is also\n"
                             "                             accepted as second parameter.",
                         {
-                            {"", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                            {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"address", RPCArg::Type::AMOUNT, /* opt */ false, /* default_val */ "", "A key-value pair. The key (string) is the bitcoin address, the value (float or string) is the amount in " + CURRENCY_UNIT},
+                                    {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "A key-value pair. The key (string) is the bitcoin address, the value (float or string) is the amount in " + CURRENCY_UNIT},
                                 },
                                 },
-                            {"", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                            {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"data", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "A key-value pair. The key must be \"data\", the value is hex-encoded data"},
+                                    {"data", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "A key-value pair. The key must be \"data\", the value is hex-encoded data"},
                                 },
                                 },
                         },
                         },
-                    {"locktime", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "Raw locktime. Non-0 value also locktime-activates inputs"},
-                    {"replaceable", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Marks this transaction as BIP125-replaceable.\n"
+                    {"locktime", RPCArg::Type::NUM, /* default */ "0", "Raw locktime. Non-0 value also locktime-activates inputs"},
+                    {"replaceable", RPCArg::Type::BOOL, /* default */ "false", "Marks this transaction as BIP125-replaceable.\n"
             "                             Allows this transaction to be replaced by a transaction with higher fees. If provided, it is an error if explicit sequence numbers are incompatible."},
                 },
                 RPCResult{
@@ -694,8 +722,8 @@ static UniValue decoderawtransaction(const JSONRPCRequest& request)
             RPCHelpMan{"decoderawtransaction",
                 "\nReturn a JSON object representing the serialized, hex-encoded transaction.\n",
                 {
-                    {"hexstring", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The transaction hex string"},
-                    {"iswitness", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "depends on heuristic tests", "Whether the transaction hex is a serialized witness transaction\n"
+                    {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction hex string"},
+                    {"iswitness", RPCArg::Type::BOOL, /* default */ "depends on heuristic tests", "Whether the transaction hex is a serialized witness transaction\n"
             "                         If iswitness is not present, heuristic tests will be used in decoding"},
                 },
                 RPCResult{
@@ -769,7 +797,7 @@ static UniValue decodescript(const JSONRPCRequest& request)
             RPCHelpMan{"decodescript",
                 "\nDecode a hex-encoded script.\n",
                 {
-                    {"hexstring", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "the hex-encoded script"},
+                    {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "the hex-encoded script"},
                 },
                 RPCResult{
             "{\n"
@@ -870,9 +898,9 @@ static UniValue combinerawtransaction(const JSONRPCRequest& request)
                 "The combined transaction may be another partially signed transaction or a \n"
                 "fully signed transaction.",
                 {
-                    {"txs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array of hex strings of partially signed transactions",
+                    {"txs", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of hex strings of partially signed transactions",
                         {
-                            {"hexstring", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "A transaction hash"},
+                            {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED, "A transaction hash"},
                         },
                         },
                 },
@@ -1118,26 +1146,26 @@ static UniValue signrawtransactionwithkey(const JSONRPCRequest& request)
                 "The third optional argument (may be null) is an array of previous transaction outputs that\n"
                 "this transaction depends on but may not yet be in the block chain.\n",
                 {
-                    {"hexstring", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The transaction hex string"},
-                    {"privkeys", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array of base58-encoded private keys for signing",
+                    {"hexstring", RPCArg::Type::STR, RPCArg::Optional::NO, "The transaction hex string"},
+                    {"privkeys", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of base58-encoded private keys for signing",
                         {
-                            {"privatekey", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "private key in base58-encoding"},
+                            {"privatekey", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED, "private key in base58-encoding"},
                         },
                         },
-                    {"prevtxs", RPCArg::Type::ARR, /* opt */ true, /* default_val */ "null", "A json array of previous dependent transaction outputs",
+                    {"prevtxs", RPCArg::Type::ARR, RPCArg::Optional::OMITTED_NAMED_ARG, "A json array of previous dependent transaction outputs",
                         {
-                            {"", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                            {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"txid", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The transaction id"},
-                                    {"vout", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The output number"},
-                                    {"scriptPubKey", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "script key"},
-                                    {"redeemScript", RPCArg::Type::STR_HEX, /* opt */ true, /* default_val */ "omitted", "(required for P2SH or P2WSH) redeem script"},
-                                    {"amount", RPCArg::Type::AMOUNT, /* opt */ false, /* default_val */ "", "The amount spent"},
+                                    {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id"},
+                                    {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO, "The output number"},
+                                    {"scriptPubKey", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "script key"},
+                                    {"redeemScript", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED, "(required for P2SH or P2WSH) redeem script"},
+                                    {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "The amount spent"},
                                 },
                                 },
                         },
                         },
-                    {"sighashtype", RPCArg::Type::STR, /* opt */ true, /* default_val */ "ALL", "The signature hash type. Must be one of:\n"
+                    {"sighashtype", RPCArg::Type::STR, /* default */ "ALL", "The signature hash type. Must be one of:\n"
             "       \"ALL\"\n"
             "       \"NONE\"\n"
             "       \"SINGLE\"\n"
@@ -1205,8 +1233,8 @@ static UniValue sendrawtransaction(const JSONRPCRequest& request)
                 "\nSubmits raw transaction (serialized, hex-encoded) to local node and network.\n"
                 "\nAlso see createrawtransaction and signrawtransactionwithkey calls.\n",
                 {
-                    {"hexstring", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The hex string of the raw transaction"},
-                    {"allowhighfees", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Allow high fees"},
+                    {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The hex string of the raw transaction"},
+                    {"allowhighfees", RPCArg::Type::BOOL, /* default */ "false", "Allow high fees"},
                 },
                 RPCResult{
             "\"hex\"             (string) The transaction hash in hex\n"
@@ -1304,14 +1332,14 @@ static UniValue testmempoolaccept(const JSONRPCRequest& request)
                 "\nThis checks if the transaction violates the consensus or policy rules.\n"
                 "\nSee sendrawtransaction call.\n",
                 {
-                    {"rawtxs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "An array of hex strings of raw transactions.\n"
+                    {"rawtxs", RPCArg::Type::ARR, RPCArg::Optional::NO, "An array of hex strings of raw transactions.\n"
             "                                        Length must be one for now.",
                         {
-                            {"rawtx", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", ""},
+                            {"rawtx", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED, ""},
                         },
                         },
-                    {"allowhighfees", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Allow high fees"},
-                    {"ignorelocks", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Skip locktime/sequence checking"},
+                    {"allowhighfees", RPCArg::Type::BOOL, /* default */ "false", "Allow high fees"},
+                    {"ignorelocks", RPCArg::Type::BOOL, /* default */ "false", "Skip locktime/sequence checking"},
                 },
                 RPCResult{
             "[                   (array) The result of the mempool acceptance test for each raw transaction in the input array.\n"
@@ -1409,7 +1437,7 @@ UniValue decodepsbt(const JSONRPCRequest& request)
             RPCHelpMan{"decodepsbt",
                 "\nReturn a JSON object representing the serialized, base64-encoded partially signed Bitcoin transaction.\n",
                 {
-                    {"psbt", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The PSBT base64 string"},
+                    {"psbt", RPCArg::Type::STR, RPCArg::Optional::NO, "The PSBT base64 string"},
                 },
                 RPCResult{
             "{\n"
@@ -1685,9 +1713,9 @@ UniValue combinepsbt(const JSONRPCRequest& request)
                 "\nCombine multiple partially signed Bitcoin transactions into one transaction.\n"
                 "Implements the Combiner role.\n",
                 {
-                    {"txs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array of base64 strings of partially signed transactions",
+                    {"txs", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of base64 strings of partially signed transactions",
                         {
-                            {"psbt", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "A base64 string of a PSBT"},
+                            {"psbt", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "A base64 string of a PSBT"},
                         },
                         },
                 },
@@ -1704,6 +1732,9 @@ UniValue combinepsbt(const JSONRPCRequest& request)
     // Unserialize the transactions
     std::vector<PartiallySignedTransaction> psbtxs;
     UniValue txs = request.params[0].get_array();
+    if (txs.empty()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Parameter 'txs' cannot be empty");
+    }
     for (unsigned int i = 0; i < txs.size(); ++i) {
         PartiallySignedTransaction psbtx;
         std::string error;
@@ -1742,8 +1773,8 @@ UniValue finalizepsbt(const JSONRPCRequest& request)
                 "created which has the final_scriptSig and final_scriptWitness fields filled for inputs that are complete.\n"
                 "Implements the Finalizer and Extractor roles.\n",
                 {
-                    {"psbt", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "A base64 string of a PSBT"},
-                    {"extract", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "true", "If true and the transaction is complete,\n"
+                    {"psbt", RPCArg::Type::STR, RPCArg::Optional::NO, "A base64 string of a PSBT"},
+                    {"extract", RPCArg::Type::BOOL, /* default */ "true", "If true and the transaction is complete,\n"
             "                             extract and return the complete transaction in normal network serialization instead of the PSBT."},
                 },
                 RPCResult{
@@ -1805,36 +1836,36 @@ UniValue createpsbt(const JSONRPCRequest& request)
                 "\nCreates a transaction in the Partially Signed Transaction format.\n"
                 "Implements the Creator role.\n",
                 {
-                    {"inputs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "A json array of json objects",
+                    {"inputs", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of json objects",
                         {
-                            {"", RPCArg::Type::OBJ, /* opt */ false, /* default_val */ "", "",
+                            {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"txid", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The transaction id"},
-                                    {"vout", RPCArg::Type::NUM, /* opt */ false, /* default_val */ "", "The output number"},
-                                    {"sequence", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "depends on the value of the 'replaceable' and 'locktime' arguments", "The sequence number"},
+                                    {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id"},
+                                    {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO, "The output number"},
+                                    {"sequence", RPCArg::Type::NUM, /* default */ "depends on the value of the 'replaceable' and 'locktime' arguments", "The sequence number"},
                                 },
                                 },
                         },
                         },
-                    {"outputs", RPCArg::Type::ARR, /* opt */ false, /* default_val */ "", "a json array with outputs (key-value pairs), where none of the keys are duplicated.\n"
+                    {"outputs", RPCArg::Type::ARR, RPCArg::Optional::NO, "a json array with outputs (key-value pairs), where none of the keys are duplicated.\n"
                             "That is, each address can only appear once and there can only be one 'data' object.\n"
                             "For compatibility reasons, a dictionary, which holds the key-value pairs directly, is also\n"
                             "                             accepted as second parameter.",
                         {
-                            {"", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                            {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"address", RPCArg::Type::AMOUNT, /* opt */ false, /* default_val */ "", "A key-value pair. The key (string) is the bitcoin address, the value (float or string) is the amount in " + CURRENCY_UNIT},
+                                    {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "A key-value pair. The key (string) is the bitcoin address, the value (float or string) is the amount in " + CURRENCY_UNIT},
                                 },
                                 },
-                            {"", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                            {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"data", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "A key-value pair. The key must be \"data\", the value is hex-encoded data"},
+                                    {"data", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "A key-value pair. The key must be \"data\", the value is hex-encoded data"},
                                 },
                                 },
                         },
                         },
-                    {"locktime", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "0", "Raw locktime. Non-0 value also locktime-activates inputs"},
-                    {"replaceable", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Marks this transaction as BIP125 replaceable.\n"
+                    {"locktime", RPCArg::Type::NUM, /* default */ "0", "Raw locktime. Non-0 value also locktime-activates inputs"},
+                    {"replaceable", RPCArg::Type::BOOL, /* default */ "false", "Marks this transaction as BIP125 replaceable.\n"
                             "                             Allows this transaction to be replaced by a transaction with higher fees. If provided, it is an error if explicit sequence numbers are incompatible."},
                 },
                 RPCResult{
@@ -1881,10 +1912,10 @@ UniValue converttopsbt(const JSONRPCRequest& request)
                 "\nConverts a network serialized transaction to a PSBT. This should be used only with createrawtransaction and fundrawtransaction\n"
                 "createpsbt and walletcreatefundedpsbt should be used for new applications.\n",
                 {
-                    {"hexstring", RPCArg::Type::STR_HEX, /* opt */ false, /* default_val */ "", "The hex string of a raw transaction"},
-                    {"permitsigdata", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "If true, any signatures in the input will be discarded and conversion.\n"
+                    {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The hex string of a raw transaction"},
+                    {"permitsigdata", RPCArg::Type::BOOL, /* default */ "false", "If true, any signatures in the input will be discarded and conversion.\n"
                             "                              will continue. If false, RPC will fail if any signatures are present."},
-                    {"iswitness", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "depends on heuristic tests", "Whether the transaction hex is a serialized witness transaction.\n"
+                    {"iswitness", RPCArg::Type::BOOL, /* default */ "depends on heuristic tests", "Whether the transaction hex is a serialized witness transaction.\n"
                             "                              If iswitness is not present, heuristic tests will be used in decoding. If true, only witness deserializaion\n"
                             "                              will be tried. If false, only non-witness deserialization will be tried. Only has an effect if\n"
                             "                              permitsigdata is true."},

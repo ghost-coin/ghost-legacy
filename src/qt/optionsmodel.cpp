@@ -123,6 +123,10 @@ void OptionsModel::Init(bool resetSettings)
     if (!settings.contains("fShowIncomingStakeNotifications"))
         settings.setValue("fShowIncomingStakeNotifications", true);
     fShowIncomingStakeNotifications = settings.value("fShowIncomingStakeNotifications").toBool();
+
+    if (!settings.contains("show_zero_value_coinstakes"))
+        settings.setValue("show_zero_value_coinstakes", true);
+    show_zero_value_coinstakes = settings.value("show_zero_value_coinstakes").toBool();
 #endif
 
     // Network
@@ -296,6 +300,8 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return settings.value("bSpendZeroConfChange");
         case ShowIncomingStakeNotifications:
             return fShowIncomingStakeNotifications;
+        case ShowZeroValueCoinstakes:
+            return show_zero_value_coinstakes;
 #endif
         case DisplayUnit:
             return nDisplayUnit;
@@ -416,6 +422,11 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
         case ShowIncomingStakeNotifications:
             fShowIncomingStakeNotifications = value.toBool();
             settings.setValue("fShowIncomingStakeNotifications", fShowIncomingStakeNotifications);
+            break;
+        case ShowZeroValueCoinstakes:
+            show_zero_value_coinstakes = value.toBool();
+            settings.setValue("show_zero_value_coinstakes", show_zero_value_coinstakes);
+            Q_EMIT txnViewOptionsChanged();
             break;
 #endif
         case DisplayUnit:

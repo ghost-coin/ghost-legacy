@@ -68,6 +68,7 @@ public:
     }
 
     TransactionTableModel *parent;
+    bool show_zero_value_coinstakes;
 
     /* Local cache of wallet.
      * As it is in the same order as the CWallet, by definition
@@ -84,6 +85,9 @@ public:
         {
             for (const auto& wtx : wallet.getWalletTxs()) {
                 if (TransactionRecord::showTransaction()) {
+                    if (!show_zero_value_coinstakes && wtx.is_coinstake && wtx.credit == wtx.debit) {
+                        continue;
+                    }
                     cachedWallet.append(TransactionRecord::decomposeTransaction(wtx));
                 }
             }
@@ -154,6 +158,11 @@ public:
                     qWarning() << "TransactionTablePriv::updateWallet: Warning: Got CT_NEW, but transaction is not in wallet";
                     break;
                 }
+
+                if (!show_zero_value_coinstakes && wtx.is_coinstake && wtx.credit == wtx.debit) {
+                    break;
+                }
+
                 // Added -- insert at the right position
                 QList<TransactionRecord> toInsert =
                         TransactionRecord::decomposeTransaction(wtx);
@@ -245,9 +254,11 @@ TransactionTableModel::TransactionTableModel(const PlatformStyle *_platformStyle
         platformStyle(_platformStyle)
 {
     columns << QString() << QString() << tr("Date") << tr("Type") << tr("Label") << tr("In") << tr("Out") << BitcoinUnits::getAmountColumnTitle(walletModel->getOptionsModel()->getDisplayUnit());
+    priv->show_zero_value_coinstakes = walletModel->getOptionsModel()->getShowZeroValueCoinstakes();
     priv->refreshWallet(walletModel->wallet());
 
     connect(walletModel->getOptionsModel(), &OptionsModel::displayUnitChanged, this, &TransactionTableModel::updateDisplayUnit);
+    connect(walletModel->getOptionsModel(), &OptionsModel::txnViewOptionsChanged, this, &TransactionTableModel::updateOptions);
 
     subscribeToCoreSignals();
 }
@@ -789,4 +800,13 @@ void TransactionTableModel::unsubscribeFromCoreSignals()
     // Disconnect signals from wallet
     m_handler_transaction_changed->disconnect();
     m_handler_show_progress->disconnect();
+}
+
+
+void TransactionTableModel::updateOptions()
+{
+    beginResetModel();
+    priv->show_zero_value_coinstakes = walletModel->getOptionsModel()->getShowZeroValueCoinstakes();
+    priv->refreshWallet(walletModel->wallet());
+    endResetModel();
 }

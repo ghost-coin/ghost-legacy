@@ -116,8 +116,8 @@ BASE_SCRIPTS = [
     'mempool_persist.py',
     'wallet_multiwallet.py',
     'wallet_multiwallet.py --usecli',
-    'wallet_disableprivatekeys.py',
-    'wallet_disableprivatekeys.py --usecli',
+    'wallet_createwallet.py',
+    'wallet_createwallet.py --usecli',
     'interface_http.py',
     'interface_rpc.py',
     'rpc_psbt.py',
@@ -291,10 +291,6 @@ def main():
 
     # Create base test directory
     tmpdir = "%s/particl_test_runner_₿_🏃_%s" % (args.tmpdirprefix, datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
-
-    # If we fixed the command-line and filename encoding issue on Windows, these two lines could be removed
-    if config["environment"]["EXEEXT"] == ".exe":
-        tmpdir = "%s/particl_test_runner_%s" % (args.tmpdirprefix, datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
 
     os.makedirs(tmpdir)
 

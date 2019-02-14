@@ -423,9 +423,9 @@ static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &deriv
     if (mi != pw->mapAddressBook.end()) {
         // TODO: confirm vPath?
         keyobj.pushKV("label", mi->second.name);
-        if (!mi->second.purpose.empty())
+        if (!mi->second.purpose.empty()) {
             keyobj.pushKV("purpose", mi->second.purpose);
-
+        }
         UniValue objDestData(UniValue::VOBJ);
         for (const auto &pair : mi->second.destdata) {
             objDestData.pushKV(pair.first, pair.second);
@@ -2122,11 +2122,13 @@ bool CHDWallet::IsAllFromMe(const CTransaction& tx, const isminefilter& filter) 
 
 CAmount CHDWallet::GetCredit(const CTxOutBase *txout, const isminefilter &filter) const
 {
-    if (!txout->IsStandardOutput())
+    if (!txout->IsStandardOutput()) {
         return 0;
+    }
     CAmount value = txout->GetValue();
-    if (!MoneyRange(value))
+    if (!MoneyRange(value)) {
         throw std::runtime_error(std::string(__func__) + ": value out of range");
+    }
     return ((IsMine(txout) & filter) ? value : 0);
 }
 
@@ -2136,8 +2138,9 @@ CAmount CHDWallet::GetCredit(const CTransaction &tx, const isminefilter &filter)
 
     for (const auto &txout : tx.vpout) {
         nCredit += GetCredit(txout.get(), filter);
-        if (!MoneyRange(nCredit))
+        if (!MoneyRange(nCredit)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
+        }
     }
     return nCredit;
 };
@@ -2146,32 +2149,36 @@ void CHDWallet::GetCredit(const CTransaction &tx, CAmount &nSpendable, CAmount &
 {
     nSpendable = 0;
     nWatchOnly = 0;
-    for (const auto &txout : tx.vpout)
-    {
-        if (!txout->IsType(OUTPUT_STANDARD))
+    for (const auto &txout : tx.vpout) {
+        if (!txout->IsType(OUTPUT_STANDARD)) {
             continue;
+        }
 
         isminetype ismine = IsMine(txout.get());
 
-        if (ismine & ISMINE_SPENDABLE)
+        if (ismine & ISMINE_SPENDABLE) {
             nSpendable += txout->GetValue();
-        if (ismine & ISMINE_WATCH_ONLY)
+        }
+        if (ismine & ISMINE_WATCH_ONLY) {
             nWatchOnly += txout->GetValue();
-    };
+        }
+    }
 
-    if (!MoneyRange(nSpendable))
+    if (!MoneyRange(nSpendable)) {
         throw std::runtime_error(std::string(__func__) + ": value out of range");
-    if (!MoneyRange(nWatchOnly))
+    }
+    if (!MoneyRange(nWatchOnly)) {
         throw std::runtime_error(std::string(__func__) + ": value out of range");
+    }
     return;
 };
 
-CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex)
+CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex) const
 {
-    MapWallet_t::iterator itw;
-    MapRecords_t::iterator itr;
+    MapWallet_t::const_iterator itw;
+    MapRecords_t::const_iterator itr;
     if ((itw = mapWallet.find(op.hash)) != mapWallet.end()) {
-        CWalletTx *pcoin = &itw->second;
+        const CWalletTx *pcoin = &itw->second;
         if (pcoin->tx->GetNumVOuts() > op.n) {
             return pcoin->tx->vpout[op.n]->GetValue();
         }
@@ -2206,12 +2213,12 @@ CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex)
     return 0;
 };
 
-CAmount CHDWallet::GetOwnedOutputValue(const COutPoint &op, isminefilter filter)
+CAmount CHDWallet::GetOwnedOutputValue(const COutPoint &op, isminefilter filter) const
 {
-    MapWallet_t::iterator itw;
-    MapRecords_t::iterator itr;
+    MapWallet_t::const_iterator itw;
+    MapRecords_t::const_iterator itr;
     if ((itw = mapWallet.find(op.hash)) != mapWallet.end()) {
-        CWalletTx *pcoin = &itw->second;
+        const CWalletTx *pcoin = &itw->second;
         if (pcoin->tx->GetNumVOuts() > op.n
             && IsMine(pcoin->tx->vpout[op.n].get()) & filter) {
             return pcoin->tx->vpout[op.n]->GetValue();
@@ -8754,7 +8761,7 @@ bool CHDWallet::GetStealthByIndex(uint32_t sxId, CStealthAddress &sx) const
     return true;
 };
 
-bool CHDWallet::GetStealthLinked(const CKeyID &idK, CStealthAddress &sx)
+bool CHDWallet::GetStealthLinked(const CKeyID &idK, CStealthAddress &sx) const
 {
     LOCK(cs_wallet);
 

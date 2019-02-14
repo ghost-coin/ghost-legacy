@@ -305,31 +305,29 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         const CTxIn& txin = tx.vin[i];
         UniValue in(UniValue::VOBJ);
-        if (tx.IsCoinBase())
+        if (tx.IsCoinBase()) {
             in.pushKV("coinbase", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
-          {
-            if (txin.IsAnonInput())
-            {
-                in.pushKV("type", "anon");
-                uint32_t nSigInputs, nSigRingSize;
-                txin.GetAnonInfo(nSigInputs, nSigRingSize);
-                in.pushKV("num_inputs", (int)nSigInputs);
-                in.pushKV("ring_size", (int)nSigRingSize);
-            } else{
+        }
+        if (txin.IsAnonInput()) {
+            in.pushKV("type", "anon");
+            uint32_t nSigInputs, nSigRingSize;
+            txin.GetAnonInfo(nSigInputs, nSigRingSize);
+            in.pushKV("num_inputs", (int)nSigInputs);
+            in.pushKV("ring_size", (int)nSigRingSize);
+        } else {
             in.pushKV("txid", txin.prevout.hash.GetHex());
             in.pushKV("vout", (int64_t)txin.prevout.n);
             UniValue o(UniValue::VOBJ);
             o.pushKV("asm", ScriptToAsmStr(txin.scriptSig, true));
             o.pushKV("hex", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
             in.pushKV("scriptSig", o);
+        }
+        if (!tx.vin[i].scriptWitness.IsNull()) {
+            UniValue txinwitness(UniValue::VARR);
+            for (const auto& item : tx.vin[i].scriptWitness.stack) {
+                txinwitness.push_back(HexStr(item.begin(), item.end()));
             }
-            if (!tx.vin[i].scriptWitness.IsNull()) {
-                UniValue txinwitness(UniValue::VARR);
-                for (const auto& item : tx.vin[i].scriptWitness.stack) {
-                    txinwitness.push_back(HexStr(item.begin(), item.end()));
-                }
-                in.pushKV("txinwitness", txinwitness);
-            }
+            in.pushKV("txinwitness", txinwitness);
         }
         in.pushKV("sequence", (int64_t)txin.nSequence);
         vin.push_back(in);

@@ -37,7 +37,7 @@ static UniValue smsgenable(const JSONRPCRequest &request)
                 "Enable secure messaging on the specified wallet.\n"
                 "SMSG can only be enabled on one wallet.\n",
                 {
-                    {"walletname", RPCArg::Type::STR, /* opt */ true, /* default_val */ "wallet.dat", "Enable smsg on a specific wallet."},
+                    {"walletname", RPCArg::Type::STR, /* default */ "wallet.dat", "Enable smsg on a specific wallet."},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -111,7 +111,7 @@ static UniValue smsgoptions(const JSONRPCRequest &request)
             RPCHelpMan{"smsgoptions",
                 "\nList and manage options.\n",
                 {
-                    {"list with_description|set \"optname\" \"value\"", RPCArg::Type::STR, /* opt */ true, /* default_val */ "list", "Command input."},
+                    {"list with_description|set \"optname\" \"value\"", RPCArg::Type::STR, /* default */ "list", "Command input."},
                 },
                 RPCResults{},
                 RPCExamples{
@@ -203,7 +203,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             RPCHelpMan{"smsglocalkeys",
                 "\nList and manage keys.\n",
                 {
-                    {"whitelist|all|wallet|recv +/- \"address\"|anon +/- \"address\"", RPCArg::Type::STR, /* opt */ true, /* default_val */ "whitelist", "Command input."},
+                    {"whitelist|all|wallet|recv +/- \"address\"|anon +/- \"address\"", RPCArg::Type::STR, /* default */ "whitelist", "Command input."},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -473,8 +473,8 @@ static UniValue smsgaddaddress(const JSONRPCRequest &request)
             RPCHelpMan{"smsgaddaddress",
                 "\nAdd address and matching public key to database.\n",
                 {
-                    {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Address to add."},
-                    {"pubkey", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Public key for \"address\"."},
+                    {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "Address to add."},
+                    {"pubkey", RPCArg::Type::STR, RPCArg::Optional::NO, "Public key for \"address\"."},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -505,7 +505,7 @@ static UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
                 "\nEnable receiving messages on <address>.\n"
                 "Key for \"address\" must exist in the wallet.\n",
                 {
-                    {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Address to add."},
+                    {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "Address to add."},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -535,8 +535,8 @@ static UniValue smsgimportprivkey(const JSONRPCRequest &request)
                 "\nAdds a private key (as returned by dumpprivkey) to the smsg database.\n"
                 "The imported key can receive messages even if the wallet is locked.\n",
                 {
-                    {"privkey", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The private key to import (see dumpprivkey)."},
-                    {"label", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "An optional label."},
+                    {"privkey", RPCArg::Type::STR, RPCArg::Optional::NO, "The private key to import (see dumpprivkey)."},
+                    {"label", RPCArg::Type::STR, /* default */ "", "An optional label."},
                 },
                 RPCResults{},
                 RPCExamples{
@@ -577,7 +577,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
             RPCHelpMan{"smsggetpubkey",
                 "\nReturn the base58 encoded compressed public key for an address.\n",
                 {
-                    {"address", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Return the pubkey matching \"address\"."},
+                    {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "Return the pubkey matching \"address\"."},
                 },
                 RPCResult{
             "{\n"
@@ -648,14 +648,14 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             RPCHelpMan{"smsgsend",
                 "\nSend an encrypted message from \"address_from\" to \"address_to\".\n",
                 {
-                    {"address_from", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The address of the sender."},
-                    {"address_to", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The address of the recipient."},
-                    {"message", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "The message to send."},
-                    {"paid_msg", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Send as paid message."},
-                    {"days_retention", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "1", "No. of days for which paid message will be retained by network."},
-                    {"testfee", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Don't send the message, only estimate the fee."},
-                    {"fromfile", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Send file as message, path specified in \"message\"."},
-                    {"decodehex", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Decode \"message\" from hex before sending."},
+                    {"address_from", RPCArg::Type::STR, RPCArg::Optional::NO, "The address of the sender."},
+                    {"address_to", RPCArg::Type::STR, RPCArg::Optional::NO, "The address of the recipient."},
+                    {"message", RPCArg::Type::STR, RPCArg::Optional::NO, "The message to send."},
+                    {"paid_msg", RPCArg::Type::BOOL, /* default */ "false", "Send as paid message."},
+                    {"days_retention", RPCArg::Type::NUM, /* default */ "1", "No. of days for which paid message will be retained by network."},
+                    {"testfee", RPCArg::Type::BOOL, /* default */ "false", "Don't send the message, only estimate the fee."},
+                    {"fromfile", RPCArg::Type::BOOL, /* default */ "false", "Send file as message, path specified in \"message\"."},
+                    {"decodehex", RPCArg::Type::BOOL, /* default */ "false", "Decode \"message\" from hex before sending."},
                 },
                 RPCResult{
             "{\n"
@@ -750,8 +750,8 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
             RPCHelpMan{"smsgsendanon",
                 "\nDEPRECATED. Send an anonymous encrypted message to addrTo.\n",
                 {
-                    {"address_to", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Address to send to."},
-                    {"message", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Message to send."},
+                    {"address_to", RPCArg::Type::STR, RPCArg::Optional::NO, "Address to send to."},
+                    {"message", RPCArg::Type::STR, RPCArg::Optional::NO, "Message to send."},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -790,12 +790,12 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                 "\nDecrypt and display received messages.\n"
                 "Warning: clear will delete all messages.\n",
                 {
-                    {"mode", RPCArg::Type::STR, /* opt */ true, /* default_val */ "unread", "\"all|unread|clear\" List all messages, unread messages or clear all messages."},
-                    {"filter", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
-                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                    {"mode", RPCArg::Type::STR, /* default */ "unread", "\"all|unread|clear\" List all messages, unread messages or clear all messages."},
+                    {"filter", RPCArg::Type::STR, /* default */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
                         {
-                            {"updatestatus", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "true", "Update read status if true."},
-                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
+                            {"updatestatus", RPCArg::Type::BOOL, /* default */ "true", "Update read status if true."},
+                            {"encoding", RPCArg::Type::STR, /* default */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
                         },
                         "options"},
                 },
@@ -960,11 +960,11 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                 "\nDecrypt and display all sent messages.\n"
                 "Warning: \"mode\"=\"clear\" will delete all sent messages.\n",
                 {
-                    {"mode", RPCArg::Type::STR, /* opt */ true, /* default_val */ "all", "all|clear, List or clear messages."},
-                    {"filter", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
-                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                    {"mode", RPCArg::Type::STR, /* default */ "all", "all|clear, List or clear messages."},
+                    {"filter", RPCArg::Type::STR, /* default */ "", "Filter messages when in list mode. Applied to from, to and text fields."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
                         {
-                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
+                            {"encoding", RPCArg::Type::STR, /* default */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
                         },
                         "options"},
                 },
@@ -1107,7 +1107,7 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
             RPCHelpMan{"smsgbuckets",
                 "\nDisplay some statistics.\n",
                 {
-                    {"mode", RPCArg::Type::STR, /* opt */ true, /* default_val */ "stats", "If mode is \"dump\" delete all buckets."},
+                    {"mode", RPCArg::Type::STR, /* default */ "stats", "If mode is \"dump\" delete all buckets."},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -1236,10 +1236,10 @@ static UniValue smsgview(const JSONRPCRequest &request)
                 "Full date/time format for from and to is yyyy-mm-ddThh:mm:ss\n"
                 "From and to will accept incomplete inputs like: -from 2016\n",
                 {
-                    {"address/label", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", ""},
-                    {"asc/desc", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", ""},
-                    {"-from yyyy-mm-dd", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", ""},
-                    {"-to yyyy-mm-dd", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", ""},
+                    {"address/label", RPCArg::Type::STR, /* default */ "", ""},
+                    {"asc/desc", RPCArg::Type::STR, /* default */ "", ""},
+                    {"-from yyyy-mm-dd", RPCArg::Type::STR, /* default */ "", ""},
+                    {"-to yyyy-mm-dd", RPCArg::Type::STR, /* default */ "", ""},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -1515,12 +1515,12 @@ static UniValue smsgone(const JSONRPCRequest &request)
         RPCHelpMan{"smsg",
                 "\nView smsg by msgid.\n",
                 {
-                    {"msgid", RPCArg::Type::STR, /* opt */ false, /* default_val */ "", "Id of the message to view."},
-                    {"options", RPCArg::Type::OBJ, /* opt */ true, /* default_val */ "", "",
+                    {"msgid", RPCArg::Type::STR, RPCArg::Optional::NO, "Id of the message to view."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
                         {
-                            {"delete", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Delete msg if true."},
-                            {"setread", RPCArg::Type::BOOL, /* opt */ true, /* default_val */ "false", "Set read status to value."},
-                            {"encoding", RPCArg::Type::STR, /* opt */ true, /* default_val */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
+                            {"delete", RPCArg::Type::BOOL, /* default */ "false", "Delete msg if true."},
+                            {"setread", RPCArg::Type::BOOL, /* default */ "false", "Set read status to value."},
+                            {"encoding", RPCArg::Type::STR, /* default */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
                         },
                         "options"},
                 },
@@ -1679,7 +1679,7 @@ static UniValue smsgpurge(const JSONRPCRequest &request)
             RPCHelpMan{"smsgpurge",
                 "\nPurge smsg by msgid.\n",
                 {
-                    {"msgid", RPCArg::Type::STR_HEX, /* opt */ true, /* default_val */ "", "Id of the message to purge."},
+                    {"msgid", RPCArg::Type::STR_HEX, /* default */ "", "Id of the message to purge."},
                 },
                 RPCResults{},
                 RPCExamples{
@@ -1717,7 +1717,7 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
             RPCHelpMan{"smsggetfeerate",
                 "\nReturn paid SMSG fee.\n",
                 {
-                    {"height", RPCArg::Type::STR_HEX, /* opt */ true, /* default_val */ "", "Chain height to get fee rate for."},
+                    {"height", RPCArg::Type::STR_HEX, /* default */ "", "Chain height to get fee rate for."},
                 },
                 RPCResult{
             "Fee rate in satoshis."

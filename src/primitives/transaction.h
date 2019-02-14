@@ -188,14 +188,14 @@ public:
     bool SetAnonInfo(uint32_t nInputs, uint32_t nRingSize)
     {
         memcpy(prevout.hash.begin(), &nInputs, 4);
-        memcpy(prevout.hash.begin()+4, &nRingSize, 4);
+        memcpy(prevout.hash.begin() + 4, &nRingSize, 4);
         return true;
     };
 
     bool GetAnonInfo(uint32_t &nInputs, uint32_t &nRingSize) const
     {
         memcpy(&nInputs, prevout.hash.begin(), 4);
-        memcpy(&nRingSize, prevout.hash.begin()+4, 4);
+        memcpy(&nRingSize, prevout.hash.begin() + 4, 4);
         return true;
     };
 

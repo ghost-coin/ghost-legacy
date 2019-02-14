@@ -216,6 +216,7 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->spendZeroConfChange, OptionsModel::SpendZeroConfChange);
     mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
     mapper->addMapping(ui->showIncomingStakeNotifications, OptionsModel::ShowIncomingStakeNotifications);
+    mapper->addMapping(ui->showZeroValueCoinstakes, OptionsModel::ShowZeroValueCoinstakes);
 
     /* Network */
     mapper->addMapping(ui->mapPortUpnp, OptionsModel::MapPortUPnP);

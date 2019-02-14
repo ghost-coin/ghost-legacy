@@ -174,8 +174,9 @@ void WalletView::processNewTransaction(const QModelIndex& parent, int start, int
     QString label = ttm->data(index, TransactionTableModel::LabelRole).toString();
 
     if (!clientModel->getOptionsModel()->getShowIncomingStakeNotifications()
-        && ttm->data(index, TransactionTableModel::TypeRole) == TransactionRecord::Staked)
+        && ttm->data(index, TransactionTableModel::TypeRole) == TransactionRecord::Staked) {
         return;
+    }
 
     Q_EMIT incomingTransaction(date, walletModel->getOptionsModel()->getDisplayUnit(), amount, type, address, label, walletModel->getWalletName());
 }

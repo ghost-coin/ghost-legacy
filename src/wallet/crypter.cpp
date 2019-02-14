@@ -181,7 +181,7 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn, bool accept_no
         LOCK(cs_KeyStore);
         if (!SetCrypted())
             return false;
-        bool keyPass = false;
+        bool keyPass = mapCryptedKeys.empty(); // Always pass when there are no encrypted keys
         bool keyFail = false;
 
         size_t nTries = 0;

@@ -63,7 +63,6 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
         if (nInputs < 1 || nInputs > MAX_ANON_INPUTS) { // TODO: Select max inputs size
             return state.DoS(100, false, REJECT_INVALID, "bad-anon-num-inputs");
         }
-
         if (nRingSize < MIN_RINGSIZE || nRingSize > MAX_RINGSIZE) {
             return state.DoS(100, false, REJECT_INVALID, "bad-anon-ringsize");
         }
