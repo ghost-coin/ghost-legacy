@@ -1471,9 +1471,6 @@ void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
 
 bool CWallet::IsHDEnabled() const
 {
-    if (!gArgs.GetBoolArg("-btcmode", false))
-        return true;
-
     return !hdChain.seed_id.IsNull();
 }
 
