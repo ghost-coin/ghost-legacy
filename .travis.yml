@@ -16,6 +16,7 @@ env:
     - TEST_ZMQ=0
     - RUN_UNIT_TESTS=true
     - RUN_FUNCTIONAL_TESTS=true
+    - RUN_FUZZ_TESTS=false
     - DOCKER_NAME_TAG=ubuntu:18.04
     - BOOST_TEST_RANDOM=1$TRAVIS_BUILD_ID
     - CCACHE_SIZE=100M
@@ -97,13 +98,13 @@ jobs:
         BITCOIN_CONFIG="--enable-reduce-exports --disable-gui-tests -enable-usbdevice"
 
     - stage: test
-      name: '32-bit + dash  [GOAL: install]'
+      name: '32-bit + dash  [GOAL: install]  [GUI: no BIP70]'
       env: >-
         HOST=i686-pc-linux-gnu
         DPKG_ADD_ARCH="i386"
         PACKAGES="libudev-dev:i386 g++-multilib python3-zmq"
         GOAL="install"
-        BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++ --enable-usbdevice "
+        BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --disable-bip70 --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++ --enable-usbdevice"
         CONFIG_SHELL="/bin/dash"
       after_success:
         - echo "Skipped upload"
@@ -151,13 +152,16 @@ jobs:
         - echo "Skipped upload"
 
     - stage: test
-      name: 'x86_64 Linux  [GOAL: install]  [no BIP70]'
+      name: 'x86_64 Linux  [GOAL: install]  [bionic]  [no depends, only system libs, sanitizers: fuzzer,address]'
       env: >-
         HOST=x86_64-unknown-linux-gnu
-        PACKAGES="clang llvm python3-zmq qtbase5-dev qttools5-dev-tools libssl1.0-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev libdb5.3++-dev libminiupnpc-dev libzmq3-dev libqrencode-dev"
+        PACKAGES="clang llvm python3 libssl1.0-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev"
         NO_DEPENDS=1
+        RUN_UNIT_TESTS=false
+        RUN_FUNCTIONAL_TESTS=false
+        RUN_FUZZ_TESTS=true
         GOAL="install"
-        BITCOIN_CONFIG="--enable-zmq --disable-bip70 --with-incompatible-bdb --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER --with-sanitizers=address,integer,undefined CC=clang CXX=clang++"
+        BITCOIN_CONFIG="--disable-wallet --disable-bench --with-utils=no --with-daemon=no --with-libs=no --with-gui=no --enable-fuzz --with-sanitizers=fuzzer,address CC=clang CXX=clang++"
 
     - stage: test
       name: 'x86_64 Linux  [GOAL: install]  [bionic]  [no wallet]'

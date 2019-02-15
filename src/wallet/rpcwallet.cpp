@@ -27,6 +27,7 @@
 #include <script/sign.h>
 #include <shutdown.h>
 #include <timedata.h>
+#include <util/bip32.h>
 #include <util/system.h>
 #include <util/moneystr.h>
 #include <wallet/coincontrol.h>
@@ -237,14 +238,8 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
                 },
             }.ToString());
 
-    // Belt and suspenders check for disabled private keys
-    if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
-    }
-
     if (!IsParticlWallet(pwallet)) {
         LOCK(pwallet->cs_wallet);
-
         if (!pwallet->CanGetAddresses()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Error: This wallet has no available keys");
         }
@@ -270,9 +265,13 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
 
             {
                 LOCK(phdw->cs_wallet);
+                if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
+                    throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
+                }
                 if (phdw->idDefaultAccount.IsNull()) {
-                    if (!phdw->pEKMaster)
+                    if (!phdw->pEKMaster) {
                         throw JSONRPCError(RPC_WALLET_ERROR, _("Wallet has no active master key."));
+                    }
                     throw JSONRPCError(RPC_WALLET_ERROR, _("No default account set."));
                 }
             }
@@ -340,11 +339,6 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
             + HelpExampleRpc("getrawchangeaddress", "")
                 },
             }.ToString());
-
-    // Belt and suspenders check for disabled private keys
-    if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Error: Private keys are disabled for this wallet");
-    }
 
     LOCK(pwallet->cs_wallet);
 
@@ -3027,8 +3021,9 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
             "  \"immature_balance\": xxxxxx,      (numeric) the total immature balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"reserve\": xxxxxx,               (numeric) the reserve balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"txcount\": xxxxxxx,              (numeric) the total number of transactions in the wallet\n"
-            "  \"keypoololdest\": xxxxxx,         (numeric) the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool\n"
-            "  \"keypoolsize\": xxxx,             (numeric) how many new keys are pre-generated\n"
+            "  \"keypoololdest\": xxxxxx,           (numeric) the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool\n"
+            "  \"keypoolsize\": xxxx,               (numeric) how many new keys are pre-generated (only counts external keys)\n"
+            "  \"keypoolsize_hd_internal\": xxxx,   (numeric) how many new keys are pre-generated for internal use (used for change outputs, only appears if the wallet is using this feature, otherwise external keys are used)\n"
             "  \"encryptionstatus\":              (string) unencrypted/locked/unlocked\n"
             "  \"unlocked_until\": ttt,           (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
             "  \"paytxfee\": x.xxxx,              (numeric) the transaction fee configuration, set in " + CURRENCY_UNIT + "/kB\n"
@@ -3054,8 +3049,7 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
     obj.pushKV("walletname", pwallet->GetName());
     obj.pushKV("walletversion", pwallet->GetVersion());
 
-    if (fParticlWallet)
-    {
+    if (fParticlWallet) {
         CHDWalletBalances bal;
         ((CHDWallet*)pwallet)->GetBalances(bal);
 
@@ -3075,23 +3069,20 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
         obj.pushKV("unconfirmed_anon",      ValueFromAmount(bal.nAnonUnconf));
         obj.pushKV("immature_balance",      ValueFromAmount(bal.nPartImmature));
 
-        if (bal.nPartWatchOnly > 0 || bal.nPartWatchOnlyUnconf > 0 || bal.nPartWatchOnlyStaked > 0)
-        {
+        if (bal.nPartWatchOnly > 0 || bal.nPartWatchOnlyUnconf > 0 || bal.nPartWatchOnlyStaked > 0) {
             obj.pushKV("watchonly_balance",                 ValueFromAmount(bal.nPartWatchOnly));
             obj.pushKV("watchonly_staked_balance",          ValueFromAmount(bal.nPartWatchOnlyStaked));
             obj.pushKV("watchonly_unconfirmed_balance",     ValueFromAmount(bal.nPartWatchOnlyUnconf));
             obj.pushKV("watchonly_total_balance",
                 ValueFromAmount(bal.nPartWatchOnly + bal.nPartWatchOnlyStaked + bal.nPartWatchOnlyUnconf));
-        };
-    } else
-    {
+        }
+    } else {
         obj.pushKV("balance",       ValueFromAmount(pwallet->GetBalance()));
         obj.pushKV("unconfirmed_balance", ValueFromAmount(pwallet->GetUnconfirmedBalance()));
         obj.pushKV("immature_balance",    ValueFromAmount(pwallet->GetImmatureBalance()));
-    };
+    }
 
     int nTxCount = (int)pwallet->mapWallet.size() + (fParticlWallet ? (int)((CHDWallet*)pwallet)->mapRecords.size() : 0);
-
     obj.pushKV("txcount",       (int)nTxCount);
 
     CKeyID seed_id;
@@ -3104,18 +3095,17 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
         obj.pushKV("reserve",   ValueFromAmount(pwhd->nReserveBalance));
 
         obj.pushKV("encryptionstatus", !pwhd->IsCrypted()
-        ? "Unencrypted" : pwhd->IsLocked() ? "Locked" : pwhd->fUnlockForStakingOnly ? "Unlocked, staking only" : "Unlocked");
+            ? "Unencrypted" : pwhd->IsLocked() ? "Locked" : pwhd->fUnlockForStakingOnly ? "Unlocked, staking only" : "Unlocked");
 
         seed_id = pwhd->idDefaultAccount;
     } else {
         size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
         obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
-        obj.pushKV("keypoolsize",   (int64_t)pwallet->KeypoolCountExternalKeys());
+        obj.pushKV("keypoolsize", (int64_t)kpExternalSize);
         seed_id = pwallet->GetHDChain().seed_id;
-        if (!seed_id.IsNull() && pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
+        if (pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
             obj.pushKV("keypoolsize_hd_internal",   (int64_t)(pwallet->GetKeyPoolSize() - kpExternalSize));
         }
-
         obj.pushKV("encryptionstatus", !pwallet->IsCrypted()
             ? "Unencrypted" : pwallet->IsLocked() ? "Locked" : "Unlocked");
     }
@@ -3127,7 +3117,6 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
 
     if (!seed_id.IsNull()) {
         obj.pushKV("hdseedid", seed_id.GetHex());
-        obj.pushKV("hdmasterkeyid", seed_id.GetHex());
     }
     obj.pushKV("private_keys_enabled", !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
     return obj;
@@ -3469,7 +3458,8 @@ static UniValue listunspent(const JSONRPCRequest& request)
             "    \"scriptPubKey\" : \"key\",   (string) the script key\n"
             "    \"amount\" : x.xxx,         (numeric) the transaction output amount in " + CURRENCY_UNIT + "\n"
             "    \"confirmations\" : n,      (numeric) The number of confirmations\n"
-            "    \"redeemScript\" : n        (string) The redeemScript if scriptPubKey is P2SH\n"
+            "    \"redeemScript\" : \"script\" (string) The redeemScript if scriptPubKey is P2SH"
+            "    \"witnessScript\" : \"script\" (string) witnessScript if the scriptPubKey is P2WSH or P2SH-P2WSH\n"
             "    \"spendable\" : xxx,        (bool) Whether we have the private keys to spend this output\n"
             "    \"solvable\" : xxx,         (bool) Whether we know how to spend this output, ignoring the lack of keys\n"
             "    \"desc\" : xxx,             (string, only when solvable) A descriptor for spending this output\n"
@@ -3613,6 +3603,28 @@ static UniValue listunspent(const JSONRPCRequest& request)
                 CScript redeemScript;
                 if (pwallet->GetCScript(hash, redeemScript)) {
                     entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
+                    // Now check if the redeemScript is actually a P2WSH script
+                    CTxDestination witness_destination;
+                    if (redeemScript.IsPayToWitnessScriptHash()) {
+                        bool extracted = ExtractDestination(redeemScript, witness_destination);
+                        assert(extracted);
+                        // Also return the witness script
+                        const WitnessV0ScriptHash& whash = boost::get<WitnessV0ScriptHash>(witness_destination);
+                        CScriptID id;
+                        CRIPEMD160().Write(whash.begin(), whash.size()).Finalize(id.begin());
+                        CScript witnessScript;
+                        if (pwallet->GetCScript(id, witnessScript)) {
+                            entry.pushKV("witnessScript", HexStr(witnessScript.begin(), witnessScript.end()));
+                        }
+                    }
+                }
+            } else if (scriptPubKey->IsPayToWitnessScriptHash()) {
+                const WitnessV0ScriptHash& whash = boost::get<WitnessV0ScriptHash>(address);
+                CScriptID id;
+                CRIPEMD160().Write(whash.begin(), whash.size()).Finalize(id.begin());
+                CScript witnessScript;
+                if (pwallet->GetCScript(id, witnessScript)) {
+                    entry.pushKV("witnessScript", HexStr(witnessScript.begin(), witnessScript.end()));
                 }
             }
             if (scriptPubKey->IsPayToScriptHash256()) {
@@ -3918,7 +3930,8 @@ UniValue signrawtransactionwithwallet(const JSONRPCRequest& request)
                                     {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id"},
                                     {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO, "The output number"},
                                     {"scriptPubKey", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "script key"},
-                                    {"redeemScript", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED, "(required for P2SH or P2WSH) redeem script"},
+                                    {"redeemScript", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED, "(required for P2SH) redeem script"},
+                                    {"witnessScript", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED, "(required for P2WSH or P2SH-P2WSH) witness script"},
                                     {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "The amount spent"},
                                 },
                             },
@@ -4476,7 +4489,7 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
             "  \"timestamp\" : timestamp,      (number, optional) The creation time of the key if available in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"hdkeypath\" : \"keypath\"       (string, optional) The HD keypath if the key is HD and available\n"
             "  \"hdseedid\" : \"<hash160>\"      (string, optional) The Hash160 of the HD seed\n"
-            "  \"hdmasterkeyid\" : \"<hash160>\" (string, optional) alias for hdseedid maintained for backwards compatibility. Will be removed in V0.18.\n"
+            "  \"hdmasterfingerprint\" : \"<hash160>\" (string, optional) The fingperint of the master key.\n"
             "  \"labels\"                      (object) Array of labels associated with the address.\n"
             "    [\n"
             "      { (json object of label data)\n"
@@ -4622,10 +4635,10 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
     }
     if (meta) {
         ret.pushKV("timestamp", meta->nCreateTime);
-        if (!meta->hdKeypath.empty()) {
-            ret.pushKV("hdkeypath", meta->hdKeypath);
+        if (meta->has_key_origin) {
+            ret.pushKV("hdkeypath", WriteHDKeypath(meta->key_origin.path));
             ret.pushKV("hdseedid", meta->hd_seed_id.GetHex());
-            ret.pushKV("hdmasterkeyid", meta->hd_seed_id.GetHex());
+            ret.pushKV("hdmasterfingerprint", HexStr(meta->key_origin.fingerprint, meta->key_origin.fingerprint + 4));
         }
     }
 
