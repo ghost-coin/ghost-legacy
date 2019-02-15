@@ -50,6 +50,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "key/stealth -> key_io -> key/stealth"
     "pos/kernel -> validation -> pos/kernel"
     "pos/miner -> wallet/hdwallet -> pos/miner"
+    "pos/miner -> wallet/hdwallet -> wallet/wallet -> pos/miner"
     "smsg/db -> smsg/smessage -> smsg/db"
     "smsg/smessage -> validation -> smsg/smessage"
     "smsg/smessage -> validationinterface -> smsg/smessage"
