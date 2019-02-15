@@ -38,6 +38,7 @@
 #include <boost/algorithm/string/replace.hpp>
 
 #include <wallet/hdwallet.h>
+#include <pos/miner.h>
 
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
@@ -147,6 +148,14 @@ std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const WalletLocati
     }
     AddWallet(wallet);
     wallet->postInitProcess();
+
+    if (fParticlMode) {
+        if (!((CHDWallet*)wallet.get())->Initialise()) {
+            error = "Particl wallet initialise failed.";
+            return nullptr;
+        }
+        RestartStakingThreads();
+    }
     return wallet;
 }
 
