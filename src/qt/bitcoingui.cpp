@@ -17,6 +17,7 @@
 #include <qt/platformstyle.h>
 #include <qt/rpcconsole.h>
 #include <qt/utilitydialog.h>
+#include <shutdown.h>
 
 #ifdef ENABLE_WALLET
 #include <qt/walletcontroller.h>
@@ -342,6 +343,9 @@ void BitcoinGUI::createActions()
     m_open_wallet_action->setMenu(new QMenu(this));
     m_open_wallet_action->setStatusTip(tr("Open a wallet"));
 
+    m_close_wallet_action = new QAction(tr("Close Wallet..."), this);
+    m_close_wallet_action->setStatusTip(tr("Close wallet"));
+
     showHelpMessageAction = new QAction(platformStyle->TextColorIcon(":/icons/info"), tr("&Command-line options"), this);
     showHelpMessageAction->setMenuRole(QAction::NoRole);
     showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible Particl command-line options").arg(tr(PACKAGE_NAME)));
@@ -407,6 +411,9 @@ void BitcoinGUI::createActions()
                 });
             }
         });
+        connect(m_close_wallet_action, &QAction::triggered, [this] {
+            m_wallet_controller->closeWallet(walletFrame->currentWalletModel(), this);
+        });
     }
 #endif // ENABLE_WALLET
 
@@ -429,6 +436,7 @@ void BitcoinGUI::createMenuBar()
     if(walletFrame)
     {
         file->addAction(m_open_wallet_action);
+        file->addAction(m_close_wallet_action);
         file->addSeparator();
         file->addAction(openAction);
         file->addAction(backupWalletAction);
@@ -685,7 +693,7 @@ void BitcoinGUI::setCurrentWallet(WalletModel* wallet_model)
     if (!walletModel) {
         return;
     }
-    if (!test_mode && !walletModel->wallet().hdEnabled()) {
+    if (!test_mode && !walletModel->wallet().hdEnabled() && !ShutdownRequested()) {
         showMnemonicClicked();
     }
 
@@ -723,6 +731,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     usedSendingAddressesAction->setEnabled(enabled);
     usedReceivingAddressesAction->setEnabled(enabled);
     openAction->setEnabled(enabled);
+    m_close_wallet_action->setEnabled(enabled);
 }
 
 void BitcoinGUI::createTrayIcon()

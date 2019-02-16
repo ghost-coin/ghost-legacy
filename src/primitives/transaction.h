@@ -54,6 +54,8 @@ enum DataOutputTypes
     DO_SMSG_FEE             = 9,
 };
 
+bool ExtractCoinStakeInt64(const std::vector<uint8_t> &vData, DataOutputTypes get_type, CAmount &out);
+
 inline bool IsParticlTxVersion(int nVersion)
 {
     return (nVersion & 0xFF) >= PARTICL_TXN_VERSION;
@@ -520,69 +522,13 @@ public:
 
     bool GetDevFundCfwd(CAmount &nCfwd) const override
     {
-        if (vData.size() < 5) {
-            return false;
-        }
-
-        size_t nb;
-        size_t ofs = 4; // First 4 bytes will be height
-        while (ofs < vData.size()) {
-            if (vData[ofs] == DO_VOTE) {
-                ofs += 5;
-                continue;
-            }
-            if (vData[ofs] == DO_DEV_FUND_CFWD) {
-                ofs++;
-                return (0 == GetVarInt(vData, ofs, (uint64_t&)nCfwd, nb));
-            }
-            if (vData[ofs] == DO_SMSG_FEE) {
-                ofs++;
-                uint64_t nv;
-                if  (0 != GetVarInt(vData, ofs, nv, nb)) {
-                    return false;
-                }
-                ofs += nv;
-                continue;
-            }
-            break;
-        }
-
-        return false;
+        return ExtractCoinStakeInt64(vData, DO_DEV_FUND_CFWD, nCfwd);
     };
 
     bool GetSmsgFeeRate(CAmount &fee_rate) const override
     {
-        if (vData.size() < 5) {
-            return false;
-        }
-
-        size_t nb;
-        size_t ofs = 4; // First 4 bytes will be height
-        while (ofs < vData.size()) {
-            if (vData[ofs] == DO_VOTE) {
-                ofs += 5;
-                continue;
-            }
-            if (vData[ofs] == DO_DEV_FUND_CFWD) {
-                ofs++;
-                uint64_t nv;
-                if  (0 != GetVarInt(vData, ofs, nv, nb)) {
-                    return false;
-                }
-                ofs += nv;
-                continue;
-            }
-            if (vData[ofs] == DO_SMSG_FEE) {
-                ofs++;
-                return (0 == GetVarInt(vData, ofs, (uint64_t&)fee_rate, nb));
-            }
-            break;
-        }
-
-        return false;
+        return ExtractCoinStakeInt64(vData, DO_SMSG_FEE, fee_rate);
     };
-
-
 
     std::vector<uint8_t> *GetPData() override
     {

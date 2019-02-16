@@ -12498,6 +12498,9 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
                 return werror("%s: PutVarInt failed: %d.", __func__, nDevCfwd);
             }
             vData.insert(vData.end(), vCfwd.begin(), vCfwd.end());
+            CAmount test_cfwd = 0;
+            assert(ExtractCoinStakeInt64(vData, DO_DEV_FUND_CFWD, test_cfwd));
+            assert(test_cfwd == nDevCfwd);
         }
         if (LogAcceptCategory(BCLog::POS)) {
             WalletLogPrintf("%s: Coinstake reward split %d%%, foundation %s, reward %s.\n",
@@ -12533,6 +12536,9 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             return werror("%s: PutVarInt failed: %d.", __func__, smsg_fee_rate);
         }
         vData.insert(vData.end(), vSmsgFeeRate.begin(), vSmsgFeeRate.end());
+        CAmount test_fee = 0;
+        assert(ExtractCoinStakeInt64(vData, DO_SMSG_FEE, test_fee));
+        assert(test_fee == smsg_fee_rate);
     }
 
 
