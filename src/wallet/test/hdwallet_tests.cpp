@@ -261,6 +261,7 @@ BOOST_AUTO_TEST_CASE(ext_key_index)
 
 BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
 {
+    SetMockTime(1510000000);
     SelectParams(CBaseChainParams::TESTNET);
     CHDWallet *wallet = pwalletMain.get();
 
@@ -374,6 +375,7 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     }
 
     ECC_Stop_Stealth();
+    SetMockTime(0);
 }
 
 
