@@ -275,13 +275,19 @@ public:
         // Read at cursor
         BerkeleyBatch::SafeDbt datKey, datValue;
         if (fFlags == DB_SET || fFlags == DB_SET_RANGE || fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE) {
-            datKey.set_data(&ssKey[0], ssKey.size());
+            datKey.set_data(ssKey.data(), ssKey.size());
         }
         if (fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE) {
-            datValue.set_data(&ssValue[0], ssValue.size());
+            datValue.set_data(ssValue.data(), ssValue.size());
         }
         int ret = pcursor->get(datKey, datValue, fFlags);
         if (ret != 0) {
+            if (datKey.get_data() == ssKey.data()) {
+                datKey.set_data(nullptr, 0); // Avoid free in ~SafeDbt
+            }
+            if (datValue.get_data() == ssValue.data()) {
+                datValue.set_data(nullptr, 0); // Avoid free in ~SafeDbt
+            }
             return ret;
         } else
         if (datKey.get_data() == nullptr || datValue.get_data() == nullptr) {
