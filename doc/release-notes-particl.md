@@ -1,58 +1,29 @@
-## (note: this is a temporary file, to be added-to by anybody, and moved to release-notes at release time)
-
-Particl Core version 0.16.0.1 is now available from:
-
-  <https://particl.io/>
-
-This is a new major version release, including new features, various bugfixes
-and performance improvements.
-
-Please report bugs using the issue tracker at GitHub:
-
-  <https://github.com/particl/particl-core/issues>
-
-
-How to Upgrade
+0.18.0.3 Alpha
 ==============
+For Testnet.
 
-If you are running an older version, shut it down. Wait until it has completely
-shut down (which might take a few minutes for older versions), then run the
-installer (on Windows) or just copy over `/Applications/Particl-Qt` (on Mac)
-or `particld`/`particl-qt` (on Linux).
+0.18.0.3 or above required for testnet fork at 2019-02-16 12:00:00 UTC.
 
-The first time you run version 0.15.0 or newer, your chainstate database will need to be converted to a
-new format, start with the -reindex flag.
+Enables variable smsg fee after fork.
+Enables bullet proof range proofs after fork.
+Enables p2sh in coldstake spend script after fork.
 
 
-Downgrading warning
--------------------
-
-Wallets created in 0.16 and later are not compatible with versions prior to 0.16
-and will not work if you try to use newly created wallets in older versions. Existing
-wallets that were created with older versions are not affected by this.
-
-Compatibility
+0.17.1.3
 ==============
+For mainnet only.
 
-Particl Core is extensively tested on multiple operating systems using
-the Linux kernel, macOS 10.8+, and Windows Vista and later. Windows XP is not supported.
+0.17.1.2 or above required for mainnet fork at 2019-03-01 12:00:00 UTC.
 
-Particl Core should also work on most other Unix-like systems but is not
-frequently tested on them.
-
-Notable changes
-===============
+Removed smsg fee limit, allowing larger messages to be valid for more
+time.
 
 
-RPC changes
-------------
+0.17.1.2
+==============
+For mainnet only.
 
-The scanchain rpc command is deprecated, please use rescanblockchain instead.
+0.17.1.2 or above required for mainnet fork at 2019-03-01 12:00:00 UTC.
 
-
-
-
-
-
-
-
+This release will enable paid secure messaging on mainnet after fork
+scheduled for 2019-03-01 12:00:00 UTC.
