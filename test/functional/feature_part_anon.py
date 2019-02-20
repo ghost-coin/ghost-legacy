@@ -6,7 +6,7 @@
 import json
 
 from test_framework.test_particl import ParticlTestFramework
-from test_framework.util import connect_nodes_bi
+from test_framework.util import assert_raises_rpc_error, connect_nodes_bi
 
 
 class AnonTest(ParticlTestFramework):
@@ -124,15 +124,21 @@ class AnonTest(ParticlTestFramework):
         unspent_filtered = nodes[1].listunspentanon(1, 9999, [sxAddrTo1_1])
         assert(unspent_filtered[0]['label'] == 'lblsx11')
 
-        # Test lockunspent
+        self.log.info('Test permanent lockunspent')
         unspent = nodes[1].listunspentanon()
-        assert(nodes[1].lockunspent(False, [unspent[0]]) == True)
-        assert(len(nodes[1].listlockunspent()) == 1)
-        unspentCheck = nodes[1].listunspentanon()
-        assert(len(unspentCheck) < len(unspent))
+        assert(nodes[1].lockunspent(False, [unspent[0]], True) == True)
+        assert(nodes[1].lockunspent(False, [unspent[1]], True) == True)
+        assert(len(nodes[1].listlockunspent()) == 2)
+        # Restart node
+        self.stop_node(1)
+        self.start_node(1, self.extra_args[1])
+        assert(len(nodes[1].listlockunspent()) == 2)
+        assert(len(nodes[1].listunspentanon()) < len(unspent))
         assert(nodes[1].lockunspent(True, [unspent[0]]) == True)
-        unspentCheck = nodes[1].listunspentanon()
-        assert(len(unspentCheck) == len(unspent))
+        assert_raises_rpc_error(-8, 'Invalid parameter, expected locked output', nodes[1].lockunspent, True, [unspent[0]])
+        assert(len(nodes[1].listunspentanon()) == len(unspent)-1)
+        assert(nodes[1].lockunspent(True, [unspent[1]]) == True)
+        assert(len(nodes[1].listunspentanon()) == len(unspent))
 
 
 

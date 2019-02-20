@@ -159,15 +159,13 @@ class BlindTest(ParticlTestFramework):
         assert(len(unspent[0]['stealth_address']))
         assert(len(unspent[0]['label']))
 
-        # Test lockunspent
+        self.log.info('Test lockunspent')
         unspent = nodes[1].listunspentblind(minconf=0)
         assert(nodes[1].lockunspent(False, [unspent[0]]) == True)
         assert(len(nodes[1].listlockunspent()) == 1)
-        unspentCheck = nodes[1].listunspentblind(minconf=0)
-        assert(len(unspentCheck) < len(unspent))
+        assert(len(nodes[1].listunspentblind(minconf=0)) < len(unspent))
         assert(nodes[1].lockunspent(True, [unspent[0]]) == True)
-        unspentCheck = nodes[1].listunspentblind(minconf=0)
-        assert(len(unspentCheck) == len(unspent))
+        assert(len(nodes[1].listunspentblind(minconf=0)) == len(unspent))
 
         outputs = [{'address': sxAddrTo2_3, 'amount': 2.691068, 'subfee': True},]
         ro = nodes[1].sendtypeto('blind', 'part', outputs, 'comment_to', 'comment_from', 4, 64, True)
@@ -186,7 +184,7 @@ class BlindTest(ParticlTestFramework):
         except JSONRPCException as e:
             assert('Insufficient blinded funds' in e.error['message'])
 
-        # Test sending to normal addresses for which the wallet has the pubkey
+        self.log.info('Test sending to normal addresses which the wallet knows a pubkey for')
         addrPlain = nodes[0].getnewaddress()
         addrLong = nodes[0].getnewaddress('', False, False, True)
         outputs = [{'address': addrPlain, 'amount': 1}, {'address': addrLong, 'amount': 1}]
