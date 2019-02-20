@@ -714,9 +714,10 @@ class WalletParticlTest(ParticlTestFramework):
         assert(len(nodes[2].listunspent()) < len(unspent))
         assert(nodes[2].lockunspent(True, [unspent[0]]) == True)
         assert_raises_rpc_error(-8, 'Invalid parameter, expected locked output', nodes[2].lockunspent, True, [unspent[0]])
-        assert(len(nodes[2].listunspentanon()) == len(unspent)-1)
-        assert(nodes[2].lockunspent(True, [unspent[1]]) == True)
-        assert(len(nodes[2].listunspentanon()) == len(unspent))
+        assert(len(nodes[2].listunspent()) == len(unspent)-1)
+        assert(nodes[2].lockunspent(True) == True)
+        assert(len(nodes[2].listunspent()) == len(unspent))
+        assert(nodes[2].lockunspent(True) == True) # Shouldn't crash
 
 
 if __name__ == '__main__':

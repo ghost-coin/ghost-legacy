@@ -360,8 +360,12 @@ public:
             fFlags = DB_SET_RANGE;
         }
         int ret = pcursor->get(datKey, datValue, fFlags);
-        if (ret != 0)
+        if (ret != 0) {
+            if (datKey.get_data() == ssKey.data()) {
+                datKey.set_data(nullptr, 0); // Avoid free in ~SafeDbt
+            }
             return ret;
+        }
         else if (datKey.get_data() == nullptr || datValue.get_data() == nullptr)
             return 99999;
 

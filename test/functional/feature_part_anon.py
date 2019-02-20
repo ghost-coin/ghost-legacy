@@ -137,8 +137,9 @@ class AnonTest(ParticlTestFramework):
         assert(nodes[1].lockunspent(True, [unspent[0]]) == True)
         assert_raises_rpc_error(-8, 'Invalid parameter, expected locked output', nodes[1].lockunspent, True, [unspent[0]])
         assert(len(nodes[1].listunspentanon()) == len(unspent)-1)
-        assert(nodes[1].lockunspent(True, [unspent[1]]) == True)
+        assert(nodes[1].lockunspent(True) == True)
         assert(len(nodes[1].listunspentanon()) == len(unspent))
+        assert(nodes[1].lockunspent(True) == True)
 
 
 
