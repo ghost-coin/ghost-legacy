@@ -2630,7 +2630,6 @@ static void ParseOutputs(
     if (wtx.IsFromMe(ISMINE_WATCH_ONLY) && !(watchonly & ISMINE_WATCH_ONLY)) {
         return;
     }
-
     if (hide_zero_coinstakes && !listStaked.empty() && nFee == 0) {
         return;
     }
@@ -2737,9 +2736,7 @@ static void ParseOutputs(
         } else if (!nFee) {
             entry.pushKV("category", "receive");
         } else if (amount == 0) {
-            if (listSent.empty()) {
-                entry.pushKV("fee", ValueFromAmount(-nFee));
-            }
+            entry.pushKV("fee", ValueFromAmount(-nFee));
             entry.pushKV("category", "internal_transfer");
         } else {
             entry.pushKV("category", "send");

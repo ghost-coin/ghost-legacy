@@ -1,3 +1,10 @@
+Master
+==============
+
+- filtertransactions: Display fee when type is 'internal_transfer'.
+- promptunlockdevice and unlockdevice added for Trezor hardware wallet.
+
+
 0.18.0.4 Alpha
 ==============
 For Testnet.
