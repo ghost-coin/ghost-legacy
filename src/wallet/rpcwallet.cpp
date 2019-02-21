@@ -734,12 +734,14 @@ static UniValue signmessage(const JSONRPCRequest& request)
     }
 
     const CKeyID *keyID = boost::get<CKeyID>(&dest);
-    if (!keyID) {
+    const CKeyID256 *keyID256 = boost::get<CKeyID256>(&dest);
+
+    if (!keyID && !keyID256) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
     }
 
     CKey key;
-    if (!pwallet->GetKey(*keyID, key)) {
+    if (!(dest.type() == typeid(CKeyID) ? pwallet->GetKey(*keyID, key) : pwallet->GetKey(*keyID256, key))) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
     }
 
