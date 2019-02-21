@@ -226,6 +226,7 @@ PARTICL_SCRIPTS = [
     'feature_part_usbdevice.py',
     'wallet_part_watchonly.py',
     'rpc_part_atomicswap.py',
+    'rpc_part_signmessage.py',
 ]
 
 INSIGHT_SCRIPTS = [
