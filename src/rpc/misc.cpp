@@ -343,7 +343,9 @@ static UniValue verifymessage(const JSONRPCRequest& request)
     }
 
     const CKeyID *keyID = boost::get<CKeyID>(&destination);
-    if (!keyID) {
+    const CKeyID256 *keyID256 = boost::get<CKeyID256>(&destination);
+
+    if (!keyID && !keyID256) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
     }
 
@@ -361,7 +363,7 @@ static UniValue verifymessage(const JSONRPCRequest& request)
     if (!pubkey.RecoverCompact(ss.GetHash(), vchSig))
         return false;
 
-    return (pubkey.GetID() == *keyID);
+    return (pubkey.GetID() == (destination.type() == typeid(CKeyID) ? *keyID : *keyID256));
 }
 
 static UniValue signmessagewithprivkey(const JSONRPCRequest& request)
