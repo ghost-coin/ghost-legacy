@@ -244,8 +244,8 @@ static UniValue unlockdevice(const JSONRPCRequest &request)
             RPCHelpMan{"unlockdevice",
                 "\nList connected hardware devices.\n",
                 {
-                    {"passphrase", RPCArg::Type::STR, /* opt */ true, /* default_val */ "", "Passphrase to unlock the device."},
-                    {"pin", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "", "PIN to unlock the device."},
+                    {"passphrase", RPCArg::Type::STR, /* default */ "", "Passphrase to unlock the device."},
+                    {"pin", RPCArg::Type::NUM, /* default */ "", "PIN to unlock the device."},
                 },
                 RPCResult{
             "{\n"
