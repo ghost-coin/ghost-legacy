@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 The Bitcoin Core developers
+// Copyright (c) 2017-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,6 +7,7 @@
 
 #include <node/transaction.h>
 #include <pubkey.h>
+#include <rpc/protocol.h>
 #include <script/standard.h>
 #include <univalue.h>
 
@@ -113,6 +114,8 @@ struct RPCArg {
         assert(type == Type::ARR || type == Type::OBJ);
     }
 
+    bool IsOptional() const;
+
     /**
      * Return the type string of the argument.
      * Set oneline to allow it to be overridden by a custom oneline type string (m_oneline_description).
@@ -188,6 +191,8 @@ public:
     RPCHelpMan(std::string name, std::string description, std::vector<RPCArg> args, RPCResults results, RPCExamples examples);
 
     std::string ToString() const;
+    /** If the supplied number of args is neither too small nor too high */
+    bool IsValidNumArgs(size_t num_args) const;
 
 private:
     const std::string m_name;

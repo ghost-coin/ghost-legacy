@@ -213,7 +213,7 @@ static UniValue promptunlockdevice(const JSONRPCRequest &request)
                 },
                 RPCResult{
             "{\n"
-            "  \"sent\"           (boolean) whether prompting the unlock was succesful.\n"
+            "  \"sent\"           (boolean) whether prompting the unlock was successful.\n"
             "}\n"
                 },
                 RPCExamples{
