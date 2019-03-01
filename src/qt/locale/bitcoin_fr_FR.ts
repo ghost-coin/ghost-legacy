@@ -1606,7 +1606,7 @@
     </message>
     <message>
         <source>S&amp;end</source>
-        <translation>E&amp;voyer</translation>
+        <translation>En&amp;voyer</translation>
     </message>
     <message>
         <source>Copy quantity</source>
