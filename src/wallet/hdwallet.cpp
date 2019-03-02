@@ -4045,10 +4045,6 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     return 1; // sError is set
                 }
 
-                if (0 != pDevice->Open()) {
-                    return wserrorN(1, sError, __func__, _("Failed to open dongle"));
-                }
-
                 uiInterface.NotifyWaitingForDevice(false);
 
                 pDevice->PrepareTransaction(txNew, view, *this, SIGHASH_ALL);

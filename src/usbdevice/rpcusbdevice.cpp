@@ -203,6 +203,99 @@ static UniValue listdevices(const JSONRPCRequest &request)
     return result;
 };
 
+static UniValue promptunlockdevice(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 0)
+        throw std::runtime_error(
+            RPCHelpMan{"promptunlockdevice",
+                "\nPrompt an unlock for the hardware device.\n",
+                {
+                },
+                RPCResult{
+            "{\n"
+            "  \"sent\"           (boolean) whether prompting the unlock was successful.\n"
+            "}\n"
+                },
+                RPCExamples{
+            HelpExampleCli("promptunlockdevice", "") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("promptunlockdevice", "")
+                },
+            }.ToString());
+
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    usb_device::CUSBDevice *pDevice = SelectDevice(vDevices);
+
+    UniValue result(UniValue::VOBJ);
+    std::string sError;
+    if (0 != pDevice->PromptUnlock(sError)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, sError);
+    }
+
+    result.pushKV("sent", true);
+
+    return result;
+};
+
+static UniValue unlockdevice(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 2 || request.params.size() < 1)
+            throw std::runtime_error(
+            RPCHelpMan{"unlockdevice",
+                "\nList connected hardware devices.\n",
+                {
+                    {"passphrase", RPCArg::Type::STR, /* default */ "", "Passphrase to unlock the device."},
+                    {"pin", RPCArg::Type::NUM, /* default */ "", "PIN to unlock the device."},
+                },
+                RPCResult{
+            "{\n"
+            "  \"unlocked\"           (boolean) will be true when unlocked else error is thrown.\n"
+            "}\n"
+                },
+                RPCExamples{
+            HelpExampleCli("unlockdevice", "\"mysecretpassword\" 1687") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("unlockdevice", "\"mysecretpassword\" 1687")
+                },
+            }.ToString());
+
+    std::string passphraseword;
+    if (!passphraseword.length()) {
+        passphraseword = request.params[0].get_str();
+    }
+
+    std::string pin;
+    if (!pin.length()) {
+        pin = request.params[1].get_str();
+    }
+
+    if (!pin.length() && !passphraseword.length()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, _("neither a pin or a passphraseword was provided."));
+    }
+
+    std::string sError;
+    std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
+    ListAllDevices(vDevices);
+
+    UniValue result(UniValue::VOBJ);
+
+    if(vDevices.size() > 1) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, _("too many hardware devices connected."));
+    }
+
+    if(vDevices.size() != 1) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, _("no hardware devices connected."));
+    }
+
+    usb_device::CUSBDevice *device = vDevices[0].get();
+    if (0 != device->Unlock(pin, passphraseword, sError)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, sError);
+    }
+
+    result.pushKV("unlocked", true);
+
+    return result;
+};
 
 static UniValue getdeviceinfo(const JSONRPCRequest &request)
 {
@@ -596,10 +689,11 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     const CTransaction txConst(mtx);
 
     // Prepare transaction
-    if (0 != pDevice->Open()) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Failed to open dongle."));
+    int prep = pDevice->PrepareTransaction(mtx, view, keystore, nHashType);
+    if (0 != prep) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("PrepareTransaction failed with code %d.", prep));
     }
-    pDevice->PrepareTransaction(mtx, view, keystore, nHashType);
+
     if (!pDevice->sError.empty()) {
         pDevice->Close();
         UniValue entry(UniValue::VOBJ);
@@ -1093,6 +1187,8 @@ static const CRPCCommand commands[] =
     { "usbdevice",          "deviceloadmnemonic",           &deviceloadmnemonic,        {"wordcount", "pinprotection"} },
     { "usbdevice",          "devicebackup",                 &devicebackup,              {} },
     { "usbdevice",          "listdevices",                  &listdevices,               {} },
+    { "usbdevice",          "promptunlockdevice",           &promptunlockdevice,        {} },
+    { "usbdevice",          "unlockdevice",                 &unlockdevice,              {"passphrase", "pin"} },
     { "usbdevice",          "getdeviceinfo",                &getdeviceinfo,             {} },
     { "usbdevice",          "getdevicepublickey",           &getdevicepublickey,        {"path","accountpath"} },
     { "usbdevice",          "getdevicexpub",                &getdevicexpub,             {"path","accountpath"} },
