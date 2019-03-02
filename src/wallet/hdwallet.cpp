@@ -10033,7 +10033,7 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     if (pout->vRangeproof.size() < 1000) {
         if (1 != secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
             &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
-            0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), NULL, 0)) {
+            0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), nullptr, 0)) {
             return werrorN(0, "%s: secp256k1_bulletproof_rangeproof_rewind failed.", __func__);
         }
 
@@ -10131,7 +10131,7 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
     if (pout->vRangeproof.size() < 1000) {
         if (1 != secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
             &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
-            0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), NULL, 0)) {
+            0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), nullptr, 0)) {
             return werrorN(0, "%s: secp256k1_bulletproof_rangeproof_rewind failed.", __func__);
         }
 
@@ -12316,7 +12316,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
                     CBitcoinAddress addrColdStaking(sAddress);
                     CScript scriptStaking;
-                    if (!GetScriptForAddress(scriptStaking, addrColdStaking, true, NULL, true)) {
+                    if (!GetScriptForAddress(scriptStaking, addrColdStaking, true, nullptr, true)) {
                         return werror("%s: GetScriptForAddress failed.", __func__);
                     }
 
