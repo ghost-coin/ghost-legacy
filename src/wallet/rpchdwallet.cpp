@@ -8090,8 +8090,8 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
         int nFile = 0;
         FILE *fp;
         for (;;) {
-            CDiskBlockPos pos(nFile, 0);
-            fs::path blk_filepath = GetBlockPosFilename(pos, "blk");
+            FlatFilePos pos(nFile, 0);
+            fs::path blk_filepath = GetBlockPosFilename(pos);
             if (!fs::exists(blk_filepath)
                 || !(fp = OpenBlockFile(pos, true)))
                 break;
@@ -8109,7 +8109,7 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
 
             UniValue obj(UniValue::VOBJ);
             obj.pushKV("test_mode", test_only);
-            obj.pushKV("filename", GetBlockPosFilename(pos, "blk").string());
+            obj.pushKV("filename", GetBlockPosFilename(pos).string());
             obj.pushKV("blocks_in_file", (int)num_blocks_in_file);
             obj.pushKV("blocks_removed", (int)num_blocks_removed);
             if (test_only) {
