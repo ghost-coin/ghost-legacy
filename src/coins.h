@@ -52,20 +52,22 @@ public:
 
     bool Matches(CTxOutBase *txo) const
     {
-        if (!txo->IsType(nType))
+        if (!txo->IsType(nType)) {
             return false;
-
-        if (out.scriptPubKey != *txo->GetPScriptPubKey())
+        }
+        if (out.scriptPubKey != *txo->GetPScriptPubKey()) {
             return false;
-
+        }
         if (nType == OUTPUT_STANDARD
-            && out.nValue != txo->GetValue())
+            && out.nValue != txo->GetValue()) {
             return false;
+        }
         if (nType == OUTPUT_CT
-            && memcmp(commitment.data, ((CTxOutCT*)txo)->commitment.data, 33) != 0)
+            && memcmp(commitment.data, ((CTxOutCT*)txo)->commitment.data, 33) != 0) {
             return false;
+        }
         return true;
-    };
+    }
 
     void Clear() {
         out.SetNull();

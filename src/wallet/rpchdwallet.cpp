@@ -6043,11 +6043,9 @@ static UniValue transactionblinds(const JSONRPCRequest &request)
     hash.SetHex(request.params[0].get_str());
 
     MapRecords_t::const_iterator mri = pwallet->mapRecords.find(hash);
-
     if (mri == pwallet->mapRecords.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid or non-wallet transaction id");
     }
-    //const CTransactionRecord &rtx = mri->second;
 
     UniValue result(UniValue::VOBJ);
     CStoredTransaction stx;
@@ -6122,8 +6120,9 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
         if (s.size() == 64) {
             std::vector<uint8_t> v = ParseHex(s);
             sEphem.Set(v.data(), true);
-            if (!sEphem.IsValid())
+            if (!sEphem.IsValid()) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid ephemeral private key.");
+            }
         } else
         if (s.size() == 66) {
             std::vector<uint8_t> v = ParseHex(s);
@@ -6175,7 +6174,6 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
     if (sEphem.IsValid()) {
         result.pushKV("ephemeral_privatekey", HexStr(sEphem.begin(), sEphem.end()));
     }
-
     if (sSpendR.IsValid()) {
         result.pushKV("privatekey", CBitcoinSecret(sSpendR).ToString());
     }
@@ -7479,11 +7477,10 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
     {
         std::string s = request.params[0].get_str();
         if (!IsHex(s) || !(s.size() == 66)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "commitment must be 33 bytes and hex encoded.");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Commitment must be 33 bytes and hex encoded.");
         }
         vchCommitment = ParseHex(s);
     }
-
     {
         std::string s = request.params[1].get_str();
         if (!IsHex(s) || !(s.size() == 64)) {
@@ -7508,6 +7505,93 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
     bool rv = true;
     result.pushKV("result", rv);
+    return result;
+};
+
+static UniValue rewindrangeproof(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 4)
+        throw std::runtime_error(
+            RPCHelpMan{"rewindrangeproof",
+                "\nExtract data encoded in a rangeproof.\n",
+                {
+                    {"rangeproof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "Rangeproof as hex string."},
+                    {"commitment", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "33byte commitment hex string."},
+                    {"nonce_key", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "32byte hex string or WIF encoded key."},
+                    {"ephemeral_key", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "33byte ephemeral_key hex string."},
+                },
+                RPCResult{
+            "{\n"
+            "  \"blind\": hex,                   (string) 32byte blinding factor hex string.\n"
+            "  \"amount\": xxxxxx,               (numeric) The amount committed to.\n"
+            "}\n"
+                },
+                RPCExamples{
+            HelpExampleCli("rewindrangeproof", "\"rangeproof\" \"commitment\" \"nonce_key\" \"ephemeral_key\"") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("rewindrangeproof", "\"rangeproof\", \"commitment\", \"nonce_key\", \"ephemeral_key\"")
+                },
+            }.ToString());
+
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR, UniValue::VSTR, UniValue::VSTR});
+
+    std::vector<uint8_t> vchRangeproof, vchCommitment;
+    CKey nonce_key;
+    CPubKey pkEphem;
+    {
+        std::string s = request.params[0].get_str();
+        if (!IsHex(s)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Rangeproof must be hex encoded.");
+        }
+        vchRangeproof = ParseHex(s);
+    }
+    {
+        std::string s = request.params[1].get_str();
+        if (!IsHex(s) || !(s.size() == 66)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Commitment must be 33 bytes and hex encoded.");
+        }
+        vchCommitment = ParseHex(s);
+    }
+    {
+        std::string s = request.params[2].get_str();
+        if (IsHex(s) && (s.size() == 64)) {
+            uint256 tmp;
+            tmp.SetHex(s);
+            nonce_key.Set(tmp.begin(), true);
+        } else {
+            nonce_key = DecodeSecret(s);
+        }
+        if (!nonce_key.IsValid()) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid nonce");
+        }
+    }
+    {
+        std::string s = request.params[3].get_str();
+        if (!IsHex(s) || !(s.size() == 66)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Ephemeral public key must be 33 bytes and hex encoded.");
+        }
+        std::vector<uint8_t> v = ParseHex(s);
+        pkEphem = CPubKey(v.begin(), v.end());
+        if (!pkEphem.IsValid()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid ephemeral public key.");
+        }
+    }
+
+    // Regenerate nonce
+    uint256 nonce = nonce_key.ECDH(pkEphem);
+    CSHA256().Write(nonce.begin(), 32).Finalize(nonce.begin());
+
+    std::vector<uint8_t> vchBlind;
+    CAmount nValue;
+
+    if (!RewindRangeProof(vchRangeproof, vchCommitment, nonce,
+        vchBlind, nValue)) {
+        throw JSONRPCError(RPC_MISC_ERROR, strprintf("RewindRangeProof failed."));
+    }
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("blind", HexStr(vchBlind));
+    result.pushKV("amount", ValueFromAmount(nValue));
     return result;
 };
 
@@ -8212,6 +8296,7 @@ static const CRPCCommand commands[] =
     { "rawtransactions",    "createrawparttransaction",         &createrawparttransaction,      {"inputs","outputs","locktime","replaceable"} },
     { "rawtransactions",    "fundrawtransactionfrom",           &fundrawtransactionfrom,        {"input_type","hexstring","input_amounts","output_amounts","options"} },
     { "rawtransactions",    "verifycommitment",                 &verifycommitment,              {"commitment","blind","amount"} },
+    { "rawtransactions",    "rewindrangeproof",                 &rewindrangeproof,              {"rangeproof","commitment","nonce_key","ephemeral_key"} },
     { "rawtransactions",    "generatematchingblindfactor",      &generatematchingblindfactor,   {"inputs","outputs"} },
     { "rawtransactions",    "verifyrawtransaction",             &verifyrawtransaction,          {"hexstring","prevtxs","options"} },
 

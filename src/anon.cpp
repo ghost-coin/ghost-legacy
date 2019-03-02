@@ -379,3 +379,17 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
 
     return true;
 };
+
+bool RewindRangeProof(const std::vector<uint8_t> &rangeproof, const std::vector<uint8_t> &commitment, const uint256 &nonce,
+                      std::vector<uint8_t> &blind_out, CAmount &value_out)
+{
+    blind_out.resize(32);
+    secp256k1_pedersen_commitment commitment_type;
+    if (commitment.size() != 33) {
+        return false;
+    }
+    memcpy(&commitment_type.data[0], commitment.data(), 33);
+    return (1 == secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
+            (uint64_t*) &value_out, blind_out.data(), rangeproof.data(), rangeproof.size(),
+            0, &commitment_type, &secp256k1_generator_const_h, nonce.begin(), nullptr, 0));
+};
