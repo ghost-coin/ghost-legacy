@@ -6636,8 +6636,7 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
                             },
                         },
                     },
-                    {"locktime", RPCArg::Type::NUM, /* default */ "0", "Raw locktime. Non-0 value also locktime-activates inputs\n"
-                            "                             Allows this transaction to be replaced by a transaction with higher fees. If provided, it is an error if explicit sequence numbers are incompatible."},
+                    {"locktime", RPCArg::Type::NUM, /* default */ "0", "Raw locktime. Non-0 value also locktime-activates inputs\n"},
                     {"replaceable", RPCArg::Type::BOOL, /* default */ "", "Marks this transaction as BIP125 replaceable.\n"
                             "                              Allows this transaction to be replaced by a transaction with higher fees"},
                 },
@@ -7741,6 +7740,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
                 RPCResult{
             "{\n"
             "  \"complete\" : true|false,          (boolean) If the transaction has a complete set of signatures\n"
+            "  \"validscripts\" : n,               (numeric) The number of scripts which passed verification\n"
             "  \"errors\" : [                      (json array of objects) Script verification errors (if there are any)\n"
             "    {\n"
             "      \"txid\" : \"hash\",              (string) The hash of the referenced, previous transaction\n"
@@ -7896,7 +7896,8 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
         }
     }
 
-    // Sign what we can:
+    // Verify inputs:
+    int num_valid = 0;
     for (unsigned int i = 0; i < mtx.vin.size(); i++) {
         CTxIn& txin = mtx.vin[i];
         const Coin& coin = view.AccessCoin(txin.prevout);
@@ -7922,6 +7923,8 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
         ScriptError serror = SCRIPT_ERR_OK;
         if (!VerifyScript(txin.scriptSig, prevPubKey, &txin.scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&txConst, i, vchAmount), &serror)) {
             TxInErrorToJSON(txin, vErrors, ScriptErrorString(serror));
+        } else {
+            num_valid++;
         }
     }
     bool fComplete = vErrors.empty();
@@ -7935,6 +7938,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
     }
 
     result.pushKV("complete", fComplete);
+    result.pushKV("validscripts", num_valid);
     if (!vErrors.empty()) {
         result.pushKV("errors", vErrors);
     }
