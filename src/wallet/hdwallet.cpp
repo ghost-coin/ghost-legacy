@@ -3042,10 +3042,11 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
                 CKeyID idTo = boost::get<CKeyID>(r.address);
                 r.scriptPubKey = GetScriptForDestination(idTo);
 
-                if (!GetPubKey(idTo, r.pkTo)) {
-                    if (0 != smsgModule.GetStoredKey(idTo, r.pkTo)) {
-                        return wserrorN(1, sError, __func__, _("No public key found for address %s."), EncodeDestination(r.address));
-                    }
+                if (!r.pkTo.IsValid() && !GetPubKey(idTo, r.pkTo)) {
+                    return wserrorN(1, sError, __func__, _("No public key found for address %s."), EncodeDestination(r.address));
+                }
+                if (r.pkTo.GetID() != idTo) {
+                    return wserrorN(1, sError, __func__, _("Mismatched pubkey for address %s."), EncodeDestination(r.address));
                 }
             } else
             if (r.address.type() == typeid(CKeyID256)) {
@@ -3054,10 +3055,11 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
                 // Need a matching public key
                 CKeyID256 id256 = boost::get<CKeyID256>(r.address);
                 CKeyID idTo(id256);
-                if (!GetPubKey(idTo, r.pkTo)) {
-                    if (0 != smsgModule.GetStoredKey(idTo, r.pkTo)) {
-                        return wserrorN(1, sError, __func__, _("No public key found for address %s."), EncodeDestination(r.address));
-                    }
+                if (!r.pkTo.IsValid() && !GetPubKey(idTo, r.pkTo)) {
+                    return wserrorN(1, sError, __func__, _("No public key found for address %s."), EncodeDestination(r.address));
+                }
+                if (r.pkTo.GetID() != idTo) {
+                    return wserrorN(1, sError, __func__, _("Mismatched pubkey for address %s."), EncodeDestination(r.address));
                 }
             } else {
                 if (!r.fScriptSet) {
