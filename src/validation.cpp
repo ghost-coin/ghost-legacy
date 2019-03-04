@@ -1373,8 +1373,7 @@ bool IsInitialBlockDownload()
         return true;
     if (chainActive.Tip()->nChainWork < nMinimumChainWork)
         return true;
-    if (fRequireStandard // fRequireStandard is false on testnet
-        && chainActive.Tip()->nHeight > COINBASE_MATURITY
+    if (chainActive.Tip()->nHeight > COINBASE_MATURITY
         && chainActive.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge))
         return true;
     if (fParticlMode
@@ -3497,6 +3496,7 @@ static void NotifyHeaderTip() LOCKS_EXCLUDED(cs_main) {
     }
 }
 
+void CheckDelayedBlocks(const CChainParams& chainparams, const uint256 &block_hash) LOCKS_EXCLUDED(cs_main);
 /**
  * Make the best chain active, in multiple steps. The result is either failure
  * or an activated best chain. pblock is either nullptr or a pointer to a block
@@ -3535,6 +3535,7 @@ bool CChainState::ActivateBestChain(CValidationState &state, const CChainParams&
             SyncWithValidationInterfaceQueue();
         }
 
+        std::vector<uint256> connected_blocks;
         {
             LOCK(cs_main);
             CBlockIndex* starting_tip = chainActive.Tip();
@@ -3567,6 +3568,7 @@ bool CChainState::ActivateBestChain(CValidationState &state, const CChainParams&
 
                 for (const PerBlockConnectTrace& trace : connectTrace.GetBlocksConnected()) {
                     assert(trace.pblock && trace.pindex);
+                    connected_blocks.push_back(trace.pblock->GetHash());
                     GetMainSignals().BlockConnected(trace.pblock, trace.pindex, trace.conflictedTxs);
                 }
             } while (!chainActive.Tip() || (starting_tip && CBlockIndexWorkComparator()(chainActive.Tip(), starting_tip)));
@@ -3586,6 +3588,10 @@ bool CChainState::ActivateBestChain(CValidationState &state, const CChainParams&
             }
         }
         // When we reach this point, we switched to a new tip (stored in pindexNewTip).
+
+        for (const auto& block_hash : connected_blocks) {
+            CheckDelayedBlocks(chainparams, block_hash);
+        }
 
         if (nStopAtHeight && pindexNewTip && pindexNewTip->nHeight >= nStopAtHeight) StartShutdown();
 
@@ -3720,6 +3726,7 @@ void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     while (it != mapBlockIndex.end()) {
         if (!it->second->IsValid() && it->second->GetAncestor(nHeight) == pindex) {
             it->second->nStatus &= ~BLOCK_FAILED_MASK;
+            it->second->nFlags &= ~(BLOCK_FAILED_DUPLICATE_STAKE | BLOCK_STAKE_KERNEL_SPENT);
             setDirtyBlockIndex.insert(it->second);
             if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->HaveTxsDownloaded() && setBlockIndexCandidates.value_comp()(chainActive.Tip(), it->second)) {
                 setBlockIndexCandidates.insert(it->second);
@@ -4599,10 +4606,8 @@ void EraseDelayedBlock(std::list<DelayedBlock>::iterator p) EXCLUSIVE_LOCKS_REQU
         Misbehaving(p->m_node_id, 25, "Delayed block");
     }
 
-    auto it = mapBlockIndex.find(p->m_pblock->GetHash());
-    if (it != mapBlockIndex.end()) {
-        mapBlockIndex.erase(it);
-    }
+    // Remove from block index
+    RemoveUnreceivedHeader(p->m_pblock->GetHash());
 
     list_delayed_blocks.erase(p);
 }
@@ -4636,7 +4641,7 @@ void CheckDelayedBlocks(const CChainParams& chainparams, const uint256 &block_ha
             continue;
         }
         if (p->m_time + MAX_DELAY_BLOCK_SECONDS < now) {
-            LogPrint(BCLog::NET, "Removing Delayed block %s, timed out.\n", p->m_pblock->GetHash().ToString());
+            LogPrint(BCLog::NET, "Removing delayed block %s, timed out.\n", p->m_pblock->GetHash().ToString());
             LOCK(cs_main);
             EraseDelayedBlock(p++);
             continue;
@@ -4651,6 +4656,20 @@ bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_mai
     if (mi != mapBlockIndex.end() && !(mi->second->nFlags & BLOCK_ACCEPTED)) {
         LogPrint(BCLog::NET, "Removing loose header %s.\n", hash.ToString());
         setDirtyBlockIndex.erase(mi->second);
+        if (pindexBestHeader == mi->second) {
+            pindexBestHeader = nullptr;
+        }
+        if (pindexBestInvalid == mi->second) {
+            pindexBestInvalid = nullptr;
+        }
+        for (auto& entry : mapBlockIndex) {
+            if (entry.second->pskip == mi->second) {
+                entry.second->pskip = nullptr;
+            }
+            if (entry.second->pprev == mi->second) {
+                entry.second->pprev = mi->second->pprev;
+            }
+        }
         RemoveNonReceivedHeaderFromNodes(mi);
         delete mi->second;
         mapBlockIndex.erase(mi);
@@ -4710,7 +4729,7 @@ bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState&
 
             if (fParticlMode && !IsInitialBlockDownload() && state.nodeId >= 0
                 && !IncDuplicateHeaders(state.nodeId)) {
-                    return state.DoS(5, error("%s: DoS limits, too many duplicates", __func__), REJECT_INVALID, "dos-limits");
+                return state.DoS(5, error("%s: DoS limits, too many duplicates", __func__), REJECT_INVALID, "dos-limits");
             }
 
             pindex = miSelf->second;
@@ -4727,8 +4746,8 @@ bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState&
                 } else */
                 {
                     return state.Invalid(error("%s: block %s is marked invalid", __func__, hash.ToString()), 0, "duplicate");
-                };
-            };
+                }
+            }
             return true;
         }
 
@@ -4906,7 +4925,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
             // Block received out of order
             if (fParticlMode && !IsInitialBlockDownload()) {
                 if (pindex->nFlags & BLOCK_DELAYED) {
-                    // block is already delayed
+                    // Block is already delayed
                     state.nFlags |= BLOCK_DELAYED;
                     return true;
                 }
@@ -5027,11 +5046,6 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
 
     if (smsg::fSecMsgEnabled && gArgs.GetBoolArg("-smsgscanincoming", false)) {
         smsgModule.ScanBlock(*pblock);
-    }
-
-    {
-        assert(pindex);
-        CheckDelayedBlocks(chainparams, pindex->GetBlockHash());
     }
 
     return true;
