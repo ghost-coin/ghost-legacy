@@ -1007,23 +1007,24 @@ bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
         addresses.clear(); // should be empty already
         buckets.clear(); // should be empty already
 
-        if (!Start(pwallet, false, false))
+        if (!Start(pwallet, false, false)) {
             return error("%s: SecureMsgStart failed.\n", __func__);
-    } // cs_smsg
+        }
+    }
 
     // Ping each peer advertising smsg
     {
         LOCK(g_connman->cs_vNodes);
-        for(auto *pnode : g_connman->vNodes)
-        {
-            if (!(pnode->GetLocalServices() & NODE_SMSG))
+        for (auto *pnode : g_connman->vNodes) {
+            if (!(pnode->GetLocalServices() & NODE_SMSG)) {
                 continue;
+            }
             g_connman->PushMessage(pnode,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPing"));
+                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPing")); // smsgData.fEnabled will be set on receiving smsgPong response from peer
             g_connman->PushMessage(pnode,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPong")); // Send pong as have missed initial ping sent by peer when it connected
-        };
-    } // g_connman->cs_vNodes
+        }
+    }
 
     LogPrintf("Secure messaging enabled.\n");
     return true;
@@ -1048,7 +1049,7 @@ bool CSMSG::Disable()
             it->second.setTokens.clear();
         buckets.clear();
         addresses.clear();
-    } // cs_smsg
+    }
 
     // Tell each smsg enabled peer that this node is disabling
     {
@@ -1061,8 +1062,8 @@ bool CSMSG::Disable()
             g_connman->PushMessage(pnode,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgDisabled"));
             pnode->smsgData.fEnabled = false;
-        };
-    } // g_connman->cs_vNodes
+        }
+    }
 
     LogPrintf("Secure messaging disabled.\n");
     return true;
