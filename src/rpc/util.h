@@ -36,7 +36,7 @@ void TxInErrorToJSON(const CTxIn& txin, UniValue& vErrorsRet, const std::string&
 bool GetBool(const UniValue &uv);
 
 //! Parse a confirm target option and raise an RPC error if it is invalid.
-unsigned int ParseConfirmTarget(const UniValue& value);
+unsigned int ParseConfirmTarget(const UniValue& value, unsigned int max_target);
 
 RPCErrorCode RPCErrorFromTransactionError(TransactionError terr);
 UniValue JSONRPCTransactionError(TransactionError terr, const std::string& err_string = "");

@@ -3793,12 +3793,12 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         CWalletTx wtx(pwallet.get(), MakeTransactionRef(txFund));
 
         CValidationState state;
-        if (!wtx.AcceptToMemoryPool(*locked_chain, m_absurd_smsg_fee, state)) {
+        if (!wtx.AcceptToMemoryPool(*locked_chain, state, m_absurd_smsg_fee)) {
             return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Transaction cannot be broadcast immediately: %s.", state.GetRejectReason());
         }
 
         pwallet->AddToWallet(wtx);
-        wtx.RelayWalletTransaction(*locked_chain, g_connman.get());
+        wtx.RelayWalletTransaction(*locked_chain);
     }
     memcpy(smsg.pPayload+(smsg.nPayload-32), txfundId.begin(), 32);
 #else

@@ -4734,7 +4734,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         if (uvCoinControl.exists("conf_target")) {
             if (!uvCoinControl["conf_target"].isNum())
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "conf_target parameter must be numeric.");
-            coincontrol.m_confirm_target = ParseConfirmTarget(uvCoinControl["conf_target"]);
+            coincontrol.m_confirm_target = ParseConfirmTarget(uvCoinControl["conf_target"], pwallet->chain().estimateMaxBlocks());
         }
 
         if (uvCoinControl.exists("estimate_mode")) {
@@ -4828,11 +4828,11 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     CValidationState state;
     CReserveKey reservekey(pwallet);
     if (typeIn == OUTPUT_STANDARD && typeOut == OUTPUT_STANDARD) {
-        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, reservekey, g_connman.get(), state)) {
+        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, reservekey, state)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
         }
     } else {
-        if (!pwallet->CommitTransaction(wtx, rtx, reservekey, g_connman.get(), state)) {
+        if (!pwallet->CommitTransaction(wtx, rtx, reservekey, state)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
         }
     }
@@ -7126,7 +7126,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
             if (options.exists("feeRate")) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot specify both conf_target and feeRate");
             }
-            coinControl.m_confirm_target = ParseConfirmTarget(options["conf_target"]);
+            coinControl.m_confirm_target = ParseConfirmTarget(options["conf_target"], pwallet->chain().estimateMaxBlocks());
         }
         if (options.exists("estimate_mode")) {
             if (options.exists("feeRate")) {

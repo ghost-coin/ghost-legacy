@@ -130,7 +130,7 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     BOOST_CHECK(0 == pwallet->AddStandardInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
 
     wtx.BindWallet(pwallet);
-    BOOST_REQUIRE(wtx.AcceptToMemoryPool(*locked_chain, maxTxFee, state));
+    BOOST_REQUIRE(wtx.AcceptToMemoryPool(*locked_chain, state));
     } // cs_main
     SyncWithValidationInterfaceQueue();
 }
@@ -261,7 +261,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CValidationState state;
         pwallet->SetBroadcastTransactions(true);
         mapValue_t mapValue;
-        BOOST_CHECK(pwallet->CommitTransaction(tx_new, std::move(mapValue), {} /* orderForm */, reservekey, g_connman.get(), state));
+        BOOST_CHECK(pwallet->CommitTransaction(tx_new, std::move(mapValue), {} /* orderForm */, reservekey, state));
     }
 
     StakeNBlocks(pwallet, 1);
