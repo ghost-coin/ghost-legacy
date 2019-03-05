@@ -1,58 +1,72 @@
-## (note: this is a temporary file, to be added-to by anybody, and moved to release-notes at release time)
-
-Particl Core version 0.16.0.1 is now available from:
-
-  <https://particl.io/>
-
-This is a new major version release, including new features, various bugfixes
-and performance improvements.
-
-Please report bugs using the issue tracker at GitHub:
-
-  <https://github.com/particl/particl-core/issues>
-
-
-How to Upgrade
+Master
 ==============
 
-If you are running an older version, shut it down. Wait until it has completely
-shut down (which might take a few minutes for older versions), then run the
-installer (on Windows) or just copy over `/Applications/Particl-Qt` (on Mac)
-or `particld`/`particl-qt` (on Linux).
-
-The first time you run version 0.15.0 or newer, your chainstate database will need to be converted to a
-new format, start with the -reindex flag.
 
 
-Downgrading warning
--------------------
-
-Wallets created in 0.16 and later are not compatible with versions prior to 0.16
-and will not work if you try to use newly created wallets in older versions. Existing
-wallets that were created with older versions are not affected by this.
-
-Compatibility
+0.18.0.5 rc
 ==============
+For Testnet.
 
-Particl Core is extensively tested on multiple operating systems using
-the Linux kernel, macOS 10.8+, and Windows Vista and later. Windows XP is not supported.
+0.18.0.3 or above required for testnet fork at 2019-02-16 12:00:00 UTC.
 
-Particl Core should also work on most other Unix-like systems but is not
-frequently tested on them.
-
-Notable changes
-===============
-
-
-RPC changes
-------------
-
-The scanchain rpc command is deprecated, please use rescanblockchain instead.
+- filtertransactions: Display fee when type is 'internal_transfer'.
+- promptunlockdevice and unlockdevice added for Trezor hardware wallet.
+- signmessage / verifymessage: Add sign and verify using 256bit addresses.
+- Wallet won't search smsg for unknown pubkeys when sending.
+- New rewindrangeproof rpc command.
+- Fixed initial block download issues.
+- Converted contrib/linearize.
+- Updated DNS seeds.
+- New checkpoint data.
 
 
+0.18.0.4 Alpha
+==============
+For Testnet.
+
+0.18.0.3 or above required for testnet fork at 2019-02-16 12:00:00 UTC.
+
+- Fixed lockunspent crash in market tests.
+
+
+0.18.0.3 Alpha
+==============
+For Testnet.
+
+0.18.0.3 or above required for testnet fork at 2019-02-16 12:00:00 UTC.
+
+- Enables variable smsg fee after fork.
+- Enables bullet proof range proofs after fork.
+- Enables p2sh in coldstake spend script after fork.
 
 
 
+0.17.1.4
+==============
+For mainnet only.
+
+0.17.1.2 or above required for mainnet fork at 2019-03-01 12:00:00 UTC.
+
+- Fixed initial block download issues.
+- Updated DNS seeds.
+- New checkpoint data.
 
 
+0.17.1.3
+==============
+For mainnet only.
 
+0.17.1.2 or above required for mainnet fork at 2019-03-01 12:00:00 UTC.
+
+- Removed smsg fee limit, allowing larger messages to be valid for more
+  time.
+
+
+0.17.1.2
+==============
+For mainnet only.
+
+0.17.1.2 or above required for mainnet fork at 2019-03-01 12:00:00 UTC.
+
+- This release will enable paid secure messaging on mainnet after fork
+  scheduled for 2019-03-01 12:00:00 UTC.
