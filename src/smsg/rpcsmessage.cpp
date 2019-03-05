@@ -43,8 +43,9 @@ static UniValue smsgenable(const JSONRPCRequest &request)
                 RPCExamples{""},
             }.ToString());
 
-    if (smsg::fSecMsgEnabled)
+    if (smsg::fSecMsgEnabled) {
         throw JSONRPCError(RPC_MISC_ERROR, "Secure messaging is already enabled.");
+    }
 
     UniValue result(UniValue::VOBJ);
 
@@ -350,8 +351,8 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
         sInfo += std::string("Anon ") + (fValue ? "on" : "off");
         result.pushKV("result", "Success.");
         result.pushKV("key", coinAddress.ToString() + " " + sInfo);
-        return result;
 
+        return result;
     } else
     if (mode == "wallet") {
 #ifdef ENABLE_WALLET
@@ -1747,7 +1748,7 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
-    { "smsg",               "smsgenable",             &smsgenable,             {} },
+    { "smsg",               "smsgenable",             &smsgenable,             {"walletname"} },
     { "smsg",               "smsgdisable",            &smsgdisable,            {} },
     { "smsg",               "smsgoptions",            &smsgoptions,            {} },
     { "smsg",               "smsglocalkeys",          &smsglocalkeys,          {} },
