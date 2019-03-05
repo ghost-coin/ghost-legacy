@@ -317,17 +317,17 @@
 <context>
     <name>BitcoinGUI</name>
     <message>
-        <location filename="../bitcoingui.cpp" line="+322"/>
+        <location filename="../bitcoingui.cpp" line="+323"/>
         <source>Sign &amp;message...</source>
         <translation>Sign &amp;message...</translation>
     </message>
     <message>
-        <location line="+640"/>
+        <location line="+687"/>
         <source>Synchronizing with network...</source>
         <translation>Synchronizing with network...</translation>
     </message>
     <message>
-        <location line="-718"/>
+        <location line="-765"/>
         <source>&amp;Overview</source>
         <translation>&amp;Overview</translation>
     </message>
@@ -407,12 +407,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+167"/>
+        <location line="+213"/>
         <source>Wallet:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+386"/>
+        <location line="+387"/>
         <source>Click to disable network activity.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -442,7 +442,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1088"/>
+        <location line="-1135"/>
         <source>Send coins to a Particl address</source>
         <translation>Send coins to a Particl address</translation>
     </message>
@@ -472,12 +472,7 @@
         <translation>&amp;Verify message...</translation>
     </message>
     <message>
-        <location line="+726"/>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <location line="-799"/>
+        <location line="-73"/>
         <source>&amp;Send</source>
         <translation>&amp;Send</translation>
     </message>
@@ -512,12 +507,12 @@
         <translation>Verify messages to ensure they were signed with specified Particl addresses</translation>
     </message>
     <message>
-        <location line="+68"/>
+        <location line="+111"/>
         <source>&amp;File</source>
         <translation>&amp;File</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+14"/>
         <source>&amp;Settings</source>
         <translation>&amp;Settings</translation>
     </message>
@@ -532,7 +527,7 @@
         <translation>Tabs toolbar</translation>
     </message>
     <message>
-        <location line="-221"/>
+        <location line="-267"/>
         <source>Request payments (generates QR codes and particl: URIs)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -552,12 +547,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+9"/>
         <source>&amp;Command-line options</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="+550"/>
+        <location line="+590"/>
         <source>%n active connection(s) to Particl network</source>
         <translation>
             <numerusform>%n active connection to Particl network</numerusform>
@@ -618,7 +613,7 @@
         <translation>Up to date</translation>
     </message>
     <message>
-        <location line="-659"/>
+        <location line="-706"/>
         <source>&amp;Sending addresses</source>
         <translation type="unfinished"></translation>
     </message>
@@ -628,7 +623,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+6"/>
+        <source>Open Wallet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Open a wallet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Close Wallet...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Close wallet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
         <translation type="unfinished"></translation>
     </message>
@@ -643,7 +658,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+66"/>
+        <location line="+31"/>
+        <source>default wallet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Opening Wallet &lt;b&gt;%1&lt;/b&gt;...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Open Wallet Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+59"/>
         <source>&amp;Window</source>
         <translation type="unfinished">&amp;Window</translation>
     </message>
@@ -668,7 +698,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+247"/>
+        <location line="+248"/>
         <source>%1 client</source>
         <translation type="unfinished"></translation>
     </message>
@@ -683,7 +713,12 @@
         <translation>Catching up...</translation>
     </message>
     <message>
-        <location line="+170"/>
+        <location line="+34"/>
+        <source>Particl</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+136"/>
         <source>Date: %1
 </source>
         <translation type="unfinished"></translation>
@@ -759,7 +794,7 @@
         <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../bitcoin.cpp" line="+401"/>
+        <location filename="../bitcoin.cpp" line="+398"/>
         <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1211,8 +1246,8 @@
     </message>
     <message>
         <location filename="../intro.cpp" line="+22"/>
-        <source>Particl.</source>
-        <translation type="unfinished">Particl.</translation>
+        <source>Particl</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
@@ -1464,7 +1499,7 @@
     <message>
         <location line="+7"/>
         <location line="+26"/>
-        <location filename="../modaloverlay.cpp" line="+140"/>
+        <location filename="../modaloverlay.cpp" line="+141"/>
         <source>Unknown...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1500,8 +1535,8 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../modaloverlay.cpp" line="-1"/>
-        <source>Unknown. Syncing Headers (%1)...</source>
+        <location filename="../modaloverlay.cpp" line="+6"/>
+        <source>Unknown. Syncing Headers (%1, %2%)...</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1566,7 +1601,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+171"/>
+        <location line="+181"/>
         <location line="+187"/>
         <source>IP address of the proxy (e.g. IPv4: 127.0.0.1 / IPv6: ::1)</source>
         <translation type="unfinished"></translation>
@@ -1640,7 +1675,7 @@
         <translation>&amp;Network</translation>
     </message>
     <message>
-        <location line="-201"/>
+        <location line="-211"/>
         <source>Disables some advanced features but all blocks will still be fully validated. Reverting this setting requires re-downloading the entire blockchain. Actual disk usage may be somewhat higher.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1702,6 +1737,16 @@
     <message>
         <location line="+3"/>
         <source>&amp;Show incoming stake notifications</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Display zero value stake transactions.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>&amp;Show zero value stakes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1823,12 +1868,12 @@
         <translation>Choose the default subdivision unit to show in the interface and when sending coins.</translation>
     </message>
     <message>
-        <location line="-460"/>
+        <location line="-470"/>
         <source>Whether to show coin control features or not.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+474"/>
+        <location line="+484"/>
         <source>&amp;Third party transaction URLs</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1858,7 +1903,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+100"/>
+        <location line="+101"/>
         <source>Confirm options reset</source>
         <translation>Confirm options reset</translation>
     </message>
@@ -2043,7 +2088,7 @@
     <name>PaymentServer</name>
     <message>
         <location filename="../paymentserver.cpp" line="+226"/>
-        <location line="+338"/>
+        <location line="+346"/>
         <location line="+42"/>
         <location line="+110"/>
         <location line="+14"/>
@@ -2052,7 +2097,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-521"/>
+        <location line="-529"/>
         <source>Cannot start particl: click-to-pay handler</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2060,14 +2105,14 @@
         <location line="+62"/>
         <location line="+9"/>
         <location line="+16"/>
+        <location line="+16"/>
         <location line="+5"/>
-        <location line="+12"/>
         <location line="+7"/>
         <source>URI handling</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-49"/>
+        <location line="-53"/>
         <source>&apos;particl://&apos; is not a valid URI. Use &apos;particl:&apos; instead.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2082,12 +2127,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+16"/>
+        <location line="+36"/>
         <source>Cannot process payment request because BIP70 support was not compiled in.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="-32"/>
         <source>Invalid payment address %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2098,16 +2144,17 @@
     </message>
     <message>
         <location line="+14"/>
+        <location line="+9"/>
         <source>Payment request file handling</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-8"/>
         <source>Payment request file cannot be read! This can be caused by an invalid payment request file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+195"/>
+        <location line="+199"/>
         <location line="+9"/>
         <location line="+31"/>
         <location line="+10"/>
@@ -2224,7 +2271,7 @@
         <translation type="unfinished">Amount</translation>
     </message>
     <message>
-        <location filename="../guiutil.cpp" line="+111"/>
+        <location filename="../guiutil.cpp" line="+107"/>
         <source>Enter a Particl address (e.g. %1)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2344,7 +2391,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../modaloverlay.cpp" line="-29"/>
+        <location filename="../modaloverlay.cpp" line="-36"/>
         <source>unknown</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3078,7 +3125,7 @@
     <name>SendCoinsDialog</name>
     <message>
         <location filename="../forms/sendcoinsdialog.ui" line="+14"/>
-        <location filename="../sendcoinsdialog.cpp" line="+800"/>
+        <location filename="../sendcoinsdialog.cpp" line="+796"/>
         <source>Send Coins</source>
         <translation>Send Coins</translation>
     </message>
@@ -3303,7 +3350,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>S&amp;end</translation>
     </message>
     <message>
-        <location filename="../sendcoinsdialog.cpp" line="-703"/>
+        <location filename="../sendcoinsdialog.cpp" line="-699"/>
         <source>Copy quantity</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3343,7 +3390,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+242"/>
+        <location line="+238"/>
         <location line="+5"/>
         <location line="+6"/>
         <location line="+4"/>
@@ -4152,7 +4199,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>TransactionTableModel</name>
     <message>
-        <location filename="../transactiontablemodel.cpp" line="+247"/>
+        <location filename="../transactiontablemodel.cpp" line="+256"/>
         <source>Date</source>
         <translation type="unfinished">Date</translation>
     </message>
@@ -4177,7 +4224,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="+58"/>
+        <location line="+60"/>
         <source>Open for %n more block(s)</source>
         <translation>
             <numerusform>Open for %n more block</numerusform>
@@ -4523,6 +4570,24 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
 </context>
 <context>
+    <name>WalletController</name>
+    <message>
+        <location filename="../walletcontroller.cpp" line="+68"/>
+        <source>Close wallet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Are you sure you wish to close wallet &lt;i&gt;%1&lt;/i&gt;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Closing the wallet for too long can result in having to resync the entire chain if pruning is enabled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>WalletFrame</name>
     <message>
         <location filename="../walletframe.cpp" line="+29"/>
@@ -4533,9 +4598,9 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>WalletModel</name>
     <message>
-        <location filename="../walletmodel.cpp" line="+578"/>
+        <location filename="../walletmodel.cpp" line="+576"/>
         <location line="+4"/>
-        <location line="+11"/>
+        <location line="+8"/>
         <source>Wallet Model</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4587,7 +4652,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+35"/>
         <source>default wallet</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4605,7 +4670,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished">Export the data in the current tab to a file</translation>
     </message>
     <message>
-        <location line="+211"/>
+        <location line="+212"/>
         <source>Backup Wallet</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4663,7 +4728,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+95"/>
+        <location line="+92"/>
         <source>Error: A fatal internal error occurred, see debug.log for details</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4673,12 +4738,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+45"/>
+        <location line="+46"/>
         <source>Unable to start HTTP server. See debug log for details.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-262"/>
+        <location line="-260"/>
         <source>Particl Core</source>
         <translation type="unfinished">Particl Core</translation>
     </message>
@@ -4688,7 +4753,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+5"/>
+        <source>Can&apos;t generate a change-address key. No keys in the internal keypool and can&apos;t generate any keys.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Cannot obtain a lock on data directory %s. %s is probably already running.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4743,7 +4813,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+7"/>
         <source>Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4838,7 +4908,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>Failed to listen on any port. Use -listen=0 if you want this.</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Failed to rescan the wallet during initialization</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4873,17 +4943,17 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+57"/>
+        <location line="+58"/>
         <source>Specified blocks directory &quot;%s&quot; does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+38"/>
+        <location line="+39"/>
         <source>Upgrading txindex database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-86"/>
+        <location line="-88"/>
         <source>Loading P2P addresses...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4893,7 +4963,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+20"/>
         <source>Not enough file descriptors available.</source>
         <translation>Not enough file descriptors available.</translation>
     </message>
@@ -4933,7 +5003,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Unable to generate keys</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4958,7 +5028,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-256"/>
+        <location line="-254"/>
         <source>Error: Listening for incoming connections failed (listen returned error %s)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5003,7 +5073,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+38"/>
+        <location line="+35"/>
         <source>You need to rebuild the database using -reindex to change -timestampindex</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5140,12 +5210,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Failed to open dongle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Hit nMaxTries limit, %d, %d, have %d, lastindex %d</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5234,6 +5299,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     <message>
         <location line="+2"/>
         <source>Minimum time in seconds between successful stakes (default: 0)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Mismatched pubkey for address %s.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5489,6 +5559,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+2"/>
+        <source>Unable to create the PID file &apos;%s&apos;: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
         <source>Unable to generate initial keys</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5709,7 +5784,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-307"/>
+        <location line="-305"/>
         <source>-maxtxfee is set very high! Fees this large could be paid on a single transaction.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5730,11 +5805,6 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+14"/>
-        <source>Warning: Unknown block versions being mined! It&apos;s possible unknown rules are in effect</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
         <source>Warning: Wallet file corrupt, data salvaged! Original %s saved as %s in %s; if your balance or transactions are incorrect you should restore from a backup.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5749,12 +5819,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+35"/>
+        <location line="+34"/>
         <source>Keypool ran out, please call keypoolrefill first</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+54"/>
         <source>Starting network threads...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5789,22 +5859,17 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+16"/>
         <source>Unknown network specified in -onlynet: &apos;%s&apos;</source>
         <translation>Unknown network specified in -onlynet: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="-99"/>
+        <location line="-101"/>
         <source>Insufficient funds</source>
         <translation>Insufficient funds</translation>
     </message>
     <message>
-        <location line="-162"/>
-        <source>Can&apos;t generate a change-address key. Private keys are disabled for this wallet.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
+        <location line="-150"/>
         <source>Cannot upgrade a non HD split wallet without upgrading to support pre split keypool. Please use -upgradewallet=169900 or -upgradewallet with no version specified.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5819,12 +5884,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+29"/>
         <source>Cannot write to data directory &apos;%s&apos;; check permissions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+66"/>
+        <location line="+65"/>
         <source>Loading block index...</source>
         <translation>Loading block index...</translation>
     </message>
@@ -5834,7 +5899,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>Loading wallet...</translation>
     </message>
     <message>
-        <location line="-70"/>
+        <location line="-69"/>
         <source>Cannot downgrade wallet</source>
         <translation>Cannot downgrade wallet</translation>
     </message>
