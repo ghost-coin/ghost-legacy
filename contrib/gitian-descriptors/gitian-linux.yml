@@ -31,7 +31,7 @@ packages:
 - "faketime"
 - "bsdmainutils"
 - "ca-certificates"
-- "python"
+- "python3"
 - "libudev-dev"
 remotes:
 - "url": "https://github.com/particl/particl-core.git"

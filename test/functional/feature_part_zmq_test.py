@@ -11,7 +11,6 @@ import base64
 
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.test_framework import SkipTest
-from test_framework.util import bytes_to_hex_str
 
 
 class ZMQTest(ParticlTestFramework):
@@ -106,7 +105,7 @@ class ZMQTest(ParticlTestFramework):
             msgSequence = struct.unpack('<I', msg[-1])[-1]
             if topic == 'hashtx' and msgSequence == 1:
                 fFound = True
-                zmqhash = bytes_to_hex_str(msg[1])
+                zmqhash = msg[1].hex()
                 assert(zmqhash == txnHash)
             elif topic == 'rawtx' and msgSequence == 1:
                 fFoundRawTx = True
@@ -116,7 +115,7 @@ class ZMQTest(ParticlTestFramework):
                 #CTransaction.deserialize
             elif topic == 'hashwtx' and msgSequence == 0:
                 fFoundWtx = True
-                zmqhash = bytes_to_hex_str(msg[1][0:32])
+                zmqhash = msg[1][0:32].hex()
                 assert(zmqhash == txnHash)
                 walletName = msg[1][32:].decode('utf-8')
                 assert(walletName == 'wallet_test')
@@ -142,7 +141,7 @@ class ZMQTest(ParticlTestFramework):
             msgSequence = struct.unpack('<I', msg[-1])[-1]
             if topic == 'hashblock' and msgSequence == 0:
                 fFound = True
-                blkhash = bytes_to_hex_str(msg[1])
+                blkhash = msg[1].hex()
                 besthash = nodes[1].getbestblockhash()
                 assert(blkhash == besthash)
                 break
@@ -183,7 +182,7 @@ class ZMQTest(ParticlTestFramework):
             topic = msg[0].decode('utf-8')
             if topic == 'smsg':
                 fFound = True
-                zmqhash = bytes_to_hex_str(msg[1])
+                zmqhash = msg[1].hex()
                 assert(zmqhash[:4] == '0300')  # version 3.0
                 assert(zmqhash[4:] == msgid)
                 break
