@@ -213,7 +213,7 @@ class DoSTest(ParticlTestFramework):
 
         self.log.info("Initial blockindexsize: %d\n" % (nodes[0].getblockchaininfo()['blockindexsize']))
 
-        DUPLICATE_ITERATIONS = 2000
+        DUPLICATE_ITERATIONS = 3000
         target_block_hash = nodes[0].getblockhash(20)
         block = self.get_block_header(nodes[0], target_block_hash=target_block_hash)
         block.rehash() # Just in case
