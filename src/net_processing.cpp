@@ -855,6 +855,14 @@ void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main
     }
 }
 
+NodeId GetBlockSource(uint256 hash)
+{
+    const auto it = mapBlockSource.find(hash);
+    if (it == mapBlockSource.end())
+        return -1;
+    return it->second.first;
+}
+
 size_t MAX_LOOSE_HEADERS = 1000;
 int MAX_DUPLICATE_HEADERS = 2000;
 int64_t MAX_LOOSE_HEADER_TIME = 120;
@@ -2133,7 +2141,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     // we now only provide a getheaders response here. When we receive the headers, we will
                     // then ask for the blocks we need.
                     connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexBestHeader), inv.hash));
-                    LogPrint(BCLog::NET, "getheaders (%d) %s to peer=%d\n", pindexBestHeader ? pindexBestHeader->nHeight : 0, inv.hash.ToString(), pfrom->GetId());
+                    LogPrint(BCLog::NET, "getheaders (%d) %s to peer=%d\n", pindexBestHeader->nHeight, inv.hash.ToString(), pfrom->GetId());
                 }
             }
             else
