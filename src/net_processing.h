@@ -97,4 +97,6 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Decrease a node's misbehavior score. */
 void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+NodeId GetBlockSource(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
 #endif // BITCOIN_NET_PROCESSING_H

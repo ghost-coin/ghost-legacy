@@ -3,9 +3,8 @@ Master
 
 
 
-0.18.0.5 rc
+0.18.0.5 rc1
 ==============
-For Testnet.
 
 0.18.0.3 or above required for testnet fork at 2019-02-16 12:00:00 UTC.
 

@@ -159,14 +159,6 @@ const CBlockIndex* LastCommonAncestor(const CBlockIndex* pa, const CBlockIndex* 
         pb = pb->GetAncestor(pa->nHeight);
     }
 
-    // Step over gaps
-    while (pa && pa->nHeight > pb->nHeight) {
-        pa = pa->pprev;
-    }
-    while (pb && pb->nHeight > pa->nHeight) {
-        pb = pb->pprev;
-    }
-
     while (pa != pb && pa && pb) {
         pa = pa->pprev;
         pb = pb->pprev;

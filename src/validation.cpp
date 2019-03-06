@@ -4584,22 +4584,26 @@ void EraseDelayedBlock(std::list<DelayedBlock>::iterator p) EXCLUSIVE_LOCKS_REQU
         Misbehaving(p->m_node_id, 25, "Delayed block");
     }
 
-    // Remove from block index
-    RemoveUnreceivedHeader(p->m_pblock->GetHash());
-
-    list_delayed_blocks.erase(p);
+    auto it = mapBlockIndex.find(p->m_pblock->GetHash());
+    if (it != mapBlockIndex.end()) {
+        it->second->nFlags &= ~BLOCK_DELAYED;
+        setDirtyBlockIndex.insert(it->second);
+    }
 }
 
+extern NodeId GetBlockSource(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 bool DelayBlock(const std::shared_ptr<const CBlock>& pblock, CValidationState& state) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
-    LogPrintf("Warning: %s - Previous stake modifier is null for block %s from node %d.\n", __func__, pblock->GetHash().ToString(), state.nodeId);
+    NodeId nodeId = GetBlockSource(pblock->GetHash());
+    LogPrintf("Warning: %s - Previous stake modifier is null for block %s from peer %d.\n", __func__, pblock->GetHash().ToString(), nodeId);
     while (list_delayed_blocks.size() >= MAX_DELAYED_BLOCKS) {
         LogPrint(BCLog::NET, "Removing Delayed block %s, too many delayed.\n", pblock->GetHash().ToString());
-        EraseDelayedBlock(--list_delayed_blocks.end());
+        EraseDelayedBlock(list_delayed_blocks.begin());
+        list_delayed_blocks.erase(list_delayed_blocks.begin());
     }
     assert(list_delayed_blocks.size() < MAX_DELAYED_BLOCKS);
     state.nFlags |= BLOCK_DELAYED; // Mark to prevent further processing
-    list_delayed_blocks.emplace_back(pblock, state.nodeId);
+    list_delayed_blocks.emplace_back(pblock, nodeId);
     return true;
 }
 
@@ -4610,50 +4614,87 @@ void CheckDelayedBlocks(const CChainParams& chainparams, const uint256 &block_ha
     }
 
     int64_t now = GetTime();
-    std::list<DelayedBlock>::iterator p = list_delayed_blocks.begin();
-    while (p != list_delayed_blocks.end()) {
-        if (p->m_pblock->hashPrevBlock == block_hash) {
-            LogPrint(BCLog::NET, "Processing delayed block %s prev %s.\n", p->m_pblock->GetHash().ToString(), block_hash.ToString());
-            ProcessNewBlock(chainparams, p->m_pblock, false, nullptr); // Should update DoS if necessary, finding block through mapBlockSource
-            list_delayed_blocks.erase(p++);
-            continue;
+    std::vector<std::shared_ptr<const CBlock> > process_blocks;
+    {
+        LOCK(cs_main);
+        std::list<DelayedBlock>::iterator p = list_delayed_blocks.begin();
+        while (p != list_delayed_blocks.end()) {
+            if (p->m_pblock->hashPrevBlock == block_hash) {
+                process_blocks.push_back(p->m_pblock);
+                p = list_delayed_blocks.erase(p);
+                continue;
+            }
+            if (p->m_time + MAX_DELAY_BLOCK_SECONDS < now) {
+                LogPrint(BCLog::NET, "Removing delayed block %s, timed out.\n", p->m_pblock->GetHash().ToString());
+                EraseDelayedBlock(p);
+                p = list_delayed_blocks.erase(p);
+                continue;
+            }
+            ++p;
         }
-        if (p->m_time + MAX_DELAY_BLOCK_SECONDS < now) {
-            LogPrint(BCLog::NET, "Removing delayed block %s, timed out.\n", p->m_pblock->GetHash().ToString());
-            LOCK(cs_main);
-            EraseDelayedBlock(p++);
-            continue;
-        }
-        ++p;
+    }
+
+    for (auto &p : process_blocks) {
+        LogPrint(BCLog::NET, "Processing delayed block %s prev %s.\n", p->GetHash().ToString(), block_hash.ToString());
+        ProcessNewBlock(chainparams, p, false, nullptr); // Should update DoS if necessary, finding block through mapBlockSource
     }
 }
 
 bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     BlockMap::iterator mi = mapBlockIndex.find(hash);
-    if (mi != mapBlockIndex.end() && !(mi->second->nFlags & BLOCK_ACCEPTED)) {
-        LogPrint(BCLog::NET, "Removing loose header %s.\n", hash.ToString());
-        setDirtyBlockIndex.erase(mi->second);
-        if (pindexBestHeader == mi->second) {
-            pindexBestHeader = nullptr;
+    if (mi != mapBlockIndex.end() && (mi->second->nFlags & BLOCK_ACCEPTED)) {
+        return false;
+    }
+    if (mi == mapBlockIndex.end()) {
+        return true; // was already removed, peer misbehaving
+    }
+
+    // Remove entire chain
+    std::vector<BlockMap::iterator> remove_headers;
+    std::vector<BlockMap::iterator> last_round[2];
+
+    size_t n = 0;
+    last_round[n].push_back(mi);
+    remove_headers.push_back(mi);
+    while (last_round[n].size()) {
+        last_round[!n].clear();
+
+        for (BlockMap::iterator& check_header : last_round[n]) {
+            BlockMap::iterator it = mapBlockIndex.begin();
+            while (it != mapBlockIndex.end()) {
+                if (it->second->pprev == check_header->second) {
+                    if ((it->second->nFlags & BLOCK_ACCEPTED)) {
+                        LogPrintf("Can't remove header %s, descendant block %s accepted.\n", hash.ToString(), it->second->GetBlockHash().ToString());
+                        return true; // Can't remove any blocks, peer misbehaving for not sending
+                    }
+                    last_round[!n].push_back(it);
+                    remove_headers.push_back(it);
+                }
+                it++;
+            }
         }
-        if (pindexBestInvalid == mi->second) {
+        n = !n;
+    }
+
+    LogPrintf("Removing %d loose headers from %s.\n", remove_headers.size(), hash.ToString());
+
+    for (auto &entry : remove_headers) {
+        LogPrintf("Removing loose header %s.\n", entry->second->GetBlockHash().ToString());
+        setDirtyBlockIndex.erase(entry->second);
+
+        if (pindexBestHeader == entry->second) {
+            pindexBestHeader = chainActive.Tip();
+        }
+        if (pindexBestInvalid == entry->second) {
             pindexBestInvalid = nullptr;
         }
-        for (auto& entry : mapBlockIndex) {
-            if (entry.second->pskip == mi->second) {
-                entry.second->pskip = nullptr;
-            }
-            if (entry.second->pprev == mi->second) {
-                entry.second->pprev = mi->second->pprev;
-            }
-        }
-        RemoveNonReceivedHeaderFromNodes(mi);
-        delete mi->second;
-        mapBlockIndex.erase(mi);
-        return true;
+        RemoveNonReceivedHeaderFromNodes(entry);
+        delete entry->second;
+        mapBlockIndex.erase(entry);
     }
-    return false;
+
+    return true;
 }
 
 size_t CountDelayedBlocks() EXCLUSIVE_LOCKS_REQUIRED(cs_main)
@@ -4770,8 +4811,9 @@ bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState&
             // we don't need to iterate over the failed blocks list.
             for (const CBlockIndex* failedit : m_failed_blocks) {
                 if (pindexPrev->GetAncestor(failedit->nHeight) == failedit) {
-                    assert(failedit->nStatus & BLOCK_FAILED_VALID);
+                    //assert(failedit->nStatus & BLOCK_FAILED_VALID);
                     CBlockIndex* invalid_walk = pindexPrev;
+                    if (failedit->nStatus & BLOCK_FAILED_VALID)
                     while (invalid_walk != failedit) {
                         invalid_walk->nStatus |= BLOCK_FAILED_CHILD;
                         setDirtyBlockIndex.insert(invalid_walk);
@@ -5024,6 +5066,12 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
 
     if (smsg::fSecMsgEnabled && gArgs.GetBoolArg("-smsgscanincoming", false)) {
         smsgModule.ScanBlock(*pblock);
+    }
+
+    {
+        assert(pindex);
+        // Check here for blocks not connected to the chain, TODO: move to a timer.
+        CheckDelayedBlocks(chainparams, pindex->GetBlockHash());
     }
 
     return true;
