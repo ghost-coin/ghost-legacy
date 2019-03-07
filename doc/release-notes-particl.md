@@ -17,6 +17,7 @@ Master
 - Converted contrib/linearize.
 - Updated DNS seeds.
 - New checkpoint data.
+- New branding.
 
 
 0.18.0.4 Alpha
