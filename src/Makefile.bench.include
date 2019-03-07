@@ -26,6 +26,7 @@ bench_bench_particl_SOURCES = \
   bench/gcs_filter.cpp \
   bench/merkle_root.cpp \
   bench/mempool_eviction.cpp \
+  bench/rpc_mempool.cpp \
   bench/verify_script.cpp \
   bench/base58.cpp \
   bench/bech32.cpp \
@@ -50,6 +51,8 @@ bench_bench_particl_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
   $(LIBUNIVALUE) \
+  $(EVENT_PTHREADS_LIBS) \
+  $(EVENT_LIBS) \
   $(LIBPARTICL_SMSG)
 
 if ENABLE_ZMQ
