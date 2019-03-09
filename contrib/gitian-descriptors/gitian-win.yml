@@ -1,5 +1,5 @@
 ---
-name: "particl-win-0.17.99.0"
+name: "particl-win-0.18.99.0"
 enable_cache: true
 sudo: true
 suites:
@@ -28,6 +28,8 @@ remotes:
   "dir": "particl-core"
 files: []
 script: |
+  set -e -o pipefail
+
   WRAP_DIR=$HOME/wrapped
   HOSTS="i686-w64-mingw32 x86_64-w64-mingw32"
   CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests --enable-usbdevice"
