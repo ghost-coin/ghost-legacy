@@ -7584,12 +7584,14 @@ static UniValue rewindrangeproof(const JSONRPCRequest &request)
     CAmount nValue;
 
     if (!RewindRangeProof(vchRangeproof, vchCommitment, nonce,
-        vchBlind, nValue)) {
+        vchBlind, nValue) || vchBlind.size() != 32) {
         throw JSONRPCError(RPC_MISC_ERROR, strprintf("RewindRangeProof failed."));
     }
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("blind", HexStr(vchBlind));
+
+    uint256 blind(vchBlind.data(), 32);
+    result.pushKV("blind", blind.ToString());
     result.pushKV("amount", ValueFromAmount(nValue));
     return result;
 };
@@ -7739,6 +7741,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
                 },
                 RPCResult{
             "{\n"
+            "  \"inputs_valid\" : true|false,      (boolean) If the transaction passed input verification\n"
             "  \"complete\" : true|false,          (boolean) If the transaction has a complete set of signatures\n"
             "  \"validscripts\" : n,               (numeric) The number of scripts which passed verification\n"
             "  \"errors\" : [                      (json array of objects) Script verification errors (if there are any)\n"
@@ -7888,11 +7891,16 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
         nSpendHeight = chainActive.Tip()->nHeight;
     }
 
+    UniValue result(UniValue::VOBJ);
+
     if (check_values) {
         CValidationState state;
         CAmount nFee = 0;
         if (!Consensus::CheckTxInputs(txConst, state, view, nSpendHeight, nFee)) {
+            result.pushKV("inputs_valid", false);
             vErrors.push_back("CheckTxInputs: \"" + state.GetRejectReason() + "\"");
+        } else {
+            result.pushKV("inputs_valid", true);
         }
     }
 
@@ -7928,8 +7936,6 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
         }
     }
     bool fComplete = vErrors.empty();
-
-    UniValue result(UniValue::VOBJ);
 
     if (return_decoded) {
         UniValue txn(UniValue::VOBJ);
