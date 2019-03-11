@@ -19,7 +19,7 @@
     </message>
     <message>
         <source>&amp;Copy</source>
-        <translation>&amp;Menyalin</translation>
+        <translation>&amp;Salin</translation>
     </message>
     <message>
         <source>C&amp;lose</source>
@@ -188,8 +188,8 @@
         <translation>Dompet terenkripsi</translation>
     </message>
     <message>
-        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation>%1 sekarang akan ditutup untuk menyelesaikan proses enkripsi. Ingatlah bahwa mengenkripsi dompet Anda tidak dapat sepenuhnya melindungi komputer Anda dari pencurian malware yang menginfeksi komputer Anda.</translation>
+        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation>Wallet anda sekarang telah terenkripsi. Ingat bahwa enkripsi wallet anda tersebut tidak dapat sepenuhnya melindungi dari pencurian atau malware yang menyerang komputer anda. </translation>
     </message>
     <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
@@ -254,10 +254,6 @@
         <translation>&amp;Kilasan</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Node</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Tampilkan gambaran umum dompet Anda</translation>
     </message>
@@ -314,24 +310,12 @@
         <translation>&amp;Ubah Kata Kunci...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>&amp;Alamat-alamat untuk mengirim...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>&amp;Alamat-alamat untuk menerima...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Buka &amp;URI</translation>
     </message>
     <message>
         <source>Wallet:</source>
         <translation>Wallet:</translation>
-    </message>
-    <message>
-        <source>default wallet</source>
-        <translation>wallet default</translation>
     </message>
     <message>
         <source>Click to disable network activity.</source>
@@ -359,7 +343,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Kirim koin ke alamat Particl.</translation>
+        <translation>Kirim koin ke alamat Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -382,12 +366,8 @@
         <translation>&amp;Verifikasi pesan...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Dompet</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -455,7 +435,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n koneksi aktif ke jaringan Particl.</numerusform></translation>
+        <translation><numerusform>%n koneksi aktif ke jaringan Particl</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -498,8 +478,36 @@
         <translation>Terbaru</translation>
     </message>
     <message>
+        <source>&amp;Sending addresses</source>
+        <translation>&amp;Address pengiriman</translation>
+    </message>
+    <message>
+        <source>&amp;Receiving addresses</source>
+        <translation>&amp;Address penerima</translation>
+    </message>
+    <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
         <translation>Tampilkan %1 pesan bantuan untuk mendapatkan daftar opsi baris perintah Particl yang memungkinkan</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Jendela</translation>
+    </message>
+    <message>
+        <source>Minimize</source>
+        <translation>Minimalkan</translation>
+    </message>
+    <message>
+        <source>Zoom</source>
+        <translation>Zoom</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>Pulihkan</translation>
+    </message>
+    <message>
+        <source>Main Window</source>
+        <translation>Jendela Utama</translation>
     </message>
     <message>
         <source>%1 client</source>
@@ -564,6 +572,10 @@
     <message>
         <source>HD key generation is &lt;b&gt;disabled&lt;/b&gt;</source>
         <translation>Pembuatan kunci HD &lt;b&gt;dinonaktifkan&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <source>Private key &lt;b&gt;disabled&lt;/b&gt;</source>
+        <translation>Private key &lt;b&gt;non aktif&lt;/b&gt;</translation>
     </message>
     <message>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
@@ -857,8 +869,8 @@
         <translation>Gunakan direktori pilihan Anda:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -901,7 +913,7 @@
     </message>
     <message>
         <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the particl network, as detailed below.</source>
-        <translation>Transaksi-transaksi terkini mungkin belum terlihat dan oleh karenanya, saldo dompet Anda mungkin tidak tepat. Informasi ini akan akurat ketika dompet Anda tersinkronisasi dengan jaringan Particl. seperti rincian berikut.</translation>
+        <translation>Transaksi-transaksi terkini mungkin belum terlihat dan oleh karenanya, saldo dompet Anda mungkin tidak tepat. Informasi ini akan akurat ketika dompet Anda tersinkronisasi dengan jaringan Particl, seperti rincian berikut.</translation>
     </message>
     <message>
         <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
@@ -990,10 +1002,6 @@
         <translation>Ukuran cache &amp;database</translation>
     </message>
     <message>
-        <source>MB</source>
-        <translation>MB</translation>
-    </message>
-    <message>
         <source>Number of script &amp;verification threads</source>
         <translation>Jumlah script &amp;verification threads</translation>
     </message>
@@ -1026,10 +1034,6 @@
         <translation>URL pihak ketika (misalnya sebuah block explorer) yang mumcul dalam tab transaksi sebagai konteks menu. %s dalam URL diganti dengan kode transaksi. URL dipisahkan dengan tanda vertikal |.</translation>
     </message>
     <message>
-        <source>Active command-line options that override above options:</source>
-        <translation>Pilihan command-line yang aktif menimpa diatas opsi: </translation>
-    </message>
-    <message>
         <source>Open the %1 configuration file from the working directory.</source>
         <translation>Buka file konfigurasi %1 dari direktori kerja.</translation>
     </message>
@@ -1054,12 +1058,20 @@
         <translation>Menonaktifkan beberapa fitur canggih akan tetapi semua block akan tetap divalidasi seutuhnya. Mengembalikan pengaturan ini memerlukan untuk mengunduh seluruh blockchain. Penggunaan disk mungkin akan lebih tinggi.</translation>
     </message>
     <message>
+        <source>Prune &amp;block storage to</source>
+        <translation>Prune &amp;ruang penyimpan block ke</translation>
+    </message>
+    <message>
         <source>GB</source>
         <translation>GB</translation>
     </message>
     <message>
         <source>Reverting this setting requires re-downloading the entire blockchain.</source>
         <translation>Mengembalikan pengaturan ini membutuhkan pengunduhan seluruh blockchain lagi. </translation>
+    </message>
+    <message>
+        <source>MiB</source>
+        <translation>MiB</translation>
     </message>
     <message>
         <source>(0 = auto, &lt;0 = leave that many cores free)</source>
@@ -1541,10 +1553,6 @@
         <translation>1 &amp;tahun</translation>
     </message>
     <message>
-        <source>default wallet</source>
-        <translation>wallet default</translation>
-    </message>
-    <message>
         <source>Yes</source>
         <translation>Ya</translation>
     </message>
@@ -2023,7 +2031,11 @@
     </context>
 <context>
     <name>WalletModel</name>
-    </context>
+    <message>
+        <source>default wallet</source>
+        <translation>wallet default</translation>
+    </message>
+</context>
 <context>
     <name>WalletView</name>
     </context>

@@ -38,12 +38,8 @@
         <translation>Билдирүүнү &amp;текшерүү...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Капчык</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -68,6 +64,10 @@
     <message>
         <source>Up to date</source>
         <translation>Жаңыланган</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Терезе</translation>
     </message>
     </context>
 <context>
@@ -101,8 +101,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -117,10 +117,6 @@
     </context>
 <context>
     <name>OptionsDialog</name>
-    <message>
-        <source>MB</source>
-        <translation>МБ</translation>
-    </message>
     <message>
         <source>&amp;Network</source>
         <translation>&amp;Тармак</translation>

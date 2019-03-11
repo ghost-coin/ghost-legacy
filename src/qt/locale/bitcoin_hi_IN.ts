@@ -183,12 +183,8 @@
         <translation>पहचान शब्द/अक्षर जो वॉलेट एनक्रिपशन के लिए इस्तेमाल किया है उसे बदलिए!</translation>
     </message>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>बीटकोइन</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>वॉलेट</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -294,7 +290,7 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>बीटकोइन</translation>
     </message>
     <message>

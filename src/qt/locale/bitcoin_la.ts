@@ -119,7 +119,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Mitte nummos ad inscriptionem Particl.</translation>
+        <translation>Mitte nummos ad inscriptionem Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -142,12 +142,8 @@
         <translation>&amp;Verifica nuntium...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Cassidile</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -175,7 +171,7 @@
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Verifica nuntios ut certus sis eos signatos esse cum specificatis inscriptionibus Particl.</translation>
+        <translation>Verifica nuntios ut certus sis eos signatos esse cum specificatis inscriptionibus Particl</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -224,6 +220,10 @@
     <message>
         <source>Up to date</source>
         <translation>Recentissimo</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Fenestra</translation>
     </message>
     <message>
         <source>Catching up...</source>
@@ -297,8 +297,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -700,7 +700,7 @@
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Verifica nuntium ut cures signatum esse cum specifica inscriptione Particl.</translation>
+        <translation>Verifica nuntium ut cures signatum esse cum specifica inscriptione Particl</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

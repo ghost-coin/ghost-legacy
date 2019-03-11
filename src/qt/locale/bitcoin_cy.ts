@@ -176,10 +176,6 @@
         <translation>Waled Wedi Amgryptio</translation>
     </message>
     <message>
-        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation>Bydd %1 nawr yn gorffen y broses amgryptio. Cofiwch nad ydy amgryptio eich waled yn llawn amddiffyn eich particl rhag cael eu dwyn gan afiechyd yn heintio eich cyfrifiadur.</translation>
-    </message>
-    <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
         <translation>PWYSIG: Mi ddylai unrhyw back ups blaenorol rydych wedi ei wneud o ffeil eich waled gael ei ddiweddaru efo'r ffeil amgryptiedig newydd ei chreu. Am resymau diogelwch, bydd back ups blaenorol o ffeil y walet heb amgryptio yn ddiwerth mor fuan ac yr ydych yn dechrau defnyddio'r waled amgryptiedig newydd.</translation>
     </message>
@@ -242,10 +238,6 @@
         <translation>&amp;Trosolwg</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Nod</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Dangos trosolwg cyffredinol y waled</translation>
     </message>
@@ -302,14 +294,6 @@
         <translation>&amp;Newid cyfrinymadrodd...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>&amp;Cyfeiriadau anfon...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>&amp;Cyfeiriadau derbyn...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Agor &amp;URI...</translation>
     </message>
@@ -335,7 +319,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Anfon arian i gyfeiriad Particl.</translation>
+        <translation>Anfon arian i gyfeiriad Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -354,12 +338,8 @@
         <translation>&amp;Gwirio neges...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Waled</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -419,7 +399,7 @@
     </message>
     <message>
         <source>Open a particl: URI or payment request</source>
-        <translation>Agor Particl. URI neu ofyn taliad</translation>
+        <translation>Agor Particl: URI neu ofyn taliad</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -460,6 +440,10 @@
     <message>
         <source>Up to date</source>
         <translation>Cyfamserol</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Ffenestr</translation>
     </message>
     <message>
         <source>Connecting to peers...</source>
@@ -631,8 +615,8 @@
         <translation>Croeso</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -1039,7 +1023,7 @@
     <name>bitcoin-core</name>
     <message>
         <source>Particl Core</source>
-        <translation>Craidd Particl.</translation>
+        <translation>Craidd Particl</translation>
     </message>
     <message>
         <source>Information</source>

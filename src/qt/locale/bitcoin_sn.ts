@@ -86,24 +86,12 @@
         <translation>Taridza ruzivo rwe Qt</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>&amp;Makero ekutumira nawo</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>&amp;Makero ekutambira nawo</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Vhura &amp;URI</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Chikwama</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -165,8 +153,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     </context>
 <context>

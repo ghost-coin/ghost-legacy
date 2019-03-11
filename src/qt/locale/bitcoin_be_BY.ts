@@ -238,10 +238,6 @@
         <translation>Агляд</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Вузел</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Паказвае агульныя звесткі аб гаманцы</translation>
     </message>
@@ -286,14 +282,6 @@
         <translation>&amp;Change Passphrase...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>Адрасы дасылання...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Адрасы прымання...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Адчыниць &amp;URI...</translation>
     </message>
@@ -326,12 +314,8 @@
         <translation>Праверыць паведамленне...</translation>
     </message>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>Біткойн</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Гаманец</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -659,7 +643,7 @@
         <translation>Вітаем</translation>
     </message>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>Біткойн</translation>
     </message>
     <message>
@@ -686,10 +670,6 @@
     <message>
         <source>Options</source>
         <translation>Опцыі</translation>
-    </message>
-    <message>
-        <source>MB</source>
-        <translation>Мб</translation>
     </message>
     <message>
         <source>W&amp;allet</source>

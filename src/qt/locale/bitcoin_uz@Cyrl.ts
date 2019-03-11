@@ -86,10 +86,6 @@
         <translation>&amp;Кўриб чиқиш</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Улам</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Ҳамённинг умумий кўринишини кўрсатиш</translation>
     </message>
@@ -134,14 +130,6 @@
         <translation>Махфий сўзни &amp;ўзгартириш...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>&amp;Жўнатилувчи манзиллар...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>&amp;Қабул қилувчи манзиллар...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Интернет манзилни очиш</translation>
     </message>
@@ -174,12 +162,8 @@
         <translation>Хабарни &amp;тасдиқлаш...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Ҳамён</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -239,7 +223,7 @@
     </message>
     <message>
         <source>Open a particl: URI or payment request</source>
-        <translation>Particl.ни очиш: URI ёки тўлов сўрови</translation>
+        <translation>Particl’ни очиш: URI ёки тўлов сўрови</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -276,6 +260,14 @@
     <message>
         <source>Up to date</source>
         <translation>Янгиланган</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Ойна</translation>
+    </message>
+    <message>
+        <source>Minimize</source>
+        <translation>Камайтириш</translation>
     </message>
     <message>
         <source>Catching up...</source>
@@ -433,8 +425,8 @@
         <translation>Бошқа маълумотлар директориясида фойдаланинг:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -488,10 +480,6 @@
     <message>
         <source>Size of &amp;database cache</source>
         <translation>&amp;Маълумотлар базаси кеши</translation>
-    </message>
-    <message>
-        <source>MB</source>
-        <translation>МБ</translation>
     </message>
     <message>
         <source>Number of script &amp;verification threads</source>

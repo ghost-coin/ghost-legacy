@@ -222,20 +222,12 @@
         <translation>&amp;Opsione</translation>
     </message>
     <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Duke marr adresen</translation>
-    </message>
-    <message>
         <source>Change the passphrase used for wallet encryption</source>
         <translation>Ndrysho frazkalimin e përdorur per enkriptimin e portofolit</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Portofol</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -393,8 +385,8 @@
         <translation>Miresevini</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -793,7 +785,7 @@
     <name>bitcoin-core</name>
     <message>
         <source>Particl Core</source>
-        <translation>Berthama Particl.</translation>
+        <translation>Berthama Particl</translation>
     </message>
     <message>
         <source>Information</source>

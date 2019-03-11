@@ -3,7 +3,7 @@
     <name>AddressBookPage</name>
     <message>
         <source>Right-click to edit address or label</source>
-        <translation>Faîtes un clique droit afin de modifier l'adresse ou l'étiquette</translation>
+        <translation>Faîtes un clic droit afin de modifier l'adresse ou l'étiquette</translation>
     </message>
     <message>
         <source>Create a new address</source>
@@ -47,11 +47,11 @@
     </message>
     <message>
         <source>Choose the address to send coins to</source>
-        <translation>Choisissez une adresse où envoyer les particl</translation>
+        <translation>Choisissez une adresse où envoyer les particls</translation>
     </message>
     <message>
         <source>Choose the address to receive coins with</source>
-        <translation>Choisissez une adresse où recevoir les particl</translation>
+        <translation>Choisissez une adresse où recevoir les particls</translation>
     </message>
     <message>
         <source>C&amp;hoose</source>
@@ -188,10 +188,6 @@
         <translation>Portefeuille chiffré</translation>
     </message>
     <message>
-        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation>%1 va à présent se fermer pour terminer la procédure de cryptage. N'oubliez pas que le chiffrement de votre porte-monnaie ne peut pas fournir une protection totale contre le vol par des logiciels malveillants qui infecteraient votre ordinateur.</translation>
-    </message>
-    <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
         <translation>IMPORTANT: Toute sauvegarde préalable de votre porte-monnais devrait être emplacée par le fichier nouvellement généré et encrypté.</translation>
     </message>
@@ -254,10 +250,6 @@
         <translation>&amp;Vue d'ensemble</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Nœud</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Affiche une vue d'ensemble du porte-monnaie</translation>
     </message>
@@ -314,16 +306,12 @@
         <translation>&amp;Modifier le mot de passe</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>&amp;Adresses d'envoi</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>&amp;Adresses de réception</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Ouvrir &amp;URI</translation>
+    </message>
+    <message>
+        <source>Wallet:</source>
+        <translation>Portefeuille :</translation>
     </message>
     <message>
         <source>Click to disable network activity.</source>
@@ -346,8 +334,12 @@
         <translation>Réindexer les blocs sur le disque...</translation>
     </message>
     <message>
+        <source>Proxy is &lt;b&gt;enabled&lt;/b&gt;: %1</source>
+        <translation>Le proxy est &lt;b&gt;activé&lt;/b&gt; : %1</translation>
+    </message>
+    <message>
         <source>Send coins to a Particl address</source>
-        <translation>Envoyer des pièces à une adresse Particl.</translation>
+        <translation>Envoyer des pièces à une adresse Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -370,12 +362,8 @@
         <translation>&amp;Vérification du message</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Portefeuille</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -443,7 +431,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n connexion active avec le réseau Particl.</numerusform><numerusform>%n connexions actives avec le réseau Particl.</numerusform></translation>
+        <translation><numerusform>%n connexion active avec le réseau Particl</numerusform><numerusform>%n connexions actives avec le réseau Particl</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -483,7 +471,11 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
-        <translation>Afficher le %1 message d'aide pour récupérer une liste des options de ligne de commande Particl </translation>
+        <translation>Afficher le %1 message d'aide pour récupérer une liste des options de ligne de commande Particl</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Fenêtre</translation>
     </message>
     <message>
         <source>%1 client</source>
@@ -507,6 +499,12 @@
         <source>Amount: %1
 </source>
         <translation>Montant:%1
+</translation>
+    </message>
+    <message>
+        <source>Wallet: %1
+</source>
+        <translation>Portefeuille : %1
 </translation>
     </message>
     <message>
@@ -815,8 +813,8 @@
         <translation>Utiliser votre propre répertoire</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -886,10 +884,6 @@
     <message>
         <source>Size of &amp;database cache</source>
         <translation>Taille du cache de la base de données.</translation>
-    </message>
-    <message>
-        <source>MB</source>
-        <translation>MO</translation>
     </message>
     <message>
         <source>IP address of the proxy (e.g. IPv4: 127.0.0.1 / IPv6: ::1)</source>
@@ -1606,7 +1600,7 @@
     </message>
     <message>
         <source>S&amp;end</source>
-        <translation>En&amp;voyer</translation>
+        <translation>E&amp;voyer</translation>
     </message>
     <message>
         <source>Copy quantity</source>
@@ -1671,10 +1665,6 @@
     <message>
         <source>Payment request expired.</source>
         <translation>Demande de paiement expirée.</translation>
-    </message>
-    <message>
-        <source>Pay only the required fee of %1</source>
-        <translation>Payer seulement les frais obligatoire de %1</translation>
     </message>
     <message>
         <source>Warning: Invalid Particl address</source>
@@ -2199,7 +2189,11 @@
         <source>Send Coins</source>
         <translation>Envoyer des pièces</translation>
     </message>
-    </context>
+    <message>
+        <source>default wallet</source>
+        <translation>portefeuille par défaut</translation>
+    </message>
+</context>
 <context>
     <name>WalletView</name>
     <message>

@@ -191,10 +191,6 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>Dompet dienkripsi</translation>
     </message>
     <message>
-        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation>%1 akan tutup untuk menyelesaikan proses enkripsi. Ingat bahawa enkripsi tidak boleh melidungi sepenuhnya particl anda daripada dicuri oleh malware yang menjangkiti komputer anda.</translation>
-    </message>
-    <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
         <translation>PENTING: Apa-apa sandaran yang anda buat sebelum ini untuk fail dompet anda hendaklah digantikan dengan fail dompet enkripsi yang dijana baru. Untuk sebab-sebab keselamatan , sandaran fail dompet yang belum dibuat enkripsi sebelum ini akan menjadi tidak berguna secepat anda mula guna dompet enkripsi baru.</translation>
     </message>
@@ -257,10 +253,6 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>&amp;Gambaran Keseluruhan</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Nod</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Tunjuk gambaran keseluruhan umum dompet</translation>
     </message>
@@ -317,25 +309,12 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>&amp;Menukar frasa-laluan</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>&amp;Menghantar frasa-laluan</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>&amp;Menerima frasa-laluan...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Buka &amp;URI...</translation>
     </message>
     <message>
         <source>Wallet:</source>
         <translation>dompet</translation>
-    </message>
-    <message>
-        <source>default wallet</source>
-        <translation>dompet lalai
-</translation>
     </message>
     <message>
         <source>Click to disable network activity.</source>
@@ -359,7 +338,7 @@ Alihkan fail data ke dalam tab semasa</translation>
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Menghantar koin kepada alamat Particl.</translation>
+        <translation>Menghantar koin kepada alamat Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -382,12 +361,8 @@ Alihkan fail data ke dalam tab semasa</translation>
         <translation>sahkan mesej</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>dompet</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -472,8 +447,8 @@ Alihkan fail data ke dalam tab semasa</translation>
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     </context>
 <context>
@@ -505,11 +480,6 @@ Alihkan fail data ke dalam tab semasa</translation>
     </context>
 <context>
     <name>RPCConsole</name>
-    <message>
-        <source>default wallet</source>
-        <translation>dompet lalai
-</translation>
-    </message>
     </context>
 <context>
     <name>ReceiveCoinsDialog</name>
@@ -617,7 +587,12 @@ Alihkan fail data ke dalam tab semasa</translation>
     </context>
 <context>
     <name>WalletModel</name>
-    </context>
+    <message>
+        <source>default wallet</source>
+        <translation>dompet lalai
+</translation>
+    </message>
+</context>
 <context>
     <name>WalletView</name>
     <message>

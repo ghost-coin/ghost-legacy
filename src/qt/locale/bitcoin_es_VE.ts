@@ -180,10 +180,6 @@
         <translation>Sincronizando con la red...</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Nodo</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Mostrar visión general de la billetera</translation>
     </message>
@@ -208,16 +204,12 @@
         <translation>&amp;Opciones...</translation>
     </message>
     <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Recepción de direcciones</translation>
-    </message>
-    <message>
         <source>Reindexing blocks on disk...</source>
         <translation>Reindexando bloques en el disco...</translation>
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Enviar monedas a una dirección Particl.</translation>
+        <translation>Enviar monedas a una dirección Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -232,12 +224,8 @@
         <translation>Abre la consola de depuración y diágnostico</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Billetera</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -503,8 +491,8 @@
         <translation>Usa un directorio de datos personalizado:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>

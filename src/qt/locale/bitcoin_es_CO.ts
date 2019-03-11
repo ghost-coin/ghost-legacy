@@ -243,10 +243,6 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>&amp;Visión de conjunto</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Nodo</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Mostrar vista general de la billetera</translation>
     </message>
@@ -291,14 +287,6 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>&amp;Cambiar contraseña...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>&amp;Enviando Direcciones...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>&amp;Recibiendo Direcciones...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Abrir &amp;URL...</translation>
     </message>
@@ -320,7 +308,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Enviando monedas a una dirección de Particl </translation>
+        <translation>Enviando monedas a una dirección de Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -343,12 +331,8 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>&amp;Verificar Mensaje...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Billetera</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -441,6 +425,10 @@ Exportar los datos en la pestaña actual a un archivo</translation>
     <message>
         <source>Up to date</source>
         <translation>A hoy</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>Ventana</translation>
     </message>
     <message>
         <source>Connecting to peers...</source>
@@ -722,8 +710,8 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Use un directorio de datos personalizado:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -746,7 +734,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
     </message>
     <message>
         <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
-        <translation>La red no aceptará intentar gastar particl que se vean afectados por transacciones aún no mostradas</translation>
+        <translation>La red no aceptará intentar gastar particls que se vean afectados por transacciones aún no mostradas</translation>
     </message>
     <message>
         <source>Number of blocks left</source>
@@ -819,10 +807,6 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Tamaño de la memoria caché de la base de datos</translation>
     </message>
     <message>
-        <source>MB</source>
-        <translation>MB</translation>
-    </message>
-    <message>
         <source>Number of script &amp;verification threads</source>
         <translation>Cantidad de secuencias de comandos y verificación</translation>
     </message>
@@ -849,10 +833,6 @@ Exportar los datos en la pestaña actual a un archivo</translation>
     <message>
         <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Exit in the menu.</source>
         <translation>Minimice en lugar de salir de la aplicación cuando la ventana esté cerrada. Cuando esta opción está habilitada, la aplicación se cerrará solo después de seleccionar Salir en el menú.</translation>
-    </message>
-    <message>
-        <source>Active command-line options that override above options:</source>
-        <translation>Opciones de línea de comando activas que anulan las opciones anteriores:</translation>
     </message>
     <message>
         <source>Open Configuration File</source>
@@ -1122,7 +1102,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
     </message>
     <message>
         <source>Cannot start particl: click-to-pay handler</source>
-        <translation>No se puede iniciar Particl. controlador de clic para pagar</translation>
+        <translation>No se puede iniciar Particl: controlador de clic para pagar</translation>
     </message>
     <message>
         <source>URI handling</source>
@@ -1584,7 +1564,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
-        <translation>Un mensaje opcional para adjuntar a la solicitud de pago, que se mostrará cuando se abra la solicitud. Nota: El mensaje no se enviará con el pago a través de la red de Particl .</translation>
+        <translation>Un mensaje opcional para adjuntar a la solicitud de pago, que se mostrará cuando se abra la solicitud. Nota: El mensaje no se enviará con el pago a través de la red de Particl.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>

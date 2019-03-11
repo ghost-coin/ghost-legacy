@@ -122,10 +122,6 @@
         <translation>&amp;Alilan ing Passphrase...</translation>
     </message>
     <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Address king pamag-Tanggap</translation>
-    </message>
-    <message>
         <source>Send coins to a Particl address</source>
         <translation>Magpadalang barya king Particl address</translation>
     </message>
@@ -150,12 +146,8 @@
         <translation>&amp;Beripikan ing message...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Wallet</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Show / Hide</source>
@@ -208,6 +200,10 @@
     <message>
         <source>Up to date</source>
         <translation>Makatuki ya king aldo</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Awang</translation>
     </message>
     <message>
         <source>Catching up...</source>
@@ -285,8 +281,8 @@
         <translation>Malaus ka</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -737,7 +733,7 @@
     <name>bitcoin-core</name>
     <message>
         <source>Particl Core</source>
-        <translation>Kapilubluban ning Particl.</translation>
+        <translation>Kapilubluban ning Particl</translation>
     </message>
     <message>
         <source>Corrupted block database detected</source>

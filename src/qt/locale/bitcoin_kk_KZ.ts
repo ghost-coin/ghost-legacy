@@ -70,12 +70,8 @@
         <translation>Құпия сөзді өзгерту</translation>
     </message>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>Биткоин</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Әмиян</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -169,7 +165,7 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>Биткоин</translation>
     </message>
     <message>

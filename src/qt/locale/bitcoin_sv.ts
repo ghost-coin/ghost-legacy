@@ -67,11 +67,11 @@
     </message>
     <message>
         <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Detta är dina Particl-adressr för att skicka betalningar. Kontrollera alltid summan och den mottagande adressen innan du skickar particl.</translation>
+        <translation>Detta är dina Particl-adresser för att skicka betalningar. Kontrollera alltid summan och den mottagande adressen innan du skickar particl.</translation>
     </message>
     <message>
         <source>These are your Particl addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Detta är dina Particl-adressr för att ta emot betalningar. Det rekommenderas att använda en ny mottagningsadress för varje transaktion.</translation>
+        <translation>Detta är dina Particl-adresser för att ta emot betalningar. Det rekommenderas att använda en ny mottagningsadress för varje transaktion.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -189,10 +189,6 @@ Var vänlig och försök igen.</translation>
         <translation>Plånbok krypterad</translation>
     </message>
     <message>
-        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation>%1 kommer nu att stänga ner för att slutföra krypteringen. Tänk på att en krypterad plånbok inte skyddar mot stöld om din dator är infekterad med en keylogger.</translation>
-    </message>
-    <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
         <translation>VIKTIGT: Alla tidigare säkerhetskopior du har skapat av plånboksfilen ska ersättas med den nyss skapade, krypterade plånboksfilen. Av säkerhetsskäl kommer tidigare säkerhetskopior av den okrypterade plånboksfilen att bli oanvändbara när du börjar använda den nya, krypterade plånboken.</translation>
     </message>
@@ -255,10 +251,6 @@ Var vänlig och försök igen.</translation>
         <translation>&amp;Översikt</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Nod</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Visa generell översikt av plånboken</translation>
     </message>
@@ -315,24 +307,12 @@ Var vänlig och försök igen.</translation>
         <translation>&amp;Ändra lösenord...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>Av&amp;sändaradresser...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Mottaga&amp;radresser...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Öppna &amp;URI...</translation>
     </message>
     <message>
         <source>Wallet:</source>
         <translation>Plånbok:</translation>
-    </message>
-    <message>
-        <source>default wallet</source>
-        <translation>Standardplånbok</translation>
     </message>
     <message>
         <source>Click to disable network activity.</source>
@@ -360,7 +340,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Skicka particl till en Particl.adress</translation>
+        <translation>Skicka particl till en Particl-adress</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -383,12 +363,8 @@ Var vänlig och försök igen.</translation>
         <translation>&amp;Verifiera meddelande...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Plånbok</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -412,11 +388,11 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Signera meddelanden med dina Particl-adressr för att bevisa att du äger dem</translation>
+        <translation>Signera meddelanden med dina Particl-adresser för att bevisa att du äger dem</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Verifiera meddelanden för att vara säker på att de signerades med angivna Particl-adressr</translation>
+        <translation>Verifiera meddelanden för att vara säker på att de signerades med angivna Particl-adresser</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -456,7 +432,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n aktiva anslutningar till Particl.nätverket.</numerusform><numerusform>%n aktiva anslutningar till Particl.nätverket.</numerusform></translation>
+        <translation><numerusform>%n aktiva anslutningar till Particl-nätverket.</numerusform><numerusform>%n aktiva anslutningar till Particl-nätverket.</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -501,6 +477,14 @@ Var vänlig och försök igen.</translation>
     <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
         <translation>Visa %1 hjälpmeddelande för att få en lista med möjliga Particl kommandoradsalternativ.</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Fönster</translation>
+    </message>
+    <message>
+        <source>Minimize</source>
+        <translation>Minimera</translation>
     </message>
     <message>
         <source>%1 client</source>
@@ -766,7 +750,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>The entered address "%1" is not a valid Particl address.</source>
-        <translation>Den angivna adressen "%1" är inte en giltig Particl.adress.</translation>
+        <translation>Den angivna adressen "%1" är inte en giltig Particl-adress.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -862,8 +846,8 @@ Var vänlig och försök igen.</translation>
         <translation>Använd en anpassad datakatalog:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -875,7 +859,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 kommer att ladda ner och lagra en kopia av Particl.blockkedjan.</translation>
+        <translation>%1 kommer att ladda ner och lagra en kopia av Particl-blockkedjan.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -906,7 +890,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the particl network, as detailed below.</source>
-        <translation>Nyligen gjorda transaktioner visas inte korrekt och därför kan din plånboks saldo visas felaktigt. Denna information kommer att visas korrekt så snart din plånbok har synkroniserat klart med Particl.nätverket enligt detaljer nedan.</translation>
+        <translation>Nyligen gjorda transaktioner visas inte korrekt och därför kan din plånboks saldo visas felaktigt. Denna information kommer att visas korrekt så snart din plånbok har synkroniserat klart med Particl-nätverket enligt detaljer nedan.</translation>
     </message>
     <message>
         <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
@@ -995,10 +979,6 @@ Var vänlig och försök igen.</translation>
         <translation>Storleken på &amp;databascache</translation>
     </message>
     <message>
-        <source>MB</source>
-        <translation>MB</translation>
-    </message>
-    <message>
         <source>Number of script &amp;verification threads</source>
         <translation>Antalet skript&amp;verifikationstrådar</translation>
     </message>
@@ -1029,10 +1009,6 @@ Var vänlig och försök igen.</translation>
     <message>
         <source>Third party URLs (e.g. a block explorer) that appear in the transactions tab as context menu items. %s in the URL is replaced by transaction hash. Multiple URLs are separated by vertical bar |.</source>
         <translation>Tredjeparts URL:er (t.ex. en blockutforskare) som finns i transaktionstabben som ett menyval i sammanhanget. %s i URL:en ersätts med tansaktionshashen. Flera URL:er är separerade med vertikala streck |.</translation>
-    </message>
-    <message>
-        <source>Active command-line options that override above options:</source>
-        <translation>Aktiva kommandoradsalternativ som ersätter alternativen ovan:</translation>
     </message>
     <message>
         <source>Open the %1 configuration file from the working directory.</source>
@@ -1096,7 +1072,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Öppna automatiskt Particl.klientens port på routern. Detta fungerar endast om din router stödjer UPnP och det är är aktiverat.</translation>
+        <translation>Öppna automatiskt Particl-klientens port på routern. Detta fungerar endast om din router stödjer UPnP och det är är aktiverat.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1112,7 +1088,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>Connect to the Particl network through a SOCKS5 proxy.</source>
-        <translation>Anslut till Particl.nätverket genom en SOCKS5-proxy.</translation>
+        <translation>Anslut till Particl-nätverket genom en SOCKS5-proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1148,7 +1124,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Anslut till Particl.nätverket genom en separat SOCKS5-proxy för dolda tjänster i Tor.</translation>
+        <translation>Anslut till Particl-nätverket genom en separat SOCKS5-proxy för dolda tjänster i Tor.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1255,7 +1231,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
-        <translation>Den visade informationen kan vara inaktuell. Plånboken synkroniseras automatiskt med Particl.nätverket efter att anslutningen är upprättad, men denna process har inte slutförts ännu.</translation>
+        <translation>Den visade informationen kan vara inaktuell. Plånboken synkroniseras automatiskt med Particl-nätverket efter att anslutningen är upprättad, men denna process har inte slutförts ännu.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1350,7 +1326,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
-        <translation>URI kan inte parsas! Detta kan orsakas av en ogiltig Particl.adress eller felaktiga URI-parametrar.</translation>
+        <translation>URI kan inte parsas! Detta kan orsakas av en ogiltig Particl-adress eller felaktiga URI-parametrar.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1452,7 +1428,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>Enter a Particl address (e.g. %1)</source>
-        <translation>Ange en Particl.adress (t.ex. %1)</translation>
+        <translation>Ange en Particl-adress (t.ex. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1816,10 +1792,6 @@ Var vänlig och försök igen.</translation>
         <translation>&amp;Ta bort blockering</translation>
     </message>
     <message>
-        <source>default wallet</source>
-        <translation>Standardplånbok</translation>
-    </message>
-    <message>
         <source>Welcome to the %1 RPC console.</source>
         <translation>Välkommen till %1 RPC-konsolen.</translation>
     </message>
@@ -1900,7 +1872,7 @@ Var vänlig och försök igen.</translation>
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
-        <translation>Ett valfritt meddelande att bifoga betalningsbegäran, vilket visas när begäran öppnas. Obs: Meddelandet kommer inte att sändas med betalningen över Particl.nätverket.</translation>
+        <translation>Ett valfritt meddelande att bifoga betalningsbegäran, vilket visas när begäran öppnas. Obs: Meddelandet kommer inte att sändas med betalningen över Particl-nätverket.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2152,14 +2124,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <translation>Göm</translation>
     </message>
     <message>
-        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
-        <translation>Att bara betala den minsta avgiften är helt ok så länge transaktionsvolymen är mindre än ledigt utrymme i blocken. Men tänk på att det kan bli en en transaktion som aldrig bekräftas om efterfrågan på particl-transaktioner är större än vad nätverket kan hantera.</translation>
-    </message>
-    <message>
-        <source>(read the tooltip)</source>
-        <translation>(läs verktygstips)</translation>
-    </message>
-    <message>
         <source>Recommended:</source>
         <translation>Rekommenderad:</translation>
     </message>
@@ -2323,17 +2287,13 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <source>Payment request expired.</source>
         <translation>Betalningsbegäran löpte ut.</translation>
     </message>
-    <message>
-        <source>Pay only the required fee of %1</source>
-        <translation>Betala endast den nödvändiga avgiften på %1</translation>
-    </message>
     <message numerus="yes">
         <source>Estimated to begin confirmation within %n block(s).</source>
         <translation><numerusform>Uppskattas till att påbörja bekräftelse inom %n block.</numerusform><numerusform>Uppskattas till att påbörja bekräftelse inom %n block.</numerusform></translation>
     </message>
     <message>
         <source>Warning: Invalid Particl address</source>
-        <translation>Varning: Ogiltig Particl.adress</translation>
+        <translation>Varning: Ogiltig Particl-adress</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2376,7 +2336,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>The Particl address to send the payment to</source>
-        <translation>Particl.adress att sända betalning till</translation>
+        <translation>Particl-adress att sända betalning till</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2424,7 +2384,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Ett meddelande som bifogades particl: -URIn och som lagras med transaktionen som referens. NB: Meddelandet kommer inte att sändas över Particl.nätverket.</translation>
+        <translation>Ett meddelande som bifogades particl: -URIn och som lagras med transaktionen som referens. NB: Meddelandet kommer inte att sändas över Particl-nätverket.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2473,7 +2433,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>The Particl address to sign the message with</source>
-        <translation>Particl.adress att signera meddelandet med</translation>
+        <translation>Particl-adress att signera meddelandet med</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2505,7 +2465,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Signera meddelandet för att bevisa att du äger denna Particl.adress</translation>
+        <translation>Signera meddelandet för att bevisa att du äger denna Particl-adress</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2529,11 +2489,11 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>The Particl address the message was signed with</source>
-        <translation>Particl.adress som meddelandet signerades med</translation>
+        <translation>Particl-adress som meddelandet signerades med</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Verifiera meddelandet för att vara säker på att det signerades med angiven Particl.adress</translation>
+        <translation>Verifiera meddelandet för att vara säker på att det signerades med angiven Particl-adress</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -3072,7 +3032,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <name>WalletModel</name>
     <message>
         <source>Send Coins</source>
-        <translation>Skicka Particl.</translation>
+        <translation>Skicka Particls</translation>
     </message>
     <message>
         <source>Fee bump error</source>
@@ -3109,6 +3069,10 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <message>
         <source>Could not commit transaction</source>
         <translation>Kunde inte skicka transaktion</translation>
+    </message>
+    <message>
+        <source>default wallet</source>
+        <translation>Standardplånbok</translation>
     </message>
 </context>
 <context>
@@ -3201,10 +3165,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <translation>Fel vid läsning av %s! Alla nycklar lästes korrekt, men transaktionsdata eller poster i adressboken kanske saknas eller är felaktiga.</translation>
     </message>
     <message>
-        <source>Group outputs by address, selecting all or none, instead of selecting on a per-output basis. Privacy is improved as an address is only used once (unless someone sends to it after spending from it), but may result in slightly higher fees as suboptimal coin selection may result due to the added limitation (default: %u)</source>
-        <translation>Gruppera utgående transaktioner med adress, där samtliga eller inga används, istället för att välja vid varje utgående transaktion. Detta ökar din integritet genom att en adress enbart används en gång (om inte någon skickar till den efteråt), men kan öka dina utgifter då valet av ingående transaktioner görs suboptimalt (standardvärde: %u)</translation>
-    </message>
-    <message>
         <source>Please check that your computer's date and time are correct! If your clock is wrong, %s will not work properly.</source>
         <translation>Vänligen kolla så att din dators datum och tid är korrekt! Om din klocka går fel kommer %s inte att fungera korrekt.</translation>
     </message>
@@ -3271,10 +3231,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <message>
         <source>Do you want to rebuild the block database now?</source>
         <translation>Vill du bygga om blockdatabasen nu?</translation>
-    </message>
-    <message>
-        <source>Error creating %s: You can't create non-HD wallets with this version.</source>
-        <translation>Fel vid skapande av %s: Det är inte möjligt att skapa icke-HD plånböcker med denna version.</translation>
     </message>
     <message>
         <source>Error initializing block database</source>
@@ -3397,18 +3353,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <translation>Lyckas inte generera nycklar</translation>
     </message>
     <message>
-        <source>Unsupported argument -benchmark ignored, use -debug=bench.</source>
-        <translation>Argumentet -benchmark stöds inte och ignoreras, använd -debug=bench.</translation>
-    </message>
-    <message>
-        <source>Unsupported argument -debugnet ignored, use -debug=net.</source>
-        <translation>Argumentet -debugnet stöds inte och ignoreras, använd -debug=net.</translation>
-    </message>
-    <message>
-        <source>Unsupported argument -tor found, use -onion.</source>
-        <translation>Argumentet -tor hittades men stöds inte, använd -onion.</translation>
-    </message>
-    <message>
         <source>Unsupported logging category %s=%s.</source>
         <translation>Saknar stöd för loggningskategori %s=%s.</translation>
     </message>
@@ -3443,10 +3387,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <message>
         <source>You need to rebuild the database using -reindex to go back to unpruned mode.  This will redownload the entire blockchain</source>
         <translation>Du måste bygga om databasen genom att använda -reindex för att återgå till obeskärt läge. Detta kommer att ladda ner hela blockkedjan på nytt.</translation>
-    </message>
-    <message>
-        <source>Error loading %s: You can't disable HD on an already existing HD wallet</source>
-        <translation>Fel vid inläsning av %s: Du kan inte avaktivera HD på en redan existerande HD-plånbok</translation>
     </message>
     <message>
         <source>Error reading from database, shutting down.</source>
@@ -3553,10 +3493,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <translation>-maxtxfee är väldigt högt satt! Så höga avgifter kan komma att betalas för en enstaka transaktion.</translation>
     </message>
     <message>
-        <source>Error loading %s: You can't enable HD on an already existing non-HD wallet</source>
-        <translation>Fel vid inläsning av %s: Du kan inte aktivera HD på en existerande icke-HD plånbok</translation>
-    </message>
-    <message>
         <source>This is the transaction fee you may pay when fee estimates are not available.</source>
         <translation>Detta är transaktionsavgiften du kan komma att betala om uppskattad avgift inte finns tillgänglig.</translation>
     </message>
@@ -3567,14 +3503,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <message>
         <source>Total length of network version string (%i) exceeds maximum length (%i). Reduce the number or size of uacomments.</source>
         <translation>Total längd på strängen för nätverksversion (%i) överskrider maxlängden (%i). Minska numret eller storleken på uacomments.</translation>
-    </message>
-    <message>
-        <source>Unsupported argument -socks found. Setting SOCKS version isn't possible anymore, only SOCKS5 proxies are supported.</source>
-        <translation>Argumentet -socks hittades och stöds inte. Det är inte längre möjligt att sätta SOCKS-version längre, bara SOCKS5-proxy stöds.</translation>
-    </message>
-    <message>
-        <source>Unsupported argument -whitelistalwaysrelay ignored, use -whitelistrelay and/or -whitelistforcerelay.</source>
-        <translation>Argumentet -whitelistalwaysrelay stöds inte utan ignoreras, använd -whitelistrelay och/eller -whitelistforcerelay.</translation>
     </message>
     <message>
         <source>Warning: Unknown block versions being mined! It's possible unknown rules are in effect</source>
@@ -3630,7 +3558,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>Insufficient funds</source>
-        <translation>Otillräckligt med particl</translation>
+        <translation>Otillräckligt med particls</translation>
     </message>
     <message>
         <source>Can't generate a change-address key. Private keys are disabled for this wallet.</source>

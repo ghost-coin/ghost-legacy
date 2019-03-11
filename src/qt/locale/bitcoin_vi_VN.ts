@@ -239,10 +239,6 @@ Ví của bạn chưa được mã hóa.</translation>
         <translation>&amp;Tổng quan</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Node</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Hiện thỉ thông tin sơ lược chung về Ví</translation>
     </message>
@@ -299,14 +295,6 @@ Ví của bạn chưa được mã hóa.</translation>
         <translation>&amp;Thay đổi mật khẩu...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>&amp;Địa chỉ gửi</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Địa chỉ nhận</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Mở &amp;URI...</translation>
     </message>
@@ -332,7 +320,7 @@ Ví của bạn chưa được mã hóa.</translation>
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Gửi coins đến tài khoản Particl.</translation>
+        <translation>Gửi coins đến tài khoản Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -355,12 +343,8 @@ Ví của bạn chưa được mã hóa.</translation>
         <translation>&amp;Tin nhắn xác thực</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Ví</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -408,7 +392,7 @@ Ví của bạn chưa được mã hóa.</translation>
     </message>
     <message>
         <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Yêu cầu thanh toán(tạo mã QR và địa chỉ Particl. URLs)</translation>
+        <translation>Yêu cầu thanh toán(tạo mã QR và địa chỉ Particl: URLs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -428,7 +412,7 @@ Ví của bạn chưa được mã hóa.</translation>
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n liên kết hoạt động với mạng lưới Particl.</numerusform></translation>
+        <translation><numerusform>%n liên kết hoạt động với mạng lưới Particl</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -636,8 +620,8 @@ Ví của bạn chưa được mã hóa.</translation>
         <translation>Sử dụng vị trí dữ liệu mặc định</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -675,10 +659,6 @@ Ví của bạn chưa được mã hóa.</translation>
     <message>
         <source>&amp;Main</source>
         <translation>&amp;Chính</translation>
-    </message>
-    <message>
-        <source>MB</source>
-        <translation>MB</translation>
     </message>
     <message>
         <source>IP address of the proxy (e.g. IPv4: 127.0.0.1 / IPv6: ::1)</source>
@@ -1056,10 +1036,6 @@ Ví của bạn chưa được mã hóa.</translation>
     <message>
         <source>Hide</source>
         <translation>Ẩn</translation>
-    </message>
-    <message>
-        <source>(read the tooltip)</source>
-        <translation>(Đọc hướng dẫn)</translation>
     </message>
     <message>
         <source>Send to multiple recipients at once</source>

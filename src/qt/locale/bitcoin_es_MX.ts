@@ -134,10 +134,6 @@
         <translation>&amp;Vista previa</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Nodo</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Mostrar la vista previa general de la cartera</translation>
     </message>
@@ -182,14 +178,6 @@
         <translation>&amp;Cambiar contraseña...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>Direcciones de &amp;envío...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Direcciones de &amp;recepción...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Abrir &amp;URL...</translation>
     </message>
@@ -199,7 +187,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Enviar monedas a una dirección Particl.</translation>
+        <translation>Enviar monedas a una dirección Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -222,12 +210,8 @@
         <translation>&amp;Verificar mensaje...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Cartera</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -377,8 +361,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -400,10 +384,6 @@
     <message>
         <source>Options</source>
         <translation>Opciones</translation>
-    </message>
-    <message>
-        <source>Active command-line options that override above options:</source>
-        <translation>Activar las opciones de linea de comando que sobre escriben las siguientes opciones:</translation>
     </message>
     <message>
         <source>W&amp;allet</source>
@@ -471,7 +451,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
-        <translation>Mensaje opcional para agregar a la solicitud de pago, el cual será mostrado cuando la solicitud este abierta. Nota: El mensaje no se manda con el pago a travéz de la red de Particl .</translation>
+        <translation>Mensaje opcional para agregar a la solicitud de pago, el cual será mostrado cuando la solicitud este abierta. Nota: El mensaje no se manda con el pago a travéz de la red de Particl.</translation>
     </message>
     <message>
         <source>Use this form to request payments. All fields are &lt;b&gt;optional&lt;/b&gt;.</source>
@@ -657,7 +637,7 @@
     <name>bitcoin-core</name>
     <message>
         <source>Particl Core</source>
-        <translation>nucleo Particl.</translation>
+        <translation>nucleo Particl</translation>
     </message>
     <message>
         <source>Verifying blocks...</source>

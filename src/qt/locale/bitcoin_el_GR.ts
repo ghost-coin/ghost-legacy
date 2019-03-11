@@ -188,10 +188,6 @@
         <translation>Πορτοφόλι κρυπτογραφήθηκε</translation>
     </message>
     <message>
-        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation>%1 θα κλείσει τώρα για να τελειώσει η διαδικασία κρυπτογράφησης. Να θυμάστε ότι κρυπτογραφόντας το πορτοφόλι σας δεν μπορείτε να προστατεύσετε πλήρως τα particl σας απο κλοπή μέσω malware που μπορεί να προσβάλει τον υπολογιστή σας.</translation>
-    </message>
-    <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
         <translation>ΣΗΜΑΝΤΙΚΟ: Τα προηγούμενα αντίγραφα ασφαλείας που έχετε κάνει από το αρχείο του πορτοφόλιου σας θα πρέπει να αντικατασταθουν με το νέο που δημιουργείται, κρυπτογραφημένο αρχείο πορτοφόλιου. Για λόγους ασφαλείας, τα προηγούμενα αντίγραφα ασφαλείας του μη κρυπτογραφημένου αρχείου πορτοφόλιου θα καταστουν άχρηστα μόλις αρχίσετε να χρησιμοποιείτε το νέο κρυπτογραφημένο πορτοφόλι. </translation>
     </message>
@@ -254,10 +250,6 @@
         <translation>&amp;Επισκόπηση</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Κόμβος</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Εμφάνισε τη γενική εικόνα του πορτοφολιού</translation>
     </message>
@@ -314,24 +306,12 @@
         <translation>&amp;Άλλαξε Φράση Πρόσβασης</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>Διευθύνσεις αποστολής</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Διευθύνσεις λήψης</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>'Ανοιγμα &amp;URI</translation>
     </message>
     <message>
         <source>Wallet:</source>
         <translation>Πορτοφόλι</translation>
-    </message>
-    <message>
-        <source>default wallet</source>
-        <translation>Προεπιλεγμένο πορτοφόλι</translation>
     </message>
     <message>
         <source>Click to disable network activity.</source>
@@ -378,12 +358,8 @@
         <translation>&amp;Επιβεβαίωση μηνύματος</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Πορτοφόλι</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -411,7 +387,7 @@
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Υπογράψτε ένα μήνυμα για ν' αποδείξετε πως ανήκει μια συγκεκριμένη διεύθυνση Particl.</translation>
+        <translation>Υπογράψτε ένα μήνυμα για ν' αποδείξετε πως ανήκει μια συγκεκριμένη διεύθυνση Particl</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -484,6 +460,14 @@
     <message>
         <source>Up to date</source>
         <translation>Ενημερωμένο</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Παράθυρο</translation>
+    </message>
+    <message>
+        <source>Minimize</source>
+        <translation>Ελαχιστοποίηση</translation>
     </message>
     <message>
         <source>Catching up...</source>
@@ -765,8 +749,8 @@
         <translation>Προσαρμογή του φακέλου δεδομένων: </translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -838,10 +822,6 @@
         <translation>Μέγεθος κρυφής μνήμης βάσης δεδομένων.</translation>
     </message>
     <message>
-        <source>MB</source>
-        <translation>MB</translation>
-    </message>
-    <message>
         <source>Number of script &amp;verification threads</source>
         <translation>Αριθμός script και γραμμές επαλήθευσης </translation>
     </message>
@@ -856,10 +836,6 @@
     <message>
         <source>Third party URLs (e.g. a block explorer) that appear in the transactions tab as context menu items. %s in the URL is replaced by transaction hash. Multiple URLs are separated by vertical bar |.</source>
         <translation>URLs από τρίτους (π.χ. ένας εξερευνητής μπλοκ) τα οποία εμφανίζονται στην καρτέλα συναλλαγών ως στοιχεία μενού. Το %s στα URL αντικαθίσταται από την τιμή της κατατεμαχισμένης συναλλαγής.</translation>
-    </message>
-    <message>
-        <source>Active command-line options that override above options:</source>
-        <translation>Ενεργές επιλογές γραμμής-εντολών που παρακάμπτουν τις παραπάνω επιλογές:</translation>
     </message>
     <message>
         <source>Open Configuration File</source>
@@ -1355,10 +1331,6 @@
         <translation>1 &amp;χρόνος</translation>
     </message>
     <message>
-        <source>default wallet</source>
-        <translation>Προεπιλεγμένο πορτοφόλι</translation>
-    </message>
-    <message>
         <source>via %1</source>
         <translation>μέσω %1</translation>
     </message>
@@ -1756,7 +1728,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Υπογράψτε το μήνυμα για να αποδείξετε πως σας ανήκει η συγκεκριμένη διεύθυνση Particl.</translation>
+        <translation>Υπογράψτε το μήνυμα για να αποδείξετε πως σας ανήκει η συγκεκριμένη διεύθυνση Particl</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1780,7 +1752,7 @@
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Επαληθεύστε το μήνυμα για να αποδείξετε πως υπογράφθηκε από τη συγκεκριμένη διεύθυνση Particl.</translation>
+        <translation>Επαληθεύστε το μήνυμα για να αποδείξετε πως υπογράφθηκε από τη συγκεκριμένη διεύθυνση Particl</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -1966,10 +1938,18 @@
 <context>
     <name>WalletModel</name>
     <message>
+        <source>Send Coins</source>
+        <translation>Αποστολή νομισμάτων</translation>
+    </message>
+    <message>
         <source>Increase:</source>
         <translation>Αύξηση:</translation>
     </message>
-    </context>
+    <message>
+        <source>default wallet</source>
+        <translation>Προεπιλεγμένο πορτοφόλι</translation>
+    </message>
+</context>
 <context>
     <name>WalletView</name>
     <message>

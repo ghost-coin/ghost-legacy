@@ -163,10 +163,6 @@
         <source>Wallet encrypted</source>
         <translation>Monedero cifrado</translation>
     </message>
-    <message>
-        <source>%1 will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation>%1 se cerrará ahora para finalizar el proceso de cifrado. Recuerde que el cifrado de su monedero no puede proteger de manera completa su Particl de robo por malware que esté infectando su sistema.</translation>
-    </message>
     </context>
 <context>
     <name>BanTableModel</name>
@@ -184,10 +180,6 @@
     <message>
         <source>&amp;Overview</source>
         <translation>&amp;Vista general</translation>
-    </message>
-    <message>
-        <source>Node</source>
-        <translation>Nodo</translation>
     </message>
     <message>
         <source>Show general overview of wallet</source>
@@ -234,14 +226,6 @@
         <translation>&amp;Cambiar la contraseña…</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>$Enviando dirección...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>&amp;Recibiendo dirección</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Abrir URI...</translation>
     </message>
@@ -251,7 +235,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Enviar monedas a una dirección Particl.</translation>
+        <translation>Enviar monedas a una dirección Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -274,12 +258,8 @@
         <translation>&amp;Verificar mensaje...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Monedero</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -327,7 +307,7 @@
     </message>
     <message>
         <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Solicitar pagos (genera codigo QR y URL's de Particl )</translation>
+        <translation>Solicitar pagos (genera codigo QR y URL's de Particl)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -372,6 +352,10 @@
     <message>
         <source>Up to date</source>
         <translation>Actualizado</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Ventana</translation>
     </message>
     <message>
         <source>Catching up...</source>
@@ -521,8 +505,8 @@
         <translation>Utilice un directorio de datos personalizado:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -568,10 +552,6 @@
     <message>
         <source>&amp;Main</source>
         <translation>&amp;Principal</translation>
-    </message>
-    <message>
-        <source>MB</source>
-        <translation>MB</translation>
     </message>
     <message>
         <source>IP address of the proxy (e.g. IPv4: 127.0.0.1 / IPv6: ::1)</source>
@@ -1132,7 +1112,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Firmar el mensaje para demostrar que se posee esta dirección Particl.</translation>
+        <translation>Firmar el mensaje para demostrar que se posee esta dirección Particl</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1229,7 +1209,7 @@
     <name>bitcoin-core</name>
     <message>
         <source>Particl Core</source>
-        <translation>Núcleo de Particl </translation>
+        <translation>Núcleo de Particl</translation>
     </message>
     <message>
         <source>Corrupted block database detected</source>

@@ -238,10 +238,6 @@
         <translation>&amp;Panorama general</translation>
     </message>
     <message>
-        <source>Node</source>
-        <translation>Node</translation>
-    </message>
-    <message>
         <source>Show general overview of wallet</source>
         <translation>Mostra el panorama general del moneder</translation>
     </message>
@@ -286,14 +282,6 @@
         <translation>&amp;Canvia la contrasenya...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>Adreces d'e&amp;nviament...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Adreces de &amp;recepció</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Obri un &amp;URI...</translation>
     </message>
@@ -303,7 +291,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Envia monedes a una adreça Particl.</translation>
+        <translation>Envia monedes a una adreça Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -326,12 +314,8 @@
         <translation>&amp;Verifica el missatge...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Moneder</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -424,6 +408,10 @@
     <message>
         <source>Up to date</source>
         <translation>Al dia</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Finestra</translation>
     </message>
     <message>
         <source>Catching up...</source>
@@ -727,8 +715,8 @@
         <translation>Utilitza un directori de dades personalitzat:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -792,10 +780,6 @@
         <translation>Mida de la memòria cau de la base de &amp;dades</translation>
     </message>
     <message>
-        <source>MB</source>
-        <translation>MB</translation>
-    </message>
-    <message>
         <source>Number of script &amp;verification threads</source>
         <translation>Nombre de fils de &amp;verificació d'scripts</translation>
     </message>
@@ -810,10 +794,6 @@
     <message>
         <source>Third party URLs (e.g. a block explorer) that appear in the transactions tab as context menu items. %s in the URL is replaced by transaction hash. Multiple URLs are separated by vertical bar |.</source>
         <translation>URL de terceres parts (p. ex. explorador de blocs) que apareix en la pestanya de transaccions com elements del menú contextual. %s en l'URL es reemplaçat pel resum de la transacció. Diferents URL estan separades per una barra vertical |.</translation>
-    </message>
-    <message>
-        <source>Active command-line options that override above options:</source>
-        <translation>Opcions de línies d'orde active que sobreescriuen les opcions de dalt:</translation>
     </message>
     <message>
         <source>Reset all client options to default.</source>
@@ -1633,14 +1613,6 @@
         <translation>Amaga</translation>
     </message>
     <message>
-        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
-        <translation>No hi ha cap problema en pagar només la comissió mínima sempre que hi haja menys volum de transacció que espai en els blocs. Però tingueu present que això pot acabar en una transacció que mai es confirme una vegada hi haja més demanda de transaccions de particl que la xarxa puga processar.</translation>
-    </message>
-    <message>
-        <source>(read the tooltip)</source>
-        <translation>(llegiu l'indicador de funció)</translation>
-    </message>
-    <message>
         <source>Recommended:</source>
         <translation>Recomanada:</translation>
     </message>
@@ -1821,7 +1793,7 @@
     </message>
     <message>
         <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>La comissió es deduirà de l'import que s'enviarà. El destinatari rebrà menys particl que les que introduïu al camp d'import. Si se seleccionen múltiples destinataris, la comissió es dividirà per igual.</translation>
+        <translation>La comissió es deduirà de l'import que s'enviarà. El destinatari rebrà menys particls que les que introduïu al camp d'import. Si se seleccionen múltiples destinataris, la comissió es dividirà per igual.</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -1886,7 +1858,7 @@
     </message>
     <message>
         <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Podeu signar missatges/acords amb les vostres adreces per provar que rebeu les particl que s'hi envien. Aneu amb compte no signar res que siga vague o aleatori, perquè en alguns atacs de suplantació es pot provar que hi signeu la vostra identitat. Només signeu aquelles declaracions completament detallades en què hi esteu d'acord. </translation>
+        <translation>Podeu signar missatges/acords amb les vostres adreces per provar que rebeu les particls que s'hi envien. Aneu amb compte no signar res que siga vague o aleatori, perquè en alguns atacs de suplantació es pot provar que hi signeu la vostra identitat. Només signeu aquelles declaracions completament detallades en què hi esteu d'acord. </translation>
     </message>
     <message>
         <source>The Particl address to sign the message with</source>
@@ -1922,7 +1894,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Signa el missatge per provar que ets propietari d'esta adreça Particl.</translation>
+        <translation>Signa el missatge per provar que ets propietari d'esta adreça Particl</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>

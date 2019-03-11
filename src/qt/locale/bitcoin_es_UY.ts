@@ -45,12 +45,84 @@
         <source>&amp;Delete</source>
         <translation>&amp;Borrar</translation>
     </message>
-    </context>
+    <message>
+        <source>Choose the address to send coins to</source>
+        <translation>Elige la dirección a donde enviar monedas</translation>
+    </message>
+    <message>
+        <source>Choose the address to receive coins with</source>
+        <translation>Elige la dirección donde recibir monedas</translation>
+    </message>
+    <message>
+        <source>C&amp;hoose</source>
+        <translation>Elegir</translation>
+    </message>
+    <message>
+        <source>Sending addresses</source>
+        <translation>Direcciones de envío</translation>
+    </message>
+    <message>
+        <source>Receiving addresses</source>
+        <translation>Direcciones de recepción</translation>
+    </message>
+    <message>
+        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Estás son tus direcciones de Particl para enviar pagos. Verifica siempre el monto y la dirección de recepción antes de enviar monedas.</translation>
+    </message>
+    <message>
+        <source>These are your Particl addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Estas son tus direcciones de Particl para recibir pagos. Es recomendable usar una nueva dirección de recepción para cada transacción.</translation>
+    </message>
+    <message>
+        <source>&amp;Copy Address</source>
+        <translation>&amp;Copiar Dirección</translation>
+    </message>
+    <message>
+        <source>Copy &amp;Label</source>
+        <translation>Copiar Etiqueta</translation>
+    </message>
+    <message>
+        <source>&amp;Edit</source>
+        <translation>&amp;Editar</translation>
+    </message>
+    <message>
+        <source>Export Address List</source>
+        <translation>Exportar Lista de Direcciones</translation>
+    </message>
+    <message>
+        <source>Comma separated file (*.csv)</source>
+        <translation>Archivo con valores separados por coma (*.csv)</translation>
+    </message>
+    <message>
+        <source>Exporting Failed</source>
+        <translation>La Exportación Falló</translation>
+    </message>
+    <message>
+        <source>There was an error trying to save the address list to %1. Please try again.</source>
+        <translation>Hubo un error al intentar guardar la lista de direcciones en %1. Por favor, intenta nuevamente.</translation>
+    </message>
+</context>
 <context>
     <name>AddressTableModel</name>
-    </context>
+    <message>
+        <source>Label</source>
+        <translation>Etiqueta</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>Dirección</translation>
+    </message>
+    <message>
+        <source>(no label)</source>
+        <translation>(sin etiqueta)</translation>
+    </message>
+</context>
 <context>
     <name>AskPassphraseDialog</name>
+    <message>
+        <source>Passphrase Dialog</source>
+        <translation>Contraseña</translation>
+    </message>
     <message>
         <source>Enter passphrase</source>
         <translation>Escriba la contraseña</translation>
@@ -62,6 +134,70 @@
     <message>
         <source>Repeat new passphrase</source>
         <translation>Repetir nueva contraseña</translation>
+    </message>
+    <message>
+        <source>Show password</source>
+        <translation>Mostrar contraseña</translation>
+    </message>
+    <message>
+        <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
+        <translation>Ingresa la nueva contraseña para la billetera.&lt;br/&gt;Por favor, usa una contraseña de &lt;b&gt;diez o más caracteres aleatorios&lt;/b&gt;, u &lt;b&gt;ocho o más palabras&lt;/b&gt;.</translation>
+    </message>
+    <message>
+        <source>Encrypt wallet</source>
+        <translation>Encriptar billetera</translation>
+    </message>
+    <message>
+        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <translation>Esta operación requiere la contraseña de tu billetera para desbloquear la billetera.</translation>
+    </message>
+    <message>
+        <source>Unlock wallet</source>
+        <translation>Desbloquear billetera</translation>
+    </message>
+    <message>
+        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <translation>Esta operación requiere la contraseña de tu billetera para desencriptar la billetera.</translation>
+    </message>
+    <message>
+        <source>Decrypt wallet</source>
+        <translation>Desencriptar billetera</translation>
+    </message>
+    <message>
+        <source>Change passphrase</source>
+        <translation>Cambiar contraseña</translation>
+    </message>
+    <message>
+        <source>Enter the old passphrase and new passphrase to the wallet.</source>
+        <translation>Ingresa la antigua y la nueva contraseña de la billetera.</translation>
+    </message>
+    <message>
+        <source>Confirm wallet encryption</source>
+        <translation>Confirmar encriptación de billetera</translation>
+    </message>
+    <message>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
+        <translation>Atención: Si encriptas tu billetera y pierdes tu contraseña, vas a &lt;b&gt;PERDER TODOS TUS PARTICL&lt;/b&gt;!</translation>
+    </message>
+    <message>
+        <source>Are you sure you wish to encrypt your wallet?</source>
+        <translation>¿Estás seguro que querés encriptar tu billetera?</translation>
+    </message>
+    <message>
+        <source>Wallet encrypted</source>
+        <translation>Billetera encriptada</translation>
+    </message>
+    <message>
+        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation>Tu billetera quedó encriptada. Recuerda que encriptar tu billetera no protege totalmente tus particls de ser robados por malware que infecte tu computadora.</translation>
+    </message>
+    <message>
+        <source>Wallet encryption failed</source>
+        <translation>La encriptación de la billetera falló</translation>
+    </message>
+    <message>
+        <source>Wallet unlock failed</source>
+        <translation>El desbloqueo de la billetera falló</translation>
     </message>
     </context>
 <context>
@@ -114,28 +250,16 @@
         <translation>Cambiar contraseña</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>Enviando direcciones</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Recibiendo direcciones</translation>
-    </message>
-    <message>
         <source>Send coins to a Particl address</source>
-        <translation>Enviar monedas a una dirección Particl.</translation>
+        <translation>Enviar monedas a una dirección Particl</translation>
     </message>
     <message>
         <source>Change the passphrase used for wallet encryption</source>
         <translation>Cambie la clave utilizada para el cifrado del monedero</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Billetera</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Show / Hide</source>
@@ -231,6 +355,10 @@
         <source>Confirmed</source>
         <translation>Confirmado</translation>
     </message>
+    <message>
+        <source>(no label)</source>
+        <translation>(sin etiqueta)</translation>
+    </message>
     </context>
 <context>
     <name>EditAddressDialog</name>
@@ -256,8 +384,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error</source>
@@ -340,12 +468,28 @@
         <translation>Copiar Dirección</translation>
     </message>
     <message>
+        <source>Address</source>
+        <translation>Dirección</translation>
+    </message>
+    <message>
+        <source>Label</source>
+        <translation>Etiqueta</translation>
+    </message>
+    <message>
         <source>Wallet</source>
         <translation>Billetera</translation>
     </message>
     </context>
 <context>
     <name>RecentRequestsTableModel</name>
+    <message>
+        <source>Label</source>
+        <translation>Etiqueta</translation>
+    </message>
+    <message>
+        <source>(no label)</source>
+        <translation>(sin etiqueta)</translation>
+    </message>
     </context>
 <context>
     <name>SendCoinsDialog</name>
@@ -381,7 +525,11 @@
         <source>Confirm the send action</source>
         <translation>Confirmar el envío</translation>
     </message>
-    </context>
+    <message>
+        <source>(no label)</source>
+        <translation>(sin etiqueta)</translation>
+    </message>
+</context>
 <context>
     <name>SendCoinsEntry</name>
     <message>
@@ -452,9 +600,33 @@
     </context>
 <context>
     <name>TransactionTableModel</name>
+    <message>
+        <source>Label</source>
+        <translation>Etiqueta</translation>
+    </message>
+    <message>
+        <source>(no label)</source>
+        <translation>(sin etiqueta)</translation>
+    </message>
     </context>
 <context>
     <name>TransactionView</name>
+    <message>
+        <source>Comma separated file (*.csv)</source>
+        <translation>Archivo con valores separados por coma (*.csv)</translation>
+    </message>
+    <message>
+        <source>Label</source>
+        <translation>Etiqueta</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>Dirección</translation>
+    </message>
+    <message>
+        <source>Exporting Failed</source>
+        <translation>La Exportación Falló</translation>
+    </message>
     </context>
 <context>
     <name>UnitDisplayStatusBarControl</name>

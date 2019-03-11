@@ -23,7 +23,7 @@
     </message>
     <message>
         <source>C&amp;lose</source>
-        <translation>Fe&amp;char</translation>
+        <translation>&amp;Fechar</translation>
     </message>
     <message>
         <source>Delete the currently selected address from the list</source>
@@ -43,7 +43,7 @@
     </message>
     <message>
         <source>&amp;Delete</source>
-        <translation>&amp;Excluir</translation>
+        <translation>E&amp;xcluir</translation>
     </message>
     <message>
         <source>Choose the address to send coins to</source>
@@ -55,7 +55,7 @@
     </message>
     <message>
         <source>C&amp;hoose</source>
-        <translation>E&amp;scolha</translation>
+        <translation>E&amp;scolher</translation>
     </message>
     <message>
         <source>Sending addresses</source>
@@ -141,7 +141,7 @@
     </message>
     <message>
         <source>Enter the new passphrase to the wallet.&lt;br/&gt;Please use a passphrase of &lt;b&gt;ten or more random characters&lt;/b&gt;, or &lt;b&gt;eight or more words&lt;/b&gt;.</source>
-        <translation>Insira a nova senha para a carteira.&lt;br/&gt;Favor usar uma senha com &lt;b&gt;dez ou mais caracteres aleatórios&lt;/b&gt;, ou &lt;b&gt;oito ou mais palavras&lt;/b&gt;.</translation>
+        <translation>Insira a nova frase de segurança para a carteira.&lt;br/&gt;Use uma frase de segurança com &lt;b&gt;dez ou mais caracteres aleatórios&lt;/b&gt;, ou &lt;b&gt;oito ou mais palavras&lt;/b&gt;.</translation>
     </message>
     <message>
         <source>Encrypt wallet</source>
@@ -149,7 +149,7 @@
     </message>
     <message>
         <source>This operation needs your wallet passphrase to unlock the wallet.</source>
-        <translation>Esta operação precisa da sua senha para desbloquear a carteira.</translation>
+        <translation>Esta operação precisa da sua frase de segurança para desbloquear a carteira.</translation>
     </message>
     <message>
         <source>Unlock wallet</source>
@@ -157,7 +157,7 @@
     </message>
     <message>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
-        <translation>Esta operação precisa da sua senha para descriptografar a carteira</translation>
+        <translation>Esta operação precisa da sua frase de segurança para descriptografar a carteira</translation>
     </message>
     <message>
         <source>Decrypt wallet</source>
@@ -165,11 +165,11 @@
     </message>
     <message>
         <source>Change passphrase</source>
-        <translation>Alterar senha</translation>
+        <translation>Alterar frase de segurança</translation>
     </message>
     <message>
         <source>Enter the old passphrase and new passphrase to the wallet.</source>
-        <translation>Insira a senha antiga e a nova para a carteira.</translation>
+        <translation>Insira a frase de segurança antiga e a nova para a carteira.</translation>
     </message>
     <message>
         <source>Confirm wallet encryption</source>
@@ -177,7 +177,7 @@
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Aviso: Se você criptografar sua carteira e perder sua senha, você vai &lt;b&gt;PERDER TODOS OS SEUS PARTICL&lt;/b&gt;!</translation>
+        <translation>Aviso: Se você criptografar sua carteira e perder sua frase de segurança, você vai &lt;b&gt;PERDER TODOS OS SEUS PARTICL&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -186,6 +186,10 @@
     <message>
         <source>Wallet encrypted</source>
         <translation>Carteira criptografada</translation>
+    </message>
+    <message>
+        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation>Sua carteira está agora criptografada. Lembre-se que criptografar sua carteira não protege totalmente seus particls de serem roubados por malwares infectando seu computador.</translation>
     </message>
     <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
@@ -201,7 +205,7 @@
     </message>
     <message>
         <source>The supplied passphrases do not match.</source>
-        <translation>As senhas não conferem.</translation>
+        <translation>As frases de segurança não conferem.</translation>
     </message>
     <message>
         <source>Wallet unlock failed</source>
@@ -209,7 +213,7 @@
     </message>
     <message>
         <source>The passphrase entered for the wallet decryption was incorrect.</source>
-        <translation>A senha inserida para descriptografar a carteira está incorreta.</translation>
+        <translation>A frase de segurança inserida para descriptografar a carteira está incorreta.</translation>
     </message>
     <message>
         <source>Wallet decryption failed</source>
@@ -217,7 +221,7 @@
     </message>
     <message>
         <source>Wallet passphrase was successfully changed.</source>
-        <translation>A senha da carteira foi alterada com êxito.</translation>
+        <translation>A frase de segurança da carteira foi alterada com êxito.</translation>
     </message>
     <message>
         <source>Warning: The Caps Lock key is on!</source>
@@ -248,10 +252,6 @@
     <message>
         <source>&amp;Overview</source>
         <translation>&amp;Visão geral</translation>
-    </message>
-    <message>
-        <source>Node</source>
-        <translation>Nó</translation>
     </message>
     <message>
         <source>Show general overview of wallet</source>
@@ -310,24 +310,12 @@
         <translation>&amp;Mudar frase de segurança...</translation>
     </message>
     <message>
-        <source>&amp;Sending addresses...</source>
-        <translation>Endereço&amp;s de envio...</translation>
-    </message>
-    <message>
-        <source>&amp;Receiving addresses...</source>
-        <translation>Endereços de &amp;recebimento...</translation>
-    </message>
-    <message>
         <source>Open &amp;URI...</source>
         <translation>Abrir &amp;URI...</translation>
     </message>
     <message>
         <source>Wallet:</source>
         <translation>Carteira:</translation>
-    </message>
-    <message>
-        <source>default wallet</source>
-        <translation>carteira padrão</translation>
     </message>
     <message>
         <source>Click to disable network activity.</source>
@@ -378,12 +366,8 @@
         <translation>&amp;Verificar mensagem...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
-    </message>
-    <message>
-        <source>Wallet</source>
-        <translation>Carteira</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>&amp;Send</source>
@@ -451,7 +435,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n conexão ativa na rede Particl </numerusform><numerusform>%n conexões ativas na rede Particl </numerusform></translation>
+        <translation><numerusform>%n conexão ativa na rede Particl</numerusform><numerusform>%n conexões ativas na rede Particl</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -494,12 +478,40 @@
         <translation>Atualizado</translation>
     </message>
     <message>
+        <source>&amp;Sending addresses</source>
+        <translation>Endereço remetente</translation>
+    </message>
+    <message>
+        <source>&amp;Receiving addresses</source>
+        <translation>Endereço destinatário</translation>
+    </message>
+    <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
-        <translation>Mostrar a mensagem de ajuda do %1 para obter uma lista com possíveis opções de linha de comando Particl.</translation>
+        <translation>Mostrar a mensagem de ajuda do %1 para obter uma lista com possíveis opções de linha de comando Particl</translation>
+    </message>
+    <message>
+        <source>&amp;Window</source>
+        <translation>&amp;Janela</translation>
+    </message>
+    <message>
+        <source>Minimize</source>
+        <translation>Minimizar</translation>
+    </message>
+    <message>
+        <source>Zoom</source>
+        <translation>Ampliar</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>Restaurar</translation>
+    </message>
+    <message>
+        <source>Main Window</source>
+        <translation>Janela Principal</translation>
     </message>
     <message>
         <source>%1 client</source>
-        <translation>%1 cliente</translation>
+        <translation>Cliente %1</translation>
     </message>
     <message>
         <source>Connecting to peers...</source>
@@ -560,6 +572,10 @@
     <message>
         <source>HD key generation is &lt;b&gt;disabled&lt;/b&gt;</source>
         <translation>Geração de chave HD está &lt;b&gt;desativada&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <source>Private key &lt;b&gt;disabled&lt;/b&gt;</source>
+        <translation>Chave privada &lt;b&gt;desabilitada&lt;/b&gt;</translation>
     </message>
     <message>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
@@ -857,8 +873,8 @@
         <translation>Use um diretório de dados personalizado:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -905,7 +921,7 @@
     </message>
     <message>
         <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
-        <translation>Tentar gastar particl que estão em transações ainda não exibidas, não vão ser aceitos pela rede.</translation>
+        <translation>Tentar gastar particls que estão em transações ainda não exibidas, não vão ser aceitos pela rede.</translation>
     </message>
     <message>
         <source>Number of blocks left</source>
@@ -990,10 +1006,6 @@
         <translation>Tamanho do banco de &amp;dados do cache</translation>
     </message>
     <message>
-        <source>MB</source>
-        <translation>MB</translation>
-    </message>
-    <message>
         <source>Number of script &amp;verification threads</source>
         <translation>Número de threads do script de &amp;verificação</translation>
     </message>
@@ -1026,10 +1038,6 @@
         <translation>URLs de terceiros (exemplo: explorador de blocos) que aparecem na aba de transações como itens do menu de contexto. %s na URL é substituido pela hash da transação. Múltiplas URLs são separadas pela barra vertical |.</translation>
     </message>
     <message>
-        <source>Active command-line options that override above options:</source>
-        <translation>Opções de linha de comando ativas que sobrescrevem as opções acima:</translation>
-    </message>
-    <message>
         <source>Open the %1 configuration file from the working directory.</source>
         <translation>Abrir o arquivo de configuração %1 apartir do diretório trabalho.</translation>
     </message>
@@ -1039,7 +1047,7 @@
     </message>
     <message>
         <source>Reset all client options to default.</source>
-        <translation>Redefinir todas as opções do cliente para opções padrão.</translation>
+        <translation>Redefinir todas as opções do cliente para a opções padrão.</translation>
     </message>
     <message>
         <source>&amp;Reset Options</source>
@@ -1064,6 +1072,10 @@
     <message>
         <source>Reverting this setting requires re-downloading the entire blockchain.</source>
         <translation>Reverter esta configuração requer baixar de novo a blockchain inteira.</translation>
+    </message>
+    <message>
+        <source>MiB</source>
+        <translation>MiB</translation>
     </message>
     <message>
         <source>(0 = auto, &lt;0 = leave that many cores free)</source>
@@ -1091,7 +1103,7 @@
     </message>
     <message>
         <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Abrir as portas do cliente Particl automaticamente no roteador. Isto só funcionará se seu roteador suportar UPnP e esta função estiver habilitada.</translation>
+        <translation>Abrir automaticamente no roteador as portas do cliente Particl. Isto só funcionará se seu roteador suportar UPnP e esta função estiver habilitada.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1188,6 +1200,10 @@
     <message>
         <source>&amp;Third party transaction URLs</source>
         <translation>&amp;URLs de transação de terceiros</translation>
+    </message>
+    <message>
+        <source>Options set in this dialog are overridden by the command line or in the configuration file:</source>
+        <translation>Opções nesta tela foram sobreescritas por comandos ou no arquivo de configuração:</translation>
     </message>
     <message>
         <source>&amp;OK</source>
@@ -1336,8 +1352,16 @@
         <translation>'particl://' não é um URI válido. Use 'particl:'.</translation>
     </message>
     <message>
+        <source>You are using a BIP70 URL which will be unsupported in the future.</source>
+        <translation>Você está usando uma URL do BIP70 que será desativado no futuro.</translation>
+    </message>
+    <message>
         <source>Payment request fetch URL is invalid: %1</source>
         <translation>URL de cobrança é inválida: %1</translation>
+    </message>
+    <message>
+        <source>Cannot process payment request because BIP70 support was not compiled in.</source>
+        <translation>O pagamento não pode ser processado porque o suporte ao BIP70 foi desativado.</translation>
     </message>
     <message>
         <source>Invalid payment address %1</source>
@@ -1361,7 +1385,7 @@
     </message>
     <message>
         <source>Payment request network doesn't match client network.</source>
-        <translation>Rede do pedido de pagamento não corresponde rede do cliente.</translation>
+        <translation>Rede do pedido de pagamento não corresponde à rede do cliente.</translation>
     </message>
     <message>
         <source>Payment request expired.</source>
@@ -1599,6 +1623,18 @@
         <translation>Datadir</translation>
     </message>
     <message>
+        <source>To specify a non-default location of the data directory use the '%1' option.</source>
+        <translation>Para especificar um local não padrão do diretório de dados, use a opção '%1'.</translation>
+    </message>
+    <message>
+        <source>Blocksdir</source>
+        <translation>Blocksdir</translation>
+    </message>
+    <message>
+        <source>To specify a non-default location of the blocks directory use the '%1' option.</source>
+        <translation>Para especificar um local não padrão do diretório dos blocos, use a opção '%1'.</translation>
+    </message>
+    <message>
         <source>Startup time</source>
         <translation>Horário de inicialização</translation>
     </message>
@@ -1811,10 +1847,6 @@
         <translation>&amp;Desbanir</translation>
     </message>
     <message>
-        <source>default wallet</source>
-        <translation>carteira padrão</translation>
-    </message>
-    <message>
         <source>Welcome to the %1 RPC console.</source>
         <translation>Bem-vindo ao console RPC do %1.</translation>
     </message>
@@ -1895,7 +1927,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
-        <translation>Uma mensagem opcional que será anexada na cobrança e será mostrada quando ela for aberta. Nota: A mensagem não será enviada com o pagamento pela rede Particl .</translation>
+        <translation>Uma mensagem opcional que será anexada na cobrança e será mostrada quando ela for aberta. Nota: A mensagem não será enviada com o pagamento pela rede Particl.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2147,14 +2179,6 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
         <translation>Ocultar</translation>
     </message>
     <message>
-        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
-        <translation>Pagando apenas a taxa mínima é bom, desde que haja pouco volume de transações. Mas esteja ciente de que isso pode acabar em uma transação nunca confirmanda uma vez que há mais demanda por transações do que a rede pode processar.</translation>
-    </message>
-    <message>
-        <source>(read the tooltip)</source>
-        <translation>(Leia o popup)</translation>
-    </message>
-    <message>
         <source>Recommended:</source>
         <translation>Recomendado:</translation>
     </message>
@@ -2181,6 +2205,14 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
     <message>
         <source>Dust:</source>
         <translation>Poeira:</translation>
+    </message>
+    <message>
+        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
+        <translation>Quando o volume de transações é maior que o espaço nos blocos, os mineradores, bem como os nós de retransmissão, podem impor uma taxa mínima. Pagando apenas esta taxa mínima é muito bom, mas esteja ciente de que isso pode resultar em uma transação nunca confirmada, uma vez que há mais demanda por transações do que a rede pode processar.</translation>
+    </message>
+    <message>
+        <source>A too low fee might result in a never confirming transaction (read the tooltip)</source>
+        <translation>Uma taxa muito pequena pode resultar em uma transação nunca confirmada (leia a dica)</translation>
     </message>
     <message>
         <source>Confirmation time target:</source>
@@ -2318,10 +2350,6 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
         <source>Payment request expired.</source>
         <translation>Pedido de pagamento expirado.</translation>
     </message>
-    <message>
-        <source>Pay only the required fee of %1</source>
-        <translation>Pagar somente a taxa requerida de %1</translation>
-    </message>
     <message numerus="yes">
         <source>Estimated to begin confirmation within %n block(s).</source>
         <translation><numerusform>Confirmação em %n bloco.</numerusform><numerusform>Início estimado para confirmação em %n blocos.</numerusform></translation>
@@ -2391,7 +2419,7 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
     </message>
     <message>
         <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>A taxa será deduzida da quantia que está sendo enviada. O destinatário receberá menos particl do que você colocou no campo de quantidade. Se vários destinatários estão selecionados, a taxa é dividida igualmente.</translation>
+        <translation>A taxa será deduzida da quantia que está sendo enviada. O destinatário receberá menos particls do que você colocou no campo de quantidade. Se vários destinatários estão selecionados, a taxa é dividida igualmente.</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -2419,7 +2447,7 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
     </message>
     <message>
         <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>A mensagem que foi anexada ao particl: URI na qual será gravada na transação para sua referência. Nota: Essa mensagem não será gravada publicamente na rede Particl .</translation>
+        <translation>A mensagem que foi anexada ao particl: URI na qual será gravada na transação para sua referência. Nota: Essa mensagem não será gravada publicamente na rede Particl.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2464,7 +2492,7 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
     </message>
     <message>
         <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Você pode assinar mensagens com seus endereços para provar que você pode receber particl enviados por alguém. Cuidado para não assinar nada vago ou aleatório, pois ataques phishing podem tentar te enganar para assinar coisas para eles como se fosse você. Somente assine termos bem detalhados que você concorde.</translation>
+        <translation>Você pode assinar mensagens com seus endereços para provar que você pode receber particls enviados por alguém. Cuidado para não assinar nada vago ou aleatório, pois ataques phishing podem tentar te enganar para assinar coisas para eles como se fosse você. Somente assine termos bem detalhados que você concorde.</translation>
     </message>
     <message>
         <source>The Particl address to sign the message with</source>
@@ -2500,7 +2528,7 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Assinar mensagem para provar que você é dono deste endereço Particl.</translation>
+        <translation>Assinar mensagem para provar que você é dono deste endereço Particl</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -3105,6 +3133,10 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
         <source>Could not commit transaction</source>
         <translation>Não foi possível mandar a transação</translation>
     </message>
+    <message>
+        <source>default wallet</source>
+        <translation>carteira padrão</translation>
+    </message>
 </context>
 <context>
     <name>WalletView</name>
@@ -3252,6 +3284,10 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
         <translation>Índice de mudança fora do intervalo</translation>
     </message>
     <message>
+        <source>Config setting for %s only applied on %s network when in [%s] section.</source>
+        <translation>A configuração %s somente é aplicada na rede %s quando na sessão [%s].</translation>
+    </message>
+    <message>
         <source>Copyright (C) %i-%i</source>
         <translation>Copyright (C) %i-%i</translation>
     </message>
@@ -3262,10 +3298,6 @@ Nota:  Como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por 
     <message>
         <source>Do you want to rebuild the block database now?</source>
         <translation>Você quer reconstruir o banco de dados de blocos agora?</translation>
-    </message>
-    <message>
-        <source>Error creating %s: You can't create non-HD wallets with this version.</source>
-        <translation>Erro ao criar %s: Você não pode criar carteiras não-HD com esta versão.</translation>
     </message>
     <message>
         <source>Error initializing block database</source>
@@ -3389,18 +3421,6 @@ Diretório de blocos especificados "%s" não existe.</translation>
         <translation>Não foi possível gerar chaves</translation>
     </message>
     <message>
-        <source>Unsupported argument -benchmark ignored, use -debug=bench.</source>
-        <translation>Argumento não suportado -benchmark ignorado, use -debug=bench.</translation>
-    </message>
-    <message>
-        <source>Unsupported argument -debugnet ignored, use -debug=net.</source>
-        <translation>Argumento não suportado -debugnet ignorado, use -debug=net</translation>
-    </message>
-    <message>
-        <source>Unsupported argument -tor found, use -onion.</source>
-        <translation>Argumento não suportado encontrado: -tor. Use -onion.</translation>
-    </message>
-    <message>
         <source>Unsupported logging category %s=%s.</source>
         <translation>Categoria de log desconhecida %s=%s.</translation>
     </message>
@@ -3437,16 +3457,16 @@ Diretório de blocos especificados "%s" não existe.</translation>
         <translation>Você precisa reconstruir o banco de dados usando -reindex para sair do modo prune. Isso irá causar o download de todo o blockchain novamente.</translation>
     </message>
     <message>
-        <source>Error loading %s: You can't disable HD on an already existing HD wallet</source>
-        <translation>Erro carregando %s: Você não pode desabilitar o HD em uma carteira HD existente</translation>
-    </message>
-    <message>
         <source>Error reading from database, shutting down.</source>
         <translation>Erro ao ler o banco de dados. Encerrando.</translation>
     </message>
     <message>
         <source>Error upgrading chainstate database</source>
         <translation>Erro ao atualizar banco de dados do chainstate</translation>
+    </message>
+    <message>
+        <source>Error: Disk space is low for %s</source>
+        <translation>Erro: Espaço em disco menor que %s</translation>
     </message>
     <message>
         <source>Information</source>
@@ -3477,6 +3497,10 @@ Diretório de blocos especificados "%s" não existe.</translation>
         <translation>Reduzindo -maxconnections de %d para %d, devido a limitações do sistema.</translation>
     </message>
     <message>
+        <source>Section [%s] is not recognized.</source>
+        <translation>Sessão [%s] não reconhecida.</translation>
+    </message>
+    <message>
         <source>Signing transaction failed</source>
         <translation>Assinatura de transação falhou</translation>
     </message>
@@ -3491,6 +3515,12 @@ Diretório de blocos especificados "%s" não existe.</translation>
     <message>
         <source>Specified -walletdir "%s" is not a directory</source>
         <translation>O -walletdir "%s" especificado não é um diretório</translation>
+    </message>
+    <message>
+        <source>The specified config file %s does not exist
+</source>
+        <translation>O Arquivo de configuração especificado %s não existe
+</translation>
     </message>
     <message>
         <source>The transaction amount is too small to pay the fee</source>
@@ -3545,10 +3575,6 @@ Diretório de blocos especificados "%s" não existe.</translation>
         <translation>A valor especificado de -maxtxfee está muito alto! Taxas grandes assim podem ser atribuidas numa transação única.</translation>
     </message>
     <message>
-        <source>Error loading %s: You can't enable HD on an already existing non-HD wallet</source>
-        <translation>Erro carregando %s: Não é permitido habilitar HD em uma carteira não-HD já existente</translation>
-    </message>
-    <message>
         <source>This is the transaction fee you may pay when fee estimates are not available.</source>
         <translation>Esta é a taxa que você deve pagar quando a taxa estimada não está disponível.</translation>
     </message>
@@ -3559,14 +3585,6 @@ Diretório de blocos especificados "%s" não existe.</translation>
     <message>
         <source>Total length of network version string (%i) exceeds maximum length (%i). Reduce the number or size of uacomments.</source>
         <translation>O tamanho total da string de versão da rede (%i) excede o tamanho máximo (%i). Reduza o número ou tamanho de uacomments.</translation>
-    </message>
-    <message>
-        <source>Unsupported argument -socks found. Setting SOCKS version isn't possible anymore, only SOCKS5 proxies are supported.</source>
-        <translation>Argumento inválido -socks encontrado. Definir a versão do SOCKS não é mais possível, somente proxys SOCK5 são suportados.</translation>
-    </message>
-    <message>
-        <source>Unsupported argument -whitelistalwaysrelay ignored, use -whitelistrelay and/or -whitelistforcerelay.</source>
-        <translation>Argumento não suportado -whitelistalwaysrelay foi ignorado, utilize -whitelistrelay e/ou -whitelistforcerelay.</translation>
     </message>
     <message>
         <source>Warning: Unknown block versions being mined! It's possible unknown rules are in effect</source>
