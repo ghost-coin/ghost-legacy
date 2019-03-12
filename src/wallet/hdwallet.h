@@ -136,7 +136,7 @@ public:
     {
         blockHash = blockHash_;
         nIndex = posInBlock;
-    };
+    }
 
     bool IsAbandoned() const { return (blockHash == ABANDON_HASH); }
     bool HashUnset() const { return (blockHash.IsNull() || blockHash == ABANDON_HASH); }
@@ -144,7 +144,7 @@ public:
     void SetAbandoned()
     {
         blockHash = ABANDON_HASH;
-    };
+    }
 
     int64_t GetTxTime() const
     {
@@ -152,7 +152,7 @@ public:
             return nTimeReceived;
         }
         return std::min(nTimeReceived, nBlockTime);
-    };
+    }
 
     bool HaveChange() const
     {
@@ -162,7 +162,7 @@ public:
             }
         }
         return false;
-    };
+    }
 
     CAmount TotalOutput()
     {
@@ -171,7 +171,7 @@ public:
             nTotal += r.nValue;
         }
         return nTotal;
-    };
+    }
 
     bool InMempool() const;
     bool IsCoinBase() const {return false;};
@@ -190,7 +190,7 @@ public:
         READWRITE(nFee);
         READWRITE(vin);
         READWRITE(vout);
-    };
+    }
 };
 
 
@@ -211,13 +211,13 @@ public:
         nStealthPrefix = 0;
         fSplitBlindOutput = false;
         fExemptFeeSub = false;
-    };
+    }
 
     void SetAmount(CAmount nValue)
     {
         nAmount = nValue;
         nAmountSelected = nValue;
-    };
+    }
 
     bool ApplySubFee(CAmount nFee, size_t nSubtractFeeFromAmount, bool &fFirst);
 
@@ -286,32 +286,28 @@ public:
 
     bool InsertBlind(int n, const uint8_t *p)
     {
-        for (auto &bp : vBlinds)
-        {
-            if (bp.first == n)
-            {
+        for (auto &bp : vBlinds) {
+            if (bp.first == n) {
                 memcpy(bp.second.begin(), p, 32);
                 return true;
-            };
-        };
+            }
+        }
         uint256 insert;
         memcpy(insert.begin(), p, 32);
         vBlinds.push_back(std::make_pair(n, insert));
         return true;
-    };
+    }
 
     bool GetBlind(int n, uint8_t *p) const
     {
-        for (auto &bp : vBlinds)
-        {
-            if (bp.first == n)
-            {
+        for (auto &bp : vBlinds) {
+            if (bp.first == n) {
                 memcpy(p, bp.second.begin(), 32);
                 return true;
-            };
-        };
+            }
+        }
         return false;
-    };
+    }
 
     ADD_SERIALIZE_METHODS;
 
@@ -320,7 +316,7 @@ public:
     {
         READWRITE(tx);
         READWRITE(vBlinds);
-    };
+    }
 };
 
 class CHDWalletBalances
@@ -341,7 +337,7 @@ public:
 
         nAnon = 0;
         nAnonUnconf = 0;
-    };
+    }
 
     CAmount nPart = 0;
     CAmount nPartUnconf = 0;
@@ -803,11 +799,11 @@ private:
     template<typename... Params>
     bool werror(std::string fmt, Params... parameters) const {
         return error(("%s " + fmt).c_str(), GetDisplayName(), parameters...);
-    };
+    }
     template<typename... Params>
     int werrorN(int rv, std::string fmt, Params... parameters) const {
         return errorN(rv, ("%s " + fmt).c_str(), GetDisplayName(), parameters...);
-    };
+    }
     template<typename... Params>
     int wserrorN(int rv, std::string &s, const char *func, std::string fmt, Params... parameters) const {
         return errorN(rv, s, func, ("%s " + fmt).c_str(), GetDisplayName(), parameters...);

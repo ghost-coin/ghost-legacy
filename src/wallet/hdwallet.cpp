@@ -2791,7 +2791,6 @@ int CHDWallet::GetChangeAddress(CPubKey &pk)
         return werrorN(1, "%s Unknown chain.", __func__);
     }
 
-
     // Alternative: take 1st key of keypool
     for (size_t k = 0; k < 1000; ++k) {
         uint32_t nChild;
@@ -3194,7 +3193,7 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
 
     uint64_t nValue = r.nAmount;
     if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
-        pCommitment, (uint8_t*)&r.vBlind[0],
+        pCommitment, (uint8_t*)r.vBlind.data(),
         nValue, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
         return wserrorN(1, sError, __func__, "secp256k1_pedersen_commit failed.");
     }
@@ -3221,6 +3220,7 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
         const uint8_t *bp[1];
         bp[0] = r.vBlind.data();
         assert(r.vBlind.size() == 32);
+
         if (1 != secp256k1_bulletproof_rangeproof_prove(secp256k1_ctx_blind, blind_scratch, blind_gens,
             pvRangeproof->data(), &nRangeProofLen, &nValue, nullptr, bp, 1,
             &secp256k1_generator_const_h, 64, nonce.begin(), nullptr, 0)) {
@@ -3241,7 +3241,6 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
             if (!crypter.Encrypt((uint8_t*)r.sNarration.data(), r.sNarration.length(), vchNarr)) {
                 return errorN(1, sError, __func__, "Narration encryption failed.");
             }
-
             if (vchNarr.size() > MAX_STEALTH_NARRATION_SIZE) {
                 return errorN(1, sError, __func__, "Encrypted narration is too long.");
             }
@@ -3491,11 +3490,9 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
             if (!ExtractDestination(r.scriptPubKey, r.address)) {
                 return wserrorN(0, sError, __func__, "Could not get pubkey from changescript.");
             }
-
             if (r.address.type() != typeid(CKeyID)) {
                 return wserrorN(0, sError, __func__, "Could not get pubkey from changescript.");
             }
-
             CKeyID idk = boost::get<CKeyID>(r.address);
             if (!GetPubKey(idk, r.pkTo)) {
                 return wserrorN(0, sError, __func__, "Could not get pubkey from changescript.");
@@ -3516,7 +3513,6 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
                 if (!addr.IsValid()) {
                     return wserrorN(0, sError, __func__, "Invalid address setting.");
                 }
-
                 r.address = addr.Get();
                 if (!ExpandChangeAddress(this, r, sError)) {
                     return false;
@@ -3594,6 +3590,7 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
 
 static bool InsertChangeAddress(CTempRecipient &r, std::vector<CTempRecipient> &vecSend, int &nChangePosInOut)
 {
+    r.fChange = true;
     if (nChangePosInOut < 0) {
         nChangePosInOut = GetRandInt(vecSend.size()+1);
     } else {
@@ -3753,7 +3750,6 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 // Fill an output to ourself
                 CTempRecipient r;
                 r.nType = OUTPUT_STANDARD;
-                r.fChange = true;
                 r.SetAmount(nChange);
 
                 if (!SetChangeDest(coinControl, r, sError)) {
@@ -4308,18 +4304,29 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 // Insert a sender-owned 0 value output which becomes the change output if needed
                 CTempRecipient r;
                 r.nType = OUTPUT_CT;
-                r.fChange = true;
 
+                CAmount value_change = nChange;
                 if (!SetChangeDest(coinControl, r, sError)) {
                     return wserrorN(1, sError, __func__, ("SetChangeDest failed: " + sError));
                 }
 
-                if (fOnlyStandardOutputs // Need at least 1 blinded output
-                    || nChange > ::minRelayTxFee.GetFee(2048)) { // TODO: better output size estimate
-                    r.SetAmount(nChange);
+                if (fOnlyStandardOutputs) { // Need at least 2 blinded outputs
+                    CTempRecipient r2;
+                    r2.nType = OUTPUT_CT;
+                    if (!SetChangeDest(coinControl, r2, sError)) {
+                        return wserrorN(1, sError, __func__, ("SetChangeDest failed: " + sError));
+                    }
+                    CAmount value_split = value_change * ((float)GetRandInt(100) / 100.0);
+                    value_change -= value_split;
+                    r2.SetAmount(value_split);
+                    InsertChangeAddress(r2, vecSend, nChangePosInOut);
+                }
+
+                if (value_change > ::minRelayTxFee.GetFee(2048)) { // TODO: better output size estimate
+                    r.SetAmount(value_change);
                 } else {
                     r.SetAmount(0);
-                    nFeeRet += nChange;
+                    nFeeRet += value_change;
                 }
 
                 nChangePosInOut = coinControl->nChangePos;
@@ -4524,7 +4531,6 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 if (!CHDWalletDB(*database).ReadStoredTx(txhash, stx)) {
                     return werrorN(1, "%s: ReadStoredTx failed for %s.\n", __func__, txhash.ToString().c_str());
                 }
-
                 if (!stx.GetBlind(coin.second, &vInputBlinds[nIn * 32])) {
                     return werrorN(1, "%s: GetBlind failed for %s, %d.\n", __func__, txhash.ToString().c_str(), coin.second);
                 }
@@ -4558,7 +4564,7 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 
             if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT) {
                 if ((int)i != nChangePosInOut) {
-                    vpBlinds.push_back(&r.vBlind[0]);
+                    vpBlinds.push_back(r.vBlind.data());
                 }
                 nLastBlinded = i;
             }
@@ -4583,6 +4589,14 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             // sum of output blinding values must equal sum of input blinding values
             if (!secp256k1_pedersen_blind_sum(secp256k1_ctx_blind, &r.vBlind[0], &vpBlinds[0], vpBlinds.size(), nBlindedInputs)) {
                 return wserrorN(1, sError, __func__, "secp256k1_pedersen_blind_sum failed.");
+            }
+
+            size_t k = 0;
+            for (k = 0; k < 32; k++) {
+                if (r.vBlind[k] != 0) break;
+            }
+            if (k == 32) {
+                return wserrorN(1, sError, __func__, "Zero blind sum.");
             }
 
             if (0 != AddCTData(pout, r, sError)) {
@@ -5026,7 +5040,6 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 // Fill an output to ourself
                 CTempRecipient r;
                 r.nType = OUTPUT_RINGCT;
-                r.fChange = true;
 
                 if (!SetChangeDest(coinControl, r, sError)) {
                     return wserrorN(1, sError, __func__, ("SetChangeDest failed: " + sError));
