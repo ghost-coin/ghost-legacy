@@ -149,11 +149,8 @@ class BlindTest(ParticlTestFramework):
 
 
         nodes[0].syncwithvalidationinterfacequeue()
-        ro = nodes[0].getwalletinfo()
-        assert(isclose(ro['total_balance'], 99996.09670674))
-
-        ro = nodes[1].getwalletinfo()
-        assert(isclose(ro['blind_balance'], 2.69666800))
+        assert(isclose(nodes[0].getwalletinfo()['total_balance'], 99996.09670674))
+        assert(isclose(nodes[1].getwalletinfo()['blind_balance'], 2.69580200))
 
         unspent = nodes[2].listunspentblind(minconf=0)
         assert(len(unspent[0]['stealth_address']))

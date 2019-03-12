@@ -2,6 +2,11 @@ Master
 ==============
 
 
+0.18.0.6 rc1
+==============
+
+- Fixed failure when sending all blind to part.
+
 
 0.18.0.5 rc1
 ==============
