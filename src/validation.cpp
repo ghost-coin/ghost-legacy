@@ -4217,24 +4217,21 @@ unsigned int GetNextTargetRequired(const CBlockIndex *pindexLast)
     unsigned int nProofOfWorkLimit;
     int nHeight = pindexLast ? pindexLast->nHeight+1 : 0;
 
-    if (nHeight < (int)Params().GetLastImportHeight())
-    {
-        if (nHeight == 0)
+    if (nHeight < (int)Params().GetLastImportHeight()) {
+        if (nHeight == 0) {
             return arith_uint256("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").GetCompact();
+        }
         int nLastImportHeight = (int) Params().GetLastImportHeight();
         arith_uint256 nMaxProofOfWorkLimit = arith_uint256("000000000008ffffffffffffffffffffffffffffffffffffffffffffffffffff");
         arith_uint256 nMinProofOfWorkLimit = UintToArith256(consensus.powLimit);
         arith_uint256 nStep = (nMaxProofOfWorkLimit - nMinProofOfWorkLimit) / nLastImportHeight;
 
-
         bnProofOfWorkLimit = nMaxProofOfWorkLimit - (nStep * nHeight);
         nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
-    } else
-    {
+    } else {
         bnProofOfWorkLimit = UintToArith256(consensus.powLimit);
         nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
-    };
-
+    }
 
     if (pindexLast == nullptr)
         return nProofOfWorkLimit; // Genesis block
@@ -4261,7 +4258,6 @@ unsigned int GetNextTargetRequired(const CBlockIndex *pindexLast)
     int64_t nInterval = nTargetTimespan / nTargetSpacing;
     bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
     bnNew /= ((nInterval + 1) * nTargetSpacing);
-
 
     if (bnNew <= 0 || bnNew > bnProofOfWorkLimit)
         return nProofOfWorkLimit;

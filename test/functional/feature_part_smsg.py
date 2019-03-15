@@ -12,7 +12,7 @@ from test_framework.authproxy import JSONRPCException
 
 class SmsgTest(ParticlTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = True   # don't copy from cache
+        self.setup_clean_chain = True   # Don't copy from cache
         self.num_nodes = 2
         self.extra_args = [ ['-smsgscanincoming','-smsgsaddnewkeys'] for i in range(self.num_nodes) ]
 

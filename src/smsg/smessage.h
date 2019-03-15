@@ -270,7 +270,7 @@ public:
     };
 
     void hashBucket();
-    size_t CountActive();
+    size_t CountActive() const;
 
     int64_t               timeChanged;
     uint32_t              hash;           // token set should get ordered the same on each node

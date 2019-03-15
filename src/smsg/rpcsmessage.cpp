@@ -16,6 +16,7 @@
 #include <base58.h>
 #include <rpc/util.h>
 #include <validation.h>
+#include <fs.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
@@ -1108,7 +1109,7 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
             RPCHelpMan{"smsgbuckets",
                 "\nDisplay some statistics.\n",
                 {
-                    {"mode", RPCArg::Type::STR, /* default */ "stats", "If mode is \"dump\" delete all buckets."},
+                    {"mode", RPCArg::Type::STR, /* default */ "stats", "stats|total|dump. \"dump\" will remove all buckets."},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -1125,17 +1126,18 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
     UniValue arrBuckets(UniValue::VARR);
 
     char cbuf[256];
-    if (mode == "stats") {
+    if (mode == "stats" || mode == "total") {
+        bool show_buckets = mode != "total" ? true : false;
         uint32_t nBuckets = 0;
         uint32_t nMessages = 0;
         uint64_t nBytes = 0;
         {
             LOCK(smsgModule.cs_smsg);
-            std::map<int64_t, smsg::SecMsgBucket>::iterator it;
+            std::map<int64_t, smsg::SecMsgBucket>::const_iterator it;
             it = smsgModule.buckets.begin();
 
             for (it = smsgModule.buckets.begin(); it != smsgModule.buckets.end(); ++it) {
-                std::set<smsg::SecMsgToken> &tokenSet = it->second.setTokens;
+                const std::set<smsg::SecMsgToken> &tokenSet = it->second.setTokens;
 
                 std::string sBucket = std::to_string(it->first);
                 std::string sFile = sBucket + "_01.dat";
@@ -1147,16 +1149,17 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
                 nMessages += nActiveMessages;
 
                 UniValue objM(UniValue::VOBJ);
-                objM.pushKV("bucket", sBucket);
-                PushTime(objM, "time", it->first);
-                objM.pushKV("no. messages", strprintf("%u", tokenSet.size()));
-                objM.pushKV("active messages", strprintf("%u", nActiveMessages));
-                objM.pushKV("hash", sHash);
-                objM.pushKV("last changed", part::GetTimeString(it->second.timeChanged, cbuf, sizeof(cbuf)));
+                if (show_buckets) {
+                    objM.pushKV("bucket", sBucket);
+                    PushTime(objM, "time", it->first);
+                    objM.pushKV("no. messages", strprintf("%u", tokenSet.size()));
+                    objM.pushKV("active messages", strprintf("%u", nActiveMessages));
+                    objM.pushKV("hash", sHash);
+                    objM.pushKV("last changed", part::GetTimeString(it->second.timeChanged, cbuf, sizeof(cbuf)));
+                }
 
-                boost::filesystem::path fullPath = GetDataDir() / "smsgstore" / sFile;
-                if (!boost::filesystem::exists(fullPath)) {
-                    // If there is a file for an empty bucket something is wrong.
+                fs::path fullPath = GetDataDir() / "smsgstore" / sFile;
+                if (!fs::exists(fullPath)) {
                     if (tokenSet.size() == 0) {
                         objM.pushKV("file size", "Empty bucket.");
                     } else {
@@ -1165,15 +1168,18 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
                 } else {
                     try {
                         uint64_t nFBytes = 0;
-                        nFBytes = boost::filesystem::file_size(fullPath);
+                        nFBytes = fs::file_size(fullPath);
                         nBytes += nFBytes;
-                        objM.pushKV("file size", part::BytesReadable(nFBytes));
-                    } catch (const boost::filesystem::filesystem_error& ex) {
+                        if (show_buckets) {
+                            objM.pushKV("file size", part::BytesReadable(nFBytes));
+                        }
+                    } catch (const fs::filesystem_error& ex) {
                         objM.pushKV("file size, error", ex.what());
                     }
                 }
-
-                arrBuckets.push_back(objM);
+                if (objM.size() > 0) {
+                    arrBuckets.push_back(objM);
+                }
             }
         } // cs_smsg
 
@@ -1182,9 +1188,10 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
         objM.pushKV("numpurged", (int)smsgModule.setPurged.size());
         objM.pushKV("messages", (int)nMessages);
         objM.pushKV("size", part::BytesReadable(nBytes));
-        result.pushKV("buckets", arrBuckets);
+        if (arrBuckets.size() > 0) {
+            result.pushKV("buckets", arrBuckets);
+        }
         result.pushKV("total", objM);
-
     } else
     if (mode == "dump") {
         {
@@ -1196,9 +1203,9 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
                 std::string sFile = std::to_string(it->first) + "_01.dat";
 
                 try {
-                    boost::filesystem::path fullPath = GetDataDir() / "smsgstore" / sFile;
-                    boost::filesystem::remove(fullPath);
-                } catch (const boost::filesystem::filesystem_error& ex) {
+                    fs::path fullPath = GetDataDir() / "smsgstore" / sFile;
+                    fs::remove(fullPath);
+                } catch (const fs::filesystem_error& ex) {
                     //objM.push_back(Pair("file size, error", ex.what()));
                     LogPrintf("Error removing bucket file %s.\n", ex.what());
                 }
@@ -1209,7 +1216,7 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
         result.pushKV("result", "Removed all buckets.");
     } else {
         result.pushKV("result", "Unknown Mode.");
-        result.pushKV("expected", "stats|dump.");
+        result.pushKV("expected", "stats|total|dump.");
     }
 
     return result;
