@@ -29,7 +29,6 @@ public:
     uint32_t nBits;
     uint32_t nNonce;
 
-
     CBlockHeader()
     {
         SetNull();

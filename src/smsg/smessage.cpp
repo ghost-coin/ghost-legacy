@@ -132,7 +132,7 @@ void SecMsgBucket::hashBucket()
     return;
 };
 
-size_t SecMsgBucket::CountActive()
+size_t SecMsgBucket::CountActive() const
 {
     size_t nMessages = 0;
 
@@ -1329,7 +1329,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             memcpy(&vchDataOut[0], &vchData[0], 8);
 
             std::set<SecMsgToken> &tokenSet = buckets[time].setTokens;
-            std::set<SecMsgToken>::iterator it;
             SecMsgToken token;
             SecMsgPurged purgedToken;
             uint8_t *p = &vchData[8];
@@ -1346,7 +1345,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     }
                 }
 
-                it = tokenSet.find(token);
+                std::set<SecMsgToken>::const_iterator it = tokenSet.find(token);
                 if (it == tokenSet.end()) {
                     int nd = vchDataOut.size();
                     try {
@@ -1379,8 +1378,9 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
-        if (vchData.size() < 8)
+        if (vchData.size() < 8) {
             return SMSG_GENERAL_ERROR;
+        }
 
         std::vector<uint8_t> vchOne, vchBunch;
 
@@ -1575,7 +1575,6 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         uint32_t nBuckets = buckets.size();
         if (nBuckets > 0) { // no need to send keep alive pkts, coin messages already do that
             std::vector<uint8_t> vchData;
-            // should reserve?
             vchData.reserve(4 + nBuckets*16); // timestamp + size + hash
 
             uint32_t nBucketsShown = 0;
@@ -3218,21 +3217,22 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         memcpy(civ+i, &nonce, 4);
     }
 
+    uint256 hashi;
     CHMAC_SHA256 ctx(&civ[0], 32);
     ctx.Write((uint8_t*) pHeader+4, SMSG_HDR_LEN-4);
     ctx.Write((uint8_t*) pPayload, nPayload);
     ctx.Finalize(sha256Hash);
+
+    if (part::memcmp_nta(psmsg->hash, sha256Hash, 4) != 0) {
+        LogPrint(BCLog::SMSG, "Checksum mismatch.\n");
+        return SMSG_CHECKSUM_MISMATCH; // checksum mismatch
+    }
 
     if (sha256Hash[31] == 0
         && sha256Hash[30] == 0
         && (~(sha256Hash[29]) & ((1<<0) | (1<<1) | (1<<2)))) {
         LogPrint(BCLog::SMSG, "Hash Valid.\n");
         rv = SMSG_NO_ERROR; // smsg is valid
-    }
-
-    if (part::memcmp_nta(psmsg->hash, sha256Hash, 4) != 0) {
-        LogPrint(BCLog::SMSG, "Checksum mismatch.\n");
-        rv = SMSG_CHECKSUM_MISMATCH; // checksum mismatch
     }
 
     return rv;

@@ -6,6 +6,7 @@ Master
 ==============
 
 - Fixed failure when sending all blind to part.
+- smsgbuckets: Add total only mode
 
 
 0.18.0.5 rc1
