@@ -1211,6 +1211,7 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
                 }
             }
             smsgModule.buckets.clear();
+            smsgModule.start_time = GetAdjustedTime();
         } // cs_smsg
 
         result.pushKV("result", "Removed all buckets.");
@@ -1751,6 +1752,38 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
     return GetSmsgFeeRate(pblockindex);
 }
 
+static UniValue smsggetdifficulty(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 1)
+        throw std::runtime_error(
+            RPCHelpMan{"smsggetdifficulty",
+                "\nReturn free SMSG difficulty.\n",
+                {
+                    {"time", RPCArg::Type::STR_HEX, /* default */ "", "Chain time to get smsg difficulty for."},
+                },
+                RPCResult{
+            "Difficulty."
+                },
+                RPCExamples{
+            HelpExampleCli("smsggetdifficulty", "1552688834") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("smsggetdifficulty", "1552688834")
+                },
+            }.ToString());
+
+    LOCK(cs_main);
+
+    int64_t chain_time = chainActive.Tip()->nTime;
+    if (!request.params[0].isNull()) {
+        chain_time = request.params[0].get_int64();
+        if (chain_time > chainActive.Tip()->nTime) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Time out of range");
+        }
+    }
+
+    uint32_t target_compact = GetSmsgDifficulty(chain_time);
+    return smsg::GetDifficulty(target_compact);
+}
 
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
@@ -1774,6 +1807,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsg",                   &smsgone,                {"msgid","options"}},
     { "smsg",               "smsgpurge",              &smsgpurge,              {"msgid"}},
     { "smsg",               "smsggetfeerate",         &smsggetfeerate,         {"height"}},
+    { "smsg",               "smsggetdifficulty",      &smsggetdifficulty,      {"time"}},
 };
 
 void RegisterSmsgRPCCommands(CRPCTable &tableRPC)

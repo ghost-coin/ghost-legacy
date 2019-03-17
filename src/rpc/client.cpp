@@ -252,7 +252,6 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "generatematchingblindfactor", 1, "outputs" },
 
 
-
     { "smsgsend", 3, "paid_msg" },
     { "smsgsend", 4, "days_retention" },
     { "smsgsend", 5, "testfee" },
@@ -261,6 +260,9 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "smsg", 1, "options" },
     { "smsginbox", 2, "options" },
     { "smsgoutbox", 2, "options" },
+    { "smsggetfeerate", 0, "height" },
+    { "smsggetdifficulty", 0, "time" },
+
 
     { "devicesignrawtransaction", 1, "prevtxs" },
     { "devicesignrawtransaction", 2, "privkeypaths" },

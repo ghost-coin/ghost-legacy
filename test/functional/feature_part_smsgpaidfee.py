@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import struct
+import copy
 
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import connect_nodes
@@ -97,29 +98,32 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         assert(txb[43] == 0x00)  # scriptSig
         assert(txb[48] == 0x03)  # num outputs
         assert(txb[49] == 0x04)  # OUTPUT_DATA
-        assert(txb[50] == 0x08)  # length of data vector
+        assert(txb[50] == 0x0d)  # length of data vector
         block_height = struct.unpack('<i', txb[51:55])[0]
         assert(block_height == 2)
 
         assert(txb[55] == 0x09)  # DO_SMSG
         i, nb = getvarint(txb, 56)
         assert(i == 50215)
-
         varint_bb = txb[56:56 + nb]
         varint = putvarint(50215)
         assert(varint_bb == varint)
 
+        diff_o = 59
+        assert(txb[diff_o] == 0xa)  # DO_SMSG_DIFFICULTY
+        smsgdifficulty = struct.unpack('<i', txb[diff_o+1:diff_o+5])[0]
+        assert(smsgdifficulty == 0x1f0fffff)
+        base_txb = copy.deepcopy(txb)
+
         txb[50] -= nb + 1
         txb = txb[:55] + txb[55 + nb + 1:]
 
-
         ro = nodes[0].decoderawtransaction(txb.hex())
-        assert(len(ro['vout'][0]['data_hex']) == 8)
+        assert(len(ro['vout'][0]['data_hex']) == 18)
 
         ro = nodes[0].signrawtransactionwithwallet(txb.hex())
         block_hex = self.nodes[0].rehashblock(blk2_hex, stakedaddress, [{'txn': ro['hex'], 'pos': 0, 'replace': True}])
         assert('bad-cs-smsg-fee' == nodes[2].submitblock(block_hex))
-
 
         self.log.info('Increase too large')
         varint = putvarint(50216)
@@ -130,15 +134,35 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         block_hex = self.nodes[0].rehashblock(blk2_hex, stakedaddress, [{'txn': ro['hex'], 'pos': 0, 'replace': True}])
         assert('bad-cs-smsg-fee' == nodes[2].submitblock(block_hex))
 
-
         self.log.info('Decrease too large')
         varint = putvarint(49784)
         txb[50] += len(varint) + 1
         txb = txb[:55] + bytes([0x09, ]) + varint + txb[55:]
-
         ro = nodes[0].signrawtransactionwithwallet(txb.hex())
         block_hex = self.nodes[0].rehashblock(blk2_hex, stakedaddress, [{'txn': ro['hex'], 'pos': 0, 'replace': True}])
         assert('bad-cs-smsg-fee' == nodes[2].submitblock(block_hex))
+
+        self.log.info('Missing difficulty')
+        txb2 = copy.deepcopy(base_txb)
+        txb2[50] -= 5
+        txb2 = txb2[:59] + txb2[59+5:]
+        ro = nodes[0].signrawtransactionwithwallet(txb2.hex())
+        block_hex = self.nodes[0].rehashblock(blk2_hex, stakedaddress, [{'txn': ro['hex'], 'pos': 0, 'replace': True}])
+        assert('bad-cs-smsg-diff' == nodes[2].submitblock(block_hex))
+
+        self.log.info('Low difficulty')
+        txb2 = copy.deepcopy(base_txb)
+        txb2 = txb2[:60] + struct.pack("i", 0x1f00ffff) + txb2[60+4:]
+        ro = nodes[0].signrawtransactionwithwallet(txb2.hex())
+        block_hex = self.nodes[0].rehashblock(blk2_hex, stakedaddress, [{'txn': ro['hex'], 'pos': 0, 'replace': True}])
+        assert('bad-cs-smsg-diff' == nodes[2].submitblock(block_hex))
+
+        self.log.info('Above max difficulty')
+        txb2 = copy.deepcopy(base_txb)
+        txb2 = txb2[:60] + struct.pack("i", 0x1fffffff) + txb2[60+4:]
+        ro = nodes[0].signrawtransactionwithwallet(txb2.hex())
+        block_hex = self.nodes[0].rehashblock(blk2_hex, stakedaddress, [{'txn': ro['hex'], 'pos': 0, 'replace': True}])
+        assert('bad-cs-smsg-diff' == nodes[2].submitblock(block_hex))
 
         # Should verify
         varint = putvarint(49785)

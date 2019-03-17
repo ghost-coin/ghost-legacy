@@ -432,11 +432,14 @@ public:
         consensus.smsg_fee_time = 0xFFFFFFFF;       // 2106 TODO: lower
         consensus.bulletproof_time = 0xFFFFFFFF;    // 2106 TODO: lower
         consensus.rct_time = 0xFFFFFFFF;            // 2106 TODO: lower
+        consensus.smsg_difficulty_time = 0xFFFFFFFF; // 2106 TODO: lower
 
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;
         consensus.smsg_fee_msg_per_day_per_k = 50000;
         consensus.smsg_fee_max_delta_percent = 43;
+        consensus.smsg_min_difficulty = 0x1effffff;
+        consensus.smsg_difficulty_max_delta = 0xffff;
 
         consensus.powLimit = uint256S("000000000000bfffffffffffffffffffffffffffffffffffffffffffffffffff");
 
@@ -616,11 +619,14 @@ public:
         consensus.smsg_fee_time = 0x5C67FB40;       // 2019-02-16 12:00:00
         consensus.bulletproof_time = 0x5C67FB40;    // 2019-02-16 12:00:00
         consensus.rct_time = 0;
+        consensus.smsg_difficulty_time = 0xFFFFFFFF; // 2106 TODO: lower
 
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;
         consensus.smsg_fee_msg_per_day_per_k = 50000;
         consensus.smsg_fee_max_delta_percent = 43;
+        consensus.smsg_min_difficulty = 0x1effffff;
+        consensus.smsg_difficulty_max_delta = 0xffff;
 
         consensus.powLimit = uint256S("000000000005ffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
@@ -761,11 +767,14 @@ public:
         consensus.smsg_fee_time = 0;
         consensus.bulletproof_time = 0;
         consensus.rct_time = 0;
+        consensus.smsg_difficulty_time = 0;
 
         consensus.smsg_fee_period = 50;
         consensus.smsg_fee_funding_tx_per_k = 200000;
         consensus.smsg_fee_msg_per_day_per_k = 50000;
         consensus.smsg_fee_max_delta_percent = 4300;
+        consensus.smsg_min_difficulty = 0x1f0fffff;
+        consensus.smsg_difficulty_max_delta = 0xffff;
 
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks

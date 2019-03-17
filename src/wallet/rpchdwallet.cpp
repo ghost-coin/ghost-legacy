@@ -4538,8 +4538,9 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             std::string sBlind;
             if (obj.exists("blindingfactor")) {
                 std::string s = obj["blindingfactor"].get_str();
-                if (!IsHex(s) || !(s.size() == 64))
+                if (!IsHex(s) || !(s.size() == 64)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
+                }
 
                 sBlind = s;
             }
@@ -4577,7 +4578,6 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             && !address.IsValidStealthAddress()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl stealth address");
         }
-
         if (!address.IsValid()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
         }
@@ -5640,6 +5640,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "  \"foundationdonationpercent\" (int, optional, default=0) Set the percentage of each block reward to donate to the foundation.\n"
                 "  \"rewardaddress\"             (string, optional, default=none) An address which the user portion of the block reward gets sent to.\n"
                 "  \"smsgfeeratetarget\"         (amount, optional, default=0) If non-zero an amount to move the smsgfeerate towards.\n"
+                "  \"smsgdifficultytarget\"      (string, optional, default=0) A 32 byte hex value to move the smsgdifficulty towards.\n"
                 "}\n"
                 "\"stakelimit\" {\n"
                 "  \"height\"                    (int, optional, default=0) Prevent staking above chain height, used in functional testing.\n"
@@ -5820,6 +5821,8 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                     if (AmountFromValue(json["smsgfeeratetarget"]) < 0) {
                         throw JSONRPCError(RPC_INVALID_PARAMETER, _("smsgfeeratetarget can't be negative."));
                     }
+                } else
+                if (sKey == "smsgdifficultytarget") {
                 } else {
                     warnings.push_back("Unknown key " + sKey);
                 }

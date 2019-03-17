@@ -66,17 +66,21 @@ struct Params {
     uint32_t nPaidSmsgTime;
     /** Time at which csp2sh becomes active */
     uint32_t csp2shTime;
-    /** Time at which variable smsg fee become active */
+    /** Time at which variable SMSG fee become active */
     uint32_t smsg_fee_time;
     /** Time at which bulletproofs become active */
     uint32_t bulletproof_time;
     /** Time at which RCT become active */
     uint32_t rct_time;
+    /** Time at which SMSG difficulty tokens are enforced */
+    uint32_t smsg_difficulty_time;
 
     uint32_t smsg_fee_period;
     int64_t smsg_fee_funding_tx_per_k;
     int64_t smsg_fee_msg_per_day_per_k;
     int64_t smsg_fee_max_delta_percent; /* Divided by 1000000 */
+    uint32_t smsg_min_difficulty;
+    uint32_t smsg_difficulty_max_delta;
 
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks in a retargeting period,

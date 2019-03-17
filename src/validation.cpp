@@ -2677,15 +2677,37 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 if (!txCoinstake->GetSmsgFeeRate(smsg_fee_new)) {
                     return state.DoS(100, error("%s: Failed to get smsg fee.", __func__), REJECT_INVALID, "bad-cs-smsg-fee");
                 }
-
                 if (smsg_fee_new < 1) {
                     return state.DoS(100, error("%s: Smsg fee < 1.", __func__), REJECT_INVALID, "bad-cs-smsg-fee");
                 }
-
                 int64_t delta = std::abs(smsg_fee_new - smsg_fee_prev);
                 int64_t max_delta = chainparams.GetMaxSmsgFeeRateDelta(smsg_fee_prev);
                 if (delta > max_delta) {
                     return state.DoS(100, error("%s: Bad smsg-fee (delta=%d, max_delta=%d)", __func__, delta, max_delta), REJECT_INVALID, "bad-cs-smsg-fee");
+                }
+            }
+
+            if (block.nTime >= consensus.smsg_difficulty_time) {
+                uint32_t smsg_difficulty_new, smsg_difficulty_prev;
+                if (pindex->pprev->nHeight > 0 // Skip genesis block (POW)
+                    && pindex->pprev->nTime >= consensus.smsg_difficulty_time) {
+                    if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)
+                        || !txPrevCoinstake->GetSmsgDifficulty(smsg_difficulty_prev)) {
+                        return state.DoS(100, error("%s: Failed to get previous smsg difficulty.", __func__), REJECT_INVALID, "bad-cs-smsg-diff-prev");
+                    }
+                } else {
+                    smsg_difficulty_prev = consensus.smsg_min_difficulty;
+                }
+
+                if (!txCoinstake->GetSmsgDifficulty(smsg_difficulty_new)) {
+                    return state.DoS(100, error("%s: Failed to get smsg difficulty.", __func__), REJECT_INVALID, "bad-cs-smsg-diff");
+                }
+                if (smsg_difficulty_new < 1 || smsg_difficulty_new > consensus.smsg_min_difficulty) {
+                    return state.DoS(100, error("%s: Smsg difficulty out of range.", __func__), REJECT_INVALID, "bad-cs-smsg-diff");
+                }
+                int delta = int(smsg_difficulty_prev) - int(smsg_difficulty_new);
+                if (abs(delta) > int(consensus.smsg_difficulty_max_delta)) {
+                    return state.DoS(100, error("%s: Smsg difficulty change out of range.", __func__), REJECT_INVALID, "bad-cs-smsg-diff");
                 }
             }
 
@@ -4759,7 +4781,33 @@ int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height) EXCLUSIVE_
     return smsg_fee_rate;
 };
 
+CoinStakeCache smsgDifficultyCoinstakeCache(180);
+uint32_t GetSmsgDifficulty(uint64_t time, bool verify) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    const Consensus::Params &consensusParams = Params().GetConsensus();
 
+    CBlockIndex *pindex = chainActive.Tip();
+    for (size_t k = 0; k < 180; ++k) {
+        if (!pindex) {
+            break;
+        }
+        if (time >= pindex->nTime) {
+            uint32_t smsg_difficulty;
+            CTransactionRef coinstake = nullptr;
+            if (smsgDifficultyCoinstakeCache.GetCoinStake(pindex->GetBlockHash(), coinstake)
+                && coinstake->GetSmsgDifficulty(smsg_difficulty)) {
+
+                if (verify && smsg_difficulty != consensusParams.smsg_min_difficulty) {
+                    smsg_difficulty += consensusParams.smsg_difficulty_max_delta;
+                }
+                return smsg_difficulty;
+            }
+        }
+        pindex = pindex->pprev;
+    }
+
+    return consensusParams.smsg_min_difficulty;
+};
 
 bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex)
 {
