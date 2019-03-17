@@ -792,6 +792,7 @@ public:
     std::set<COutPoint> m_collapsed_txn_inputs;
 
     int64_t m_smsg_fee_rate_target = 0;
+    uint32_t m_smsg_difficulty_target = 0; // 0 = auto
 
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);

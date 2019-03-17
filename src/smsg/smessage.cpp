@@ -79,6 +79,13 @@ smsg::CSMSG smsgModule;
 namespace smsg {
 bool fSecMsgEnabled = false;
 
+uint32_t SMSG_BUCKET_LEN     = 60 * 60 * 1; // seconds
+
+uint32_t SMSG_SECONDS_IN_DAY = 86400;
+uint32_t SMSG_MAX_FREE_TTL   = SMSG_SECONDS_IN_DAY * SMSG_FREE_MSG_DAYS;
+uint32_t SMSG_MAX_PAID_TTL   = SMSG_SECONDS_IN_DAY * 31;
+uint32_t SMSG_RETENTION      = SMSG_MAX_PAID_TTL;
+
 boost::thread_group threadGroupSmsg;
 
 boost::signals2::signal<void (SecMsgStored &inboxHdr)> NotifySecMsgInboxChanged;
@@ -90,8 +97,7 @@ secp256k1_context *secp256k1_context_smsg = nullptr;
 
 uint32_t SMSGGetSecondsInDay()
 {
-    static bool fIsRegTest = Params().NetworkIDString() == "regtest";
-    return fIsRegTest ? 600 : SMSG_SECONDS_IN_DAY;
+    return SMSG_SECONDS_IN_DAY;
 }
 
 std::string SecMsgToken::ToString() const
@@ -209,7 +215,6 @@ void ThreadSecureMsg()
 
                         if (it->second.nLockCount == 0) { // lock timed out
                             vTimedOutLocks.push_back(std::make_pair(it->first, it->second.nLockPeerId)); // g_connman->cs_vNodes
-
                             it->second.nLockPeerId = 0;
                         }
                     }
@@ -389,7 +394,7 @@ void ThreadSecureMsgPow()
 
         // Shutdown thread waits 5 seconds, this should be less
         MilliSleep(2000);
-    };
+    }
     return;
 };
 
@@ -406,8 +411,7 @@ void AddOptions()
 
 const char *GetString(size_t errorCode)
 {
-    switch(errorCode)
-    {
+    switch(errorCode) {
         case SMSG_UNKNOWN_VERSION:                      return "Unknown version";
         case SMSG_INVALID_ADDRESS:                      return "Invalid address";
         case SMSG_INVALID_ADDRESS_FROM:                 return "Invalid address from";
@@ -440,7 +444,7 @@ const char *GetString(size_t errorCode)
         case SMSG_FUND_FAILED:                          return "Fund message failed";
         default:
             return "Unknown error";
-    };
+    }
     return "No Error";
 };
 
@@ -851,6 +855,15 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
         return false;
     }
 
+    if (Params().NetworkIDString() == "regtest") {
+        SMSG_BUCKET_LEN     = 60 * 5; // seconds
+        SMSG_SECONDS_IN_DAY = 600;
+        SMSG_MAX_FREE_TTL   = SMSG_SECONDS_IN_DAY * SMSG_FREE_MSG_DAYS;
+        SMSG_MAX_PAID_TTL   = SMSG_SECONDS_IN_DAY * 31;
+        SMSG_RETENTION      = SMSG_MAX_PAID_TTL;
+        LogPrintf("Adjusted SMSG_SECONDS_IN_DAY to %d for regtest.\n", SMSG_SECONDS_IN_DAY);
+    }
+
     LogPrintf("Secure messaging starting.\n");
 
     if (pwallet) {
@@ -876,7 +889,7 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
             LogPrintf("Loaded addresses from wallet.\n");
         }
     } else {
-        LogPrintf("Loaded addresses from SMSG.ini\n");
+        LogPrintf("Loaded addresses from smsg.ini\n");
     }
 
     if (LoadKeyStore() != 0) {
@@ -912,6 +925,8 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
         fSecMsgEnabled = false;
         return error("%s: Could not load purged sets, secure messaging disabled.", __func__);
     }
+
+    start_time = GetAdjustedTime();
 
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
@@ -1098,6 +1113,16 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         return SMSG_NO_ERROR;
     }
 
+    int64_t now = GetAdjustedTime();
+    {
+        LOCK(pfrom->smsgData.cs_smsg_net);
+
+        if (now < pfrom->smsgData.ignoreUntil) {
+            LogPrint(BCLog::SMSG, "Node is ignoring peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.ignoreUntil);
+            return SMSG_GENERAL_ERROR;
+        }
+    }
+
     if (strCommand == "smsgInv") {
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
@@ -1105,17 +1130,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         if (vchData.size() < 4) {
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR; // Not enough data received to be a valid smsgInv
-        }
-
-        int64_t now = GetAdjustedTime();
-
-        {
-            LOCK(pfrom->smsgData.cs_smsg_net);
-
-            if (now < pfrom->smsgData.ignoreUntil) {
-                LogPrint(BCLog::SMSG, "Node is ignoring peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.ignoreUntil);
-                return SMSG_GENERAL_ERROR;
-            }
         }
 
         uint32_t nBuckets = buckets.size();
@@ -1168,6 +1182,14 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 continue;
             }
 
+            if (now - start_time > SMSG_BUCKET_LEN * 2) { // buckets should be fully matched after time
+                 if (time < now - SMSG_BUCKET_LEN * 3) {
+                    LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, in the past.\n", time);
+                    Misbehaving(pfrom->GetId(), 1);
+                    continue;
+                 }
+            }
+
             if (ncontent < 1) {
                 LogPrint(BCLog::SMSG, "Peer sent empty bucket, ignore %d %u %u.\n", time, ncontent, hash);
                 continue;
@@ -1187,8 +1209,8 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
                 // If this node has more than the peer node, peer node will pull from this
                 //  if then peer node has more this node will pull fom peer
-                if (buckets[time].setTokens.size() < ncontent
-                    || (buckets[time].setTokens.size() == ncontent
+                if (buckets[time].nActive < ncontent
+                    || (buckets[time].nActive == ncontent
                         && buckets[time].hash != hash)) { // if same amount in buckets check hash
                     LogPrint(BCLog::SMSG, "Requesting contents of bucket %d.\n", time);
 
@@ -1605,9 +1627,10 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
             for (it = buckets.begin(); it != buckets.end(); ++it) {
                 SecMsgBucket &bkt = it->second;
 
-                uint32_t nMessages = bkt.setTokens.size();
+                uint32_t nMessages = bkt.nActive;
 
                 if (bkt.timeChanged < pto->smsgData.lastMatched     // peer was last sent all buckets at time of lastMatched. It should have this bucket
+                    || (pto->smsgData.lastMatched > 0 && it->first < pto->smsgData.lastMatched - SMSG_BUCKET_LEN * 3)
                     || nMessages < 1) {                             // this bucket is empty
                     continue;
                 }
@@ -2013,7 +2036,7 @@ int CSMSG::ManageLocalKey(CKeyID &keyId, ChangeType mode)
                 if (itFound == addresses.end()) {
                     addresses.push_back(SecMsgAddress(keyId, options.fNewAddressRecv, options.fNewAddressAnon));
                 } else {
-                    LogPrint(BCLog::SMSG, "%s: Already have address: %s.\n", __func__, CBitcoinAddress(keyId).ToString());
+                    LogPrint(BCLog::SMSG, "%s: Already have address: %s.\n", __func__, EncodeDestination(keyId));
                     return SMSG_KEY_EXISTS;
                 }
                 break;
@@ -2220,7 +2243,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
             // Have to do full decrypt to see address from
             if (Decrypt(false, key.key, address, pHeader, pPayload, nPayload, msg) == 0) {
                 if (LogAcceptCategory(BCLog::SMSG)) {
-                    LogPrintf("Decrypted message with %s.\n", CBitcoinAddress(addressTo).ToString());
+                    LogPrintf("Decrypted message with %s.\n", EncodeDestination(addressTo));
                 }
                 if (msg.sFromAddress.compare("anon") != 0) {
                     fOwnMessage = true;
@@ -2231,7 +2254,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
         } else {
             if (Decrypt(true, key.key, address, pHeader, pPayload, nPayload, msg) == 0) {
                 if (LogAcceptCategory(BCLog::SMSG)) {
-                    LogPrintf("Decrypted message with %s.\n", CBitcoinAddress(addressTo).ToString());
+                    LogPrintf("Decrypted message with %s.\n", EncodeDestination(addressTo));
                 }
                 fOwnMessage = true;
                 addressTo = address;
@@ -2276,7 +2299,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
                 // Have to do full decrypt to see address from
                 if (Decrypt(false, keyDest, addressTo, pHeader, pPayload, nPayload, msg) == 0) {
                     if (LogAcceptCategory(BCLog::SMSG)) {
-                        LogPrintf("Decrypted message with %s.\n", CBitcoinAddress(addressTo).ToString());
+                        LogPrintf("Decrypted message with %s.\n", EncodeDestination(addressTo));
                     }
                     if (msg.sFromAddress.compare("anon") != 0) {
                         fOwnMessage = true;
@@ -2286,7 +2309,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
             } else {
                 if (Decrypt(true, keyDest, addressTo, pHeader, pPayload, nPayload, msg) == 0) {
                     if (LogAcceptCategory(BCLog::SMSG)) {
-                        LogPrintf("Decrypted message with %s.\n", CBitcoinAddress(addressTo).ToString());
+                        LogPrintf("Decrypted message with %s.\n", EncodeDestination(addressTo));
                     }
                     fOwnMessage = true;
                     break;
@@ -2335,7 +2358,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
                     if (reportToGui) {
                         NotifySecMsgInboxChanged(smsgInbox);
                     }
-                    LogPrintf("SecureMsg saved to inbox, received with %s.\n", CBitcoinAddress(addressTo).ToString());
+                    LogPrintf("SecureMsg saved to inbox, received with %s.\n", EncodeDestination(addressTo));
                 }
             }
         } // cs_smsgDB
@@ -2346,7 +2369,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
 
             //TODO: Format message
             if (!strCmd.empty()) {
-                boost::replace_all(strCmd, "%s", CBitcoinAddress(addressTo).ToString());
+                boost::replace_all(strCmd, "%s", EncodeDestination(addressTo));
                 std::thread t(runCommand, strCmd);
                 t.detach(); // thread runs free
             }
@@ -2715,6 +2738,21 @@ int CSMSG::Remove(const SecMsgToken &token)
     return SMSG_NO_ERROR;
 };
 
+int CSMSG::SmsgMisbehaving(CNode *pfrom, uint8_t n)
+{
+    LOCK(pfrom->smsgData.cs_smsg_net);
+    pfrom->smsgData.misbehaving += n;
+    LogPrintf("SmsgMisbehaving peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.misbehaving);
+
+    if (pfrom->smsgData.misbehaving > 100) {
+        pfrom->smsgData.misbehaving = 0;
+        pfrom->smsgData.ignoreUntil = GetTime() + SMSG_TIME_IGNORE;
+        LogPrintf("Node is ignoring peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.ignoreUntil);
+    }
+
+    return 0;
+};
+
 int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
 {
     LogPrint(BCLog::SMSG, "%s\n", __func__);
@@ -2773,7 +2811,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         if ((rv = Validate(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload)) != 0) {
             // Message dropped
             if (rv == SMSG_INVALID_HASH) { // Invalid proof of work
-                Misbehaving(pfrom->GetId(), 10);
+                SmsgMisbehaving(pfrom, 10);
             } else
             if (rv == SMSG_FUND_FAILED) { // Bad funding tx
                 Misbehaving(pfrom->GetId(), 10);
@@ -2941,17 +2979,13 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
 
     int64_t bucketTime = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
-
-    uint32_t nDaysToLive = psmsg->version[0] < 3 ? 2 : psmsg->nonce[0];
+    uint32_t nDaysToLive = psmsg->IsPaidVersion() ? psmsg->nonce[0] : SMSG_FREE_MSG_DAYS;
     SecMsgToken token(psmsg->timestamp, pPayload, nPayload, 0, nDaysToLive);
 
     SecMsgBucket &bucket = buckets[bucketTime];
     std::set<SecMsgToken> &tokenSet = bucket.setTokens;
-    std::set<SecMsgToken>::iterator it;
-    it = tokenSet.find(token);
-    if (it != tokenSet.end()) {
+    if (tokenSet.find(token) != tokenSet.end()) {
         LogPrint(BCLog::SMSG, "Already have message.\n");
-
         if (LogAcceptCategory(BCLog::SMSG)) {
             LogPrintf("bucketTime: %d\n", bucketTime);
             LogPrintf("Message token: %s, nPayload %u\n", token.ToString(), nPayload);
@@ -2976,9 +3010,8 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
 
     ofs = ftell(fp);
-
     if (fwrite(pHeader,  sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN
-        || fwrite(pPayload, sizeof(uint8_t),     nPayload, fp) != nPayload) {
+        || fwrite(pPayload, sizeof(uint8_t), nPayload, fp) != nPayload) {
         fclose(fp);
         return errorN(SMSG_GENERAL_ERROR, "fwrite failed: %s.", strerror(errno));
     }
@@ -2986,7 +3019,6 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     fclose(fp);
 
     token.offset = ofs;
-
     tokenSet.insert(token);
 
     if (nDaysToLive > 0 && (bucket.nLeastTTL == 0 || nDaysToLive < bucket.nLeastTTL)) {
@@ -3070,6 +3102,35 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
     setPurgedTimestamps.insert(purged.timestamp); // So network sync can prefilter on timestamp before checking for purged msgid in db
 
     return SMSG_NO_ERROR;
+};
+
+int CSMSG::AdjustDifficulty(int64_t time)
+{
+    if (!fSecMsgEnabled) {
+        return 0;
+    }
+
+    const int64_t few_messages = 250;
+    const int64_t excessive_messages = 500;
+
+    int64_t bucket_time = time - (time % SMSG_BUCKET_LEN);
+    int64_t prev_bucket_time = (bucket_time-1) - ((bucket_time-1) % SMSG_BUCKET_LEN);
+    int64_t bucket_times[2] = {bucket_time, prev_bucket_time};
+
+    int rv = 0;
+    for (auto bucket_time : bucket_times) {
+        auto it = buckets.find(bucket_time);
+        if (it != buckets.end()) {
+            if (it->second.nActive > excessive_messages) {
+                rv += -1 * 10000 * float(it->second.nActive / excessive_messages);
+            } else
+            if (it->second.nActive < few_messages) {
+                rv += 1 * 10000;
+            }
+        }
+    }
+
+    return rv;
 };
 
 int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload)
@@ -3204,34 +3265,26 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         return SMSG_UNKNOWN_VERSION;
     }
 
-    uint8_t civ[32];
-    uint8_t sha256Hash[32];
-    int rv = SMSG_INVALID_HASH; // invalid
+    int rv = SMSG_INVALID_HASH;
 
-    uint32_t nonce;
-    memcpy(&nonce, &psmsg->nonce[0], 4);
-
-    LogPrint(BCLog::SMSG, "%s: nonce %u.\n", __func__, nonce);
-
-    for (int i = 0; i < 32; i+=4) {
-        memcpy(civ+i, &nonce, 4);
+    uint256 msg_hash;
+    if (!GetPowHash(psmsg, pPayload, nPayload, msg_hash)) {
+        return SMSG_INVALID_HASH;
     }
 
-    uint256 hashi;
-    CHMAC_SHA256 ctx(&civ[0], 32);
-    ctx.Write((uint8_t*) pHeader+4, SMSG_HDR_LEN-4);
-    ctx.Write((uint8_t*) pPayload, nPayload);
-    ctx.Finalize(sha256Hash);
-
-    if (part::memcmp_nta(psmsg->hash, sha256Hash, 4) != 0) {
+    if (part::memcmp_nta(psmsg->hash, msg_hash.begin(), 4) != 0) {
         LogPrint(BCLog::SMSG, "Checksum mismatch.\n");
         return SMSG_CHECKSUM_MISMATCH; // checksum mismatch
     }
 
-    if (sha256Hash[31] == 0
-        && sha256Hash[30] == 0
-        && (~(sha256Hash[29]) & ((1<<0) | (1<<1) | (1<<2)))) {
-        LogPrint(BCLog::SMSG, "Hash Valid.\n");
+    arith_uint256 target;
+    {
+    LOCK(cs_main);
+    target.SetCompact(GetSmsgDifficulty(psmsg->timestamp, true));
+    }
+    //LogPrintf("[rm] target_compact %x\n", target_compact);
+
+    if (UintToArith256(msg_hash) <= target) {
         rv = SMSG_NO_ERROR; // smsg is valid
     }
 
@@ -3251,15 +3304,18 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
     int64_t nStart = GetTimeMillis();
     uint8_t civ[32];
-    uint8_t sha256Hash[32];
 
     bool found = false;
 
     uint32_t nonce = 0;
     memcpy(&nonce, &psmsg->nonce[0], 4);
 
-    //CBigNum bnTarget(2);
-    //bnTarget = bnTarget.pow(256 - 40);
+    uint256 msg_hash;
+    arith_uint256 target_difficulty;
+    {
+    LOCK(cs_main);
+    target_difficulty.SetCompact(GetSmsgDifficulty(psmsg->timestamp));
+    }
 
     // Break for HMAC_CTX_cleanup
     for (;;) {
@@ -3267,10 +3323,7 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
            break;
         }
 
-        //psmsg->timestamp = GetTime();
-        //memcpy(&psmsg->timestamp, &now, 8);
         memcpy(&psmsg->nonce[0], &nonce, 4);
-
         for (int i = 0; i < 32; i+=4) {
             memcpy(civ+i, &nonce, 4);
         }
@@ -3278,15 +3331,10 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         CHMAC_SHA256 ctx(&civ[0], 32);
         ctx.Write((uint8_t*) pHeader+4, SMSG_HDR_LEN-4);
         ctx.Write((uint8_t*) pPayload, nPayload);
-        ctx.Finalize(sha256Hash);
+        ctx.Finalize(msg_hash.begin());
 
-        if (sha256Hash[31] == 0
-            && sha256Hash[30] == 0
-            && (~(sha256Hash[29]) & ((1<<0) | (1<<1) | (1<<2)))) {
-        //    && sha256Hash[29] == 0)
+        if (UintToArith256(msg_hash) <= target_difficulty) {
             found = true;
-            //if (fDebugSmsg)
-            //    LogPrintf("Match %u\n", nonce);
             break;
         }
 
@@ -3307,7 +3355,7 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         return SMSG_GENERAL_ERROR;
     }
 
-    memcpy(psmsg->hash, sha256Hash, 4);
+    memcpy(psmsg->hash, msg_hash.begin(), 4);
 
     LogPrint(BCLog::SMSG, "%s: Took %d ms, nonce %u\n", __func__, GetTimeMillis() - nStart, nonce);
 
@@ -3335,8 +3383,8 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
 
     if (LogAcceptCategory(BCLog::SMSG)) {
         LogPrint(BCLog::SMSG, "SecureMsgEncrypt(%s, %s, ...)\n",
-            fSendAnonymous ? "anon" : CBitcoinAddress(addressFrom).ToString(),
-            CBitcoinAddress(addressTo).ToString());
+            fSendAnonymous ? "anon" : EncodeDestination(addressFrom),
+            EncodeDestination(addressTo));
     }
 
     if (smsg.timestamp == 0) {
@@ -3500,7 +3548,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
     if (LogAcceptCategory(BCLog::SMSG)) {
         LogPrintf("SecureMsgSend(%s, %s, ...)\n",
-            fSendAnonymous ? "anon" : CBitcoinAddress(addressFrom).ToString(), CBitcoinAddress(addressTo).ToString());
+            fSendAnonymous ? "anon" : EncodeDestination(addressFrom), EncodeDestination(addressTo));
     }
 
     if (!pwallet) {
@@ -3637,7 +3685,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         LogPrintf("%s: Warning, could not find an address to encrypt outbox message with.\n", __func__);
     } else {
         if (LogAcceptCategory(BCLog::SMSG)) {
-            LogPrintf("Encrypting a copy for outbox, using address %s\n", CBitcoinAddress(addressOutbox).ToString());
+            LogPrintf("Encrypting a copy for outbox, using address %s\n", EncodeDestination(addressOutbox));
         }
 
         SecureMessage smsgForOutbox(fPaid, nDaysRetention);
@@ -3691,11 +3739,28 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     }
 
     if (LogAcceptCategory(BCLog::SMSG)) {
-        LogPrintf("Secure message queued for sending to %s.\n", CBitcoinAddress(addressTo).ToString());
+        LogPrintf("Secure message queued for sending to %s.\n", EncodeDestination(addressTo));
     }
 
 #endif
     return SMSG_NO_ERROR;
+};
+
+bool CSMSG::GetPowHash(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_t nPayload, uint256 &hash)
+{
+    uint8_t civ[32];
+    uint32_t nonce;
+    memcpy(&nonce, &psmsg->nonce[0], 4);
+
+    for (int i = 0; i < 32; i+=4) {
+        memcpy(civ+i, &nonce, 4);
+    }
+
+    CHMAC_SHA256 ctx(&civ[0], 32);
+    ctx.Write(((uint8_t*) psmsg)+4, SMSG_HDR_LEN-4);
+    ctx.Write((uint8_t*) pPayload, nPayload);
+    ctx.Finalize(hash.begin());
+    return true;
 };
 
 int CSMSG::HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t nPayload, uint160 &hash)
@@ -3841,7 +3906,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     */
 
     if (LogAcceptCategory(BCLog::SMSG)) {
-        LogPrintf("%s: using %s, testonly %d.\n", __func__, CBitcoinAddress(address).ToString(), fTestOnly);
+        LogPrintf("%s: using %s, testonly %d.\n", __func__, EncodeDestination(address), fTestOnly);
     }
 
     if (!pHeader
@@ -3996,7 +4061,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     }
 
     if (LogAcceptCategory(BCLog::SMSG)) {
-        LogPrintf("Decrypted message for %s.\n", CBitcoinAddress(address).ToString());
+        LogPrintf("Decrypted message for %s.\n", EncodeDestination(address));
     }
 
     return SMSG_NO_ERROR;
@@ -4032,5 +4097,25 @@ int CSMSG::Decrypt(bool fTestOnly, const CKeyID &address, const SecureMessage &s
 {
     return CSMSG::Decrypt(fTestOnly, address, smsg.data(), smsg.pPayload, smsg.nPayload, msg);
 };
+
+double GetDifficulty(uint32_t compact)
+{
+    int nShift = (compact >> 24) & 0xff;
+    double dDiff =
+        (double)0x00ffffff / (double)(compact & 0x00ffffff);
+
+    while (nShift < 30)
+    {
+        dDiff *= 256.0;
+        nShift++;
+    }
+    while (nShift > 30)
+    {
+        dDiff /= 256.0;
+        nShift--;
+    }
+
+    return dDiff;
+}
 
 } // namespace smsg

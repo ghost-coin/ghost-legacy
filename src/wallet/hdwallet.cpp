@@ -337,6 +337,20 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
                 AppendError(sError, "\"smsgfeeratetarget\" not an amount.");
             }
         }
+
+        if (!json["smsgdifficultytarget"].isNull()) {
+            try {
+                std::string s = json["smsgdifficultytarget"].get_str();
+                if (!IsHex(s) || !(s.size() == 64)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Must be 32 bytes and hex encoded.");
+                }
+                arith_uint256 target;
+                target.SetHex(s);
+                m_smsg_difficulty_target = target.GetCompact();
+            } catch (std::exception &e) {
+                AppendError(sError, "\"smsgdifficultytarget\" not valid.");
+            }
+        }
     }
 
     if (nStakeCombineThreshold < 100 * COIN || nStakeCombineThreshold > 5000 * COIN) {
@@ -12550,6 +12564,57 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         CAmount test_fee = 0;
         assert(ExtractCoinStakeInt64(vData, DO_SMSG_FEE, test_fee));
         assert(test_fee == smsg_fee_rate);
+    }
+
+    // Place SMSG difficulty
+    {
+        uint32_t last_compact = consensusParams.smsg_min_difficulty, next_compact = m_smsg_difficulty_target;
+        if (nBlockHeight > 1) { // genesis block is pow
+            LOCK(cs_main);
+            if (!txPrevCoinstake && !coinStakeCache.GetCoinStake(pindexPrev->GetBlockHash(), txPrevCoinstake)) {
+                return werror("%s: Failed to get previous coinstake: %s.", __func__, pindexPrev->GetBlockHash().ToString());
+            }
+            txPrevCoinstake->GetSmsgDifficulty(last_compact);
+        }
+
+        if (m_smsg_difficulty_target == 0) {
+            next_compact = last_compact;
+            int auto_adjust = smsgModule.AdjustDifficulty(nTime);
+            if (auto_adjust > 0 && last_compact != consensusParams.smsg_min_difficulty) {
+                next_compact += auto_adjust;
+            } else
+            if (auto_adjust < 0) {
+                next_compact += auto_adjust;
+            }
+        }
+
+        uint32_t test_compact;
+        if (last_compact != next_compact) {
+
+            uint32_t delta;
+            if (last_compact > next_compact) {
+                delta = last_compact - next_compact;
+                if (delta > consensusParams.smsg_difficulty_max_delta) {
+                    next_compact = last_compact - consensusParams.smsg_difficulty_max_delta;
+                }
+            } else {
+                delta = next_compact - last_compact;
+                if (delta > consensusParams.smsg_difficulty_max_delta) {
+                    next_compact = last_compact + consensusParams.smsg_difficulty_max_delta;
+                }
+            }
+
+            if (next_compact > consensusParams.smsg_min_difficulty) {
+                next_compact = consensusParams.smsg_min_difficulty;
+            }
+        }
+
+        std::vector<uint8_t> vSmsgDifficulty(5), &vData = *txNew.vpout[0]->GetPData();
+        vSmsgDifficulty[0] = DO_SMSG_DIFFICULTY;
+        memcpy(&vSmsgDifficulty[1], &next_compact, 4);
+        vData.insert(vData.end(), vSmsgDifficulty.begin(), vSmsgDifficulty.end());
+        assert(ExtractCoinStakeUint32(vData, DO_SMSG_DIFFICULTY, test_compact));
+        assert(test_compact == next_compact);
     }
 
 

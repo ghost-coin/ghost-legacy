@@ -2,11 +2,14 @@ Master
 ==============
 
 
-0.18.0.6 rc1
+0.18.0.6 rc2
 ==============
+
+SMSG won't connect to nodes running a version below 0.18.0.6
 
 - Fixed failure when sending all blind to part.
 - smsgbuckets: Add total only mode
+- SMSG difficulty can be adjusted by stakers.
 
 
 0.18.0.5 rc1

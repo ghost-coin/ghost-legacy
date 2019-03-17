@@ -587,6 +587,7 @@ inline bool IsBlockPruned(const CBlockIndex* pblockindex)
 bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 size_t CountDelayedBlocks() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+uint32_t GetSmsgDifficulty(uint64_t time, bool verify=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 typedef int64_t NodeId;
 class StakeConflict
@@ -604,6 +605,8 @@ public:
 class CoinStakeCache
 {
 public:
+    CoinStakeCache() {};
+    CoinStakeCache(size_t max_size) : nMaxSize(max_size) {};
     size_t nMaxSize = 16;
     std::list<std::pair<uint256, CTransactionRef> > lData;
 
