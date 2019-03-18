@@ -403,7 +403,7 @@ public:
     int WalletUnlocked();
     int WalletKeyChanged(CKeyID &keyId, const std::string &sLabel, ChangeType mode);
 
-    int ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui);
+    int ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui, bool &received_msg);
 
     int GetStoredKey(const CKeyID &ckid, CPubKey &cpkOut);
     int GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut);
@@ -434,9 +434,11 @@ public:
 
     int AdjustDifficulty(int64_t time);
 
+    int Import(SecureMessage *psmsg, std::string &sError, bool setread);
+
     int Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         SecureMessage &smsg, std::string &sError, bool fPaid=false,
-        size_t nDaysRetention=0, bool fTestFee=false, CAmount *nFee=NULL, bool fFromFile=false);
+        size_t nDaysRetention=0, bool fTestFee=false, CAmount *nFee=NULL, bool fFromFile=false, bool submit_msg=true, bool add_to_outbox=true);
 
     bool GetPowHash(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_t nPayload, uint256 &hash);
     int HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t nPayload, uint160 &hash);

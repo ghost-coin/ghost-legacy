@@ -73,16 +73,13 @@ class SmsgTest(ParticlTestFramework):
         assert(ro['messages'][0]['text'] == 'Reply 0->1.')
 
 
-        ro = nodes[1].smsgview()
-        assert(len(ro['messages']) == 2)
+        assert(len(nodes[1].smsgview()['messages']) == 2)
+        assert(len(nodes[1].smsgoutbox()['messages']) == 1)
 
-        ro = nodes[1].smsgoutbox()
-        assert(len(ro['messages']) == 1)
-
-        ro = nodes[1].smsgdisable()
+        nodes[1].smsgdisable()
 
         try:
-            ro = nodes[1].smsgsend(address1, address0, "Test 1->0. 2")
+            nodes[1].smsgsend(address1, address0, "Test 1->0. 2")
             assert(False), "smsgsend while disabled."
         except JSONRPCException as e:
             assert("Secure messaging is disabled." in e.error['message'])

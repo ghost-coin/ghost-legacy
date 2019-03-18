@@ -261,7 +261,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
                 }
                 sInfo += std::string("Anon ") + (it->fReceiveAnon ? "on" : "off");
                 //result.pushKV("key", it->sAddress + " - " + sPublicKey + " " + sInfo + " - " + sLabel);
-                objM.pushKV("address", CBitcoinAddress(keyID).ToString());
+                objM.pushKV("address", EncodeDestination(keyID));
                 objM.pushKV("public_key", sPublicKey);
                 objM.pushKV("receive", (it->fReceiveEnabled ? "1" : "0"));
                 objM.pushKV("anon", (it->fReceiveAnon ? "1" : "0"));
@@ -279,7 +279,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             auto &key = p.second;
             UniValue objM(UniValue::VOBJ);
             CPubKey pk = key.key.GetPubKey();
-            objM.pushKV("address", CBitcoinAddress(p.first).ToString());
+            objM.pushKV("address", EncodeDestination(p.first));
             objM.pushKV("public_key", EncodeBase58(pk.begin(), pk.end()));
             objM.pushKV("receive", (key.nFlags & smsg::SMK_RECEIVE_ON ? "1" : "0"));
             objM.pushKV("anon", (key.nFlags & smsg::SMK_RECEIVE_ANON ? "1" : "0"));
@@ -645,7 +645,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
 
 static UniValue smsgsend(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() < 3 || request.params.size() > 8)
+    if (request.fHelp || request.params.size() < 3 || request.params.size() > 10)
         throw std::runtime_error(
             RPCHelpMan{"smsgsend",
                 "\nSend an encrypted message from \"address_from\" to \"address_to\".\n",
@@ -658,6 +658,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
                     {"testfee", RPCArg::Type::BOOL, /* default */ "false", "Don't send the message, only estimate the fee."},
                     {"fromfile", RPCArg::Type::BOOL, /* default */ "false", "Send file as message, path specified in \"message\"."},
                     {"decodehex", RPCArg::Type::BOOL, /* default */ "false", "Decode \"message\" from hex before sending."},
+                    {"submitmsg", RPCArg::Type::BOOL, /* default */ "true", "Submit smsg to network, if false POW is not set and hex encoded smsg returned."},
+                    {"savemsg", RPCArg::Type::BOOL, /* default */ "true", "Save smsg to outbox."},
                 },
                 RPCResult{
             "{\n"
@@ -689,6 +691,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     bool fTestFee = request.params[5].isNull() ? false : request.params[5].get_bool();
     bool fFromFile = request.params[6].isNull() ? false : request.params[6].get_bool();
     bool fDecodeHex = request.params[7].isNull() ? false : request.params[7].get_bool();
+    bool submit_msg = request.params[8].isNull() ? true : request.params[8].get_bool();
+    bool save_msg = request.params[9].isNull() ? true : request.params[9].get_bool();
 
     if (fFromFile && fDecodeHex) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Can't use decodehex with fromfile.");
@@ -722,14 +726,19 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
     std::string sError;
     smsg::SecureMessage smsgOut;
-    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, fPaid, nRetention, fTestFee, &nFee, fFromFile) != 0) {
+    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, fPaid, nRetention, fTestFee, &nFee, fFromFile, submit_msg, save_msg) != 0) {
         result.pushKV("result", "Send failed.");
         result.pushKV("error", sError);
     } else {
-        result.pushKV("result", fTestFee ? "Not Sent." : "Sent.");
+        result.pushKV("result", (!submit_msg || fTestFee) ? "Not Sent." : "Sent.");
 
         if (!fTestFee) {
             result.pushKV("msgid", HexStr(smsgModule.GetMsgID(smsgOut)));
+        }
+
+        if (!submit_msg) {
+            result.pushKV("msg", HexStr(smsgOut.data(), smsgOut.data() + smsg::SMSG_HDR_LEN) +
+                                 HexStr(smsgOut.pPayload, smsgOut.pPayload + smsgOut.nPayload));
         }
 
         if (fPaid) {
@@ -889,7 +898,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
                 int rv = smsgModule.Decrypt(false, smsgStored.addrTo, pHeader, pHeader + smsg::SMSG_HDR_LEN, nPayload, msg);
                 if (rv == 0) {
-                    std::string sAddrTo = CBitcoinAddress(smsgStored.addrTo).ToString();
+                    std::string sAddrTo = EncodeDestination(smsgStored.addrTo);
                     std::string sText = std::string((char*)msg.vchMessage.data());
                     if (filter.size() > 0
                         && !(part::stringsMatchI(msg.sFromAddress, filter, 3) ||
@@ -1045,7 +1054,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
                 int rv = smsgModule.Decrypt(false, smsgStored.addrOutbox, pHeader, pHeader + smsg::SMSG_HDR_LEN, nPayload, msg);
                 if (rv == 0) {
-                    std::string sAddrTo = CBitcoinAddress(smsgStored.addrTo).ToString();
+                    std::string sAddrTo = EncodeDestination(smsgStored.addrTo);
                     std::string sText = std::string((char*)msg.vchMessage.data());
                     if (filter.size() > 0
                         && !(part::stringsMatchI(msg.sFromAddress, filter, 3) ||
@@ -1462,8 +1471,8 @@ static UniValue smsgview(const JSONRPCRequest &request)
                         mLabelCache[smsgStored.addrTo] = lblTo;
                     }
 
-                    std::string sFrom = kiFrom.IsNull() ? "anon" : CBitcoinAddress(kiFrom).ToString();
-                    std::string sTo = CBitcoinAddress(smsgStored.addrTo).ToString();
+                    std::string sFrom = kiFrom.IsNull() ? "anon" : EncodeDestination(kiFrom);
+                    std::string sTo = EncodeDestination(smsgStored.addrTo);
                     if (lblFrom.length() != 0) {
                         sFrom += " (" + lblFrom + ")";
                     }
@@ -1566,8 +1575,9 @@ static UniValue smsgone(const JSONRPCRequest &request)
 
     std::string sMsgId = request.params[0].get_str();
 
-    if (!IsHex(sMsgId) || sMsgId.size() != 56)
+    if (!IsHex(sMsgId) || sMsgId.size() != 56) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "msgid must be 28 bytes in hex string.");
+    }
     std::vector<uint8_t> vMsgId = ParseHex(sMsgId.c_str());
     std::string sType;
 
@@ -1628,7 +1638,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
     result.pushKV("version", strprintf("%02x%02x", psmsg->version[0], psmsg->version[1]));
     result.pushKV("location", sType);
     PushTime(result, "received", smsgStored.timeReceived);
-    result.pushKV("to", CBitcoinAddress(smsgStored.addrTo).ToString());
+    result.pushKV("to", EncodeDestination(smsgStored.addrTo));
     //result.pushKV("addressoutbox", CBitcoinAddress(smsgStored.addrOutbox).ToString());
     result.pushKV("read", UniValue(bool(!(smsgStored.status & SMSG_MASK_UNREAD))));
 
@@ -1677,6 +1687,71 @@ static UniValue smsgone(const JSONRPCRequest &request)
     } else {
         result.pushKV("error", "decrypt failed");
     }
+
+    return result;
+}
+
+static UniValue smsgimport(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
+        throw std::runtime_error(
+        RPCHelpMan{"smsgimpport",
+                "\nImport smsg from hex string.\n",
+                {
+                    {"msg", RPCArg::Type::STR, RPCArg::Optional::NO, "Hex encoded smsg."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
+                        {
+                            //{"submitmsg", RPCArg::Type::BOOL, /* default */ "false", "Submit msg to network if true."},
+                            {"setread", RPCArg::Type::BOOL, /* default */ "false", "Set read status to value."},
+                        },
+                        "options"},
+                },
+                RPCResult{
+            "{\n"
+            "  \"msgid\": \"...\"                    (string) The message identifier\n"
+            "}\n"
+                },
+                RPCExamples{
+            HelpExampleCli("smsgimpport", "\"msg\"") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("smsgimpport", "\"msg\"")
+                },
+            }.ToString());
+
+    EnsureSMSGIsEnabled();
+
+    RPCTypeCheckObj(request.params,
+        {
+            {"msg",             UniValueType(UniValue::VSTR)},
+            {"option",            UniValueType(UniValue::VOBJ)},
+        }, true, false);
+
+    std::string str_msg = request.params[0].get_str();
+
+    if (!IsHex(str_msg)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "msg must be a hex string.");
+    }
+
+    std::vector<uint8_t> vsmsg = ParseHex(str_msg.c_str());
+    smsg::SecureMessage smsg;
+    memcpy(smsg.data(), vsmsg.data(), smsg::SMSG_HDR_LEN);
+    smsg.pPayload = vsmsg.data() + smsg::SMSG_HDR_LEN;
+
+    UniValue result(UniValue::VOBJ);
+    std::string str_error;
+    bool setread = false;
+    UniValue options = request.params[1];
+    if (options.isObject() && options["setread"].isBool()) {
+        setread = options["setread"].get_bool();
+    }
+
+    if (smsgModule.Import(&smsg, str_error, setread) != 0) {
+        smsg.pPayload = nullptr;
+        throw JSONRPCError(RPC_MISC_ERROR, "Import failed: " + str_error);
+    }
+    result.pushKV("msgid", HexStr(smsgModule.GetMsgID(smsg)));
+
+    smsg.pPayload = nullptr;
 
     return result;
 }
@@ -1798,13 +1873,14 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgaddlocaladdress",    &smsgaddlocaladdress,    {"address"} },
     { "smsg",               "smsgimportprivkey",      &smsgimportprivkey,      {"privkey","label"} },
     { "smsg",               "smsggetpubkey",          &smsggetpubkey,          {"address"} },
-    { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","fromfile","decodehex"} },
+    { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","fromfile","decodehex","submitmsg","savemsg"} },
     { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message"} },
     { "smsg",               "smsginbox",              &smsginbox,              {"mode","filter","options"} },
     { "smsg",               "smsgoutbox",             &smsgoutbox,             {"mode","filter","options"} },
     { "smsg",               "smsgbuckets",            &smsgbuckets,            {"mode"} },
     { "smsg",               "smsgview",               &smsgview,               {}},
     { "smsg",               "smsg",                   &smsgone,                {"msgid","options"}},
+    { "smsg",               "smsgimport",             &smsgimport,             {"msg","options"}},
     { "smsg",               "smsgpurge",              &smsgpurge,              {"msgid"}},
     { "smsg",               "smsggetfeerate",         &smsggetfeerate,         {"height"}},
     { "smsg",               "smsggetdifficulty",      &smsggetdifficulty,      {"time"}},
