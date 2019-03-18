@@ -385,7 +385,8 @@ void ThreadSecureMsgPow()
             }
 
             // Test if message was sent to self
-            if (smsgModule.ScanMessage(pHeader, pPayload, psmsg->nPayload, true) != 0) {
+            bool fOwnMessage;
+            if (smsgModule.ScanMessage(pHeader, pPayload, psmsg->nPayload, true, fOwnMessage) != 0) {
                 // Message recipient is not this node (or failed)
             }
         }
@@ -1993,8 +1994,8 @@ bool CSMSG::ScanBuckets()
                 }
 
                 // Don't report to gui,
-                int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false);
-
+                bool fOwnMessage;
+                int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage);
                 if (rv == SMSG_NO_ERROR) {
                     nFoundMessages++;
                 } else {
@@ -2159,8 +2160,8 @@ int CSMSG::WalletUnlocked()
                 }
 
                 // Don't report to gui,
-                int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false);
-
+                bool fOwnMessage;
+                int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage);
                 if (rv == 0) {
                     nFoundMessages++;
                 } else
@@ -2215,7 +2216,7 @@ int CSMSG::WalletKeyChanged(CKeyID &keyId, const std::string &sLabel, ChangeType
     return ManageLocalKey(keyId, mode);
 };
 
-int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui)
+int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui, bool &fOwnMessage)
 {
     LogPrint(BCLog::SMSG, "%s\n", __func__);
     /*
@@ -2228,7 +2229,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
     returns SecureMessageCodes
     */
 
-    bool fOwnMessage = false;
+    fOwnMessage = false;
     MessageData msg; // placeholder
     CKeyID addressTo;
     for (auto &p : smsgModule.keyStore.mapKeys) {
@@ -2829,7 +2830,8 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
                 break;
             }
 
-            if (ScanMessage(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload, true) != 0) {
+            bool fOwnMessage;
+            if (ScanMessage(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload, true, fOwnMessage) != 0) {
                 // message recipient is not this node (or failed)
             }
         } // cs_smsg
@@ -3274,7 +3276,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
 
     if (part::memcmp_nta(psmsg->hash, msg_hash.begin(), 4) != 0) {
         LogPrint(BCLog::SMSG, "Checksum mismatch.\n");
-        return SMSG_CHECKSUM_MISMATCH; // checksum mismatch
+        return SMSG_CHECKSUM_MISMATCH;
     }
 
     arith_uint256 target;
@@ -3324,6 +3326,7 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         }
 
         memcpy(&psmsg->nonce[0], &nonce, 4);
+
         for (int i = 0; i < 32; i+=4) {
             memcpy(civ+i, &nonce, 4);
         }
@@ -3338,7 +3341,7 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
             break;
         }
 
-        if (nonce >= 4294967295U) { // UINT32_MAX
+        if (nonce >= 0xFFFFFFFFU) {
             LogPrint(BCLog::SMSG, "No match %u\n", nonce);
             break;
         }
@@ -3534,9 +3537,38 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
     return SMSG_NO_ERROR;
 };
 
+int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread)
+{
+    if (psmsg->IsPaidVersion() && psmsg->nPayload < 33) {
+        sError = "Payload too short.";
+        return SMSG_GENERAL_ERROR;
+    }
+
+    uint256 msg_hash;
+    size_t hash_bytes = psmsg->IsPaidVersion() ? psmsg->nPayload-32 : psmsg->nPayload;
+    GetPowHash(psmsg, psmsg->pPayload, hash_bytes, msg_hash);
+    if (part::memcmp_nta(psmsg->hash, msg_hash.begin(), 4) != 0) {
+       sError = "Checksum mismatch.";
+        return SMSG_CHECKSUM_MISMATCH;
+    }
+
+    bool fOwnMessage;
+    if (ScanMessage(psmsg->data(), psmsg->pPayload, psmsg->nPayload, false, fOwnMessage) != 0) {
+        // message recipient is not this node (or failed)
+        return SMSG_GENERAL_ERROR;
+    }
+
+    if (!fOwnMessage) {
+        sError = "Message not received.";
+        return SMSG_GENERAL_ERROR;
+    }
+
+    return SMSG_NO_ERROR;
+};
+
 int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     SecureMessage &smsg, std::string &sError, bool fPaid,
-    size_t nDaysRetention, bool fTestFee, CAmount *nFee, bool fFromFile)
+    size_t nDaysRetention, bool fTestFee, CAmount *nFee, bool fFromFile, bool submit_msg, bool add_to_outbox)
 {
 #ifdef ENABLE_WALLET
     /* Encrypt secure message, and place it on the network
@@ -3607,6 +3639,12 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         return errorN(rv, "%s: %s.", __func__, sError);
     }
 
+    if (fPaid || !submit_msg) {
+        uint256 msg_hash;
+        size_t hash_bytes = smsg.IsPaidVersion() ? smsg.nPayload-32 : smsg.nPayload;
+        GetPowHash(&smsg, smsg.pPayload, hash_bytes, msg_hash);
+        memcpy(smsg.hash, msg_hash.begin(), 4);
+    }
     if (fPaid) {
         if (0 != FundMsg(smsg, sError, fTestFee, nFee)) {
             return errorN(SMSG_FUND_FAILED, "%s: SecureMsgFund failed %s.", __func__, sError);
@@ -3615,46 +3653,52 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         if (fTestFee) {
             return SMSG_NO_ERROR;
         }
-    } else {
+    } else
+    if (submit_msg) {
         // HACK: Premine so hash unpaid outbox hashes match, remove with unpaid messages
         if (SMSG_NO_ERROR != SetHash((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)) {
             return errorN(SMSG_FUND_FAILED, "%s: SetHash failed %s.", __func__, sError);
         }
     }
 
-
-    // Place message in send queue, proof of work will happen in a thread.
     uint160 msgId;
     HashMsg(smsg, smsg.pPayload, smsg.nPayload-(fPaid ? 32 : 0), msgId);
 
-    std::string sPrefix("qm");
-    uint8_t chKey[30];
-    int64_t timestamp_be = bswap_64(smsg.timestamp);
-    memcpy(&chKey[0], sPrefix.data(), 2);
-    memcpy(&chKey[2], &timestamp_be, 8);
-    memcpy(&chKey[10], msgId.begin(), 20);
+    if (submit_msg) {
+        // Place message in send queue, proof of work will happen in a thread.
+        std::string sPrefix("qm");
+        uint8_t chKey[30];
+        int64_t timestamp_be = bswap_64(smsg.timestamp);
+        memcpy(&chKey[0], sPrefix.data(), 2);
+        memcpy(&chKey[2], &timestamp_be, 8);
+        memcpy(&chKey[10], msgId.begin(), 20);
 
-    SecMsgStored smsgSQ;
-    smsgSQ.timeReceived  = GetTime();
-    smsgSQ.addrTo        = addressTo;
+        SecMsgStored smsgSQ;
+        smsgSQ.timeReceived  = GetTime();
+        smsgSQ.addrTo        = addressTo;
 
-    try { smsgSQ.vchMessage.resize(SMSG_HDR_LEN + smsg.nPayload); } catch (std::exception &e) {
-        LogPrintf("smsgSQ.vchMessage.resize %u threw: %s.\n", SMSG_HDR_LEN + smsg.nPayload, e.what());
-        sError = "Could not allocate memory.";
-        return SMSG_ALLOCATE_FAILED;
-    }
-
-    memcpy(&smsgSQ.vchMessage[0], smsg.data(), SMSG_HDR_LEN);
-    memcpy(&smsgSQ.vchMessage[SMSG_HDR_LEN], smsg.pPayload, smsg.nPayload);
-
-    {
-        LOCK(cs_smsgDB);
-        SecMsgDB dbSendQueue;
-        if (dbSendQueue.Open("cw")) {
-            dbSendQueue.WriteSmesg(chKey, smsgSQ);
-            //NotifySecMsgSendQueueChanged(smsgOutbox);
+        try { smsgSQ.vchMessage.resize(SMSG_HDR_LEN + smsg.nPayload); } catch (std::exception &e) {
+            LogPrintf("smsgSQ.vchMessage.resize %u threw: %s.\n", SMSG_HDR_LEN + smsg.nPayload, e.what());
+            sError = "Could not allocate memory.";
+            return SMSG_ALLOCATE_FAILED;
         }
-    } // cs_smsgDB
+
+        memcpy(&smsgSQ.vchMessage[0], smsg.data(), SMSG_HDR_LEN);
+        memcpy(&smsgSQ.vchMessage[SMSG_HDR_LEN], smsg.pPayload, smsg.nPayload);
+
+        {
+            LOCK(cs_smsgDB);
+            SecMsgDB dbSendQueue;
+            if (dbSendQueue.Open("cw")) {
+                dbSendQueue.WriteSmesg(chKey, smsgSQ);
+                //NotifySecMsgSendQueueChanged(smsgOutbox);
+            }
+        } // cs_smsgDB
+
+        if (LogAcceptCategory(BCLog::SMSG)) {
+            LogPrintf("Secure message queued for sending to %s.\n", EncodeDestination(addressTo));
+        }
+    }
 
     //  For outbox create a copy encrypted for owned address
     //   if the wallet is encrypted private key needed to decrypt will be unavailable
@@ -3679,6 +3723,10 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             address.GetKeyID(addressOutbox);
             break;
         }
+    }
+
+    if (!add_to_outbox) {
+        return SMSG_NO_ERROR;
     }
 
     if (addressOutbox.IsNull()) {
@@ -3738,10 +3786,6 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         }
     }
 
-    if (LogAcceptCategory(BCLog::SMSG)) {
-        LogPrintf("Secure message queued for sending to %s.\n", EncodeDestination(addressTo));
-    }
-
 #endif
     return SMSG_NO_ERROR;
 };
@@ -3760,6 +3804,7 @@ bool CSMSG::GetPowHash(const SecureMessage *psmsg, const uint8_t *pPayload, uint
     ctx.Write(((uint8_t*) psmsg)+4, SMSG_HDR_LEN-4);
     ctx.Write((uint8_t*) pPayload, nPayload);
     ctx.Finalize(hash.begin());
+
     return true;
 };
 

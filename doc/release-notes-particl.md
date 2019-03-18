@@ -9,7 +9,9 @@ SMSG won't connect to nodes running a version below 0.18.0.6
 
 - Fixed failure when sending all blind to part.
 - smsgbuckets: Add total only mode
-- SMSG difficulty can be adjusted by stakers.
+- SMSG: Difficulty can be adjusted by stakers.
+- SMSG: Messages can be created and imported without being transmitted.
+- SMSG: Messages can be sent without being stored to the outbox.
 
 
 0.18.0.5 rc1

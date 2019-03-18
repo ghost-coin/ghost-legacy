@@ -4798,15 +4798,15 @@ uint32_t GetSmsgDifficulty(uint64_t time, bool verify) EXCLUSIVE_LOCKS_REQUIRED(
                 && coinstake->GetSmsgDifficulty(smsg_difficulty)) {
 
                 if (verify && smsg_difficulty != consensusParams.smsg_min_difficulty) {
-                    smsg_difficulty += consensusParams.smsg_difficulty_max_delta;
+                    return smsg_difficulty + consensusParams.smsg_difficulty_max_delta;
                 }
-                return smsg_difficulty;
+                return smsg_difficulty - consensusParams.smsg_difficulty_max_delta;
             }
         }
         pindex = pindex->pprev;
     }
 
-    return consensusParams.smsg_min_difficulty;
+    return consensusParams.smsg_min_difficulty - consensusParams.smsg_difficulty_max_delta;
 };
 
 bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex)

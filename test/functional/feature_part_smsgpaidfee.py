@@ -7,7 +7,7 @@ import struct
 import copy
 
 from test_framework.test_particl import ParticlTestFramework
-from test_framework.util import connect_nodes
+from test_framework.util import connect_nodes, assert_raises_rpc_error
 
 
 def getvarint(bb, ofs=0):
@@ -178,6 +178,31 @@ class SmsgPaidFeeTest(ParticlTestFramework):
 
         ro = nodes[2].getblockchaininfo()
         assert(ro['blocks'] == 2)
+
+        self.log.info('submitmsg false')
+        address0 = nodes[0].getnewaddress()
+        address1 = nodes[1].getnewaddress()
+        nodes[0].smsgaddlocaladdress(address0)
+        nodes[1].smsgaddaddress(address0, nodes[0].smsglocalkeys()['wallet_keys'][0]['public_key'])
+        text = 'Some text to test smsg'
+
+        assert(int(nodes[1].smsgoutbox()['result']) == 0)
+        assert(int(nodes[0].smsginbox()['result']) == 0)
+
+        ro = nodes[1].smsgsend(address1, address0, text, False, 10, False, False, False, False, False)
+        assert('msg' in ro)
+        msg = ro['msg']
+        msg_id = ro['msgid']
+        assert(int(nodes[1].smsgoutbox()['result']) == 0)
+
+        assert_raises_rpc_error(-1, "Import failed: Message not received.", nodes[1].smsgimport, msg)
+
+        ro = nodes[0].smsgimport(msg)
+        assert(ro['msgid'] == msg_id)
+
+        ro = nodes[0].smsginbox()
+        assert(ro['messages'][0]['msgid'] == msg_id)
+        assert(ro['messages'][0]['text'] == text)
 
 
 if __name__ == '__main__':
