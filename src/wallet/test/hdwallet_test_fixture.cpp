@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -18,15 +18,13 @@ HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
     pwalletMain = std::make_shared<CHDWallet>(*m_chain, WalletLocation(), WalletDatabase::CreateMock());
     AddWallet(pwalletMain);
     pwalletMain->LoadWallet(fFirstRun);
-    RegisterValidationInterface(pwalletMain.get());
+    pwalletMain->m_chain_notifications_handler = m_chain->handleNotifications(*pwalletMain);
 
-    RegisterWalletRPCCommands(tableRPC);
-    RegisterHDWalletRPCCommands(tableRPC);
+    m_chain_client->registerRpcs();
 }
 
 HDWalletTestingSetup::~HDWalletTestingSetup()
 {
-    UnregisterValidationInterface(pwalletMain.get());
     RemoveWallet(pwalletMain);
     pwalletMain.reset();
 

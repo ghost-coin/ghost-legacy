@@ -1468,9 +1468,6 @@ bool AppInitMain(InitInterfaces& interfaces)
     RegisterAllCoreRPCCommands(tableRPC);
     RegisterSmsgRPCCommands(tableRPC);
     RegisterInsightRPCCommands(tableRPC);
-#ifdef ENABLE_WALLET
-    RegisterHDWalletRPCCommands(tableRPC);
-#endif
 #if ENABLE_USBDEVICE
     RegisterUSBDeviceRPC(tableRPC);
 #endif

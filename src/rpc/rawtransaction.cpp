@@ -11,6 +11,7 @@
 #include <core_io.h>
 #include <index/txindex.h>
 #include <init.h>
+#include <interfaces/chain.h>
 #include <key_io.h>
 #include <keystore.h>
 #include <merkleblock.h>
@@ -981,23 +982,20 @@ static UniValue combinerawtransaction(const JSONRPCRequest& request)
     return EncodeHexTx(CTransaction(mergedTx));
 }
 
+// TODO(https://github.com/bitcoin/bitcoin/pull/10973#discussion_r267084237):
+// This function is called from both wallet and node rpcs
+// (signrawtransactionwithwallet and signrawtransactionwithkey). It should be
+// moved to a util file so wallet code doesn't need to link against node code.
+// Also the dependency on interfaces::Chain should be removed, so
+// signrawtransactionwithkey doesn't need access to a Chain instance.
 UniValue SignTransaction(interfaces::Chain& chain, CMutableTransaction& mtx, const UniValue& prevTxsUnival, CBasicKeyStore *keystore, bool is_temp_keystore, const UniValue& hashType)
 {
     // Fetch previous transactions (inputs):
-    CCoinsView viewDummy;
-    CCoinsViewCache view(&viewDummy);
-    {
-        LOCK2(cs_main, mempool.cs);
-        CCoinsViewCache &viewChain = *pcoinsTip;
-        CCoinsViewMemPool viewMempool(&viewChain, mempool);
-        view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
-
-        for (const CTxIn& txin : mtx.vin) {
-            view.AccessCoin(txin.prevout); // Load entries from viewChain into view; can fail.
-        }
-
-        view.SetBackend(viewDummy); // switch back to avoid locking mempool for too long
+    std::map<COutPoint, Coin> coins;
+    for (const CTxIn& txin : mtx.vin) {
+        coins[txin.prevout]; // Create empty map entry keyed by prevout.
     }
+    chain.findCoins(coins);
 
     // Add previous txouts given in the RPC call:
     if (!prevTxsUnival.isNull()) {
@@ -1029,25 +1027,25 @@ UniValue SignTransaction(interfaces::Chain& chain, CMutableTransaction& mtx, con
             CScript scriptPubKey(pkData.begin(), pkData.end());
 
             {
-            const Coin& coin = view.AccessCoin(out);
+                auto coin = coins.find(out);
 
-            if (coin.nType != OUTPUT_STANDARD && coin.nType != OUTPUT_CT)
-                throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad input type: %d", coin.nType));
-
-            if (!coin.IsSpent() && coin.out.scriptPubKey != scriptPubKey) {
-                std::string err("Previous output scriptPubKey mismatch:\n");
-                err = err + ScriptToAsmStr(coin.out.scriptPubKey) + "\nvs:\n"+
-                    ScriptToAsmStr(scriptPubKey);
-                throw JSONRPCError(RPC_DESERIALIZATION_ERROR, err);
-            }
-            Coin newcoin;
-            newcoin.out.scriptPubKey = scriptPubKey;
-            newcoin.out.nValue = MAX_MONEY;
-            if (prevOut.exists("amount")) {
-                newcoin.out.nValue = AmountFromValue(find_value(prevOut, "amount"));
-            }
-            newcoin.nHeight = 1;
-            view.AddCoin(out, std::move(newcoin), true);
+                if (coin != coins.end() && !coin->second.IsSpent() && coin->second.out.scriptPubKey != scriptPubKey) {
+                    std::string err("Previous output scriptPubKey mismatch:\n");
+                    err = err + ScriptToAsmStr(coin->second.out.scriptPubKey) + "\nvs:\n"+
+                        ScriptToAsmStr(scriptPubKey);
+                    throw JSONRPCError(RPC_DESERIALIZATION_ERROR, err);
+                }
+                if (coin->second.nType != OUTPUT_STANDARD && coin->second.nType != OUTPUT_CT) {
+                    throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad input type: %d", coin->second.nType));
+                }
+                Coin newcoin;
+                newcoin.out.scriptPubKey = scriptPubKey;
+                newcoin.out.nValue = MAX_MONEY;
+                if (prevOut.exists("amount")) {
+                    newcoin.out.nValue = AmountFromValue(find_value(prevOut, "amount"));
+                }
+                newcoin.nHeight = 1;
+                coins[out] = std::move(newcoin);
             }
 
             // if redeemScript and private keys were given, add redeemScript to the keystore so it can be signed
@@ -1092,27 +1090,26 @@ UniValue SignTransaction(interfaces::Chain& chain, CMutableTransaction& mtx, con
     // Sign what we can:
     for (unsigned int i = 0; i < mtx.vin.size(); i++) {
         CTxIn& txin = mtx.vin[i];
-        const Coin& coin = view.AccessCoin(txin.prevout);
-        if (coin.IsSpent()) {
+        auto coin = coins.find(txin.prevout);
+        if (coin == coins.end() || coin->second.IsSpent()) {
             TxInErrorToJSON(txin, vErrors, "Input not found or already spent");
             continue;
         }
 
-        CScript prevPubKey = coin.out.scriptPubKey;
-
+        const CScript& prevPubKey = coin->second.out.scriptPubKey;
         CAmount amount;
         std::vector<uint8_t> vchAmount;
-        if (coin.nType == OUTPUT_STANDARD) {
-            amount = coin.out.nValue;
+        if (coin->second.nType == OUTPUT_STANDARD) {
+            amount = coin->second.out.nValue;
             vchAmount.resize(8);
-            memcpy(vchAmount.data(), &coin.out.nValue, 8);
+            memcpy(vchAmount.data(), &coin->second.out.nValue, 8);
         } else
-        if (coin.nType == OUTPUT_CT) {
+        if (coin->second.nType == OUTPUT_CT) {
             amount = 0; // Bypass amount check
             vchAmount.resize(33);
-            memcpy(vchAmount.data(), coin.commitment.data, 33);
+            memcpy(vchAmount.data(), coin->second.commitment.data, 33);
         } else {
-            throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad input type: %d", coin.nType));
+            throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad input type: %d", coin->second.nType));
         }
 
         SignatureData sigdata = DataFromTransaction(mtx, i, vchAmount, prevPubKey);
@@ -1124,7 +1121,7 @@ UniValue SignTransaction(interfaces::Chain& chain, CMutableTransaction& mtx, con
         UpdateInput(txin, sigdata);
         // amount must be specified for valid segwit signature
         if (amount == MAX_MONEY && !txin.scriptWitness.IsNull()) {
-            throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Missing amount for %s", coin.out.ToString()));
+            throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Missing amount for %s", coin->second.out.ToString()));
         }
 
 

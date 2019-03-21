@@ -73,7 +73,7 @@ class SpentIndexTest(ParticlTestFramework):
 
         txsigned = nodes[0].signrawtransactionwithwallet(txfunded['hex'])
 
-        sent_txid = nodes[0].sendrawtransaction(txsigned['hex'], True)
+        sent_txid = nodes[0].sendrawtransaction(txsigned['hex'], 0)
 
 
         self.stakeBlocks(1)

@@ -3284,7 +3284,6 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
     LOCK(cs_main);
     target.SetCompact(GetSmsgDifficulty(psmsg->timestamp, true));
     }
-    //LogPrintf("[rm] target_compact %x\n", target_compact);
 
     if (UintToArith256(msg_hash) <= target) {
         rv = SMSG_NO_ERROR; // smsg is valid
