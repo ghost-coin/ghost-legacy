@@ -25,6 +25,7 @@ typedef std::map<uint256, CTransactionRecord> MapRecords_t;
 typedef std::multimap<int64_t, std::map<uint256, CTransactionRecord>::iterator> RtxOrdered_t;
 
 class UniValue;
+typedef struct secp256k1_scratch_space_struct secp256k1_scratch_space;
 
 const uint16_t OR_PLACEHOLDER_N = 0xFFFF; // index of a fake output to contain reconstructed amounts for txns with undecodeable outputs
 enum OutputRecordFlags
@@ -483,9 +484,9 @@ public:
     int GetChangeAddress(CPubKey &pk);
 
     void AddOutputRecordMetaData(CTransactionRecord &rtx, std::vector<CTempRecipient> &vecSend);
-    int ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStoredExtKey *pc, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    int ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStoredExtKey *pc, std::string &sError);
 
-    int AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main, cs_wallet);
+    int AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r, std::string &sError);
 
@@ -495,16 +496,16 @@ public:
     int AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend,
         CExtKeyAccount *sea, CStoredExtKey *pc,
-        bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
     int AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
-        std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
 
     int AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend,
         CExtKeyAccount *sea, CStoredExtKey *pc,
-        bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
     int AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
-        std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
 
 
     int PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t &nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
@@ -515,9 +516,9 @@ public:
     int AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend,
         CExtKeyAccount *sea, CStoredExtKey *pc,
-        bool sign, size_t nRingSize, size_t nInputsPerSig, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        bool sign, size_t nRingSize, size_t nInputsPerSig, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
     int AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
-        std::vector<CTempRecipient> &vecSend, bool sign, size_t nRingSize, size_t nInputsPerSig, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        std::vector<CTempRecipient> &vecSend, bool sign, size_t nRingSize, size_t nInputsPerSig, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
 
 
     void ClearCachedBalances() override;
@@ -783,6 +784,7 @@ public:
     int64_t nRCTOutSelectionGroup2 = 50000;
     size_t prefer_max_num_anon_inputs = 5; // if > x anon inputs are randomly selected attempt to reduce
     int m_mixin_selection_mode = 1;
+    secp256k1_scratch_space *m_blind_scratch = nullptr;
 
     int m_collapse_spent_mode = 0;
     int m_min_collapse_depth = 3;

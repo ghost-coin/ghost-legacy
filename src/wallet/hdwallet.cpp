@@ -125,6 +125,11 @@ int CHDWallet::Finalise()
 
     FreeExtKeyMaps();
     mapAddressBook.clear();
+
+    if (m_blind_scratch) {
+        secp256k1_scratch_space_destroy(m_blind_scratch);
+        m_blind_scratch = nullptr;
+    }
     return 0;
 };
 
@@ -167,6 +172,9 @@ void CHDWallet::AddOptions()
 
 bool CHDWallet::Initialise()
 {
+    m_blind_scratch = secp256k1_scratch_space_create(secp256k1_ctx_blind, 1024 * 1024);
+    assert(m_blind_scratch);
+
     // Continue from CHDWallet::LoadWallet
     PostProcessUnloadSpent();
 
@@ -3222,13 +3230,13 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
         bp[0] = r.vBlind.data();
         assert(r.vBlind.size() == 32);
 
-        if (1 != secp256k1_bulletproof_rangeproof_prove(secp256k1_ctx_blind, blind_scratch, blind_gens,
+        if (1 != secp256k1_bulletproof_rangeproof_prove(secp256k1_ctx_blind, m_blind_scratch, blind_gens,
             pvRangeproof->data(), &nRangeProofLen, &nValue, nullptr, bp, 1,
             &secp256k1_generator_const_h, 64, nonce.begin(), nullptr, 0)) {
             return wserrorN(1, sError, __func__, "secp256k1_bulletproof_rangeproof_prove failed.");
         }
 
-        if (1 != secp256k1_bulletproof_rangeproof_verify(secp256k1_ctx_blind, blind_scratch, blind_gens,
+        if (1 != secp256k1_bulletproof_rangeproof_verify(secp256k1_ctx_blind, m_blind_scratch, blind_gens,
             pvRangeproof->data(), nRangeProofLen, nullptr, pCommitment, 1, 64, &secp256k1_generator_const_h, nullptr, 0)) {
             return wserrorN(1, sError, __func__, "secp256k1_bulletproof_rangeproof_verify failed.");
         }
@@ -10568,7 +10576,7 @@ void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vecto
         const uint256& wtxid = item.first;
         const CWalletTx& wtx = item.second;
 
-        if (!CheckFinalTx(*wtx.tx)) {
+        if (!locked_chain.checkFinalTx(*wtx.tx)) {
             continue;
         }
 

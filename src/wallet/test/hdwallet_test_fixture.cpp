@@ -18,6 +18,7 @@ HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
     pwalletMain = std::make_shared<CHDWallet>(*m_chain, WalletLocation(), WalletDatabase::CreateMock());
     AddWallet(pwalletMain);
     pwalletMain->LoadWallet(fFirstRun);
+    pwalletMain->Initialise();
     pwalletMain->m_chain_notifications_handler = m_chain->handleNotifications(*pwalletMain);
 
     m_chain_client->registerRpcs();
