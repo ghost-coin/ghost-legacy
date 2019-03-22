@@ -35,6 +35,9 @@ struct StakeTestingSetup: public TestingSetup {
     StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
         TestingSetup(chainName, /* fParticlMode */ true)
     {
+        ECC_Start_Stealth();
+        ECC_Start_Blinding();
+
         bool fFirstRun;
         pwalletMain = std::make_shared<CHDWallet>(*m_chain, WalletLocation(), WalletDatabase::CreateMock());
         AddWallet(pwalletMain);
@@ -44,8 +47,6 @@ struct StakeTestingSetup: public TestingSetup {
 
         m_chain_client->registerRpcs();
 
-        ECC_Start_Stealth();
-        ECC_Start_Blinding();
         SetMockTime(0);
     }
 
@@ -56,6 +57,7 @@ struct StakeTestingSetup: public TestingSetup {
 
         mapStakeSeen.clear();
         listStakeSeen.clear();
+
         ECC_Stop_Stealth();
         ECC_Stop_Blinding();
     }

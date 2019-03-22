@@ -10,10 +10,14 @@
 #include <wallet/rpcwallet.h>
 #include <validation.h>
 #include <util/system.h>
+#include <blind.h>
 
 HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
     TestingSetup(chainName, true) // fParticlMode = true
 {
+    ECC_Start_Stealth();
+    ECC_Start_Blinding();
+
     bool fFirstRun;
     pwalletMain = std::make_shared<CHDWallet>(*m_chain, WalletLocation(), WalletDatabase::CreateMock());
     AddWallet(pwalletMain);
@@ -31,6 +35,9 @@ HDWalletTestingSetup::~HDWalletTestingSetup()
 
     mapStakeSeen.clear();
     listStakeSeen.clear();
+
+    ECC_Stop_Stealth();
+    ECC_Stop_Blinding();
 }
 
 std::string StripQuotes(std::string s)

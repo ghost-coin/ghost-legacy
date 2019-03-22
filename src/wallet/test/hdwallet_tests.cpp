@@ -62,7 +62,6 @@ BOOST_AUTO_TEST_CASE(stealth)
 {
     CHDWallet *pwallet = pwalletMain.get();
 
-    ECC_Start_Stealth();
     CStealthAddress sx;
     BOOST_CHECK(true == sx.SetEncoded("SPGyji8uZFip6H15GUfj6bsutRVLsCyBFL3P7k7T7MUDRaYU8GfwUHpfxonLFAvAwr2RkigyGfTgWMfzLAAP8KMRHq7RE8cwpEEekH"));
 
@@ -167,16 +166,12 @@ BOOST_AUTO_TEST_CASE(stealth)
     BOOST_REQUIRE(crypter.Decrypt(&vchENarr[0], vchENarr.size(), vchNarr));
     sNarrRecovered = std::string(vchNarr.begin(), vchNarr.end());
     BOOST_CHECK(sNarr == sNarrRecovered);
-
-
-    ECC_Stop_Stealth();
 }
 
 BOOST_AUTO_TEST_CASE(stealth_key_index)
 {
     CHDWallet *pwallet = pwalletMain.get();
 
-    //ECC_Start_Stealth();
     CStealthAddress sx;
     BOOST_CHECK(sx.SetEncoded("SPGyji8uZFip6H15GUfj6bsutRVLsCyBFL3P7k7T7MUDRaYU8GfwUHpfxonLFAvAwr2RkigyGfTgWMfzLAAP8KMRHq7RE8cwpEEekH"));
 
@@ -217,8 +212,6 @@ BOOST_AUTO_TEST_CASE(stealth_key_index)
         pwallet->IndexStealthKey(&wdb, hash, sxi, nIndex);
     };
     BOOST_CHECK(nIndex == 515);
-
-    //ECC_Stop_Stealth();
 }
 
 void makeNewStealthKey(CStealthAddress &sxAddr, CBasicKeyStore &keystore)
@@ -267,7 +260,6 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
 
     SeedInsecureRand();
     CBasicKeyStore keystore;
-    ECC_Start_Stealth();
 
     CStealthAddress sxAddr;
     makeNewStealthKey(sxAddr, keystore);
@@ -345,7 +337,6 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
 
     BOOST_MESSAGE("---------------- Make RingCT Output : AddCTData ---------------------\n");
     std::string strError;
-    ECC_Start_Blinding();
     BOOST_CHECK_MESSAGE(wallet->AddCTData(txout.get(), r, strError) == 0, "failed to add CT Data");
 
     BOOST_MESSAGE("---------------- Checking RingCT Output---------------------\n");
@@ -374,7 +365,6 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     BOOST_CHECK_MESSAGE(!CheckAnonOutput(state, (CTxOutRingCT*)txout_check.get()), "passed check ringct output");
     }
 
-    ECC_Stop_Stealth();
     SetMockTime(0);
 }
 
