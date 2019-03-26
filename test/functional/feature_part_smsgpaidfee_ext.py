@@ -8,6 +8,7 @@ from test_framework.test_particl import (
     isclose,
 )
 from test_framework.util import connect_nodes
+from test_framework.messages import COIN
 
 
 class SmsgPaidFeeExtTest(ParticlTestFramework):
@@ -44,7 +45,6 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
 
         text = 'Some text to test'
         ro = nodes[1].smsgsend(address1, address0, text, True, 10, True)
-        print(ro)
         assert(ro['result'] == 'Not Sent.')
         assert(isclose(ro['fee'], 0.00157000))
 
@@ -71,17 +71,46 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
         assert(ro['result'] == 'Not Sent.')
         assert(isclose(ro['fee'], 0.00186600))
 
+        ro = nodes[1].getblock(nodes[1].getblockhash(50), 2)
+        assert(ro['tx'][0]['vout'][0]['smsgfeerate'] * COIN == 61939)
+        assert(ro['tx'][0]['vout'][0]['smsgdifficulty'] == '1f0fffff')
+
+        ro = nodes[0].walletsettings('stakingoptions', {'smsgdifficultytarget' : '000000000000bfffffffffffffffffffffffffffffffffffffffffffffffffff', 'smsgfeeratetarget' : 0.001})
+        assert(float(ro['stakingoptions']['smsgfeeratetarget']) == 0.001)
+        assert(ro['stakingoptions']['smsgdifficultytarget'] == '000000000000bfffffffffffffffffffffffffffffffffffffffffffffffffff')
 
         self.sync_all()
 
         self.stakeBlocks(1)
         assert(nodes[0].smsggetfeerate() == 61939)
 
+        ro = nodes[1].getrawtransaction(nodes[1].getblockreward(51)['coinstake'], True)
+        block_51_smsgfeerate = ro['vout'][0]['smsgfeerate'] * COIN
+        block_51_smsgdifficulty = int(ro['vout'][0]['smsgdifficulty'], 16)
+        assert(block_51_smsgfeerate > 61939)
+        assert(block_51_smsgdifficulty < 0x1f0fffff)
+
         self.waitForSmsgExchange(1, 1, 0)
 
         ro = nodes[0].smsginbox('all')
         assert(len(ro['messages']) == 1)
         assert(ro['messages'][0]['text'] == text)
+
+        self.log.info('Verify node settings survive a restart')
+        self.stop_node(0)
+        self.start_node(0, self.extra_args[0])
+        connect_nodes(self.nodes[0], 1)
+
+        ro = nodes[0].walletsettings('stakingoptions')
+        assert(float(ro['stakingoptions']['smsgfeeratetarget']) == 0.001)
+        assert(ro['stakingoptions']['smsgdifficultytarget'] == '000000000000bfffffffffffffffffffffffffffffffffffffffffffffffffff')
+
+        self.stakeBlocks(1)
+
+        ro = nodes[1].getblock(nodes[1].getblockhash(52), 2)
+        assert(ro['tx'][0]['vout'][0]['smsgfeerate'] * COIN > block_51_smsgfeerate)
+        assert(int(ro['tx'][0]['vout'][0]['smsgdifficulty'], 16) < block_51_smsgdifficulty)
+
 
 
 if __name__ == '__main__':
