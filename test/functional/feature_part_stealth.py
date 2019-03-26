@@ -151,7 +151,6 @@ class StealthTest(ParticlTestFramework):
         ro = nodes[2].walletpassphrase('qwerty234', 400)
 
 
-
         # Start staking
         ro = nodes[0].walletsettings('stakelimit', {'height':1})
         ro = nodes[0].reservebalance(False)

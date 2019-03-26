@@ -246,6 +246,10 @@ void OutputToJSON(uint256 &txid, int i,
             if (s->GetSmsgFeeRate(nValue)) {
                 entry.pushKV("smsgfeerate", ValueFromAmount(nValue));
             }
+            uint32_t difficulty;
+            if (s->GetSmsgDifficulty(difficulty)) {
+                entry.pushKV("smsgdifficulty", strprintf("%08x", difficulty));
+            }
             }
             break;
         case OUTPUT_CT:
