@@ -46,11 +46,11 @@ class LockImpl : public Chain::Lock
         }
         return nullopt;
     }
-    int getHeightInt()
+    int getHeightInt() override
     {
         return ::chainActive.Height();
     }
-    size_t getAnonOutputs()
+    size_t getAnonOutputs() override
     {
         return ::chainActive.Tip()->nAnonOutputs;
     }

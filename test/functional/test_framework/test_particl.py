@@ -68,7 +68,7 @@ class ParticlTestFramework(BitcoinTestFramework):
             try:
                 ro = node.getmempoolentry(txnHash)
 
-                if ro['size'] >= 100 and ro['height'] >= 0:
+                if ro['vsize'] >= 100 and ro['height'] >= 0:
                     return True
             except:
                 continue

@@ -31,6 +31,7 @@ bench_bench_particl_SOURCES = \
   bench/base58.cpp \
   bench/bech32.cpp \
   bench/lockedpool.cpp \
+  bench/poly1305.cpp \
   bench/prevector.cpp \
   bench/blind.cpp \
   bench/mlsag.cpp
