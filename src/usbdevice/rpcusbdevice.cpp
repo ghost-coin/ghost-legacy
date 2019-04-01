@@ -994,12 +994,14 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
             pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);
             throw JSONRPCError(RPC_INTERNAL_ERROR, "TxnCommit failed.");
         }
-    } // pwallet->cs_wallet
+    }
 
     if (nScanFrom >= 0) {
         pwallet->RescanFromTime(nScanFrom, reserver, true /* update */);
         pwallet->MarkDirty();
-        pwallet->ReacceptWalletTransactions();
+        auto locked_chain = pwallet->chain().lock();
+        LOCK(pwallet->cs_wallet);
+        pwallet->ReacceptWalletTransactions(*locked_chain);
     }
 
     std::string sPath;

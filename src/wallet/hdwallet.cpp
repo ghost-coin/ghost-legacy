@@ -8501,7 +8501,6 @@ bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::
                     wdb.EraseTx(hash);
                     return false;
                 }
-
             } else {
                 wtxNew.RelayWalletTransaction(*locked_chain);
             }

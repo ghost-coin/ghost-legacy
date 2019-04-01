@@ -1080,7 +1080,8 @@ static UniValue extkey(const JSONRPCRequest &request)
                 throw JSONRPCError(RPC_WALLET_ERROR, "Wallet is currently rescanning. Abort existing rescan or wait.");
             }
 
-            LOCK2(cs_main, pwallet->cs_wallet);
+            auto locked_chain = pwallet->chain().lock();
+            LOCK(pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
             if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
@@ -1114,7 +1115,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
             pwallet->RescanFromTime(nTimeStartScan, reserver, true /* update */);
             pwallet->MarkDirty();
-            pwallet->ReacceptWalletTransactions();
+            pwallet->ReacceptWalletTransactions(*locked_chain);
 
         } // cs_wallet
     } else
@@ -1534,7 +1535,9 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     if (nScanFrom >= 0) {
         pwallet->RescanFromTime(nScanFrom, reserver, true);
         pwallet->MarkDirty();
-        pwallet->ReacceptWalletTransactions();
+        auto locked_chain = pwallet->chain().lock();
+        LOCK(pwallet->cs_wallet);
+        pwallet->ReacceptWalletTransactions(*locked_chain);
     }
 
     UniValue warnings(UniValue::VARR);
