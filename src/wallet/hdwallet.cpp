@@ -2538,62 +2538,6 @@ CAmount CHDWallet::GetStaked()
     return nTotal;
 };
 
-CAmount CHDWallet::GetLegacyBalance(const isminefilter& filter, int minDepth) const
-{
-    LockAnnotation lock(::cs_main); // Temporary, for CheckFinalTx below. Removed in upcoming commit.
-    auto locked_chain = chain().lock();
-    LOCK(cs_wallet);
-
-    CAmount balance = 0;
-    for (const auto& entry : mapWallet) {
-        const CWalletTx& wtx = entry.second;
-        const int depth = wtx.GetDepthInMainChain(*locked_chain);
-        if (depth < 0 || !CheckFinalTx(*wtx.tx) || wtx.GetBlocksToMaturity(*locked_chain, &depth) > 0) {
-            continue;
-        }
-
-        // Loop through tx outputs and add incoming payments. For outgoing txs,
-        // treat change outputs specially, as part of the amount debited.
-        CAmount debit = wtx.GetDebit(filter);
-        const bool outgoing = debit > 0;
-        for (const auto &out : wtx.tx->vpout) {
-            if (outgoing && IsChange(out.get())) {
-                debit -= out->GetValue();
-            } else if (IsMine(out.get()) & filter && depth >= minDepth) {
-                balance += out->GetValue();
-            }
-        }
-
-        // For outgoing txs, subtract amount debited.
-        if (outgoing) {
-            balance -= debit;
-        }
-    }
-
-    for (const auto &entry : mapRecords) {
-        const auto &txhash = entry.first;
-        const auto &rtx = entry.second;
-        const int depth = GetDepthInMainChain(*locked_chain, rtx.blockHash, rtx.nIndex);
-        //if (depth < 0 || !CheckFinalTx(*wtx.tx) || wtx.GetBlocksToMaturity() > 0) {
-        if (depth < 0) {
-            continue;
-        }
-
-        for (const auto &r : rtx.vout) {
-            if (r.nType == OUTPUT_STANDARD
-                && r.nFlags & ORF_OWNED && !IsSpent(*locked_chain, txhash, r.n)) {
-                balance += r.nValue;
-            }
-        }
-
-        if (!MoneyRange(balance)) {
-            throw std::runtime_error(std::string(__func__) + ": value out of range");
-        }
-    }
-
-    return balance;
-}
-
 bool CHDWallet::GetBalances(CHDWalletBalances &bal)
 {
     bal.Clear();

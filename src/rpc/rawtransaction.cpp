@@ -165,7 +165,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
 
 /** High fee for sendrawtransaction and testmempoolaccept.
  * By default, transaction with a fee higher than this will be rejected by the
- * RPCs. This can be overriden with the maxfeerate argument.
+ * RPCs. This can be overridden with the maxfeerate argument.
  */
 constexpr static CAmount DEFAULT_MAX_RAW_TX_FEE{COIN / 2};
 
