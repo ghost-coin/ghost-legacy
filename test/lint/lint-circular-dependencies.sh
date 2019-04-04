@@ -69,7 +69,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "key/stealth -> key_io -> script/standard -> key/stealth"
     "pos/miner -> wallet/hdwallet -> wallet/rpchdwallet -> pos/miner"
     "wallet/hdwallet -> wallet/rpchdwallet -> wallet/rpcwallet -> wallet/hdwallet"
-    "consensus/tx_verify -> smsg/smessage -> wallet/wallet -> txmempool -> consensus/tx_verify"
+    "consensus/tx_verify -> smsg/smessage -> interfaces/chain -> txmempool -> consensus/tx_verify"
     "consensus/tx_verify -> smsg/smessage -> wallet/wallet -> wallet/walletdb -> consensus/tx_verify"
     "wallet/feebumper -> wallet/hdwallet -> wallet/rpchdwallet -> wallet/rpcwallet -> wallet/feebumper"
     "init -> usbdevice/rpcusbdevice -> wallet/rpcwallet -> init"
