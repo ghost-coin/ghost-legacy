@@ -68,7 +68,7 @@ class DoSTest(ParticlTestFramework):
 
         p2p_conns = []
         for i in range(dos_nodes):
-            p2p_conns.append(self.nodes[i].add_p2p_connection(TestP2PConn()))
+            p2p_conns.append(self.nodes[i].add_p2p_connection(TestP2PConn(2)))
 
         nodes[0].extkeyimportmaster('pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic', '', 'true')
         nodes[0].getnewextaddress('lblExtTest')
