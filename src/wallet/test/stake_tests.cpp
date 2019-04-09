@@ -190,7 +190,8 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     {
         LOCK2(cs_main, pwallet->cs_wallet);
-        BOOST_REQUIRE(pwallet->GetBalance() == 12500000000000);
+        const auto bal = pwallet->GetBalance();
+        BOOST_REQUIRE(bal.m_mine_trusted == 12500000000000);
     }
     BOOST_REQUIRE(chainActive.Tip()->nMoneySupply == 12500000000000);
 
@@ -330,7 +331,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress lblTestKey"));
     std::string extaddr = StripQuotes(rv.write());
 
-    BOOST_CHECK(pwallet->GetBalance() + pwallet->GetStaked() == 12500000108911);
+    BOOST_CHECK(pwallet->GetBalance().m_mine_trusted + pwallet->GetStaked() == 12500000108911);
 
     {
         BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress"));

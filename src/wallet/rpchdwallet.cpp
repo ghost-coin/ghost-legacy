@@ -4614,8 +4614,11 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     switch (typeIn) {
         case OUTPUT_STANDARD:
-            if (nTotal > pwallet->GetBalance()) {
+            {
+            const auto bal = pwallet->GetBalance();
+            if (nTotal > bal.m_mine_trusted) {
                 throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
+            }
             }
             break;
         case OUTPUT_CT:

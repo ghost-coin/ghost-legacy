@@ -2329,42 +2329,6 @@ bool CHDWallet::IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &
     return true;
 };
 
-
-CAmount CHDWallet::GetBalance(const isminefilter& filter, const int min_depth) const
-{
-    CAmount nBalance = 0;
-
-    {
-        auto locked_chain = chain().lock();
-        LOCK(cs_wallet);
-
-        for (const auto &ri : mapRecords) {
-            const auto &txhash = ri.first;
-            const auto &rtx = ri.second;
-            if (!IsTrusted(*locked_chain, txhash, rtx.blockHash, rtx.nIndex)
-                || GetDepthInMainChain(*locked_chain, rtx.blockHash, rtx.nIndex) < min_depth) {
-                continue;
-            }
-
-            for (const auto &r : rtx.vout) {
-                if (r.nType == OUTPUT_STANDARD
-                    && (((filter & ISMINE_SPENDABLE) && (r.nFlags & ORF_OWNED))
-                        || ((filter & ISMINE_WATCH_ONLY) && (r.nFlags & ORF_OWN_WATCH)))
-                    && !IsSpent(*locked_chain, txhash, r.n)) {
-                    nBalance += r.nValue;
-                }
-            }
-
-            if (!MoneyRange(nBalance)) {
-                throw std::runtime_error(std::string(__func__) + ": value out of range");
-            }
-        }
-    }
-
-    nBalance += CWallet::GetBalance(filter, min_depth);
-    return nBalance;
-};
-
 CAmount CHDWallet::GetSpendableBalance() const
 {
     // Returns a value to be compared against reservebalance, includes stakeable watch-only balance.
@@ -2418,41 +2382,6 @@ CAmount CHDWallet::GetSpendableBalance() const
     m_have_spendable_balance_cached = true;
 
     return m_spendable_balance_cached;
-};
-
-CAmount CHDWallet::GetUnconfirmedBalance() const
-{
-    CAmount nBalance = 0;
-
-    auto locked_chain = chain().lock();
-    LOCK(cs_wallet);
-
-    for (const auto &ri : mapRecords) {
-        const auto &txhash = ri.first;
-        const auto &rtx = ri.second;
-
-        if (IsTrusted(*locked_chain, txhash, rtx.blockHash)) {
-            continue;
-        }
-
-        CTransactionRef ptx = mempool.get(txhash);
-        if (!ptx) {
-            continue;
-        }
-
-        for (const auto &r : rtx.vout) {
-            if (r.nFlags & ORF_OWNED && !IsSpent(*locked_chain, txhash, r.n)) {
-                nBalance += r.nValue;
-            }
-        }
-
-        if (!MoneyRange(nBalance)) {
-            throw std::runtime_error(std::string(__func__) + ": value out of range");
-        }
-    }
-
-    nBalance += CWallet::GetUnconfirmedBalance();
-    return nBalance;
 };
 
 CAmount CHDWallet::GetBlindBalance()
@@ -2537,6 +2466,57 @@ CAmount CHDWallet::GetStaked()
     }
     return nTotal;
 };
+
+CWallet::Balance CHDWallet::GetBalance(const int min_depth) const
+{
+    CWallet::Balance bal_records;
+    isminefilter filter = ISMINE_SPENDABLE;
+    auto locked_chain = chain().lock();
+    LOCK(cs_wallet);
+
+    for (const auto &ri : mapRecords) {
+        const auto &txhash = ri.first;
+        const auto &rtx = ri.second;
+
+        bool is_trusted = IsTrusted(*locked_chain, txhash, rtx.blockHash, rtx.nIndex);
+        int tx_depth = GetDepthInMainChain(*locked_chain, rtx.blockHash, rtx.nIndex);
+        for (const auto &r : rtx.vout) {
+            if (r.nType != OUTPUT_STANDARD
+                || IsSpent(*locked_chain, txhash, r.n)) {
+                continue;
+            }
+            if (is_trusted && tx_depth >= min_depth) {
+                if (r.nFlags & ORF_OWNED) {
+                    bal_records.m_mine_trusted += r.nValue;
+                }
+                if (r.nFlags & ORF_OWN_WATCH) {
+                    bal_records.m_watchonly_trusted += r.nValue;
+                }
+            }
+            if (!is_trusted && tx_depth == 0) {
+                CTransactionRef ptx = mempool.get(txhash);
+                if (!ptx) {
+                    continue;
+                }
+                if (r.nFlags & ORF_OWNED) {
+                    bal_records.m_mine_untrusted_pending += r.nValue;
+                }
+                if (r.nFlags & ORF_OWN_WATCH) {
+                    bal_records.m_watchonly_untrusted_pending += r.nValue;
+                }
+            }
+        }
+    }
+
+    Balance ret = CWallet::GetBalance(min_depth);
+
+    ret.m_mine_trusted += bal_records.m_mine_trusted;
+    ret.m_watchonly_trusted += bal_records.m_watchonly_trusted;
+    ret.m_mine_untrusted_pending += bal_records.m_mine_untrusted_pending;
+    ret.m_watchonly_untrusted_pending += bal_records.m_watchonly_untrusted_pending;
+
+    return ret;
+}
 
 bool CHDWallet::GetBalances(CHDWalletBalances &bal)
 {

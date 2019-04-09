@@ -95,9 +95,9 @@ void ReceiveCoinsDialog::setModel(WalletModel *_model)
         columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(tableView, AMOUNT_MINIMUM_COLUMN_WIDTH, DATE_COLUMN_WIDTH, this);
 
         if (model->wallet().getDefaultAddressType() == OutputType::BECH32) {
-            ui->useBech32->setCheckState(Qt::Checked);
-        } else {
             ui->useBech32->setCheckState(Qt::Unchecked);
+        } else {
+            ui->useBech32->setCheckState(Qt::Checked);
         }
 
         // Set the button to be enabled or disabled based on whether the wallet can give out new addresses.
@@ -152,7 +152,7 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
 
     /* Generate new receiving address
     OutputType address_type;
-    if (ui->useBech32->isChecked()) {
+    if (!ui->useLegacyAddress->isChecked()) {
         address_type = OutputType::BECH32;
     } else {
         address_type = model->wallet().getDefaultAddressType();

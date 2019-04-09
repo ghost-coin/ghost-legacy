@@ -465,13 +465,12 @@ public:
     bool InMempool(const uint256 &hash) const;
     bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &hash, const uint256 &blockhash, int nIndex = 0) const;
 
-    CAmount GetBalance(const isminefilter& filter=ISMINE_SPENDABLE, const int min_depth=0) const override;
     CAmount GetSpendableBalance() const; // Includes watch_only_cs balance
-    CAmount GetUnconfirmedBalance() const override;
     CAmount GetBlindBalance();
     CAmount GetAnonBalance();
     CAmount GetStaked();
 
+    Balance GetBalance(int min_depth = 0) const override;
     bool GetBalances(CHDWalletBalances &bal);
     CAmount GetAvailableBalance(const CCoinControl* coinControl = nullptr) const override;
     CAmount GetAvailableAnonBalance(const CCoinControl* coinControl = nullptr) const;
