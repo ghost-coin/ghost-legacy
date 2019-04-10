@@ -127,8 +127,8 @@ class ExtKeyTest(ParticlTestFramework):
 
 
         # start staking
-        ro = node.walletsettings('stakelimit', {'height':3})
-        ro = node.reservebalance(False)
+        node.walletsettings('stakelimit', {'height':3})
+        node.reservebalance(False)
 
         assert(self.wait_for_height(node, 3))
 

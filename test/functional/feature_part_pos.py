@@ -43,31 +43,27 @@ class PosTest(ParticlTestFramework):
 
 
         # test reserve balance
-        ro = nodes[0].walletsettings('stakelimit', {'height':1})
-        ro = nodes[0].getwalletinfo()
-        assert(isclose(ro['reserve'], 10000000.0))
+        nodes[0].walletsettings('stakelimit', {'height':1})
+        assert(isclose(nodes[0].getwalletinfo()['reserve'], 10000000.0))
 
         ro = nodes[0].reservebalance(True, 100)
         assert(ro['reserve'] == True)
         assert(isclose(ro['amount'], 100.0))
 
-        ro = nodes[0].getwalletinfo()
-        assert(ro['reserve'] == 100)
+        assert(nodes[0].getwalletinfo()['reserve'] == 100)
 
         ro = nodes[0].reservebalance(False)
         assert(ro['reserve'] == False)
         assert(ro['amount'] == 0)
 
-        ro = nodes[0].getwalletinfo()
-        assert(ro['reserve'] == 0)
+        assert(nodes[0].getwalletinfo()['reserve'] == 0)
 
         assert(self.wait_for_height(nodes[0], 1))
-        ro = nodes[0].reservebalance(True, 10000000)
+        nodes[0].reservebalance(True, 10000000)
 
         addrTo = nodes[1].getnewaddress()
         txnHash = nodes[0].sendtoaddress(addrTo, 10)
-        ro = nodes[0].getmempoolentry(txnHash)
-        assert(ro['height'] == 1)
+        assert(nodes[0].getmempoolentry(txnHash)['height'] == 1)
 
         ro = nodes[0].listtransactions()
         fPass = False

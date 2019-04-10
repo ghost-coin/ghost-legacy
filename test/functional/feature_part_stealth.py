@@ -148,12 +148,11 @@ class StealthTest(ParticlTestFramework):
         assert(isclose(ro[-1]['amount'], 0.6))
         assert('test 6' in str(ro[-1]))
 
-        ro = nodes[2].walletpassphrase('qwerty234', 400)
-
+        nodes[2].walletpassphrase('qwerty234', 400)
 
         # Start staking
-        ro = nodes[0].walletsettings('stakelimit', {'height':1})
-        ro = nodes[0].reservebalance(False)
+        nodes[0].walletsettings('stakelimit', {'height':1})
+        nodes[0].reservebalance(False)
 
         assert(self.wait_for_height(nodes[0], 1))
 

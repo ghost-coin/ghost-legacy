@@ -240,8 +240,8 @@ class ColdStakingTest(ParticlTestFramework):
         assert(ro['num_derives'] == '3')
 
         # Test stake to coldstakingchangeaddress
-        ro = nodes[0].walletsettings('stakelimit', {'height':2})
-        ro = nodes[0].reservebalance(False)
+        nodes[0].walletsettings('stakelimit', {'height':2})
+        nodes[0].reservebalance(False)
 
         assert(self.wait_for_height(nodes[0], 2))
         self.sync_all()
