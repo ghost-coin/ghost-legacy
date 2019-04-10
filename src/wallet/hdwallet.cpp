@@ -29,6 +29,10 @@
 #include <txdb.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
+#include <rpc/rawtransaction_util.h>
+#include <util/fees.h>
+#include <util/rbf.h>
+#include <util/validation.h>
 #include <wallet/fees.h>
 #include <walletinitinterface.h>
 #include <wallet/walletutil.h>
@@ -2470,7 +2474,6 @@ CAmount CHDWallet::GetStaked()
 CWallet::Balance CHDWallet::GetBalance(const int min_depth) const
 {
     CWallet::Balance bal_records;
-    isminefilter filter = ISMINE_SPENDABLE;
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
@@ -3251,10 +3254,10 @@ static bool HaveAnonOutputs(std::vector<CTempRecipient> &vecSend)
     return false;
 }
 
-bool CheckOutputValue(const CTempRecipient &r, const CTxOutBase *txbout, CAmount nFeeRet, std::string sError)
+bool CheckOutputValue(interfaces::Chain& chain, const CTempRecipient &r, const CTxOutBase *txbout, CAmount nFeeRet, std::string sError)
 {
     if ((r.nType == OUTPUT_STANDARD
-            && IsDust(txbout, dustRelayFee))
+            && IsDust(txbout, chain.relayDustFee()))
         || (r.nType != OUTPUT_DATA
             && r.nAmount < 0)) {
         if (r.fSubtractFeeFromAmount && nFeeRet > 0) {
@@ -3742,7 +3745,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                     return 1; // sError will be set
                 }
 
-                if (!CheckOutputValue(r, &*txbout, nFeeRet, sError)) {
+                if (!CheckOutputValue(chain(), r, &*txbout, nFeeRet, sError)) {
                     return 1; // sError set
                 }
 
@@ -4301,7 +4304,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                     return 1; // sError will be set
                 }
 
-                if (!CheckOutputValue(r, &*txbout, nFeeRet, sError)) {
+                if (!CheckOutputValue(chain(), r, &*txbout, nFeeRet, sError)) {
                     return 1; // sError set
                 }
 
@@ -10463,29 +10466,45 @@ std::vector<uint256> CHDWallet::ResendRecordTransactionsBefore(interfaces::Chain
     return result;
 }
 
-void CHDWallet::ResendWalletTransactions(interfaces::Chain::Lock& locked_chain, int64_t nBestBlockTime)
+void CHDWallet::ResendWalletTransactions()
 {
+    // During reindex, importing and IBD, old wallet transactions become
+    // unconfirmed. Don't resend them as that would spam other nodes.
+    if (!chain().isReadyToBroadcast()) return;
+
     // Do this infrequently and randomly to avoid giving away
     // that these are our transactions.
-    if (GetTime() < nNextResend || !fBroadcastTransactions)
-        return;
+    if (GetTime() < nNextResend || !fBroadcastTransactions) return;
     bool fFirst = (nNextResend == 0);
     nNextResend = GetTime() + GetRand(30 * 60);
-    if (fFirst)
-        return;
+    if (fFirst) return;
 
     // Only do it if there's been a new block since last time
-    if (nBestBlockTime < nLastResend)
-        return;
+    if (m_best_block_time < nLastResend) return;
     nLastResend = GetTime();
 
-    // Rebroadcast unconfirmed txes older than 5 minutes before the last
-    // block was found:
-    std::vector<uint256> relayed = ResendWalletTransactionsBefore(locked_chain, nBestBlockTime-5*60);
-    std::vector<uint256> relayedRecord = ResendRecordTransactionsBefore(locked_chain, nBestBlockTime-5*60);
-    if (!relayed.empty() || !relayedRecord.empty())
-        WalletLogPrintf("%s: rebroadcast %u unconfirmed transactions\n", __func__, relayed.size() + relayedRecord.size());
-    return;
+    int relayed_tx_count = 0;
+
+    { // locked_chain and cs_wallet scope
+        auto locked_chain = chain().lock();
+        LOCK(cs_wallet);
+
+        // Relay transactions
+        for (std::pair<const uint256, CWalletTx>& item : mapWallet) {
+            CWalletTx& wtx = item.second;
+            // only rebroadcast unconfirmed txes older than 5 minutes before the
+            // last block was found
+            if (wtx.nTimeReceived > m_best_block_time - 5 * 60) continue;
+            if (wtx.RelayWalletTransaction(*locked_chain)) ++relayed_tx_count;
+        }
+
+        std::vector<uint256> relayed_records = ResendRecordTransactionsBefore(*locked_chain, m_best_block_time - 5 * 60);
+        relayed_tx_count += relayed_records.size();
+    } // locked_chain and cs_wallet
+
+    if (relayed_tx_count > 0) {
+        WalletLogPrintf("%s: rebroadcast %u unconfirmed transactions\n", __func__, relayed_tx_count);
+    }
 };
 
 void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vector<COutput> &vCoins, bool fOnlySafe, const CCoinControl *coinControl, const CAmount &nMinimumAmount, const CAmount &nMaximumAmount, const CAmount &nMinimumSumAmount, const uint64_t nMaximumCount, const int nMinDepth, const int nMaxDepth, bool fIncludeImmature) const

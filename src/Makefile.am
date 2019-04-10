@@ -132,6 +132,7 @@ BITCOIN_CORE_H = \
   compat/sanity.h \
   compressor.h \
   consensus/consensus.h \
+  consensus/tx_check.h \
   consensus/tx_verify.h \
   core_io.h \
   core_memusage.h \
@@ -180,6 +181,7 @@ BITCOIN_CORE_H = \
   netbase.h \
   netmessagemaker.h \
   node/coin.h \
+  node/psbt.h \
   node/transaction.h \
   noui.h \
   optional.h \
@@ -188,6 +190,7 @@ BITCOIN_CORE_H = \
   policy/fees.h \
   policy/policy.h \
   policy/rbf.h \
+  policy/settings.h \
   pow.h \
   pos/kernel.h \
   pos/miner.h \
@@ -201,10 +204,10 @@ BITCOIN_CORE_H = \
   rpc/mining.h \
   rpc/protocol.h \
   rpc/server.h \
-  rpc/rpcutil.h \
-  rpc/rawtransaction.h \
+  rpc/rawtransaction_util.h \
   rpc/register.h \
   rpc/util.h \
+  rpc/rpcutil.h \
   scheduler.h \
   script/descriptor.h \
   script/ismine.h \
@@ -234,10 +237,15 @@ BITCOIN_CORE_H = \
   undo.h \
   util/bip32.h \
   util/bytevectorhash.h \
+  util/error.h \
+  util/fees.h \
   util/system.h \
   util/memory.h \
   util/moneystr.h \
+  util/rbf.h \
   util/time.h \
+  util/url.h \
+  util/validation.h \
   validation.h \
   validationinterface.h \
   versionbits.h \
@@ -248,6 +256,7 @@ BITCOIN_CORE_H = \
   wallet/db.h \
   wallet/feebumper.h \
   wallet/fees.h \
+  wallet/load.h \
   wallet/psbtwallet.h \
   wallet/rpcwallet.h \
   wallet/wallet.h \
@@ -281,13 +290,15 @@ obj/build.h: FORCE
 libparticl_util_a-clientversion.$(OBJEXT): obj/build.h
 
 # server: shared between bitcoind and bitcoin-qt
+# Contains code accessing mempool and chain state that is meant to be separated
+# from wallet and gui code (see node/README.md). Shared code should go in
+# libbitcoin_common or libbitcoin_util libraries, instead.
 libparticl_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libparticl_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libparticl_server_a_SOURCES = \
   addrdb.cpp \
   addrman.cpp \
   banman.cpp \
-  bloom.cpp \
   blockencodings.cpp \
   blockfilter.cpp \
   chain.cpp \
@@ -299,21 +310,19 @@ libparticl_server_a_SOURCES = \
   index/base.cpp \
   index/txindex.cpp \
   interfaces/chain.cpp \
-  interfaces/handler.cpp \
   interfaces/node.cpp \
   init.cpp \
   dbwrapper.cpp \
-  merkleblock.cpp \
   miner.cpp \
   net.cpp \
   net_processing.cpp \
   node/coin.cpp \
+  node/psbt.cpp \
   node/transaction.cpp \
   noui.cpp \
-  outputtype.cpp \
   policy/fees.cpp \
-  policy/policy.cpp \
   policy/rbf.cpp \
+  policy/settings.cpp \
   pow.cpp \
   pos/kernel.cpp \
   rest.cpp \
@@ -342,6 +351,9 @@ libparticl_server_a_SOURCES = \
   insight/rpc.cpp \
   $(BITCOIN_CORE_H)
 
+if ENABLE_WALLET
+libparticl_server_a_SOURCES += wallet/init.cpp
+endif
 if !ENABLE_WALLET
 libparticl_server_a_SOURCES += dummywallet.cpp
 endif
@@ -403,7 +415,7 @@ libparticl_wallet_a_SOURCES = \
   wallet/db.cpp \
   wallet/feebumper.cpp \
   wallet/fees.cpp \
-  wallet/init.cpp \
+  wallet/load.cpp \
   wallet/psbtwallet.cpp \
   wallet/rpcdump.cpp \
   wallet/rpcwallet.cpp \
@@ -484,6 +496,7 @@ libparticl_consensus_a_SOURCES = \
   consensus/merkle.cpp \
   consensus/merkle.h \
   consensus/params.h \
+  consensus/tx_check.cpp \
   consensus/validation.h \
   hash.cpp \
   hash.h \
@@ -516,6 +529,7 @@ libparticl_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libparticl_common_a_SOURCES = \
   base58.cpp \
   bech32.cpp \
+  bloom.cpp \
   chainparams.cpp \
   coins.cpp \
   compressor.cpp \
@@ -533,11 +547,16 @@ libparticl_common_a_SOURCES = \
   unilib/utf8.cpp \
   key_io.cpp \
   keystore.cpp \
+  merkleblock.cpp \
   netaddress.cpp \
   netbase.cpp \
+  outputtype.cpp \
   policy/feerate.cpp \
+  policy/policy.cpp \
   protocol.cpp \
   psbt.cpp \
+  rpc/rawtransaction_util.cpp \
+  rpc/util.cpp \
   scheduler.cpp \
   script/descriptor.cpp \
   script/ismine.cpp \
@@ -560,6 +579,7 @@ libparticl_util_a_SOURCES = \
   compat/glibcxx_sanity.cpp \
   compat/strnlen.cpp \
   fs.cpp \
+  interfaces/handler.cpp \
   logging.cpp \
   random.cpp \
   rpc/protocol.cpp \
@@ -568,10 +588,15 @@ libparticl_util_a_SOURCES = \
   threadinterrupt.cpp \
   util/bip32.cpp \
   util/bytevectorhash.cpp \
+  util/error.cpp \
+  util/fees.cpp \
   util/system.cpp \
   util/moneystr.cpp \
+  util/rbf.cpp \
   util/strencodings.cpp \
   util/time.cpp \
+  util/url.cpp \
+  util/validation.cpp \
   $(BITCOIN_CORE_H)
 
 

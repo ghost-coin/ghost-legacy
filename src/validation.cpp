@@ -12,6 +12,7 @@
 #include <checkqueue.h>
 #include <consensus/consensus.h>
 #include <consensus/merkle.h>
+#include <consensus/tx_check.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <cuckoocache.h>
@@ -21,6 +22,7 @@
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/rbf.h>
+#include <policy/settings.h>
 #include <pow.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
@@ -38,8 +40,10 @@
 #include <ui_interface.h>
 #include <undo.h>
 #include <util/moneystr.h>
+#include <util/rbf.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/validation.h>
 #include <validationinterface.h>
 #include <warnings.h>
 #include <smsg/smessage.h>
@@ -258,7 +262,6 @@ bool fTimestampIndex = false;
 bool fSpentIndex = false;
 bool fHavePruned = false;
 bool fPruneMode = false;
-bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
 bool fRequireStandard = true;
 bool fCheckBlockIndex = false;
 bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
@@ -280,11 +283,6 @@ std::atomic_bool g_is_mempool_loaded{false};
 
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
-
-
-const std::string strMessageMagic = "Bitcoin Signed Message:\n";
-
-extern bool IncomingBlockChecked(const CBlock &block, CValidationState &state);
 
 // Internal stuff
 namespace {
@@ -500,15 +498,6 @@ static void LimitMempoolSize(CTxMemPool& pool, size_t limit, unsigned long age) 
         pcoinsTip->Uncache(removed);
 }
 
-/** Convert CValidationState to a human-readable message for logging */
-std::string FormatStateMessage(const CValidationState &state)
-{
-    return strprintf("%s%s (code %i)",
-        state.GetRejectReason(),
-        state.GetDebugMessage().empty() ? "" : ", "+state.GetDebugMessage(),
-        state.GetRejectCode());
-}
-
 static bool IsCurrentForFeeEstimation() EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     AssertLockHeld(cs_main);
@@ -647,7 +636,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
-    if (fRequireStandard && !IsStandardTx(tx, reason))
+    if (fRequireStandard && !IsStandardTx(tx, reason, nAcceptTime))
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
 
     // Do not work on transactions that are too small.
@@ -778,7 +767,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         }
 
         // Check for non-standard pay-to-script-hash in inputs
-        if (fRequireStandard && !AreInputsStandard(tx, view))
+        if (fRequireStandard && !AreInputsStandard(tx, view, nAcceptTime))
             return state.Invalid(false, REJECT_NONSTANDARD, "bad-txns-nonstandard-inputs");
 
         // Check for non-standard witness in P2WSH
@@ -5075,6 +5064,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
     return true;
 }
 
+extern bool IncomingBlockChecked(const CBlock &block, CValidationState &state);
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock)
 {
     AssertLockNotHeld(cs_main);

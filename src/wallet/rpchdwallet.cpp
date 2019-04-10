@@ -18,6 +18,7 @@
 #include <rpc/server.h>
 #include <rpc/mining.h>
 #include <rpc/util.h>
+#include <rpc/rawtransaction_util.h>
 #include <script/sign.h>
 #include <timedata.h>
 #include <util/system.h>
@@ -25,6 +26,9 @@
 #include <blind.h>
 #include <anon.h>
 #include <util/moneystr.h>
+#include <util/validation.h>
+#include <util/fees.h>
+#include <util/rbf.h>
 #include <wallet/hdwallet.h>
 #include <wallet/hdwalletdb.h>
 #include <wallet/coincontrol.h>
@@ -6907,7 +6911,7 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("CreateOutput failed: %s.", sError));
         }
 
-        if (!CheckOutputValue(r, &*txbout, nFeeRet, sError)) {
+        if (!CheckOutputValue(pwallet->chain(), r, &*txbout, nFeeRet, sError)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("CheckOutputValue failed: %s.", sError));
         }
         /*

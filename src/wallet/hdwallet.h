@@ -672,7 +672,7 @@ public:
         const uint256& block_hash, int posInBlock, bool fFlushOnClose=true);
 
     std::vector<uint256> ResendRecordTransactionsBefore(interfaces::Chain::Lock& locked_chain, int64_t nTime);
-    void ResendWalletTransactions(interfaces::Chain::Lock& locked_chain, int64_t nBestBlockTime) override;
+    void ResendWalletTransactions() override;
 
     /**
      * populate vCoins with vector of available COutputs.
@@ -824,7 +824,7 @@ public:
 int LoopExtKeysInDB(CHDWallet *pwallet, bool fInactive, bool fInAccount, LoopExtKeyCallback &callback);
 int LoopExtAccountsInDB(CHDWallet *pwallet, bool fInactive, LoopExtKeyCallback &callback);
 
-bool CheckOutputValue(const CTempRecipient &r, const CTxOutBase *txbout, CAmount nFeeRet, std::string sError);
+bool CheckOutputValue(interfaces::Chain& chain, const CTempRecipient &r, const CTxOutBase *txbout, CAmount nFeeRet, std::string sError);
 int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string &sError);
 void ExtractNarration(const uint256 &nonce, const std::vector<uint8_t> &vData, std::string &sNarr);
 

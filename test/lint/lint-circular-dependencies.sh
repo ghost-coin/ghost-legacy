@@ -13,7 +13,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "checkpoints -> validation -> checkpoints"
     "index/txindex -> validation -> index/txindex"
     "policy/fees -> txmempool -> policy/fees"
-    "policy/policy -> validation -> policy/policy"
+    "policy/policy -> policy/settings -> policy/policy"
     "qt/addresstablemodel -> qt/walletmodel -> qt/addresstablemodel"
     "qt/bantablemodel -> qt/clientmodel -> qt/bantablemodel"
     "qt/bitcoingui -> qt/utilitydialog -> qt/bitcoingui"
@@ -30,7 +30,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "wallet/coincontrol -> wallet/wallet -> wallet/coincontrol"
     "wallet/fees -> wallet/wallet -> wallet/fees"
     "wallet/wallet -> wallet/walletdb -> wallet/wallet"
-    "policy/fees -> policy/policy -> validation -> policy/fees"
+    "policy/fees -> txmempool -> validation -> policy/fees"
     "policy/rbf -> txmempool -> validation -> policy/rbf"
     "qt/addressbookpage -> qt/bitcoingui -> qt/walletview -> qt/addressbookpage"
     "qt/guiutil -> qt/walletmodel -> qt/optionsmodel -> qt/guiutil"
@@ -70,10 +70,8 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "pos/miner -> wallet/hdwallet -> wallet/rpchdwallet -> pos/miner"
     "wallet/hdwallet -> wallet/rpchdwallet -> wallet/rpcwallet -> wallet/hdwallet"
     "consensus/tx_verify -> smsg/smessage -> wallet/wallet -> txmempool -> consensus/tx_verify"
-    "consensus/tx_verify -> smsg/smessage -> wallet/wallet -> wallet/walletdb -> consensus/tx_verify"
     "wallet/feebumper -> wallet/hdwallet -> wallet/rpchdwallet -> wallet/rpcwallet -> wallet/feebumper"
     "init -> usbdevice/rpcusbdevice -> wallet/rpcwallet -> init"
-    "init -> usbdevice/rpcusbdevice -> wallet/rpcwallet -> rpc/rawtransaction -> init"
 )
 
 EXIT_CODE=0

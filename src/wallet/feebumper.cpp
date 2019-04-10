@@ -14,7 +14,9 @@
 #include <validation.h> //for mempool access
 #include <txmempool.h>
 #include <util/moneystr.h>
+#include <util/rbf.h>
 #include <util/system.h>
+#include <util/validation.h>
 #include <net.h>
 
 #include <wallet/hdwallet.h>
@@ -147,7 +149,6 @@ Result CreateTransaction(const CWallet* wallet, const uint256& txid, const CCoin
     LOCK(wallet->cs_wallet);
     errors.clear();
 
-
     if (IsParticlWallet(wallet)) {
         const CHDWallet *pw = GetParticlWallet(wallet);
         auto it = wallet->mapWallet.find(txid);
@@ -189,16 +190,17 @@ Result CreateTransaction(const CWallet* wallet, const uint256& txid, const CCoin
             // The wallet uses a conservative WALLET_INCREMENTAL_RELAY_FEE value to
             // future proof against changes to network wide policy for incremental relay
             // fee that our node may not be aware of.
+            CFeeRate nodeIncrementalRelayFee = wallet->chain().relayIncrementalFee();
             CFeeRate walletIncrementalRelayFee = CFeeRate(WALLET_INCREMENTAL_RELAY_FEE);
-            if (::incrementalRelayFee > walletIncrementalRelayFee) {
-                walletIncrementalRelayFee = ::incrementalRelayFee;
+            if (nodeIncrementalRelayFee > walletIncrementalRelayFee) {
+                walletIncrementalRelayFee = nodeIncrementalRelayFee;
             }
 
             if (total_fee > 0) {
-                CAmount minTotalFee = nOldFeeRate.GetFee(maxNewTxSize) + ::incrementalRelayFee.GetFee(maxNewTxSize);
+                CAmount minTotalFee = nOldFeeRate.GetFee(maxNewTxSize) + nodeIncrementalRelayFee.GetFee(maxNewTxSize);
                 if (total_fee < minTotalFee) {
                     errors.push_back(strprintf("Insufficient totalFee, must be at least %s (oldFee %s + incrementalFee %s)",
-                                                                        FormatMoney(minTotalFee), FormatMoney(nOldFeeRate.GetFee(maxNewTxSize)), FormatMoney(::incrementalRelayFee.GetFee(maxNewTxSize))));
+                                                                        FormatMoney(minTotalFee), FormatMoney(nOldFeeRate.GetFee(maxNewTxSize)), FormatMoney(nodeIncrementalRelayFee.GetFee(maxNewTxSize))));
                     return Result::INVALID_PARAMETER;
                 }
                 CAmount requiredFee = GetRequiredFee(*wallet, maxNewTxSize);
@@ -274,12 +276,11 @@ Result CreateTransaction(const CWallet* wallet, const uint256& txid, const CCoin
                 }
             }
             return Result::OK;
-        };
+        }
 
         errors.push_back("Invalid or non-wallet transaction id");
         return Result::INVALID_ADDRESS_OR_KEY;
-    };
-
+    }
 
     auto it = wallet->mapWallet.find(txid);
     if (it == wallet->mapWallet.end()) {

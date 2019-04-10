@@ -25,6 +25,7 @@
 #include <ui_interface.h>
 #include <txmempool.h>
 #include <policy/fees.h>
+#include <util/fees.h>
 #include <wallet/fees.h>
 #include <wallet/wallet.h>
 #include <wallet/hdwallet.h>

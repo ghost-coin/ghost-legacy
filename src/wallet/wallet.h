@@ -37,26 +37,6 @@
 #include <utility>
 #include <vector>
 
-//! Responsible for reading and validating the -wallet arguments and verifying the wallet database.
-//! This function will perform salvage on the wallet if requested, as long as only one wallet is
-//! being loaded (WalletParameterInteraction forbids -salvagewallet, -zapwallettxes or -upgradewallet with multiwallet).
-bool VerifyWallets(interfaces::Chain& chain, const std::vector<std::string>& wallet_files);
-
-//! Load wallet databases.
-bool LoadWallets(interfaces::Chain& chain, const std::vector<std::string>& wallet_files);
-
-//! Complete startup of wallets.
-void StartWallets(CScheduler& scheduler);
-
-//! Flush all wallets in preparation for shutdown.
-void FlushWallets();
-
-//! Stop all wallets. Wallets will be flushed first.
-void StopWallets();
-
-//! Close all wallets.
-void UnloadWallets();
-
 //! Explicitly unload and delete the wallet.
 //! Blocks the current thread after signaling the unload intent so that all
 //! wallet clients release the wallet.
@@ -713,6 +693,8 @@ private:
     int64_t nNextResend = 0;
     int64_t nLastResend = 0;
     bool fBroadcastTransactions = false;
+    // Local time that the tip block was received. Used to schedule wallet rebroadcasts.
+    std::atomic<int64_t> m_best_block_time {0};
 
     /**
      * Used to keep track of spent outpoints, and
@@ -987,6 +969,7 @@ public:
     void TransactionAddedToMempool(const CTransactionRef& tx) override;
     void BlockConnected(const CBlock& block, const std::vector<CTransactionRef>& vtxConflicted) override;
     void BlockDisconnected(const CBlock& block) override;
+    void UpdatedBlockTip() override;
     int64_t RescanFromTime(int64_t startTime, const WalletRescanReserver& reserver, bool update);
 
     struct ScanResult {
@@ -1007,9 +990,8 @@ public:
     ScanResult ScanForWalletTransactions(const uint256& first_block, const uint256& last_block, const WalletRescanReserver& reserver, bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions(interfaces::Chain::Lock& locked_chain) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    void ResendWalletTransactions(interfaces::Chain::Lock& locked_chain, int64_t nBestBlockTime) override;
     std::vector<uint256> ResendWalletTransactionsBefore(interfaces::Chain::Lock& locked_chain, int64_t nTime);
-
+    virtual void ResendWalletTransactions();
     struct Balance {
         CAmount m_mine_trusted{0};           //!< Trusted, at depth=GetBalance.min_depth or more
         CAmount m_mine_untrusted_pending{0}; //!< Untrusted, but in mempool (pending)
@@ -1300,6 +1282,12 @@ public:
 
     friend struct WalletTestingSetup;
 };
+
+/**
+ * Called periodically by the schedule thread. Prompts individual wallets to resend
+ * their transactions. Actual rebroadcast schedule is managed by the wallets themselves.
+ */
+void MaybeResendWalletTxs();
 
 /** A key allocated from the key pool. */
 class CReserveKey final : public CReserveScript

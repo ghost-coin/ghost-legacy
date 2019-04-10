@@ -6,6 +6,7 @@
 #include <usbdevice/debugdevice.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
+#include <rpc/rawtransaction_util.h>
 #include <util/strencodings.h>
 #include <key_io.h>
 #include <key/extkey.h>

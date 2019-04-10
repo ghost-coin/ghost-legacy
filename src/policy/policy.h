@@ -36,6 +36,8 @@ static const unsigned int DEFAULT_MAX_MEMPOOL_SIZE = 300;
 static const unsigned int DEFAULT_INCREMENTAL_RELAY_FEE = 1000;
 /** Default for -bytespersigop */
 static const unsigned int DEFAULT_BYTES_PER_SIGOP = 20;
+/** Default for -permitbaremultisig */
+static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 /** The maximum number of witness stack items in a standard P2WSH script */
 static const unsigned int MAX_STANDARD_P2WSH_STACK_ITEMS = 100;
 /** The maximum size of each witness stack item in a standard P2WSH script */
@@ -83,28 +85,24 @@ bool IsDust(const CTxOut& txout, const CFeeRate& dustRelayFee);
 CAmount GetDustThreshold(const CTxOutStandard *txout, const CFeeRate& dustRelayFeeIn);
 bool IsDust(const CTxOutBase *txout, const CFeeRate& dustRelayFee);
 
-bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType);
+bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType, int64_t time=0);
     /**
      * Check for standard transaction types
      * @return True if all outputs (scriptPubKeys) use only standard transaction forms
      */
-bool IsStandardTx(const CTransaction& tx, std::string& reason);
+bool IsStandardTx(const CTransaction& tx, std::string& reason, int64_t time=0);
     /**
      * Check for standard transaction types
      * @param[in] mapInputs    Map of previous transactions that have outputs we're spending
      * @return True if all inputs (scriptSigs) use only standard transaction forms
      */
-bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs);
+bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs, int64_t time=0);
     /**
      * Check if the transaction is over standard P2WSH resources limit:
      * 3600bytes witnessScript size, 80bytes per witness stack element, 100 witness stack elements
      * These limits are adequate for multi-signature up to n-of-100 using OP_CHECKSIG, OP_ADD, and OP_EQUAL,
      */
 bool IsWitnessStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs);
-
-extern CFeeRate incrementalRelayFee;
-extern CFeeRate dustRelayFee;
-extern unsigned int nBytesPerSigOp;
 
 /** Compute the virtual transaction size (weight reinterpreted as bytes). */
 int64_t GetVirtualTransactionSize(int64_t nWeight, int64_t nSigOpCost);

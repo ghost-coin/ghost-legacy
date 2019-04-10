@@ -427,7 +427,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     return true;
 }
 
-bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& nTxFee)
+bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
 {
     // reset per tx
     state.fHasAnonOutput = false;
@@ -513,17 +513,17 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     CAmount nPlainValueOut = tx.GetPlainValueOut(nStandard, nCt, nRingCT);
     state.fHasAnonOutput = nRingCT > nRingCTInputs;
 
-    nTxFee = 0;
+    txfee = 0;
     if (fParticlMode) {
         if (!tx.IsCoinStake()) {
             // Tally transaction fees
             if (nCt > 0 || nRingCT > 0) {
-                if (!tx.GetCTFee(nTxFee)) {
+                if (!tx.GetCTFee(txfee)) {
                     return state.DoS(100, error("%s: bad-fee-output", __func__),
                         REJECT_INVALID, "bad-fee-output");
                 }
             } else {
-                nTxFee = nValueIn - nPlainValueOut;
+                txfee = nValueIn - nPlainValueOut;
 
                 if (nValueIn < nPlainValueOut) {
                     return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
@@ -531,10 +531,10 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                 }
             }
 
-            if (nTxFee < 0) {
+            if (txfee < 0) {
                 return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-negative");
             }
-            nFees += nTxFee;
+            nFees += txfee;
             if (!MoneyRange(nFees)) {
                 return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-outofrange");
             }
@@ -562,18 +562,18 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                 CFeeRate fundingTxnFeeRate = CFeeRate(consensusParams.smsg_fee_funding_tx_per_k);
                 CAmount nTotalExpectedFees = nTotalMsgFees + fundingTxnFeeRate.GetFee(nTxBytes);
 
-                if (nTxFee < nTotalExpectedFees) {
+                if (txfee < nTotalExpectedFees) {
                     if (state.fEnforceSmsgFees) {
                         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-smsg", false,
-                            strprintf("fees (%s) < expected (%s)", FormatMoney(nTxFee), FormatMoney(nTotalExpectedFees)));
+                            strprintf("fees (%s) < expected (%s)", FormatMoney(txfee), FormatMoney(nTotalExpectedFees)));
                     } else {
-                        LogPrintf("%s: bad-txns-fee-smsg, %d expected %d, not enforcing.\n", __func__, nTxFee, nTotalExpectedFees);
+                        LogPrintf("%s: bad-txns-fee-smsg, %d expected %d, not enforcing.\n", __func__, txfee, nTotalExpectedFees);
                     }
                 }
             }
         } else {
-            // Return stake reward in nTxFee
-            nTxFee = nPlainValueOut - nValueIn;
+            // Return stake reward in txfee
+            txfee = nPlainValueOut - nValueIn;
             if (nCt > 0 || nRingCT > 0) { // Counters track both outputs and inputs
                 return state.DoS(100, error("ConnectBlock(): non-standard elements in coinstake"),
                      REJECT_INVALID, "bad-coinstake-outputs");
@@ -586,18 +586,18 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         }
 
         // Tally transaction fees
-        nTxFee = nValueIn - tx.GetValueOut();
-        if (nTxFee < 0) {
+        txfee = nValueIn - tx.GetValueOut();
+        if (txfee < 0) {
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-negative");
         }
-        nFees += nTxFee;
+        nFees += txfee;
         if (!MoneyRange(nFees)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-outofrange");
         }
     }
 
     if (nCt > 0 && nRingCT == 0) {
-        nPlainValueOut += nTxFee;
+        nPlainValueOut += txfee;
 
         if (!MoneyRange(nPlainValueOut)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-out-outofrange");

@@ -2,16 +2,21 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_RPC_RAWTRANSACTION_H
-#define BITCOIN_RPC_RAWTRANSACTION_H
+#ifndef BITCOIN_RPC_RAWTRANSACTION_UTIL_H
+#define BITCOIN_RPC_RAWTRANSACTION_UTIL_H
+
+#include <string>
 
 class CBasicKeyStore;
-struct CMutableTransaction;
 class UniValue;
+struct CMutableTransaction;
+class CTxIn;
 
 namespace interfaces {
 class Chain;
 } // namespace interfaces
+
+void TxInErrorToJSON(const CTxIn& txin, UniValue& vErrorsRet, const std::string& strMessage);
 
 /** Sign a transaction with the given keystore and previous transactions */
 UniValue SignTransaction(interfaces::Chain& chain, CMutableTransaction& mtx, const UniValue& prevTxs, CBasicKeyStore *keystore, bool tempKeystore, const UniValue& hashType);
@@ -19,4 +24,4 @@ UniValue SignTransaction(interfaces::Chain& chain, CMutableTransaction& mtx, con
 /** Create a transaction from univalue parameters */
 CMutableTransaction ConstructTransaction(const UniValue& inputs_in, const UniValue& outputs_in, const UniValue& locktime, const UniValue& rbf);
 
-#endif // BITCOIN_RPC_RAWTRANSACTION_H
+#endif // BITCOIN_RPC_RAWTRANSACTION_UTIL_H

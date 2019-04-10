@@ -8,6 +8,7 @@
 #include <univalue.h>
 #include <validation.h>
 #include <hash.h>
+#include <util/validation.h>
 
 namespace usb_device {
 
