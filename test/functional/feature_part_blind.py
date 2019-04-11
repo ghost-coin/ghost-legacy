@@ -11,7 +11,7 @@ from test_framework.authproxy import JSONRPCException
 class BlindTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 3
+        self.num_nodes = 4
         self.extra_args = [['-debug', '-noacceptnonstdtxn', '-reservebalance=10000000'] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
@@ -23,6 +23,8 @@ class BlindTest(ParticlTestFramework):
 
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
+        connect_nodes_bi(self.nodes, 0, 3)
+
         self.sync_all()
 
     def run_test(self):
@@ -32,9 +34,14 @@ class BlindTest(ParticlTestFramework):
         assert(ro['account_id'] == 'aaaZf2qnNr5T7PWRmqgmusuu5ACnBcX2ev')
         assert(nodes[0].getwalletinfo()['total_balance'] == 100000)
 
+        nodes[3].extkeyimportmaster('pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic', '', 'true')
+        nodes[3].getnewextaddress('lblExtTest')
+        nodes[3].rescanblockchain()
+        assert(nodes[3].getwalletinfo()['total_balance'] == 25000)
+
         txnHashes = []
 
-        ro = nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
+        nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
         sxAddrTo1_1 = nodes[1].getnewstealthaddress('lblsx11')
         assert(sxAddrTo1_1 == 'TetbYTGv5LiqyFiUD3a5HHbpSinQ9KiRYDGAMvRzPfz4RnHMbKGAwDr1fjLGJ5Eqg1XDwpeGyqWMiwdK3qM3zKWjzHNpaatdoHVzzA')
 
@@ -127,7 +134,6 @@ class BlindTest(ParticlTestFramework):
         assert(ro['prefix_bitfield'] == '0x000a')
 
 
-
         txnHash5 = nodes[0].sendparttoblind(sxAddrTo2_3, 0.5, '', '', False, 'node0 -> node2 p->b')
 
         assert(self.wait_for_mempool(nodes[2], txnHash5))
@@ -173,7 +179,7 @@ class BlindTest(ParticlTestFramework):
         feePerKB = (1000.0 / ro['bytes']) * float(ro['fee'])
         assert(feePerKB > 0.001 and feePerKB < 0.004)
 
-        ro = nodes[1].sendtypeto('blind', 'part', outputs)
+        nodes[1].sendtypeto('blind', 'part', outputs)
 
         try:
             ro = nodes[1].sendtypeto('blind', 'blind', outputs)
@@ -184,8 +190,29 @@ class BlindTest(ParticlTestFramework):
         self.log.info('Test sending to normal addresses which the wallet knows a pubkey for')
         addrPlain = nodes[0].getnewaddress()
         addrLong = nodes[0].getnewaddress('', False, False, True)
-        outputs = [{'address': addrPlain, 'amount': 1}, {'address': addrLong, 'amount': 1}]
-        ro = nodes[0].sendtypeto('part', 'blind', outputs)
+        outputs = [{'address': addrPlain, 'amount': 1.0}, {'address': addrLong, 'amount': 1.0}]
+        nodes[0].sendtypeto('part', 'blind', outputs)
+
+
+        self.log.info('Test sending all blind to blind')
+        bal0 = nodes[0].getwalletinfo()
+
+        assert(isclose(bal0['blind_balance'], 2.0))
+        outputs = [{'address': sxAddrTo1_1, 'amount': bal0['blind_balance'], 'subfee': True}]
+        nodes[0].sendtypeto('blind', 'blind', outputs)
+
+        self.sync_all()
+        self.stakeBlocks(1,nStakeNode=3)
+
+        self.log.info('Test sending all blind to part')
+        bal1 = nodes[1].getwalletinfo()
+
+        assert(isclose(bal1['blind_balance'], 2.002582))
+        outputs = [{'address': sxAddrTo1_1, 'amount': bal1['blind_balance'], 'subfee': True}]
+        nodes[1].sendtypeto('blind', 'part', outputs)
+
+        bal1 = nodes[1].getwalletinfo()
+        assert(isclose(bal1['blind_balance'], 0.0))
 
 
 if __name__ == '__main__':

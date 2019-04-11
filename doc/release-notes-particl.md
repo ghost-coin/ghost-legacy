@@ -1,8 +1,13 @@
 Master
 ==============
 
-
 0.18.0.6 rc2
+==============
+
+- Fixed regression when sending all blind to part.
+
+
+0.18.0.6 rc1
 ==============
 
 SMSG won't connect to nodes running a version below 0.18.0.6
