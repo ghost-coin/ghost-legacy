@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(smsg_test)
     int rv = 0;
     const int nKeys = 12;
     auto chain = interfaces::MakeChain();
-    std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(*chain, WalletLocation(), WalletDatabase::CreateDummy());
+    std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
     std::vector<CKey> keyOwn(nKeys);
     for (int i = 0; i < nKeys; i++) {
         InsecureNewKey(keyOwn[i], true);

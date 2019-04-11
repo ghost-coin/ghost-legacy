@@ -1319,7 +1319,6 @@ void CWallet::UpdatedBlockTip()
 
 
 void CWallet::BlockUntilSyncedToCurrentChain() {
-    AssertLockNotHeld(cs_main);
     AssertLockNotHeld(cs_wallet);
 
     {
@@ -2035,20 +2034,27 @@ void CWallet::ReacceptWalletTransactions(interfaces::Chain::Lock& locked_chain)
 
 bool CWalletTx::RelayWalletTransaction(interfaces::Chain::Lock& locked_chain)
 {
-    assert(pwallet->GetBroadcastTransactions());
-    if (!IsCoinBase() && !IsCoinStake() && !isAbandoned() && GetDepthInMainChain(locked_chain) == 0)
-    {
-        CValidationState state;
-        /* GetDepthInMainChain already catches known conflicts. */
-        if (InMempool() || AcceptToMemoryPool(locked_chain, state)) {
-            pwallet->WalletLogPrintf("Relaying wtx %s\n", GetHash().ToString());
-            if (pwallet->chain().p2pEnabled()) {
-                pwallet->chain().relayTransaction(GetHash());
-                return true;
-            }
-        }
-    }
-    return false;
+    // Can't relay if wallet is not broadcasting
+    if (!pwallet->GetBroadcastTransactions()) return false;
+    // Don't relay coinbase transactions outside blocks
+    if (IsCoinBase()) return false;
+    // Don't relay coinstake transactions outside blocks
+    if (IsCoinStake()) return false;
+    // Don't relay abandoned transactions
+    if (isAbandoned()) return false;
+    // Don't relay conflicted or already confirmed transactions
+    if (GetDepthInMainChain(locked_chain) != 0) return false;
+    // Don't relay transactions that aren't accepted to the mempool
+    CValidationState unused_state;
+    if (!InMempool() && !AcceptToMemoryPool(locked_chain, unused_state)) return false;
+    // Don't try to relay if the node is not connected to the p2p network
+    if (!pwallet->chain().p2pEnabled()) return false;
+
+    // Try to relay the transaction
+    pwallet->WalletLogPrintf("Relaying wtx %s\n", GetHash().ToString());
+    pwallet->chain().relayTransaction(GetHash());
+
+    return true;
 }
 
 std::set<uint256> CWalletTx::GetConflicts() const
@@ -3290,7 +3296,6 @@ bool CWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::ve
 
 DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
 {
-    auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
     fFirstRunRet = false;
@@ -4174,7 +4179,7 @@ bool CWallet::Verify(interfaces::Chain& chain, const WalletLocation& location, b
 
     if (salvage_wallet) {
         // Recover readable keypairs:
-        CWallet dummyWallet(chain, WalletLocation(), WalletDatabase::CreateDummy());
+        CWallet dummyWallet(&chain, WalletLocation(), WalletDatabase::CreateDummy());
         std::string backup_filename;
         if (!WalletBatch::Recover(wallet_path, (void *)&dummyWallet, WalletBatch::RecoverKeysOnlyFilter, backup_filename)) {
             return false;
@@ -4193,7 +4198,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
     if (gArgs.GetBoolArg("-zapwallettxes", false)) {
         chain.initMessage(_("Zapping all transactions from wallet..."));
 
-        std::unique_ptr<CWallet> tempWallet = MakeUnique<CWallet>(chain, location, WalletDatabase::Create(location.GetPath()));
+        std::unique_ptr<CWallet> tempWallet = MakeUnique<CWallet>(&chain, location, WalletDatabase::Create(location.GetPath()));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DBErrors::LOAD_OK) {
             chain.initError(strprintf(_("Error loading %s: Wallet corrupted"), walletFile));
@@ -4208,8 +4213,8 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
     std::shared_ptr<CWallet> walletInstance(fParticlMode
-        ? std::shared_ptr<CWallet>(new CHDWallet(chain, location, WalletDatabase::Create(location.GetPath())), ReleaseWallet)
-        : std::shared_ptr<CWallet>(new CWallet(chain, location, WalletDatabase::Create(location.GetPath())), ReleaseWallet));
+        ? std::shared_ptr<CWallet>(new CHDWallet(&chain, location, WalletDatabase::Create(location.GetPath())), ReleaseWallet)
+        : std::shared_ptr<CWallet>(new CWallet(&chain, location, WalletDatabase::Create(location.GetPath())), ReleaseWallet));
 
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);
     if (nLoadWalletRet != DBErrors::LOAD_OK)

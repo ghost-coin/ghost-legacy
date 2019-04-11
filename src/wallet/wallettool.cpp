@@ -4,7 +4,6 @@
 
 #include <base58.h>
 #include <fs.h>
-#include <interfaces/chain.h>
 #include <util/system.h>
 #include <wallet/wallet.h>
 #include <wallet/walletutil.h>
@@ -28,11 +27,11 @@ static std::shared_ptr<CWallet> CreateWallet(const std::string& name, const fs::
         fprintf(stderr, "Error: File exists already\n");
         return nullptr;
     }
-    // dummy chain interface
-    auto chain = interfaces::MakeChain();
+
     std::shared_ptr<CWallet> wallet_instance(fParticlMode
-        ? std::shared_ptr<CWallet>(new CHDWallet(*chain, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet)
-        : std::shared_ptr<CWallet>(new CWallet(*chain, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet));
+        ? std::shared_ptr<CWallet>(new CHDWallet(nullptr /* chain */, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet)
+        : std::shared_ptr<CWallet>(new CWallet(nullptr /* chain */, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet));
+
     bool first_run = true;
     DBErrors load_wallet_ret = wallet_instance->LoadWallet(first_run);
     if (load_wallet_ret != DBErrors::LOAD_OK) {
@@ -62,11 +61,10 @@ static std::shared_ptr<CWallet> LoadWallet(const std::string& name, const fs::pa
         return nullptr;
     }
 
-    // dummy chain interface
-    auto chain = interfaces::MakeChain();
     std::shared_ptr<CWallet> wallet_instance(fParticlMode
-        ? std::shared_ptr<CWallet>(new CHDWallet(*chain, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet)
-        : std::shared_ptr<CWallet>(new CWallet(*chain, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet));
+        ? std::shared_ptr<CWallet>(new CHDWallet(nullptr /* chain */, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet)
+        : std::shared_ptr<CWallet>(new CWallet(nullptr /* chain */, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet));
+
     DBErrors load_wallet_ret;
     try {
         bool first_run;

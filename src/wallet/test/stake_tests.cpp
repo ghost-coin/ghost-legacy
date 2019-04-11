@@ -39,7 +39,7 @@ struct StakeTestingSetup: public TestingSetup {
         ECC_Start_Blinding();
 
         bool fFirstRun;
-        pwalletMain = std::make_shared<CHDWallet>(*m_chain, WalletLocation(), WalletDatabase::CreateMock());
+        pwalletMain = std::make_shared<CHDWallet>(m_chain.get(), WalletLocation(), WalletDatabase::CreateMock());
         AddWallet(pwalletMain);
         pwalletMain->LoadWallet(fFirstRun);
         pwalletMain->Initialise();
