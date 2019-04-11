@@ -7504,7 +7504,7 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
     }
 
     if (memcmp(vchCommitment.data(), commitment.data, 33) != 0) {
-        throw JSONRPCError(RPC_MISC_ERROR, strprintf("Mismatched commitment."));
+        throw JSONRPCError(RPC_MISC_ERROR, strprintf("Mismatched commitment, expected ") + HexStr(&commitment.data[0], &commitment.data[0]+33));
     }
 
     UniValue result(UniValue::VOBJ);

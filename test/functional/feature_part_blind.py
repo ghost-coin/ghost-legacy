@@ -212,7 +212,7 @@ class BlindTest(ParticlTestFramework):
         nodes[1].sendtypeto('blind', 'part', outputs)
 
         bal1 = nodes[1].getwalletinfo()
-        assert(isclose(bal1['blind_balance'], 0.0))
+        assert(isclose(bal1['blind_balance'], 0.00000001))
 
 
 if __name__ == '__main__':

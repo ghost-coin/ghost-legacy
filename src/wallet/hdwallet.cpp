@@ -4334,13 +4334,15 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     value_change -= value_split;
                     r2.SetAmount(value_split);
                     InsertChangeAddress(r2, vecSend, nChangePosInOut);
-                }
-
-                if (value_change > ::minRelayTxFee.GetFee(2048)) { // TODO: better output size estimate
                     r.SetAmount(value_change);
-                } else {
-                    r.SetAmount(0);
-                    nFeeRet += value_change;
+                } else
+                {
+                    if (value_change > ::minRelayTxFee.GetFee(2048)) { // TODO: better output size estimate
+                        r.SetAmount(value_change);
+                    } else {
+                        r.SetAmount(0);
+                        nFeeRet += value_change;
+                    }
                 }
 
                 nChangePosInOut = coinControl->nChangePos;
@@ -4455,6 +4457,36 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     r.nAmount += extraFeePaid;
                     nFeeRet -= extraFeePaid;
                 }
+
+                if (nSubtractFeeFromAmount) {
+                    if (nValueOutPlain + nFeeRet == nValueIn) {
+                        // blinded input value == plain output value
+                        // blinding factor will be 0 for change
+                        // an observer could see sum blinded inputs must match plain outputs, avoid by forcing a 1sat change output
+
+                        bool fFound = false;
+                        for (auto &r : vecSend) {
+                            if (r.nType == OUTPUT_STANDARD
+                                && r.nAmountSelected > 0
+                                && r.fSubtractFeeFromAmount
+                                && !r.fChange) {
+                                LogPrint(BCLog::HDWALLET, "%s: Reducing plain output %d by 1sat to force non 0 change.\n", __func__, r.n);
+                                r.SetAmount(r.nAmountSelected-1);
+                                fFound = true;
+                                nValue -= 1;
+                                break;
+                            }
+                        }
+
+                        if (!fFound || !(--nSubFeeTries)) {
+                            return wserrorN(1, sError, __func__, _("Unable to reduce plain output to add blind change."));
+                        }
+
+                        pick_new_inputs = false;
+                        continue;
+                    }
+                }
+
                 break; // Done, enough fee included.
             } else
             if (!pick_new_inputs) {
