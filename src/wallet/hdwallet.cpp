@@ -4455,36 +4455,6 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     r.nAmount += extraFeePaid;
                     nFeeRet -= extraFeePaid;
                 }
-
-                if (nSubtractFeeFromAmount) {
-                    if (nValueOutPlain + nFeeRet == nValueIn) {
-                        // blinded input value == plain output value
-                        // blinding factor will be 0 for change
-                        // an observer could see sum blinded inputs must match plain outputs, avoid by forcing a 1sat change output
-
-                        bool fFound = false;
-                        for (auto &r : vecSend) {
-                            if (r.nType == OUTPUT_STANDARD
-                                && r.nAmountSelected > 0
-                                && r.fSubtractFeeFromAmount
-                                && !r.fChange) {
-                                LogPrint(BCLog::HDWALLET, "%s: Reducing plain output %d by 1sat to force non 0 change.\n", __func__, r.n);
-                                r.SetAmount(r.nAmountSelected-1);
-                                fFound = true;
-                                nValue -= 1;
-                                break;
-                            }
-                        }
-
-                        if (!fFound || !(--nSubFeeTries)) {
-                            return wserrorN(1, sError, __func__, _("Unable to reduce plain output to add blind change."));
-                        }
-
-                        pick_new_inputs = false;
-                        continue;
-                    }
-                }
-
                 break; // Done, enough fee included.
             } else
             if (!pick_new_inputs) {
@@ -4612,7 +4582,6 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             if (k == 32) {
                 return wserrorN(1, sError, __func__, "Zero blind sum.");
             }
-
             if (0 != AddCTData(pout, r, sError)) {
                 return 1; // sError will be set
             }
@@ -4645,8 +4614,9 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
 
                 SignatureData sigdata;
 
-                if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata))
+                if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata)) {
                     return wserrorN(1, sError, __func__, _("Signing transaction failed"));
+                }
                 UpdateInput(txNew.vin[nIn], sigdata);
 
                 nIn++;
