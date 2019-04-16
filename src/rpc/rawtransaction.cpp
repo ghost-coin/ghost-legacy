@@ -976,15 +976,13 @@ static UniValue sendrawtransaction(const JSONRPCRequest& request)
     // TODO: temporary migration code for old clients. Remove in v0.20
     if (request.params[1].isBool()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Second argument must be numeric (maxfeerate) and no longer supports a boolean. To allow a transaction with high fees, set maxfeerate to 0.");
-    } else if (request.params[1].isNum()) {
+    } else if (!request.params[1].isNull()) {
         size_t weight = GetTransactionWeight(*tx);
         CFeeRate fr(AmountFromValue(request.params[1]));
         // the +3/4 part rounds the value up, and is the same formula used when
         // calculating the fee for a transaction
         // (see GetVirtualTransactionSize)
         max_raw_tx_fee = fr.GetFee((weight+3)/4);
-    } else if (!request.params[1].isNull()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "second argument (maxfeerate) must be numeric");
     }
 
     uint256 txid;
@@ -1059,15 +1057,13 @@ static UniValue testmempoolaccept(const JSONRPCRequest& request)
     // TODO: temporary migration code for old clients. Remove in v0.20
     if (request.params[1].isBool()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Second argument must be numeric (maxfeerate) and no longer supports a boolean. To allow a transaction with high fees, set maxfeerate to 0.");
-    } else if (request.params[1].isNum()) {
+    } else if (!request.params[1].isNull()) {
         size_t weight = GetTransactionWeight(*tx);
         CFeeRate fr(AmountFromValue(request.params[1]));
         // the +3/4 part rounds the value up, and is the same formula used when
         // calculating the fee for a transaction
         // (see GetVirtualTransactionSize)
         max_raw_tx_fee = fr.GetFee((weight+3)/4);
-    } else if (!request.params[1].isNull()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "second argument (maxfeerate) must be numeric");
     }
 
     bool ignore_locks = !request.params[2].isNull() ? request.params[2].get_bool() : false;

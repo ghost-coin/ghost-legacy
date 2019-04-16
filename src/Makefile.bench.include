@@ -34,7 +34,11 @@ bench_bench_particl_SOURCES = \
   bench/poly1305.cpp \
   bench/prevector.cpp \
   bench/blind.cpp \
-  bench/mlsag.cpp
+  bench/mlsag.cpp \
+  test/setup_common.h \
+  test/setup_common.cpp \
+  test/util.h \
+  test/util.cpp
 
 nodist_bench_bench_particl_SOURCES = $(GENERATED_BENCH_FILES)
 
@@ -43,6 +47,7 @@ bench_bench_particl_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 bench_bench_particl_LDADD = \
   $(LIBPARTICL_SERVER) \
   $(LIBPARTICL_WALLET) \
+  $(LIBPARTICL_SERVER) \
   $(LIBPARTICL_COMMON) \
   $(LIBPARTICL_UTIL) \
   $(LIBPARTICL_CONSENSUS) \

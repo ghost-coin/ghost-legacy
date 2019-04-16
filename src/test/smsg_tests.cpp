@@ -4,7 +4,7 @@
 
 #include <smsg/smessage.h>
 
-#include <test/test_bitcoin.h>
+#include <test/setup_common.h>
 #include <net.h>
 
 #ifdef ENABLE_WALLET
