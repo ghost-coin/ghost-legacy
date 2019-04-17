@@ -48,10 +48,13 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticl
     InitScriptExecutionCache();
     fCheckBlockIndex = true;
     SelectParams(chainName);
-
     ResetParams(chainName, fParticlMode);
 
-    noui_connect();
+    static bool noui_connected = false;
+    if (!noui_connected) {
+        noui_connect();
+        noui_connected = true;
+    }
 }
 
 BasicTestingSetup::~BasicTestingSetup()
