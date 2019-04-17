@@ -3296,6 +3296,7 @@ bool CWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::ve
 
 DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
 {
+    auto locked_chain = chain().lock(); // LoadToWallet can call MarkConflicted and UnloadSpent which lock cs_main
     LOCK(cs_wallet);
 
     fFirstRunRet = false;

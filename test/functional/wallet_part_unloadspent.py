@@ -11,7 +11,7 @@ class WalletParticlUnloadSpentTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [ ['-debug','-reservebalance=10000000'] for i in range(self.num_nodes)]
+        self.extra_args = [ ['-debug', '-noacceptnonstdtxn', '-reservebalance=10000000'] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -51,6 +51,14 @@ class WalletParticlUnloadSpentTest(ParticlTestFramework):
         d1 = nodes[1].debugwallet()
         assert(d0['mapWallet_size'] + d0['m_collapsed_txns_size'] == d1['mapWallet_size'])
         assert(d1['m_collapsed_txns_size'] == 0)
+
+        self.log.info('Test node restart')
+        self.stop_node(0)
+        self.start_node(0, self.extra_args[0])
+
+        ro = nodes[0].walletsettings('unloadspent')
+        assert(ro['unloadspent']['mode'] == 1)
+        assert(ro['unloadspent']['mindepth'] == 2)
 
 
 
