@@ -9454,6 +9454,7 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
 
 int CHDWallet::UnloadSpent(const uint256 &wtxid, int depth, const uint256 &wtxid_from)
 {
+    if (!m_chain) return 0;
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 

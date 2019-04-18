@@ -1195,6 +1195,7 @@ bool CWallet::AbandonTransaction(interfaces::Chain::Lock& locked_chain, const ui
 
 void CWallet::MarkConflicted(const uint256& hashBlock, const uint256& hashTx)
 {
+    if (!m_chain) return;
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
@@ -3296,7 +3297,10 @@ bool CWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::ve
 
 DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
 {
-    auto locked_chain = chain().lock(); // LoadToWallet can call MarkConflicted and UnloadSpent which lock cs_main
+    std::unique_ptr<interfaces::Chain::Lock> locked_chain;
+    if (m_chain) {
+        locked_chain = chain().lock(); // LoadToWallet can call MarkConflicted and UnloadSpent which lock cs_main
+    }
     LOCK(cs_wallet);
 
     fFirstRunRet = false;
