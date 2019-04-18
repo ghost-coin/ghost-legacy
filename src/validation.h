@@ -116,6 +116,7 @@ static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
 
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
 static const bool DEFAULT_TXINDEX_ = true; // required for staking
+static const char* const DEFAULT_BLOCKFILTERINDEX = "0";
 #define DEFAULT_TXINDEX (gArgs.GetBoolArg("-btcmode", false) ? false : DEFAULT_TXINDEX_)
 static const bool DEFAULT_CSINDEX = false;
 static const bool DEFAULT_ADDRESSINDEX = false;
