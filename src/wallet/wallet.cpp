@@ -1,12 +1,11 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2009-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <wallet/wallet.h>
 
 #include <chain.h>
-#include <checkpoints.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
 #include <fs.h>
@@ -1865,7 +1864,7 @@ int64_t CWallet::RescanFromTime(int64_t startTime, const WalletRescanReserver& r
     uint256 start_block;
     {
         auto locked_chain = chain().lock();
-        const Optional<int> start_height = locked_chain->findFirstBlockWithTime(startTime - TIMESTAMP_WINDOW, &start_block);
+        const Optional<int> start_height = locked_chain->findFirstBlockWithTimeAndHeight(startTime - TIMESTAMP_WINDOW, 0, &start_block);
         const Optional<int> tip_height = locked_chain->getHeight();
         WalletLogPrintf("%s: Rescanning last %i blocks\n", __func__, tip_height && start_height ? *tip_height - *start_height + 1 : 0);
     }
@@ -4473,7 +4472,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
         // No need to read and scan block if block was created before
         // our wallet birthday (as adjusted for block time variability)
         if (walletInstance->nTimeFirstKey) {
-            if (Optional<int> first_block = locked_chain->findFirstBlockWithTimeAndHeight(walletInstance->nTimeFirstKey - TIMESTAMP_WINDOW, rescan_height)) {
+            if (Optional<int> first_block = locked_chain->findFirstBlockWithTimeAndHeight(walletInstance->nTimeFirstKey - TIMESTAMP_WINDOW, rescan_height, nullptr)) {
                 rescan_height = *first_block;
             }
         }

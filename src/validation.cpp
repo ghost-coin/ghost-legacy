@@ -8,7 +8,6 @@
 #include <arith_uint256.h>
 #include <chain.h>
 #include <chainparams.h>
-#include <checkpoints.h>
 #include <checkqueue.h>
 #include <consensus/consensus.h>
 #include <consensus/merkle.h>
@@ -38,6 +37,7 @@
 #include <txdb.h>
 #include <txmempool.h>
 #include <ui_interface.h>
+#include <uint256.h>
 #include <undo.h>
 #include <util/moneystr.h>
 #include <util/rbf.h>
@@ -1341,10 +1341,26 @@ int GetNumPeers()
     return g_connman ? g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) : 0;
 }
 
+//! Returns last CBlockIndex* that is a checkpoint
+static CBlockIndex* GetLastCheckpoint(const CCheckpointData& data)
+{
+    const MapCheckpoints& checkpoints = data.mapCheckpoints;
+
+    for (const MapCheckpoints::value_type& i : reverse_iterate(checkpoints))
+    {
+        const uint256& hash = i.second;
+        CBlockIndex* pindex = LookupBlockIndex(hash);
+        if (pindex) {
+            return pindex;
+        }
+    }
+    return nullptr;
+}
+
 int GetNumBlocksOfPeers()
 {
     int nPeerBlocks = g_connman ? g_connman->cPeerBlockCounts.median() : 0;
-    CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(Params().Checkpoints());
+    CBlockIndex *pcheckpoint = GetLastCheckpoint(Params().Checkpoints());
     if (pcheckpoint) {
         if (nPeerBlocks < pcheckpoint->nHeight) {
             return std::numeric_limits<int>::max();
@@ -4303,7 +4319,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
         // Don't accept any forks from the main chain prior to last checkpoint.
         // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's in our
         // MapBlockIndex.
-        CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(params.Checkpoints());
+        CBlockIndex* pcheckpoint = GetLastCheckpoint(params.Checkpoints());
         if (pcheckpoint && nHeight < pcheckpoint->nHeight)
             return state.DoS(100, error("%s: forked chain older than last checkpoint (height %d)", __func__, nHeight), REJECT_CHECKPOINT, "bad-fork-prior-to-checkpoint");
     }

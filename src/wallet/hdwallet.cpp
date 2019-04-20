@@ -238,7 +238,8 @@ bool CHDWallet::Initialise()
         // No need to read and scan block if block was created before
         // our wallet birthday (as adjusted for block time variability)
         if (nTimeFirstKey) {
-            if (Optional<int> first_block = locked_chain->findFirstBlockWithTimeAndHeight(nTimeFirstKey - TIMESTAMP_WINDOW, rescan_height)) {
+
+            if (Optional<int> first_block = locked_chain->findFirstBlockWithTimeAndHeight(nTimeFirstKey - TIMESTAMP_WINDOW, rescan_height, nullptr)) {
                 rescan_height = *first_block;
             }
         }
