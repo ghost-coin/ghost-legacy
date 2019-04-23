@@ -9,6 +9,7 @@
 #include <script/standard.h>
 
 #include <stdint.h>
+#include <bitset>
 
 class CKeyStore;
 class CScript;
@@ -16,13 +17,14 @@ class CScript;
 /** IsMine() return codes */
 enum isminetype : uint8_t
 {
-    ISMINE_NO = 0,
-    ISMINE_WATCH_ONLY_ = 1,
-    ISMINE_SPENDABLE = 2,
-    ISMINE_WATCH_COLDSTAKE = (1 << 7),
-    ISMINE_WATCH_ONLY = ISMINE_WATCH_ONLY_ | ISMINE_WATCH_COLDSTAKE,
-    ISMINE_HARDWARE_DEVICE = (1 << 6), // Pivate key is on external device
-    ISMINE_ALL = ISMINE_WATCH_ONLY | ISMINE_SPENDABLE
+    ISMINE_NO               = 0,
+    ISMINE_WATCH_ONLY_      = 1 << 0,
+    ISMINE_SPENDABLE        = 1 << 1,
+    ISMINE_HARDWARE_DEVICE  = (1 << 6), // Private key is on external device
+    ISMINE_WATCH_COLDSTAKE  = (1 << 7),
+    ISMINE_WATCH_ONLY       = ISMINE_WATCH_ONLY_ | ISMINE_WATCH_COLDSTAKE,
+    ISMINE_ALL              = ISMINE_WATCH_ONLY | ISMINE_SPENDABLE,
+    ISMINE_ENUM_ELEMENTS,
 };
 /** used for bitflags of isminetype */
 typedef uint8_t isminefilter;
@@ -39,5 +41,24 @@ isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey, bool& 
 isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey);
 isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest);
 isminetype IsMineP2SH(const CKeyStore& keystore, const CScript& scriptPubKey);
+
+/**
+ * Cachable amount subdivided into watchonly and spendable parts.
+ */
+struct CachableAmount
+{
+    // NO and ALL are never (supposed to be) cached
+    std::bitset<ISMINE_ENUM_ELEMENTS> m_cached;
+    CAmount m_value[ISMINE_ENUM_ELEMENTS];
+    inline void Reset()
+    {
+        m_cached.reset();
+    }
+    void Set(isminefilter filter, CAmount value)
+    {
+        m_cached.set(filter);
+        m_value[filter] = value;
+    }
+};
 
 #endif // BITCOIN_SCRIPT_ISMINE_H
