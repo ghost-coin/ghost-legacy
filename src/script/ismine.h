@@ -21,7 +21,7 @@ enum isminetype : uint8_t
     ISMINE_SPENDABLE = 2,
     ISMINE_WATCH_COLDSTAKE = (1 << 7),
     ISMINE_WATCH_ONLY = ISMINE_WATCH_ONLY_ | ISMINE_WATCH_COLDSTAKE,
-    ISMINE_HARDWARE_DEVICE = (1 << 6), // Pivate key is on external device
+    ISMINE_HARDWARE_DEVICE = (1 << 6), // Private key is on external device
     ISMINE_ALL = ISMINE_WATCH_ONLY | ISMINE_SPENDABLE
 };
 /** used for bitflags of isminetype */

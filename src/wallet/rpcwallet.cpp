@@ -1054,7 +1054,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
             "\nSend two amounts to two different addresses setting the confirmation and comment:\n"
             + HelpExampleCli("sendmany", "\"\" \"{\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\":0.01,\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\":0.02}\" 6 \"testing\"") +
             "\nSend two amounts to two different addresses, subtract fee from amount:\n"
-            + HelpExampleCli("sendmany", "\"\" \"{\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\":0.01,\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\":0.02}\" 1 \"\" \"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\",\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
+            + HelpExampleCli("sendmany", "\"\" \"{\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\":0.01,\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\":0.02}\" 1 \"\" \"[\\\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\\\",\\\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\\\"]\"") +
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("sendmany", "\"\", {\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\":0.01,\"PvhJj4j9s6SsuRsAkPZUfHPCjZRNKLeuqP\":0.02}, 6, \"testing\"")
                 },
@@ -4493,8 +4493,8 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
             "}\n"
                 },
                 RPCExamples{
-                    HelpExampleCli("getaddressinfo", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")
-            + HelpExampleRpc("getaddressinfo", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")
+                    HelpExampleCli("getaddressinfo", "\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\"")
+            + HelpExampleRpc("getaddressinfo", "\"PswXnorAgjpAtaySWkPSmWQe3Fc8LmviVc\"")
                 },
             }.ToString());
     }
