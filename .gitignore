@@ -73,6 +73,7 @@ src/qt/particl-qt.includes
 *.a
 *.pb.cc
 *.pb.h
+*.dat
 
 *.log
 *.trs
@@ -130,3 +131,6 @@ db4/
 
 .project
 .vscode
+
+# clang-check
+*.plist
