@@ -52,7 +52,7 @@ class TxIndexTest(ParticlTestFramework):
 
         print('Testing transaction index...')
 
-        ro = nodes[1].extkeyimportmaster('graine article givre hublot encadrer admirer stipuler capsule acajou paisible soutirer organe')
+        nodes[1].extkeyimportmaster('graine article givre hublot encadrer admirer stipuler capsule acajou paisible soutirer organe')
         addr1 = nodes[1].getnewaddress()
 
         txid = nodes[0].sendtoaddress(addr1, 5)

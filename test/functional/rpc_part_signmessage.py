@@ -49,5 +49,6 @@ class SignMessagesTest(ParticlTestFramework):
         assert(not self.nodes[0].verifymessage(other_address, signature, message))
         assert(not self.nodes[0].verifymessage(address, other_signature, message))
 
+
 if __name__ == '__main__':
     SignMessagesTest().main()

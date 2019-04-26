@@ -35,7 +35,7 @@ class StealthTest(ParticlTestFramework):
         assert(nodes[0].getwalletinfo()['total_balance'] == 100000)
 
 
-        ro = nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
+        nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
         sxAddrTo1 = nodes[1].getnewstealthaddress()
         assert(sxAddrTo1 == 'TetbYTGv5LiqyFiUD3a5HHbpSinQ9KiRYDGAMvRzPfz4RnHMbKGAwDr1fjLGJ5Eqg1XDwpeGyqWMiwdK3qM3zKWjzHNpaatdoHVzzA')
 
@@ -66,9 +66,7 @@ class StealthTest(ParticlTestFramework):
         sxAddrTo2 = '32eEcCuGkGjP82BTF3kquiCDjZWmZiyhqe7C6isbv6MJZSKAeWNx5g436QuhGNc6DNYpboDm3yNiqYmTmkg76wYr5JCKgdEUPqLCWaMW'
         assert(ro['stealth_address'] == sxAddrTo2)
 
-
-        ro = nodes[1].liststealthaddresses()
-        sro = str(ro)
+        sro = str(nodes[1].liststealthaddresses())
         assert(sxAddrTo1 in sro)
         assert(sxAddrTo2 in sro)
 
