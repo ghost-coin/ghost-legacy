@@ -6,20 +6,30 @@
 #define BITCOIN_RPC_RAWTRANSACTION_UTIL_H
 
 #include <string>
+#include <map>
 
 class CBasicKeyStore;
 class UniValue;
 struct CMutableTransaction;
 class CTxIn;
 
-namespace interfaces {
-class Chain;
-} // namespace interfaces
-
 void TxInErrorToJSON(const CTxIn& txin, UniValue& vErrorsRet, const std::string& strMessage);
 
-/** Sign a transaction with the given keystore and previous transactions */
-UniValue SignTransaction(interfaces::Chain& chain, CMutableTransaction& mtx, const UniValue& prevTxs, CBasicKeyStore *keystore, bool tempKeystore, const UniValue& hashType);
+class Coin;
+class COutPoint;
+
+/**
+ * Sign a transaction with the given keystore and previous transactions
+ *
+ * @param  mtx           The transaction to-be-signed
+ * @param  prevTxs       Array of previous txns outputs that tx depends on but may not yet be in the block chain
+ * @param  keystore      Temporary keystore containing signing keys
+ * @param  coins         Map of unspent outputs - coins in mempool and current chain UTXO set, may be extended by previous txns outputs after call
+ * @param  tempKeystore  Whether to use temporary keystore
+ * @param  hashType      The signature hash type
+ * @returns JSON object with details of signed transaction
+ */
+UniValue SignTransaction(CMutableTransaction& mtx, const UniValue& prevTxs, CBasicKeyStore* keystore, std::map<COutPoint, Coin>& coins, bool tempKeystore, const UniValue& hashType);
 
 /** Create a transaction from univalue parameters */
 CMutableTransaction ConstructTransaction(const UniValue& inputs_in, const UniValue& outputs_in, const UniValue& locktime, const UniValue& rbf);
