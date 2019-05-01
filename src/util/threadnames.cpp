@@ -52,6 +52,6 @@ static void SetInternalName(std::string name) { }
 
 void util::ThreadRename(std::string&& name)
 {
-    SetThreadName(("bitcoin-" + name).c_str());
+    SetThreadName(("particl-" + name).c_str());
     SetInternalName(std::move(name));
 }
