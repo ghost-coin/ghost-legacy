@@ -531,17 +531,17 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x88, 0xB2, 0x1E}; // xpub
         base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x88, 0xAD, 0xE4}; // xprv
 
-        bech32Prefixes[PUBKEY_ADDRESS].assign       ("ph","ph"+2);
-        bech32Prefixes[SCRIPT_ADDRESS].assign       ("pr","pr"+2);
-        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("pl","pl"+2);
-        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("pj","pj"+2);
-        bech32Prefixes[SECRET_KEY].assign           ("px","px"+2);
-        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("pep","pep"+3);
-        bech32Prefixes[EXT_SECRET_KEY].assign       ("pex","pex"+3);
-        bech32Prefixes[STEALTH_ADDRESS].assign      ("ps","ps"+2);
-        bech32Prefixes[EXT_KEY_HASH].assign         ("pek","pek"+3);
-        bech32Prefixes[EXT_ACC_HASH].assign         ("pea","pea"+3);
-        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("pcs","pcs"+3);
+        bech32Prefixes[PUBKEY_ADDRESS].assign       ("ph",(const char*)"ph"+2);
+        bech32Prefixes[SCRIPT_ADDRESS].assign       ("pr",(const char*)"pr"+2);
+        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("pl",(const char*)"pl"+2);
+        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("pj",(const char*)"pj"+2);
+        bech32Prefixes[SECRET_KEY].assign           ("px",(const char*)"px"+2);
+        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("pep",(const char*)"pep"+3);
+        bech32Prefixes[EXT_SECRET_KEY].assign       ("pex",(const char*)"pex"+3);
+        bech32Prefixes[STEALTH_ADDRESS].assign      ("ps",(const char*)"ps"+2);
+        bech32Prefixes[EXT_KEY_HASH].assign         ("pek",(const char*)"pek"+3);
+        bech32Prefixes[EXT_ACC_HASH].assign         ("pea",(const char*)"pea"+3);
+        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("pcs",(const char*)"pcs"+3);
 
         bech32_hrp = "bc";
 
@@ -705,17 +705,17 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x35, 0x87, 0xCF}; // tpub
         base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x35, 0x83, 0x94}; // tprv
 
-        bech32Prefixes[PUBKEY_ADDRESS].assign       ("tph","tph"+3);
-        bech32Prefixes[SCRIPT_ADDRESS].assign       ("tpr","tpr"+3);
-        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("tpl","tpl"+3);
-        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("tpj","tpj"+3);
-        bech32Prefixes[SECRET_KEY].assign           ("tpx","tpx"+3);
-        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("tpep","tpep"+4);
-        bech32Prefixes[EXT_SECRET_KEY].assign       ("tpex","tpex"+4);
-        bech32Prefixes[STEALTH_ADDRESS].assign      ("tps","tps"+3);
-        bech32Prefixes[EXT_KEY_HASH].assign         ("tpek","tpek"+4);
-        bech32Prefixes[EXT_ACC_HASH].assign         ("tpea","tpea"+4);
-        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tpcs","tpcs"+4);
+        bech32Prefixes[PUBKEY_ADDRESS].assign       ("tph",(const char*)"tph"+3);
+        bech32Prefixes[SCRIPT_ADDRESS].assign       ("tpr",(const char*)"tpr"+3);
+        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("tpl",(const char*)"tpl"+3);
+        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("tpj",(const char*)"tpj"+3);
+        bech32Prefixes[SECRET_KEY].assign           ("tpx",(const char*)"tpx"+3);
+        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("tpep",(const char*)"tpep"+4);
+        bech32Prefixes[EXT_SECRET_KEY].assign       ("tpex",(const char*)"tpex"+4);
+        bech32Prefixes[STEALTH_ADDRESS].assign      ("tps",(const char*)"tps"+3);
+        bech32Prefixes[EXT_KEY_HASH].assign         ("tpek",(const char*)"tpek"+4);
+        bech32Prefixes[EXT_ACC_HASH].assign         ("tpea",(const char*)"tpea"+4);
+        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tpcs",(const char*)"tpcs"+4);
 
         bech32_hrp = "tb";
 
@@ -857,17 +857,17 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x35, 0x87, 0xCF}; // tpub
         base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x35, 0x83, 0x94}; // tprv
 
-        bech32Prefixes[PUBKEY_ADDRESS].assign       ("tph","tph"+3);
-        bech32Prefixes[SCRIPT_ADDRESS].assign       ("tpr","tpr"+3);
-        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("tpl","tpl"+3);
-        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("tpj","tpj"+3);
-        bech32Prefixes[SECRET_KEY].assign           ("tpx","tpx"+3);
-        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("tpep","tpep"+4);
-        bech32Prefixes[EXT_SECRET_KEY].assign       ("tpex","tpex"+4);
-        bech32Prefixes[STEALTH_ADDRESS].assign      ("tps","tps"+3);
-        bech32Prefixes[EXT_KEY_HASH].assign         ("tpek","tpek"+4);
-        bech32Prefixes[EXT_ACC_HASH].assign         ("tpea","tpea"+4);
-        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tpcs","tpcs"+4);
+        bech32Prefixes[PUBKEY_ADDRESS].assign       ("tph",(const char*)"tph"+3);
+        bech32Prefixes[SCRIPT_ADDRESS].assign       ("tpr",(const char*)"tpr"+3);
+        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("tpl",(const char*)"tpl"+3);
+        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("tpj",(const char*)"tpj"+3);
+        bech32Prefixes[SECRET_KEY].assign           ("tpx",(const char*)"tpx"+3);
+        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("tpep",(const char*)"tpep"+4);
+        bech32Prefixes[EXT_SECRET_KEY].assign       ("tpex",(const char*)"tpex"+4);
+        bech32Prefixes[STEALTH_ADDRESS].assign      ("tps",(const char*)"tps"+3);
+        bech32Prefixes[EXT_KEY_HASH].assign         ("tpek",(const char*)"tpek"+4);
+        bech32Prefixes[EXT_ACC_HASH].assign         ("tpea",(const char*)"tpea"+4);
+        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tpcs",(const char*)"tpcs"+4);
 
         bech32_hrp = "bcrt";
 

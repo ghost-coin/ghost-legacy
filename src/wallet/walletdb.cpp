@@ -687,7 +687,7 @@ void MaybeCompactWalletDB()
     }
 
     // Make this thread recognisable as the wallet flushing thread
-    RenameThread("particl-wallet");
+    util::ThreadRename("particl-wallet");
 
     for (const std::shared_ptr<CWallet>& pwallet : GetWallets()) {
         WalletDatabase& dbh = pwallet->GetDBHandle();
