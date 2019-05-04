@@ -153,7 +153,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
 
     if (!tx.IsCoinStake()
         || tx.vin.size() < 1) {
-        return state.DoS(100, error("%s: malformed-txn %s", __func__, tx.GetHash().ToString()), REJECT_INVALID, "malformed-txn");
+        return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: malformed-txn %s", __func__, tx.GetHash().ToString()), REJECT_INVALID, "malformed-txn");
     }
 
     uint256 hashBlock;
@@ -174,23 +174,23 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         CBlock blockKernel; // block containing stake kernel, GetTransaction should only fill the header.
         if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), blockKernel)
             || txin.prevout.n >= txPrev->vpout.size()) {
-            return state.DoS(20, error("%s: prevout-not-in-chain", __func__), REJECT_INVALID, "prevout-not-in-chain");
+            return state.Invalid(ValidationInvalidReason::DOS_20, error("%s: prevout-not-in-chain", __func__), REJECT_INVALID, "prevout-not-in-chain");
         }
 
         const CTxOutBase *outPrev = txPrev->vpout[txin.prevout.n].get();
         if (!outPrev->IsStandardOutput()) {
-            return state.DoS(100, error("%s: invalid-prevout", __func__), REJECT_INVALID, "invalid-prevout");
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: invalid-prevout", __func__), REJECT_INVALID, "invalid-prevout");
         }
 
         hashBlock = blockKernel.GetHash();
         BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
         if (mi == mapBlockIndex.end() || !chainActive.Contains(mi->second)) {
-            return state.DoS(20, error("%s: prevout-not-in-chain", __func__), REJECT_INVALID, "prevout-not-in-chain");
+            return state.Invalid(ValidationInvalidReason::DOS_20, error("%s: prevout-not-in-chain", __func__), REJECT_INVALID, "prevout-not-in-chain");
         }
 
         int nDepth;
         if (!CheckAge(pindexPrev, hashBlock, nDepth)) {
-            return state.DoS(100, error("%s: Tried to stake at depth %d", __func__, nDepth + 1), REJECT_INVALID, "invalid-stake-depth");
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Tried to stake at depth %d", __func__, nDepth + 1), REJECT_INVALID, "invalid-stake-depth");
         }
 
         kernelPubKey = *outPrev->GetPScriptPubKey();
@@ -199,18 +199,18 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         state.nFlags |= BLOCK_STAKE_KERNEL_SPENT;
     } else {
         if (coin.nType != OUTPUT_STANDARD) {
-            return state.DoS(100, error("%s: invalid-prevout", __func__), REJECT_INVALID, "invalid-prevout");
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: invalid-prevout", __func__), REJECT_INVALID, "invalid-prevout");
         }
 
         CBlockIndex *pindex = chainActive[coin.nHeight];
         if (!pindex) {
-            return state.DoS(100, error("%s: invalid-prevout", __func__), REJECT_INVALID, "invalid-prevout");
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: invalid-prevout", __func__), REJECT_INVALID, "invalid-prevout");
         }
 
         nDepth = pindexPrev->nHeight - coin.nHeight;
         int nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(pindexPrev->nHeight / 2));
         if (nRequiredDepth > nDepth) {
-            return state.DoS(100, error("%s: Tried to stake at depth %d", __func__, nDepth + 1), REJECT_INVALID, "invalid-stake-depth");
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Tried to stake at depth %d", __func__, nDepth + 1), REJECT_INVALID, "invalid-stake-depth");
         }
 
         kernelPubKey = coin.out.scriptPubKey;
@@ -225,13 +225,13 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
     memcpy(&vchAmount[0], &amount, 8);
     // Redundant: all inputs are checked later during CheckInputs
     if (!VerifyScript(scriptSig, kernelPubKey, witness, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&tx, 0, vchAmount), &serror)) {
-        return state.DoS(100, error("%s: verify-script-failed, txn %s, reason %s", __func__, tx.GetHash().ToString(), ScriptErrorString(serror)),
+        return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: verify-script-failed, txn %s, reason %s", __func__, tx.GetHash().ToString(), ScriptErrorString(serror)),
             REJECT_INVALID, "verify-script-failed");
     }
 
     if (!CheckStakeKernelHash(pindexPrev, nBits, nBlockFromTime,
         amount, txin.prevout, nTime, hashProofOfStake, targetProofOfStake, LogAcceptCategory(BCLog::POS))) {
-        return state.DoS(1, // may occur during initial download or if behind on block chain sync
+        return state.Invalid(ValidationInvalidReason::DOS_1, // may occur during initial download or if behind on block chain sync
             error("%s: INFO: check kernel failed on coinstake %s, hashProof=%s", __func__, tx.GetHash().ToString(), hashProofOfStake.ToString()),
             REJECT_INVALID, "check-kernel-failed");
     }
@@ -248,26 +248,26 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
             if (!pcoinsTip->GetCoin(txin.prevout, coin) || coin.IsSpent()) {
                 if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), hashBlock)
                     || txin.prevout.n >= txPrev->vpout.size()) {
-                    return state.DoS(1, error("%s: prevout-not-in-chain %d", __func__, k), REJECT_INVALID, "prevout-not-in-chain");
+                    return state.Invalid(ValidationInvalidReason::DOS_1, error("%s: prevout-not-in-chain %d", __func__, k), REJECT_INVALID, "prevout-not-in-chain");
                 }
 
                 const CTxOutBase *outPrev = txPrev->vpout[txin.prevout.n].get();
                 if (!outPrev->IsStandardOutput()) {
-                    return state.DoS(100, error("%s: invalid-prevout %d", __func__, k), REJECT_INVALID, "invalid-prevout");
+                    return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: invalid-prevout %d", __func__, k), REJECT_INVALID, "invalid-prevout");
                 }
 
                 if (kernelPubKey != *outPrev->GetPScriptPubKey()) {
-                    return state.DoS(100, error("%s: mixed-prevout-scripts %d", __func__, k), REJECT_INVALID, "mixed-prevout-scripts");
+                    return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: mixed-prevout-scripts %d", __func__, k), REJECT_INVALID, "mixed-prevout-scripts");
                 }
                 amount += outPrev->GetValue();
 
                 LogPrint(BCLog::POS, "%s: Input %d of coinstake %s is spent.\n", __func__, k, tx.GetHash().ToString());
             } else {
                 if (coin.nType != OUTPUT_STANDARD) {
-                    return state.DoS(100, error("%s: invalid-prevout %d", __func__, k), REJECT_INVALID, "invalid-prevout");
+                    return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: invalid-prevout %d", __func__, k), REJECT_INVALID, "invalid-prevout");
                 }
                 if (kernelPubKey != coin.out.scriptPubKey) {
-                    return state.DoS(100, error("%s: mixed-prevout-scripts %d", __func__, k), REJECT_INVALID, "mixed-prevout-scripts");
+                    return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: mixed-prevout-scripts %d", __func__, k), REJECT_INVALID, "mixed-prevout-scripts");
                 }
                 amount += coin.out.nValue;
             }
@@ -277,7 +277,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         for (const auto &txout : tx.vpout) {
             if (!txout->IsType(OUTPUT_STANDARD)) {
                 if (!txout->IsType(OUTPUT_DATA)) {
-                    return state.DoS(100, error("%s: bad-output-type", __func__), REJECT_INVALID, "bad-output-type");
+                    return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: bad-output-type", __func__), REJECT_INVALID, "bad-output-type");
                 }
                 continue;
             }
@@ -289,7 +289,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         }
 
         if (nVerify < amount) {
-            return state.DoS(100, error("%s: verify-amount-script-failed, txn %s", __func__, tx.GetHash().ToString()),
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: verify-amount-script-failed, txn %s", __func__, tx.GetHash().ToString()),
                 REJECT_INVALID, "verify-amount-script-failed");
         }
     }
