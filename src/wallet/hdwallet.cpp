@@ -2533,6 +2533,7 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
         const CWalletTx &wtx = item.second;
 
         bal.nPartImmature += wtx.GetImmatureCredit(*locked_chain);
+        //bal.nPartWatchOnlyImmature += wtx.GetImmatureWatchOnlyCredit(*locked_chain);
 
         int depth;
         if (wtx.IsCoinStake()

@@ -332,6 +332,7 @@ public:
         nPartWatchOnly = 0;
         nPartWatchOnlyUnconf = 0;
         nPartWatchOnlyStaked = 0;
+        nPartWatchOnlyImmature = 0;
 
         nBlind = 0;
         nBlindUnconf = 0;
@@ -347,6 +348,7 @@ public:
     CAmount nPartWatchOnly = 0;
     CAmount nPartWatchOnlyUnconf = 0;
     CAmount nPartWatchOnlyStaked = 0;
+    CAmount nPartWatchOnlyImmature = 0;
 
     CAmount nBlind = 0;
     CAmount nBlindUnconf = 0;
