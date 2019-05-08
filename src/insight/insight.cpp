@@ -88,7 +88,7 @@ bool HashOnchainActive(const uint256 &hash)
 {
     CBlockIndex* pblockindex = mapBlockIndex[hash];
 
-    if (!chainActive.Contains(pblockindex)) {
+    if (!::ChainActive().Contains(pblockindex)) {
         return false;
     }
 

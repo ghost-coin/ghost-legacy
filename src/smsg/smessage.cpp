@@ -71,7 +71,6 @@ Notes:
 #include <smsg/db.h>
 
 extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
-extern CChain &chainActive;
 extern CCriticalSection cs_main;
 
 smsg::CSMSG smsgModule;
@@ -337,8 +336,8 @@ void ThreadSecureMsgPow()
                         BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
                         if (mi != mapBlockIndex.end()) {
                             CBlockIndex *pindex = mi->second;
-                            if (pindex && chainActive.Contains(pindex)) {
-                                blockDepth = chainActive.Height() - pindex->nHeight + 1;
+                            if (pindex && ::ChainActive().Contains(pindex)) {
+                                blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;
                             }
                         }
                     }
@@ -1843,7 +1842,7 @@ bool CSMSG::ScanChainForPublicKeys(CBlockIndex *pindexStart)
                     nTransactions, nInputs, nPubkeys, nDuplicates);
             }
 
-            pindex = chainActive.Next(pindex);
+            pindex = ::ChainActive().Next(pindex);
         }
 
         addrpkdb.TxnCommit();
@@ -1860,7 +1859,7 @@ bool CSMSG::ScanBlockChain()
 {
     TRY_LOCK(cs_main, lockMain);
     if (lockMain) {
-        CBlockIndex *pindexScan = chainActive.Genesis();
+        CBlockIndex *pindexScan = ::ChainActive().Genesis();
         if (pindexScan == nullptr) {
             return error("%s: pindexGenesisBlock not set.", __func__);
         }
@@ -3201,8 +3200,8 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             int64_t nMsgFeePerKPerDay = 0;
             if (mi != mapBlockIndex.end()) {
                 pindex = mi->second;
-                if (pindex && chainActive.Contains(pindex)) {
-                    blockDepth = chainActive.Height() - pindex->nHeight + 1;
+                if (pindex && ::ChainActive().Contains(pindex)) {
+                    blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;
                     nMsgFeePerKPerDay = GetSmsgFeeRate(pindex);
                 }
             }

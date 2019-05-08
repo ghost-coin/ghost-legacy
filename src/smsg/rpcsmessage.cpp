@@ -1818,10 +1818,10 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
     CBlockIndex *pblockindex = nullptr;
     if (!request.params[0].isNull()) {
         int nHeight = request.params[0].get_int();
-        if (nHeight > chainActive.Height()) {
+        if (nHeight > ::ChainActive().Height()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
         }
-        pblockindex = chainActive[nHeight];
+        pblockindex = ::ChainActive()[nHeight];
     }
 
     return GetSmsgFeeRate(pblockindex);
@@ -1848,10 +1848,10 @@ static UniValue smsggetdifficulty(const JSONRPCRequest &request)
 
     LOCK(cs_main);
 
-    int64_t chain_time = chainActive.Tip()->nTime;
+    int64_t chain_time = ::ChainActive().Tip()->nTime;
     if (!request.params[0].isNull()) {
         chain_time = request.params[0].get_int64();
-        if (chain_time > chainActive.Tip()->nTime) {
+        if (chain_time > ::ChainActive().Tip()->nTime) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Time out of range");
         }
     }

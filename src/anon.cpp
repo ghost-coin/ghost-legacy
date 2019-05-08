@@ -338,7 +338,7 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
     view.fForceDisconnect = true;
     CValidationState state;
 
-    for (CBlockIndex *pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev) {
+    for (CBlockIndex *pindex = ::ChainActive().Tip(); pindex && pindex->pprev; pindex = pindex->pprev) {
         if (pindex->nHeight <= nCheckPointHeight) {
             break;
         }
@@ -361,11 +361,11 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
             return errorN(false, sError, __func__, "FlushStateToDisk failed.");
         }
 
-        chainActive.SetTip(pindex->pprev);
+        ::ChainActive().SetTip(pindex->pprev);
         UpdateTip(pindex->pprev, chainparams);
         GetMainSignals().BlockDisconnected(pblock);
     }
-    nLastRCTOutput = chainActive.Tip()->nAnonOutputs;
+    nLastRCTOutput = ::ChainActive().Tip()->nAnonOutputs;
 
     int nRemoveOutput = nLastRCTOutput+1;
     CAnonOutput ao;

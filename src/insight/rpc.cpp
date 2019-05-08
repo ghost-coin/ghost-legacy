@@ -240,8 +240,8 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
         result.pushKV("utxos", utxos);
 
         LOCK(cs_main);
-        result.pushKV("hash", chainActive.Tip()->GetBlockHash().GetHex());
-        result.pushKV("height", (int)chainActive.Height());
+        result.pushKV("hash", ::ChainActive().Tip()->GetBlockHash().GetHex());
+        result.pushKV("height", (int)::ChainActive().Height());
         return result;
     } else {
         return utxos;
@@ -352,12 +352,12 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
     if (includeChainInfo && start > 0 && end > 0) {
         LOCK(cs_main);
 
-        if (start > chainActive.Height() || end > chainActive.Height()) {
+        if (start > ::ChainActive().Height() || end > ::ChainActive().Height()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Start or end is outside chain range");
         }
 
-        CBlockIndex* startIndex = chainActive[start];
-        CBlockIndex* endIndex = chainActive[end];
+        CBlockIndex* startIndex = ::ChainActive()[start];
+        CBlockIndex* endIndex = ::ChainActive()[end];
 
         UniValue startInfo(UniValue::VOBJ);
         UniValue endInfo(UniValue::VOBJ);
@@ -608,8 +608,8 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
     result.pushKV("hash", block.GetHash().GetHex());
     int confirmations = -1;
     // Only report confirmations if the block is on the main chain
-    if (chainActive.Contains(blockindex)) {
-        confirmations = chainActive.Height() - blockindex->nHeight + 1;
+    if (::ChainActive().Contains(blockindex)) {
+        confirmations = ::ChainActive().Height() - blockindex->nHeight + 1;
     } else {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block is an orphan");
     }
@@ -725,7 +725,7 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
 
     if (blockindex->pprev)
         result.pushKV("previousblockhash", blockindex->pprev->GetBlockHash().GetHex());
-    CBlockIndex *pnext = chainActive.Next(blockindex);
+    CBlockIndex *pnext = ::ChainActive().Next(blockindex);
     if (pnext)
         result.pushKV("nextblockhash", pnext->GetBlockHash().GetHex());
     return result;
@@ -1016,13 +1016,13 @@ UniValue getblockreward(const JSONRPCRequest& request)
     }
 
     int nHeight = request.params[0].get_int();
-    if (nHeight < 0 || nHeight > chainActive.Height()) {
+    if (nHeight < 0 || nHeight > ::ChainActive().Height()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
     }
 
     LOCK(cs_main);
 
-    CBlockIndex *pblockindex = chainActive[nHeight];
+    CBlockIndex *pblockindex = ::ChainActive()[nHeight];
 
     CAmount stake_reward = 0;
     if (pblockindex->pprev) {
@@ -1172,7 +1172,7 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 
     int height = !request.params[1].isNull() ? request.params[1].get_int() : -1;
     if (height == -1) {
-        height = chainActive.Tip()->nHeight;
+        height = ::ChainActive().Tip()->nHeight;
     }
 
     bool mature_only = false;

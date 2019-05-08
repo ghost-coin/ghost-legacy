@@ -450,7 +450,7 @@ public:
             if (m_wallet_part) {
                 auto mi = m_wallet_part->mapRecords.find(txid);
                 if (mi != m_wallet_part->mapRecords.end()) {
-                    num_blocks = ::chainActive.Height();
+                    num_blocks = ::ChainActive().Height();
                     tx_status = MakeWalletTxStatus(*locked_chain, *m_wallet_part, mi->first, mi->second);
                     return true;
                 }
@@ -486,7 +486,7 @@ public:
         if (m_wallet_part) {
             auto mi = m_wallet_part->mapRecords.find(txid);
             if (mi != m_wallet_part->mapRecords.end()) {
-                num_blocks = ::chainActive.Height();
+                num_blocks = ::ChainActive().Height();
                 in_mempool = m_wallet_part->InMempool(mi->first);
                 order_form = {};
                 tx_status = MakeWalletTxStatus(*locked_chain, *m_wallet_part, mi->first, mi->second);
@@ -540,7 +540,7 @@ public:
         auto locked_chain = m_wallet->chain().lock(true /* try_lock */);
         if (!locked_chain) return false;
 
-        num_blocks = ::chainActive.Height();
+        num_blocks = ::ChainActive().Height();
         if (!skip_height_check && num_blocks == cached_blocks) {
             return false;
         }

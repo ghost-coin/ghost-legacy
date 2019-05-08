@@ -770,7 +770,7 @@ bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
         return false;
     }
 
-    int nBestHeight = chainActive.Height();
+    int nBestHeight = ::ChainActive().Height();
 
     for (auto &v : vVoteTokensRead) {
         if (v.nEnd > nBestHeight - 1000) { // 1000 block buffer in case of reorg etc
@@ -5505,7 +5505,7 @@ void CHDWallet::LoadToWallet(const CWalletTx& wtxIn)
         }
     }
 
-    int nBestHeight = chainActive.Height();
+    int nBestHeight = ::ChainActive().Height();
     if (wtx.IsCoinStake() && wtx.isAbandoned()) {
         int csHeight;
         if (wtx.tx->GetCoinStakeHeight(csHeight)
@@ -11970,7 +11970,7 @@ uint64_t CHDWallet::GetStakeWeight() const
     int nHeight;
     {
         LOCK(cs_main);
-        nHeight = chainActive.Height()+1;
+        nHeight = ::ChainActive().Height()+1;
     }
 
     // Choose coins to use
@@ -12004,7 +12004,7 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
         auto locked_chain = chain().lock();
         LOCK(cs_wallet);
 
-        int nHeight = chainActive.Tip()->nHeight;
+        int nHeight = ::ChainActive().Tip()->nHeight;
         int min_stake_confirmations = Params().GetStakeMinConfirmations();
         int nRequiredDepth = std::min(min_stake_confirmations-1, (int)(nHeight / 2));
 
@@ -12173,7 +12173,7 @@ bool CHDWallet::SelectCoinsForStaking(int64_t nTargetValue, int64_t nTime, int n
 
 bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHeight, int64_t nFees, CMutableTransaction &txNew, CKey &key)
 {
-    CBlockIndex *pindexPrev = chainActive.Tip();
+    CBlockIndex *pindexPrev = ::ChainActive().Tip();
     arith_uint256 bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
 
@@ -12634,7 +12634,7 @@ bool CHDWallet::SignBlock(CBlockTemplate *pblocktemplate, int nHeight, int64_t n
     }
 
     int64_t nFees = -pblocktemplate->vTxFees[0];
-    CBlockIndex *pindexPrev = chainActive.Tip();
+    CBlockIndex *pindexPrev = ::ChainActive().Tip();
 
     CKey key;
     pblock->nVersion = PARTICL_BLOCK_VERSION;
@@ -12649,7 +12649,7 @@ bool CHDWallet::SignBlock(CBlockTemplate *pblocktemplate, int nHeight, int64_t n
             WalletLogPrintf("%s: Kernel found.\n", __func__);
         }
 
-        if (nSearchTime >= chainActive.Tip()->GetPastTimeLimit()+1) {
+        if (nSearchTime >= ::ChainActive().Tip()->GetPastTimeLimit()+1) {
             // make sure coinstake would meet timestamp protocol
             //    as it would be the same as the block timestamp
             pblock->nTime = nSearchTime;

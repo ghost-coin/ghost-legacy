@@ -46,7 +46,7 @@ double GetPoSKernelPS()
 {
     LOCK(cs_main);
 
-    CBlockIndex *pindex = chainActive.Tip();
+    CBlockIndex *pindex = ::ChainActive().Tip();
     CBlockIndex *pindexPrevStake = nullptr;
 
     int nBestHeight = pindex->nHeight;
@@ -101,7 +101,7 @@ bool CheckStake(CBlock *pblock)
             return error("%s: %s prev block not found: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
         }
 
-        if (!chainActive.Contains(mi->second)) {
+        if (!::ChainActive().Contains(mi->second)) {
             return error("%s: %s prev block in active chain: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
         }
 
@@ -109,7 +109,7 @@ bool CheckStake(CBlock *pblock)
         if (!CheckProofOfStake(state, mi->second, *pblock->vtx[0], pblock->nTime, pblock->nBits, proofHash, hashTarget)) {
             return error("%s: proof-of-stake checking failed.", __func__);
         }
-        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash()) { // hashbestchain
+        if (pblock->hashPrevBlock != ::ChainActive().Tip()->GetBlockHash()) { // hashbestchain
             return error("%s: Generated block is stale.", __func__);
         }
     }
@@ -331,8 +331,8 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
         int num_blocks_of_peers, num_nodes;
         {
             LOCK(cs_main);
-            nBestHeight = chainActive.Height();
-            nBestTime = chainActive.Tip()->nTime;
+            nBestHeight = ::ChainActive().Height();
+            nBestTime = ::ChainActive().Tip()->nTime;
             num_blocks_of_peers = GetNumBlocksOfPeers();
             num_nodes = g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL);
         }

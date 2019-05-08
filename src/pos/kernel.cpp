@@ -184,7 +184,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
 
         hashBlock = blockKernel.GetHash();
         BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-        if (mi == mapBlockIndex.end() || !chainActive.Contains(mi->second)) {
+        if (mi == mapBlockIndex.end() || !::ChainActive().Contains(mi->second)) {
             return state.Invalid(ValidationInvalidReason::DOS_20, error("%s: prevout-not-in-chain", __func__), REJECT_INVALID, "prevout-not-in-chain");
         }
 
@@ -202,7 +202,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
             return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: invalid-prevout", __func__), REJECT_INVALID, "invalid-prevout");
         }
 
-        CBlockIndex *pindex = chainActive[coin.nHeight];
+        CBlockIndex *pindex = ::ChainActive()[coin.nHeight];
         if (!pindex) {
             return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: invalid-prevout", __func__), REJECT_INVALID, "invalid-prevout");
         }
@@ -316,7 +316,7 @@ bool CheckKernel(const CBlockIndex *pindexPrev, unsigned int nBits, int64_t nTim
     if (coin.IsSpent())
         return error("%s: prevout is spent", __func__);
 
-    CBlockIndex *pindex = chainActive[coin.nHeight];
+    CBlockIndex *pindex = ::ChainActive()[coin.nHeight];
     if (!pindex)
         return false;
 

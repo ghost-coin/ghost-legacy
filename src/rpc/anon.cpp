@@ -43,7 +43,7 @@ UniValue anonoutput(const JSONRPCRequest &request)
 
     if (request.params.size() == 0) {
         LOCK(cs_main);
-        result.pushKV("lastindex", (int)chainActive.Tip()->nAnonOutputs);
+        result.pushKV("lastindex", (int)::ChainActive().Tip()->nAnonOutputs);
         return result;
     }
 

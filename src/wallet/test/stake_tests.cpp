@@ -78,7 +78,7 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
     for (k = 0; k < nTries; ++k) {
         {
             LOCK(cs_main);
-            nBestHeight = chainActive.Height();
+            nBestHeight = ::ChainActive().Height();
         }
 
         int64_t nSearchTime = GetAdjustedTime() & ~Params().GetStakeTimestampMask(nBestHeight+1);
@@ -143,7 +143,7 @@ static void DisconnectTip(CBlock &block, CBlockIndex *pindexDelete, CCoinsViewCa
     BOOST_REQUIRE(DISCONNECT_OK == DisconnectBlock(block, pindexDelete, view));
     BOOST_REQUIRE(FlushView(&view, state, true));
     BOOST_REQUIRE(FlushStateToDisk(chainparams, state, FlushStateMode::IF_NEEDED));
-    chainActive.SetTip(pindexDelete->pprev);
+    ::ChainActive().SetTip(pindexDelete->pprev);
     UpdateTip(pindexDelete->pprev, chainparams);
 };
 
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
     std::unique_ptr<CChainParams> regtestChainParams = CreateChainParams(CBaseChainParams::REGTEST);
     const CChainParams &chainparams = *regtestChainParams;
 
-    BOOST_REQUIRE(chainparams.GenesisBlock().GetHash() == chainActive.Tip()->GetBlockHash());
+    BOOST_REQUIRE(chainparams.GenesisBlock().GetHash() == ::ChainActive().Tip()->GetBlockHash());
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("extkeyimportmaster tprv8ZgxMBicQKsPeK5mCpvMsd1cwyT1JZsrBN82XkoYuZY1EVK7EwDaiL9sDfqUU5SntTfbRfnRedFWjg5xkDG5i3iwd3yP7neX5F2dtdCojk4"));
 
@@ -193,12 +193,12 @@ BOOST_AUTO_TEST_CASE(stake_test)
         const auto bal = pwallet->GetBalance();
         BOOST_REQUIRE(bal.m_mine_trusted == 12500000000000);
     }
-    BOOST_REQUIRE(chainActive.Tip()->nMoneySupply == 12500000000000);
+    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000000000);
 
     StakeNBlocks(pwallet, 2);
-    BOOST_REQUIRE(chainActive.Tip()->nMoneySupply == 12500000079274);
+    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000079274);
 
-    CBlockIndex *pindexDelete = chainActive.Tip();
+    CBlockIndex *pindexDelete = ::ChainActive().Tip();
     BOOST_REQUIRE(pindexDelete);
 
     CBlock block;
@@ -212,14 +212,14 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     DisconnectTip(block, pindexDelete, view, chainparams);
 
-    BOOST_REQUIRE(pindexDelete->pprev->GetBlockHash() == chainActive.Tip()->GetBlockHash());
+    BOOST_REQUIRE(pindexDelete->pprev->GetBlockHash() == ::ChainActive().Tip()->GetBlockHash());
 
     const Coin &coin2 = view.AccessCoin(txin.prevout);
     BOOST_REQUIRE(!coin2.IsSpent());
 
-    BOOST_CHECK(chainActive.Height() == pindexDelete->nHeight - 1);
-    BOOST_CHECK(chainActive.Tip()->GetBlockHash() == pindexDelete->pprev->GetBlockHash());
-    BOOST_REQUIRE(chainActive.Tip()->nMoneySupply == 12500000039637);
+    BOOST_CHECK(::ChainActive().Height() == pindexDelete->nHeight - 1);
+    BOOST_CHECK(::ChainActive().Tip()->GetBlockHash() == pindexDelete->pprev->GetBlockHash());
+    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000039637);
 
 
     // Reconnect block
@@ -231,7 +231,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CCoinsViewCache view(pcoinsTip.get());
         const Coin &coin = view.AccessCoin(txin.prevout);
         BOOST_REQUIRE(coin.IsSpent());
-        BOOST_REQUIRE(chainActive.Tip()->nMoneySupply == 12500000079274);
+        BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000079274);
     }
 
     CKey kRecv;
@@ -270,17 +270,17 @@ BOOST_AUTO_TEST_CASE(stake_test)
     StakeNBlocks(pwallet, 1);
 
     CBlock blockLast;
-    BOOST_REQUIRE(ReadBlockFromDisk(blockLast, chainActive.Tip(), chainparams.GetConsensus()));
+    BOOST_REQUIRE(ReadBlockFromDisk(blockLast, ::ChainActive().Tip(), chainparams.GetConsensus()));
 
     BOOST_REQUIRE(blockLast.vtx.size() == 2);
     BOOST_REQUIRE(blockLast.vtx[1]->GetHash() == tx_new->GetHash());
 
     {
-        uint256 tipHash = chainActive.Tip()->GetBlockHash();
-        uint256 prevTipHash = chainActive.Tip()->pprev->GetBlockHash();
+        uint256 tipHash = ::ChainActive().Tip()->GetBlockHash();
+        uint256 prevTipHash = ::ChainActive().Tip()->pprev->GetBlockHash();
 
         // Disconnect last block
-        CBlockIndex *pindexDelete = chainActive.Tip();
+        CBlockIndex *pindexDelete = ::ChainActive().Tip();
         BOOST_REQUIRE(pindexDelete);
 
         CBlock block;
@@ -290,7 +290,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         DisconnectTip(block, pindexDelete, view, chainparams);
 
 
-        BOOST_CHECK(prevTipHash == chainActive.Tip()->GetBlockHash());
+        BOOST_CHECK(prevTipHash == ::ChainActive().Tip()->GetBlockHash());
 
 
         {
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
             BOOST_CHECK(state.IsInvalid());
             BOOST_CHECK(state.GetRejectReason() == "bad-cs-amount");
-            BOOST_CHECK(prevTipHash == chainActive.Tip()->GetBlockHash());
+            BOOST_CHECK(prevTipHash == ::ChainActive().Tip()->GetBlockHash());
 
             // restore the reward
             RegtestParams().SetCoinYearReward(2 * CENT);
@@ -320,11 +320,11 @@ BOOST_AUTO_TEST_CASE(stake_test)
             BOOST_CHECK(!clearstate.IsInvalid());
             BOOST_REQUIRE(FlushView(&clearview, state, false));
             BOOST_REQUIRE(FlushStateToDisk(chainparams, clearstate, FlushStateMode::IF_NEEDED));
-            chainActive.SetTip(pindexDelete);
+            ::ChainActive().SetTip(pindexDelete);
             UpdateTip(pindexDelete, chainparams);
 
-            BOOST_CHECK(tipHash == chainActive.Tip()->GetBlockHash());
-            BOOST_CHECK(chainActive.Tip()->nMoneySupply == 12500000153511);
+            BOOST_CHECK(tipHash == ::ChainActive().Tip()->GetBlockHash());
+            BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == 12500000153511);
         }
     }
 
@@ -347,12 +347,12 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CCoinControl coinControl;
         BOOST_CHECK(30 * COIN == pwallet->GetAvailableAnonBalance(&coinControl));
 
-        BOOST_CHECK(chainActive.Tip()->nAnonOutputs == 4);
+        BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 4);
 
         for (size_t i = 0; i < 2; ++i) {
             // Disconnect last block
-            uint256 prevTipHash = chainActive.Tip()->pprev->GetBlockHash();
-            CBlockIndex *pindexDelete = chainActive.Tip();
+            uint256 prevTipHash = ::ChainActive().Tip()->pprev->GetBlockHash();
+            CBlockIndex *pindexDelete = ::ChainActive().Tip();
             BOOST_REQUIRE(pindexDelete);
 
             CBlock block;
@@ -361,11 +361,11 @@ BOOST_AUTO_TEST_CASE(stake_test)
             CCoinsViewCache view(pcoinsTip.get());
             DisconnectTip(block, pindexDelete, view, chainparams);
 
-            BOOST_CHECK(prevTipHash == chainActive.Tip()->GetBlockHash());
+            BOOST_CHECK(prevTipHash == ::ChainActive().Tip()->GetBlockHash());
         }
 
-        BOOST_CHECK(chainActive.Tip()->nAnonOutputs == 0);
-        BOOST_CHECK(chainActive.Tip()->nMoneySupply == 12500000153511);
+        BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 0);
+        BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == 12500000153511);
     }
 }
 

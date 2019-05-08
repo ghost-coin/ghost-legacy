@@ -3791,9 +3791,9 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
     CAmount nMoneySupply;
     {
         LOCK(cs_main);
-        nTipTime = chainActive.Tip()->nTime;
+        nTipTime = ::ChainActive().Tip()->nTime;
         rCoinYearReward = Params().GetCoinYearReward(nTipTime) / CENT;
-        nMoneySupply = chainActive.Tip()->nMoneySupply;
+        nMoneySupply = ::ChainActive().Tip()->nMoneySupply;
     }
 
     uint64_t nWeight = pwallet->GetStakeWeight();
@@ -3848,7 +3848,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
     obj.pushKV("currentblocktx", (uint64_t)nLastBlockTx);
     obj.pushKV("pooledtx", (uint64_t)mempool.size());
 
-    obj.pushKV("difficulty", GetDifficulty(chainActive.Tip()));
+    obj.pushKV("difficulty", GetDifficulty(::ChainActive().Tip()));
     obj.pushKV("lastsearchtime", (uint64_t)pwallet->nLastCoinStakeSearchTime);
 
     obj.pushKV("weight", (uint64_t)nWeight);
@@ -3910,7 +3910,7 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
     {
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
-        nHeight = chainActive.Tip()->nHeight;
+        nHeight = ::ChainActive().Tip()->nHeight;
         nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(nHeight / 2));
         pwallet->AvailableCoins(*locked_chain, vecOutputs, !include_unsafe, nullptr, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount, nMinDepth, nMaxDepth, fIncludeImmature);
     }
@@ -6319,7 +6319,7 @@ static UniValue votehistory(const JSONRPCRequest &request)
         if (GetBool(request.params[0])) {
             UniValue vote(UniValue::VOBJ);
 
-            int nNextHeight = chainActive.Height() + 1;
+            int nNextHeight = ::ChainActive().Height() + 1;
 
             for (auto i = pwallet->vVoteTokens.rbegin(); i != pwallet->vVoteTokens.rend(); ++i) {
                 auto &v = *i;
@@ -6406,7 +6406,7 @@ static UniValue tallyvotes(const JSONRPCRequest &request)
     std::pair<std::map<int, int>::iterator, bool> ri;
 
     int nBlocks = 0;
-    CBlockIndex *pindex = chainActive.Tip();
+    CBlockIndex *pindex = ::ChainActive().Tip();
     if (pindex)
     do {
         if (pindex->nHeight < nStartHeight) {
@@ -7901,7 +7901,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
     int nSpendHeight = 0; // TODO: make option
     {
         LOCK(cs_main);
-        nSpendHeight = chainActive.Tip()->nHeight;
+        nSpendHeight = ::ChainActive().Tip()->nHeight;
     }
 
     UniValue result(UniValue::VOBJ);
@@ -8017,7 +8017,7 @@ static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file,
             num_blocks_in_file++;
             BlockMap::iterator mi = mapBlockIndex.find(blockhash);
             if (mi == mapBlockIndex.end()
-                || !chainActive.Contains(mi->second)) {
+                || !::ChainActive().Contains(mi->second)) {
                 num_blocks_removed++;
             } else
             if (!test_only) {
@@ -8065,7 +8065,7 @@ static UniValue rewindchain(const JSONRPCRequest &request)
 
     CCoinsViewCache view(pcoinsTip.get());
     view.fForceDisconnect = true;
-    CBlockIndex* pindexState = chainActive.Tip();
+    CBlockIndex* pindexState = ::ChainActive().Tip();
     CValidationState state;
 
     int nBlocks = 0;
