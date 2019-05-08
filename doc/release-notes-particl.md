@@ -1,6 +1,12 @@
 Master
 ==============
 
+0.18.0.7
+==============
+
+- Fixed regression causing wallet catch-up rescan to never trigger.
+
+
 0.18.0.6 rc2
 ==============
 

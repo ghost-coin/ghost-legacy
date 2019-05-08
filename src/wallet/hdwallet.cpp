@@ -1436,7 +1436,11 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
         PrepareLookahead(); // Must happen after ExtKeyLoadAccountPacks
     }
 
-    return CWallet::LoadWallet(fFirstRunRet);
+    auto rv = CWallet::LoadWallet(fFirstRunRet);
+    if (pEKMaster) {
+        fFirstRunRet = false; // if fFirstRun is true, CreateWalletFromFile -> upgrade -> ChainStateFlushed -> WriteBestBlock before catch-up rescan tries to run
+    }
+    return rv;
 }
 
 bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address, const std::string &strName,

@@ -219,6 +219,7 @@ PARTICL_SCRIPTS = [
     'feature_part_smsgpaid.py',
     'feature_part_smsgpaidfee.py',
     'wallet_part_multisig.py',
+    'wallet_part_multiwallet.py',
     'feature_part_coldstaking.py',
     'rpc_part_filtertransactions.py',
     'feature_part_vote.py',
