@@ -1903,7 +1903,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+89"/>
+        <location line="+97"/>
         <source>Confirm options reset</source>
         <translation>Confirm options reset</translation>
     </message>

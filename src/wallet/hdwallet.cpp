@@ -1437,7 +1437,7 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
     }
 
     auto rv = CWallet::LoadWallet(fFirstRunRet);
-    if (pEKMaster) {
+    if (pEKMaster || !idDefaultAccount.IsNull()) {
         fFirstRunRet = false; // if fFirstRun is true, CreateWalletFromFile -> upgrade -> ChainStateFlushed -> WriteBestBlock before catch-up rescan tries to run
     }
     return rv;
