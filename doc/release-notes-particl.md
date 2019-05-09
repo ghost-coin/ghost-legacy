@@ -5,6 +5,7 @@ Master
 ==============
 
 - Fixed regression causing wallet catch-up rescan to never trigger.
+- New checkpoints.
 
 
 0.18.0.6 rc2

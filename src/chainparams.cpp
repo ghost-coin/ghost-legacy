@@ -464,10 +464,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1510704000; // November 15th, 2017.
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000004fc613540f68dfec6b");
+        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000544d9194077c2e14d8");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0xd22f8acde6c5aed109087eb2799620c560a78e573fa587a1660aef854069d75d"); // 421718
+        consensus.defaultAssumeValid = uint256S("0x1e2ae3edb2fa5b398c2f719d2bbb44b3089fb96170b6676c0c963f12bceba489"); // 443228
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -567,13 +567,14 @@ public:
                 { 357320,   uint256S("0x20b01f2bef93197bb014d27125939cd8d4f6a34257fdb498ae64c8644b8f2289")},
                 { 376100,   uint256S("0xff704cb42547da4efb2b32054c72c7682b7634ac34fda4ec88fe7badc666338c")},
                 { 421718,   uint256S("0xd22f8acde6c5aed109087eb2799620c560a78e573fa587a1660aef854069d75d")},
+                { 443228,   uint256S("0x1e2ae3edb2fa5b398c2f719d2bbb44b3089fb96170b6676c0c963f12bceba489")},
             }
         };
 
         chainTxData = ChainTxData {
-            // Data from rpc: getchaintxstats 4096 d22f8acde6c5aed109087eb2799620c560a78e573fa587a1660aef854069d75d
-            /* nTime    */ 1554625440,
-            /* nTxCount */ 467906,
+            // Data from rpc: getchaintxstats 4096 1e2ae3edb2fa5b398c2f719d2bbb44b3089fb96170b6676c0c963f12bceba489
+            /* nTime    */ 1557394608,
+            /* nTxCount */ 491240,
             /* dTxRate  */ 0.008
         };
 
@@ -650,10 +651,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1493596800; // May 1st 2017
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000004830e68a363e5525f");
+        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000004e2abd3aa581ae4d2");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x96bb6bb7085d0fdb85757069af7b1513c6a86b476ba531a67af6e9dd21385255"); // 375987
+        consensus.defaultAssumeValid = uint256S("0xa3aeeacabda53c6d29252f1745496ec1654597e02969d1c6ba7cb53678a46218"); // 397480
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -732,13 +733,14 @@ public:
                 {259290, uint256S("0x58267bdf935a2e0716cb910d055b8cdaa019089a5f71c3db90765dc7101dc5dc")},
                 {312860, uint256S("0xaba2e3b2dcf1970b53b67c869325c5eefd3a107e62518fa4640ddcfadf88760d")},
                 {375987, uint256S("0x96bb6bb7085d0fdb85757069af7b1513c6a86b476ba531a67af6e9dd21385255")},
+                {397480, uint256S("0xa3aeeacabda53c6d29252f1745496ec1654597e02969d1c6ba7cb53678a46218")},
             }
         };
 
         chainTxData = ChainTxData{
-            // Data from rpc: getchaintxstats 4096 96bb6bb7085d0fdb85757069af7b1513c6a86b476ba531a67af6e9dd21385255
-            /* nTime    */ 1554626352,
-            /* nTxCount */ 406684,
+            // Data from rpc: getchaintxstats 4096 a3aeeacabda53c6d29252f1745496ec1654597e02969d1c6ba7cb53678a46218
+            /* nTime    */ 1557394688,
+            /* nTxCount */ 430042,
             /* dTxRate  */ 0.007
         };
 
