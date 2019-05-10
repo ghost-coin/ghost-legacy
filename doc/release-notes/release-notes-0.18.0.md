@@ -1,17 +1,6 @@
-Bitcoin Core version 0.18.0 is now available from:
+Particl Core version 0.18.0 is now available.
 
-  <https://bitcoincore.org/bin/bitcoin-core-0.18.0/>
-
-This is a new major version release, including new features, various bug
-fixes and performance improvements, as well as updated translations.
-
-Please report bugs using the issue tracker at GitHub:
-
-  <https://github.com/bitcoin/bitcoin/issues>
-
-To receive security and update notifications, please subscribe to:
-
-  <https://bitcoincore.org/en/list/announcements/join/>
+This is a new major version release, including new features, various bugfixes and performance improvements, as well as updated translations.
 
 How to Upgrade
 ==============
