@@ -376,7 +376,7 @@ static UniValue getdevicepublickey(const JSONRPCRequest &request)
 
     UniValue rv(UniValue::VOBJ);
     rv.pushKV("publickey", HexStr(pk));
-    rv.pushKV("address", CBitcoinAddress(pk.GetID()).ToString());
+    rv.pushKV("address", CBitcoinAddress(PKHash(pk)).ToString());
     rv.pushKV("path", sPath);
 
     return rv;

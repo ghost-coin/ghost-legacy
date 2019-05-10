@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -316,8 +316,7 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     r.fSubtractFeeFromAmount = true;
     r.sEphem = sEphem;
     r.pkTo = CPubKey(pkSendTo);
-    CKeyID idTo = r.pkTo.GetID();
-    r.scriptPubKey = GetScriptForDestination(idTo);
+    r.scriptPubKey = GetScriptForDestination(PKHash(r.pkTo));
     r.nStealthPrefix = FillStealthPrefix(sxAddr.prefix.number_bits, sxAddr.prefix.bitfield);
     r.vBlind.resize(32);
     GetStrongRandBytes(&r.vBlind[0], 32);

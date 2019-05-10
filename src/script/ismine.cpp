@@ -119,7 +119,7 @@ isminetype IsMineInner(const CKeyStore& keystore, const CScript& scriptPubKey, b
             // This also applies to the P2WSH case.
             break;
         }
-        isminetype ret = IsMineInner(keystore, GetScriptForDestination(CKeyID(uint160(vSolutions[0]))), isInvalid, IsMineSigVersion::WITNESS_V0);
+        isminetype ret = IsMineInner(keystore, GetScriptForDestination(PKHash(uint160(vSolutions[0]))), isInvalid, IsMineSigVersion::WITNESS_V0);
         if (ret == ISMINE_SPENDABLE || ret == ISMINE_WATCH_ONLY_ || (ret == ISMINE_NO && isInvalid))
             return ret;
         break;

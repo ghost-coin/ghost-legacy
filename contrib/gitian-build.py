@@ -68,14 +68,14 @@ def build():
         subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'particl-core='+args.commit, '--url', 'particl-core='+args.url, '../particl-core/contrib/gitian-descriptors/gitian-win.yml'])
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-win-unsigned', '--destination', '../gitian.sigs/', '../particl-core/contrib/gitian-descriptors/gitian-win.yml'])
         subprocess.check_call('mv build/out/particl-*-win-unsigned.tar.gz inputs/', shell=True)
-        subprocess.check_call('mv build/out/particl-*.zip build/out/particl-*.exe ../particl-binaries/'+args.version, shell=True)
+        subprocess.check_call('mv build/out/particl-*.zip build/out/particl-*.exe build/out/src/particl-*.tar.gz ../particl-binaries/'+args.version, shell=True)
 
     if args.macos:
         print('\nCompiling ' + args.version + ' MacOS')
         subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--commit', 'particl-core='+args.commit, '--url', 'particl-core='+args.url, '../particl-core/contrib/gitian-descriptors/gitian-osx.yml'])
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-osx-unsigned', '--destination', '../gitian.sigs/', '../particl-core/contrib/gitian-descriptors/gitian-osx.yml'])
         subprocess.check_call('mv build/out/particl-*-osx-unsigned.tar.gz inputs/', shell=True)
-        subprocess.check_call('mv build/out/particl-*.tar.gz build/out/particl-*.dmg ../particl-binaries/'+args.version, shell=True)
+        subprocess.check_call('mv build/out/particl-*.tar.gz build/out/particl-*.dmg build/out/src/particl-*.tar.gz ../particl-binaries/'+args.version, shell=True)
 
     os.chdir(workdir)
 
@@ -95,7 +95,7 @@ def sign():
     if args.windows:
         print('\nSigning ' + args.version + ' Windows')
         subprocess.check_call('cp inputs/particl-' + args.version + '-win-unsigned.tar.gz inputs/particl-win-unsigned.tar.gz', shell=True)
-        subprocess.check_call(['bin/gbuild', '-i', '--commit', 'signature='+args.commit, '../particl-core/contrib/gitian-descriptors/gitian-win-signer.yml'])
+        subprocess.check_call(['bin/gbuild', '--skip-image', '--upgrade', '--commit', 'signature='+args.commit, '../particl-core/contrib/gitian-descriptors/gitian-win-signer.yml'])
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-win-signed', '--destination', '../gitian.sigs/', '../particl-core/contrib/gitian-descriptors/gitian-win-signer.yml'])
         subprocess.check_call('mv build/out/particl-*win64-setup.exe ../particl-binaries/'+args.version, shell=True)
         subprocess.check_call('mv build/out/particl-*win32-setup.exe ../particl-binaries/'+args.version, shell=True)
@@ -103,7 +103,7 @@ def sign():
     if args.macos:
         print('\nSigning ' + args.version + ' MacOS')
         subprocess.check_call('cp inputs/particl-' + args.version + '-osx-unsigned.tar.gz inputs/particl-osx-unsigned.tar.gz', shell=True)
-        subprocess.check_call(['bin/gbuild', '-i', '--commit', 'signature='+args.commit, '../particl-core/contrib/gitian-descriptors/gitian-osx-signer.yml'])
+        subprocess.check_call(['bin/gbuild', '--skip-image', '--upgrade', '--commit', 'signature='+args.commit, '../particl-core/contrib/gitian-descriptors/gitian-osx-signer.yml'])
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-osx-signed', '--destination', '../gitian.sigs/', '../particl-core/contrib/gitian-descriptors/gitian-osx-signer.yml'])
         subprocess.check_call('mv build/out/particl-osx-signed.dmg ../particl-binaries/'+args.version+'/particl-'+args.version+'-osx.dmg', shell=True)
 

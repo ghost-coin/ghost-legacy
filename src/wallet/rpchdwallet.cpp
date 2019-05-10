@@ -2404,7 +2404,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
                 idk256 = newKey.GetID256();
                 result.push_back(CBitcoinAddress(idk256).ToString());
             } else {
-                result.push_back(CBitcoinAddress(idk).ToString());
+                result.push_back(CBitcoinAddress(PKHash(idk)).ToString());
             }
 
             if (fSave) {
@@ -2429,7 +2429,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
                     if (f256bit) {
                         pwallet->SetAddressBook(&wdb, idk256, strAccount, "receive", vPath, false);
                     } else {
-                        pwallet->SetAddressBook(&wdb, idk, strAccount, "receive", vPath, false);
+                        pwallet->SetAddressBook(&wdb, PKHash(idk), strAccount, "receive", vPath, false);
                     }
                 }
             }
@@ -2707,9 +2707,9 @@ static void ParseOutputs(
                 )) {
                     return ;
                 }
-                if (r.destination.type() == typeid(CKeyID)) {
+                if (r.destination.type() == typeid(PKHash)) {
                     CStealthAddress sx;
-                    CKeyID idK = boost::get<CKeyID>(r.destination);
+                    CKeyID idK = CKeyID(boost::get<PKHash>(r.destination));
                     if (pwallet->GetStealthLinked(idK, sx)) {
                         output.pushKV("stealth_address", sx.Encoded(fBech32));
                     }
@@ -2900,8 +2900,8 @@ static void ParseRecords(
                 }
             }
         } else {
-            if (extracted && dest.type() == typeid(CKeyID)) {
-                CKeyID idK = boost::get<CKeyID>(dest);
+            if (extracted && dest.type() == typeid(PKHash)) {
+                CKeyID idK = CKeyID(boost::get<PKHash>(dest));
                 if (pwallet->GetStealthLinked(idK, sx)) {
                     push(output, "stealth_address", sx.Encoded());
                     addresses.push_back(sx.Encoded());
@@ -4379,10 +4379,10 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 entry.pushKV("label", i->second.name);
             }
 
-            if (address.type() == typeid(CKeyID))
+            if (address.type() == typeid(PKHash))
             {
                 CStealthAddress sx;
-                CKeyID idk = boost::get<CKeyID>(address);
+                CKeyID idk = CKeyID(boost::get<PKHash>(address));
                 if (pwallet->GetStealthLinked(idk, sx)) {
                     entry.pushKV("stealth_address", sx.Encoded());
                     if (!entry.exists("label")) {
@@ -4395,7 +4395,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
             };
 
             if (scriptPubKey->IsPayToScriptHash()) {
-                const CScriptID& hash = boost::get<CScriptID>(address);
+                const CScriptID& hash = CScriptID(boost::get<ScriptHash>(address));
                 CScript redeemScript;
                 if (pwallet->GetCScript(hash, redeemScript))
                     entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
@@ -5216,8 +5216,8 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
         if (pwallet) {
             CTxDestination redeemDest;
             if (ExtractDestination(scriptPubKey, redeemDest)) {
-                if (redeemDest.type() == typeid(CScriptID)) {
-                    const CScriptID& scriptID = boost::get<CScriptID>(redeemDest);
+                if (redeemDest.type() == typeid(ScriptHash)) {
+                    const CScriptID& scriptID = CScriptID(boost::get<ScriptHash>(redeemDest));
                     pwallet->GetCScript(scriptID, scriptRedeem);
                 } else
                 if (redeemDest.type() == typeid(CScriptID256)) {
@@ -5242,8 +5242,8 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
         }
 
-        if (destSign.type() == typeid(CKeyID)) {
-            idSign = boost::get<CKeyID>(destSign);
+        if (destSign.type() == typeid(PKHash)) {
+            idSign = CKeyID(boost::get<PKHash>(destSign));
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unsupported signing key type.");
         }
@@ -5538,7 +5538,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                     if (!sea->GetPubKey(idk, pk)) {
                         UniValue tmp(UniValue::VOBJ);
                         tmp.pushKV("position", (int)i);
-                        tmp.pushKV("address", CBitcoinAddress(idk).ToString());
+                        tmp.pushKV("address", CBitcoinAddress(PKHash(idk)).ToString());
 
                         if (attempt_repair) {
                             uint32_t nChain;
@@ -6525,7 +6525,7 @@ static UniValue buildscript(const JSONRPCRequest &request)
         if (!IsValidDestination(destSpend)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid addrspend.");
         }
-        if (destSpend.type() == typeid(CKeyID)) {
+        if (destSpend.type() == typeid(PKHash)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid addrspend, can't be p2pkh.");
         }
 

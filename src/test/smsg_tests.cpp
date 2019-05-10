@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -66,12 +66,9 @@ BOOST_AUTO_TEST_CASE(smsg_test)
         CKeyID kFrom = keyOwn[i].GetPubKey().GetID();
         CKeyID kTo = keyRemote[i].GetPubKey().GetID();
         CKeyID kFail = keyRemote[(i+1) % nKeys].GetPubKey().GetID();
-        CBitcoinAddress addrFrom(kFrom);
-        CBitcoinAddress addrTo(kTo);
-        CBitcoinAddress addrFail(kFail);
-        std::string sAddrFrom = addrFrom.ToString();
-        std::string sAddrTo = addrTo.ToString();
-        std::string sAddrFail = addrFail.ToString();
+        std::string sAddrFrom = EncodeDestination(PKHash(kFrom));
+        std::string sAddrTo = EncodeDestination(PKHash(kTo));
+        std::string sAddrFail = EncodeDestination(PKHash(kFail));
 
         bool fSendAnonymous = rand() % 3 == 0;
 

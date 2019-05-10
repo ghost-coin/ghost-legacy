@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
         + "\"vout\":0,"
         + "\"scriptPubKey\":\""+HexStr(script.begin(), script.end())+"\","
         + "\"amount\":100}]";
-    sCmd = "createrawtransaction " + sTxn + " {\""+CBitcoinAddress(id).ToString()+"\":99.99}";
+    sCmd = "createrawtransaction " + sTxn + " {\""+EncodeDestination(PKHash(id))+"\":99.99}";
 
 
     BOOST_REQUIRE_NO_THROW(rv = CallRPC(sCmd));
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
         + "\"vout\":0,"
         + "\"scriptPubKey\":\""+HexStr(script.begin(), script.end())+"\","
         + "\"amount\":100}]";
-    sCmd = "createrawtransaction " + sTxn + " {\""+CBitcoinAddress(id).ToString()+"\":99.99}" + " 1487500000";
+    sCmd = "createrawtransaction " + sTxn + " {\""+EncodeDestination(PKHash(id))+"\":99.99}" + " 1487500000";
 
     BOOST_REQUIRE_NO_THROW(rv = CallRPC(sCmd));
     sResult = StripQuotes(rv.write());

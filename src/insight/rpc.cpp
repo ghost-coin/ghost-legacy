@@ -22,9 +22,9 @@
 bool getAddressFromIndex(const int &type, const uint256 &hash, std::string &address)
 {
     if (type == ADDR_INDT_SCRIPT_ADDRESS) {
-        address = CBitcoinAddress(CScriptID(uint160(hash.begin(), 20))).ToString();
+        address = CBitcoinAddress(ScriptHash(uint160(hash.begin(), 20))).ToString();
     } else if (type == ADDR_INDT_PUBKEY_ADDRESS) {
-        address = CBitcoinAddress(CKeyID(uint160(hash.begin(), 20))).ToString();
+        address = CBitcoinAddress(PKHash(uint160(hash.begin(), 20))).ToString();
     } else if (type == ADDR_INDT_SCRIPT_ADDRESS_256) {
         address = CBitcoinAddress(CScriptID256(hash)).ToString();
     } else if (type == ADDR_INDT_PUBKEY_ADDRESS_256) {
@@ -586,11 +586,11 @@ static void AddAddress(CScript *script, UniValue &uv)
 {
     if (script->IsPayToScriptHash()) {
         std::vector<unsigned char> hashBytes(script->begin()+2, script->begin()+22);
-        uv.pushKV("address", EncodeDestination(CScriptID(uint160(hashBytes))));
+        uv.pushKV("address", EncodeDestination(ScriptHash(uint160(hashBytes))));
     } else
     if (script->IsPayToPublicKeyHash()) {
         std::vector<unsigned char> hashBytes(script->begin()+3, script->begin()+23);
-        uv.pushKV("address", EncodeDestination(CKeyID(uint160(hashBytes))));
+        uv.pushKV("address", EncodeDestination(PKHash(uint160(hashBytes))));
     } else
     if (script->IsPayToScriptHash256()) {
         std::vector<unsigned char> hashBytes(script->begin()+2, script->begin()+34);
@@ -644,9 +644,9 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
 
                 if (GetSpentIndex(spentKey, spentInfo)) {
                     if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS) {
-                        delta.pushKV("address", EncodeDestination(CKeyID(uint160(spentInfo.addressHash.begin(), 20))));
+                        delta.pushKV("address", EncodeDestination(PKHash(uint160(spentInfo.addressHash.begin(), 20))));
                     } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS)  {
-                        delta.pushKV("address", EncodeDestination(CScriptID(uint160(spentInfo.addressHash.begin(), 20))));
+                        delta.pushKV("address", EncodeDestination(ScriptHash(uint160(spentInfo.addressHash.begin(), 20))));
                     } else if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS_256) {
                         delta.pushKV("address", EncodeDestination(CKeyID256(spentInfo.addressHash)));
                     } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS_256)  {
@@ -1154,9 +1154,9 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 
     ColdStakeIndexLinkKey seek_key;
     CTxDestination stake_dest = DecodeDestination(request.params[0].get_str(), true);
-    if (stake_dest.type() == typeid(CKeyID)) {
+    if (stake_dest.type() == typeid(PKHash)) {
         seek_key.m_stake_type = TX_PUBKEYHASH;
-        CKeyID id = boost::get<CKeyID>(stake_dest);
+        PKHash id = boost::get<PKHash>(stake_dest);
         memcpy(seek_key.m_stake_id.begin(), id.begin(), 20);
     } else
     if (stake_dest.type() == typeid(CKeyID256)) {
@@ -1236,7 +1236,7 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 
                     switch (lk.m_spend_type) {
                         case TX_PUBKEYHASH: {
-                            CKeyID idk;
+                            PKHash idk;
                             memcpy(idk.begin(), lk.m_spend_id.begin(), 20);
                             output.pushKV("addrspend", EncodeDestination(idk));
                             }
@@ -1245,7 +1245,7 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
                             output.pushKV("addrspend", EncodeDestination(lk.m_spend_id));
                             break;
                         case TX_SCRIPTHASH: {
-                            CScriptID ids;
+                            ScriptHash ids;
                             memcpy(ids.begin(), lk.m_spend_id.begin(), 20);
                             output.pushKV("addrspend", EncodeDestination(ids));
                             }

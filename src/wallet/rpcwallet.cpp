@@ -284,8 +284,7 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
             CKeyID256 idKey256 = newKey.GetID256();
             return CBitcoinAddress(idKey256, fBech32).ToString();
         }
-        keyID = newKey.GetID();
-        return CBitcoinAddress(keyID, fBech32).ToString();
+        return CBitcoinAddress(PKHash(newKey), fBech32).ToString();
     }
 
     LOCK2(cs_main, pwallet->cs_wallet);
@@ -349,7 +348,7 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
         if (0 != phdw->NewKeyFromAccount(pkOut, true)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "NewKeyFromAccount failed.");
         }
-        return EncodeDestination(pkOut.GetID());
+        return EncodeDestination(PKHash(pkOut.GetID()));
     }
 
     if (!pwallet->CanGetAddresses(true)) {
@@ -733,16 +732,22 @@ static UniValue signmessage(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
     }
 
-    const CKeyID *keyID = boost::get<CKeyID>(&dest);
+    const PKHash *pkhash = boost::get<PKHash>(&dest);
     const CKeyID256 *keyID256 = boost::get<CKeyID256>(&dest);
 
-    if (!keyID && !keyID256) {
+    if (!pkhash && !keyID256) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
     }
-
     CKey key;
-    if (!(dest.type() == typeid(CKeyID) ? pwallet->GetKey(*keyID, key) : pwallet->GetKey(*keyID256, key))) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
+    if (pkhash) {
+        CKeyID keyID(*pkhash);
+        if (!pwallet->GetKey(keyID, key)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
+        }
+    } else {
+        if (!pwallet->GetKey(*keyID256, key)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
+        }
     }
 
     CHashWriter ss(SER_GETHASH, 0);
@@ -1674,9 +1679,9 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
             }
 
             if (fParticlWallet
-                && r.destination.type() == typeid(CKeyID)) {
+                && r.destination.type() == typeid(PKHash)) {
                 CStealthAddress sx;
-                CKeyID idK = boost::get<CKeyID>(r.destination);
+                CKeyID idK = CKeyID(boost::get<PKHash>(r.destination));
                 if (GetParticlWallet(pwallet)->GetStealthLinked(idK, sx)) {
                     entry.pushKV("stealth_address", sx.Encoded());
                 }
@@ -1794,9 +1799,9 @@ static void ListRecord(interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, c
                 }
             }
         } else {
-            if (dest.type() == typeid(CKeyID)) {
+            if (dest.type() == typeid(PKHash)) {
                 CStealthAddress sx;
-                CKeyID idK = boost::get<CKeyID>(dest);
+                CKeyID idK = CKeyID(boost::get<PKHash>(dest));
                 if (phdw->GetStealthLinked(idK, sx)) {
                     entry.pushKV("stealth_address", sx.Encoded());
                 }
@@ -3700,7 +3705,7 @@ static UniValue listunspent(const JSONRPCRequest& request)
             }
 
             if (scriptPubKey->IsPayToScriptHash()) {
-                const CScriptID& hash = boost::get<CScriptID>(address);
+                const CScriptID& hash = CScriptID(boost::get<ScriptHash>(address));
                 CScript redeemScript;
                 if (pwallet->GetCScript(hash, redeemScript)) {
                     entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
@@ -4389,8 +4394,9 @@ public:
 
     UniValue operator()(const CNoDestination& dest) const { return UniValue(UniValue::VOBJ); }
 
-    UniValue operator()(const CKeyID& keyID) const
+    UniValue operator()(const PKHash& pkhash) const
     {
+        CKeyID keyID(pkhash);
         UniValue obj(UniValue::VOBJ);
         CPubKey vchPubKey;
         if (pwallet && pwallet->GetPubKey(keyID, vchPubKey)) {
@@ -4400,8 +4406,9 @@ public:
         return obj;
     }
 
-    UniValue operator()(const CScriptID& scriptID) const
+    UniValue operator()(const ScriptHash& scripthash) const
     {
+        CScriptID scriptID(scripthash);
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
         if (pwallet && pwallet->GetCScript(scriptID, subscript)) {
@@ -4613,7 +4620,7 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
                 }
             }
         } else
-        if (dest.type() == typeid(CKeyID)
+        if (dest.type() == typeid(PKHash)
             || dest.type() == typeid(CKeyID256)) {
             CKeyID idk;
             const CEKAKey *pak = nullptr;
@@ -4636,9 +4643,9 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
                     ret.pushKV("error", "Unknown chain.");
                 }
             } else
-            if (dest.type() == typeid(CKeyID)) {
+            if (dest.type() == typeid(PKHash)) {
                 CStealthAddress sx;
-                idk = boost::get<CKeyID>(dest);
+                idk = CKeyID(boost::get<PKHash>(dest));
                 if (phdw->GetStealthLinked(idk, sx)) {
                     ret.pushKV("from_stealth_address", sx.Encoded());
                 }

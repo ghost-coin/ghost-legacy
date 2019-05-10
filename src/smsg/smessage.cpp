@@ -824,7 +824,7 @@ int CSMSG::WriteIni()
     for (std::vector<SecMsgAddress>::iterator it = addresses.begin(); it != addresses.end(); ++it) {
         errno = 0;
 
-        CBitcoinAddress cAddress(it->address);
+        CBitcoinAddress cAddress(PKHash(it->address));
 
         if (!cAddress.IsValid()) {
             LogPrintf("%s: Error saving address - invalid.\n", __func__);
@@ -2036,7 +2036,7 @@ int CSMSG::ManageLocalKey(CKeyID &keyId, ChangeType mode)
                 if (itFound == addresses.end()) {
                     addresses.push_back(SecMsgAddress(keyId, options.fNewAddressRecv, options.fNewAddressAnon));
                 } else {
-                    LogPrint(BCLog::SMSG, "%s: Already have address: %s.\n", __func__, EncodeDestination(keyId));
+                    LogPrint(BCLog::SMSG, "%s: Already have address: %s.\n", __func__, EncodeDestination(PKHash(keyId)));
                     return SMSG_KEY_EXISTS;
                 }
                 break;
@@ -2243,7 +2243,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
             // Have to do full decrypt to see address from
             if (Decrypt(false, key.key, address, pHeader, pPayload, nPayload, msg) == 0) {
                 if (LogAcceptCategory(BCLog::SMSG)) {
-                    LogPrintf("Decrypted message with %s.\n", EncodeDestination(addressTo));
+                    LogPrintf("Decrypted message with %s.\n", EncodeDestination(PKHash(addressTo)));
                 }
                 if (msg.sFromAddress.compare("anon") != 0) {
                     fOwnMessage = true;
@@ -2254,7 +2254,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
         } else {
             if (Decrypt(true, key.key, address, pHeader, pPayload, nPayload, msg) == 0) {
                 if (LogAcceptCategory(BCLog::SMSG)) {
-                    LogPrintf("Decrypted message with %s.\n", EncodeDestination(addressTo));
+                    LogPrintf("Decrypted message with %s.\n", EncodeDestination(PKHash(addressTo)));
                 }
                 fOwnMessage = true;
                 addressTo = address;
@@ -2299,7 +2299,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
                 // Have to do full decrypt to see address from
                 if (Decrypt(false, keyDest, addressTo, pHeader, pPayload, nPayload, msg) == 0) {
                     if (LogAcceptCategory(BCLog::SMSG)) {
-                        LogPrintf("Decrypted message with %s.\n", EncodeDestination(addressTo));
+                        LogPrintf("Decrypted message with %s.\n", EncodeDestination(PKHash(addressTo)));
                     }
                     if (msg.sFromAddress.compare("anon") != 0) {
                         fOwnMessage = true;
@@ -2309,7 +2309,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
             } else {
                 if (Decrypt(true, keyDest, addressTo, pHeader, pPayload, nPayload, msg) == 0) {
                     if (LogAcceptCategory(BCLog::SMSG)) {
-                        LogPrintf("Decrypted message with %s.\n", EncodeDestination(addressTo));
+                        LogPrintf("Decrypted message with %s.\n", EncodeDestination(PKHash(addressTo)));
                     }
                     fOwnMessage = true;
                     break;
@@ -2358,7 +2358,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
                     if (reportToGui) {
                         NotifySecMsgInboxChanged(smsgInbox);
                     }
-                    LogPrintf("SecureMsg saved to inbox, received with %s.\n", EncodeDestination(addressTo));
+                    LogPrintf("SecureMsg saved to inbox, received with %s.\n", EncodeDestination(PKHash(addressTo)));
                 }
             }
         } // cs_smsgDB
@@ -2369,7 +2369,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
 
             //TODO: Format message
             if (!strCmd.empty()) {
-                boost::replace_all(strCmd, "%s", EncodeDestination(addressTo));
+                boost::replace_all(strCmd, "%s", EncodeDestination(PKHash(addressTo)));
                 std::thread t(runCommand, strCmd);
                 t.detach(); // thread runs free
             }
@@ -3384,8 +3384,8 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
 
     if (LogAcceptCategory(BCLog::SMSG)) {
         LogPrint(BCLog::SMSG, "SecureMsgEncrypt(%s, %s, ...)\n",
-            fSendAnonymous ? "anon" : EncodeDestination(addressFrom),
-            EncodeDestination(addressTo));
+            fSendAnonymous ? "anon" : EncodeDestination(PKHash(addressFrom)),
+            EncodeDestination(PKHash(addressTo)));
     }
 
     if (smsg.timestamp == 0) {
@@ -3578,7 +3578,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
     if (LogAcceptCategory(BCLog::SMSG)) {
         LogPrintf("SecureMsgSend(%s, %s, ...)\n",
-            fSendAnonymous ? "anon" : EncodeDestination(addressFrom), EncodeDestination(addressTo));
+            fSendAnonymous ? "anon" : EncodeDestination(PKHash(addressFrom)), EncodeDestination(PKHash(addressTo)));
     }
 
     if (!pwallet) {
@@ -3694,7 +3694,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         } // cs_smsgDB
 
         if (LogAcceptCategory(BCLog::SMSG)) {
-            LogPrintf("Secure message queued for sending to %s.\n", EncodeDestination(addressTo));
+            LogPrintf("Secure message queued for sending to %s.\n", EncodeDestination(PKHash(addressTo)));
         }
     }
 
@@ -3731,7 +3731,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         LogPrintf("%s: Warning, could not find an address to encrypt outbox message with.\n", __func__);
     } else {
         if (LogAcceptCategory(BCLog::SMSG)) {
-            LogPrintf("Encrypting a copy for outbox, using address %s\n", EncodeDestination(addressOutbox));
+            LogPrintf("Encrypting a copy for outbox, using address %s\n", EncodeDestination(PKHash(addressOutbox)));
         }
 
         SecureMessage smsgForOutbox(fPaid, nDaysRetention);
@@ -3949,7 +3949,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     */
 
     if (LogAcceptCategory(BCLog::SMSG)) {
-        LogPrintf("%s: using %s, testonly %d.\n", __func__, EncodeDestination(address), fTestOnly);
+        LogPrintf("%s: using %s, testonly %d.\n", __func__, EncodeDestination(PKHash(address)), fTestOnly);
     }
 
     if (!pHeader
@@ -4104,7 +4104,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     }
 
     if (LogAcceptCategory(BCLog::SMSG)) {
-        LogPrintf("Decrypted message for %s.\n", EncodeDestination(address));
+        LogPrintf("Decrypted message for %s.\n", EncodeDestination(PKHash(address)));
     }
 
     return SMSG_NO_ERROR;

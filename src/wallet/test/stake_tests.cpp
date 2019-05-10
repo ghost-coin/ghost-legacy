@@ -236,14 +236,13 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     CKey kRecv;
     InsecureNewKey(kRecv, true);
-    CKeyID idRecv = kRecv.GetPubKey().GetID();
 
     bool fSubtractFeeFromAmount = false;
     CAmount nAmount = 10000;
     CTransactionRef tx_new;
 
     // Parse Bitcoin address
-    CScript scriptPubKey = GetScriptForDestination(idRecv);
+    CScript scriptPubKey = GetScriptForDestination(PKHash(kRecv.GetPubKey()));
 
     // Create and send the transaction
     CReserveKey reservekey(pwalletMain.get());

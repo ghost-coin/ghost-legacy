@@ -105,9 +105,9 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                 in.pushKV("valueSat", spentInfo.satoshis);
 
                 if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS) {
-                    in.pushKV("address", CBitcoinAddress(CKeyID(*((uint160*)&spentInfo.addressHash))).ToString());
+                    in.pushKV("address", CBitcoinAddress(PKHash(*((uint160*)&spentInfo.addressHash))).ToString());
                 } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS)  {
-                    in.pushKV("address", CBitcoinAddress(CScriptID(*((uint160*)&spentInfo.addressHash))).ToString());
+                    in.pushKV("address", CBitcoinAddress(ScriptHash(*((uint160*)&spentInfo.addressHash))).ToString());
                 } else if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS_256)  {
                     in.pushKV("address", CBitcoinAddress(CKeyID256(spentInfo.addressHash)).ToString());
                 } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS_256)  {
@@ -726,7 +726,7 @@ static UniValue decodescript(const JSONRPCRequest& request)
     if (type.isStr() && type.get_str() != "scripthash") {
         // P2SH cannot be wrapped in a P2SH. If this script is already a P2SH,
         // don't return the address for a P2SH of the P2SH.
-        r.pushKV("p2sh", EncodeDestination(CScriptID(script)));
+        r.pushKV("p2sh", EncodeDestination(ScriptHash(script)));
         // P2SH and witness programs cannot be wrapped in P2WSH, if this script
         // is a witness program, don't return addresses for a segwit programs.
         if (type.get_str() == "pubkey" || type.get_str() == "pubkeyhash" || type.get_str() == "multisig" || type.get_str() == "nonstandard") {
@@ -741,6 +741,8 @@ static UniValue decodescript(const JSONRPCRequest& request)
                     }
                 }
             }
+            if (fParticlMode) return r;
+
             UniValue sr(UniValue::VOBJ);
             CScript segwitScr;
             if (which_type == TX_PUBKEY) {
@@ -753,8 +755,7 @@ static UniValue decodescript(const JSONRPCRequest& request)
                 segwitScr = GetScriptForDestination(WitnessV0ScriptHash(script));
             }
             ScriptPubKeyToUniv(segwitScr, sr, /* fIncludeHex */ true);
-            sr.pushKV("p2sh-segwit", EncodeDestination(CScriptID(segwitScr)));
-            if (!fParticlMode)
+            sr.pushKV("p2sh-segwit", EncodeDestination(ScriptHash(segwitScr)));
             r.pushKV("segwit", sr);
         }
     }

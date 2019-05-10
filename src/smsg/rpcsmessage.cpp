@@ -254,14 +254,14 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
                 std::string sInfo, sLabel;
                 {
                     LOCK(smsgModule.pwallet->cs_wallet);
-                    sLabel = smsgModule.pwallet->mapAddressBook[keyID].name;
+                    sLabel = smsgModule.pwallet->mapAddressBook[PKHash(keyID)].name;
                 }
                 if (all) {
                     sInfo = std::string("Receive ") + (it->fReceiveEnabled ? "on,  " : "off, ");
                 }
                 sInfo += std::string("Anon ") + (it->fReceiveAnon ? "on" : "off");
                 //result.pushKV("key", it->sAddress + " - " + sPublicKey + " " + sInfo + " - " + sLabel);
-                objM.pushKV("address", EncodeDestination(keyID));
+                objM.pushKV("address", EncodeDestination(PKHash(keyID)));
                 objM.pushKV("public_key", sPublicKey);
                 objM.pushKV("receive", (it->fReceiveEnabled ? "1" : "0"));
                 objM.pushKV("anon", (it->fReceiveAnon ? "1" : "0"));
@@ -279,7 +279,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             auto &key = p.second;
             UniValue objM(UniValue::VOBJ);
             CPubKey pk = key.key.GetPubKey();
-            objM.pushKV("address", EncodeDestination(p.first));
+            objM.pushKV("address", EncodeDestination(PKHash(p.first)));
             objM.pushKV("public_key", EncodeBase58(pk.begin(), pk.end()));
             objM.pushKV("receive", (key.nFlags & smsg::SMK_RECEIVE_ON ? "1" : "0"));
             objM.pushKV("anon", (key.nFlags & smsg::SMK_RECEIVE_ANON ? "1" : "0"));
@@ -898,7 +898,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
                 int rv = smsgModule.Decrypt(false, smsgStored.addrTo, pHeader, pHeader + smsg::SMSG_HDR_LEN, nPayload, msg);
                 if (rv == 0) {
-                    std::string sAddrTo = EncodeDestination(smsgStored.addrTo);
+                    std::string sAddrTo = EncodeDestination(PKHash(smsgStored.addrTo));
                     std::string sText = std::string((char*)msg.vchMessage.data());
                     if (filter.size() > 0
                         && !(part::stringsMatchI(msg.sFromAddress, filter, 3) ||
@@ -1054,7 +1054,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
                 int rv = smsgModule.Decrypt(false, smsgStored.addrOutbox, pHeader, pHeader + smsg::SMSG_HDR_LEN, nPayload, msg);
                 if (rv == 0) {
-                    std::string sAddrTo = EncodeDestination(smsgStored.addrTo);
+                    std::string sAddrTo = EncodeDestination(PKHash(smsgStored.addrTo));
                     std::string sText = std::string((char*)msg.vchMessage.data());
                     if (filter.size() > 0
                         && !(part::stringsMatchI(msg.sFromAddress, filter, 3) ||
@@ -1450,9 +1450,8 @@ static UniValue smsgview(const JSONRPCRequest &request)
                     if ((itl = mLabelCache.find(kiFrom)) != mLabelCache.end()) {
                         lblFrom = itl->second;
                     } else {
-                        CBitcoinAddress address_parsed(kiFrom);
                         LOCK(smsgModule.pwallet->cs_wallet);
-                        auto mi(smsgModule.pwallet->mapAddressBook.find(address_parsed.Get()));
+                        auto mi(smsgModule.pwallet->mapAddressBook.find(PKHash(kiFrom)));
                         if (mi != smsgModule.pwallet->mapAddressBook.end()) {
                             lblFrom = mi->second.name;
                         }
@@ -1462,17 +1461,16 @@ static UniValue smsgview(const JSONRPCRequest &request)
                     if ((itl = mLabelCache.find(smsgStored.addrTo)) != mLabelCache.end()) {
                         lblTo = itl->second;
                     } else {
-                        CBitcoinAddress address_parsed(smsgStored.addrTo);
                         LOCK(smsgModule.pwallet->cs_wallet);
-                        auto mi(smsgModule.pwallet->mapAddressBook.find(address_parsed.Get()));
+                        auto mi(smsgModule.pwallet->mapAddressBook.find(PKHash(smsgStored.addrTo)));
                         if (mi != smsgModule.pwallet->mapAddressBook.end()) {
                             lblTo = mi->second.name;
                         }
                         mLabelCache[smsgStored.addrTo] = lblTo;
                     }
 
-                    std::string sFrom = kiFrom.IsNull() ? "anon" : EncodeDestination(kiFrom);
-                    std::string sTo = EncodeDestination(smsgStored.addrTo);
+                    std::string sFrom = kiFrom.IsNull() ? "anon" : EncodeDestination(PKHash(kiFrom));
+                    std::string sTo = EncodeDestination(PKHash(smsgStored.addrTo));
                     if (lblFrom.length() != 0) {
                         sFrom += " (" + lblFrom + ")";
                     }
@@ -1638,7 +1636,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
     result.pushKV("version", strprintf("%02x%02x", psmsg->version[0], psmsg->version[1]));
     result.pushKV("location", sType);
     PushTime(result, "received", smsgStored.timeReceived);
-    result.pushKV("to", EncodeDestination(smsgStored.addrTo));
+    result.pushKV("to", EncodeDestination(PKHash(smsgStored.addrTo)));
     //result.pushKV("addressoutbox", CBitcoinAddress(smsgStored.addrOutbox).ToString());
     result.pushKV("read", UniValue(bool(!(smsgStored.status & SMSG_MASK_UNREAD))));
 

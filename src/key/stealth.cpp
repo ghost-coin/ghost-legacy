@@ -427,7 +427,7 @@ int PrepareStealthOutput(const CStealthAddress &sx, const std::string &sNarratio
         return errorN(1, sError, __func__, "Could not generate receiving public key.");
     }
     CPubKey pkEphem = sEphem.GetPubKey();
-    scriptPubKey = GetScriptForDestination(CPubKey(pkSendTo).GetID());
+    scriptPubKey = GetScriptForDestination(PKHash(CPubKey(pkSendTo)));
 
     uint32_t nStealthPrefix;
     if (0 != MakeStealthData(sNarration, sx.prefix, sShared, pkEphem, vData, nStealthPrefix, sError)) {
