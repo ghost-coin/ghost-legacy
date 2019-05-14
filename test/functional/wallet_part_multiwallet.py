@@ -65,6 +65,10 @@ class MultiWalletTest(ParticlTestFramework):
         assert(w1.getwalletinfo()['total_balance'] < 900)
         assert(w1.getwalletinfo()['total_balance'] == w2.getwalletinfo()['total_balance'])
 
+        ro = nodes[2].getblockstats(nodes[2].getblockchaininfo()['blocks'])
+        assert(ro['height'] == 2)
+
+
 
 if __name__ == '__main__':
     MultiWalletTest().main()

@@ -141,6 +141,8 @@ class AnonTest(ParticlTestFramework):
         assert(len(nodes[1].listunspentanon()) == len(unspent))
         assert(nodes[1].lockunspent(True) == True)
 
+        ro = nodes[2].getblockstats(nodes[2].getblockchaininfo()['blocks'])
+        assert(ro['height'] == 2)
 
 
 if __name__ == '__main__':

@@ -1756,10 +1756,10 @@ bool UndoReadFromDisk(CBlockUndo& blockundo, const CBlockIndex* pindex)
         return error("%s: OpenUndoFile failed", __func__);
 
     // Read block
-    uint256 hashChecksum;
+    uint256 hashChecksum, nullHash;
     CHashVerifier<CAutoFile> verifier(&filein); // We need a CHashVerifier as reserializing may lose data
     try {
-        verifier << pindex->pprev->GetBlockHash();
+        verifier << (pindex->pprev ? pindex->pprev->GetBlockHash() : nullHash);
         verifier >> blockundo;
         filein >> hashChecksum;
     }
@@ -2095,7 +2095,9 @@ static bool WriteUndoDataForBlock(const CBlockUndo& blockundo, CValidationState&
         FlatFilePos _pos;
         if (!FindUndoPos(state, pindex->nFile, _pos, ::GetSerializeSize(blockundo, CLIENT_VERSION) + 40))
             return error("ConnectBlock(): FindUndoPos failed");
-        if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(), chainparams.MessageStart()))
+
+        uint256 nullHash;
+        if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev ? pindex->pprev->GetBlockHash() : nullHash, chainparams.MessageStart()))
             return AbortNode(state, "Failed to write undo data");
 
         // update nUndoPos in block index
@@ -2838,7 +2840,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     pindex->nAnonOutputs = view.nLastRCTOutput;
     setDirtyBlockIndex.insert(pindex); // pindex has changed, must save to disk
 
-    if (!fIsGenesisBlock
+    if ((!fIsGenesisBlock || fParticlMode)
      && !WriteUndoDataForBlock(blockundo, state, pindex, chainparams))
         return false;
 

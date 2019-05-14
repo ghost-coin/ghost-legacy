@@ -719,6 +719,10 @@ class WalletParticlTest(ParticlTestFramework):
         assert(len(nodes[2].listunspent()) == len(unspent))
         assert(nodes[2].lockunspent(True) == True) # Shouldn't crash
 
+        ro = nodes[2].getblockstats(nodes[2].getblockchaininfo()['blocks'])
+        assert(ro['txs'] == 1)
+        assert(ro['height'] == 0)
+
 
 if __name__ == '__main__':
     WalletParticlTest().main()
