@@ -2803,13 +2803,6 @@ static void ParseOutputs(
     }
 }
 
-static void push(UniValue & entry, std::string key, UniValue const & value)
-{
-    if (entry[key].getType() == 0) {
-        entry.pushKV(key, value);
-    }
-}
-
 static void ParseRecords(
     interfaces::Chain::Lock    &locked_chain,
     UniValue                   &entries,
@@ -2829,16 +2822,16 @@ static void ParseRecords(
     CAmount totalAmount = 0;
 
     int confirmations = pwallet->GetDepthInMainChain(locked_chain, rtx.blockHash);
-    push(entry, "confirmations", confirmations);
+    entry.__pushKV("confirmations", confirmations);
     if (confirmations > 0) {
-        push(entry, "blockhash", rtx.blockHash.GetHex());
-        push(entry, "blockindex", rtx.nIndex);
+        entry.__pushKV("blockhash", rtx.blockHash.GetHex());
+        entry.__pushKV("blockindex", rtx.nIndex);
         PushTime(entry, "blocktime", rtx.nBlockTime);
     } else {
-        push(entry, "trusted", pwallet->IsTrusted(locked_chain, hash, rtx.blockHash));
-    };
+        entry.__pushKV("trusted", pwallet->IsTrusted(locked_chain, hash, rtx.blockHash));
+    }
 
-    push(entry, "txid", hash.ToString());
+    entry.__pushKV("txid", hash.ToString());
     UniValue conflicts(UniValue::VARR);
     std::set<uint256> setconflicts = pwallet->GetConflicts(hash);
     setconflicts.erase(hash);
@@ -2846,7 +2839,7 @@ static void ParseRecords(
         conflicts.push_back(conflict.GetHex());
     }
     if (conflicts.size() > 0) {
-        push(entry, "walletconflicts", conflicts);
+        entry.__pushKV("walletconflicts", conflicts);
     }
     PushTime(entry, "time", rtx.nTimeReceived);
 
@@ -2880,9 +2873,9 @@ static void ParseRecords(
             std::map<CTxDestination, CAddressBookData>::iterator mai;
             mai = pwallet->mapAddressBook.find(dest);
             if (mai != pwallet->mapAddressBook.end() && !mai->second.name.empty()) {
-                push(output, "account", mai->second.name);
+                output.__pushKV("account", mai->second.name);
             }
-        };
+        }
 
         // stealth addresses
         CStealthAddress sx;
@@ -2894,7 +2887,7 @@ static void ParseRecords(
                     uint32_t sidx;
                     memcpy(&sidx, &record.vPath[1], 4);
                     if (pwallet->GetStealthByIndex(sidx, sx)) {
-                        push(output, "stealth_address", sx.Encoded());
+                        output.__pushKV("stealth_address", sx.Encoded());
                         addresses.push_back(sx.Encoded());
                     }
                 }
@@ -2903,27 +2896,27 @@ static void ParseRecords(
             if (extracted && dest.type() == typeid(PKHash)) {
                 CKeyID idK = CKeyID(boost::get<PKHash>(dest));
                 if (pwallet->GetStealthLinked(idK, sx)) {
-                    push(output, "stealth_address", sx.Encoded());
+                    output.__pushKV("stealth_address", sx.Encoded());
                     addresses.push_back(sx.Encoded());
                 }
             }
         }
 
         if (extracted && dest.type() == typeid(CNoDestination)) {
-            push(output, "address", "none");
+            output.__pushKV("address", "none");
         } else if (extracted) {
-            push(output, "address", addr.ToString());
+            output.__pushKV("address", addr.ToString());
             addresses.push_back(addr.ToString());
         }
 
-        push(output, "type",
+        output.__pushKV("type",
               record.nType == OUTPUT_STANDARD ? "standard"
             : record.nType == OUTPUT_CT       ? "blind"
             : record.nType == OUTPUT_RINGCT   ? "anon"
             : "unknown");
 
         if (!record.sNarration.empty()) {
-            push(output, "narration", record.sNarration);
+            output.__pushKV("narration", record.sNarration);
         }
 
         CAmount amount = record.nValue;
@@ -2932,34 +2925,34 @@ static void ParseRecords(
         }
         totalAmount += amount;
         amounts.push_back(std::to_string(ValueFromAmount(amount).get_real()));
-        push(output, "amount", ValueFromAmount(amount));
-        push(output, "vout", record.n);
+        output.__pushKV("amount", ValueFromAmount(amount));
+        output.__pushKV("vout", record.n);
         outputs.push_back(output);
     }
 
     if (nFrom > 0) {
-        push(entry, "abandoned", rtx.IsAbandoned());
-        push(entry, "fee", ValueFromAmount(-rtx.nFee));
+        entry.__pushKV("abandoned", rtx.IsAbandoned());
+        entry.__pushKV("fee", ValueFromAmount(-rtx.nFee));
     }
 
     if (nOwned && nFrom) {
-        push(entry, "category", "internal_transfer");
+        entry.__pushKV("category", "internal_transfer");
     } else if (nOwned && !nFrom) {
-        push(entry, "category", "receive");
+        entry.__pushKV("category", "receive");
     } else if (nFrom) {
-        push(entry, "category", "send");
+        entry.__pushKV("category", "send");
     } else {
-        push(entry, "category", "unknown");
+        entry.__pushKV("category", "unknown");
     }
 
     if (nLockedOutputs) {
-        push(entry, "requires_unlock", "true");
+        entry.__pushKV("requires_unlock", "true");
     }
     if (nWatchOnly) {
-        push(entry, "involvesWatchonly", "true");
+        entry.__pushKV("involvesWatchonly", "true");
     }
 
-    push(entry, "outputs", outputs);
+    entry.__pushKV("outputs", outputs);
 
     if (nOwned && nFrom && nOwned != outputs.size()) {
         // Must check against the owned input value
@@ -2979,9 +2972,9 @@ static void ParseRecords(
             }
         }
 
-        push(entry, "amount", ValueFromAmount(nOutput-nInput));
+        entry.__pushKV("amount", ValueFromAmount(nOutput-nInput));
     } else {
-        push(entry, "amount", ValueFromAmount(totalAmount));
+        entry.__pushKV("amount", ValueFromAmount(totalAmount));
     }
     amounts.push_back(std::to_string(ValueFromAmount(totalAmount).get_real()));
 
