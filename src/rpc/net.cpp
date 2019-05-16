@@ -528,7 +528,7 @@ static UniValue getnetworkinfo(const JSONRPCRequest& request)
         obj.pushKV("localservices", strprintf("%016x", g_connman->GetLocalServices()));
         obj.pushKV("localservices_str", ServicesToString(g_connman->GetLocalServices()));
     }
-    obj.pushKV("localrelay",     fRelayTxes);
+    obj.pushKV("localrelay", g_relay_txes);
     obj.pushKV("timeoffset",    GetTimeOffset());
     if (g_connman) {
         obj.pushKV("networkactive", g_connman->GetNetworkActive());

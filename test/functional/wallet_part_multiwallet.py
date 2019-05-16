@@ -68,6 +68,13 @@ class MultiWalletTest(ParticlTestFramework):
         ro = nodes[2].getblockstats(nodes[2].getblockchaininfo()['blocks'])
         assert(ro['height'] == 2)
 
+        self.log.info('createwallet with passphrase')
+
+        nodes[2].createwallet('wallet_3', False, False, 'password_abc')
+        w3 = nodes[2].get_wallet_rpc('wallet_3')
+        ro = w3.getwalletinfo()
+        assert('hdseedid' in ro)
+        assert(ro['encryptionstatus'] == 'Locked')
 
 
 if __name__ == '__main__':
