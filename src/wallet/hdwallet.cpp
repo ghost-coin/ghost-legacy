@@ -12902,19 +12902,23 @@ bool IsParticlWallet(const CKeyStore *win)
 CHDWallet *GetParticlWallet(CKeyStore *win)
 {
     CHDWallet *rv;
-    if (!win)
-        throw std::runtime_error("Wallet pointer is null.");
-    if (!(rv = dynamic_cast<CHDWallet*>(win)))
+    if (!win) {
+        return nullptr;
+    }
+    if (!(rv = dynamic_cast<CHDWallet*>(win))) {
         throw std::runtime_error("Wallet pointer is not an instance of class CHDWallet.");
+    }
     return rv;
 };
 
 const CHDWallet *GetParticlWallet(const CKeyStore *win)
 {
     const CHDWallet *rv;
-    if (!win)
-        throw std::runtime_error("Wallet pointer is null.");
-    if (!(rv = dynamic_cast<const CHDWallet*>(win)))
+    if (!win) {
+        return nullptr;
+    }
+    if (!(rv = dynamic_cast<const CHDWallet*>(win))) {
         throw std::runtime_error("Wallet pointer is not an instance of class CHDWallet.");
+    }
     return rv;
 };

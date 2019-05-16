@@ -13,7 +13,7 @@ from test_framework.test_particl import (
     getIndexAtProperty,
 )
 from test_framework.test_framework import SkipTest
-from test_framework.util import connect_nodes_bi
+from test_framework.util import connect_nodes_bi, assert_raises_rpc_error
 from test_framework.authproxy import JSONRPCException
 
 
@@ -222,6 +222,13 @@ class USBDeviceTest(ParticlTestFramework):
         self.restart_node(1)
         account1_r = nodes[1].extkey('account')
         assert(json.dumps(account1) == json.dumps(account1_r))
+
+        # Test for coverage
+        assert(nodes[1].promptunlockdevice()['sent'] is True)
+        assert(nodes[1].unlockdevice('123')['unlocked'] is True)
+        assert_raises_rpc_error(-8, 'Neither a pin nor a passphraseword was provided.', nodes[1].unlockdevice)
+        assert('complete' in nodes[1].devicebackup())
+        assert('complete' in nodes[1].deviceloadmnemonic())
 
 
 if __name__ == '__main__':

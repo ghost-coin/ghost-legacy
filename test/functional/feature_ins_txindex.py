@@ -72,6 +72,10 @@ class TxIndexTest(ParticlTestFramework):
         else:
             assert(False)
 
+        ro = nodes[0].gettxoutsetinfobyscript()
+        assert(ro['height'] == 0)
+        assert(ro['paytopubkeyhash']['num_plain'] == 15)
+
         print('Passed\n')
 
 

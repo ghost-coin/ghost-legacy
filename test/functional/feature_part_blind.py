@@ -214,6 +214,14 @@ class BlindTest(ParticlTestFramework):
         bal1 = nodes[1].getwalletinfo()
         assert(isclose(bal1['blind_balance'], 0.00000001))
 
+        ro = nodes[2].getblockstats(nodes[2].getblockchaininfo()['blocks'])
+        assert(ro['height'] == 3)
+
+        self.log.info('Test gettxoutsetinfobyscript')
+        ro = nodes[0].gettxoutsetinfobyscript()
+        assert(ro['height'] == 3)
+        assert(ro['paytopubkeyhash']['num_blinded'] > 5)
+
 
 if __name__ == '__main__':
     BlindTest().main()

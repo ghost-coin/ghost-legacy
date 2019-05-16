@@ -204,6 +204,8 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         assert(ro['messages'][0]['msgid'] == msg_id)
         assert(ro['messages'][0]['text'] == text)
 
+        assert(nodes[0].smsggetdifficulty() > 0.06)
+
 
 if __name__ == '__main__':
     SmsgPaidFeeTest().main()
