@@ -240,7 +240,7 @@ static UniValue promptunlockdevice(const JSONRPCRequest &request)
 
 static UniValue unlockdevice(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 2 || request.params.size() < 1)
+    if (request.fHelp || request.params.size() > 2)
             throw std::runtime_error(
             RPCHelpMan{"unlockdevice",
                 "\nList connected hardware devices.\n",
@@ -260,32 +260,27 @@ static UniValue unlockdevice(const JSONRPCRequest &request)
                 },
             }.ToString());
 
-    std::string passphraseword;
-    if (!passphraseword.length()) {
+    std::string passphraseword, pin, sError;
+    if (!request.params[0].isNull()) {
         passphraseword = request.params[0].get_str();
     }
-
-    std::string pin;
-    if (!pin.length()) {
+    if (!request.params[1].isNull()) {
         pin = request.params[1].get_str();
     }
-
     if (!pin.length() && !passphraseword.length()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("neither a pin or a passphraseword was provided."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Neither a pin nor a passphraseword was provided."));
     }
 
-    std::string sError;
     std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
     ListAllDevices(vDevices);
 
     UniValue result(UniValue::VOBJ);
 
-    if(vDevices.size() > 1) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, _("too many hardware devices connected."));
+    if (vDevices.size() > 1) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, _("Too many hardware devices connected."));
     }
-
-    if(vDevices.size() != 1) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, _("no hardware devices connected."));
+    if (vDevices.size() != 1) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, _("No hardware devices connected."));
     }
 
     usb_device::CUSBDevice *device = vDevices[0].get();

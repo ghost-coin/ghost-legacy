@@ -287,6 +287,10 @@ class ColdStakingTest(ParticlTestFramework):
                 assert(e['involvesWatchonly'] == True)
         assert(fFound)
 
+        self.log.info('Test gettxoutsetinfobyscript')
+        ro = nodes[0].gettxoutsetinfobyscript()
+        assert(ro['coldstake_paytopubkeyhash']['num_plain'] > 5)
+
 
 if __name__ == '__main__':
     ColdStakingTest().main()

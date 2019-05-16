@@ -914,15 +914,13 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
             else if (coin.out.scriptPubKey.IsPayToScriptHash256_CS() || coin.out.scriptPubKey.IsPayToScriptHash_CS() )
                 ps = &statsCSSH;
 
-            if (coin.nType == OUTPUT_STANDARD)
-            {
+            if (coin.nType == OUTPUT_STANDARD) {
                 ps->nPlain++;
                 ps->nPlainValue += coin.out.nValue;
             } else
-            if (coin.nType == OUTPUT_CT)
-            {
+            if (coin.nType == OUTPUT_CT) {
                 ps->nBlinded++;
-            };
+            }
         } else {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
         }

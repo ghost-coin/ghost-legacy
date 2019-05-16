@@ -1693,7 +1693,7 @@ static UniValue smsgimport(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
-        RPCHelpMan{"smsgimpport",
+        RPCHelpMan{"smsgimport",
                 "\nImport smsg from hex string.\n",
                 {
                     {"msg", RPCArg::Type::STR, RPCArg::Optional::NO, "Hex encoded smsg."},
@@ -1710,9 +1710,9 @@ static UniValue smsgimport(const JSONRPCRequest &request)
             "}\n"
                 },
                 RPCExamples{
-            HelpExampleCli("smsgimpport", "\"msg\"") +
+            HelpExampleCli("smsgimport", "\"msg\"") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("smsgimpport", "\"msg\"")
+            + HelpExampleRpc("smsgimport", "\"msg\"")
                 },
             }.ToString());
 

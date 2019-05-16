@@ -112,6 +112,25 @@ class SmsgTest(ParticlTestFramework):
         assert(ro['messages'][0]['from'] == 'anon')
         assert(ro['messages'][0]['text'] == msg)
 
+        ro = nodes[0].smsgscanchain()
+        assert('Completed' in ro['result'])
+
+        self.log.info('Test smsgsend without submitmsg')
+        ro = nodes[1].smsgsend(address1, address0, 'Test 1->0 no network', False, 0, False, False, False, False)
+        assert('Not Sent' in ro['result'])
+        msg0_from1 = ro['msg']
+        msg0_id = ro['msgid']
+        assert(len(nodes[1].smsgoutbox()['messages']) == 4)
+
+        assert(len(nodes[0].smsginbox()['messages']) == 0)
+        assert(nodes[0].smsgimport(msg0_from1)['msgid'] == msg0_id)
+        ro = nodes[0].smsginbox()
+        assert(len(ro['messages']) == 1)
+        assert(ro['messages'][0]['text'] == 'Test 1->0 no network')
+
+        ro = nodes[1].smsgsend(address1, address0, 'Test 1->0 no network, no outbox', False, 0, False, False, False, False, False)
+        assert(len(nodes[1].smsgoutbox()['messages']) == 4) # no change
+
 
 if __name__ == '__main__':
     SmsgTest().main()
