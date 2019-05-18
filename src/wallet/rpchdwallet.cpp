@@ -5689,185 +5689,20 @@ static UniValue walletsettings(const JSONRPCRequest &request)
     std::string sSetting = request.params[0].get_str();
     std::string sError;
 
-    if (sSetting == "changeaddress") {
-        if (request.params.size() == 1) {
-            if (!pwallet->GetSetting("changeaddress", json)) {
-                result.pushKV(sSetting, "default");
-            } else {
-                result.pushKV(sSetting, json);
-            }
-            return result;
-        }
-
-        if (request.params[1].isObject()) {
-            json = request.params[1].get_obj();
-
-            const std::vector<std::string> &vKeys = json.getKeys();
-            if (vKeys.size() < 1) {
-                if (!pwallet->EraseSetting(sSetting)) {
-                    throw JSONRPCError(RPC_WALLET_ERROR, _("EraseSetting failed."));
-                }
-                result.pushKV(sSetting, "cleared");
-                return result;
-            }
-
-            for (const auto &sKey : vKeys) {
-                if (sKey == "address_standard") {
-                    if (!json["address_standard"].isStr()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("address_standard must be a string."));
-                    }
-
-                    std::string sAddress = json["address_standard"].get_str();
-                    CBitcoinAddress addr(sAddress);
-                    if (!addr.IsValid() || addr.Get().type() == typeid(CNoDestination)) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid address_standard.");
-                    }
-                } else
-                if (sKey == "coldstakingaddress") {
-                    if (!json["coldstakingaddress"].isStr()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("coldstakingaddress must be a string."));
-                    }
-
-                    std::string sAddress = json["coldstakingaddress"].get_str();
-                    CBitcoinAddress addr(sAddress);
-                    if (!addr.IsValid()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid coldstakingaddress."));
-                    }
-                    if (addr.IsValidStealthAddress()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("coldstakingaddress can't be a stealthaddress."));
-                    }
-
-                    // TODO: override option?
-                    if (pwallet->HaveAddress(addr.Get())) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, sAddress + _(" is spendable from this wallet."));
-                    }
-                    if (pwallet->idDefaultAccount.IsNull()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Wallet must have a default account set."));
-                    }
-
-                    const Consensus::Params& consensusParams = Params().GetConsensus();
-                    if (GetAdjustedTime() < consensusParams.OpIsCoinstakeTime) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("OpIsCoinstake is not active yet."));
-                    }
-                } else {
-                    warnings.push_back("Unknown key " + sKey);
-                }
-            }
-
-            json.pushKV("time", GetTime());
-            if (!pwallet->SetSetting(sSetting, json)) {
-                throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
-            }
-
-            if (warnings.size() > 0) {
-                result.pushKV("warnings", warnings);
-            }
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
-        }
-        result.pushKV(sSetting, json);
-    } else
-    if (sSetting == "stakingoptions") {
-        if (request.params.size() == 1) {
-            if (!pwallet->GetSetting("stakingoptions", json)) {
-                result.pushKV(sSetting, "default");
-            } else {
-                result.pushKV(sSetting, json);
-            }
-            return result;
-        }
-
-        if (request.params[1].isObject()) {
-            json = request.params[1].get_obj();
-
-            const std::vector<std::string> &vKeys = json.getKeys();
-            if (vKeys.size() < 1) {
-                if (!pwallet->EraseSetting(sSetting)) {
-                    throw JSONRPCError(RPC_WALLET_ERROR, _("EraseSetting failed."));
-                }
-                result.pushKV(sSetting, "cleared");
-                return result;
-            }
-
-            UniValue jsonOld;
-            bool fHaveOldSetting = pwallet->GetSetting(sSetting, jsonOld);
-            for (const auto &sKey : vKeys) {
-                if (sKey == "enabled") {
-                } else
-                if (sKey == "stakecombinethreshold") {
-                    if (AmountFromValue(json["stakecombinethreshold"]) < 0) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("stakecombinethreshold can't be negative."));
-                    }
-                } else
-                if (sKey == "stakesplitthreshold") {
-                    if (AmountFromValue(json["stakesplitthreshold"]) < 0) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("stakesplitthreshold can't be negative."));
-                    }
-                } else
-                if (sKey == "foundationdonationpercent") {
-                    if (!json["foundationdonationpercent"].isNum()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("foundationdonationpercent must be a number."));
-                    }
-                } else
-                if (sKey == "rewardaddress") {
-                    if (!json["rewardaddress"].isStr()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("rewardaddress must be a string."));
-                    }
-
-                    CBitcoinAddress addr(json["rewardaddress"].get_str());
-                    if (!addr.IsValid() || addr.Get().type() == typeid(CNoDestination)) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid rewardaddress."));
-                    }
-                } else
-                if (sKey == "smsgfeeratetarget") {
-                    if (AmountFromValue(json["smsgfeeratetarget"]) < 0) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("smsgfeeratetarget can't be negative."));
-                    }
-                } else
-                if (sKey == "smsgdifficultytarget") {
-                } else {
-                    warnings.push_back("Unknown key " + sKey);
-                }
-            }
-
-            json.pushKV("time", GetTime());
-            if (!pwallet->SetSetting(sSetting, json)) {
-                throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
-            }
-
-            pwallet->ProcessStakingSettings(sError);
-            if (!sError.empty()) {
-                result.pushKV("error", sError);
-                if (fHaveOldSetting) {
-                    pwallet->SetSetting(sSetting, jsonOld);
-                } else {
-                    pwallet->EraseSetting(sSetting);
-                }
-            }
-
-            if (warnings.size() > 0) {
-                result.pushKV("warnings", warnings);
-            }
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
-        }
-        result.pushKV(sSetting, json);
-    } else
+    // Special case for stakelimit. Todo: Merge stakelimit into stakingoptions with option to update only one key
     if (sSetting == "stakelimit") {
         if (request.params.size() == 1) {
             result.pushKV(sSetting, pwallet->nStakeLimitHeight);
-            return result;
         }
-
-        if (request.params[1].isObject()) {
-            json = request.params[1].get_obj();
-
-            const std::vector<std::string> &vKeys = json.getKeys();
-            if (vKeys.size() < 1) {
-                result.pushKV(sSetting, "cleared");
-                return result;
-            }
-
+        if (!request.params[1].isObject()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
+        }
+        json = request.params[1].get_obj();
+        const std::vector<std::string> &vKeys = json.getKeys();
+        if (vKeys.size() < 1) {
+            pwallet->nStakeLimitHeight = 0;
+            result.pushKV(sSetting, "cleared");
+        } else {
             for (const auto &sKey : vKeys) {
                 if (sKey == "height") {
                     if (!json["height"].isNum()) {
@@ -5880,136 +5715,185 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                     warnings.push_back("Unknown key " + sKey);
                 }
             }
-
-            if (warnings.size() > 0) {
-                result.pushKV("warnings", warnings);
-            }
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
         }
-
+        if (warnings.size() > 0) {
+            result.pushKV("warnings", warnings);
+        }
         WakeThreadStakeMiner(pwallet);
+        return result;
+    } else
+    if (sSetting != "changeaddress" &&
+        sSetting != "stakingoptions" &&
+        sSetting != "anonoptions" &&
+        sSetting != "unloadspent") {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown setting"));
+    }
+
+    if (request.params.size() == 1) {
+        if (!pwallet->GetSetting(sSetting, json)) {
+            result.pushKV(sSetting, "default");
+        } else {
+            result.pushKV(sSetting, json);
+        }
+        return result;
+    }
+
+    if (!request.params[1].isObject()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
+    }
+    json = request.params[1].get_obj();
+    const std::vector<std::string> &vKeys = json.getKeys();
+    UniValue jsonOld;
+    bool fHaveOldSetting = pwallet->GetSetting(sSetting, jsonOld);
+    bool erasing = false;
+    if (vKeys.size() < 1) {
+        if (!pwallet->EraseSetting(sSetting)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, _("EraseSetting failed."));
+        }
+        result.pushKV(sSetting, "cleared");
+        erasing = true;
+    }
+
+    if (sSetting == "changeaddress") {
+        for (const auto &sKey : vKeys) {
+            if (sKey == "address_standard") {
+                if (!json["address_standard"].isStr()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("address_standard must be a string."));
+                }
+
+                std::string sAddress = json["address_standard"].get_str();
+                CBitcoinAddress addr(sAddress);
+                if (!addr.IsValid() || addr.Get().type() == typeid(CNoDestination)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid address_standard.");
+                }
+            } else
+            if (sKey == "coldstakingaddress") {
+                if (!json["coldstakingaddress"].isStr()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("coldstakingaddress must be a string."));
+                }
+
+                std::string sAddress = json["coldstakingaddress"].get_str();
+                CBitcoinAddress addr(sAddress);
+                if (!addr.IsValid()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid coldstakingaddress."));
+                }
+                if (addr.IsValidStealthAddress()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("coldstakingaddress can't be a stealthaddress."));
+                }
+
+                // TODO: override option?
+                if (pwallet->HaveAddress(addr.Get())) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, sAddress + _(" is spendable from this wallet."));
+                }
+                if (pwallet->idDefaultAccount.IsNull()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("Wallet must have a default account set."));
+                }
+
+                const Consensus::Params& consensusParams = Params().GetConsensus();
+                if (GetAdjustedTime() < consensusParams.OpIsCoinstakeTime) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("OpIsCoinstake is not active yet."));
+                }
+            } else {
+                warnings.push_back("Unknown key " + sKey);
+            }
+        }
+    } else
+    if (sSetting == "stakingoptions") {
+        for (const auto &sKey : vKeys) {
+            if (sKey == "enabled") {
+            } else
+            if (sKey == "stakecombinethreshold") {
+                if (AmountFromValue(json["stakecombinethreshold"]) < 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("stakecombinethreshold can't be negative."));
+                }
+            } else
+            if (sKey == "stakesplitthreshold") {
+                if (AmountFromValue(json["stakesplitthreshold"]) < 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("stakesplitthreshold can't be negative."));
+                }
+            } else
+            if (sKey == "foundationdonationpercent") {
+                if (!json["foundationdonationpercent"].isNum()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("foundationdonationpercent must be a number."));
+                }
+            } else
+            if (sKey == "rewardaddress") {
+                if (!json["rewardaddress"].isStr()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("rewardaddress must be a string."));
+                }
+
+                CBitcoinAddress addr(json["rewardaddress"].get_str());
+                if (!addr.IsValid() || addr.Get().type() == typeid(CNoDestination)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid rewardaddress."));
+                }
+            } else
+            if (sKey == "smsgfeeratetarget") {
+                if (AmountFromValue(json["smsgfeeratetarget"]) < 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("smsgfeeratetarget can't be negative."));
+                }
+            } else
+            if (sKey == "smsgdifficultytarget") {
+            } else {
+                warnings.push_back("Unknown key " + sKey);
+            }
+        }
     } else
     if (sSetting == "anonoptions") {
-        if (request.params.size() == 1) {
-            if (!pwallet->GetSetting("anonoptions", json)) {
-                result.pushKV(sSetting, "default");
+        for (const auto &sKey : vKeys) {
+            if (sKey == "mixinselection") {
+                if (!json["mixinselection"].isNum()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("mixinselection must be a number."));
+                }
             } else {
-                result.pushKV(sSetting, json);
+                warnings.push_back("Unknown key " + sKey);
             }
-            return result;
         }
-
-        if (request.params[1].isObject()) {
-            json = request.params[1].get_obj();
-
-            const std::vector<std::string> &vKeys = json.getKeys();
-            if (vKeys.size() < 1) {
-                if (!pwallet->EraseSetting(sSetting)) {
-                    throw JSONRPCError(RPC_WALLET_ERROR, _("EraseSetting failed."));
-                }
-                result.pushKV(sSetting, "cleared");
-                return result;
-            }
-
-            UniValue jsonOld;
-            bool fHaveOldSetting = pwallet->GetSetting(sSetting, jsonOld);
-            for (const auto &sKey : vKeys) {
-                if (sKey == "mixinselection") {
-                    if (!json["mixinselection"].isNum()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("mixinselection must be a number."));
-                    }
-                } else {
-                    warnings.push_back("Unknown key " + sKey);
-                }
-            }
-
-            json.pushKV("time", GetTime());
-            if (!pwallet->SetSetting(sSetting, json)) {
-                throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
-            }
-
-            pwallet->ProcessWalletSettings(sError);
-            if (!sError.empty()) {
-                result.pushKV("error", sError);
-                if (fHaveOldSetting) {
-                    pwallet->SetSetting(sSetting, jsonOld);
-                } else {
-                    pwallet->EraseSetting(sSetting);
-                }
-            }
-
-            if (warnings.size() > 0) {
-                result.pushKV("warnings", warnings);
-            }
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
-        }
-        result.pushKV(sSetting, json);
     } else
     if (sSetting == "unloadspent") {
-        if (request.params.size() == 1) {
-            if (!pwallet->GetSetting("unloadspent", json)) {
-                result.pushKV(sSetting, "default");
+        for (const auto &sKey : vKeys) {
+            if (sKey == "mode") {
+                if (!json["mode"].isNum()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("mode must be a number."));
+                }
+            } else
+            if (sKey == "mindepth") {
+                if (!json["mindepth"].isNum()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("mindepth must be a number."));
+                }
             } else {
-                result.pushKV(sSetting, json);
+                warnings.push_back("Unknown key " + sKey);
             }
-            return result;
         }
-
-        if (request.params[1].isObject()) {
-            json = request.params[1].get_obj();
-
-            const std::vector<std::string> &vKeys = json.getKeys();
-            if (vKeys.size() < 1) {
-                if (!pwallet->EraseSetting(sSetting)) {
-                    throw JSONRPCError(RPC_WALLET_ERROR, _("EraseSetting failed."));
-                }
-                result.pushKV(sSetting, "cleared");
-                return result;
-            }
-
-            UniValue jsonOld;
-            bool fHaveOldSetting = pwallet->GetSetting(sSetting, jsonOld);
-            for (const auto &sKey : vKeys) {
-                if (sKey == "mode") {
-                    if (!json["mode"].isNum()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("mode must be a number."));
-                    }
-                } else
-                if (sKey == "mindepth") {
-                    if (!json["mindepth"].isNum()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("mindepth must be a number."));
-                    }
-                } else {
-                    warnings.push_back("Unknown key " + sKey);
-                }
-            }
-
-            json.pushKV("time", GetTime());
-            if (!pwallet->SetSetting(sSetting, json)) {
-                throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
-            }
-
-            pwallet->ProcessWalletSettings(sError);
-            if (!sError.empty()) {
-                result.pushKV("error", sError);
-                if (fHaveOldSetting) {
-                    pwallet->SetSetting(sSetting, jsonOld);
-                } else {
-                    pwallet->EraseSetting(sSetting);
-                }
-            }
-
-            if (warnings.size() > 0) {
-                result.pushKV("warnings", warnings);
-            }
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
-        }
-        result.pushKV(sSetting, json);
     } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown setting"));
+    }
+
+    if (!erasing) {
+        json.pushKV("time", GetTime());
+        if (!pwallet->SetSetting(sSetting, json)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
+        }
+    }
+    // Re-apply settings if cleared
+    if (sSetting == "stakingoptions") {
+        pwallet->ProcessStakingSettings(sError);
+    } else {
+        pwallet->ProcessWalletSettings(sError);
+    }
+    if (!erasing) {
+        if (!sError.empty()) {
+            result.pushKV("error", sError);
+            if (fHaveOldSetting) {
+                pwallet->SetSetting(sSetting, jsonOld);
+            } else {
+                pwallet->EraseSetting(sSetting);
+            }
+        }
+        result.pushKV(sSetting, json);
+    }
+
+    if (warnings.size() > 0) {
+        result.pushKV("warnings", warnings);
     }
 
     return result;
