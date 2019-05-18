@@ -293,6 +293,9 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
     nStakeSplitThreshold = 2000 * COIN;
     nMaxStakeCombine = 3;
     nWalletDevFundCedePercent = gArgs.GetArg("-foundationdonationpercent", 0);
+    rewardAddress = CBitcoinAddress();
+    m_smsg_fee_rate_target = 0;
+    m_smsg_difficulty_target = 0;
 
     UniValue json;
     if (GetSetting("stakingoptions", json)) {
@@ -382,6 +385,7 @@ bool CHDWallet::ProcessWalletSettings(std::string &sError)
     // Set defaults
     m_collapse_spent_mode = 0;
     m_min_collapse_depth = 3;
+    m_mixin_selection_mode = 1;
 
     UniValue json;
     if (GetSetting("unloadspent", json)) {

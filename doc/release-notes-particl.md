@@ -1,6 +1,12 @@
 Master
 ==============
 
+0.18.0.8
+==============
+
+- Fixed issue where clearing the rewardaddress requires a restart.
+
+
 0.18.0.7
 ==============
 
