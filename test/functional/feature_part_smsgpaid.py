@@ -12,15 +12,16 @@ from test_framework.test_particl import (
     isclose,
     getIndexAtProperty,
 )
-from test_framework.util import connect_nodes
+from test_framework.util import assert_raises_rpc_error, connect_nodes
 from test_framework.authproxy import JSONRPCException
 
 
 class SmsgPaidTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 2
+        self.num_nodes = 3
         self.extra_args = [ ['-debug','-noacceptnonstdtxn','-reservebalance=10000000'] for i in range(self.num_nodes) ]
+        self.extra_args[2].append('-disablewallet')
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -29,6 +30,7 @@ class SmsgPaidTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
         connect_nodes(self.nodes[0], 1)
+        connect_nodes(self.nodes[0], 2)
 
         self.sync_all()
 
@@ -311,6 +313,16 @@ class SmsgPaidTest(ParticlTestFramework):
         for msg in ro['messages']:
             assert('text' not in msg)
             assert('hex' not in msg)
+
+        self.log.info('Test disablewallet')
+        assert('SMSG' in nodes[2].getnetworkinfo()['localservices_str'])
+        assert_raises_rpc_error(-32601, 'Method not found', nodes[2].getwalletinfo)
+        for i in range(20):
+            if nodes[0].smsgbuckets('total')['total']['messages'] != nodes[2].smsgbuckets('total')['total']['messages']:
+                time.sleep(0.5)
+                continue
+            break
+        assert(nodes[0].smsgbuckets('total')['total']['messages'] == nodes[2].smsgbuckets('total')['total']['messages'])
 
 
 if __name__ == '__main__':

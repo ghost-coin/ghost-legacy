@@ -872,7 +872,9 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
     }
     pwallet = pwalletIn;
 #ifdef ENABLE_WALLET
-    m_handler_unload = interfaces::MakeHandler(pwallet->NotifyUnload.connect(boost::bind(&NotifyUnload, this)));
+    if (pwallet) {
+        m_handler_unload = interfaces::MakeHandler(pwallet->NotifyUnload.connect(boost::bind(&NotifyUnload, this)));
+    }
 #endif
 
     fSecMsgEnabled = true;
@@ -967,7 +969,9 @@ bool CSMSG::Shutdown()
     secp256k1_context_smsg = nullptr;
 
 #ifdef ENABLE_WALLET
-    m_handler_unload->disconnect();
+    if (m_handler_unload) {
+        m_handler_unload->disconnect();
+    }
 #endif
     pwallet.reset();
     return true;

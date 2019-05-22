@@ -38,8 +38,9 @@ def read_dump(file_name):
 class WalletParticlTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 3
+        self.num_nodes = 4
         self.extra_args = [ ['-debug',] for i in range(self.num_nodes)]
+        self.extra_args[3].append('-disablewallet')
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -718,6 +719,13 @@ class WalletParticlTest(ParticlTestFramework):
         assert(nodes[2].lockunspent(True) == True)
         assert(len(nodes[2].listunspent()) == len(unspent))
         assert(nodes[2].lockunspent(True) == True) # Shouldn't crash
+
+        ro = nodes[2].getblockstats(nodes[2].getblockchaininfo()['blocks'])
+        assert(ro['txs'] == 1)
+        assert(ro['height'] == 0)
+
+        self.log.info('Test disablewallet')
+        assert_raises_rpc_error(-32601, 'Method not found', nodes[3].getwalletinfo)
 
 
 if __name__ == '__main__':
