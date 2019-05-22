@@ -12,9 +12,10 @@ from test_framework.authproxy import JSONRPCException
 
 class SmsgTest(ParticlTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = True   # Don't copy from cache
-        self.num_nodes = 2
+        self.setup_clean_chain = True  # Don't copy from cache
+        self.num_nodes = 3
         self.extra_args = [ ['-smsgscanincoming','-smsgsaddnewkeys'] for i in range(self.num_nodes) ]
+        self.extra_args[2].append('-nosmsg')
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -22,7 +23,8 @@ class SmsgTest(ParticlTestFramework):
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
-        connect_nodes_bi(self.nodes,0,1)
+        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes, 0, 2)
 
     def run_test (self):
         tmpdir = self.options.tmpdir
@@ -31,7 +33,7 @@ class SmsgTest(ParticlTestFramework):
         nodes[0].extkeyimportmaster(nodes[0].mnemonic('new')['master'])
         nodes[1].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
 
-        address0 = nodes[0].getnewaddress() # will be different each run
+        address0 = nodes[0].getnewaddress()  # Will be different each run
         address1 = nodes[1].getnewaddress()
         assert(address1 == 'pX9N6S76ZtA5BfsiJmqBbjaEgLMHpt58it')
 
@@ -129,7 +131,10 @@ class SmsgTest(ParticlTestFramework):
         assert(ro['messages'][0]['text'] == 'Test 1->0 no network')
 
         ro = nodes[1].smsgsend(address1, address0, 'Test 1->0 no network, no outbox', False, 0, False, False, False, False, False)
-        assert(len(nodes[1].smsgoutbox()['messages']) == 4) # no change
+        assert(len(nodes[1].smsgoutbox()['messages']) == 4)  # No change
+
+        self.log.info('Test nosmsg')
+        assert('SMSG' not in nodes[2].getnetworkinfo()['localservices_str'])
 
 
 if __name__ == '__main__':

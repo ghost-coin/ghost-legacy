@@ -5,6 +5,7 @@ Master
 ==============
 
 - Fixed issue where clearing the rewardaddress requires a restart.
+- Fixed Regression where disablewallet required nosmsg also.
 
 
 0.18.0.7
