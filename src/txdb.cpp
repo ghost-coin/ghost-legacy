@@ -363,24 +363,31 @@ bool CBlockTreeDB::ReadTimestampIndex(const unsigned int &high, const unsigned i
 
     pcursor->Seek(std::make_pair(DB_TIMESTAMPINDEX, CTimestampIndexIteratorKey(low)));
 
-    LockAnnotation lock(::cs_main); // cs_main is locked before GetTimestampIndex if fActiveOnly
-
-    while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
-        std::pair<char, CTimestampIndexKey> key;
-        if (pcursor->GetKey(key) && key.first == DB_TIMESTAMPINDEX && key.second.timestamp < high)
-        {
-            if (fActiveOnly) {
+    if (fActiveOnly) {
+        LockAssertion lock(::cs_main); // cs_main is locked before GetTimestampIndex if fActiveOnly
+        while (pcursor->Valid()) {
+            boost::this_thread::interruption_point();
+            std::pair<char, CTimestampIndexKey> key;
+            if (pcursor->GetKey(key) && key.first == DB_TIMESTAMPINDEX && key.second.timestamp < high) {
                 if (HashOnchainActive(key.second.blockHash)) {
                     hashes.push_back(std::make_pair(key.second.blockHash, key.second.timestamp));
                 }
+                pcursor->Next();
             } else {
-                hashes.push_back(std::make_pair(key.second.blockHash, key.second.timestamp));
+                break;
             }
-
-            pcursor->Next();
-        } else {
-            break;
+        }
+    } else {
+        // Otherwise get: requires holding mutex
+        while (pcursor->Valid()) {
+            boost::this_thread::interruption_point();
+            std::pair<char, CTimestampIndexKey> key;
+            if (pcursor->GetKey(key) && key.first == DB_TIMESTAMPINDEX && key.second.timestamp < high) {
+                hashes.push_back(std::make_pair(key.second.blockHash, key.second.timestamp));
+                pcursor->Next();
+            } else {
+                break;
+            }
         }
     }
 
@@ -396,8 +403,9 @@ bool CBlockTreeDB::WriteTimestampBlockIndex(const CTimestampBlockIndexKey &block
 bool CBlockTreeDB::ReadTimestampBlockIndex(const uint256 &hash, unsigned int &ltimestamp) {
 
     CTimestampBlockIndexValue lts;
-    if (!Read(std::make_pair(DB_BLOCKHASHINDEX, hash), lts))
+    if (!Read(std::make_pair(DB_BLOCKHASHINDEX, hash), lts)) {
         return false;
+    }
 
     ltimestamp = lts.ltimestamp;
     return true;
@@ -458,17 +466,15 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                     && pindexNew->GetBlockHash() != Params().GetConsensus().hashGenesisBlock)
                     return error("LoadBlockIndex(): Genesis block hash incorrect: %s", pindexNew->ToString());
 
-                if (fParticlMode)
-                {
+                if (fParticlMode) {
                     // only CheckProofOfWork for genesis blocks
                     if (diskindex.hashPrev.IsNull() && !CheckProofOfWork(pindexNew->GetBlockHash(),
                         pindexNew->nBits, Params().GetConsensus(), 0, Params().GetLastImportHeight()))
                         return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
                 } else
-                if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, Params().GetConsensus()))
-                {
+                if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, Params().GetConsensus())) {
                     return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
-                };
+                }
 
                 pcursor->Next();
             } else {

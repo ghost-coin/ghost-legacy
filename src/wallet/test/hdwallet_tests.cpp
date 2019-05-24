@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(stealth)
     std::string strError, sNarr;
 
     auto locked_chain = pwallet->chain().lock();
-    LockAnnotation lock(::cs_main);
+    LockAssertion lock(::cs_main);
 
     // No bitfield, no narration
     std::vector<CTempRecipient> vecSend;
@@ -324,7 +324,7 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
 
     {
     auto locked_chain = wallet->chain().lock();
-    LockAnnotation lock(::cs_main);
+    LockAssertion lock(::cs_main);
     LOCK(wallet->cs_wallet);
 
     BOOST_MESSAGE("---------------- Make RingCT Output : SetCTOutVData ---------------------\n");

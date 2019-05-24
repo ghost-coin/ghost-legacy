@@ -4762,7 +4762,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     CAmount nFeeRet = 0;
     {
     auto locked_chain = pwallet->chain().lock();
-    LockAnnotation lock(::cs_main);
+    LockAssertion lock(::cs_main);
     switch (typeIn) {
         case OUTPUT_STANDARD:
             if (0 != pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError))
@@ -6764,7 +6764,7 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
     }
 
     auto locked_chain = pwallet->chain().lock();
-    LockAnnotation lock(::cs_main);
+    LockAssertion lock(::cs_main);
     LOCK(pwallet->cs_wallet);
 
     std::string sError;
