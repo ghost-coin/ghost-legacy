@@ -128,32 +128,28 @@ txnouttype Solver(const CScript& scriptPubKeyIn, std::vector<std::vector<unsigne
     std::vector<unsigned char> vch1;
     CScript::const_iterator pc1 = scriptPubKeyIn.begin();
     size_t k;
-    for (k = 0; k < 3; ++k)
-    {
-        if (!scriptPubKeyIn.GetOp(pc1, opcode, vch1))
+    for (k = 0; k < 3; ++k) {
+        if (!scriptPubKeyIn.GetOp(pc1, opcode, vch1)) {
             break;
-
-        if (k == 0)
-        {
-            if (0 <= opcode && opcode <= OP_PUSHDATA4)
-            {
-            } else
-            {
+        }
+        if (k == 0) {
+            if (0 <= opcode && opcode <= OP_PUSHDATA4) {
+            } else {
                 break;
-            };
+            }
         } else
-        if (k == 1)
-        {
+        if (k == 1) {
             if (opcode != OP_CHECKLOCKTIMEVERIFY
-                && opcode != OP_CHECKSEQUENCEVERIFY)
+                && opcode != OP_CHECKSEQUENCEVERIFY) {
                 break;
+            }
         } else
-        if (k == 2)
-        {
-             if (opcode != OP_DROP)
+        if (k == 2) {
+             if (opcode != OP_DROP) {
                 break;
-        };
-    };
+            }
+        }
+    }
     bool fIsTimeLocked = k == 3;
 
     CScript scriptPubKeyTemp;
@@ -306,13 +302,12 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
 
     if (HasIsCoinstakeOp(scriptPubKey)) {
         CScript scriptB;
-        if (!GetNonCoinstakeScriptPath(scriptPubKey, scriptB))
+        if (!GetNonCoinstakeScriptPath(scriptPubKey, scriptB)) {
+            typeRet = TX_NONSTANDARD;
             return false;
-
+        }
         // Return only the spending address to keep insight working
-        ExtractDestinations(scriptB, typeRet, addressRet, nRequiredRet);
-
-        return true;
+        return ExtractDestinations(scriptB, typeRet, addressRet, nRequiredRet);
     }
 
     typeRet = Solver(scriptPubKey, vSolutions);
@@ -353,26 +348,22 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
 
 bool ExtractStakingKeyID(const CScript &scriptPubKey, CKeyID &keyID)
 {
-    if (scriptPubKey.IsPayToPublicKeyHash())
-    {
+    if (scriptPubKey.IsPayToPublicKeyHash()) {
         keyID = CKeyID(uint160(&scriptPubKey[3], 20));
         return true;
-    };
+    }
 
-    if (scriptPubKey.IsPayToPublicKeyHash256())
-    {
+    if (scriptPubKey.IsPayToPublicKeyHash256()) {
         keyID = CKeyID(uint256(&scriptPubKey[3], 32));
         return true;
-    };
+    }
 
     if (scriptPubKey.IsPayToPublicKeyHash256_CS()
         || scriptPubKey.IsPayToScriptHash256_CS()
-        || scriptPubKey.IsPayToScriptHash_CS()
-        )
-    {
+        || scriptPubKey.IsPayToScriptHash_CS()) {
         keyID = CKeyID(uint160(&scriptPubKey[5], 20));
         return true;
-    };
+    }
 
     return false;
 };

@@ -158,7 +158,6 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             entry.pushKV("confirmations", 0);
         }
     }
-
 }
 
 static void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry)
@@ -328,7 +327,7 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
             errmsg = "No such mempool or blockchain transaction";
         }
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, errmsg + ". Use gettransaction for wallet transactions.");
-    };
+    }
 
     {
         LOCK(cs_main);
@@ -348,8 +347,9 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
     }
 
     std::string strHex = EncodeHexTx(*tx, RPCSerializationFlags());
-    if (!fVerbose)
+    if (!fVerbose) {
         return strHex;
+    }
 
     UniValue result(UniValue::VOBJ);
     if (blockindex) result.pushKV("in_active_chain", in_active_chain);

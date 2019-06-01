@@ -5,7 +5,8 @@ Master
 ==============
 
 - Fixed issue where clearing the rewardaddress requires a restart.
-- Fixed Regression where disablewallet required nosmsg also.
+- Fixed regression where disablewallet required nosmsg also.
+- Fixed getrawtransaction failing where scripts are nonstandard with OP_ISCOINSTAKE.
 
 
 0.18.0.7
