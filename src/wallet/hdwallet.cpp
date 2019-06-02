@@ -2024,17 +2024,15 @@ CAmount CHDWallet::GetDebit(const CTxIn &txin, const isminefilter &filter) const
     {
         LOCK(cs_wallet);
         MapWallet_t::const_iterator mi = mapWallet.find(txin.prevout.hash);
-        if (mi != mapWallet.end())
-        {
+        if (mi != mapWallet.end()) {
             const CWalletTx &prev = (*mi).second;
             if (txin.prevout.n < prev.tx->vpout.size())
                 if (IsMine(prev.tx->vpout[txin.prevout.n].get()) & filter)
                     return prev.tx->vpout[txin.prevout.n]->GetValue();
-        };
+        }
 
         MapRecords_t::const_iterator mri = mapRecords.find(txin.prevout.hash);
-        if (mri != mapRecords.end())
-        {
+        if (mri != mapRecords.end()) {
             const COutputRecord *oR = mri->second.GetOutput(txin.prevout.n);
 
             if (oR)
@@ -2048,7 +2046,7 @@ CAmount CHDWallet::GetDebit(const CTxIn &txin, const isminefilter &filter) const
                     return oR->nValue;
                 */
             }
-        };
+        }
     } // cs_wallet
     return 0;
 };
@@ -2078,17 +2076,17 @@ CAmount CHDWallet::GetDebit(CHDWalletDB *pwdb, const CTransactionRecord &rtx, co
     for (const auto &prevout : rtx.vin)
     {
         const auto *pPrevout = &prevout;
-        if (rtx.nFlags & ORF_ANON_IN)
-        {
+        if (rtx.nFlags & ORF_ANON_IN) {
             CCmpPubKey ki;
             memcpy(ki.ncbegin(), prevout.hash.begin(), 32);
             *(ki.ncbegin()+32) = prevout.n;
 
             // TODO: Keep keyimages in memory
-            if (!pwdb->ReadAnonKeyImage(ki, kiPrevout))
+            if (!pwdb->ReadAnonKeyImage(ki, kiPrevout)) {
                 continue;
+            }
             pPrevout = &kiPrevout;
-        };
+        }
 
         MapWallet_t::const_iterator mi = mapWallet.find(pPrevout->hash);
         MapRecords_t::const_iterator mri;
@@ -2099,16 +2097,16 @@ CAmount CHDWallet::GetDebit(CHDWalletDB *pwdb, const CTransactionRecord &rtx, co
                 if (IsMine(prev.tx->vpout[pPrevout->n].get()) & filter)
                     nDebit += prev.tx->vpout[pPrevout->n]->GetValue();
         } else
-        if ((mri = mapRecords.find(pPrevout->hash)) != mapRecords.end())
-        {
+        if ((mri = mapRecords.find(pPrevout->hash)) != mapRecords.end()) {
             const COutputRecord *oR = mri->second.GetOutput(pPrevout->n);
 
             if (oR
                 && (filter & ISMINE_SPENDABLE)
-                && (oR->nFlags & ORF_OWNED))
+                && (oR->nFlags & ORF_OWNED)) {
                  nDebit += oR->nValue;
-        };
-    };
+            }
+        }
+    }
 
     return nDebit;
 };
@@ -2130,27 +2128,26 @@ bool CHDWallet::IsAllFromMe(const CTransaction& tx, const isminefilter& filter) 
             if (!(IsMine(prev.tx->vpout[txin.prevout.n].get()) & filter))
                 return false;
             continue;
-        };
+        }
 
         auto mri = mapRecords.find(txin.prevout.hash);
-        if (mri != mapRecords.end())
-        {
+        if (mri != mapRecords.end()) {
             const COutputRecord *oR = mri->second.GetOutput(txin.prevout.n);
-            if (!oR)
+            if (!oR) {
                 return false;
+            }
             if ((filter & ISMINE_SPENDABLE)
-                && (oR->nFlags & ORF_OWNED))
-            {
+                && (oR->nFlags & ORF_OWNED)) {
                 continue;
-            };
+            }
             /* TODO
             if ((filter & ISMINE_WATCH_ONLY)
                 && (oR->nFlags & ORF_WATCH_ONLY))
                 return oR->nValue;
             */
-        };
+        }
         return false; // any unknown inputs can't be from us
-    };
+    }
     return true;
 };
 
@@ -2295,13 +2292,14 @@ int CHDWallet::GetDepthInMainChain(interfaces::Chain::Lock& locked_chain, const 
     return locked_chain.getBlockDepth(blockhash) * (nIndex == -1 ? -1 : 1);
 };
 
-bool CHDWallet::IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &txhash, const uint256 &blockhash, int nIndex) const
+bool CHDWallet::IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &txhash, const uint256 &blockhash, int nIndex, int *depth_out) const
 {
     //if (!CheckFinalTx(*this))
     //    return false;
     //if (tx->IsCoinStake() && hashUnset()) // ignore failed stakes
     //    return false;
     int nDepth = GetDepthInMainChain(locked_chain, blockhash, nIndex);
+    if (depth_out) *depth_out = nDepth;
     if (nDepth >= 1)
         return true;
     if (nDepth < 0)
@@ -2315,8 +2313,7 @@ bool CHDWallet::IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &
         return false;
 
     // Trusted if all inputs are from us and are in the mempool:
-    for (const auto &txin : ptx->vin)
-    {
+    for (const auto &txin : ptx->vin) {
         // Transactions not sent by us: not trusted
         MapRecords_t::const_iterator rit = mapRecords.find(txin.prevout.hash);
         if (rit != mapRecords.end()) {
@@ -2328,15 +2325,15 @@ bool CHDWallet::IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &
             }
             continue;
         }
-
         const CWalletTx *parent = GetWalletTx(txin.prevout.hash);
-        if (parent == nullptr)
+        if (parent == nullptr) {
             return false;
-
+        }
         const CTxOutBase *parentOut = parent->tx->vpout[txin.prevout.n].get();
-        if (IsMine(parentOut) != ISMINE_SPENDABLE)
+        if (IsMine(parentOut) != ISMINE_SPENDABLE) {
             return false;
-    };
+        }
+    }
 
     return true;
 };
@@ -2563,11 +2560,13 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
         }
     }
 
+    const Consensus::Params &consensusParams = Params().GetConsensus();
     for (const auto &ri : mapRecords) {
         const auto &txhash = ri.first;
         const auto &rtx = ri.second;
 
-        bool fTrusted = IsTrusted(*locked_chain, txhash, rtx.blockHash);
+        int depth;
+        bool fTrusted = IsTrusted(*locked_chain, txhash, rtx.blockHash, 0, &depth);
         bool fInMempool = false;
         if (!fTrusted) {
             CTransactionRef ptx = mempool.get(txhash);
@@ -2585,7 +2584,11 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
                         continue;
                     }
                     if (fTrusted) {
-                        bal.nAnon += r.nValue;
+                        if (depth >= consensusParams.nMinRCTOutputDepth) {
+                            bal.nAnon += r.nValue;
+                        } else {
+                            bal.nAnonImmature += r.nValue;
+                        }
                     } else
                     if (fInMempool) {
                         bal.nAnonUnconf += r.nValue;
@@ -9640,8 +9643,6 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint2
         {
             if (txin.IsAnonInput()) {
                 nRingCT++;
-
-                CHDWalletDB wdb(*database, "r");
                 uint32_t nInputs, nRingSize;
                 txin.GetAnonInfo(nInputs, nRingSize);
 
@@ -9651,6 +9652,7 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint2
                     continue;
                 }
 
+                CHDWalletDB wdb(*database, "r");
                 for (size_t k = 0; k < nInputs; ++k) {
                     const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
                     COutPoint prevout;

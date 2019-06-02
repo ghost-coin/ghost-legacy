@@ -356,6 +356,7 @@ struct WalletBalances
     CAmount balanceBlind = 0;
     CAmount balanceAnon = 0;
     CAmount balanceWatchStaked = 0;
+    CAmount immature_anon_balance = 0;
 
     bool balanceChanged(const WalletBalances& prev) const
     {
@@ -367,7 +368,8 @@ struct WalletBalances
                || balanceStaked != prev.balanceStaked
                || balanceBlind != prev.balanceBlind
                || balanceAnon != prev.balanceAnon
-               || balanceWatchStaked != prev.balanceWatchStaked;
+               || balanceWatchStaked != prev.balanceWatchStaked
+               || immature_anon_balance != prev.immature_anon_balance;
     }
 };
 

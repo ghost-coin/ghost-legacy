@@ -339,6 +339,7 @@ public:
 
         nAnon = 0;
         nAnonUnconf = 0;
+        nAnonImmature = 0;
     }
 
     CAmount nPart = 0;
@@ -355,6 +356,7 @@ public:
 
     CAmount nAnon = 0;
     CAmount nAnonUnconf = 0;
+    CAmount nAnonImmature = 0;
 };
 
 class CHDWallet : public CWallet
@@ -465,7 +467,7 @@ public:
 
     int GetDepthInMainChain(interfaces::Chain::Lock& locked_chain, const uint256 &blockhash, int nIndex = 0) const;
     bool InMempool(const uint256 &hash) const;
-    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &hash, const uint256 &blockhash, int nIndex = 0) const;
+    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &hash, const uint256 &blockhash, int nIndex = 0, int *depth_out = nullptr) const;
 
     CAmount GetSpendableBalance() const; // Includes watch_only_cs balance
     CAmount GetBlindBalance();

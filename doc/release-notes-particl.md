@@ -7,6 +7,7 @@ Master
 - Fixed issue where clearing the rewardaddress requires a restart.
 - Fixed regression where disablewallet required nosmsg also.
 - Fixed getrawtransaction failing where scripts are nonstandard with OP_ISCOINSTAKE.
+- New balance category for immature anon coin.
 
 
 0.18.0.7

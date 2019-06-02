@@ -3012,10 +3012,11 @@ static UniValue getbalances(const JSONRPCRequest& request)
             "      \"trusted\": xxx                 (numeric) trusted balance (outputs created by the wallet or confirmed outputs)\n"
             "      \"untrusted_pending\": xxx       (numeric) untrusted pending balance (outputs created by others that are in the mempool)\n"
             "      \"immature\": xxx                (numeric) balance from immature coinbase outputs\n"
-            "      \"staked\": xxx                  (numeric) balance from staked outputs\n"
+            "      \"staked\": xxx                  (numeric) balance from staked outputs (non-spendable until maturity)\n"
             "      \"blind_trusted\": xxx           (numeric) trusted blinded balance (outputs created by the wallet or confirmed outputs)\n"
             "      \"blind_untrusted_pending\": xxx (numeric) untrusted pending blinded balance (outputs created by others that are in the mempool)\n"
             "      \"anon_trusted\": xxx            (numeric) trusted anon balance (outputs created by the wallet or confirmed outputs)\n"
+            "      \"anon_immature\": xxx           (numeric) immature anon balance (outputs created by the wallet or confirmed outputs below spendable depth)\n"
             "      \"anon_untrusted_pending\": xxx  (numeric) untrusted pending anon balance (outputs created by others that are in the mempool)\n"
             "    },\n"
             "    \"watchonly\": {                   (object) watchonly balances (not present if wallet does not watch anything)\n"
@@ -3058,7 +3059,9 @@ static UniValue getbalances(const JSONRPCRequest& request)
             balances_mine.pushKV("blind_untrusted_pending", ValueFromAmount(bal.nBlindUnconf));
 
             balances_mine.pushKV("anon_trusted", ValueFromAmount(bal.nAnon));
+            balances_mine.pushKV("anon_immature", ValueFromAmount(bal.nAnonImmature));
             balances_mine.pushKV("anon_untrusted_pending", ValueFromAmount(bal.nAnonUnconf));
+
 
             balances.pushKV("mine", balances_mine);
         }
@@ -3110,11 +3113,12 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
             "  \"walletversion\": xxxxx,          (numeric) the wallet version\n"
             "  \"total_balance\": xxxxxxx,        (numeric) the total balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"balance\": xxxxxxx,              (numeric) DEPRECATED. Identical to getbalances().mine.trusted\n"
-            "  \"blind_balance\": xxxxxxx,        (numeric) the total confirmed blinded balance of the wallet in " + CURRENCY_UNIT + "\n"
-            "  \"anon_balance\": xxxxxxx,         (numeric) the total confirmed anon balance of the wallet in " + CURRENCY_UNIT + "\n"
-            "  \"staked_balance\": xxxxxxx,       (numeric) the total staked balance of the wallet in " + CURRENCY_UNIT + " (non-spendable until maturity)\n"
+            "  \"blind_balance\": xxxxxxx,        (numeric) DEPRECATED. Identical to getbalances().mine.blind_trusted\n"
+            "  \"anon_balance\": xxxxxxx,         (numeric) DEPRECATED. Identical to getbalances().mine.anon_trusted\n"
+            "  \"staked_balance\": xxxxxxx,       (numeric) DEPRECATED. Identical to getbalances().mine.staked\n"
             "  \"unconfirmed_balance\": xxx,      (numeric) DEPRECATED. Identical to getbalances().mine.untrusted_pending\n"
             "  \"immature_balance\": xxxxxx,      (numeric) DEPRECATED. Identical to getbalances().mine.immature\n"
+            "  \"immature_anon_balance\": xxxxxxx,(numeric) DEPRECATED. Identical to getbalances().mine.anon_immature\n"
             "  \"reserve\": xxxxxx,               (numeric) the reserve balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"txcount\": xxxxxxx,              (numeric) the total number of transactions in the wallet\n"
             "  \"keypoololdest\": xxxxxx,           (numeric) the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool\n"
@@ -3160,7 +3164,7 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
         obj.pushKV("total_balance",         ValueFromAmount(
             bal.nPart + bal.nPartUnconf + bal.nPartStaked + bal.nPartImmature
             + bal.nBlind + bal.nBlindUnconf
-            + bal.nAnon + bal.nAnonUnconf));
+            + bal.nAnon + bal.nAnonUnconf + bal.nAnonImmature));
 
         obj.pushKV("balance",               ValueFromAmount(bal.nPart));
 
@@ -3172,6 +3176,7 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
         obj.pushKV("unconfirmed_blind",     ValueFromAmount(bal.nBlindUnconf));
         obj.pushKV("unconfirmed_anon",      ValueFromAmount(bal.nAnonUnconf));
         obj.pushKV("immature_balance",      ValueFromAmount(bal.nPartImmature));
+        obj.pushKV("immature_anon_balance", ValueFromAmount(bal.nAnonImmature));
 
         if (bal.nPartWatchOnly > 0 || bal.nPartWatchOnlyUnconf > 0 || bal.nPartWatchOnlyStaked > 0) {
             obj.pushKV("watchonly_balance",                 ValueFromAmount(bal.nPartWatchOnly));
