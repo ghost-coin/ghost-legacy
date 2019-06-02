@@ -510,6 +510,7 @@ public:
             result.balanceAnon = bal.nAnon;
             result.unconfirmed_balance = bal.nPartUnconf + bal.nBlindUnconf + bal.nAnonUnconf;
             result.immature_balance = bal.nPartImmature;
+            result.immature_anon_balance = bal.nAnonImmature;
             result.have_watch_only = bal.nPartWatchOnly || bal.nPartWatchOnlyUnconf || bal.nPartWatchOnlyStaked;
             if (result.have_watch_only) {
                 result.watch_only_balance = bal.nPartWatchOnly;

@@ -3021,6 +3021,7 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
             "  \"staked_balance\": xxxxxxx,       (numeric) the total staked balance of the wallet in " + CURRENCY_UNIT + " (non-spendable until maturity)\n"
             "  \"unconfirmed_balance\": xxx,      (numeric) the total unconfirmed balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"immature_balance\": xxxxxx,      (numeric) the total immature balance of the wallet in " + CURRENCY_UNIT + "\n"
+            "  \"immature_anon_balance\": xxxxxxx,(numeric) the total immature anon balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"reserve\": xxxxxx,               (numeric) the reserve balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"txcount\": xxxxxxx,              (numeric) the total number of transactions in the wallet\n"
             "  \"keypoololdest\": xxxxxx,           (numeric) the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool\n"
@@ -3057,7 +3058,7 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
         obj.pushKV("total_balance",         ValueFromAmount(
             bal.nPart + bal.nPartUnconf + bal.nPartStaked + bal.nPartImmature
             + bal.nBlind + bal.nBlindUnconf
-            + bal.nAnon + bal.nAnonUnconf));
+            + bal.nAnon + bal.nAnonUnconf + bal.nAnonImmature));
 
         obj.pushKV("balance",               ValueFromAmount(bal.nPart));
 
@@ -3069,6 +3070,7 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
         obj.pushKV("unconfirmed_blind",     ValueFromAmount(bal.nBlindUnconf));
         obj.pushKV("unconfirmed_anon",      ValueFromAmount(bal.nAnonUnconf));
         obj.pushKV("immature_balance",      ValueFromAmount(bal.nPartImmature));
+        obj.pushKV("immature_anon_balance", ValueFromAmount(bal.nAnonImmature));
 
         if (bal.nPartWatchOnly > 0 || bal.nPartWatchOnlyUnconf > 0 || bal.nPartWatchOnlyStaked > 0) {
             obj.pushKV("watchonly_balance",                 ValueFromAmount(bal.nPartWatchOnly));
