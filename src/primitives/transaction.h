@@ -638,27 +638,26 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
         s >> tx.vin;
 
         size_t nOutputs = ReadCompactSize(s);
-        tx.vpout.resize(nOutputs);
-        for (size_t k = 0; k < tx.vpout.size(); ++k) {
+        tx.vpout.clear();
+        tx.vpout.reserve(nOutputs);
+        for (size_t k = 0; k < nOutputs; ++k) {
             s >> bv;
-
             switch (bv) {
                 case OUTPUT_STANDARD:
-                    tx.vpout[k] = MAKE_OUTPUT<CTxOutStandard>();
+                    tx.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>());
                     break;
                 case OUTPUT_CT:
-                    tx.vpout[k] = MAKE_OUTPUT<CTxOutCT>();
+                    tx.vpout.push_back(MAKE_OUTPUT<CTxOutCT>());
                     break;
                 case OUTPUT_RINGCT:
-                    tx.vpout[k] = MAKE_OUTPUT<CTxOutRingCT>();
+                    tx.vpout.push_back(MAKE_OUTPUT<CTxOutRingCT>());
                     break;
                 case OUTPUT_DATA:
-                    tx.vpout[k] = MAKE_OUTPUT<CTxOutData>();
+                    tx.vpout.push_back(MAKE_OUTPUT<CTxOutData>());
                     break;
                 default:
-                    return;
+                    throw std::ios_base::failure("Unknown transaction output type");
             }
-
             tx.vpout[k]->nVersion = bv;
             s >> *tx.vpout[k];
         }
