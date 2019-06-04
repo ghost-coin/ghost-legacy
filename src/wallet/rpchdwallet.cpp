@@ -8012,7 +8012,7 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
             obj.pushKV("filename", GetBlockPosFilename(pos, "blk").string());
             obj.pushKV("blocks_in_file", (int)num_blocks_in_file);
             obj.pushKV("blocks_removed", (int)num_blocks_removed);
-            if (test_only) {
+            if (!test_only) {
                 obj.pushKV("note", "Node is shutting down.");
             }
             files.push_back(obj);

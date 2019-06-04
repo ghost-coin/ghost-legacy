@@ -1,5 +1,8 @@
-Master
+Next Release
 ==============
+
+- pruneorphanedblocks shows shutdown warning if not in test mode.
+
 
 0.18.0.8
 ==============
