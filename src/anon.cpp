@@ -357,7 +357,7 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
             return errorN(false, sError, __func__, "FlushView failed.");
         }
 
-        if (!FlushStateToDisk(Params(), state, FlushStateMode::IF_NEEDED)) {
+        if (!::ChainstateActive().FlushStateToDisk(Params(), state, FlushStateMode::IF_NEEDED)) {
             return errorN(false, sError, __func__, "FlushStateToDisk failed.");
         }
 

@@ -867,7 +867,7 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
     int nHeight;
     uint256 hashBlock;
 
-    FlushStateToDisk();
+    ::ChainstateActive().ForceFlushStateToDisk();
     std::unique_ptr<CCoinsViewCursor> pcursor(pcoinsdbview->Cursor());
 
     hashBlock = pcursor->GetBestBlock();

@@ -1099,7 +1099,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         LogPrintf("%s: %s %s.\n", __func__, pfrom->GetAddrName(), strCommand);
     }
 
-    if (IsInitialBlockDownload()) { // Wait until chain synced
+    if (::ChainstateActive().IsInitialBlockDownload()) { // Wait until chain synced
         if (strCommand == "smsgPing") {
             pfrom->smsgData.lastSeen = -1; // Mark node as requiring a response once chain is synced
         }
@@ -1563,7 +1563,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         Runs in ThreadMessageHandler2
     */
 
-    if (IsInitialBlockDownload()) { // Wait until chain synced
+    if (::ChainstateActive().IsInitialBlockDownload()) { // Wait until chain synced
         return true;
     }
 

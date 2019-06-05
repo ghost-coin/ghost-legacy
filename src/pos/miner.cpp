@@ -347,7 +347,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             }
         }
 
-        if (num_nodes == 0 || IsInitialBlockDownload()) {
+        if (num_nodes == 0 || ::ChainstateActive().IsInitialBlockDownload()) {
             fIsStaking = false;
             fTryToSync = true;
             LogPrint(BCLog::POS, "%s: IsInitialBlockDownload\n", __func__);

@@ -142,7 +142,7 @@ static void DisconnectTip(CBlock &block, CBlockIndex *pindexDelete, CCoinsViewCa
     CValidationState state;
     BOOST_REQUIRE(DISCONNECT_OK == DisconnectBlock(block, pindexDelete, view));
     BOOST_REQUIRE(FlushView(&view, state, true));
-    BOOST_REQUIRE(FlushStateToDisk(chainparams, state, FlushStateMode::IF_NEEDED));
+    BOOST_REQUIRE(::ChainstateActive().FlushStateToDisk(chainparams, state, FlushStateMode::IF_NEEDED));
     ::ChainActive().SetTip(pindexDelete->pprev);
     UpdateTip(pindexDelete->pprev, chainparams);
 };
@@ -318,7 +318,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
             BOOST_CHECK(!clearstate.IsInvalid());
             BOOST_REQUIRE(FlushView(&clearview, state, false));
-            BOOST_REQUIRE(FlushStateToDisk(chainparams, clearstate, FlushStateMode::IF_NEEDED));
+            BOOST_REQUIRE(::ChainstateActive().FlushStateToDisk(chainparams, clearstate, FlushStateMode::IF_NEEDED));
             ::ChainActive().SetTip(pindexDelete);
             UpdateTip(pindexDelete, chainparams);
 
