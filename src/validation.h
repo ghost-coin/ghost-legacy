@@ -145,6 +145,8 @@ static const size_t MAX_STAKE_SEEN_SIZE = 1000;
 
 inline int64_t FutureDrift(int64_t nTime) { return nTime + 15; } // FutureDriftV2
 
+typedef int64_t NodeId;
+
 /** Default for -stopatheight */
 static const int DEFAULT_STOPATHEIGHT = 0;
 
@@ -250,7 +252,7 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
  * @param[out]  fNewBlock A boolean which is set to indicate if the block was first received via this call
  * @return True if state.IsValid()
  */
-bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool* fNewBlock) LOCKS_EXCLUDED(cs_main);
+bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool* fNewBlock, NodeId node_id = 0) LOCKS_EXCLUDED(cs_main);
 
 /**
  * Process incoming block headers.
@@ -589,7 +591,6 @@ size_t CountDelayedBlocks() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 uint32_t GetSmsgDifficulty(uint64_t time, bool verify=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-typedef int64_t NodeId;
 class StakeConflict
 {
 public:
