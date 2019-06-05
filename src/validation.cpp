@@ -4711,7 +4711,6 @@ bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState&
     if (hash != chainparams.GetConsensus().hashGenesisBlock) {
         if (miSelf != mapBlockIndex.end()) {
             // Block header is already known.
-
             if (fParticlMode && !IsInitialBlockDownload() && state.nodeId >= 0
                 && !IncDuplicateHeaders(state.nodeId)) {
                 return state.Invalid(ValidationInvalidReason::DOS_5, error("%s: DoS limits, too many duplicates", __func__), REJECT_INVALID, "dos-limits");
@@ -4962,7 +4961,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
 }
 
 extern bool IncomingBlockChecked(const CBlock &block, CValidationState &state);
-bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock)
+bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock, NodeId node_id)
 {
     AssertLockNotHeld(cs_main);
 
@@ -4978,6 +4977,9 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
 
         if (fNewBlock) *fNewBlock = false;
         CValidationState state;
+        if (node_id > 0) {
+            state.nodeId = node_id;
+        }
 
         // CheckBlock() does not support multi-threaded block validation because CBlock::fChecked can cause data race.
         // Therefore, the following critical section must include the CheckBlock() call as well.
