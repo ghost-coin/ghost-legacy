@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Particl Core developers
+// Copyright (c) 2018-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,12 +10,12 @@
 #include <vector>
 #include <string>
 
-#include <key/extkey.h>
+#include <pubkey.h>
 #include <script/sign.h>
 #include <keystore.h>
 #include <memory>
 
-
+struct CExtPubKey;
 class UniValue;
 class CCoinsViewCache;
 

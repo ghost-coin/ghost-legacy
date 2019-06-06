@@ -16,7 +16,8 @@
 #include <base58.h>
 #include <rpc/util.h>
 #include <validation.h>
-#include <fs.h>
+
+#include <leveldb/db.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>

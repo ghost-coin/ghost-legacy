@@ -10,7 +10,6 @@
 #include <txmempool.h>
 #include <util/system.h>
 #include <validation.h>
-#include <smsg/smessage.h>
 
 #include <list>
 #include <atomic>

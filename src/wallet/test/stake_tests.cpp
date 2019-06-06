@@ -4,32 +4,25 @@
 
 #include <wallet/hdwallet.h>
 #include <wallet/coincontrol.h>
-#include <wallet/rpcwallet.h>
 #include <interfaces/chain.h>
 
 #include <wallet/test/hdwallet_test_fixture.h>
-#include <base58.h>
 #include <chainparams.h>
 #include <miner.h>
 #include <pos/miner.h>
-#include <pos/kernel.h>
 #include <timedata.h>
 #include <coins.h>
 #include <net.h>
 #include <validation.h>
 #include <blind.h>
-#include <txdb.h>
+#include <rpc/rpcutil.h>
 
-#include <rpc/server.h>
 #include <consensus/validation.h>
 
 #include <chrono>
 #include <thread>
 
-
 #include <boost/test/unit_test.hpp>
-
-extern UniValue CallRPC(std::string args, std::string wallet="");
 
 struct StakeTestingSetup: public TestingSetup {
     StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):

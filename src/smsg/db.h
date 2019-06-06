@@ -1,22 +1,22 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef PARTICL_SMSG_DB_H
 #define PARTICL_SMSG_DB_H
 
-#include <leveldb/db.h>
 #include <leveldb/write_batch.h>
+#include <leveldb/db.h>
 
 #include <sync.h>
-#include <smsg/keystore.h>
+#include <pubkey.h>
 
 class CDataStream;
 
 namespace smsg {
 
+class SecMsgKey;
 class SecMsgStored;
-
 class SecMsgPurged;
 
 extern CCriticalSection cs_smsgDB;
@@ -28,14 +28,15 @@ public:
     SecMsgDB()
     {
         activeBatch = nullptr;
-    };
+    }
 
     ~SecMsgDB()
     {
         // Deletes only data scoped to this SecMsgDB object.
-        if (activeBatch)
+        if (activeBatch) {
             delete activeBatch;
-    };
+        }
+    }
 
     bool Open(const char *pszMode="r+");
 

@@ -14,6 +14,7 @@
 #include <consensus/merkle.h>
 #include <smsg/smessage.h>
 #include <smsg/crypter.h>
+#include <miner.h>
 #include <pos/kernel.h>
 #include <pos/miner.h>
 #include <util/moneystr.h>
@@ -22,20 +23,16 @@
 #include <script/sign.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
-#include <policy/rbf.h>
 #include <wallet/coincontrol.h>
 #include <blind.h>
 #include <anon.h>
 #include <txdb.h>
-#include <rpc/server.h>
+#include <txmempool.h>
 #include <rpc/util.h>
-#include <rpc/rawtransaction_util.h>
 #include <util/fees.h>
 #include <util/rbf.h>
 #include <util/validation.h>
 #include <wallet/fees.h>
-#include <walletinitinterface.h>
-#include <wallet/walletutil.h>
 
 #if ENABLE_USBDEVICE
 #include <usbdevice/usbdevice.h>
@@ -46,10 +43,9 @@
 #include <secp256k1_mlsag.h>
 
 #include <algorithm>
-#include <random>
+#include <thread>
 
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/thread.hpp>
 
 
 int CTransactionRecord::InsertOutput(COutputRecord &r)

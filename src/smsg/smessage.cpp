@@ -30,7 +30,6 @@ Notes:
 #include <stdexcept>
 #include <errno.h>
 #include <limits>
-#include <compat/byteswap.h>
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread/thread.hpp>
@@ -38,13 +37,11 @@ Notes:
 
 #include <secp256k1.h>
 #include <secp256k1_ecdh.h>
-#include <secp256k1_recovery.h>
 
 #include <crypto/hmac_sha256.h>
 #include <crypto/sha512.h>
 
 #include <script/ismine.h>
-#include <policy/policy.h>
 #include <support/allocators/secure.h>
 #include <consensus/validation.h>
 #include <validation.h>
@@ -54,7 +51,6 @@ Notes:
 #include <random.h>
 #include <chain.h>
 #include <netmessagemaker.h>
-#include <fs.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/coincontrol.h>
@@ -63,7 +59,7 @@ Notes:
 #endif
 
 #include <util/strencodings.h>
-#include <clientversion.h>
+
 
 #include <xxhash/xxhash.h>
 

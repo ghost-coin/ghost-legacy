@@ -7,7 +7,7 @@
 
 #include <secp256k1.h>
 #include <secp256k1_bulletproofs.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <vector>
 
 #include <amount.h>

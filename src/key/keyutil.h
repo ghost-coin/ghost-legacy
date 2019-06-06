@@ -6,7 +6,7 @@
 #define PARTICL_KEY_KEYUTIL_H
 
 #include <vector>
-#include <inttypes.h>
+#include <stdint.h>
 
 uint32_t BitcoinChecksum(uint8_t *p, uint32_t nBytes);
 void AppendChecksum(std::vector<uint8_t> &data);

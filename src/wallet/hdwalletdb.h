@@ -5,20 +5,22 @@
 #ifndef PARTICL_WALLET_HDWALLETDB_H
 #define PARTICL_WALLET_HDWALLETDB_H
 
-#include <amount.h>
 #include <primitives/transaction.h>
-#include <wallet/wallet.h>
 #include <wallet/walletdb.h>
-#include <key.h>
 #include <key/types.h>
-#include <key/stealth.h>
-#include <key/extkey.h>
 
-#include <list>
-#include <stdint.h>
 #include <string>
-#include <utility>
 #include <vector>
+
+class CAddressBookData;
+class CEKAKeyPack;
+class CEKASCKeyPack;
+class CEKAStealthKeyPack;
+class CExtKeyAccount;
+class CStealthAddress;
+class CStoredExtKey;
+class uint160;
+class uint256;
 
 /*
 prefixes

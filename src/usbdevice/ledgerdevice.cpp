@@ -6,7 +6,7 @@
 
 #include <hidapi/hidapi.h>
 #include <stdio.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <util/system.h>
 #include <util/strencodings.h>
 #include <pubkey.h>

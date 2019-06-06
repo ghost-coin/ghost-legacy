@@ -5,6 +5,9 @@
 #ifndef BITCOIN_WALLET_RPCHDWALLET_H
 #define BITCOIN_WALLET_RPCHDWALLET_H
 
+#include <memory>
+#include <vector>
+
 namespace interfaces {
 class Chain;
 class Handler;

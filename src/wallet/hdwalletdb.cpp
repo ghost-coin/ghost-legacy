@@ -3,9 +3,19 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <wallet/hdwalletdb.h>
+
+#include <wallet/wallet.h>
 #include <wallet/hdwallet.h>
+#include <key/extkey.h>
+#include <key/stealth.h>
+#include <primitives/transaction.h>
+#include <uint256.h>
 
 #include <serialize.h>
+#include <stdint.h>
+#include <map>
+#include <utility>
+
 
 class PackKey
 {

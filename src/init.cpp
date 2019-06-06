@@ -51,7 +51,6 @@
 #include <util/moneystr.h>
 #include <util/validation.h>
 #include <validationinterface.h>
-#include <anon.h>
 #include <blind.h>
 #include <smsg/smessage.h>
 #include <smsg/rpcsmessage.h>

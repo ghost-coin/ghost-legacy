@@ -5,7 +5,7 @@
 #ifndef PARTICL_ANON_H
 #define PARTICL_ANON_H
 
-#include <inttypes.h>
+#include <stdint.h>
 
 #include <primitives/transaction.h>
 
