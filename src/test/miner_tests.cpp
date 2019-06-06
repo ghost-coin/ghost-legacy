@@ -7,7 +7,6 @@
 #include <consensus/consensus.h>
 #include <consensus/merkle.h>
 #include <consensus/tx_verify.h>
-#include <consensus/validation.h>
 #include <miner.h>
 #include <key/extkey.h>
 #include <key/stealth.h>

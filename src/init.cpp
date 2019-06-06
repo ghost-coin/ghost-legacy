@@ -56,6 +56,7 @@
 #include <smsg/rpcsmessage.h>
 #include <insight/rpc.h>
 #include <pos/miner.h>
+#include <core_io.h>
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
 #endif
@@ -64,8 +65,6 @@
 #include <usbdevice/usbdevice.h>
 #endif
 
-#include <core_io.h>
-#include <warnings.h>
 #include <walletinitinterface.h>
 #include <stdint.h>
 #include <stdio.h>

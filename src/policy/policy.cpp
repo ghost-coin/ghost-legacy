@@ -9,12 +9,7 @@
 
 #include <consensus/validation.h>
 #include <coins.h>
-#include <policy/settings.h>
-#include <tinyformat.h>
-#include <util/system.h>
-#include <util/strencodings.h>
 #include <chainparams.h>
-
 
 CAmount GetDustThreshold(const CTxOut& txout, const CFeeRate& dustRelayFeeIn)
 {
@@ -202,10 +197,10 @@ bool IsStandardTx(const CTransaction& tx, bool permit_bare_multisig, const CFeeR
 
         if (whichType == TX_NULL_DATA)
             nDataOut++;
-        else if ((whichType == TX_MULTISIG) && (!fIsBareMultisigStd)) {
+        else if ((whichType == TX_MULTISIG) && (!permit_bare_multisig)) {
             reason = "bare-multisig";
             return false;
-        } else if (IsDust(p, ::dustRelayFee)) {
+        } else if (IsDust(p, dust_relay_fee)) {
             reason = "dust";
             return false;
         }

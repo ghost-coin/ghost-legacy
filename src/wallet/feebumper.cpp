@@ -10,14 +10,10 @@
 #include <wallet/wallet.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
-#include <policy/rbf.h>
-#include <validation.h> //for mempool access
-#include <txmempool.h>
 #include <util/moneystr.h>
 #include <util/rbf.h>
 #include <util/system.h>
 #include <util/validation.h>
-#include <net.h>
 
 #include <wallet/hdwallet.h>
 
@@ -70,9 +66,7 @@ static feebumper::Result PreconditionChecks(interfaces::Chain::Lock& locked_chai
     }
 
     {
-        LOCK(mempool.cs);
-        auto it_mp = mempool.mapTx.find(hash);
-        if (it_mp != mempool.mapTx.end() && it_mp->GetCountWithDescendants() > 1) {
+        if (wallet->chain().hasDescendantsInMempool(hash)) {
             errors.push_back("Transaction has descendants in the mempool");
             return feebumper::Result::INVALID_PARAMETER;
         }
@@ -241,7 +235,7 @@ Result CreateTotalBumpTransaction(const CWallet* wallet, const uint256& txid, co
             // This may occur if the user set TotalFee or paytxfee too low, if fallbackfee is too low, or, perhaps,
             // in a rare situation where the mempool minimum fee increased significantly since the fee estimation just a
             // moment earlier. In this case, we report an error to the user, who may use total_fee to make an adjustment.
-            CFeeRate minMempoolFeeRate = mempool.GetMinFee(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000);
+            CFeeRate minMempoolFeeRate = wallet->chain().mempoolMinFee();
             if (nNewFeeRate.GetFeePerK() < minMempoolFeeRate.GetFeePerK()) {
                 errors.push_back(strprintf(
                     "New fee rate (%s) is lower than the minimum fee rate (%s) to get into the mempool -- "

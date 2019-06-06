@@ -20,14 +20,13 @@
 #include <script/script.h>
 #include <timedata.h>
 #include <util/system.h>
-#include <wallet/db.h>
-#include <wallet/wallet.h>
+#include <policy/policy.h>
+
 #include <wallet/hdwallet.h>
 
 #include <univalue.h>
 #include <rpc/server.h>
 #include <rpc/client.h>
-#include <policy/policy.h>
 
 #include <stdint.h>
 #include <string>

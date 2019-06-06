@@ -5,8 +5,6 @@
 
 #include <txdb.h>
 
-#include <chainparams.h>
-#include <hash.h>
 #include <random.h>
 #include <pow.h>
 #include <shutdown.h>
@@ -15,6 +13,7 @@
 #include <ui_interface.h>
 #include <validation.h>
 #include <insight/insight.h>
+#include <chainparams.h>
 
 #include <stdint.h>
 

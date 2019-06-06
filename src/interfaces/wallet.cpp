@@ -5,27 +5,19 @@
 #include <interfaces/wallet.h>
 
 #include <amount.h>
-#include <chain.h>
 #include <consensus/validation.h>
-#include <init.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
-#include <net.h>
 #include <policy/feerate.h>
 #include <policy/fees.h>
-#include <policy/policy.h>
 #include <primitives/transaction.h>
-#include <rpc/server.h>
-#include <scheduler.h>
 #include <script/ismine.h>
 #include <script/standard.h>
 #include <support/allocators/secure.h>
 #include <sync.h>
-#include <timedata.h>
 #include <ui_interface.h>
 #include <uint256.h>
 #include <util/system.h>
-#include <validation.h>
 #include <wallet/feebumper.h>
 #include <wallet/fees.h>
 #include <wallet/rpcwallet.h>
@@ -165,11 +157,7 @@ WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, CHDWall
     LockAssertion lock(::cs_main); // Temporary, for CheckFinalTx below. Removed in upcoming commit.
 
     WalletTxStatus result;
-    auto mi = ::mapBlockIndex.find(rtx.blockHash);
-
-    CBlockIndex* block = mi != ::mapBlockIndex.end() ? mi->second : nullptr;
-    result.block_height = (block ? block->nHeight : std::numeric_limits<int>::max()),
-
+    result.block_height = locked_chain.getBlockHeight(rtx.blockHash).get_value_or(std::numeric_limits<int>::max());
     result.blocks_to_maturity = 0;
     result.depth_in_main_chain = wallet.GetDepthInMainChain(locked_chain, rtx.blockHash, rtx.nIndex);
     result.time_received = rtx.nTimeReceived;
@@ -451,7 +439,7 @@ public:
             if (m_wallet_part) {
                 auto mi = m_wallet_part->mapRecords.find(txid);
                 if (mi != m_wallet_part->mapRecords.end()) {
-                    num_blocks = ::ChainActive().Height();
+                    num_blocks = locked_chain->getHeight().get_value_or(-1);
                     tx_status = MakeWalletTxStatus(*locked_chain, *m_wallet_part, mi->first, mi->second);
                     return true;
                 }
@@ -487,7 +475,7 @@ public:
         if (m_wallet_part) {
             auto mi = m_wallet_part->mapRecords.find(txid);
             if (mi != m_wallet_part->mapRecords.end()) {
-                num_blocks = ::ChainActive().Height();
+                num_blocks = locked_chain->getHeight().get_value_or(-1);
                 in_mempool = m_wallet_part->InMempool(mi->first);
                 order_form = {};
                 tx_status = MakeWalletTxStatus(*locked_chain, *m_wallet_part, mi->first, mi->second);
@@ -542,7 +530,7 @@ public:
         auto locked_chain = m_wallet->chain().lock(true /* try_lock */);
         if (!locked_chain) return false;
 
-        num_blocks = ::ChainActive().Height();
+        num_blocks = locked_chain->getHeight().get_value_or(-1);
         if (!skip_height_check && num_blocks == cached_blocks) {
             return false;
         }
