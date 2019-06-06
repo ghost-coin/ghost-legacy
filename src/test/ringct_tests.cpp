@@ -10,7 +10,7 @@
 #include <secp256k1.h>
 #include <secp256k1_rangeproof.h>
 #include <secp256k1_mlsag.h>
-#include <inttypes.h>
+#include <stdint.h>
 
 #include <boost/test/unit_test.hpp>
 

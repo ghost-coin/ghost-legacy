@@ -7,7 +7,7 @@
 #include <chainparams.h>
 #include <compat/byteswap.h>
 #include <crypto/common.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <pubkey.h>
 #include <univalue.h>
 #include <usbdevice/usbwrapper.h>

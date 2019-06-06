@@ -1,9 +1,10 @@
-// Copyright (c) 2018 The Particl Core developers
+// Copyright (c) 2018-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <usbdevice/usbdevice.h>
 
+#include <key/extkey.h>
 #include <usbdevice/debugdevice.h>
 #include <usbdevice/ledgerdevice.h>
 #include <usbdevice/trezordevice.h>
@@ -11,8 +12,7 @@
 
 #include <hidapi/hidapi.h>
 
-#include <stdio.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <univalue.h>
 #include <chainparams.h>
 

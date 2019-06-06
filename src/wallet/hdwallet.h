@@ -7,13 +7,10 @@
 
 #include <wallet/wallet.h>
 #include <wallet/hdwalletdb.h>
-#include <wallet/rpchdwallet.h>
 
 #include <key_io.h>
 #include <key/extkey.h>
 #include <key/stealth.h>
-
-#include <miner.h>
 
 typedef std::map<CKeyID, CStealthKeyMetadata> StealthKeyMetaMap;
 typedef std::map<CKeyID, CExtKeyAccount*> ExtKeyAccountMap;
@@ -25,6 +22,8 @@ typedef std::map<uint256, CTransactionRecord> MapRecords_t;
 typedef std::multimap<int64_t, std::map<uint256, CTransactionRecord>::iterator> RtxOrdered_t;
 
 class UniValue;
+
+struct CBlockTemplate;
 
 const uint16_t OR_PLACEHOLDER_N = 0xFFFF; // index of a fake output to contain reconstructed amounts for txns with undecodeable outputs
 enum OutputRecordFlags

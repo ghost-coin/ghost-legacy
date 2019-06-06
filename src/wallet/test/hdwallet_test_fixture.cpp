@@ -8,6 +8,7 @@
 #include <wallet/db.h>
 #include <wallet/hdwallet.h>
 #include <wallet/rpcwallet.h>
+#include <wallet/rpchdwallet.h>
 #include <validation.h>
 #include <util/system.h>
 

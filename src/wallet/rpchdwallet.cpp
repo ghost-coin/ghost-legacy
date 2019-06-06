@@ -9,8 +9,6 @@
 #include <consensus/tx_verify.h>
 #include <consensus/merkle.h>
 #include <core_io.h>
-#include <init.h>
-#include <httpserver.h>
 #include <validation.h>
 #include <net.h>
 #include <policy/policy.h>
@@ -35,12 +33,10 @@
 #include <crypto/sha256.h>
 #include <warnings.h>
 #include <shutdown.h>
+#include <txmempool.h>
 
 #include <univalue.h>
-#include <stdint.h>
-
 #include <boost/thread.hpp>
-
 
 static void EnsureWalletIsUnlocked(CHDWallet *pwallet)
 {

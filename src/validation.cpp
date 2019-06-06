@@ -43,12 +43,9 @@
 #include <warnings.h>
 #include <smsg/smessage.h>
 #include <pos/kernel.h>
-#include <blind.h>
 #include <anon.h>
 #include <rctindex.h>
 #include <insight/insight.h>
-
-#include <secp256k1_rangeproof.h>
 
 #include <future>
 #include <sstream>

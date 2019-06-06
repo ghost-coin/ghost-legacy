@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Particl Core developers
+// Copyright (c) 2018-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -27,6 +27,7 @@
 #include <script/script_error.h>
 #include <script/sign.h>
 #include <script/standard.h>
+#include <txmempool.h>
 
 #include <memory>
 

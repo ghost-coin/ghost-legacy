@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <logging.h>
-#include <util/strencodings.h>
 
 namespace usb_device {
 

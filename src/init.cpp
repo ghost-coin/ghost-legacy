@@ -12,7 +12,6 @@
 #include <addrman.h>
 #include <amount.h>
 #include <banman.h>
-#include <blind.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <checkpoints.h>
@@ -48,12 +47,14 @@
 #include <util/system.h>
 #include <util/moneystr.h>
 #include <validationinterface.h>
+#include <blind.h>
 #include <smsg/smessage.h>
 #include <smsg/rpcsmessage.h>
 #include <insight/rpc.h>
 #include <pos/miner.h>
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
+#include <wallet/rpchdwallet.h>
 #endif
 #if ENABLE_USBDEVICE
 #include <usbdevice/rpcusbdevice.h>

@@ -31,6 +31,7 @@
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 #include <wallet/hdwallet.h>
+#include <wallet/rpchdwallet.h>
 #include <wallet/walletutil.h>
 
 #include <memory>

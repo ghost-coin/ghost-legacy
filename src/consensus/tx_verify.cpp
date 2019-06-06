@@ -12,7 +12,6 @@
 #include <chainparams.h>
 
 #include <blind.h>
-#include <anon.h>
 #include <timedata.h>
 #include <util/system.h>
 
@@ -24,7 +23,6 @@
 
 
 #include <policy/policy.h>
-#include <smsg/smessage.h>
 
 
 extern std::atomic_bool fBusyImporting;

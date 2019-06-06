@@ -1,11 +1,15 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <smsg/db.h>
 #include <smsg/smessage.h>
+#include <smsg/keystore.h>
 #include <serialize.h>
 #include <clientversion.h>
+
+#include <leveldb/db.h>
+#include <string.h>
 
 namespace smsg {
 
