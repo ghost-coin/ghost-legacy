@@ -4,9 +4,13 @@
 
 #include <insight/insight.h>
 #include <insight/addressindex.h>
+#include <insight/spentindex.h>
+#include <insight/timestampindex.h>
 #include <validation.h>
 #include <txdb.h>
 #include <txmempool.h>
+#include <uint256.h>
+#include <script/script.h>
 
 #include <primitives/transaction.h>
 #include <script/interpreter.h>

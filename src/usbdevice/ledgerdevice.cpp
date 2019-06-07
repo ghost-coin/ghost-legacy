@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Particl Core developers
+// Copyright (c) 2018-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,18 +6,12 @@
 
 #include <hidapi/hidapi.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <util/system.h>
-#include <util/strencodings.h>
+#include <coins.h>
 #include <pubkey.h>
 #include <crypto/common.h>
-#include <univalue.h>
 #include <chainparams.h>
-#include <validation.h>
-
-#ifdef ENABLE_WALLET
-#include <wallet/hdwallet.h>
-#endif
+#include <univalue.h>
 
 namespace usb_device {
 

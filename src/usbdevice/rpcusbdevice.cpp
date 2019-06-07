@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <usbdevice/usbdevice.h>
-#include <usbdevice/debugdevice.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
 #include <rpc/rawtransaction_util.h>
@@ -11,14 +10,6 @@
 #include <key_io.h>
 #include <key/extkey.h>
 #include <chainparams.h>
-
-#include <univalue.h>
-
-#ifdef ENABLE_WALLET
-#include <wallet/hdwallet.h>
-#include <wallet/rpchdwallet.h>
-#include <wallet/rpcwallet.h>
-#endif
 #include <validation.h>
 #include <core_io.h>
 #include <primitives/transaction.h>
@@ -29,6 +20,13 @@
 #include <script/sign.h>
 #include <script/standard.h>
 #include <txmempool.h>
+
+#ifdef ENABLE_WALLET
+#include <wallet/hdwallet.h>
+#include <wallet/rpcwallet.h>
+#endif
+
+#include <univalue.h>
 
 #include <memory>
 

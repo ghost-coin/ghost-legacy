@@ -266,6 +266,7 @@ BITCOIN_CORE_H = \
   wallet/coinselection.h \
   wallet/rpchdwallet.h \
   wallet/hdwalletdb.h \
+  wallet/hdwallettypes.h \
   wallet/hdwallet.h \
   warnings.h \
   zmq/zmqabstractnotifier.h \
@@ -422,6 +423,7 @@ libparticl_wallet_a_SOURCES = \
   wallet/wallet.cpp \
   wallet/walletdb.cpp \
   wallet/hdwallet.cpp \
+  wallet/hdwallettypes.cpp \
   wallet/hdwalletdb.cpp \
   wallet/rpchdwallet.cpp \
   blind.cpp \

@@ -6,18 +6,24 @@
 #ifndef BITCOIN_INSIGHT_INSIGHT_H
 #define BITCOIN_INSIGHT_INSIGHT_H
 
-#include <uint256.h>
-#include <amount.h>
-#include <script/script.h>
-#include <sync.h>
+#include <threadsafety.h>
 
-#include <insight/addressindex.h>
-#include <insight/spentindex.h>
-#include <insight/timestampindex.h>
+#include <amount.h>
+#include <sync.h>
+#include <stdint.h>
+#include <vector>
+#include <utility>
 
 extern CCriticalSection cs_main;
 
 class CTxOutBase;
+class CScript;
+class uint256;
+struct CAddressIndexKey;
+struct CAddressUnspentKey;
+struct CAddressUnspentValue;
+struct CSpentIndexKey;
+struct CSpentIndexValue;
 
 bool ExtractIndexInfo(const CScript *pScript, int &scriptType, std::vector<uint8_t> &hashBytes);
 bool ExtractIndexInfo(const CTxOutBase *out, int &scriptType, std::vector<uint8_t> &hashBytes, CAmount &nValue, const CScript *&pScript);

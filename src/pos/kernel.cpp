@@ -1,19 +1,18 @@
 // Copyright (c) 2012-2013 The PPCoin developers
 // Copyright (c) 2014 The BlackCoin developers
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <pos/kernel.h>
 
-#include <txdb.h>
 #include <chainparams.h>
 #include <serialize.h>
 #include <streams.h>
 #include <hash.h>
+#include <util/system.h>
 #include <script/interpreter.h>
 #include <script/script.h>
-#include <script/ismine.h> // valtype
 #include <policy/policy.h>
 #include <consensus/validation.h>
 #include <coins.h>

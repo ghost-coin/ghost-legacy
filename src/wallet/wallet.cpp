@@ -37,7 +37,6 @@
 #include <boost/algorithm/string/replace.hpp>
 
 #include <wallet/hdwallet.h>
-#include <pos/miner.h>
 
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 

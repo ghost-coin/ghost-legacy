@@ -23,6 +23,7 @@
 
 #include <key/stealth.h>               // For CTxDestination
 #include <key/extkey.h>                // For CTxDestination
+#include <wallet/hdwallettypes.h>
 
 class CCoinControl;
 class CFeeRate;
@@ -33,8 +34,6 @@ enum class OutputType;
 struct CRecipient;
 
 class CHDWallet;
-class CTransactionRecord;
-typedef std::map<uint256, CTransactionRecord> MapRecords_t;
 
 namespace interfaces {
 

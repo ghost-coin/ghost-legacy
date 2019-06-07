@@ -1,24 +1,19 @@
-// Copyright (c) 2018 The Particl Core developers
+// Copyright (c) 2018-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <usbdevice/trezordevice.h>
 
 #include <chainparams.h>
-#include <compat/byteswap.h>
-#include <crypto/common.h>
-#include <stdint.h>
+#include <coins.h>
 #include <pubkey.h>
-#include <univalue.h>
+#include <key_io.h>
+#include <base58.h>
 #include <usbdevice/usbwrapper.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <shutdown.h>
-#include <validation.h>
-
-#ifdef ENABLE_WALLET
-#include <wallet/hdwallet.h>
-#endif
+#include <univalue.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
