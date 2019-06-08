@@ -983,7 +983,9 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("ExtKeySetDefaultAccount failed, %s.", ExtKeyGetString(rv)));
             }
         }
-
+        if (!pwallet->UnsetWalletFlagRV(&wdb, WALLET_FLAG_BLANK_WALLET)) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "UnsetWalletFlag failed.");
+        }
         if (!wdb.TxnCommit()) {
             pwallet->idDefaultAccount = idOldDefault;
             pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);

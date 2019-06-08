@@ -141,6 +141,10 @@ bool CHDWalletDB::WriteFlag(const std::string &name, int32_t nValue)
     return WriteIC(std::make_pair(std::string("flag"), name), nValue, true);
 };
 
+bool CHDWalletDB::WriteWalletFlags(const uint64_t flags)
+{
+    return WriteIC(std::string("flags"), flags);
+};
 
 bool CHDWalletDB::ReadExtKeyIndex(uint32_t id, CKeyID &identifier, uint32_t nFlags)
 {
