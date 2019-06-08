@@ -378,6 +378,9 @@ public:
     /* Returns true if HD is enabled, and default account set */
     bool IsHDEnabled() const override;
 
+    /** Unsets a single wallet flag, returns false on fail */
+    bool UnsetWalletFlagRV(CHDWalletDB *pwdb, uint64_t flag);
+
     bool DumpJson(UniValue &rv, std::string &sError);
     bool LoadJson(const UniValue &inj, std::string &sError);
 

@@ -424,6 +424,16 @@ bool CHDWallet::IsHDEnabled() const
     return mapExtAccounts.find(idDefaultAccount) != mapExtAccounts.end();
 }
 
+bool CHDWallet::UnsetWalletFlagRV(CHDWalletDB *pwdb, uint64_t flag)
+{
+    LOCK(cs_wallet);
+    if (!IsWalletFlagSet(flag)) {
+        return true;
+    }
+    m_wallet_flags &= ~flag;
+    return pwdb->WriteWalletFlags(m_wallet_flags);
+}
+
 static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &derivedKeys) EXCLUSIVE_LOCKS_REQUIRED(pw->cs_wallet)
 {
     UniValue keyobj(UniValue::VOBJ);
@@ -1375,6 +1385,7 @@ bool CHDWallet::ImportStealthAddress(const CStealthAddress &sxAddr, const CKey &
         stealthAddresses.erase(sxAddr);
         return werror("%s: WriteStealthAddress failed.", __func__);
     }
+    UnsetWalletFlag(WALLET_FLAG_BLANK_WALLET);
 
     return true;
 };
@@ -5954,7 +5965,9 @@ int CHDWallet::ExtKeyImportLoose(CHDWalletDB *pwdb, CStoredExtKey &sekIn, CKeyID
             return werrorN(1, "%s: DB Write failed.", __func__);
         }
     }
-
+    if (!UnsetWalletFlagRV(pwdb, WALLET_FLAG_BLANK_WALLET)) {
+        return werrorN(1, "%s: UnsetWalletFlag failed.", __func__);
+    }
     return 0;
 };
 
@@ -6053,7 +6066,9 @@ int CHDWallet::ExtKeyImportAccount(CHDWalletDB *pwdb, CStoredExtKey &sekIn, int6
         delete sea;
         return werrorN(1, "ExtKeyAddAccountToMap() failed.");
     }
-
+    if (!UnsetWalletFlagRV(pwdb, WALLET_FLAG_BLANK_WALLET)) {
+        return werrorN(1, "%s: UnsetWalletFlag failed.", __func__);
+    }
     return 0;
 };
 
@@ -6446,6 +6461,8 @@ int CHDWallet::ExtKeySetDefaultAccount(CHDWalletDB *pwdb, CKeyID &idNewDefault)
 
     // Set idDefaultAccount last, in case something fails.
     idDefaultAccount = idNewDefault;
+
+    NotifyCanGetAddressesChanged();
 
     return 0;
 };
