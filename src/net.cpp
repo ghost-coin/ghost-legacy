@@ -86,7 +86,7 @@ static bool vfLimited[NET_MAX] GUARDED_BY(cs_mapLocalHost) = {};
 std::string strSubVersion;
 
 extern void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-extern void CheckNodeHeaders(NodeId nodeid, int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+extern void CheckUnreceivedHeaders(int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 void CConnman::AddOneShot(const std::string& strDest)
 {
@@ -1994,9 +1994,9 @@ void CConnman::ThreadMessageHandler()
         int64_t nTimeNow = GetTime();
         if (nTimeNextBanReduced < nTimeNow) {
             LOCK(cs_main);
+            CheckUnreceivedHeaders(nTimeNow);
             for (auto *pnode : vNodesCopy) {
                 DecMisbehaving(pnode->id, 1);
-                CheckNodeHeaders(pnode->id, nTimeNow);
             }
             nTimeNextBanReduced = nTimeNow + nTimeDecBanThreshold;
         }

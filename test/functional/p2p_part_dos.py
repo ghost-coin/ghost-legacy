@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2018 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -165,9 +165,6 @@ class DoSTest(ParticlTestFramework):
                         break
             assert(found_misbehave_line)
 
-            #peer_info = self.node.getpeerinfo()
-            #print('peer_info', peer_info)
-
             self.log.info('Replace headers for next test')
             t = int(time.time()+15) & 0xfffffff0
             self.log.info('Initial blockindexsize: %d\n' % (nodes[0].getblockchaininfo()['blockindexsize']))
@@ -234,9 +231,7 @@ class DoSTest(ParticlTestFramework):
 
         time.sleep(2)
 
-
         self.log.info("blockindexsize: %d\n" % (nodes[0].getblockchaininfo()['blockindexsize']))
-
 
         # Check log
         self.log.info('Reading log file: ' + log_path)
