@@ -400,8 +400,8 @@ public:
     //! Count of times node tried to send duplicate headers/blocks, decreased in DecMisbehaving
     int m_duplicate_count = 0;
 
-    //! Set when node sends duplicate data
-    int64_t m_last_duplicate_time = 0;
+    //! Set when counters increase
+    int64_t m_last_used_time = 0;
 
     //! Persistent misbehaving counter
     int m_misbehavior = 0;
@@ -1143,6 +1143,7 @@ NodeId GetBlockSource(uint256 hash)
 size_t MAX_LOOSE_HEADERS = 1000;
 int MAX_DUPLICATE_HEADERS = 2000;
 int64_t MAX_LOOSE_HEADER_TIME = 120;
+int64_t MIN_DOS_STATE_TTL = 60 * 10; // seconds
 bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     CNodeState *state = State(node_id);
@@ -1155,9 +1156,11 @@ bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED
             return false;
         }
         it->second.m_map_loose_headers.insert(std::make_pair(hash, GetTime()));
+        it->second.m_last_used_time = GetTime();
         return true;
     }
     map_dos_state[state->address].m_map_loose_headers.insert(std::make_pair(hash, GetTime()));
+    map_dos_state[state->address].m_last_used_time = GetTime();
     return true;
 }
 
@@ -1215,7 +1218,7 @@ void CheckUnreceivedHeaders(int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         }
         // TODO: Options for decrease rate
         if (dos_counters.m_duplicate_count > 0) {
-            if (now - dos_counters.m_last_duplicate_time > 60 * 10) {
+            if (now - dos_counters.m_last_used_time > MIN_DOS_STATE_TTL) {
                 // Decay faster after some time passes
                 dos_counters.m_duplicate_count -= 20;
                 if (dos_counters.m_duplicate_count > 0) {
@@ -1228,8 +1231,10 @@ void CheckUnreceivedHeaders(int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         if (dos_counters.m_misbehavior > 0) {
             --dos_counters.m_misbehavior;
         }
-        if (dos_counters.m_map_loose_headers.size() == 0
-            && dos_counters.m_duplicate_count < 1) {
+        if (dos_counters.m_duplicate_count < 1
+            && dos_counters.m_misbehavior < 1
+            && dos_counters.m_map_loose_headers.size() == 0
+            && now - dos_counters.m_last_used_time > MIN_DOS_STATE_TTL) {
             map_dos_state.erase(it++);
             continue;
         }
@@ -1246,7 +1251,7 @@ bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
     auto it = map_dos_state.find(state->address);
     if (it != map_dos_state.end()) {
         ++it->second.m_duplicate_count;
-        it->second.m_last_duplicate_time = GetTime();
+        it->second.m_last_used_time = GetTime();
         if (it->second.m_duplicate_count < MAX_DUPLICATE_HEADERS) {
             return true;
         }
@@ -1258,9 +1263,14 @@ bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         return false;
     }
     map_dos_state[state->address].m_duplicate_count = 1;
-    map_dos_state[state->address].m_last_duplicate_time = GetTime();
+    map_dos_state[state->address].m_last_used_time = GetTime();
     return true;
 }
+
+int GetNumDOSStates()
+{
+    return map_dos_state.size();
+};
 
 //////////////////////////////////////////////////////////////////////////////
 //
