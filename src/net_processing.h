@@ -99,4 +99,6 @@ void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main
 
 NodeId GetBlockSource(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+int GetNumDOSStates() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
 #endif // BITCOIN_NET_PROCESSING_H

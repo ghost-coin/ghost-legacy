@@ -308,9 +308,32 @@ struct CNodeState {
         fSupportsDesiredCmpctVersion = false;
         m_chain_sync = { 0, nullptr, false, false };
         m_last_block_announcement = 0;
-        m_duplicate_count = 0;
     }
 };
+
+
+class CNodeDOS
+{
+public:
+    //! Headers received from this peer, removed when block is received
+    std::map<uint256, int64_t> m_map_loose_headers;
+
+    //! Set of node ids that triggered the counters
+    //std::set<NodeID> m_node_ids;
+
+    //! Count of times node tried to send duplicate headers/blocks, decreased in DecMisbehaving
+    int m_duplicate_count = 0;
+
+    //! Set when counters increase
+    int64_t m_last_used_time = 0;
+
+    //! Persistent misbehaving counter
+    int m_misbehavior = 0;
+};
+
+/** Map maintaining per-addr DOS state. */
+static std::map<CNetAddr, CNodeDOS> map_dos_state GUARDED_BY(cs_main);
+
 
 /** Map maintaining per-node state. */
 static std::map<NodeId, CNodeState> mapNodeState GUARDED_BY(cs_main);
@@ -683,8 +706,12 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
         if (queue.pindex)
             stats.vHeightInFlight.push_back(queue.pindex->nHeight);
     }
-    stats.nDuplicateCount = state->m_duplicate_count;
-    stats.nLooseHeadersCount = (int)state->m_map_loose_headers.size();
+
+    auto it = map_dos_state.find(state->address);
+    if (it != map_dos_state.end()) {
+        stats.nDuplicateCount = it->second.m_duplicate_count;
+        stats.nLooseHeadersCount = (int)it->second.m_map_loose_headers.size();
+    }
     return true;
 }
 
@@ -859,14 +886,9 @@ void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main
         return;
     }
 
-    //LogPrintf("%s: %s peer=%d (%d -> %d)\n", __func__, state->name, nodeid, state->nMisbehavior, state->nMisbehavior - howmuch < 0 ? 0 : state->nMisbehavior - howmuch);
-
     state->nMisbehavior -= howmuch;
     if (state->nMisbehavior < 0) {
         state->nMisbehavior = 0;
-    }
-    if (state->m_duplicate_count > 0) {
-        --state->m_duplicate_count;
     }
 }
 
@@ -881,54 +903,99 @@ NodeId GetBlockSource(uint256 hash)
 size_t MAX_LOOSE_HEADERS = 1000;
 int MAX_DUPLICATE_HEADERS = 2000;
 int64_t MAX_LOOSE_HEADER_TIME = 120;
+int64_t MIN_DOS_STATE_TTL = 60 * 10; // seconds
 bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     CNodeState *state = State(node_id);
     if (state == nullptr) {
         return true;
     }
-    if (state->m_map_loose_headers.size() > MAX_LOOSE_HEADERS) {
-        return false;
+    auto it = map_dos_state.find(state->address);
+    if (it != map_dos_state.end()) {
+        if (it->second.m_map_loose_headers.size() > MAX_LOOSE_HEADERS) {
+            return false;
+        }
+        it->second.m_map_loose_headers.insert(std::make_pair(hash, GetTime()));
+        it->second.m_last_used_time = GetTime();
+        return true;
     }
-
-    auto ret = state->m_map_loose_headers.insert(std::make_pair(hash, GetTime()));
-    if (!ret.second) {
-        // Duplicate
-    }
-
+    map_dos_state[state->address].m_map_loose_headers.insert(std::make_pair(hash, GetTime()));
+    map_dos_state[state->address].m_last_used_time = GetTime();
     return true;
 }
 
 void RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
-    auto it = mapNodeState.begin();
-    for (; it != mapNodeState.end(); ++it) {
+    auto it = map_dos_state.begin();
+    for (; it != map_dos_state.end(); ++it) {
         it->second.m_map_loose_headers.erase(hash);
     }
 }
 
 void RemoveNonReceivedHeaderFromNodes(BlockMap::iterator mi) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
-    for (auto it = mapNodeState.begin(); it != mapNodeState.end(); ++it) {
+    auto it = mapNodeState.begin();
+    for (; it != mapNodeState.end(); ++it) {
         if (it->second.pindexBestKnownBlock == mi->second) {
             it->second.pindexBestKnownBlock = nullptr;
         }
     }
 }
 
-void CheckNodeHeaders(NodeId node_id, int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+/** Increase misbehavior scores by address. */
+void MisbehavingByAddr(CNetAddr addr, int misbehavior_cfwd, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
-    CNodeState *state = State(node_id);
-    if (state == nullptr) {
-        return;
-    }
-    auto it = state->m_map_loose_headers.begin();
-    for (; it != state->m_map_loose_headers.end();) {
-        if (it->second + MAX_LOOSE_HEADER_TIME < now) {
-            if (RemoveUnreceivedHeader(it->first)) {
-                Misbehaving(node_id, 5, "Block not received.");
+    for (auto it = mapNodeState.begin(); it != mapNodeState.end(); ++it) {
+        if (it->first < 0) {
+            continue;
+        }
+        if (addr == (CNetAddr)it->second.address) {
+            if (it->second.nMisbehavior < misbehavior_cfwd) {
+                it->second.nMisbehavior = misbehavior_cfwd;
+                LogPrint(BCLog::NET, "%s: %s peer=%d Inherited misbehavior (%d)\n", __func__, it->second.name, it->first, it->second.nMisbehavior);
             }
-            state->m_map_loose_headers.erase(it++);
+            Misbehaving(it->first, howmuch, message);
+        }
+    }
+}
+
+void CheckUnreceivedHeaders(int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    auto it = map_dos_state.begin();
+    for (; it != map_dos_state.end();) {
+        auto &dos_counters = it->second;
+        auto it_headers = dos_counters.m_map_loose_headers.begin();
+        for (; it_headers != dos_counters.m_map_loose_headers.end();) {
+            if (it_headers->second + MAX_LOOSE_HEADER_TIME < now) {
+                if (RemoveUnreceivedHeader(it_headers->first)) {
+                    MisbehavingByAddr(it->first, dos_counters.m_misbehavior, 5, "Block not received.");
+                    dos_counters.m_misbehavior += 5;
+                }
+                dos_counters.m_map_loose_headers.erase(it_headers++);
+                continue;
+            }
+            ++it_headers;
+        }
+        // TODO: Options for decrease rate
+        if (dos_counters.m_duplicate_count > 0) {
+            if (now - dos_counters.m_last_used_time > MIN_DOS_STATE_TTL) {
+                // Decay faster after some time passes
+                dos_counters.m_duplicate_count -= 20;
+                if (dos_counters.m_duplicate_count > 0) {
+                    dos_counters.m_duplicate_count = 0;
+                }
+            } else {
+                --dos_counters.m_duplicate_count;
+            }
+        }
+        if (dos_counters.m_misbehavior > 0) {
+            --dos_counters.m_misbehavior;
+        }
+        if (dos_counters.m_duplicate_count < 1
+            && dos_counters.m_misbehavior < 1
+            && dos_counters.m_map_loose_headers.size() == 0
+            && now - dos_counters.m_last_used_time > MIN_DOS_STATE_TTL) {
+            map_dos_state.erase(it++);
             continue;
         }
         ++it;
@@ -939,12 +1006,31 @@ bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     CNodeState *state = State(node_id);
     if (state == nullptr) {
-        return true;
+        return false;
     }
-    ++state->m_duplicate_count;
-
-    return state->m_duplicate_count < MAX_DUPLICATE_HEADERS;
+    auto it = map_dos_state.find(state->address);
+    if (it != map_dos_state.end()) {
+        ++it->second.m_duplicate_count;
+        it->second.m_last_used_time = GetTime();
+        if (it->second.m_duplicate_count < MAX_DUPLICATE_HEADERS) {
+            return true;
+        }
+        if (state->nMisbehavior < it->second.m_misbehavior) {
+            state->nMisbehavior = it->second.m_misbehavior;
+            LogPrint(BCLog::NET, "%s: %s peer=%d Inherited misbehavior (%d)\n", __func__, state->name, node_id, state->nMisbehavior);
+        }
+        it->second.m_misbehavior += 5;
+        return false;
+    }
+    map_dos_state[state->address].m_duplicate_count = 1;
+    map_dos_state[state->address].m_last_used_time = GetTime();
+    return true;
 }
+
+int GetNumDOSStates()
+{
+    return map_dos_state.size();
+};
 
 //////////////////////////////////////////////////////////////////////////////
 //

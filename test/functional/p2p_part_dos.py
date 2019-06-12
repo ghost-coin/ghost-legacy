@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2018 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -40,7 +40,6 @@ class DoSTest(ParticlTestFramework):
         #block.vchBlockSig = b"x" * 1024
         #block.hashMerkleRoot = block.calc_merkle_root()
         block.calc_sha256()
-        #print(block)
         return block
 
     def get_block_header(self, node, target_block_hash):
@@ -58,7 +57,6 @@ class DoSTest(ParticlTestFramework):
     def run_test(self):
 
         check_blockindex_decay = True
-        #check_blockindex_decay = False
 
         dos_nodes = self.num_nodes
         dos_nodes = 1
@@ -103,7 +101,6 @@ class DoSTest(ParticlTestFramework):
             for b in range(MAX_HEADERS):
                 target_block_hash = nodes[0].getblockhash(block_count - MAX_HEADERS + b)
                 block = self.create_block_header(nodes[0], hashPrevBlock=prevBlockHash, hashMerkleRoot=i, target_block_hash=target_block_hash)
-                block.rehash() # Just in case
                 prevBlockHash = int(block.hash, 16)
                 blocks.append(block)
 
@@ -165,9 +162,6 @@ class DoSTest(ParticlTestFramework):
                         break
             assert(found_misbehave_line)
 
-            #peer_info = self.node.getpeerinfo()
-            #print('peer_info', peer_info)
-
             self.log.info('Replace headers for next test')
             t = int(time.time()+15) & 0xfffffff0
             self.log.info('Initial blockindexsize: %d\n' % (nodes[0].getblockchaininfo()['blockindexsize']))
@@ -181,7 +175,6 @@ class DoSTest(ParticlTestFramework):
                 for b in range(MAX_HEADERS):
                     target_block_hash = nodes[0].getblockhash(block_count - MAX_HEADERS + b)
                     block = self.create_block_header(nodes[0], hashPrevBlock=prevBlockHash, hashMerkleRoot=i, target_block_hash=target_block_hash)
-                    block.rehash() # Just in case
                     prevBlockHash = int(block.hash, 16)
                     blocks.append(block)
 
@@ -194,7 +187,6 @@ class DoSTest(ParticlTestFramework):
 
             self.log.info('Number of headers sent: %d' % (sent))
             self.log.info('blockindexsize: %d' % (nodes[0].getblockchaininfo()['blockindexsize']))
-
 
         self.log.info('Restart and check how many block headers were saved to disk')
         self.stop_node(0)
@@ -216,12 +208,11 @@ class DoSTest(ParticlTestFramework):
         DUPLICATE_ITERATIONS = 3000
         target_block_hash = nodes[0].getblockhash(20)
         block = self.get_block_header(nodes[0], target_block_hash=target_block_hash)
-        block.rehash() # Just in case
         prevBlockHash = int(block.hash, 16)
         sent = 0
         for i in range(DUPLICATE_ITERATIONS):
             if i % 250 == 0:
-                print('Iteration', i , 'of', DUPLICATE_ITERATIONS, "sent", 1, "duplicate header")
+                self.log.info('Iteration %d of %d, sent %d duplicate headers' % (i, DUPLICATE_ITERATIONS, sent))
             blocks = []
             blocks.append(block)
 
@@ -234,11 +225,8 @@ class DoSTest(ParticlTestFramework):
 
         time.sleep(2)
 
-
         self.log.info("blockindexsize: %d\n" % (nodes[0].getblockchaininfo()['blockindexsize']))
 
-
-        # Check log
         self.log.info('Reading log file: ' + log_path)
         found_dos_line = False
         with open(log_path, 'r', encoding='utf8') as fp:
