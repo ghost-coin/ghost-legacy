@@ -74,7 +74,7 @@ after_script:
   - echo $TRAVIS_COMMIT_LOG
 after_success:
   - echo "Uploading"
-  - DOCKER_EXEC make install
+  - DOCKER_EXEC cd ${TRAVIS_BUILD_DIR} || make install
   - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
   - DOCKER_EXEC tar -cjf $OUTDIR/particl_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .
   - (travis_retry DOCKER_EXEC curl -s --max-time 60 --upload $OUTDIR/particl_$COMMIT.tar.bz2 https://transfer.sh/particl_$COMMIT.tar.bz2 && echo) || true
