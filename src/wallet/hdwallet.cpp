@@ -256,17 +256,17 @@ bool CHDWallet::Initialise()
         if (gArgs.GetBoolArg("-createdefaultmasterkey", false)) {
             std::string sMsg = "Generating random HD keys for wallet " + GetName();
             #ifndef ENABLE_QT
-            fprintf(stdout, "%s\n", sMsg.c_str());
+            tfm::format(std::cout, "%s\n", sMsg.c_str());
             #endif
             LogPrintf("%s\n", sMsg);
             if (MakeDefaultAccount() != 0) {
-                fprintf(stdout, "Error: MakeDefaultAccount failed!\n");
+                tfm::format(std::cout, "Error: MakeDefaultAccount failed!\n");
             }
         } else {
             /*
             std::string sWarning = "Warning: Wallet " + pwallet->GetName() + " has no master HD key set, please view the readme.";
             #ifndef ENABLE_QT
-            fprintf(stdout, "%s\n", sWarning.c_str());
+            tfm::format(std::cout, "%s\n", sWarning.c_str());
             #endif
             LogPrintf("%s\n", sWarning);
             */
@@ -275,7 +275,7 @@ bool CHDWallet::Initialise()
     if (idDefaultAccount.IsNull()) {
         std::string sWarning = "Warning: Wallet " + GetName() + " has no active account, please view the readme.";
         #ifndef ENABLE_QT
-        fprintf(stdout, "%s\n", sWarning.c_str());
+        tfm::format(std::cout, "%s\n", sWarning.c_str());
         #endif
         LogPrintf("%s\n", sWarning);
     }

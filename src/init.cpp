@@ -142,13 +142,12 @@ int CreateMessageWindow()
     WindowClassEx.lpszClassName = lpcszClassName;
 
     if (!RegisterClassEx(&WindowClassEx)) {
-        fprintf(stderr, "RegisterClassEx failed: %d.\n", GetLastError());
+        tfm::format(std::cerr, "RegisterClassEx failed: %d.\n", GetLastError());
         return 1;
     }
-
     winHwnd = CreateWindowEx(0, lpcszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, nullptr, NULL);
     if (!winHwnd) {
-        fprintf(stderr, "CreateWindowEx failed: %d.\n", GetLastError());
+        tfm::format(std::cerr, "CreateWindowEx failed: %d.\n", GetLastError());
         return 1;
     }
 
@@ -162,14 +161,12 @@ int CloseMessageWindow()
     if (!winHwnd) {
         return 0;
     }
-
     if (!DestroyWindow(winHwnd)) {
-        fprintf(stderr, "DestroyWindow failed: %d.\n", GetLastError());
+        tfm::format(std::cerr, "DestroyWindow failed: %d.\n", GetLastError());
         return 1;
     }
-
     if (!UnregisterClass(lpcszClassName, nullptr)) {
-        fprintf(stderr, "UnregisterClass failed: %d.\n", GetLastError());
+        tfm::format(std::cerr, "UnregisterClass failed: %d.\n", GetLastError());
         return 1;
     }
 
@@ -189,14 +186,13 @@ static fs::path GetPidFile()
 
 NODISCARD static bool CreatePidFile()
 {
-    FILE* file = fsbridge::fopen(GetPidFile(), "w");
+    fsbridge::ofstream file{GetPidFile()};
     if (file) {
 #ifdef WIN32
-        fprintf(file, "%d\n", GetCurrentProcessId());
+        tfm::format(file, "%d\n", GetCurrentProcessId());
 #else
-        fprintf(file, "%d\n", getpid());
+        tfm::format(file, "%d\n", getpid());
 #endif
-        fclose(file);
         return true;
     } else {
         return InitError(strprintf(_("Unable to create the PID file '%s': %s"), GetPidFile().string(), std::strerror(errno)));
