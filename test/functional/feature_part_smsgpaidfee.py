@@ -49,7 +49,7 @@ class SmsgPaidFeeTest(ParticlTestFramework):
 
         self.sync_all()
 
-    def run_test (self):
+    def run_test(self):
         tmpdir = self.options.tmpdir
         nodes = self.nodes
 

@@ -410,6 +410,14 @@ public:
 
     bool IsSpent(interfaces::Chain::Lock& locked_chain, const uint256& hash, unsigned int n) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
+    // Whether this or any UTXO with the same CTxDestination has been spent.
+    using CWallet::IsUsedDestination;
+    bool IsUsedDestination(const CScript *pscript) const;
+    bool IsUsedDestination(const uint256& hash, unsigned int n) const override;
+    void SetUsedDestinationState(const CScript *pscript, bool used);
+    void SetUsedDestinationState(const uint256& hash, unsigned int n, bool used) override;
+
+
     std::set<uint256> GetConflicts(const uint256 &txid) const;
 
     /* Mark a transaction (and it in-wallet descendants) as abandoned so its inputs may be respent. */

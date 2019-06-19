@@ -1005,8 +1005,8 @@ public:
 
     // Whether this or any UTXO with the same CTxDestination has been spent.
     bool IsUsedDestination(const CTxDestination& dst) const;
-    bool IsUsedDestination(const uint256& hash, unsigned int n) const;
-    void SetUsedDestinationState(const uint256& hash, unsigned int n, bool used);
+    virtual bool IsUsedDestination(const uint256& hash, unsigned int n) const;
+    virtual void SetUsedDestinationState(const uint256& hash, unsigned int n, bool used);
 
     std::vector<OutputGroup> GroupOutputs(const std::vector<COutput>& outputs, bool single_coin) const;
 

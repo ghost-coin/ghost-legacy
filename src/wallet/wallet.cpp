@@ -990,7 +990,8 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
 
     uint256 hash = wtxIn.GetHash();
 
-    if (IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)) {
+    if (IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)
+        && (!wtxIn.IsCoinStake() || !wtxIn.IsFromMe(ISMINE_ALL))) {
         // Mark used destinations
         for (const CTxIn& txin : wtxIn.tx->vin) {
             const COutPoint& op = txin.prevout;

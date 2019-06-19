@@ -26,7 +26,7 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
         connect_nodes(self.nodes[0], 1)
         self.sync_all()
 
-    def run_test (self):
+    def run_test(self):
         tmpdir = self.options.tmpdir
         nodes = self.nodes
 

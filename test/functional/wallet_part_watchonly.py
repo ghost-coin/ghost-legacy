@@ -20,7 +20,7 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-    def run_test (self):
+    def run_test(self):
         nodes = self.nodes
 
         nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')

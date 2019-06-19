@@ -21,7 +21,7 @@ class WalletParticlUnloadSpentTest(ParticlTestFramework):
         self.start_nodes()
         connect_nodes_bi(self.nodes, 0, 1)
 
-    def run_test (self):
+    def run_test(self):
         nodes = self.nodes
 
         nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')

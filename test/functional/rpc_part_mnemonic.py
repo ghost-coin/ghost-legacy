@@ -19,7 +19,7 @@ class MnemonicTest(ParticlTestFramework):
 
         self.sync_all()
 
-    def run_test (self):
+    def run_test(self):
         node = self.nodes[0]
 
         # mnemonic new [password] [language] [nBytesEntropy] [bip44]

@@ -26,7 +26,7 @@ class SmsgTest(ParticlTestFramework):
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
 
-    def run_test (self):
+    def run_test(self):
         tmpdir = self.options.tmpdir
         nodes = self.nodes
 

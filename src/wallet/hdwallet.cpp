@@ -2489,6 +2489,7 @@ CWallet::Balance CHDWallet::GetBalance(const int min_depth, bool avoid_reuse) co
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
+    bool allow_used_addresses = avoid_reuse || !IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
     for (const auto &ri : mapRecords) {
         const auto &txhash = ri.first;
         const auto &rtx = ri.second;
@@ -2497,7 +2498,8 @@ CWallet::Balance CHDWallet::GetBalance(const int min_depth, bool avoid_reuse) co
         int tx_depth = GetDepthInMainChain(*locked_chain, rtx.blockHash, rtx.nIndex);
         for (const auto &r : rtx.vout) {
             if (r.nType != OUTPUT_STANDARD
-                || IsSpent(*locked_chain, txhash, r.n)) {
+                || IsSpent(*locked_chain, txhash, r.n)
+                || (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey))) {
                 continue;
             }
             if (is_trusted && tx_depth >= min_depth) {
@@ -2523,7 +2525,7 @@ CWallet::Balance CHDWallet::GetBalance(const int min_depth, bool avoid_reuse) co
         }
     }
 
-    Balance ret = CWallet::GetBalance(min_depth);
+    Balance ret = CWallet::GetBalance(min_depth, avoid_reuse);
 
     ret.m_mine_trusted += bal_records.m_mine_trusted;
     ret.m_watchonly_trusted += bal_records.m_watchonly_trusted;
@@ -10410,6 +10412,13 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
                 }
                 break;
         }
+
+        if (IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)) {
+            const CScript *pscript = txout->GetPScriptPubKey();
+            if (pscript) {
+                SetUsedDestinationState(pscript, true);
+            }
+        }
     }
 
     if (fInsertedNew || fUpdated) {
@@ -10540,6 +10549,9 @@ void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vecto
 
     vCoins.clear();
     CAmount nTotal = 0;
+    // Either the WALLET_FLAG_AVOID_REUSE flag is not set (in which case we always allow), or we default to avoiding, and only in the case where
+    // a coin control object is provided, and has the avoid address reuse flag set to false, do we allow already used addresses
+    bool allow_used_addresses = !IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE) || (coinControl && !coinControl->m_avoid_address_reuse);
 
     for (const auto& item : mapWallet) {
         const uint256& wtxid = item.first;
@@ -10634,6 +10646,10 @@ void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vecto
                 continue;
             }
 
+            if (!allow_used_addresses && IsUsedDestination(wtxid, i)) {
+                continue;
+            }
+
             bool fSpendableIn = ((mine & ISMINE_SPENDABLE) != ISMINE_NO) || (coinControl && coinControl->fAllowWatchOnly && (mine & ISMINE_WATCH_ONLY_) != ISMINE_NO);
             //bool fSolvableIn = (mine & (ISMINE_SPENDABLE | ISMINE_WATCH_SOLVABLE)) != ISMINE_NO;
             bool fSolvableIn = IsSolvable(*this, txout->scriptPubKey);
@@ -10716,6 +10732,10 @@ void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vecto
             }
 
             if (IsLockedCoin(txid, r.n)) {
+                continue;
+            }
+
+            if (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey)) {
                 continue;
             }
 
@@ -10873,6 +10893,9 @@ void CHDWallet::AvailableBlindedCoins(interfaces::Chain::Lock& locked_chain, std
     }
 
     CAmount nTotal = 0;
+    // Either the WALLET_FLAG_AVOID_REUSE flag is not set (in which case we always allow), or we default to avoiding, and only in the case where
+    // a coin control object is provided, and has the avoid address reuse flag set to false, do we allow already used addresses
+    bool allow_used_addresses = !IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE) || (coinControl && !coinControl->m_avoid_address_reuse);
 
     for (MapRecords_t::const_iterator it = mapRecords.begin(); it != mapRecords.end(); ++it) {
         const uint256 &txid = it->first;
@@ -10933,6 +10956,10 @@ void CHDWallet::AvailableBlindedCoins(interfaces::Chain::Lock& locked_chain, std
                 continue;
             }
 
+            if (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey)) {
+                continue;
+            }
+
             bool fMature = true;
             bool fSpendable = (coinControl && !coinControl->fAllowWatchOnly && !(r.nFlags & ORF_OWNED)) ? false : true;
             bool fSolvable = true;
@@ -10952,8 +10979,8 @@ void CHDWallet::AvailableBlindedCoins(interfaces::Chain::Lock& locked_chain, std
             if (nMaximumCount > 0 && vCoins.size() >= nMaximumCount) {
                 return;
             }
-        };
-    };
+        }
+    }
 
     return;
 };
@@ -11534,6 +11561,48 @@ bool CHDWallet::IsSpent(interfaces::Chain::Lock& locked_chain, const uint256& ha
 
     return false;
 };
+
+bool CHDWallet::IsUsedDestination(const CScript *pscript) const
+{
+    CTxDestination dst;
+    return pscript && ExtractDestination(*pscript, dst) && IsUsedDestination(dst);
+}
+
+bool CHDWallet::IsUsedDestination(const uint256& hash, unsigned int n) const
+{
+    const CWalletTx* srctx = GetWalletTx(hash);
+    if (srctx) {
+        const auto &txout = srctx->tx->vpout[n];
+        const CScript *pscript = txout->GetPScriptPubKey();
+        return IsUsedDestination(pscript);
+    }
+    return false;
+}
+
+void CHDWallet::SetUsedDestinationState(const CScript *pscript, bool used)
+{
+    CTxDestination dst;
+    if (pscript && ExtractDestination(*pscript, dst)) {
+        if (::IsMine(*this, dst)) {
+            LOCK(cs_wallet);
+            if (used && !GetDestData(dst, "used", nullptr)) {
+                AddDestData(dst, "used", "p"); // p for "present", opposite of absent (null)
+            } else if (!used && GetDestData(dst, "used", nullptr)) {
+                EraseDestData(dst, "used");
+            }
+        }
+    }
+}
+
+void CHDWallet::SetUsedDestinationState(const uint256& hash, unsigned int n, bool used)
+{
+    const CWalletTx* srctx = GetWalletTx(hash);
+    if (srctx) {
+        const auto &txout = srctx->tx->vpout[n];
+        const CScript *pscript = txout->GetPScriptPubKey();
+        return SetUsedDestinationState(pscript, used);
+    }
+}
 
 std::set<uint256> CHDWallet::GetConflicts(const uint256 &txid) const
 {

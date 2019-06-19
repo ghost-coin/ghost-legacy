@@ -61,7 +61,7 @@ class WalletParticlTest(ParticlTestFramework):
         assert_equal(stderr, '')
         assert_equal(stdout, output)
 
-    def run_test (self):
+    def run_test(self):
         tmpdir = self.options.tmpdir
         nodes = self.nodes
 

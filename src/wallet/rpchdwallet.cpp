@@ -16,6 +16,7 @@
 #include <rpc/util.h>
 #include <rpc/rawtransaction_util.h>
 #include <script/sign.h>
+#include <script/descriptor.h>
 #include <timedata.h>
 #include <util/system.h>
 #include <txdb.h>
@@ -4201,6 +4202,8 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
+    bool avoid_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
+
     if (request.fHelp || request.params.size() > 5)
         throw std::runtime_error(
             RPCHelpMan{"listunspentblind",
@@ -4238,8 +4241,15 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
             "    \"amount\" : x.xxx,         (numeric) the transaction output amount in " + CURRENCY_UNIT + "\n"
             "    \"confirmations\" : n,      (numeric) The number of confirmations\n"
             "    \"redeemScript\" : n        (string) The redeemScript if scriptPubKey is P2SH\n"
-            //"    \"spendable\" : xxx,        (bool) Whether we have the private keys to spend this output\n"
-            //"    \"solvable\" : xxx          (bool) Whether we know how to spend this output, ignoring the lack of keys\n"
+            "    \"spendable\" : xxx,        (bool) Whether we have the private keys to spend this output\n"
+            "    \"solvable\" : xxx          (bool) Whether we know how to spend this output, ignoring the lack of keys\n"
+            + (avoid_reuse ?
+            "    \"reused\" : xxx,           (bool) Whether this output is reused/dirty (sent to an address that was previously spent from)\n" :
+            "    \"desc\" : xxx,             (string, only when solvable) A descriptor for spending this output\n"
+            "    \"safe\" : xxx              (bool) Whether this output is considered safe to spend. Unconfirmed transactions\n"
+            "                              from outside keys and unconfirmed replacement transactions are considered unsafe\n"
+            "                              and are not eligible for spending by fundrawtransaction and sendtoaddress.\n"
+            "") +
             "  }\n"
             "  ,...\n"
             "]\n"
@@ -4332,26 +4342,23 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
 
     LOCK(pwallet->cs_wallet);
 
-    for (const auto &out : vecOutputs)
-    {
-        if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth)
+    for (const auto &out : vecOutputs) {
+        if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth) {
             continue;
+        }
 
         const COutputRecord *pout = out.rtx->second.GetOutput(out.i);
-
-        if (!pout)
-        {
+        if (!pout)  {
             LogPrintf("%s: ERROR - Missing output %s %d\n", __func__, out.txhash.ToString(), out.i);
             continue;
-        };
+        }
 
         CAmount nValue = pout->nValue;
 
         CTxDestination address;
         const CScript *scriptPubKey = &pout->scriptPubKey;
-        bool fValidAddress;
-
-        fValidAddress = ExtractDestination(*scriptPubKey, address);
+        bool fValidAddress = ExtractDestination(*scriptPubKey, address);
+        bool reused = avoid_reuse && pwallet->IsUsedDestination(address);
         if (setAddress.size() && (!fValidAddress || !setAddress.count(address)))
             continue;
 
@@ -4400,17 +4407,20 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
 
         entry.pushKV("scriptPubKey", HexStr(scriptPubKey->begin(), scriptPubKey->end()));
 
-        if (fCCFormat)
-        {
+        if (fCCFormat) {
             entry.pushKV("time", out.rtx->second.GetTxTime());
             entry.pushKV("amount", nValue);
-        } else
-        {
+        } else {
             entry.pushKV("amount", ValueFromAmount(nValue));
-        };
+        }
         entry.pushKV("confirmations", out.nDepth);
-        //entry.pushKV("spendable", out.fSpendable);
-        //entry.pushKV("solvable", out.fSolvable);
+        entry.pushKV("spendable", out.fSpendable);
+        entry.pushKV("solvable", out.fSolvable);
+        if (out.fSolvable) {
+            auto descriptor = InferDescriptor(*scriptPubKey, *pwallet);
+            entry.pushKV("desc", descriptor->ToString());
+        }
+        if (avoid_reuse) entry.pushKV("reused", reused);
         entry.pushKV("safe", out.fSafe);
         results.push_back(entry);
     }
@@ -5085,6 +5095,8 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                             "         \"UNSET\"\n"
                             "         \"ECONOMICAL\"\n"
                             "         \"CONSERVATIVE\""},
+                            {"avoid_reuse", RPCArg::Type::BOOL, /* default */ pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE) ? "true" : "unavailable", "Avoid spending from dirty addresses; addresses are considered\n"
+                            "                             dirty if they have previously been used in a transaction."},
                             {"feeRate", RPCArg::Type::AMOUNT, /* default */ "not set: makes wallet determine the fee", "Set a specific fee rate in " + CURRENCY_UNIT + "/kB"},
                         },
                     },
@@ -6951,6 +6963,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                 {"allow_change_output", UniValueType(UniValue::VBOOL)},
                 {"conf_target", UniValueType(UniValue::VNUM)},
                 {"estimate_mode", UniValueType(UniValue::VSTR)},
+                {"avoid_reuse", UniValueType(UniValue::VBOOL)},
             },
             true, true);
 
@@ -7020,6 +7033,10 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid estimate_mode parameter");
             }
         }
+        if (options.exists("avoid_reuse")) {
+            coinControl.m_avoid_address_reuse = options["avoid_reuse"].get_bool();
+        }
+        coinControl.m_avoid_partial_spends |= coinControl.m_avoid_address_reuse;
     }
 
     // parse hex string from parameter
