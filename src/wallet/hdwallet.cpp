@@ -2483,7 +2483,7 @@ CAmount CHDWallet::GetStaked()
     return nTotal;
 };
 
-CWallet::Balance CHDWallet::GetBalance(const int min_depth) const
+CWallet::Balance CHDWallet::GetBalance(const int min_depth, bool avoid_reuse) const
 {
     CWallet::Balance bal_records;
     auto locked_chain = chain().lock();
