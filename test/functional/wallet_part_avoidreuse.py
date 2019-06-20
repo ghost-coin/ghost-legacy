@@ -50,26 +50,26 @@ class WalletParticlAvoidReuseTest(ParticlTestFramework):
         addr_plain = nodes[2].getnewaddress()
         nodes[1].sendtoaddress(addr_plain, 1)
 
-        # What happens to multiple outputs received before a spend?
-        #self.sync_all()
-        #nodes[1].sendtoaddress(addr_plain, 2)
+        self.sync_all()
+        nodes[1].sendtoaddress(addr_plain, 2)
 
         self.sync_all()
         self.stakeBlocks(1)
-        assert(isclose(nodes[2].getbalances()['mine']['trusted'], 1.0))
+        assert(isclose(nodes[2].getbalances()['mine']['trusted'], 3.0))
 
         nodes[2].sendtoaddress(nodes[1].getnewaddress(), 0.5)
-        assert(isclose(nodes[2].getbalances()['mine']['trusted'], 0.499654))
+        print(nodes[2].getbalances()['mine']['trusted'])
+        assert(isclose(nodes[2].getbalances()['mine']['trusted'], 2.499464))
 
-        nodes[1].sendtoaddress(addr_plain, 2)
+        nodes[1].sendtoaddress(addr_plain, 3)
         self.sync_all()
         self.stakeBlocks(1)
 
         assert(len(nodes[2].listunspent()) == 2)
-        assert(isclose(nodes[2].getbalances()['mine']['trusted'], 0.499654))
+        assert(isclose(nodes[2].getbalances()['mine']['trusted'], 2.499464))
 
         assert(len(nodes[3].listunspent()) == 2)
-        assert(isclose(nodes[3].getbalances()['mine']['trusted'], 2.499654))
+        assert(isclose(nodes[3].getbalances()['mine']['trusted'], 5.499464))
 
 
 if __name__ == '__main__':

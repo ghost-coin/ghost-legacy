@@ -4682,6 +4682,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     }
 
     CCoinControl coincontrol;
+    coincontrol.m_avoid_address_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
 
     nv = nCoinControlOfs;
     if (request.params.size() > nv
@@ -4762,7 +4763,9 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         if (uvCoinControl["show_fee"].isBool() && uvCoinControl["show_fee"].get_bool() == true) {
             fShowFee = true;
         }
+        coincontrol.m_avoid_address_reuse = GetAvoidReuseFlag(pwallet, uvCoinControl["avoid_reuse"]);
     }
+    coincontrol.m_avoid_partial_spends |= coincontrol.m_avoid_address_reuse;
 
     CAmount nFeeRet = 0;
     {
@@ -6900,6 +6903,8 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                             "         \"UNSET\"\n"
                             "         \"ECONOMICAL\"\n"
                             "         \"CONSERVATIVE\""},
+                            {"avoid_reuse", RPCArg::Type::BOOL, /* default */ pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE) ? "true" : "unavailable", "Avoid spending from dirty addresses; addresses are considered\n"
+                            "                             dirty if they have previously been used in a transaction."},
                             {"allow_other_inputs", RPCArg::Type::BOOL, /* default */ "true", "Allow inputs to be added if any inputs already exist."},
                             {"allow_change_output", RPCArg::Type::BOOL, /* default */ "true", "Allow change output to be added if needed (only for 'blind' input_type).\n"
             "                              Allows this transaction to be replaced by a transaction with higher fees."},
@@ -6945,6 +6950,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
     std::set<int> setSubtractFeeFromOutputs;
 
     coinControl.fAllowOtherInputs = true;
+    coinControl.m_avoid_address_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
 
     if (request.params[4].isObject()) {
         UniValue options = request.params[4];
@@ -7033,11 +7039,9 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid estimate_mode parameter");
             }
         }
-        if (options.exists("avoid_reuse")) {
-            coinControl.m_avoid_address_reuse = options["avoid_reuse"].get_bool();
-        }
-        coinControl.m_avoid_partial_spends |= coinControl.m_avoid_address_reuse;
+        coinControl.m_avoid_address_reuse = GetAvoidReuseFlag(pwallet, options["avoid_reuse"]);
     }
+    coinControl.m_avoid_partial_spends |= coinControl.m_avoid_address_reuse;
 
     // parse hex string from parameter
     CMutableTransaction tx;
