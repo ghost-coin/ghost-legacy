@@ -1,6 +1,12 @@
 Next Release
 ==============
 
+- Fixed avoidpartialspends
+
+
+0.18.0.9
+==============
+
 - pruneorphanedblocks shows shutdown warning if not in test mode.
 - Fixed Qt 'Request payment' button greyed out after importing mnemonic.
 
