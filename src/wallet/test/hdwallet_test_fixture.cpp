@@ -44,24 +44,23 @@ std::string StripQuotes(std::string s)
 {
     // Strip double quotes from start and/or end of string
     size_t len = s.length();
-    if (len < 2)
-    {
-        if (len > 0 && s[0] == '"')
+    if (len < 2) {
+        if (len > 0 && s[0] == '"') {
             s = s.substr(1, len - 1);
+        }
         return s;
-    };
+    }
 
-    if (s[0] == '"')
-    {
-        if (s[len-1] == '"')
+    if (s[0] == '"') {
+        if (s[len-1] == '"') {
             s = s.substr(1, len - 2);
-        else
+        } else {
             s = s.substr(1, len - 1);
+        }
     } else
-    if (s[len-1] == '"')
-    {
+    if (s[len-1] == '"') {
         s = s.substr(0, len - 2);
-    };
+    }
     return s;
 };
 

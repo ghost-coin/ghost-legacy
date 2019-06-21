@@ -11,7 +11,7 @@
 #include <insight/csindex.h>
 #include <script/script.h>
 #include <script/interpreter.h>
-#include <script/ismine.h>
+#include <wallet/ismine.h>
 #include <key_io.h>
 
 #include <boost/thread.hpp>

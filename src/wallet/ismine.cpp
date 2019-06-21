@@ -3,7 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <script/ismine.h>
+#include <wallet/ismine.h>
 
 #include <key.h>
 #include <key/extkey.h>
@@ -11,11 +11,11 @@
 #include <keystore.h>
 #include <script/script.h>
 #include <script/sign.h>
-
+#include <wallet/wallet.h>
 
 //typedef std::vector<unsigned char> valtype;
 
-bool HaveKeys(const std::vector<valtype>& pubkeys, const CKeyStore& keystore)
+bool HaveKeys(const std::vector<valtype>& pubkeys, const CWallet& keystore)
 {
     for (const valtype& pubkey : pubkeys) {
         CKeyID keyID = CPubKey(pubkey).GetID();
@@ -57,29 +57,29 @@ bool PermitsUncompressed(IsMineSigVersion sigversion)
     return sigversion == IsMineSigVersion::TOP || sigversion == IsMineSigVersion::P2SH;
 }
 
-isminetype IsMineInner(const CKeyStore& keystore, const CScript& scriptPubKey, bool& isInvalid, IsMineSigVersion sigversion)
+isminetype IsMineInner(const CWallet& keystore, const CScript& scriptPubKey, bool& isInvalid, IsMineSigVersion sigversion)
 {
-    if (HasIsCoinstakeOp(scriptPubKey))
-    {
+    if (HasIsCoinstakeOp(scriptPubKey)) {
         CScript scriptA, scriptB;
-        if (!SplitConditionalCoinstakeScript(scriptPubKey, scriptA, scriptB))
+        if (!SplitConditionalCoinstakeScript(scriptPubKey, scriptA, scriptB)) {
             return ISMINE_NO;
+        }
 
         isminetype typeB = IsMineInner(keystore, scriptB, isInvalid, sigversion);
-        if (typeB & ISMINE_SPENDABLE)
+        if (typeB & ISMINE_SPENDABLE) {
             return typeB;
+        }
 
         isminetype typeA = IsMineInner(keystore, scriptA, isInvalid, sigversion);
-        if (typeA & ISMINE_SPENDABLE)
-        {
+        if (typeA & ISMINE_SPENDABLE) {
             int ia = (int)typeA;
             ia &= ~ISMINE_SPENDABLE;
             ia |= ISMINE_WATCH_COLDSTAKE;
             typeA = (isminetype)ia;
-        };
+        }
 
         return (isminetype)((int)typeA | (int)typeB);
-    };
+    }
 
     isInvalid = false;
 
@@ -229,20 +229,20 @@ isminetype IsMineInner(const CKeyStore& keystore, const CScript& scriptPubKey, b
 
 } // namespace
 
-isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey, bool& isInvalid)
+isminetype IsMine(const CWallet& keystore, const CScript& scriptPubKey, bool& isInvalid)
 {
     isminetype rv = IsMineInner(keystore, scriptPubKey, isInvalid, IsMineSigVersion::TOP);
     return isInvalid ? ISMINE_NO : rv;
 }
 
-isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey)
+isminetype IsMine(const CWallet& keystore, const CScript& scriptPubKey)
 {
     bool isInvalid = false;
     isminetype rv = IsMineInner(keystore, scriptPubKey, isInvalid, IsMineSigVersion::TOP);
     return isInvalid ? ISMINE_NO : rv;
 }
 
-isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest)
+isminetype IsMine(const CWallet& keystore, const CTxDestination& dest)
 {
     if (dest.type() == typeid(CStealthAddress))
     {
@@ -254,7 +254,7 @@ isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest)
     return IsMine(keystore, script);
 }
 
-isminetype IsMineP2SH(const CKeyStore& keystore, const CScript& scriptPubKey)
+isminetype IsMineP2SH(const CWallet& keystore, const CScript& scriptPubKey)
 {
     bool isInvalid = false;
     return IsMineInner(keystore, scriptPubKey, isInvalid, IsMineSigVersion::P2SH);

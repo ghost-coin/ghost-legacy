@@ -13,6 +13,8 @@
 #include <primitives/transaction.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
+#include <wallet/ismine.h>
+#include <policy/policy.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -36,6 +38,12 @@ std::vector<Test1> vTestVector1 = {
     Test1("crazy horse battery staple", "Bitcoin seed", 50000, "xprv9s21ZrQH143K2JF8RafpqtKiTbsbaxEeUaMnNHsm5o6wCW3z8ySyH4UxFVSfZ8n7ESu7fgir8imbZKLYVBxFPND1pniTZ81vKfd45EHKX73"),
     Test1("doesn'tneedtobewords",       "Bitcoin seed", 50000, "xprv9s21ZrQH143K24uheQvx9etuBgxXfGZrBuHdmmZXQ1Gv9n1sXE2BE85PHRmSFixb1i8ngZFV6n4mufebUEg55n1epDFsFXKhQ4abU7gvThb")
 };
+
+static void AddKey(CWallet& wallet, const CKey& key)
+{
+    LOCK(wallet.cs_wallet);
+    wallet.AddKeyPubKey(key, key.GetPubKey());
+}
 
 BOOST_AUTO_TEST_CASE(new_ext_key)
 {
@@ -365,6 +373,226 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     }
 
     SetMockTime(0);
+}
+
+BOOST_AUTO_TEST_CASE(multisig_Solver1)
+{
+    // Tests Solver() that returns lists of keys that are
+    // required to satisfy a ScriptPubKey
+    //
+    // Also tests IsMine() and ExtractDestination()
+    //
+    // Note: ExtractDestination for the multisignature transactions
+    // always returns false for this release, even if you have
+    // one key that would satisfy an (a|b) or 2-of-3 keys needed
+    // to spend an escrow transaction.
+    //
+    CHDWallet keystore(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+    CHDWallet emptykeystore(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+    CHDWallet partialkeystore(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+    CKey key[3];
+    std::vector<CTxDestination> keyaddr(3); // Wmaybe-uninitialized
+    for (int i = 0; i < 3; i++) {
+        key[i].MakeNewKey(true);
+        AddKey(keystore, key[i]);
+        keyaddr[i] = PKHash(key[i].GetPubKey());
+    }
+    AddKey(partialkeystore, key[0]);
+
+    {
+        std::vector<valtype> solutions;
+        CScript s;
+        s << ToByteVector(key[0].GetPubKey()) << OP_CHECKSIG;
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
+        BOOST_CHECK(solutions.size() == 1);
+        CTxDestination addr;
+        BOOST_CHECK(ExtractDestination(s, addr));
+        BOOST_CHECK(addr == keyaddr[0]);
+        BOOST_CHECK(IsMine(keystore, s));
+        BOOST_CHECK(!IsMine(emptykeystore, s));
+    }
+    {
+        std::vector<valtype> solutions;
+        CScript s;
+        s << OP_DUP << OP_HASH160 << ToByteVector(key[0].GetPubKey().GetID()) << OP_EQUALVERIFY << OP_CHECKSIG;
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
+        BOOST_CHECK(solutions.size() == 1);
+        CTxDestination addr;
+        BOOST_CHECK(ExtractDestination(s, addr));
+        BOOST_CHECK(addr == keyaddr[0]);
+        BOOST_CHECK(IsMine(keystore, s));
+        BOOST_CHECK(!IsMine(emptykeystore, s));
+    }
+    {
+        std::vector<valtype> solutions;
+        CScript s;
+        s << OP_2 << ToByteVector(key[0].GetPubKey()) << ToByteVector(key[1].GetPubKey()) << OP_2 << OP_CHECKMULTISIG;
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
+        BOOST_CHECK_EQUAL(solutions.size(), 4U);
+        CTxDestination addr;
+        BOOST_CHECK(!ExtractDestination(s, addr));
+        BOOST_CHECK(IsMineP2SH(keystore, s));
+        BOOST_CHECK(!IsMine(emptykeystore, s));
+        BOOST_CHECK(!IsMine(partialkeystore, s));
+    }
+    {
+        std::vector<valtype> solutions;
+        txnouttype whichType;
+        CScript s;
+        s << OP_1 << ToByteVector(key[0].GetPubKey()) << ToByteVector(key[1].GetPubKey()) << OP_2 << OP_CHECKMULTISIG;
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
+        BOOST_CHECK_EQUAL(solutions.size(), 4U);
+        std::vector<CTxDestination> addrs;
+        int nRequired;
+        BOOST_CHECK(ExtractDestinations(s, whichType, addrs, nRequired));
+        BOOST_CHECK(addrs[0] == keyaddr[0]);
+        BOOST_CHECK(addrs[1] == keyaddr[1]);
+        BOOST_CHECK(nRequired == 1);
+        BOOST_CHECK(IsMineP2SH(keystore, s));
+        BOOST_CHECK(!IsMine(emptykeystore, s));
+        BOOST_CHECK(!IsMine(partialkeystore, s));
+    }
+    {
+        std::vector<valtype> solutions;
+        CScript s;
+        s << OP_2 << ToByteVector(key[0].GetPubKey()) << ToByteVector(key[1].GetPubKey()) << ToByteVector(key[2].GetPubKey()) << OP_3 << OP_CHECKMULTISIG;
+        BOOST_CHECK(Solver(s, solutions) != TX_NONSTANDARD);
+        BOOST_CHECK(solutions.size() == 5);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(opiscoinstake_test)
+{
+    SeedInsecureRand();
+    CHDWallet keystoreA(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+    CHDWallet keystoreB(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+
+    CKey kA, kB;
+    InsecureNewKey(kA, true);
+    AddKey(keystoreA, kA);
+
+    CPubKey pkA = kA.GetPubKey();
+    CKeyID idA = pkA.GetID();
+
+    InsecureNewKey(kB, true);
+    AddKey(keystoreB, kB);
+
+    CPubKey pkB = kB.GetPubKey();
+    CKeyID256 idB = pkB.GetID256();
+
+    CScript scriptSignA = CScript() << OP_DUP << OP_HASH160 << ToByteVector(idA) << OP_EQUALVERIFY << OP_CHECKSIG;
+    CScript scriptSignB = CScript() << OP_DUP << OP_SHA256 << ToByteVector(idB) << OP_EQUALVERIFY << OP_CHECKSIG;
+
+    CScript script = CScript()
+        << OP_ISCOINSTAKE << OP_IF
+        << OP_DUP << OP_HASH160 << ToByteVector(idA) << OP_EQUALVERIFY << OP_CHECKSIG
+        << OP_ELSE
+        << OP_DUP << OP_SHA256 << ToByteVector(idB) << OP_EQUALVERIFY << OP_CHECKSIG
+        << OP_ENDIF;
+
+    BOOST_CHECK(HasIsCoinstakeOp(script));
+    BOOST_CHECK(script.IsPayToPublicKeyHash256_CS());
+
+    BOOST_CHECK(!IsSpendScriptP2PKH(script));
+
+
+    CScript scriptFail1 = CScript()
+        << OP_ISCOINSTAKE << OP_IF
+        << OP_DUP << OP_HASH160 << ToByteVector(idA) << OP_EQUALVERIFY << OP_CHECKSIG
+        << OP_ELSE
+        << OP_DUP << OP_HASH160 << ToByteVector(idA) << OP_EQUALVERIFY << OP_CHECKSIG
+        << OP_ENDIF;
+    BOOST_CHECK(IsSpendScriptP2PKH(scriptFail1));
+
+
+    CScript scriptTest, scriptTestB;
+    BOOST_CHECK(GetCoinstakeScriptPath(script, scriptTest));
+    BOOST_CHECK(scriptTest == scriptSignA);
+
+
+    BOOST_CHECK(GetNonCoinstakeScriptPath(script, scriptTest));
+    BOOST_CHECK(scriptTest == scriptSignB);
+
+
+    BOOST_CHECK(SplitConditionalCoinstakeScript(script, scriptTest, scriptTestB));
+    BOOST_CHECK(scriptTest == scriptSignA);
+    BOOST_CHECK(scriptTestB == scriptSignB);
+
+
+    txnouttype whichType;
+    // IsStandard should fail until chain time is >= OpIsCoinstakeTime
+    BOOST_CHECK(!IsStandard(script, whichType));
+
+
+    BOOST_CHECK(IsMine(keystoreB, script));
+    BOOST_CHECK(IsMine(keystoreA, script));
+
+
+    CAmount nValue = 100000;
+    SignatureData sigdataA, sigdataB, sigdataC;
+
+    CMutableTransaction txn;
+    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.SetType(TXN_COINSTAKE);
+    txn.nLockTime = 0;
+
+    int nBlockHeight = 1;
+    OUTPUT_PTR<CTxOutData> outData = MAKE_OUTPUT<CTxOutData>();
+    outData->vData.resize(4);
+    memcpy(&outData->vData[0], &nBlockHeight, 4);
+    txn.vpout.push_back(outData);
+
+
+    OUTPUT_PTR<CTxOutStandard> out0 = MAKE_OUTPUT<CTxOutStandard>();
+    out0->nValue = nValue;
+    out0->scriptPubKey = script;
+    txn.vpout.push_back(out0);
+    txn.vin.push_back(CTxIn(COutPoint(uint256S("d496208ea84193e0c5ed05ac708aec84dfd2474b529a7608b836e282958dc72b"), 0)));
+    BOOST_CHECK(txn.IsCoinStake());
+
+    std::vector<uint8_t> vchAmount(8);
+    memcpy(&vchAmount[0], &nValue, 8);
+
+
+    BOOST_CHECK(ProduceSignature(keystoreA, MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataA));
+    BOOST_CHECK(!ProduceSignature(keystoreB, MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataB));
+
+
+    ScriptError serror = SCRIPT_ERR_OK;
+    int nFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
+    CScript scriptSig;
+    BOOST_CHECK(VerifyScript(scriptSig, script, &sigdataA.scriptWitness, nFlags, MutableTransactionSignatureChecker(&txn, 0, vchAmount), &serror));
+
+
+    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.SetType(TXN_STANDARD);
+    BOOST_CHECK(!txn.IsCoinStake());
+
+    // This should fail anyway as the txn changed
+    BOOST_CHECK(!VerifyScript(scriptSig, script, &sigdataA.scriptWitness, nFlags, MutableTransactionSignatureChecker(&txn, 0, vchAmount), &serror));
+
+    BOOST_CHECK(!ProduceSignature(keystoreA, MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataC));
+    BOOST_CHECK(ProduceSignature(keystoreB, MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataB));
+
+    BOOST_CHECK(VerifyScript(scriptSig, script, &sigdataB.scriptWitness, nFlags, MutableTransactionSignatureChecker(&txn, 0, vchAmount), &serror));
+
+
+    CScript script_h160 = CScript()
+        << OP_ISCOINSTAKE << OP_IF
+        << OP_DUP << OP_HASH160 << ToByteVector(idA) << OP_EQUALVERIFY << OP_CHECKSIG
+        << OP_ELSE
+        << OP_HASH160 << ToByteVector(idA) << OP_EQUAL
+        << OP_ENDIF;
+    BOOST_CHECK(script_h160.IsPayToScriptHash_CS());
+
+
+    CScript script_h256 = CScript()
+        << OP_ISCOINSTAKE << OP_IF
+        << OP_DUP << OP_HASH160 << ToByteVector(idA) << OP_EQUALVERIFY << OP_CHECKSIG
+        << OP_ELSE
+        << OP_SHA256 << ToByteVector(idB) << OP_EQUAL
+        << OP_ENDIF;
+    BOOST_CHECK(script_h256.IsPayToScriptHash256_CS());
 }
 
 

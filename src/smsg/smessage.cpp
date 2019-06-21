@@ -41,7 +41,7 @@ Notes:
 #include <crypto/hmac_sha256.h>
 #include <crypto/sha512.h>
 
-#include <script/ismine.h>
+#include <wallet/ismine.h>
 #include <support/allocators/secure.h>
 #include <consensus/validation.h>
 #include <validation.h>

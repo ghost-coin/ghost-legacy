@@ -1950,7 +1950,7 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
             return ISMINE_NO;
         CScript subscript;
         if (GetCScript(scriptID, subscript)) {
-            isminetype ret = ::IsMine(*((CKeyStore*)this), subscript, isInvalid);
+            isminetype ret = ::IsMine(*((CWallet*)this), subscript, isInvalid);
             if (ret == ISMINE_SPENDABLE || ret == ISMINE_WATCH_ONLY_ || (ret == ISMINE_NO && isInvalid))
                 return ret;
         }
@@ -1978,7 +1978,7 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
                 }
             }
         }
-        if (HaveKeys(keys, *((CKeyStore*)this)) == keys.size())
+        if (HaveKeys(keys, *((CWallet*)this)) == keys.size())
             return ISMINE_SPENDABLE;
         break;
     }
@@ -2013,9 +2013,11 @@ isminetype CHDWallet::IsMine(const CTxOutBase *txout) const
 
 bool CHDWallet::IsMine(const CTransaction &tx) const
 {
-    for (const auto &txout : tx.vpout)
-        if (IsMine(txout.get()))
+    for (const auto &txout : tx.vpout) {
+        if (IsMine(txout.get())) {
             return true;
+        }
+    }
     return false;
 }
 
