@@ -184,7 +184,7 @@ public:
     CAmount GetStaked();
 
     Balance GetBalance(int min_depth = 0, bool avoid_reuse = true) const override;
-    bool GetBalances(CHDWalletBalances &bal);
+    bool GetBalances(CHDWalletBalances &bal, bool avoid_reuse = true);
     CAmount GetAvailableBalance(const CCoinControl* coinControl = nullptr) const override;
     CAmount GetAvailableAnonBalance(const CCoinControl* coinControl = nullptr) const;
     CAmount GetAvailableBlindBalance(const CCoinControl* coinControl = nullptr) const;

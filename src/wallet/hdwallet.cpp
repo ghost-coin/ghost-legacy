@@ -2537,9 +2537,13 @@ CWallet::Balance CHDWallet::GetBalance(const int min_depth, bool avoid_reuse) co
     return ret;
 }
 
-bool CHDWallet::GetBalances(CHDWalletBalances &bal)
+bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse)
 {
-    bal.Clear();
+    bal = CHDWalletBalances();
+
+    isminefilter reuse_filter = avoid_reuse ? 0 : ISMINE_USED;
+
+    bool allow_used_addresses = !IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE) || (!avoid_reuse);
 
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
@@ -2561,12 +2565,12 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
         }
 
         if (wtx.IsTrusted(*locked_chain)) {
-            bal.nPart += wtx.GetAvailableCredit(*locked_chain);
-            bal.nPartWatchOnly += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_WATCH_ONLY);
+            bal.nPart += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_SPENDABLE | reuse_filter);
+            bal.nPartWatchOnly += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_WATCH_ONLY | reuse_filter);
         } else {
             if (wtx.GetDepthInMainChain(*locked_chain) == 0 && wtx.InMempool()) {
-                bal.nPartUnconf += wtx.GetAvailableCredit(*locked_chain);
-                bal.nPartWatchOnlyUnconf += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_WATCH_ONLY);
+                bal.nPartUnconf += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_SPENDABLE | reuse_filter);
+                bal.nPartWatchOnlyUnconf += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_WATCH_ONLY | reuse_filter);
             }
         }
     }
@@ -2609,6 +2613,9 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
                     if (!(r.nFlags & ORF_OWNED)) {
                         continue;
                     }
+                    if (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey)) {
+                        continue;
+                    }
                     if (fTrusted) {
                         bal.nBlind += r.nValue;
                     } else
@@ -2618,6 +2625,9 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
                     break;
                 case OUTPUT_STANDARD:
                     if (r.nFlags & ORF_OWNED) {
+                        if (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey)) {
+                            continue;
+                        }
                         if (fTrusted) {
                             bal.nPart += r.nValue;
                         } else

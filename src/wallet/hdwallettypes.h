@@ -276,25 +276,6 @@ public:
 class CHDWalletBalances
 {
 public:
-    void Clear()
-    {
-        nPart = 0;
-        nPartUnconf = 0;
-        nPartStaked = 0;
-        nPartImmature = 0;
-        nPartWatchOnly = 0;
-        nPartWatchOnlyUnconf = 0;
-        nPartWatchOnlyStaked = 0;
-        nPartWatchOnlyImmature = 0;
-
-        nBlind = 0;
-        nBlindUnconf = 0;
-
-        nAnon = 0;
-        nAnonUnconf = 0;
-        nAnonImmature = 0;
-    }
-
     CAmount nPart = 0;
     CAmount nPartUnconf = 0;
     CAmount nPartStaked = 0;
@@ -310,6 +291,9 @@ public:
     CAmount nAnon = 0;
     CAmount nAnonUnconf = 0;
     CAmount nAnonImmature = 0;
+
+    //CAmount nPartUsed = 0;
+    //CAmount nBlindUsed = 0;
 };
 
 #endif // PARTICL_WALLET_HDWALLETTYPES_H
