@@ -336,7 +336,7 @@ void BitcoinApplication::initializeResult(bool success)
     if(success)
     {
         // Log this only after AppInitMain finishes, as then logging setup is guaranteed complete
-        qWarning() << "Platform customization:" << platformStyle->getName();
+        qInfo() << "Platform customization:" << platformStyle->getName();
 #ifdef ENABLE_WALLET
         m_wallet_controller = new WalletController(m_node, platformStyle, optionsModel, this);
 #ifdef ENABLE_BIP70
@@ -442,15 +442,16 @@ int GuiMain(int argc, char* argv[])
     Q_INIT_RESOURCE(bitcoin);
     Q_INIT_RESOURCE(bitcoin_locale);
 
-    BitcoinApplication app(*node, argc, argv);
     // Generate high-dpi pixmaps
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #if QT_VERSION >= 0x050600
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 #ifdef Q_OS_MAC
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
+
+    BitcoinApplication app(*node, argc, argv);
 
     // Register meta types used for QMetaObject::invokeMethod
     qRegisterMetaType< bool* >();
