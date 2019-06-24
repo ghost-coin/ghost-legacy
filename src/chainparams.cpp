@@ -425,14 +425,14 @@ public:
         consensus.BIP34Height = 0;
         consensus.BIP65Height = 0;
         consensus.BIP66Height = 0;
-        consensus.OpIsCoinstakeTime = 1510272000; // 2017-11-10 00:00:00 UTC
+        consensus.OpIsCoinstakeTime = 0x5A04EC00;       // 2017-11-10 00:00:00 UTC
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
-        consensus.nPaidSmsgTime = 0x5C791EC0;       // 2019-03-01 12:00:00
-        consensus.csp2shTime = 0x5C791EC0;          // 2019-03-01 12:00:00
-        consensus.smsg_fee_time = 0xFFFFFFFF;       // 2106 TODO: lower
-        consensus.bulletproof_time = 0xFFFFFFFF;    // 2106 TODO: lower
-        consensus.rct_time = 0xFFFFFFFF;            // 2106 TODO: lower
-        consensus.smsg_difficulty_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.nPaidSmsgTime = 0x5C791EC0;           // 2019-03-01 12:00:00
+        consensus.csp2shTime = 0x5C791EC0;              // 2019-03-01 12:00:00
+        consensus.smsg_fee_time = 0x5D2DBC40;           // 2019-07-16 12:00:00
+        consensus.bulletproof_time = 0x5D2DBC40;        // 2019-07-16 12:00:00
+        consensus.rct_time = 0x5D2DBC40;                // 2019-07-16 12:00:00
+        consensus.smsg_difficulty_time = 0x5D2DBC40;    // 2019-07-16 12:00:00
 
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;
@@ -464,10 +464,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1510704000; // November 15th, 2017.
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000057f63fa31c71fd433f");
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000005b068ad3d9a61ba9eb");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x21e62a832721013d7f6f0930d51eaa8d76fa55ba540ec9f7ce639963be5b1c94"); // 460310
+        consensus.defaultAssumeValid = uint256S("0xdd26591439f80ddb52c360209d0bb3f9d94a391ede0ec7b5b0dcdb9c0877be54"); // 474198
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -568,14 +568,14 @@ public:
                 { 376100,   uint256S("0xff704cb42547da4efb2b32054c72c7682b7634ac34fda4ec88fe7badc666338c")},
                 { 421718,   uint256S("0xd22f8acde6c5aed109087eb2799620c560a78e573fa587a1660aef854069d75d")},
                 { 443228,   uint256S("0x1e2ae3edb2fa5b398c2f719d2bbb44b3089fb96170b6676c0c963f12bceba489")},
-                { 460310,   uint256S("0x21e62a832721013d7f6f0930d51eaa8d76fa55ba540ec9f7ce639963be5b1c94")},
+                { 474198,   uint256S("0xdd26591439f80ddb52c360209d0bb3f9d94a391ede0ec7b5b0dcdb9c0877be54")},
             }
         };
 
         chainTxData = ChainTxData {
-            // Data from rpc: getchaintxstats 4096 21e62a832721013d7f6f0930d51eaa8d76fa55ba540ec9f7ce639963be5b1c94
-            /* nTime    */ 1559595120,
-            /* nTxCount */ 510981,
+            // Data from rpc: getchaintxstats 4096 dd26591439f80ddb52c360209d0bb3f9d94a391ede0ec7b5b0dcdb9c0877be54
+            /* nTime    */ 1561383920,
+            /* nTxCount */ 526532,
             /* dTxRate  */ 0.008
         };
 
@@ -617,11 +617,11 @@ public:
         consensus.OpIsCoinstakeTime = 0;
         consensus.fAllowOpIsCoinstakeWithP2PKH = true; // TODO: clear for next testnet
         consensus.nPaidSmsgTime = 0;
-        consensus.csp2shTime = 0x5C67FB40;          // 2019-02-16 12:00:00
-        consensus.smsg_fee_time = 0x5C67FB40;       // 2019-02-16 12:00:00
-        consensus.bulletproof_time = 0x5C67FB40;    // 2019-02-16 12:00:00
+        consensus.csp2shTime = 0x5C67FB40;              // 2019-02-16 12:00:00
+        consensus.smsg_fee_time = 0x5C67FB40;           // 2019-02-16 12:00:00
+        consensus.bulletproof_time = 0x5C67FB40;        // 2019-02-16 12:00:00
         consensus.rct_time = 0;
-        consensus.smsg_difficulty_time = 0xFFFFFFFF; // 2106 TODO: lower
+        consensus.smsg_difficulty_time = 0x5D19F5C0;    // 2019-07-01 12:00:00
 
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;
@@ -652,10 +652,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1493596800; // May 1st 2017
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000052d7ac846115e40be");
+        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000057289703e5c3616e7");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x088c8e6110e8fbfc393b6f2d7518da70e3f4337807c13d3e26545566e3aea675"); // 414518
+        consensus.defaultAssumeValid = uint256S("0x08bbc92c831b864c809b575901e37aaa9aa2b2e38212594aedf2712a87267da9"); // 428386
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -734,15 +734,15 @@ public:
                 {259290, uint256S("0x58267bdf935a2e0716cb910d055b8cdaa019089a5f71c3db90765dc7101dc5dc")},
                 {312860, uint256S("0xaba2e3b2dcf1970b53b67c869325c5eefd3a107e62518fa4640ddcfadf88760d")},
                 {375987, uint256S("0x96bb6bb7085d0fdb85757069af7b1513c6a86b476ba531a67af6e9dd21385255")},
-                {414518, uint256S("0x088c8e6110e8fbfc393b6f2d7518da70e3f4337807c13d3e26545566e3aea675")},
+                {428386, uint256S("0x08bbc92c831b864c809b575901e37aaa9aa2b2e38212594aedf2712a87267da9")},
             }
         };
 
         chainTxData = ChainTxData{
-            // Data from rpc: getchaintxstats 4096 088c8e6110e8fbfc393b6f2d7518da70e3f4337807c13d3e26545566e3aea675
-            /* nTime    */ 1559593904,
-            /* nTxCount */ 448109,
-            /* dTxRate  */ 0.007
+            // Data from rpc: getchaintxstats 4096 08bbc92c831b864c809b575901e37aaa9aa2b2e38212594aedf2712a87267da9
+            /* nTime    */ 1561384112,
+            /* nTxCount */ 464434,
+            /* dTxRate  */ 0.008
         };
 
         /* enable fallback fee on testnet */
