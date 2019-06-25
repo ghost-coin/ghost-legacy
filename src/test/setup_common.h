@@ -74,22 +74,19 @@ static inline void InsecureRandBytes(uint8_t *p, size_t n)
 }
 
 /** Basic testing setup.
- * This just configures logging and chain parameters.
+ * This just configures logging, data dir and chain parameters.
  */
 struct BasicTestingSetup {
     ECCVerifyHandle globalVerifyHandle;
 
     explicit BasicTestingSetup(const std::string& chainName = CBaseChainParams::MAIN, bool fParticlModeIn = false);
     ~BasicTestingSetup();
-
-    fs::path SetDataDir(const std::string& name);
-
 private:
     const fs::path m_path_root;
 };
 
 /** Testing setup that configures a complete environment.
- * Included are data directory, coins database, script check threads setup.
+ * Included are coins database, script check threads setup.
  */
 struct TestingSetup : public BasicTestingSetup {
     boost::thread_group threadGroup;

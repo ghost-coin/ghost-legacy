@@ -10,6 +10,7 @@
 #include <consensus/params.h>
 #include <consensus/validation.h>
 #include <crypto/sha256.h>
+#include <init.h>
 #include <miner.h>
 #include <net_processing.h>
 #include <noui.h>
@@ -39,6 +40,14 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticl
 {
     fParticlMode = fParticlModeIn;
 
+    fs::create_directories(m_path_root);
+    gArgs.ForceSetArg("-datadir", m_path_root.string());
+    ClearDatadirCache();
+    SelectParams(chainName);
+    ResetParams(chainName, fParticlMode);
+    gArgs.ForceSetArg("-printtoconsole", "0");
+    InitLogging();
+    LogInstance().StartLogging();
     SHA256AutoDetect();
     ECC_Start();
     SetupEnvironment();
@@ -46,8 +55,6 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticl
     InitSignatureCache();
     InitScriptExecutionCache();
     fCheckBlockIndex = true;
-    SelectParams(chainName);
-    ResetParams(chainName, fParticlMode);
 
     static bool noui_connected = false;
     if (!noui_connected) {
@@ -58,27 +65,18 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticl
 
 BasicTestingSetup::~BasicTestingSetup()
 {
+    LogInstance().DisconnectTestLogger();
     fs::remove_all(m_path_root);
     ECC_Stop();
 }
 
-fs::path BasicTestingSetup::SetDataDir(const std::string& name)
-{
-    fs::path ret = m_path_root / name;
-    fs::create_directories(ret);
-    gArgs.ForceSetArg("-datadir", ret.string());
-    return ret;
-}
-
 TestingSetup::TestingSetup(const std::string& chainName, bool fParticlModeIn) : BasicTestingSetup(chainName, fParticlModeIn)
 {
-    SetDataDir("tempdir");
     const CChainParams& chainparams = Params();
     // Ideally we'd move all the RPC tests to the functional testing framework
     // instead of unit tests, but for now we need these here.
 
     RegisterAllCoreRPCCommands(tableRPC);
-    ClearDatadirCache();
 
     // We have to run a scheduler thread to prevent ActivateBestChain
     // from blocking due to queue overrun.

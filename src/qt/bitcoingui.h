@@ -228,7 +228,7 @@ public Q_SLOTS:
                             @see CClientUIInterface::MessageBoxFlags
        @param[in] ret       pointer to a bool that will be modified to whether Ok was clicked (modal only)
     */
-    void message(const QString &title, const QString &message, unsigned int style, bool *ret = nullptr);
+    void message(const QString& title, QString message, unsigned int style, bool* ret = nullptr);
 
     // Waiting for hardware device
     void waitingForDevice(bool fCompleted);
