@@ -8,7 +8,7 @@ Next Release
 - Fixed avoidpartialspends.
 - Testnet fork scheduled for 2019-07-01 12:00:00 UTC
   - Enable variable difficulty for smsg free messages.
-- Mainnet fork scheduled for 2019.02.16-12:00:00 UTC
+- Mainnet fork scheduled for 2019.07.16-12:00:00 UTC
   - Enable bulletproof rangeproofs.
   - Enable RingCT transactions.
   - Enable variable fee rate for smsg paid messages.
