@@ -445,10 +445,10 @@ const char *GetString(size_t errorCode)
     return "No Error";
 };
 
-static void NotifyUnload(CSMSG *ps)
+static void NotifyUnload(CSMSG *ps, CWallet *pw)
 {
     LogPrintf("SMSG NotifyUnload\n");
-    ps->Disable();
+    ps->SetActiveWallet(nullptr);
 };
 
 int CSMSG::BuildBucketSet()
@@ -621,14 +621,6 @@ int CSMSG::BuildPurgedSets()
 
     return SMSG_NO_ERROR;
 };
-
-/*
-SecureMsgAddWalletAddresses
-    Enumerates the AddressBook, filters out anon outputs and checks the "real addresses"
-    Adds these to the vector addresses to be used for decryption
-
-    Returns 0 on success
-*/
 
 int CSMSG::AddWalletAddresses()
 {
@@ -845,13 +837,13 @@ int CSMSG::WriteIni()
     return SMSG_NO_ERROR;
 };
 
-bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fScanChain)
+bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain)
 {
-    if (fDontStart) {
-        LogPrintf("Secure messaging not started.\n");
-        return false;
-    }
+    LogPrintf("Secure messaging starting.\n");
 
+    if (fSecMsgEnabled) {
+        return error("%s: Secure messaging is already started.", __func__);
+    }
     if (Params().NetworkIDString() == "regtest") {
         SMSG_BUCKET_LEN     = 60 * 5; // seconds
         SMSG_SECONDS_IN_DAY = 600;
@@ -861,17 +853,7 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
         LogPrintf("Adjusted SMSG_SECONDS_IN_DAY to %d for regtest.\n", SMSG_SECONDS_IN_DAY);
     }
 
-    LogPrintf("Secure messaging starting.\n");
-
-    if (pwallet) {
-        return error("%s: pwallet is already set.", __func__);
-    }
-    pwallet = pwalletIn;
-#ifdef ENABLE_WALLET
-    if (pwallet) {
-        m_handler_unload = interfaces::MakeHandler(pwallet->NotifyUnload.connect(boost::bind(&NotifyUnload, this)));
-    }
-#endif
+    SetActiveWallet(pwalletIn);
 
     fSecMsgEnabled = true;
     g_connman->SetLocalServices(ServiceFlags(g_connman->GetLocalServices() | NODE_SMSG));
@@ -916,12 +898,12 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fSca
     }
 
     if (BuildBucketSet() != 0) {
-        fSecMsgEnabled = false;
+        Disable();
         return error("%s: Could not load bucket sets, secure messaging disabled.", __func__);
     }
 
     if (BuildPurgedSets() != 0) {
-        fSecMsgEnabled = false;
+        Disable();
         return error("%s: Could not load purged sets, secure messaging disabled.", __func__);
     }
 
@@ -987,7 +969,7 @@ bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
         addresses.clear(); // should be empty already
         buckets.clear(); // should be empty already
 
-        if (!Start(pwallet, false, false)) {
+        if (!Start(pwallet, false)) {
             return error("%s: SecureMsgStart failed.\n", __func__);
         }
     }
@@ -1052,6 +1034,44 @@ bool CSMSG::Disable()
     return true;
 };
 
+bool CSMSG::WalletUnloaded(CWallet *pwallet_removed)
+{
+#ifdef ENABLE_WALLET
+    if (pwallet_removed && pwallet.get() == pwallet_removed) {
+        return SetActiveWallet(nullptr);
+    }
+#endif
+    return false;
+};
+
+bool CSMSG::SetActiveWallet(std::shared_ptr<CWallet> pwallet_in)
+{
+#ifdef ENABLE_WALLET
+    LOCK(cs_smsg);
+    if (m_handler_unload) {
+        m_handler_unload->disconnect();
+    }
+    pwallet.reset();
+    pwallet = pwallet_in;
+
+    if (pwallet) {
+        m_handler_unload = interfaces::MakeHandler(pwallet->NotifyUnload.connect(boost::bind(&NotifyUnload, this, pwallet.get())));
+        LogPrintf("Secure messaging using wallet %s.\n", pwallet->GetName());
+    } else {
+        LogPrintf("Secure messaging using no wallet.\n");
+    }
+    return true;
+#endif
+    return false;
+};
+
+std::string CSMSG::GetWalletName()
+{
+#ifdef ENABLE_WALLET
+    return pwallet ? pwallet->GetName() : "Not set.";
+#endif
+    return "Wallet Disabled.";
+};
 
 int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv)
 {

@@ -385,11 +385,14 @@ public:
     int ReadIni();
     int WriteIni();
 
-    bool Start(std::shared_ptr<CWallet> pwalletIn, bool fDontStart, bool fScanChain);
+    bool Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain);
     bool Shutdown();
 
     bool Enable(std::shared_ptr<CWallet> pwallet);
     bool Disable();
+    bool WalletUnloaded(CWallet *pwallet_removed);
+    bool SetActiveWallet(std::shared_ptr<CWallet> pwallet_in);
+    std::string GetWalletName();
 
     int ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv);
     bool SendData(CNode *pto, bool fSendTrickle);
