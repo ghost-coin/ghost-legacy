@@ -3614,11 +3614,11 @@ static UniValue unloadwallet(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_MISC_ERROR, "Requested wallet already unloaded");
     }
 
-    UnloadWallet(std::move(wallet));
-
     if (fParticlMode) {
         RestartStakingThreads();
     }
+
+    UnloadWallet(std::move(wallet));
 
     return NullUniValue;
 }

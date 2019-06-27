@@ -686,7 +686,9 @@ class WalletParticlTest(ParticlTestFramework):
         w_rpc.extkey('importAccount', epkey2)
 
         self.log.info('Test load/unloadwallet')
+        assert('new_wallet_with_privkeys' in nodes[0].listwallets())
         nodes[0].unloadwallet('new_wallet_with_privkeys')
+        assert('new_wallet_with_privkeys' not in nodes[0].listwallets())
         nodes[0].loadwallet('new_wallet_with_privkeys')
         w_rpc = nodes[0].get_wallet_rpc('new_wallet_with_privkeys')
         ek_list = w_rpc.extkey('list', True)

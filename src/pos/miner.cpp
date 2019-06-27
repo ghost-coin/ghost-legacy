@@ -138,7 +138,6 @@ bool ImportOutputs(CBlockTemplate *pblocktemplate, int nHeight)
     }
 
     fs::path fPath = GetDataDir() / "genesisOutputs.txt";
-
     if (!fs::exists(fPath)) {
         return error("%s: File not found 'genesisOutputs.txt'.", __func__);
     }
