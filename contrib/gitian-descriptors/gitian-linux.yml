@@ -1,5 +1,5 @@
 ---
-name: "particl-linux-0.18.0.10"
+name: "particl-linux-0.18.0.11"
 enable_cache: true
 sudo: true
 suites:
