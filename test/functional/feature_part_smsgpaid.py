@@ -324,6 +324,28 @@ class SmsgPaidTest(ParticlTestFramework):
             break
         assert(nodes[0].smsgbuckets('total')['total']['messages'] == nodes[2].smsgbuckets('total')['total']['messages'])
 
+        self.log.info('Test smsggetinfo and smsgsetwallet')
+        ro = nodes[0].smsggetinfo()
+        assert(ro['enabled'] is True)
+        assert(ro['wallet'] == '')
+        assert_raises_rpc_error(-1, 'Wallet not found: "abc"', nodes[0].smsgsetwallet, 'abc')
+        nodes[0].smsgsetwallet()
+        ro = nodes[0].smsggetinfo()
+        assert(ro['enabled'] is True)
+        assert(ro['wallet'] == 'Not set.')
+        nodes[0].createwallet('new_wallet')
+        assert(len(nodes[0].listwallets()) == 2)
+        nodes[0].smsgsetwallet('new_wallet')
+        ro = nodes[0].smsggetinfo()
+        assert(ro['enabled'] is True)
+        assert(ro['wallet'] == 'new_wallet')
+        nodes[0].smsgdisable()
+        ro = nodes[0].smsggetinfo()
+        assert(ro['enabled'] is False)
+        nodes[0].smsgenable()
+        ro = nodes[0].smsggetinfo()
+        assert(ro['enabled'] is True)
+
 
 if __name__ == '__main__':
     SmsgPaidTest().main()

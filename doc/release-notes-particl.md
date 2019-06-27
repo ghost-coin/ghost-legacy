@@ -6,6 +6,9 @@ Next Release
 ==============
 
 - Fixed regression causing unloadwallet to fail.
+- Added smsggetinfo RPC command to display SMSG related information.
+- Added smsgsetwallet RPC command to switch the active SMSG wallet without disabling SMSG.
+- Unloading the active SMSG wallet will leave SMSG enabled.
 
 
 0.18.0.10

@@ -35,7 +35,6 @@ BOOST_AUTO_TEST_CASE(smsg_test)
     const std::string sTestMessage =
         "A short test message 0123456789 !@#$%^&*()_+-=";
 
-    smsg::fSecMsgEnabled = true;
     int rv = 0;
     const int nKeys = 12;
     auto chain = interfaces::MakeChain();
@@ -54,7 +53,7 @@ BOOST_AUTO_TEST_CASE(smsg_test)
         wallet->AddKey(keyRemote[i]); // need pubkey
     }
 
-    BOOST_CHECK(true == smsgModule.Start(wallet, false, false));
+    BOOST_CHECK(true == smsgModule.Start(wallet, false));
 
     CKeyID idNull;
     BOOST_CHECK(idNull.IsNull());

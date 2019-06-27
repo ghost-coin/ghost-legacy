@@ -23,9 +23,10 @@
 #include <wallet/rpcwallet.h>
 #include <wallet/load.h>
 #include <wallet/wallet.h>
+#include <wallet/walletutil.h>
 #include <wallet/hdwallet.h>
 #include <wallet/rpchdwallet.h>
-#include <wallet/walletutil.h>
+#include <smsg/smessage.h>
 
 #include <memory>
 #include <string>
@@ -651,6 +652,7 @@ public:
     {
         RemoveWallet(m_wallet);
         if (m_wallet_part) {
+            smsgModule.WalletUnloaded(m_wallet_part);
             m_wallet_part = nullptr;
             RestartStakingThreads();
         }
