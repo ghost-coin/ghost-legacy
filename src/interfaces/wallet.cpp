@@ -658,6 +658,10 @@ public:
     void remove() override
     {
         RemoveWallet(m_wallet);
+        if (m_wallet_part) {
+            m_wallet_part = nullptr;
+            RestartStakingThreads();
+        }
     }
     std::unique_ptr<Handler> handleUnload(UnloadFn fn) override
     {
@@ -765,7 +769,7 @@ public:
             return false;
         m_wallet_part->fUnlockForStakingOnly = true;
         return true;
-    };
+    }
 
     bool isDefaultAccountSet() override
     {
