@@ -1,6 +1,10 @@
 Next Release
 ==============
 
+
+0.18.0.11
+==============
+
 - Fixed regression causing unloadwallet to fail.
 
 

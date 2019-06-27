@@ -8,6 +8,7 @@
 #include <chainparams.h>
 #include <util/strencodings.h>
 #include <test/setup_common.h>
+#include <streams.h>
 
 #include <string>
 #include <boost/test/unit_test.hpp>

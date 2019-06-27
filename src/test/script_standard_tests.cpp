@@ -7,7 +7,6 @@
 #include <key/stealth.h>
 #include <keystore.h>
 #include <script/script.h>
-#include <script/script_error.h>
 #include <script/standard.h>
 #include <util/strencodings.h>
 #include <test/setup_common.h>
