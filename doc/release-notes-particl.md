@@ -5,6 +5,7 @@
 - Added smsggetinfo RPC command to display SMSG related information.
 - Added smsgsetwallet RPC command to switch the active SMSG wallet without disabling SMSG.
 - Unloading the active SMSG wallet will leave SMSG enabled.
+- Fixed DOS vulnerability.
 
 
 0.18.0.10

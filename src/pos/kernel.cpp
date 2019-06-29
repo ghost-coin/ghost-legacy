@@ -151,7 +151,7 @@ int MAX_REORG_DEPTH = 1024;
 static bool SpendTooDeep(const COutPoint &prevout) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     LogPrint(BCLog::POS, "%s: SpendTooDeep %s.\n", __func__, prevout.ToString());
-    CBlockIndex *pindexTip = ::ChainActive().Tip();
+    CBlockIndex *pindexTip = chainActive.Tip();
 
     if (fSpentIndex) {
         CSpentIndexKey key(prevout.hash, prevout.n);
@@ -251,7 +251,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         }
 
         if (SpendTooDeep(txin.prevout)) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Tried to stake spent kernel", __func__), REJECT_INVALID, "invalid-prevout");
+            return state.DoS(100, error("%s: Tried to stake spent kernel", __func__), REJECT_INVALID, "invalid-prevout");
         }
 
         kernelPubKey = *outPrev->GetPScriptPubKey();
