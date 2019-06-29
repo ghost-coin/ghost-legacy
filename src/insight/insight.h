@@ -17,6 +17,10 @@
 
 extern CCriticalSection cs_main;
 
+extern bool fAddressIndex;
+extern bool fSpentIndex;
+extern bool fTimestampIndex;
+
 class CTxOutBase;
 
 bool ExtractIndexInfo(const CScript *pScript, int &scriptType, std::vector<uint8_t> &hashBytes);

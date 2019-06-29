@@ -12,6 +12,10 @@
 #include <script/interpreter.h>
 #include <util/system.h>
 
+bool fAddressIndex = false;
+bool fTimestampIndex = false;
+bool fSpentIndex = false;
+
 bool ExtractIndexInfo(const CScript *pScript, int &scriptType, std::vector<uint8_t> &hashBytes)
 {
     CScript tmpScript;

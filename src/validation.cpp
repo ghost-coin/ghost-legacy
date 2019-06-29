@@ -249,9 +249,6 @@ std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
 std::atomic_bool fSkipRangeproof(false);
 std::atomic_bool fBusyImporting(false);        // covers ActivateBestChain too
-bool fAddressIndex = false;
-bool fTimestampIndex = false;
-bool fSpentIndex = false;
 bool fHavePruned = false;
 bool fPruneMode = false;
 bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
@@ -4639,6 +4636,7 @@ public:
 std::list<DelayedBlock> list_delayed_blocks;
 
 extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+extern void IncPersistentMisbehaviour(NodeId node_id, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern void RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern void RemoveNonReceivedHeaderFromNodes(BlockMap::iterator mi) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -5060,6 +5058,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
 
     if (state.nFlags & BLOCK_STAKE_KERNEL_SPENT && !(state.nFlags & BLOCK_FAILED_DUPLICATE_STAKE)) {
         if (state.nodeId > -1) {
+            IncPersistentMisbehaviour(state.nodeId, 20);
             Misbehaving(state.nodeId, 20, "Spent kernel");
         }
     }

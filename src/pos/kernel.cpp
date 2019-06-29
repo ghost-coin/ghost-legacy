@@ -17,6 +17,8 @@
 #include <policy/policy.h>
 #include <consensus/validation.h>
 #include <coins.h>
+#include <insight/insight.h>
+#include <txmempool.h>
 
 /**
  * Stake Modifier (hash modifier of proof-of-stake):
@@ -145,6 +147,61 @@ static bool CheckAge(const CBlockIndex *pindexTip, const uint256 &hashKernelBloc
     return true;
 }
 
+int MAX_REORG_DEPTH = 1024;
+static bool SpendTooDeep(const COutPoint &prevout) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    LogPrint(BCLog::POS, "%s: SpendTooDeep %s.\n", __func__, prevout.ToString());
+    CBlockIndex *pindexTip = ::ChainActive().Tip();
+
+    if (fSpentIndex) {
+        CSpentIndexKey key(prevout.hash, prevout.n);
+        CSpentIndexValue value;
+        if (GetSpentIndex(key, value)) {
+            if (value.blockHeight < 0 || pindexTip->nHeight - value.blockHeight <= MAX_REORG_DEPTH) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Check for spend in mempool
+    LOCK(::mempool.cs);
+    auto iters = ::mempool.GetSortedDepthAndScore();
+    for (auto it : iters) {
+        for (const CTxIn &txin : it->GetSharedTx()->vin) {
+            if (txin.IsAnonInput()) {
+                continue;
+            }
+            if (txin.prevout == prevout) {
+                return false;
+            }
+        }
+    }
+
+    // Check for spend in blocks
+    CBlockIndex *pindex = pindexTip;
+    CBlock block;
+    while (pindex && pindexTip->nHeight - pindex->nHeight < MAX_REORG_DEPTH) {
+        if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), Params().GetConsensus())) {
+            LogPrintf("%s: Error reading block %s.\n", __func__, pindex->GetBlockHash().ToString());
+            return true;
+        }
+        for (const auto &tx : block.vtx) {
+            for (const CTxIn &txin : tx->vin) {
+                if (txin.IsAnonInput()) {
+                    continue;
+                }
+                if (txin.prevout == prevout) {
+                    return false;
+                }
+            }
+        }
+        pindex = pindex->pprev;
+    }
+
+    return true;
+}
+
 // Check kernel hash target and coinstake signature
 bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, const CTransaction &tx, int64_t nTime, unsigned int nBits, uint256 &hashProofOfStake, uint256 &targetProofOfStake)
 {
@@ -191,6 +248,10 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         int nDepth;
         if (!CheckAge(pindexPrev, hashBlock, nDepth)) {
             return state.DoS(100, error("%s: Tried to stake at depth %d", __func__, nDepth + 1), REJECT_INVALID, "invalid-stake-depth");
+        }
+
+        if (SpendTooDeep(txin.prevout)) {
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Tried to stake spent kernel", __func__), REJECT_INVALID, "invalid-prevout");
         }
 
         kernelPubKey = *outPrev->GetPScriptPubKey();

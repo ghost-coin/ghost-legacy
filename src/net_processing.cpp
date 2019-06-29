@@ -1027,10 +1027,29 @@ bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
     return true;
 }
 
+void IncPersistentMisbehaviour(NodeId node_id, int howmuch)
+{
+    CNodeState *state = State(node_id);
+    if (state == nullptr) {
+        return;
+    }
+    auto it = map_dos_state.find(state->address);
+    if (it != map_dos_state.end()) {
+        if (state->nMisbehavior < it->second.m_misbehavior) {
+            state->nMisbehavior = it->second.m_misbehavior;
+            LogPrint(BCLog::NET, "%s: %s peer=%d Inherited misbehavior (%d)\n", __func__, state->name, node_id, state->nMisbehavior);
+        }
+        it->second.m_misbehavior += howmuch;
+        return;
+    }
+    map_dos_state[state->address].m_misbehavior = howmuch;
+    return;
+}
+
 int GetNumDOSStates()
 {
     return map_dos_state.size();
-};
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //
