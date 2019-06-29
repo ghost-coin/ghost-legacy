@@ -1046,7 +1046,7 @@ void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main
 static bool TxRelayMayResultInDisconnect(const CValidationState& state)
 {
     assert(IsTransactionReason(state.GetReason()));
-    return state.GetReason() == ValidationInvalidReason::CONSENSUS;
+    return state.GetReason() == ValidationInvalidReason::CONSENSUS || state.GetReason() == ValidationInvalidReason::DOS_100;
 }
 
 /**
@@ -1107,6 +1107,12 @@ static bool MaybePunishNode(NodeId nodeid, const CValidationState& state, bool v
         }
         return true;
 
+    case ValidationInvalidReason::DOS_100:
+        {
+            LOCK(cs_main);
+            Misbehaving(nodeid, 100, message);
+        }
+        return true;
     case ValidationInvalidReason::DOS_50:
         {
             LOCK(cs_main);
@@ -1504,37 +1510,6 @@ void PeerLogicValidation::BlockChecked(const CBlock& block, const CValidationSta
     }
     if (it != mapBlockSource.end())
         mapBlockSource.erase(it);
-}
-
-bool IncomingBlockChecked(const CBlock &block, CValidationState &state)
-{
-    LOCK(cs_main);
-
-    const uint256 hash(block.GetHash());
-    std::map<uint256, std::pair<NodeId, bool>>::iterator it = mapBlockSource.find(hash);
-
-    bool rv = true;
-    if (state.IsInvalid()) {
-        if (it != mapBlockSource.end() && State(it->second.first)) {
-            assert (state.GetRejectCode() < REJECT_INTERNAL); // Blocks are never rejected with internal reject codes
-            CBlockReject reject = {(unsigned char)state.GetRejectCode(), state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), hash};
-            State(it->second.first)->rejects.push_back(reject);
-            MaybePunishNode(/*nodeid=*/ it->second.first, state, /*via_compact_block=*/ !it->second.second);
-        }
-        rv = false;
-    } else
-    if (state.nFlags & BLOCK_FAILED_DUPLICATE_STAKE)
-    {
-        if (it != mapBlockSource.end() && State(it->second.first))
-            Misbehaving(it->second.first, 10);
-        rv = false;
-    };
-
-    if (!rv)
-    if (it != mapBlockSource.end())
-        mapBlockSource.erase(it);
-
-    return rv;
 }
 
 //////////////////////////////////////////////////////////////////////////////

@@ -4953,7 +4953,6 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
     return true;
 }
 
-extern bool IncomingBlockChecked(const CBlock &block, CValidationState &state);
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock, NodeId node_id)
 {
     AssertLockNotHeld(cs_main);
@@ -4994,8 +4993,6 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
                 // Block will have been added to the block index in AcceptBlockHeader
                 CBlockIndex *pindex = g_chainstate.AddToBlockIndex(*pblock);
                 g_chainstate.InvalidBlockFound(pindex, *pblock, state);
-
-                IncomingBlockChecked(*pblock, state);
             }
             GetMainSignals().BlockChecked(*pblock, state);
             return error("%s: AcceptBlock FAILED (%s)", __func__, FormatStateMessage(state));
@@ -5005,8 +5002,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
             pindex->nFlags |= BLOCK_FAILED_DUPLICATE_STAKE;
             setDirtyBlockIndex.insert(pindex);
             LogPrint(BCLog::POS, "%s Marking duplicate stake: %s.\n", __func__, pindex->GetBlockHash().ToString());
-            //GetMainSignals().BlockChecked(*pblock, state);
-            IncomingBlockChecked(*pblock, state);
+            GetMainSignals().BlockChecked(*pblock, state);
         }
     }
 

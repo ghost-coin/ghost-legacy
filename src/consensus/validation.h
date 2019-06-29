@@ -66,6 +66,7 @@ enum class ValidationInvalidReason {
     TX_CONFLICT,
     TX_MEMPOOL_POLICY,        //!< violated mempool's fee/size/descendant/RBF/etc limits
 
+    DOS_100,
     DOS_50,
     DOS_20,
     DOS_5,
@@ -76,6 +77,11 @@ inline bool IsTransactionReason(ValidationInvalidReason r)
 {
     return r == ValidationInvalidReason::NONE ||
            r == ValidationInvalidReason::CONSENSUS ||
+           r == ValidationInvalidReason::DOS_100 ||
+           r == ValidationInvalidReason::DOS_50 ||
+           r == ValidationInvalidReason::DOS_20 ||
+           r == ValidationInvalidReason::DOS_5 ||
+           r == ValidationInvalidReason::DOS_1 ||
            r == ValidationInvalidReason::RECENT_CONSENSUS_CHANGE ||
            r == ValidationInvalidReason::TX_NOT_STANDARD ||
            r == ValidationInvalidReason::TX_PREMATURE_SPEND ||
@@ -89,6 +95,11 @@ inline bool IsBlockReason(ValidationInvalidReason r)
 {
     return r == ValidationInvalidReason::NONE ||
            r == ValidationInvalidReason::CONSENSUS ||
+           r == ValidationInvalidReason::DOS_100 ||
+           r == ValidationInvalidReason::DOS_50 ||
+           r == ValidationInvalidReason::DOS_20 ||
+           r == ValidationInvalidReason::DOS_5 ||
+           r == ValidationInvalidReason::DOS_1 ||
            r == ValidationInvalidReason::RECENT_CONSENSUS_CHANGE ||
            r == ValidationInvalidReason::CACHED_INVALID ||
            r == ValidationInvalidReason::BLOCK_INVALID_HEADER ||
