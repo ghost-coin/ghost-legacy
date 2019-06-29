@@ -16,6 +16,10 @@
 
 extern CCriticalSection cs_main;
 
+extern bool fAddressIndex;
+extern bool fSpentIndex;
+extern bool fTimestampIndex;
+
 class CTxOutBase;
 class CScript;
 class uint256;
