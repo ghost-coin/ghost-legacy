@@ -3101,11 +3101,9 @@ void SetCTOutVData(std::vector<uint8_t> &vData, CPubKey &pkEphem, const CTempRec
     vData.resize((r.nStealthPrefix > 0 ? 38 : 33));
 
     memcpy(&vData[0], pkEphem.begin(), 33);
-    size_t o = 33;
     if (r.nStealthPrefix > 0) {
         vData[33] = DO_STEALTH_PREFIX;
         memcpy(&vData[34], &r.nStealthPrefix, 4);
-        o = 38;
     }
 };
 

@@ -164,15 +164,17 @@ static bool SpendTooDeep(const COutPoint &prevout) EXCLUSIVE_LOCKS_REQUIRED(cs_m
     }
 
     // Check for spend in mempool
-    LOCK(::mempool.cs);
-    auto iters = ::mempool.GetSortedDepthAndScore();
-    for (auto it : iters) {
-        for (const CTxIn &txin : it->GetSharedTx()->vin) {
-            if (txin.IsAnonInput()) {
-                continue;
-            }
-            if (txin.prevout == prevout) {
-                return false;
+    {
+        LOCK(::mempool.cs);
+        auto iters = ::mempool.GetSortedDepthAndScore();
+        for (auto it : iters) {
+            for (const CTxIn &txin : it->GetSharedTx()->vin) {
+                if (txin.IsAnonInput()) {
+                    continue;
+                }
+                if (txin.prevout == prevout) {
+                    return false;
+                }
             }
         }
     }
