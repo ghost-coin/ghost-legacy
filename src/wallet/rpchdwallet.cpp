@@ -7340,6 +7340,10 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
         }
     }
 
+    if (nFee > pwallet->m_default_max_tx_fee) {
+        throw JSONRPCError(RPC_WALLET_ERROR, TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED));
+    }
+
     pwallet->mapTempRecords.clear();
 
     UniValue result(UniValue::VOBJ);

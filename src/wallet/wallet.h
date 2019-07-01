@@ -78,6 +78,7 @@ static const bool DEFAULT_WALLETBROADCAST = true;
 static const bool DEFAULT_DISABLE_WALLET = false;
 //! -maxtxfee default
 constexpr CAmount DEFAULT_TRANSACTION_MAXFEE{COIN / 2};
+constexpr CAmount DEFAULT_TRANSACTION_MAXFEE_BTC{COIN / 10};
 //! Discourage users to set fees higher than this amount (in satoshis) per kB
 constexpr CAmount HIGH_TX_FEE_PER_KB{COIN / 100};
 //! -maxtxfee will warn if called with a higher fee than this amount (in satoshis)
@@ -941,6 +942,7 @@ public:
     {
         if (!fParticlMode) {
             m_min_fee = CFeeRate(DEFAULT_TRANSACTION_MINFEE_BTC);
+            m_default_max_tx_fee = DEFAULT_TRANSACTION_MAXFEE_BTC;
         }
     }
 
