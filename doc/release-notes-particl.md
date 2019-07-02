@@ -6,6 +6,7 @@
 - Added smsgsetwallet RPC command to switch the active SMSG wallet without disabling SMSG.
 - Unloading the active SMSG wallet will leave SMSG enabled.
 - Fixed DOS vulnerability.
+- Fixed rpc cmd filtertransactions filtering by type.
 
 
 0.18.0.10

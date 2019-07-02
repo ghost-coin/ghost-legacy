@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2018 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -120,7 +120,18 @@ class AnonTest(ParticlTestFramework):
         txnHash = nodes[1].sendtypeto('anon', 'part', outputs)
         txnHashes = [txnHash,]
 
+        self.log.info('Test filtertransactions with type filter')
+        ro = nodes[1].filtertransactions({ 'type': 'anon', 'count': 20 })
+        assert(len(ro) > 2)
+        for t in ro:
+            foundA = False
+            for o in t['outputs']:
+                if 'type' in o and o['type'] == 'anon':
+                    foundA = True
+                    break
+            assert((foundA is True) or (t['type_in'] == 'anon'))
 
+        self.log.info('Test unspent with address filter')
         unspent_filtered = nodes[1].listunspentanon(1, 9999, [sxAddrTo1_1])
         assert(unspent_filtered[0]['label'] == 'lblsx11')
 
