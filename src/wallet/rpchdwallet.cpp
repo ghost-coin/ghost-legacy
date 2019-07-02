@@ -2608,7 +2608,8 @@ static void ParseOutputs(
     CWalletTx           &wtx,
     const CHDWallet     *pwallet,
     const isminefilter  &watchonly,
-    std::string         &search,
+    const std::string   &search,
+    const std::string   &category_filter,
     bool                 fWithReward,
     bool                 fBech32,
     bool                 hide_zero_coinstakes,
@@ -2776,8 +2777,11 @@ static void ParseOutputs(
             nInput += pwallet->GetOutputValue(vin.prevout, true);
         }
         entry.pushKV("reward", ValueFromAmount(nOutput - nInput));
-    };
+    }
 
+    if (category_filter != "all" && category_filter != entry["category"].get_str()) {
+        return;
+    }
     if (search != "") {
         // search in addresses
         if (std::any_of(addresses.begin(), addresses.end(), [search](std::string addr) {
@@ -2806,7 +2810,9 @@ static void ParseRecords(
     const CTransactionRecord   &rtx,
     CHDWallet *const            pwallet,
     const isminefilter         &watchonly_filter,
-    std::string                 search
+    const std::string          &search,
+    const std::string          &category_filter,
+    int                         type
 ) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     std::vector<std::string> addresses, amounts;
@@ -2839,6 +2845,7 @@ static void ParseRecords(
     }
     PushTime(entry, "time", rtx.nTimeReceived);
 
+    int nStd = 0, nBlind = 0, nAnon = 0;
     size_t nLockedOutputs = 0;
     for (auto &record : rtx.vout) {
         UniValue output(UniValue::VOBJ);
@@ -2905,6 +2912,12 @@ static void ParseRecords(
             addresses.push_back(addr.ToString());
         }
 
+        switch (record.nType) {
+            case OUTPUT_STANDARD: ++nStd; break;
+            case OUTPUT_CT: ++nBlind; break;
+            case OUTPUT_RINGCT: ++nAnon; break;
+            default: ++nStd = 0;
+        }
         output.__pushKV("type",
               record.nType == OUTPUT_STANDARD ? "standard"
             : record.nType == OUTPUT_CT       ? "blind"
@@ -2926,19 +2939,43 @@ static void ParseRecords(
         outputs.push_back(output);
     }
 
+    if (type > 0) {
+        if (type == OUTPUT_STANDARD && !nStd) {
+            return;
+        }
+        if (type == OUTPUT_CT && !nBlind && !(rtx.nFlags & ORF_BLIND_IN)) {
+            return;
+        }
+        if (type == OUTPUT_RINGCT && !nAnon && !(rtx.nFlags & ORF_ANON_IN)) {
+            return;
+        }
+    }
+
     if (nFrom > 0) {
         entry.__pushKV("abandoned", rtx.IsAbandoned());
         entry.__pushKV("fee", ValueFromAmount(-rtx.nFee));
     }
 
+    std::string category;
     if (nOwned && nFrom) {
-        entry.__pushKV("category", "internal_transfer");
+        category = "internal_transfer";
     } else if (nOwned && !nFrom) {
-        entry.__pushKV("category", "receive");
+        category = "receive";
     } else if (nFrom) {
-        entry.__pushKV("category", "send");
+        category = "send";
     } else {
-        entry.__pushKV("category", "unknown");
+        category = "unknown";
+    }
+    if (category_filter != "all" && category_filter != category) {
+        return;
+    }
+    entry.__pushKV("category", category);
+
+    if (rtx.nFlags & ORF_ANON_IN) {
+        entry.__pushKV("type_in", "anon");
+    } else
+    if (rtx.nFlags & ORF_BLIND_IN) {
+        entry.__pushKV("type_in", "blind");
     }
 
     if (nLockedOutputs) {
@@ -2980,7 +3017,7 @@ static void ParseRecords(
             return addr.find(search) != std::string::npos;
         })) {
             entries.push_back(entry);
-            return ;
+            return;
         }
         // search in amounts
         // character DOT '.' is not searched for: search "123" will find 1.23 and 12.3
@@ -2988,7 +3025,7 @@ static void ParseRecords(
             return amount.find(search) != std::string::npos;
         })) {
             entries.push_back(entry);
-            return ;
+            return;
         }
     } else {
         entries.push_back(entry);
@@ -3222,6 +3259,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
     // transaction processing
     const CHDWallet::TxItems &txOrdered = pwallet->wtxOrdered;
     CWallet::TxItems::const_reverse_iterator tit = txOrdered.rbegin();
+    if (type == "all" || type == "standard")
     while (tit != txOrdered.rend()) {
         CWalletTx *const pwtx = tit->second;
         int64_t txTime = pwtx->GetTxTime();
@@ -3234,6 +3272,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
                 pwallet,
                 watchonly,
                 search,
+                category,
                 fWithReward,
                 fBech32,
                 hide_zero_coinstakes,
@@ -3242,6 +3281,10 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
         tit++;
     }
 
+    int type_i = type == "standard" ? OUTPUT_STANDARD :
+                 type == "blind" ? OUTPUT_CT :
+                 type == "anon" ? OUTPUT_RINGCT :
+                 0;
     // records processing
     const RtxOrdered_t &rtxOrdered = pwallet->rtxOrdered;
     RtxOrdered_t::const_reverse_iterator rit = rtxOrdered.rbegin();
@@ -3258,7 +3301,9 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
                 rtx,
                 pwallet,
                 watchonly,
-                search
+                search,
+                category,
+                type_i
             );
         rit++;
     }
@@ -3295,32 +3340,17 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
     }
     // for every value while count is positive
     for (unsigned int i = 0; i < values.size() && count != 0; i++) {
-        // if value's category is relevant
-        if (values[i]["category"].get_str() == category || category == "all") {
-            // if value's type is not relevant
-            if (values[i]["type"].getType() == 0) {
-                // value's type is undefined
-                if (!(type == "all" || type == "standard")) {
-                    // type is not 'all' or 'standard'
-                    continue ;
-                }
-            } else if (!(values[i]["type"].get_str() == type || type == "all")) {
-                // value's type is defined
-                // value's type is not type or 'all'
-                continue ;
-            }
-            // if we've skipped enough valid values
-            if (skip-- <= 0) {
-                result.push_back(values[i]);
-                count--;
+        // if we've skipped enough valid values
+        if (skip-- <= 0) {
+            result.push_back(values[i]);
+            count--;
 
-                if (fCollate) {
-                    if (!values[i]["amount"].isNull()) {
-                        nTotalAmount += AmountFromValue(values[i]["amount"]);
-                    }
-                    if (!values[i]["reward"].isNull()) {
-                        nTotalReward += AmountFromValue(values[i]["reward"]);
-                    }
+            if (fCollate) {
+                if (!values[i]["amount"].isNull()) {
+                    nTotalAmount += AmountFromValue(values[i]["amount"]);
+                }
+                if (!values[i]["reward"].isNull()) {
+                    nTotalReward += AmountFromValue(values[i]["reward"]);
                 }
             }
         }
