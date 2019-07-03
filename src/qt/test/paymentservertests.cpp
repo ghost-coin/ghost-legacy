@@ -13,7 +13,7 @@
 #include <random.h>
 #include <script/script.h>
 #include <script/standard.h>
-#include <util/system.h>
+#include <test/setup_common.h>
 #include <util/strencodings.h>
 #include <key/stealth.h>
 #include <key/extkey.h>
@@ -70,7 +70,7 @@ void PaymentServerTests::paymentServerTests()
 {
     return; // skip tests
 
-    SelectParams(CBaseChainParams::MAIN);
+    BasicTestingSetup testing_setup(CBaseChainParams::MAIN);
     auto node = interfaces::MakeNode();
     OptionsModel optionsModel(*node);
     PaymentServer* server = new PaymentServer(nullptr, false);
