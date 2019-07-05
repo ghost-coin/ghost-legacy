@@ -2,6 +2,7 @@
 ==============
 
 - Merged Bitcoin 0.18.1 backports.
+- Fixed help text for createsignaturewith commands.
 
 
 0.18.0.11
