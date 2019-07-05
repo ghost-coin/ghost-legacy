@@ -14,11 +14,11 @@ if [ "$RUN_UNIT_TESTS" = "true" ]; then
   END_FOLD
 fi
 
-if [ $((`date +%s`-$START_TIME)) -gt $RUN_TESTS_TIMEOUT ]; then
+if [ $(($(date +%s)-START_TIME)) -gt $RUN_TESTS_TIMEOUT ]; then
   RUN_FUNCTIONAL_TESTS=false;
 fi
 
-echo $((`date +%s`-$START_TIME))
+echo $(($(date +%s)-START_TIME))
 echo $RUN_TESTS_TIMEOUT
 echo "$RUN_FUNCTIONAL_TESTS"
 

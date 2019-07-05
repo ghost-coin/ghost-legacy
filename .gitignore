@@ -1,6 +1,7 @@
 *.tar.gz
 
 *.exe
+*.pdb
 src/particl
 src/particld
 src/particl-cli

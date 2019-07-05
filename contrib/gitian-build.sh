@@ -109,7 +109,7 @@ while :; do
         fi
         shift
         else
-        echo 'Error: "--os" requires an argument containing an l (for linux), w (for windows), or x (for Mac OSX)\n'
+        printf 'Error: "--os" requires an argument containing an l (for linux), w (for windows), or x (for Mac OSX)\n'
         exit 1
         fi
         ;;
@@ -289,7 +289,7 @@ then
     mkdir -p inputs
     wget -N -P inputs $osslPatchUrl
     wget -N -P inputs $osslTarUrl
-    make -C ../particl-core/depends download SOURCES_PATH=`pwd`/cache/common
+    make -C ../particl-core/depends download SOURCES_PATH=$(pwd)/cache/common
 
     # Linux
     if [[ $linux = true ]]
