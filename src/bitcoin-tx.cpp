@@ -42,6 +42,7 @@ static void SetupBitcoinTxArgs()
     gArgs.AddArg("-create", "Create new, empty TX.", false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-json", "Select JSON output", false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-txid", "Output only the hex-encoded transaction id of the resultant transaction.", false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-btcmode", "Create bitcoin transactions by default", false, OptionsCategory::OPTIONS);
     SetupChainParamsBaseOptions();
 
     gArgs.AddArg("delin=N", "Delete input N from TX", false, OptionsCategory::COMMANDS);
@@ -100,14 +101,14 @@ static int AppInitRawTx(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    fParticlMode = !gArgs.GetBoolArg("-btcmode", false); // qa tests
+    fParticlMode = !gArgs.GetBoolArg("-btcmode", false);
     fCreateBlank = gArgs.GetBoolArg("-create", false);
 
     if (argc < 2 || HelpRequested(gArgs)) {
         // First part of help message is specific to this utility
         std::string strUsage = PACKAGE_NAME " particl-tx utility version " + FormatFullVersion() + "\n\n" +
-            "Usage:  particl-tx [options] <hex-tx> [commands]  Update hex-encoded bitcoin transaction\n" +
-            "or:     particl-tx [options] -create [commands]   Create hex-encoded bitcoin transaction\n" +
+            "Usage:  particl-tx [options] <hex-tx> [commands]  Update hex-encoded transaction\n" +
+            "or:     particl-tx [options] -create [commands]   Create hex-encoded transaction\n" +
             "\n";
         strUsage += gArgs.GetHelpMessage();
 
@@ -355,10 +356,8 @@ static void MutateTxAddOutAddr(CMutableTransaction& tx, const std::string& strIn
     CScript scriptPubKey = GetScriptForDestination(destination);
 
     // construct TxOut, append to transaction output list
-    if (tx.IsParticlVersion())
-    {
-        if (destination.type() == typeid(CStealthAddress))
-        {
+    if (tx.IsParticlVersion()) {
+        if (destination.type() == typeid(CStealthAddress)) {
             CStealthAddress sx = boost::get<CStealthAddress>(destination);
             OUTPUT_PTR<CTxOutData> outData = MAKE_OUTPUT<CTxOutData>();
             std::string sNarration;
@@ -369,11 +368,11 @@ static void MutateTxAddOutAddr(CMutableTransaction& tx, const std::string& strIn
             tx.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(value, scriptPubKey));
             tx.vpout.push_back(outData);
             return;
-        };
+        }
 
         tx.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(value, scriptPubKey));
         return;
-    };
+    }
     CTxOut txout(value, scriptPubKey);
     tx.vout.push_back(txout);
     return;
@@ -419,11 +418,10 @@ static void MutateTxAddOutPubKey(CMutableTransaction& tx, const std::string& str
     }
 
     // construct TxOut, append to transaction output list
-    if (tx.IsParticlVersion())
-    {
+    if (tx.IsParticlVersion()) {
         tx.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(value, scriptPubKey));
         return;
-    };
+    }
     CTxOut txout(value, scriptPubKey);
     tx.vout.push_back(txout);
     return;
@@ -499,11 +497,10 @@ static void MutateTxAddOutMultiSig(CMutableTransaction& tx, const std::string& s
     }
 
     // construct TxOut, append to transaction output list
-    if (tx.IsParticlVersion())
-    {
+    if (tx.IsParticlVersion()) {
         tx.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(value, scriptPubKey));
         return;
-    };
+    }
     CTxOut txout(value, scriptPubKey);
     tx.vout.push_back(txout);
 }
@@ -531,12 +528,11 @@ static void MutateTxAddOutData(CMutableTransaction& tx, const std::string& strIn
 
     std::vector<unsigned char> data = ParseHex(strData);
 
-    if (tx.IsParticlVersion())
-    {
+    if (tx.IsParticlVersion()) {
         // TODO OUTPUT_DATA
         tx.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(value, CScript() << OP_RETURN << data));
         return;
-    };
+    }
     CTxOut txout(value, CScript() << OP_RETURN << data);
     tx.vout.push_back(txout);
 }
@@ -582,11 +578,10 @@ static void MutateTxAddOutScript(CMutableTransaction& tx, const std::string& str
     }
 
     // construct TxOut, append to transaction output list
-    if (tx.IsParticlVersion())
-    {
+    if (tx.IsParticlVersion()) {
         tx.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(value, scriptPubKey));
         return;
-    };
+    }
     CTxOut txout(value, scriptPubKey);
     tx.vout.push_back(txout);
 }
@@ -765,8 +760,9 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
         const CScript& prevPubKey = coin.out.scriptPubKey;
         const CAmount& amount = coin.out.nValue;
 
-        if (tx.IsParticlVersion() && amount == 0)
+        if (tx.IsParticlVersion() && amount == 0) {
             throw std::runtime_error("expected amount for prevtx");
+        }
 
         std::vector<uint8_t> vchAmount(8);
         memcpy(vchAmount.data(), &amount, 8);
