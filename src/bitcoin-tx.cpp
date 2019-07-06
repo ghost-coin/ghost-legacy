@@ -73,6 +73,8 @@ static void SetupBitcoinTxArgs()
 
     gArgs.AddArg("witness=N:HEX1(:HEX2...:HEXN)", "Add witness data to input N", false, OptionsCategory::COMMANDS);
     gArgs.AddArg("delwitness=N", "Delete all witness data from input N", false, OptionsCategory::COMMANDS);
+    gArgs.AddArg("scriptsig=N:HEX", "Add scriptsig data to input N", false, OptionsCategory::COMMANDS);
+    gArgs.AddArg("delscriptsig=N", "Delete all scriptsig data from input N", false, OptionsCategory::COMMANDS);
     gArgs.AddArg("outblind=COMMITMENT:SCRIPT:RANGEPROOF[:DATA]", "Add blinded output to TX", false, OptionsCategory::COMMANDS);
     gArgs.AddArg("outdatatype=DATA", "Add data-type output to TX", false, OptionsCategory::COMMANDS);
 }
@@ -294,17 +296,6 @@ static void MutateTxAddInput(CMutableTransaction& tx, const std::string& strInpu
     tx.vin.push_back(txin);
 }
 
-static void MutateTxDelWitness(CMutableTransaction& tx, const std::string& strInIdx)
-{
-    int64_t inIdx;
-    if (!ParseInt64(strInIdx, &inIdx) || inIdx < 0 || inIdx >= static_cast<int64_t>(tx.vin.size())) {
-        throw std::runtime_error("Invalid TX input index '" + strInIdx + "'");
-    }
-
-    CTxIn &txin = tx.vin[inIdx];
-    txin.scriptWitness.stack.clear();
-}
-
 static void MutateTxAddWitness(CMutableTransaction& tx, const std::string& strInput)
 {
     std::vector<std::string> vStrInputParts;
@@ -333,6 +324,48 @@ static void MutateTxAddWitness(CMutableTransaction& tx, const std::string& strIn
         }
         txin.scriptWitness.stack.push_back(vScript);
     }
+}
+
+static void MutateTxDelWitness(CMutableTransaction& tx, const std::string& strInIdx)
+{
+    int64_t inIdx;
+    if (!ParseInt64(strInIdx, &inIdx) || inIdx < 0 || inIdx >= static_cast<int64_t>(tx.vin.size())) {
+        throw std::runtime_error("Invalid TX input index '" + strInIdx + "'");
+    }
+
+    CTxIn &txin = tx.vin[inIdx];
+    txin.scriptWitness.stack.clear();
+}
+
+static void MutateTxAddScriptSig(CMutableTransaction& tx, const std::string& strInput)
+{
+    std::vector<std::string> vStrInputParts;
+    boost::split(vStrInputParts, strInput, boost::is_any_of(":"));
+
+    if (vStrInputParts.size() < 2) {
+        std::string strErr = "Bad input '" + strInput + "'";
+        throw std::runtime_error(strErr.c_str());
+    }
+
+    int64_t inIdx;
+    if (!ParseInt64(vStrInputParts[0], &inIdx) || inIdx < 0 || inIdx >= static_cast<int64_t>(tx.vin.size())) {
+        throw std::runtime_error("Invalid TX input index '" + vStrInputParts[0] + "'");
+    }
+    CTxIn &txin = tx.vin[inIdx];
+
+    std::vector<unsigned char> scriptData(ParseHex(vStrInputParts[1]));
+    txin.scriptSig = CScript(scriptData.begin(), scriptData.end());
+}
+
+static void MutateTxDelScriptSig(CMutableTransaction& tx, const std::string& strInIdx)
+{
+    int64_t inIdx;
+    if (!ParseInt64(strInIdx, &inIdx) || inIdx < 0 || inIdx >= static_cast<int64_t>(tx.vin.size())) {
+        throw std::runtime_error("Invalid TX input index '" + strInIdx + "'");
+    }
+
+    CTxIn &txin = tx.vin[inIdx];
+    txin.scriptSig.clear();
 }
 
 static void MutateTxAddOutAddr(CMutableTransaction& tx, const std::string& strInput)
@@ -865,10 +898,14 @@ static void MutateTx(CMutableTransaction& tx, const std::string& command,
     else if (command == "in")
         MutateTxAddInput(tx, commandVal);
 
-    else if (command == "delwitness")
-        MutateTxDelWitness(tx, commandVal);
     else if (command == "witness")
         MutateTxAddWitness(tx, commandVal);
+    else if (command == "delwitness")
+        MutateTxDelWitness(tx, commandVal);
+    else if (command == "scriptsig")
+        MutateTxAddScriptSig(tx, commandVal);
+    else if (command == "delscriptsig")
+        MutateTxDelScriptSig(tx, commandVal);
 
     else if (command == "delout")
         MutateTxDelOutput(tx, commandVal);
