@@ -3,6 +3,7 @@
 
 - Merged Bitcoin 0.18.1 backports.
 - Fixed help text for createsignaturewith commands.
+- Added 'pubkey' to output of extkey info extended-secret-key.
 
 
 0.18.0.11

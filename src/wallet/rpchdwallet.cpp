@@ -80,22 +80,23 @@ static int ExtractBip32InfoV(const std::vector<uint8_t> &vchKey, UniValue &keyIn
     keyInfo.pushKV("depth", strprintf("%u", vchKey[4]));
     keyInfo.pushKV("parent_fingerprint", strprintf("%08X", reversePlace(&vchKey[5])));
     keyInfo.pushKV("child_index", strprintf("%u", reversePlace(&vchKey[9])));
-    keyInfo.pushKV("chain_code", strprintf("%s", HexStr(&vchKey[13], &vchKey[13+32])));
-    keyInfo.pushKV("key", strprintf("%s", HexStr(&vchKey[46], &vchKey[46+32])));
+    keyInfo.pushKV("chain_code", HexStr(&vchKey[13], &vchKey[13+32]));
+    keyInfo.pushKV("key", HexStr(&vchKey[46], &vchKey[46+32]));
 
     // don't display raw secret ??
     // TODO: add option
 
     CKey key;
     key.Set(&vchKey[46], true);
-    keyInfo.pushKV("privkey", strprintf("%s", CBitcoinSecret(key).ToString()));
-    CKeyID id = key.GetPubKey().GetID();
+    keyInfo.pushKV("privkey", CBitcoinSecret(key).ToString());
+    CPubKey pk = key.GetPubKey();
+    keyInfo.pushKV("pubkey", HexStr(pk));
+    CKeyID id = pk.GetID();
     CBitcoinAddress addr;
     addr.Set(id, CChainParams::EXT_KEY_HASH);
-
-    keyInfo.pushKV("id", addr.ToString().c_str());
+    keyInfo.pushKV("id", addr.ToString());
     addr.Set(id);
-    keyInfo.pushKV("address", addr.ToString().c_str());
+    keyInfo.pushKV("address", addr.ToString());
     keyInfo.pushKV("checksum", strprintf("%02X", reversePlace(&vchKey[78])));
 
     ek58.SetKey(vk, typePk);
@@ -121,8 +122,8 @@ static int ExtractBip32InfoP(const std::vector<uint8_t> &vchKey, UniValue &keyIn
     keyInfo.pushKV("depth", strprintf("%u", vchKey[4]));
     keyInfo.pushKV("parent_fingerprint", strprintf("%08X", reversePlace(&vchKey[5])));
     keyInfo.pushKV("child_index", strprintf("%u", reversePlace(&vchKey[9])));
-    keyInfo.pushKV("chain_code", strprintf("%s", HexStr(&vchKey[13], &vchKey[13+32])));
-    keyInfo.pushKV("key", strprintf("%s", HexStr(&vchKey[45], &vchKey[45+33])));
+    keyInfo.pushKV("chain_code", HexStr(&vchKey[13], &vchKey[13+32]));
+    keyInfo.pushKV("key", HexStr(&vchKey[45], &vchKey[45+33]));
 
     CPubKey key;
     key.Set(&vchKey[45], &vchKey[78]);
@@ -130,9 +131,9 @@ static int ExtractBip32InfoP(const std::vector<uint8_t> &vchKey, UniValue &keyIn
     CBitcoinAddress addr;
     addr.Set(id, CChainParams::EXT_KEY_HASH);
 
-    keyInfo.pushKV("id", addr.ToString().c_str());
+    keyInfo.pushKV("id", addr.ToString());
     addr.Set(id);
-    keyInfo.pushKV("address", addr.ToString().c_str());
+    keyInfo.pushKV("address", addr.ToString());
     keyInfo.pushKV("checksum", strprintf("%02X", reversePlace(&vchKey[78])));
 
     return 0;
@@ -1006,7 +1007,7 @@ static UniValue extkey(const JSONRPCRequest &request)
             CBitcoinAddress addr;
             addr.Set(fBip44 ? idDerived : sek.GetID(), CChainParams::EXT_KEY_HASH);
             result.pushKV("result", "Success.");
-            result.pushKV("id", addr.ToString().c_str());
+            result.pushKV("id", addr.ToString());
             result.pushKV("key_label", sek.sLabel);
             result.pushKV("note", "Please backup your wallet."); // TODO: check for child of existing key?
         } // cs_wallet
