@@ -1410,10 +1410,11 @@ std::string CopyrightHolders(const std::string& strPrefix)
         ? strprintf(" %i ", COPYRIGHT_YEAR)
         : strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
 
-    std::string strCopyrightHolders = strPrefix + sRange + strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION));
+    const auto copyright_devs = strprintf(_(COPYRIGHT_HOLDERS), COPYRIGHT_HOLDERS_SUBSTITUTION);
+    std::string strCopyrightHolders = strPrefix + sRange + copyright_devs;
 
-    // Check for untranslated substitution to make sure Bitcoin Core copyright is not removed by accident
-    if (strprintf(COPYRIGHT_HOLDERS, COPYRIGHT_HOLDERS_SUBSTITUTION).find("Bitcoin Core") == std::string::npos) {
+    // Make sure Bitcoin Core copyright is not removed by accident
+    if (copyright_devs.find("Bitcoin Core") == std::string::npos) {
         sRange = strprintf(" %i-%i ", BTC_START_YEAR, COPYRIGHT_YEAR);
         strCopyrightHolders += "\n" + strPrefix + sRange + "The Bitcoin Core developers";
     }
