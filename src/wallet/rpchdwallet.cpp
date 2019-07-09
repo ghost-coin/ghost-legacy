@@ -3989,7 +3989,7 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
             return error("%s: Get coldstakingaddress failed %s.", __func__, e.what());
         };
 
-        addrColdStaking = sAddress;
+        addrColdStaking = CBitcoinAddress(sAddress);
         if (addrColdStaking.IsValid()) {
             fEnabled = true;
         }
@@ -4194,7 +4194,7 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
                     if (i != pwallet->mapAddressBook.end()) {
                         entry.pushKV("label", i->second.name);
                     }
-                    if (setAddress.size() && !setAddress.count(CTxDestination(sx))) {
+                    if (setAddress.size() && !setAddress.count(CBitcoinAddress(CTxDestination(sx)))) {
                         continue;
                     }
                 }
@@ -4390,7 +4390,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
         const CScript *scriptPubKey = &pout->scriptPubKey;
         bool fValidAddress = ExtractDestination(*scriptPubKey, address);
         bool reused = avoid_reuse && pwallet->IsUsedDestination(address);
-        if (setAddress.size() && (!fValidAddress || !setAddress.count(address)))
+        if (setAddress.size() && (!fValidAddress || !setAddress.count(CBitcoinAddress(address))))
             continue;
 
         UniValue entry(UniValue::VOBJ);

@@ -23,7 +23,7 @@ public:
     CKeyID() : uint160() {}
     explicit CKeyID(const uint160& in) : uint160(in) {}
 
-    CKeyID(const uint256& in);
+    explicit CKeyID(const uint256& in);
 };
 
 class CKeyID256 : public uint256
@@ -272,12 +272,12 @@ public:
     }
 
     //! Construct a public key from a byte vector.
-    CCmpPubKey(const std::vector<unsigned char>& _vch)
+    explicit CCmpPubKey(const std::vector<unsigned char>& _vch)
     {
         Set(_vch.begin(), _vch.end());
     }
 
-    CCmpPubKey(CPubKey pk)
+    explicit CCmpPubKey(CPubKey pk)
     {
         Set(pk.begin(), pk.end());
     }

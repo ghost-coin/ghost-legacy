@@ -146,13 +146,13 @@ UniValue mnemonic(const JSONRPCRequest &request)
         result.pushKV("mnemonic", sMnemonic);
 
         if (fBip44) {
-            eKey58.SetKey(ekMaster, CChainParams::EXT_SECRET_KEY_BTC);
+            eKey58.SetKey(CExtKeyPair(ekMaster), CChainParams::EXT_SECRET_KEY_BTC);
             result.pushKV("master", eKey58.ToString());
 
             // m / purpose' / coin_type' / account' / change / address_index
             // path "44' Params().BIP44ID()
         } else {
-            eKey58.SetKey(ekMaster, CChainParams::EXT_SECRET_KEY);
+            eKey58.SetKey(CExtKeyPair(ekMaster), CChainParams::EXT_SECRET_KEY);
             result.pushKV("master", eKey58.ToString());
         }
 
@@ -207,7 +207,7 @@ UniValue mnemonic(const JSONRPCRequest &request)
         }
 
         if (fBip44) {
-            eKey58.SetKey(ekMaster, CChainParams::EXT_SECRET_KEY_BTC);
+            eKey58.SetKey(CExtKeyPair(ekMaster), CChainParams::EXT_SECRET_KEY_BTC);
             result.pushKV("master", eKey58.ToString());
 
             // m / purpose' / coin_type' / account' / change / address_index
@@ -215,10 +215,10 @@ UniValue mnemonic(const JSONRPCRequest &request)
             ekMaster.Derive(ekDerived, BIP44_PURPOSE);
             ekDerived.Derive(ekDerived, Params().BIP44ID());
 
-            eKey58.SetKey(ekDerived, CChainParams::EXT_SECRET_KEY);
+            eKey58.SetKey(CExtKeyPair(ekDerived), CChainParams::EXT_SECRET_KEY);
             result.pushKV("derived", eKey58.ToString());
         } else {
-            eKey58.SetKey(ekMaster, CChainParams::EXT_SECRET_KEY);
+            eKey58.SetKey(CExtKeyPair(ekMaster), CChainParams::EXT_SECRET_KEY);
             result.pushKV("master", eKey58.ToString());
         }
 

@@ -13,7 +13,7 @@ class CHDWallet;
 /** Testing setup and teardown for wallet.
  */
 struct HDWalletTestingSetup: public TestingSetup {
-    HDWalletTestingSetup(const std::string& chainName = CBaseChainParams::MAIN);
+    explicit HDWalletTestingSetup(const std::string& chainName = CBaseChainParams::MAIN);
     ~HDWalletTestingSetup();
 
     std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain();

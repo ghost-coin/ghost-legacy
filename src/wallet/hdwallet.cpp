@@ -3139,7 +3139,7 @@ int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string 
             txbout = MAKE_OUTPUT<CTxOutRingCT>();
             CTxOutRingCT *txout = (CTxOutRingCT*)txbout.get();
 
-            txout->pk = r.pkTo;
+            txout->pk = CCmpPubKey(r.pkTo);
 
             CPubKey pkEphem = r.sEphem.GetPubKey();
             SetCTOutVData(txout->vData, pkEphem, r);
@@ -5669,7 +5669,7 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
     }
 
     CStoredExtKey *sekConfidential = new CStoredExtKey();
-    sekConfidential->kp = evConfidential;
+    sekConfidential->kp = CExtKeyPair(evConfidential);
     vSubKeyPath = vAccountPath;
     SetHardenedBit(nChild);
     sekConfidential->mapValue[EKVT_PATH] = PushUInt32(vSubKeyPath, nChild);
@@ -5721,7 +5721,7 @@ int CHDWallet::MakeDefaultAccount()
     }
 
     CStoredExtKey sek;
-    sek.kp = ekMaster;
+    sek.kp = CExtKeyPair(ekMaster);
     if (0 != (rv = ExtKeyImportLoose(&wdb, sek, idNewMaster, false, false))) {
         wdb.TxnAbort();
         return werrorN(1, "ExtKeyImportLoose failed, %s", ExtKeyGetString(rv));
@@ -5862,7 +5862,7 @@ int CHDWallet::ExtKeyImportLoose(CHDWalletDB *pwdb, CStoredExtKey &sekIn, CKeyID
 
         CStoredExtKey sekDerived;
         sekDerived.nFlags |= EAF_ACTIVE;
-        sekDerived.kp = evDerivedKey;
+        sekDerived.kp = CExtKeyPair(evDerivedKey);
         sekDerived.mapValue[EKVT_PATH] = v;
         sekDerived.mapValue[EKVT_ROOT_ID] = SetCKeyID(v, id);
         sekDerived.sLabel = sek.sLabel + " - bip44 derived.";
@@ -6123,7 +6123,7 @@ int CHDWallet::ExtKeyNewMaster(CHDWalletDB *pwdb, CKeyID &idMaster, bool fAutoGe
     std::vector<uint8_t> v;
     sekRoot.nFlags |= EAF_ACTIVE;
     sekRoot.mapValue[EKVT_KEY_TYPE] = SetChar(v, EKT_BIP44_MASTER);
-    sekRoot.kp = evRootKey;
+    sekRoot.kp = CExtKeyPair(evRootKey);
     sekRoot.mapValue[EKVT_CREATED_AT] = SetCompressedInt64(v, GetTime());
     sekRoot.sLabel = "Initial BIP44 Master";
     CKeyID idRoot = sekRoot.GetID();
@@ -6138,7 +6138,7 @@ int CHDWallet::ExtKeyNewMaster(CHDWalletDB *pwdb, CKeyID &idMaster, bool fAutoGe
 
     CStoredExtKey sekMaster;
     sekMaster.nFlags |= EAF_ACTIVE;
-    sekMaster.kp = evMasterKey;
+    sekMaster.kp = CExtKeyPair(evMasterKey);
     sekMaster.mapValue[EKVT_PATH] = vPath;
     sekMaster.mapValue[EKVT_ROOT_ID] = SetCKeyID(v, idRoot);
     sekMaster.mapValue[EKVT_CREATED_AT] = SetCompressedInt64(v, GetTime());
@@ -6193,19 +6193,19 @@ int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, 
             return werrorN(1, "Could not derive account chain keys.");
         }
 
-        sekExternal->kp = evExternal;
-        sekInternal->kp = evInternal;
+        sekExternal->kp = CExtKeyPair(evExternal);
+        sekInternal->kp = CExtKeyPair(evInternal);
 
         sekStealth = new CStoredExtKey();
-        sekStealth->kp = evStealth;
+        sekStealth->kp = CExtKeyPair(evStealth);
     } else {
         CExtPubKey epExternal, epInternal;
         if (sekAccount->DeriveNextKey(epExternal, nExternal, false) != 0
             || sekAccount->DeriveNextKey(epInternal, nInternal, false) != 0) {
             return werrorN(1, "Could not derive account chain keys.");
         }
-        sekExternal->kp = epExternal;
-        sekInternal->kp = epInternal;
+        sekExternal->kp = CExtKeyPair(epExternal);
+        sekInternal->kp = CExtKeyPair(epInternal);
     }
 
     vSubKeyPath = vAccountPath;
@@ -6285,7 +6285,7 @@ int CHDWallet::ExtKeyDeriveNewAccount(CHDWalletDB *pwdb, CExtKeyAccount *sea, co
             delete sekAccount;
             return werrorN(1, "%s: Could not derive account key from master.", __func__);
         }
-        sekAccount->kp = evAccountKey;
+        sekAccount->kp = CExtKeyPair(evAccountKey);
         sekAccount->mapValue[EKVT_PATH] = PushUInt32(vAccountPath, nAccount);
     } else {
         std::vector<uint32_t> vPath;
@@ -6307,7 +6307,7 @@ int CHDWallet::ExtKeyDeriveNewAccount(CHDWalletDB *pwdb, CExtKeyAccount *sea, co
             vkWork = vkOut;
         }
 
-        sekAccount->kp = vkOut;
+        sekAccount->kp = CExtKeyPair(vkOut);
         sekAccount->mapValue[EKVT_PATH] = vAccountPath;
     }
 
@@ -7749,7 +7749,7 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
     evStealthScan.SetSeed(vchSig.data(), vchSig.size());
 
     CStoredExtKey *sekStealthScan = new CStoredExtKey();
-    sekStealthScan->kp = evStealthScan;
+    sekStealthScan->kp = CExtKeyPair(evStealthScan);
     std::vector<uint32_t> vPath;
     //sekStealthScan->SetPath(vPath);
     sekStealthScan->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
@@ -7768,7 +7768,7 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
     AppendPath(sekAccount, vPath);
 
     CStoredExtKey *sekStealthSpend = new CStoredExtKey();
-    sekStealthSpend->kp = evStealthSpend;
+    sekStealthSpend->kp = CExtKeyPair(evStealthSpend);
     vPath.push_back(nStealthSpend);
     sekStealthSpend->SetPath(vPath);
     sekStealthSpend->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
@@ -8028,7 +8028,7 @@ int CHDWallet::NewExtKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount,
         }
 
         sekOut->nFlags |= EAF_HARDWARE_DEVICE;
-        sekOut->kp = epNewKey;
+        sekOut->kp = CExtKeyPair(epNewKey);
     } else {
         CExtKey evNewKey;
         if (childNo) {
@@ -8040,7 +8040,7 @@ int CHDWallet::NewExtKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount,
                 return werrorN(1, "DeriveNextKey failed.");
             }
         }
-        sekOut->kp = evNewKey;
+        sekOut->kp = CExtKeyPair(evNewKey);
     }
 
     sekOut->nFlags |= EAF_ACTIVE | EAF_RECEIVE_ON | EAF_IN_ACCOUNT;
@@ -8172,7 +8172,7 @@ int CHDWallet::ExtKeyUpdateLooseKey(const CExtKeyPair &ek, uint32_t nKey, bool f
             return werrorN(1, "%s: WriteExtKey failed.", __func__);
         }
     } else {
-        sek.kp = ek;
+        sek.kp = CExtKeyPair(ek);
         sek.nGenerated = nKey;
         CKeyID idDerived;
         if (0 != ExtKeyImportLoose(&wdb, sek, idDerived, false, false)) {

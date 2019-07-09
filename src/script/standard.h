@@ -35,7 +35,7 @@ class CScriptID256 : public uint256
 {
 public:
     CScriptID256() : uint256() {}
-    CScriptID256(const uint256& in) : uint256(in) {}
+    explicit CScriptID256(const uint256& in) : uint256(in) {}
 
     bool Set(const CScript& in);
 };

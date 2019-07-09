@@ -755,7 +755,7 @@ static UniValue signmessage(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
         }
     } else {
-        if (!pwallet->GetKey(*keyID256, key)) {
+        if (!pwallet->GetKey(CKeyID(*keyID256), key)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
         }
     }

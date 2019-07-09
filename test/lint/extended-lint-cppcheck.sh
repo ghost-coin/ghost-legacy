@@ -50,6 +50,13 @@ IGNORED_WARNINGS=(
     "src/test/checkqueue_tests.cpp:.* Struct 'MemoryCheck' has a constructor with 1 argument that is not explicit."
     "src/test/checkqueue_tests.cpp:.* Struct 'UniqueCheck' has a constructor with 1 argument that is not explicit."
     "src/wallet/db.h:.* Class 'BerkeleyEnvironment' has a constructor with 1 argument that is not explicit."
+
+    "src/unilib/utf8.h:.* Class 'iterator' has a constructor with 1 argument that is not explicit."
+    "src/unilib/utf8.h:.* Class 'string_decoder' has a constructor with 1 argument that is not explicit."
+    "src/rpc/util.h:.* Struct 'UniValueType' has a constructor with 1 argument that is not explicit."
+    "src/support/allocators/secure.h:.* warning: Struct 'secure_allocator < uint8_t >' has a constructor with 1 argument that is not explicit."
+    "src/support/allocators/zeroafterfree.h:.* Struct 'zero_after_free_allocator < unsigned char >' has a constructor with 1 argument that is not explicit."
+    "src/primitives/block.h:.* warning: Class 'CBlockGetHeader' has a constructor with 1 argument that is not explicit."
 )
 
 if ! command -v cppcheck > /dev/null; then

@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
 
     BOOST_MESSAGE("---------------- Make RingCT Output : SetCTOutVData ---------------------\n");
     auto txout = MAKE_OUTPUT<CTxOutRingCT>();
-    txout->pk = r.pkTo;
+    txout->pk = CCmpPubKey(r.pkTo);
 
     CPubKey pkEphem = r.sEphem.GetPubKey();
     SetCTOutVData(txout->vData, pkEphem, r);

@@ -28,7 +28,7 @@ bool CScriptID::Set(const uint256& in)
 
 bool CScriptID256::Set(const CScript& in)
 {
-    *this = HashSha256(in.begin(), in.end());
+    *this = CScriptID256(HashSha256(in.begin(), in.end()));
     return true;
 };
 

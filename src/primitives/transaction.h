@@ -214,7 +214,7 @@ class CTxOutData;
 class CTxOutBase
 {
 public:
-    CTxOutBase(uint8_t v) : nVersion(v) {};
+    explicit CTxOutBase(uint8_t v) : nVersion(v) {};
     virtual ~CTxOutBase() {};
     uint8_t nVersion;
 
@@ -490,7 +490,7 @@ class CTxOutData : public CTxOutBase
 {
 public:
     CTxOutData() : CTxOutBase(OUTPUT_DATA) {};
-    CTxOutData(const std::vector<uint8_t> &vData_) : CTxOutBase(OUTPUT_DATA), vData(vData_) {};
+    explicit CTxOutData(const std::vector<uint8_t> &vData_) : CTxOutBase(OUTPUT_DATA), vData(vData_) {};
 
     std::vector<uint8_t> vData;
 

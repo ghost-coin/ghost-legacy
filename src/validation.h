@@ -739,7 +739,7 @@ class CoinStakeCache
 {
 public:
     CoinStakeCache() {};
-    CoinStakeCache(size_t max_size) : nMaxSize(max_size) {};
+    explicit CoinStakeCache(size_t max_size) : nMaxSize(max_size) {};
     size_t nMaxSize = 16;
     std::list<std::pair<uint256, CTransactionRef> > lData;
 

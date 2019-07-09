@@ -121,7 +121,7 @@ void runTests(int nLanguage, UniValue &tests)
             CExtKey ekTest;
             ekTest.SetSeed(&vSeed[0], vSeed.size());
 
-            eKey58.SetKey(ekTest, CChainParams::EXT_SECRET_KEY_BTC);
+            eKey58.SetKey(CExtKeyPair(ekTest), CChainParams::EXT_SECRET_KEY_BTC);
             BOOST_CHECK(eKey58.ToString() == sExtKey);
         };
     };

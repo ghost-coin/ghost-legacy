@@ -182,7 +182,7 @@ public:
     CPubKey pubkey;
 
     CExtKeyPair() {};
-    CExtKeyPair(CExtKey &vk)
+    explicit CExtKeyPair(CExtKey &vk)
     {
         nDepth = vk.nDepth;
         memcpy(vchFingerprint, vk.vchFingerprint, sizeof(vchFingerprint));
@@ -192,7 +192,7 @@ public:
         pubkey = key.GetPubKey();
     };
 
-    CExtKeyPair(CExtPubKey &pk)
+    explicit CExtKeyPair(CExtPubKey &pk)
     {
         nDepth = pk.nDepth;
         memcpy(vchFingerprint, pk.vchFingerprint, sizeof(vchFingerprint));

@@ -3733,7 +3733,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                 continue;
             }
 
-            const CBitcoinAddress &address = entry.first;
+            const CBitcoinAddress &address = CBitcoinAddress(entry.first);
 
             if (!address.IsValid()) {
                 continue;

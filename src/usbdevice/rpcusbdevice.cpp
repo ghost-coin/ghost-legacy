@@ -852,7 +852,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 
         CStoredExtKey *sekAccount = new CStoredExtKey();
         sekAccount->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT | EAF_HARDWARE_DEVICE;
-        sekAccount->kp = ekp;
+        sekAccount->kp = CExtKeyPair(ekp);
         sekAccount->SetPath(vPath); // EKVT_PATH
 
         std::vector<uint8_t> vData;
@@ -877,7 +877,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
         std::vector<uint32_t> vChainPath;
         vChainPath.push_back(vPath.back()); // make relative to key before account
         CStoredExtKey *sekExternal = new CStoredExtKey();
-        sekExternal->kp = epExternal;
+        sekExternal->kp = CExtKeyPair(epExternal);
         vChainPath.push_back(nExternal);
         sekExternal->SetPath(vChainPath);
         sekExternal->nFlags |= EAF_ACTIVE | EAF_RECEIVE_ON | EAF_IN_ACCOUNT | EAF_HARDWARE_DEVICE;
@@ -886,7 +886,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
         sea->nActiveExternal = sea->NumChains();
 
         CStoredExtKey *sekInternal = new CStoredExtKey();
-        sekInternal->kp = epInternal;
+        sekInternal->kp = CExtKeyPair(epInternal);
         vChainPath.pop_back();
         vChainPath.push_back(nInternal);
         sekInternal->SetPath(vChainPath);
@@ -922,7 +922,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
             evStealthScan.SetSeed(vchSig.data(), vchSig.size());
 
             CStoredExtKey *sekStealthScan = new CStoredExtKey();
-            sekStealthScan->kp = evStealthScan;
+            sekStealthScan->kp = CExtKeyPair(evStealthScan);
             vSigPath.clear();
             // sekStealthScan isn't on the account chain
             sekStealthScan->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
@@ -944,7 +944,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
             vPath.pop_back();
 
             CStoredExtKey *sekStealthSpend = new CStoredExtKey();
-            sekStealthSpend->kp = epStealthSpend;
+            sekStealthSpend->kp = CExtKeyPair(epStealthSpend);
             vChainPath.pop_back();
             vChainPath.push_back(nStealthSpend);
             sekStealthSpend->SetPath(vChainPath);
