@@ -534,20 +534,18 @@ UniValue getspentinfo(const JSONRPCRequest& request)
             RPCHelpMan{"getspentinfo",
                 "\nReturns the txid and index where an output is spent.\n",
                 {
-                    {"inputs", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of json objects",
+                    {"inputs", RPCArg::Type::OBJ, RPCArg::Optional::NO, "",
                         {
-                            {
-                                {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The hex string of the txid."},
-                                {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO, "The start block height."},
-                            },
+                            {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The hex string of the txid."},
+                            {"index", RPCArg::Type::NUM, RPCArg::Optional::NO, "The output number."},
                         },
                     },
                 },
                 RPCResult{
             "{\n"
-            "  \"txid\"  (string) The transaction id\n"
+            "  \"txid\"   (string) The transaction id\n"
             "  \"index\"  (number) The spending input index\n"
-            "  ,...\n"
+            "  \"height\" (number) The height of the block containing the spending tx\n"
             "}\n"
                 },
                 RPCExamples{
