@@ -109,7 +109,8 @@ jobs:
         - set -o errexit; source .travis/lint_05_before_script.sh
       script:
         - set -o errexit; source .travis/extended_lint_06_script.sh
-
+      after_success:
+        - echo "End"
     - stage: test
       name: 'ARM  [GOAL: install]  [no unit or functional tests]'
       env: >-
