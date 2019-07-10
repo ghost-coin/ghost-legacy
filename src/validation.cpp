@@ -2502,8 +2502,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                     int scriptType = 0;
 
                     if (!ExtractIndexInfo(pScript, scriptType, hashBytes)
-                        || scriptType == 0)
+                        || scriptType == 0) {
                         continue;
+                    }
 
                     uint256 hashAddress;
                     if (scriptType > 0)

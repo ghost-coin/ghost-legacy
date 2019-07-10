@@ -431,8 +431,8 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     state.fHasAnonOutput = false;
     state.fHasAnonInput = false;
 
-    // early out for particl txns
-    if (tx.IsParticlVersion() && tx.vin.size() < 1) {
+    bool is_particl_tx = tx.IsParticlVersion();
+    if (is_particl_tx && tx.vin.size() < 1) { // early out
         return state.DoS(100, false, REJECT_INVALID, "bad-txn-no-inputs", false,
                          strprintf("%s: no inputs", __func__));
     }
@@ -464,7 +464,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         {
             if (nSpendHeight - coin.nHeight < COINBASE_MATURITY)
             {
-                if (fParticlMode) {
+                if (is_particl_tx) {
                     // Scale in the depth restriction to start the chain
                     int nRequiredDepth = std::min(COINBASE_MATURITY, (int)(coin.nHeight / 2));
                     if (nSpendHeight - coin.nHeight < nRequiredDepth) {
@@ -480,7 +480,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         }
 
         // Check for negative or overflow input values
-        if (fParticlMode) {
+        if (is_particl_tx) {
             if (coin.nType == OUTPUT_STANDARD) {
                 nValueIn += coin.out.nValue;
                 if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn)) {
@@ -512,7 +512,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     state.fHasAnonOutput = nRingCT > nRingCTInputs;
 
     nTxFee = 0;
-    if (fParticlMode) {
+    if (is_particl_tx) {
         if (!tx.IsCoinStake()) {
             // Tally transaction fees
             if (nCt > 0 || nRingCT > 0) {
@@ -600,7 +600,6 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         if (!MoneyRange(nPlainValueOut)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-out-outofrange");
         }
-
         if (!MoneyRange(nValueIn)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-outofrange");
         }
