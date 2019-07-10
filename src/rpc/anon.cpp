@@ -22,7 +22,7 @@ UniValue anonoutput(const JSONRPCRequest &request)
                 "\nReturns an anon output at index or by publickey hex.\n"
                 "If no output is provided returns the last index.\n",
                 {
-                    {"output", RPCArg::Type::STR, RPCArg::Optional::NO, "Output to view, specified by index or hex of publickey."},
+                    {"output", RPCArg::Type::STR, /* default */ "", "Output to view, specified by index or hex of publickey."},
                 },
                 RPCResult{
             "{\n"

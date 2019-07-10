@@ -7827,7 +7827,7 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
 
     CExtKey evStealthSpend;
     uint32_t nStealthSpend;
-    if ((0 != sekAccount->DeriveKey(evStealthSpend, CHAIN_NO_STEALTH_SPEND, nStealthSpend, true)) != 0) {
+    if (0 != sekAccount->DeriveKey(evStealthSpend, CHAIN_NO_STEALTH_SPEND, nStealthSpend, true)) {
         return werrorN(1, "%s: Could not derive account chain keys.", __func__);
     }
 

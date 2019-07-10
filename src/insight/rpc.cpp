@@ -732,7 +732,18 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
 static UniValue getblockdeltas(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error("getblockdeltas <blockhash>\n");
+        throw std::runtime_error(RPCHelpMan{"getblockdeltas",
+            "\nReturns block deltas.\n",
+            {
+                {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The block hash"},
+            },
+            RPCResults{},
+            RPCExamples{
+            HelpExampleCli("getblockdeltas", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("getblockdeltas", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
+            },
+        }.ToString());
     }
 
     LOCK(cs_main);

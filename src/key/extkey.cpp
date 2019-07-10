@@ -247,7 +247,7 @@ int ExtractExtKeyPath(const std::string &sPath, std::vector<uint32_t> &vPath)
 
         if (fHarden) {
             if ((nChild >> 31) == 0) {
-                nChild |= 1 << 31;
+                nChild |= 1U << 31;
             } else {
                 return 8;
             }
@@ -1074,7 +1074,7 @@ inline void AppendPathLink(std::string &s, uint32_t n, char cH)
     s += "/";
     bool fHardened = false;
     if ((n >> 31) == 1) {
-        n &= ~(1 << 31);
+        n &= ~(1U << 31);
         fHardened = true;
     }
     s += strprintf("%u", n);

@@ -181,6 +181,8 @@ static UniValue smsgoptions(const JSONRPCRequest &request)
                 "\nList and manage options.\n",
                 {
                     {"list with_description|set \"optname\" \"value\"", RPCArg::Type::STR, /* default */ "list", "Command input."},
+                    {"optname", RPCArg::Type::STR, /* default */ "", "Option name."},
+                    {"value", RPCArg::Type::STR, /* default */ "", "New option value."},
                 },
                 RPCResults{},
                 RPCExamples{
@@ -273,6 +275,8 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
                 "\nList and manage keys.\n",
                 {
                     {"whitelist|all|wallet|recv +/- \"address\"|anon +/- \"address\"", RPCArg::Type::STR, /* default */ "whitelist", "Command input."},
+                    {"optype", RPCArg::Type::STR, /* default */ "", "Add or remove +/-."},
+                    {"address", RPCArg::Type::STR, /* default */ "", "Address to affect."},
                 },
                 RPCResults{},
                 RPCExamples{""},
