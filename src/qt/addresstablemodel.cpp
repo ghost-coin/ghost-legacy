@@ -368,14 +368,15 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
                 return QString();
             }
         }
+
+        // Add entry
+        walletModel->wallet().setAddressBook(DecodeDestination(strAddress), strLabel, "send");
     }
     else if(type == Receive)
     {
         // Generate a new address to associate with given label
-
         QString sCommand;
-        switch (addrType)
-        {
+        switch (addrType) {
             case ADDR_STEALTH:
                 sCommand = "getnewstealthaddress ";
                 sCommand += "\""+label+ "\" ";
@@ -396,21 +397,18 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
                 sCommand += " false ";
                 sCommand += (addrType == ADDR_STANDARD256) ? " true " : " false ";
                 break;
-        };
+        }
 
         UniValue rv;
-        if (!walletModel->tryCallRpc(sCommand, rv))
+        if (!walletModel->tryCallRpc(sCommand, rv)) {
             return QString();
+        }
         return QString::fromStdString(rv.get_str());
     }
     else
     {
         return QString();
     }
-
-    // Add entry
-    walletModel->wallet().setAddressBook(DecodeDestination(strAddress), strLabel,
-                           (type == Send ? "send" : "receive"));
     return QString::fromStdString(strAddress);
 }
 

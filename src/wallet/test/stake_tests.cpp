@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
     CScript scriptPubKey = GetScriptForDestination(PKHash(kRecv.GetPubKey()));
 
     // Create and send the transaction
-    CReserveKey reservekey(pwalletMain.get());
+    ReserveDestination reservedest(pwalletMain.get());
     CAmount nFeeRequired;
     std::string strError;
     std::vector<CRecipient> vecSend;
@@ -249,14 +249,14 @@ BOOST_AUTO_TEST_CASE(stake_test)
     CCoinControl coinControl;
     {
         auto locked_chain = pwallet->chain().lock();
-        BOOST_CHECK(pwallet->CreateTransaction(*locked_chain, vecSend, tx_new, reservekey, nFeeRequired, nChangePosRet, strError, coinControl));
+        BOOST_CHECK(pwallet->CreateTransaction(*locked_chain, vecSend, tx_new, reservedest, nFeeRequired, nChangePosRet, strError, coinControl));
     }
     {
         g_connman = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
         CValidationState state;
         pwallet->SetBroadcastTransactions(true);
         mapValue_t mapValue;
-        BOOST_CHECK(pwallet->CommitTransaction(tx_new, std::move(mapValue), {} /* orderForm */, reservekey, state));
+        BOOST_CHECK(pwallet->CommitTransaction(tx_new, std::move(mapValue), {} /* orderForm */, reservedest, state));
     }
 
     StakeNBlocks(pwallet, 1);

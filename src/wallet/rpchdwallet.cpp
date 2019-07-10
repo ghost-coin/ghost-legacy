@@ -4832,13 +4832,13 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     }
 
     CValidationState state;
-    CReserveKey reservekey(pwallet);
+    ReserveDestination reserve_dest(pwallet);
     if (typeIn == OUTPUT_STANDARD && typeOut == OUTPUT_STANDARD) {
-        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, reservekey, state)) {
+        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, reserve_dest, state)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
         }
     } else {
-        if (!pwallet->CommitTransaction(wtx, rtx, reservekey, state)) {
+        if (!pwallet->CommitTransaction(wtx, rtx, reserve_dest, state)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
         }
     }
