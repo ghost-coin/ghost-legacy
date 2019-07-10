@@ -85,8 +85,6 @@ bool timestampSort(std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta> a,
 
 UniValue getaddressmempool(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1)
-        throw std::runtime_error(
             RPCHelpMan{"getaddressmempool",
                 "\nReturns all mempool deltas for an address (requires addressindex to be enabled).\n",
                 {
@@ -114,7 +112,7 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressmempool", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
                 },
-        }.ToString());
+        }.Check(request);
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -160,8 +158,6 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
 
 UniValue getaddressutxos(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1)
-        throw std::runtime_error(
         RPCHelpMan{"getaddressutxos",
                 "\nReturns all unspent outputs for an address (requires addressindex to be enabled).\n",
                 {
@@ -189,7 +185,7 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressutxos", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
                 },
-        }.ToString());
+        }.Check(request);
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -250,8 +246,6 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
 
 UniValue getaddressdeltas(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1 || !request.params[0].isObject())
-        throw std::runtime_error(
             RPCHelpMan{"getaddressdeltas",
                 "\nReturns all changes for an address (requires addressindex to be enabled).\n",
                 {
@@ -280,7 +274,7 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressdeltas", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
                 },
-        }.ToString());
+        }.Check(request);
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -380,8 +374,6 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
 
 UniValue getaddressbalance(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1)
-        throw std::runtime_error(
             RPCHelpMan{"getaddressbalance",
                 "\nReturns the balance for an address(es) (requires addressindex to be enabled).\n",
                 {
@@ -402,7 +394,7 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddressbalance", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
                 },
-        }.ToString());
+        }.Check(request);
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -441,8 +433,6 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
 
 UniValue getaddresstxids(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1)
-        throw std::runtime_error(
             RPCHelpMan{"getaddresstxids",
                 "\nReturns the txids for an address(es) (requires addressindex to be enabled).\n",
                 {
@@ -465,7 +455,7 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getaddresstxids", "{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}")
                 },
-        }.ToString());
+        }.Check(request);
 
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
@@ -529,8 +519,6 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
 
 UniValue getspentinfo(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1 || !request.params[0].isObject())
-        throw std::runtime_error(
             RPCHelpMan{"getspentinfo",
                 "\nReturns the txid and index where an output is spent.\n",
                 {
@@ -553,7 +541,7 @@ UniValue getspentinfo(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getspentinfo", "{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}")
                 },
-        }.ToString());
+        }.Check(request);
 
     UniValue txidValue = find_value(request.params[0].get_obj(), "txid");
     UniValue indexValue = find_value(request.params[0].get_obj(), "index");
@@ -731,9 +719,18 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
 
 static UniValue getblockdeltas(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error("getblockdeltas <blockhash>\n");
-    }
+    RPCHelpMan{"getblockdeltas",
+        "\nReturns block deltas.\n",
+        {
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The block hash"},
+        },
+        RPCResults{},
+        RPCExamples{
+        HelpExampleCli("getblockdeltas", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") +
+        "\nAs a JSON-RPC call\n"
+        + HelpExampleRpc("getblockdeltas", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
+        },
+    }.Check(request);
 
     LOCK(cs_main);
 
@@ -760,8 +757,6 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
 
 static UniValue getblockhashes(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() < 2)
-        throw std::runtime_error(
             RPCHelpMan{"getblockhashes",
                 "\nReturns array of hashes of blocks within the timestamp range provided.\n",
                 {
@@ -790,7 +785,7 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getblockhashes", "1231614698, 1231024505")
                 },
-        }.ToString());
+        }.Check(request);
 
     unsigned int high = request.params[0].get_int();
     unsigned int low = request.params[1].get_int();
@@ -840,8 +835,6 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
 
 UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 0)
-        throw std::runtime_error(
             RPCHelpMan{"gettxoutsetinfobyscript",
                 "\nReturns statistics about the unspent transaction output set per script type.\n"
                 "This call may take some time.\n",
@@ -858,7 +851,7 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("gettxoutsetinfobyscript", "")
                 },
-        }.ToString());
+        }.Check(request);
 
     UniValue ret(UniValue::VOBJ);
 
@@ -966,8 +959,6 @@ static void pushScript(UniValue &uv, const std::string &name, const CScript *scr
 
 UniValue getblockreward(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1)
-        throw std::runtime_error(
             RPCHelpMan{"getblockreward",
                 "\nReturns the blockreward for block at height.\n",
                 {
@@ -1003,7 +994,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getblockreward", "1000")
                 },
-        }.ToString());
+        }.Check(request);
 
     RPCTypeCheck(request.params, {UniValue::VNUM});
 
@@ -1108,8 +1099,6 @@ UniValue getblockreward(const JSONRPCRequest& request)
 
 UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
-        throw std::runtime_error(
             RPCHelpMan{"listcoldstakeunspent",
                 "\nReturns the unspent outputs of \"stakeaddress\" at height.\n",
                 {
@@ -1137,7 +1126,7 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("listcoldstakeunspent", "\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\", 1000")
                 },
-            }.ToString());
+            }.Check(request);
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VNUM}, true);
 
@@ -1269,8 +1258,6 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 
 UniValue getindexinfo(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 0)
-        throw std::runtime_error(
             RPCHelpMan{"getindexinfo",
                 "\nReturns an object of enabled indices.\n",
                 {
@@ -1289,7 +1276,7 @@ UniValue getindexinfo(const JSONRPCRequest& request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("getindexinfo", "")
                 },
-        }.ToString());
+        }.Check(request);
 
     UniValue ret(UniValue::VOBJ);
 

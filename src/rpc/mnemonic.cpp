@@ -105,7 +105,6 @@ UniValue mnemonic(const JSONRPCRequest &request)
             if (!sstr) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid num bytes entropy");
             }
-
             if (nBytesEntropy < 16 || nBytesEntropy > 64) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Num bytes entropy out of range [16,64].");
             }
@@ -129,13 +128,11 @@ UniValue mnemonic(const JSONRPCRequest &request)
             if (0 != MnemonicEncode(nLanguage, vEntropy, sMnemonic, sError)) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("MnemonicEncode failed %s.", sError.c_str()).c_str());
             }
-
             if (0 != MnemonicToSeed(sMnemonic, sPassword, vSeed)) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "MnemonicToSeed failed.");
             }
 
             ekMaster.SetSeed(&vSeed[0], vSeed.size());
-
             if (!ekMaster.IsValid()) {
                 continue;
             }
@@ -193,7 +190,6 @@ UniValue mnemonic(const JSONRPCRequest &request)
         if (0 != MnemonicDecode(nLanguage, sMnemonic, vEntropy, sError)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("MnemonicDecode failed %s.", sError.c_str()).c_str());
         }
-
         if (0 != MnemonicToSeed(sMnemonic, sPassword, vSeed)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "MnemonicToSeed failed.");
         }
@@ -255,11 +251,10 @@ UniValue mnemonic(const JSONRPCRequest &request)
         UniValue arrayWords(UniValue::VARR);
 
         std::string sWord, sError;
-        while (0 == MnemonicGetWord(nLanguage, nWords, sWord, sError))
-        {
+        while (0 == MnemonicGetWord(nLanguage, nWords, sWord, sError)) {
             arrayWords.push_back(sWord);
             nWords++;
-        };
+        }
 
         result.pushKV("words", arrayWords);
         result.pushKV("num_words", nWords);

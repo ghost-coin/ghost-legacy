@@ -16,13 +16,11 @@ static bool IsDigits(const std::string &str)
 
 UniValue anonoutput(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 1)
-        throw std::runtime_error(
             RPCHelpMan{"anonoutput",
                 "\nReturns an anon output at index or by publickey hex.\n"
                 "If no output is provided returns the last index.\n",
                 {
-                    {"output", RPCArg::Type::STR, RPCArg::Optional::NO, "Output to view, specified by index or hex of publickey."},
+                    {"output", RPCArg::Type::STR, /* default */ "", "Output to view, specified by index or hex of publickey."},
                 },
                 RPCResult{
             "{\n"
@@ -37,7 +35,7 @@ UniValue anonoutput(const JSONRPCRequest &request)
             HelpExampleCli("anonoutput", "\"1\"")
             + HelpExampleRpc("anonoutput", "\"2\"")
             },
-        }.ToString());
+        }.Check(request);
 
     UniValue result(UniValue::VOBJ);
 

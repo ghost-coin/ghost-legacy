@@ -33,8 +33,6 @@ static void EnsureSMSGIsEnabled()
 
 static UniValue smsgenable(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 1)
-        throw std::runtime_error(
             RPCHelpMan{"smsgenable",
                 "Enable secure messaging on the specified wallet.\n"
                 "Uses the first available wallet if none specified.\n"
@@ -48,7 +46,7 @@ static UniValue smsgenable(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgenable", "\"wallet_name\"")
                 },
-            }.ToString());
+            }.Check(request);
 
     if (smsg::fSecMsgEnabled) {
         throw JSONRPCError(RPC_MISC_ERROR, "Secure messaging is already enabled.");
@@ -92,8 +90,6 @@ static UniValue smsgenable(const JSONRPCRequest &request)
 
 static UniValue smsgdisable(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 0)
-        throw std::runtime_error(
             RPCHelpMan{"smsgdisable",
                 "\nDisable secure messaging.\n",
                 {
@@ -104,7 +100,7 @@ static UniValue smsgdisable(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgdisable", "")
                 },
-            }.ToString());
+            }.Check(request);
 
     if (!smsg::fSecMsgEnabled)
         throw JSONRPCError(RPC_MISC_ERROR, "Secure messaging is already disabled.");
@@ -118,8 +114,6 @@ static UniValue smsgdisable(const JSONRPCRequest &request)
 
 static UniValue smsgsetwallet(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 1)
-        throw std::runtime_error(
             RPCHelpMan{"smsgsetwallet",
                 "Set secure messaging to use the specified wallet.\n"
                 "SMSG can only be enabled on one wallet.\n"
@@ -133,7 +127,7 @@ static UniValue smsgsetwallet(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgsetwallet", "\"wallet_name\"")
                 },
-            }.ToString());
+            }.Check(request);
 
     if (!smsg::fSecMsgEnabled) {
         throw JSONRPCError(RPC_MISC_ERROR, "Secure messaging must be enabled.");
@@ -175,19 +169,19 @@ static UniValue smsgsetwallet(const JSONRPCRequest &request)
 
 static UniValue smsgoptions(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 3)
-        throw std::runtime_error(
             RPCHelpMan{"smsgoptions",
                 "\nList and manage options.\n",
                 {
                     {"list with_description|set \"optname\" \"value\"", RPCArg::Type::STR, /* default */ "list", "Command input."},
+                    {"optname", RPCArg::Type::STR, /* default */ "", "Option name."},
+                    {"value", RPCArg::Type::STR, /* default */ "", "New option value."},
                 },
                 RPCResults{},
                 RPCExamples{
             "\nList possible options with descriptions.\n"
             + HelpExampleCli("smsgoptions", "list 1")
                 },
-            }.ToString());
+            }.Check(request);
 
     std::string mode = "list";
     if (request.params.size() > 0) {
@@ -267,16 +261,16 @@ static UniValue smsgoptions(const JSONRPCRequest &request)
 
 static UniValue smsglocalkeys(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 3)
-        throw std::runtime_error(
             RPCHelpMan{"smsglocalkeys",
                 "\nList and manage keys.\n",
                 {
                     {"whitelist|all|wallet|recv +/- \"address\"|anon +/- \"address\"", RPCArg::Type::STR, /* default */ "whitelist", "Command input."},
+                    {"optype", RPCArg::Type::STR, /* default */ "", "Add or remove +/-."},
+                    {"address", RPCArg::Type::STR, /* default */ "", "Address to affect."},
                 },
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -483,14 +477,12 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
 
 static UniValue smsgscanchain(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 0)
-        throw std::runtime_error(
             RPCHelpMan{"smsgscanchain",
                 "\nLook for public keys in the block chain.\n",
                 {},
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -506,15 +498,13 @@ static UniValue smsgscanchain(const JSONRPCRequest &request)
 
 static UniValue smsgscanbuckets(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 0)
-        throw std::runtime_error(
             RPCHelpMan{"smsgscanbuckets",
                 "\nForce rescan of all messages in the bucket store.\n"
                 "Wallet must be unlocked if any receiving keys are stored in the wallet.\n",
                 {},
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -537,8 +527,6 @@ static UniValue smsgscanbuckets(const JSONRPCRequest &request)
 
 static UniValue smsgaddaddress(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 2)
-        throw std::runtime_error(
             RPCHelpMan{"smsgaddaddress",
                 "\nAdd address and matching public key to database.\n",
                 {
@@ -547,7 +535,7 @@ static UniValue smsgaddaddress(const JSONRPCRequest &request)
                 },
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -568,8 +556,6 @@ static UniValue smsgaddaddress(const JSONRPCRequest &request)
 
 static UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 1)
-        throw std::runtime_error(
             RPCHelpMan{"smsgaddlocaladdress",
                 "\nEnable receiving messages on <address>.\n"
                 "Key for \"address\" must exist in the wallet.\n",
@@ -578,7 +564,7 @@ static UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
                 },
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -598,8 +584,6 @@ static UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
 
 static UniValue smsgimportprivkey(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
-        throw std::runtime_error(
             RPCHelpMan{"smsgimportprivkey",
                 "\nAdds a private key (as returned by dumpprivkey) to the smsg database.\n"
                 "The imported key can receive messages even if the wallet is locked.\n",
@@ -616,7 +600,7 @@ static UniValue smsgimportprivkey(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgimportprivkey", "\"mykey\", \"testing\"")
                 },
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -641,8 +625,6 @@ static UniValue smsgimportprivkey(const JSONRPCRequest &request)
 
 static UniValue smsggetpubkey(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 1)
-        throw std::runtime_error(
             RPCHelpMan{"smsggetpubkey",
                 "\nReturn the base58 encoded compressed public key for an address.\n",
                 {
@@ -659,7 +641,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsggetpubkey", "\"myaddress\"")
                 },
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -712,8 +694,6 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
 
 static UniValue smsgsend(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() < 3 || request.params.size() > 10)
-        throw std::runtime_error(
             RPCHelpMan{"smsgsend",
                 "\nSend an encrypted message from \"address_from\" to \"address_to\".\n",
                 {
@@ -741,7 +721,7 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgsend", "\"myaddress\", \"toaddress\", \"message\"")
                 },
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -823,8 +803,6 @@ static UniValue smsgsend(const JSONRPCRequest &request)
 
 static UniValue smsgsendanon(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 2)
-        throw std::runtime_error(
             RPCHelpMan{"smsgsendanon",
                 "\nDEPRECATED. Send an anonymous encrypted message to addrTo.\n",
                 {
@@ -833,7 +811,7 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
                 },
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -862,8 +840,6 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
 
 static UniValue smsginbox(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 3)
-        throw std::runtime_error(
             RPCHelpMan{"smsginbox",
                 "\nDecrypt and display received messages.\n"
                 "Warning: clear will delete all messages.\n",
@@ -890,7 +866,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
             "}\n"
                 },
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -1032,8 +1008,6 @@ static UniValue smsginbox(const JSONRPCRequest &request)
 
 static UniValue smsgoutbox(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 3)
-        throw std::runtime_error(
             RPCHelpMan{"smsgoutbox",
                 "\nDecrypt and display all sent messages.\n"
                 "Warning: \"mode\"=\"clear\" will delete all sent messages.\n",
@@ -1057,7 +1031,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
             "}\n"
                 },
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -1180,8 +1154,6 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
 static UniValue smsgbuckets(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 1)
-        throw std::runtime_error(
             RPCHelpMan{"smsgbuckets",
                 "\nDisplay some statistics.\n",
                 {
@@ -1189,7 +1161,7 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
                 },
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -1311,8 +1283,6 @@ static bool sortMsgDesc(const std::pair<int64_t, UniValue> &a, const std::pair<i
 
 static UniValue smsgview(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 6)
-        throw std::runtime_error(
             RPCHelpMan{"smsgview",
                 "\nView messages by address.\n"
                 "Setting address to '*' will match all addresses\n"
@@ -1328,7 +1298,7 @@ static UniValue smsgview(const JSONRPCRequest &request)
                 },
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -1593,8 +1563,6 @@ static UniValue smsgview(const JSONRPCRequest &request)
 
 static UniValue smsgone(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
-        throw std::runtime_error(
         RPCHelpMan{"smsg",
                 "\nView smsg by msgid.\n",
                 {
@@ -1628,7 +1596,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsg", "\"msgid\"")
                 },
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -1758,8 +1726,6 @@ static UniValue smsgone(const JSONRPCRequest &request)
 
 static UniValue smsgimport(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
-        throw std::runtime_error(
         RPCHelpMan{"smsgimport",
                 "\nImport smsg from hex string.\n",
                 {
@@ -1781,7 +1747,7 @@ static UniValue smsgimport(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgimport", "\"msg\"")
                 },
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -1823,8 +1789,6 @@ static UniValue smsgimport(const JSONRPCRequest &request)
 
 static UniValue smsgpurge(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 1)
-        throw std::runtime_error(
             RPCHelpMan{"smsgpurge",
                 "\nPurge smsg by msgid.\n",
                 {
@@ -1836,7 +1800,7 @@ static UniValue smsgpurge(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsgpurge", "\"msgid\"")
                 },
-            }.ToString());
+            }.Check(request);
 
     EnsureSMSGIsEnabled();
 
@@ -1861,8 +1825,6 @@ static UniValue smsgpurge(const JSONRPCRequest &request)
 
 static UniValue smsggetfeerate(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 1)
-        throw std::runtime_error(
             RPCHelpMan{"smsggetfeerate",
                 "\nReturn paid SMSG fee.\n",
                 {
@@ -1876,7 +1838,7 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsggetfeerate", "1000")
                 },
-            }.ToString());
+            }.Check(request);
 
     LOCK(cs_main);
 
@@ -1894,8 +1856,6 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
 
 static UniValue smsggetdifficulty(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 1)
-        throw std::runtime_error(
             RPCHelpMan{"smsggetdifficulty",
                 "\nReturn free SMSG difficulty.\n",
                 {
@@ -1909,7 +1869,7 @@ static UniValue smsggetdifficulty(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsggetdifficulty", "1552688834")
                 },
-            }.ToString());
+            }.Check(request);
 
     LOCK(cs_main);
 
@@ -1927,8 +1887,6 @@ static UniValue smsggetdifficulty(const JSONRPCRequest &request)
 
 static UniValue smsggetinfo(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() > 0)
-        throw std::runtime_error(
             RPCHelpMan{"smsggetinfo",
                 "\nReturns an object containing SMSG-related information.\n",
                 {
@@ -1944,7 +1902,7 @@ static UniValue smsggetinfo(const JSONRPCRequest &request)
             "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("smsggetinfo", "")
                 },
-            }.ToString());
+            }.Check(request);
 
     UniValue obj(UniValue::VOBJ);
 

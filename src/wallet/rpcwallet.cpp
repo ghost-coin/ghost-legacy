@@ -3544,8 +3544,6 @@ static UniValue resendwallettransactions(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() != 0)
-        throw std::runtime_error(
             RPCHelpMan{"resendwallettransactions",
                 "Immediately re-broadcast unconfirmed wallet transactions to all peers.\n"
                 "Intended only for testing; the wallet code periodically re-broadcasts\n"
@@ -3556,8 +3554,7 @@ static UniValue resendwallettransactions(const JSONRPCRequest& request)
             "Returns array of transaction ids that were re-broadcast.\n"
                 },
                  RPCExamples{""},
-             }.ToString()
-            );
+             }.Check(request);
 
     if (!pwallet->chain().p2pEnabled()) {
         throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");

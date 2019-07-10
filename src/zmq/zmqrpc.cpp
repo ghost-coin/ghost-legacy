@@ -57,14 +57,12 @@ UniValue getzmqnotifications(const JSONRPCRequest& request)
 
 UniValue getnewzmqserverkeypair(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 0)
-        throw std::runtime_error(
             RPCHelpMan{"getnewzmqserverkeypair",
                 "\nReturns a newly generated server keypair for use with zmq.\n",
                 {},
                 RPCResults{},
                 RPCExamples{""},
-            }.ToString());
+            }.Check(request);
 
     char server_public_key[41], server_secret_key[41];
     if (0 != GetNewZMQKeypair(server_public_key, server_secret_key)) {
