@@ -4106,7 +4106,6 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
         if (options.exists("cc_format")) {
             fCCFormat = options["cc_format"].get_bool();
         }
-
         if (options.exists("include_immature")) {
             fIncludeImmature = options["include_immature"].get_bool();
         }
@@ -5276,6 +5275,14 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
         }
     }
 
+    SigVersion sigversion = SigVersion::BASE;
+    if (!request.params[4].isNull()) {
+        const UniValue &options = request.params[4].get_obj();
+        if (options.exists("force_segwit") && options["force_segwit"].get_bool()) {
+            sigversion = SigVersion::WITNESS_V0;
+        }
+    }
+
     // Sign the transaction
     std::vector<uint8_t> vchSig;
     unsigned int i;
@@ -5284,9 +5291,11 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
 
         if (txin.prevout == prev_out) {
             MutableTransactionSignatureCreator creator(&mtx, i, vchAmount, nHashType);
-            CScript &scriptSig = scriptPubKey.IsPayToScriptHashAny(mtx.IsCoinStake()) ? scriptRedeem : scriptPubKey;
+            CScript &scriptSig = (sigversion == SigVersion::WITNESS_V0
+                                  || scriptPubKey.IsPayToScriptHashAny(mtx.IsCoinStake()))
+                                 ? scriptRedeem : scriptPubKey;
 
-            if (!creator.CreateSig(*pkeystore, vchSig, idSign, scriptSig, SigVersion::BASE)) {
+            if (!creator.CreateSig(*pkeystore, vchSig, idSign, scriptSig, sigversion)) {
                 throw JSONRPCError(RPC_MISC_ERROR, "CreateSig failed.");
             }
             break;
@@ -5331,6 +5340,11 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
             "       \"ALL|ANYONECANPAY\"\n"
             "       \"NONE|ANYONECANPAY\"\n"
             "       \"SINGLE|ANYONECANPAY\""},
+                    {"options", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED_NAMED_ARG, "JSON with options",
+                        {
+                            {"force_segwit", RPCArg::Type::BOOL, /* default */ "false", "Force creating a segwit compatible signature"},
+                        },
+                        "options"},
                 },
                 RPCResult{
             "The hex encoded signature.\n"
@@ -5373,6 +5387,11 @@ static UniValue createsignaturewithkey(const JSONRPCRequest &request)
             "       \"ALL|ANYONECANPAY\"\n"
             "       \"NONE|ANYONECANPAY\"\n"
             "       \"SINGLE|ANYONECANPAY\""},
+                    {"options", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED_NAMED_ARG, "JSON with options",
+                        {
+                            {"force_segwit", RPCArg::Type::BOOL, /* default */ "false", "Force creating a segwit compatible signature"},
+                        },
+                        "options"},
                 },
                 RPCResult{
             "The hex encoded signature.\n"
@@ -8145,8 +8164,8 @@ static const CRPCCommand commands[] =
 
 
 
-    { "wallet",             "createsignaturewithwallet",        &createsignaturewithwallet,     {"hexstring","prevtx","address","sighashtype"} },
-    { "rawtransactions",    "createsignaturewithkey",           &createsignaturewithkey,        {"hexstring","prevtx","privkey","sighashtype"} },
+    { "wallet",             "createsignaturewithwallet",        &createsignaturewithwallet,     {"hexstring","prevtx","address","sighashtype","options"} },
+    { "rawtransactions",    "createsignaturewithkey",           &createsignaturewithkey,        {"hexstring","prevtx","privkey","sighashtype","options"} },
 
     { "wallet",             "debugwallet",                      &debugwallet,                   {"attempt_repair","clear_stakes_seen"} },
     { "wallet",             "walletsettings",                   &walletsettings,                {"setting","json"} },
