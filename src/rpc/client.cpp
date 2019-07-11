@@ -214,7 +214,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "buildscript", 0, "json" },
     { "createsignaturewithwallet", 1, "prevtx" },
     { "createsignaturewithkey", 1, "prevtx" },
-
+    { "createsignaturewithwallet", 4, "options" },
+    { "createsignaturewithkey", 4, "options" },
 
 
     { "walletsettings", 1, "json" },
