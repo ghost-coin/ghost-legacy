@@ -170,6 +170,81 @@ std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const std::string&
     return LoadWallet(chain, WalletLocation(name), error, warning);
 }
 
+std::shared_ptr<CWallet> CreateWallet(interfaces::Chain& chain, const std::string& name, std::string& error, std::string& warning, WalletCreationStatus& status, const SecureString& passphrase, uint64_t wallet_creation_flags)
+{
+    // Indicate that the wallet is actually supposed to be blank and not just blank to make it encrypted
+    bool create_blank = (wallet_creation_flags & WALLET_FLAG_BLANK_WALLET);
+
+    // Born encrypted wallets need to be created blank first.
+    if (!passphrase.empty()) {
+        wallet_creation_flags |= WALLET_FLAG_BLANK_WALLET;
+    }
+
+    // Check the wallet file location
+    WalletLocation location(name);
+    if (location.Exists()) {
+        error = "Wallet " + location.GetName() + " already exists.";
+        status = WalletCreationStatus::CREATION_FAILED;
+        return nullptr;
+    }
+
+    // Wallet::Verify will check if we're trying to create a wallet with a duplicate name.
+    std::string wallet_error;
+    if (!CWallet::Verify(chain, location, false, wallet_error, warning)) {
+        error = "Wallet file verification failed: " + wallet_error;
+        status = WalletCreationStatus::CREATION_FAILED;
+        return nullptr;
+    }
+
+    // Make the wallet
+    std::shared_ptr<CWallet> wallet = CWallet::CreateWalletFromFile(chain, location, wallet_creation_flags);
+    if (!wallet) {
+        error = "Wallet creation failed";
+        status = WalletCreationStatus::CREATION_FAILED;
+        return nullptr;
+    }
+    if (fParticlMode && !GetParticlWallet(wallet.get())->Initialise()) {
+        error = "Wallet initialisation failed";
+        status = WalletCreationStatus::CREATION_FAILED;
+        return nullptr;
+    }
+
+    // Encrypt the wallet
+    if (!passphrase.empty() && !(wallet_creation_flags & WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
+        if (!wallet->EncryptWallet(passphrase)) {
+            error = "Error: Wallet created but failed to encrypt.";
+            status = WalletCreationStatus::ENCRYPTION_FAILED;
+            return nullptr;
+        }
+        if (!create_blank) {
+            // Unlock the wallet
+            if (!wallet->Unlock(passphrase)) {
+                error = "Error: Wallet was encrypted but could not be unlocked";
+                status = WalletCreationStatus::ENCRYPTION_FAILED;
+                return nullptr;
+            }
+
+            // Set a seed for the wallet
+            if (fParticlMode && !!GetParticlWallet(wallet.get())->MakeDefaultAccount()) {
+                error = "Error: MakeDefaultAccount failed";
+                status = WalletCreationStatus::CREATION_FAILED;
+                return nullptr;
+            } else {
+                CPubKey master_pub_key = wallet->GenerateNewSeed();
+                wallet->SetHDSeed(master_pub_key);
+                wallet->NewKeyPool();
+            }
+
+            // Relock the wallet
+            wallet->Lock();
+        }
+    }
+    AddWallet(wallet);
+    wallet->postInitProcess();
+    status = WalletCreationStatus::SUCCESS;
+    return wallet;
+}
+
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
 const uint256 ABANDON_HASH(uint256S("0000000000000000000000000000000000000000000000000000000000000001"));
@@ -3612,8 +3687,7 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize)
     {
         LOCK(cs_wallet);
 
-        if (IsLocked())
-            return false;
+        if (IsLocked()) return false;
 
         // Top up key pool
         unsigned int nTargetSize;
@@ -3674,8 +3748,7 @@ bool CWallet::ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool, bool fRe
     {
         LOCK(cs_wallet);
 
-        if (!IsLocked())
-            TopUpKeyPool();
+        TopUpKeyPool();
 
         bool fReturningInternal = fRequestedInternal;
         fReturningInternal &= (IsHDEnabled() && CanSupportFeature(FEATURE_HD_SPLIT)) || IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
@@ -3766,9 +3839,8 @@ bool CWallet::GetNewDestination(const OutputType type, const std::string label, 
 {
     LOCK(cs_wallet);
     error.clear();
-    if (!IsLocked()) {
-        TopUpKeyPool();
-    }
+
+    TopUpKeyPool();
 
     // Generate a new key that is added to wallet
     CPubKey new_key;
@@ -3786,9 +3858,8 @@ bool CWallet::GetNewDestination(const OutputType type, const std::string label, 
 bool CWallet::GetNewChangeDestination(const OutputType type, CTxDestination& dest, std::string& error)
 {
     error.clear();
-    if (!IsLocked()) {
-        TopUpKeyPool();
-    }
+
+    TopUpKeyPool();
 
     ReserveDestination reservedest(this);
     if (!reservedest.GetReservedDestination(type, dest, true)) {
