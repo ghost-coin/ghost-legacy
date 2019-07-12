@@ -12,7 +12,7 @@
 
 #include <pubkey.h>
 #include <script/sign.h>
-#include <keystore.h>
+#include <script/signingprovider.h>
 #include <memory>
 
 struct CExtPubKey;
@@ -40,11 +40,12 @@ public:
     CPubKey pk;
 };
 
-class CPathKeyStore : public CBasicKeyStore
+class CPathKeyStore : public FillableSigningProvider
 {
 public:
     std::map<CKeyID, CPathKey> mapPathKeys;
 
+    using FillableSigningProvider::AddKey;
     bool AddKey(const CPathKey &pathkey)
     {
         LOCK(cs_KeyStore);
@@ -52,7 +53,7 @@ public:
         return true;
     }
 
-    using CBasicKeyStore::GetKey;
+    using FillableSigningProvider::GetKey;
     bool GetKey(const CKeyID &address, CPathKey &keyOut) const
     {
         LOCK(cs_KeyStore);
@@ -125,7 +126,7 @@ public:
 
     virtual int SignMessage(const std::vector<uint32_t> &vPath, const std::string &sMessage, std::vector<uint8_t> &vchSig, std::string &sError) { return 0; };
 
-    virtual int PrepareTransaction(CMutableTransaction &tx, const CCoinsViewCache &view, const CKeyStore &keystore, int nHashType) { return 0; };
+    virtual int PrepareTransaction(CMutableTransaction &tx, const CCoinsViewCache &view, const FillableSigningProvider &keystore, int nHashType) { return 0; };
 
     //int SignHash(const std::vector<uint32_t> &vPath, const uint256 &hash, std::vector<uint8_t> &vchSig, std::string &sError);
     virtual int SignTransaction(const std::vector<uint32_t> &vPath, const std::vector<uint8_t> &vSharedSecret, const CMutableTransaction *tx,

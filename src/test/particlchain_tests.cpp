@@ -4,7 +4,7 @@
 
 #include <test/setup_common.h>
 #include <net.h>
-#include <keystore.h>
+#include <script/signingprovider.h>
 #include <script/script.h>
 #include <consensus/validation.h>
 #include <consensus/merkle.h>
@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(oldversion_test)
 BOOST_AUTO_TEST_CASE(signature_test)
 {
     SeedInsecureRand();
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
 
     CKey k;
     InsecureNewKey(k, true);
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(signature_test)
 BOOST_AUTO_TEST_CASE(particlchain_test)
 {
     SeedInsecureRand();
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
 
     CKey k;
     InsecureNewKey(k, true);

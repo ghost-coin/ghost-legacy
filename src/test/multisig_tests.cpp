@@ -3,18 +3,18 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <key.h>
-#include <key/extkey.h>
-#include <key/stealth.h>
-#include <keystore.h>
 #include <policy/policy.h>
 #include <script/script.h>
 #include <script/script_error.h>
 #include <script/interpreter.h>
 #include <script/sign.h>
+#include <script/signingprovider.h>
 #include <tinyformat.h>
 #include <uint256.h>
 #include <test/setup_common.h>
 
+#include <key/extkey.h>
+#include <key/stealth.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -181,7 +181,7 @@ BOOST_AUTO_TEST_CASE(multisig_IsStandard)
 BOOST_AUTO_TEST_CASE(multisig_Sign)
 {
     // Test SignSignature() (and therefore the version of Solver() that signs transactions)
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
     CKey key[4];
     for (int i = 0; i < 4; i++)
     {

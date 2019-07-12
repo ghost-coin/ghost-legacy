@@ -8,9 +8,9 @@
 #include <key.h>
 #include <key/extkey.h>
 #include <key/stealth.h>
-#include <keystore.h>
 #include <script/script.h>
 #include <script/sign.h>
+#include <script/signingprovider.h>
 #include <wallet/wallet.h>
 
 //typedef std::vector<unsigned char> valtype;

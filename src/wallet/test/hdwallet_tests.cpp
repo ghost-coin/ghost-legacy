@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(stealth_key_index)
     BOOST_CHECK(nIndex == 515);
 }
 
-void makeNewStealthKey(CStealthAddress &sxAddr, CBasicKeyStore &keystore)
+void makeNewStealthKey(CStealthAddress &sxAddr, FillableSigningProvider &keystore)
 {
     InsecureNewKey(sxAddr.scan_secret, true);
 
@@ -267,7 +267,7 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     CHDWallet *wallet = pwalletMain.get();
 
     SeedInsecureRand();
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
 
     CStealthAddress sxAddr;
     makeNewStealthKey(sxAddr, keystore);

@@ -5230,7 +5230,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
         }
     }
 
-    CBasicKeyStore keystore, *pkeystore;
+    FillableSigningProvider keystore, *pkeystore;
     CKeyID idSign;
     if (pwallet) {
         CTxDestination destSign = DecodeDestination(request.params[2].get_str());

@@ -105,6 +105,7 @@ public:
     bool EncryptWallet(const SecureString &strWalletPassphrase) override;
     bool Lock() override;
     bool Unlock(const SecureString &strWalletPassphrase, bool accept_no_keys = false) override;
+    size_t CountKeys() const;
 
 
     isminetype HaveAddress(const CTxDestination &dest);
@@ -558,9 +559,9 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wa
 
 void RestartStakingThreads();
 
-bool IsParticlWallet(const CKeyStore *win);
-CHDWallet *GetParticlWallet(CKeyStore *win);
-const CHDWallet *GetParticlWallet(const CKeyStore *win);
+bool IsParticlWallet(const FillableSigningProvider *win);
+CHDWallet *GetParticlWallet(FillableSigningProvider *win);
+const CHDWallet *GetParticlWallet(const FillableSigningProvider *win);
 
 
 #endif // PARTICL_WALLET_HDWALLET_H

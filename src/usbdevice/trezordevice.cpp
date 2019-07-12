@@ -478,7 +478,7 @@ int CTrezorDevice::SignMessage(const std::vector<uint32_t>& vPath, const std::st
     return 0;
 };
 
-int CTrezorDevice::PrepareTransaction(CMutableTransaction& mtx, const CCoinsViewCache& view, const CKeyStore& keystore, int nHashType)
+int CTrezorDevice::PrepareTransaction(CMutableTransaction& mtx, const CCoinsViewCache& view, const FillableSigningProvider& keystore, int nHashType)
 {
     int opened = OpenIfUnlocked(sError);
     if (0 !=  opened){

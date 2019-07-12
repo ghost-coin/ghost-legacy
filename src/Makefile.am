@@ -168,7 +168,6 @@ BITCOIN_CORE_H = \
   key/wordlists/italian.h \
   key/wordlists/korean.h \
   key_io.h \
-  keystore.h \
   dbwrapper.h \
   limitedmap.h \
   logging.h \
@@ -210,8 +209,10 @@ BITCOIN_CORE_H = \
   rpc/rpcutil.h \
   scheduler.h \
   script/descriptor.h \
+  script/keyorigin.h \
   script/sigcache.h \
   script/sign.h \
+  script/signingprovider.h \
   script/standard.h \
   script/ismine.h \
   shutdown.h \
@@ -449,6 +450,8 @@ crypto_libparticl_crypto_base_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 crypto_libparticl_crypto_base_a_SOURCES = \
   crypto/aes.cpp \
   crypto/aes.h \
+  crypto/chacha_poly_aead.h \
+  crypto/chacha_poly_aead.cpp \
   crypto/chacha20.h \
   crypto/chacha20.cpp \
   crypto/common.h \
@@ -553,7 +556,6 @@ libparticl_common_a_SOURCES = \
   unilib/uninorms.cpp \
   unilib/utf8.cpp \
   key_io.cpp \
-  keystore.cpp \
   merkleblock.cpp \
   netaddress.cpp \
   netbase.cpp \
@@ -567,6 +569,7 @@ libparticl_common_a_SOURCES = \
   scheduler.cpp \
   script/descriptor.cpp \
   script/sign.cpp \
+  script/signingprovider.cpp \
   script/standard.cpp \
   versionbitsinfo.cpp \
   warnings.cpp \
@@ -750,7 +753,7 @@ endif
 # bitcoinconsensus library #
 if BUILD_BITCOIN_LIBS
 include_HEADERS = script/particlconsensus.h
-libparticlconsensus_la_SOURCES = $(crypto_libparticl_crypto_base_a_SOURCES) $(libparticl_consensus_a_SOURCES)
+libparticlconsensus_la_SOURCES = support/cleanse.cpp $(crypto_libparticl_crypto_base_a_SOURCES) $(libparticl_consensus_a_SOURCES)
 
 if GLIBC_BACK_COMPAT
   libparticlconsensus_la_SOURCES += compat/glibc_compat.cpp

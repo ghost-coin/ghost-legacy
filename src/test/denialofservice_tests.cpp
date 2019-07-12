@@ -6,17 +6,19 @@
 
 #include <banman.h>
 #include <chainparams.h>
-#include <key/extkey.h>
-#include <key/stealth.h>
-#include <keystore.h>
 #include <net.h>
 #include <net_processing.h>
 #include <script/sign.h>
+#include <script/signingprovider.h>
+#include <script/standard.h>
 #include <serialize.h>
 #include <util/memory.h>
 #include <util/system.h>
 #include <util/time.h>
 #include <validation.h>
+
+#include <key/extkey.h>
+#include <key/stealth.h>
 
 #include <test/setup_common.h>
 
@@ -373,7 +375,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans)
 {
     CKey key;
     key.MakeNewKey(true);
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
     BOOST_CHECK(keystore.AddKey(key));
 
     // 50 orphan transactions:

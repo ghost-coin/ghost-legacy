@@ -7,7 +7,7 @@
 #include <key.h>
 #include <pubkey.h>
 #include <key_io.h>
-#include <keystore.h>
+#include <script/signingprovider.h>
 #include <test/setup_common.h>
 #include <util/strencodings.h>
 
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(stealth_key_serialise)
 }
 
 
-void makeNewStealthKey(CStealthAddress &sxAddr, CBasicKeyStore &keystore)
+void makeNewStealthKey(CStealthAddress &sxAddr, FillableSigningProvider &keystore)
 {
     InsecureNewKey(sxAddr.scan_secret, true);
 
@@ -148,7 +148,7 @@ void makeNewStealthKey(CStealthAddress &sxAddr, CBasicKeyStore &keystore)
 BOOST_AUTO_TEST_CASE(stealth_key_address)
 {
     SeedInsecureRand();
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
     ECC_Start_Stealth();
 
     for (size_t k = 0; k < 32; ++k)
@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE(stealth_key_address)
 BOOST_AUTO_TEST_CASE(stealth_key)
 {
     SeedInsecureRand();
-    CBasicKeyStore keystore;
+    FillableSigningProvider keystore;
 
     ECC_Start_Stealth();
 

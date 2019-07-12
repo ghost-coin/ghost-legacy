@@ -12,7 +12,6 @@
 #include <key/extkey.h>
 #include <key/stealth.h>
 
-
 typedef std::vector<unsigned char> valtype;
 
 bool fAcceptDatacarrier = DEFAULT_ACCEPT_DATACARRIER;

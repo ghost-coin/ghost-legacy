@@ -910,7 +910,7 @@ bool CHDWallet::LoadTxRecords(CHDWalletDB *pwdb)
 bool CHDWallet::IsLocked() const
 {
     LOCK(cs_wallet); // Lock cs_wallet to ensure any CHDWallet::Unlock has completed
-    return CCryptoKeyStore::IsLocked();
+    return CWallet::IsLocked();
 };
 
 bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
@@ -1035,7 +1035,7 @@ bool CHDWallet::Lock()
         ExtKeyLock();
     }
 
-    return CCryptoKeyStore::Lock();
+    return CWallet::Lock();
 };
 
 bool CHDWallet::Unlock(const SecureString &strWalletPassphrase, bool accept_no_keys)
@@ -1071,12 +1071,12 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase, bool accept_no_k
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, vMasterKeyNew)) {
                 continue; // try another master key
             }
-            if (!CCryptoKeyStore::Unlock(vMasterKeyNew, true)) {
+            if (!CWallet::Unlock(vMasterKeyNew, true)) {
                 return false;
             }
             if (0 != ExtKeyUnlock(vMasterKeyNew)) {
                 if (fWasUnlocked) {
-                    CCryptoKeyStore::Unlock(vMasterKeyOld, true);
+                    CWallet::Unlock(vMasterKeyOld, true);
                 }
                 return false;
             }
@@ -1087,7 +1087,6 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase, bool accept_no_k
         if (!fFoundKey) {
             return false;
         }
-
         if (fWasUnlocked) {
             return true;
         }
@@ -1100,6 +1099,14 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase, bool accept_no_k
     WakeThreadStakeMiner(this);
 
     return true;
+};
+
+size_t CHDWallet::CountKeys() const
+{
+    LOCK(cs_KeyStore);
+    if (!IsCrypted())
+        return mapKeys.size();
+    return mapCryptedKeys.size();
 };
 
 isminetype CHDWallet::HaveAddress(const CTxDestination &dest)
@@ -1159,7 +1166,7 @@ isminetype CHDWallet::HaveKey(const CKeyID &address, const CEKAKey *&pak, const 
     }
 
     pa = nullptr;
-    return CCryptoKeyStore::IsMine(address);
+    return CWallet::IsMine(address);
 };
 
 isminetype CHDWallet::IsMine(const CKeyID &address) const
@@ -1235,7 +1242,7 @@ int CHDWallet::GetKey(const CKeyID &address, CKey &keyOut, CExtKeyAccount *&pa, 
     }
 
     pa = nullptr;
-    return CCryptoKeyStore::GetKey(address, keyOut);
+    return CWallet::GetKey(address, keyOut);
 };
 
 bool CHDWallet::GetKey(const CKeyID &address, CKey &keyOut) const
@@ -1248,7 +1255,7 @@ bool CHDWallet::GetKey(const CKeyID &address, CKey &keyOut) const
             return true;
         }
     }
-    return CCryptoKeyStore::GetKey(address, keyOut);
+    return CWallet::GetKey(address, keyOut);
 };
 
 bool CHDWallet::GetPubKey(const CKeyID &address, CPubKey& pkOut) const
@@ -1261,7 +1268,7 @@ bool CHDWallet::GetPubKey(const CKeyID &address, CPubKey& pkOut) const
         }
     }
 
-    return CCryptoKeyStore::GetPubKey(address, pkOut);
+    return CWallet::GetPubKey(address, pkOut);
 };
 
 bool CHDWallet::GetKeyFromPool(CPubKey &key, bool internal)
@@ -12930,12 +12937,12 @@ void RestartStakingThreads()
     StartThreadStakeMiner();
 };
 
-bool IsParticlWallet(const CKeyStore *win)
+bool IsParticlWallet(const FillableSigningProvider *win)
 {
     return win && dynamic_cast<const CHDWallet*>(win);
 };
 
-CHDWallet *GetParticlWallet(CKeyStore *win)
+CHDWallet *GetParticlWallet(FillableSigningProvider *win)
 {
     CHDWallet *rv;
     if (!win) {
@@ -12947,7 +12954,7 @@ CHDWallet *GetParticlWallet(CKeyStore *win)
     return rv;
 };
 
-const CHDWallet *GetParticlWallet(const CKeyStore *win)
+const CHDWallet *GetParticlWallet(const FillableSigningProvider *win)
 {
     const CHDWallet *rv;
     if (!win) {

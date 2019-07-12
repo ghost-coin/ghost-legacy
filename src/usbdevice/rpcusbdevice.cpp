@@ -13,11 +13,11 @@
 #include <validation.h>
 #include <core_io.h>
 #include <primitives/transaction.h>
-#include <keystore.h>
 #include <policy/policy.h>
 #include <script/script.h>
 #include <script/script_error.h>
 #include <script/sign.h>
+#include <script/signingprovider.h>
 #include <script/standard.h>
 #include <txmempool.h>
 
@@ -629,9 +629,9 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     }
 
 #ifdef ENABLE_WALLET
-    const CKeyStore& keystore = ((fGivenKeys || !pwallet) ? (CKeyStore&)tempKeystore : (CKeyStore&)*pwallet);
+    const FillableSigningProvider& keystore = ((fGivenKeys || !pwallet) ? (FillableSigningProvider&)tempKeystore : (FillableSigningProvider&)*pwallet);
 #else
-    const CKeyStore& keystore = tempKeystore;
+    const FillableSigningProvider& keystore = tempKeystore;
 #endif
 
     int nHashType = SIGHASH_ALL;
