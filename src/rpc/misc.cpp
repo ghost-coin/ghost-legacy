@@ -278,6 +278,7 @@ static UniValue verifymessage(const JSONRPCRequest& request)
                     {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The particl address to use for the signature."},
                     {"signature", RPCArg::Type::STR, RPCArg::Optional::NO, "The signature provided by the signer in base 64 encoding (see signmessage)."},
                     {"message", RPCArg::Type::STR, RPCArg::Optional::NO, "The message that was signed."},
+                    {"message_magic", RPCArg::Type::STR, /* default */ "Bitcoin Signed Message:\\n", "The magic string to use."},
                 },
                 RPCResult{
             "true|false   (boolean) If the signature is verified or not.\n"
@@ -299,6 +300,7 @@ static UniValue verifymessage(const JSONRPCRequest& request)
     std::string strAddress  = request.params[0].get_str();
     std::string strSign     = request.params[1].get_str();
     std::string strMessage  = request.params[2].get_str();
+    std::string message_magic = request.params[3].isNull() ? strMessageMagic : request.params[3].get_str();
 
     CTxDestination destination = DecodeDestination(strAddress);
     if (!IsValidDestination(destination)) {
@@ -319,7 +321,7 @@ static UniValue verifymessage(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Malformed base64 encoding");
 
     CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
+    ss << message_magic;
     ss << strMessage;
 
     CPubKey pubkey;
@@ -656,7 +658,7 @@ static const CRPCCommand commands[] =
     { "util",               "createmultisig",         &createmultisig,         {"nrequired","keys","address_type"} },
     { "util",               "deriveaddresses",        &deriveaddresses,        {"descriptor", "range"} },
     { "util",               "getdescriptorinfo",      &getdescriptorinfo,      {"descriptor"} },
-    { "util",               "verifymessage",          &verifymessage,          {"address","signature","message"} },
+    { "util",               "verifymessage",          &verifymessage,          {"address","signature","message","message_magic"} },
     { "util",               "signmessagewithprivkey", &signmessagewithprivkey, {"privkey","message"} },
 
     /* Not shown in help */
