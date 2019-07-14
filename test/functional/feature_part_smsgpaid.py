@@ -139,7 +139,7 @@ class SmsgPaidTest(ParticlTestFramework):
         ro = nodes[0].walletpassphrase("qwerty234", 300)
         ro = nodes[0].smsginbox()
         assert(len(ro['messages']) == 2)
-        flat = json.dumps(ro, default=self.jsonDecimal)
+        flat = self.dumpj(ro)
         assert('Non paid msg' in flat)
         assert(text_3 in flat)
 
@@ -147,7 +147,7 @@ class SmsgPaidTest(ParticlTestFramework):
 
         ro = nodes[0].smsginbox("all")
         assert(len(ro['messages']) == 4)
-        flat = json.dumps(ro, default=self.jsonDecimal)
+        flat = self.dumpj(ro)
         assert(flat.count('Wallet is locked') == 2)
 
 

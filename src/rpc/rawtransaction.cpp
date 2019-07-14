@@ -722,7 +722,6 @@ static UniValue decodescript(const JSONRPCRequest& request)
                     }
                 }
             }
-            if (fParticlMode) return r;
 
             UniValue sr(UniValue::VOBJ);
             CScript segwitScr;

@@ -4924,8 +4924,6 @@ bool CWalletTx::AcceptToMemoryPool(interfaces::Chain::Lock& locked_chain, CValid
 
 void CWallet::LearnRelatedScripts(const CPubKey& key, OutputType type)
 {
-    if (fParticlMode)
-        return;
     if (key.IsCompressed() && (type == OutputType::P2SH_SEGWIT || type == OutputType::BECH32)) {
         CTxDestination witdest = WitnessV0KeyHash(key.GetID());
         CScript witprog = GetScriptForDestination(witdest);

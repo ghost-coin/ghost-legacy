@@ -87,6 +87,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
         self.block_submit(self.nodes[0], [test4tx])
 
         self.log.info("Test 5: Non-NULLDUMMY P2WSH multisig transaction invalid after activation")
+        print('[rm] self.wit_address ', self.wit_address)
         test5tx = create_transaction(self.nodes[0], txid3, self.wit_address, amount=48)
         test6txs.append(CTransaction(test5tx))
         test5tx.wit.vtxinwit[0].scriptWitness.stack[0] = b'\x01'
