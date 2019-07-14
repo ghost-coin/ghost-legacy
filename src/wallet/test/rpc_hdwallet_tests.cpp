@@ -133,7 +133,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     txn.vpout.push_back(out0);
 
 
-
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewaddress"));
     sResult = StripQuotes(rv.write());
     vAddresses.push_back(sResult);
@@ -151,7 +150,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
 
     BOOST_REQUIRE_NO_THROW(rv = CallRPC(sCmd));
     sResult = StripQuotes(rv.write());
-
 
 
     sCmd = "signrawtransactionwithwallet " + sResult + " " + sTxn;
@@ -175,7 +173,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     sResult = rv["hex"].getValStr();
 
 
-
     uint32_t nSequence = 0;
 
     int32_t nTime = 2880 / (1 << CTxIn::SEQUENCE_LOCKTIME_GRANULARITY); // 48 minutes
@@ -187,7 +184,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     BOOST_REQUIRE(ps);
 
     *ps = script;
-
 
 
     sTxn = "[{\"txid\":\""
@@ -215,7 +211,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     sCmd = "createrawtransaction " + sTxn + " {\""+CBitcoinAddress(vAddresses[0]).ToString()+"\":99.99}";
 
 
-
     BOOST_REQUIRE_NO_THROW(rv = CallRPC(sCmd));
     sResult = StripQuotes(rv.write());
 
@@ -224,8 +219,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     BOOST_REQUIRE_NO_THROW(rv = CallRPC(sCmd));
     BOOST_CHECK(rv["complete"].getBool() == true);
     sResult = rv["hex"].getValStr();
-
-
 
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewaddress"));
@@ -250,7 +243,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     BOOST_CHECK(nTest == 2147483648);
 
 
-
     BOOST_CHECK_NO_THROW(rv = CallRPC("buildscript {\"recipe\":\"rellocktime\",\"time\":1447483648,\"addr\":\""+sAddr+"\"}"));
     BOOST_REQUIRE(rv["hex"].isStr());
 
@@ -263,7 +255,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     BOOST_REQUIRE(script.GetOp(pc, opcode, vchPushValue));
     nTest = CScriptNum(vchPushValue, false, 5);
     BOOST_CHECK(nTest == 1447483648);
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()

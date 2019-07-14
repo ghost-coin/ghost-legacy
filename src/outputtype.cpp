@@ -44,9 +44,6 @@ const std::string& FormatOutputType(OutputType type)
 
 CTxDestination GetDestinationForKey(const CPubKey& key, OutputType type)
 {
-    if (fParticlMode)
-        return key.GetID();
-
     switch (type) {
     case OutputType::LEGACY: return key.GetID();
     case OutputType::P2SH_SEGWIT:
@@ -82,8 +79,6 @@ CTxDestination AddAndGetDestinationForScript(CKeyStore& keystore, const CScript&
 {
     // Add script to keystore
     keystore.AddCScript(script);
-    if (fParticlMode)
-        return CScriptID(script);
     // Note that scripts over 520 bytes are not yet supported.
     switch (type) {
     case OutputType::LEGACY:

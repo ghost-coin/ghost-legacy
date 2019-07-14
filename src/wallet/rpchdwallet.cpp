@@ -3631,14 +3631,19 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     }
 
     CBitcoinAddress address(sAddress);
+    CTxDestination dest;
 
-    if (!address.IsValid()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid Particl address."));
+    if (address.IsValid()) {
+        dest = address.Get();
+    } else {
+        // Try decode as segwit address
+        dest = DecodeDestination(sAddress);
+        if (!IsValidDestination(dest)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+        }
     }
 
     LOCK(pwallet->cs_wallet);
-
-    CTxDestination dest = address.Get();
 
     std::map<CTxDestination, CAddressBookData>::iterator mabi;
     mabi = pwallet->mapAddressBook.find(dest);
@@ -4529,14 +4534,21 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             }
 
             CBitcoinAddress address(sAddress);
+            CTxDestination dest;
 
             if (typeOut == OUTPUT_RINGCT
                 && !address.IsValidStealthAddress()) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl stealth address");
             }
 
-            if (!obj.exists("script") && !address.IsValid()) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+            if (address.IsValid() || obj.exists("script")) {
+                dest = address.Get();
+            } else {
+                // Try decode as segwit address
+                dest = DecodeDestination(sAddress);
+                if (!IsValidDestination(dest)) {
+                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+                }
             }
 
             if (address.getVchVersion() == Params().Bech32Prefix(CChainParams::STAKE_ONLY_PKADDR)) {
@@ -4574,7 +4586,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 sBlind = s;
             }
 
-            if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sBlind, sError)) {
+            if (0 != AddOutput(typeOut, vecSend, dest, nAmount, fSubtractFeeFromAmount, sNarr, sBlind, sError)) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("AddOutput failed: %s.", sError));
             }
 
@@ -4602,13 +4614,20 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     } else {
         std::string sAddress = request.params[0].get_str();
         CBitcoinAddress address(sAddress);
+        CTxDestination dest;
 
         if (typeOut == OUTPUT_RINGCT
             && !address.IsValidStealthAddress()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl stealth address");
         }
-        if (!address.IsValid()) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+        if (address.IsValid()) {
+            dest = address.Get();
+        } else {
+            // Try decode as segwit address
+            dest = DecodeDestination(sAddress);
+            if (!IsValidDestination(dest)) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+            }
         }
 
         CAmount nAmount = AmountFromValue(request.params[1]);
@@ -4630,10 +4649,8 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             }
         }
 
-        // Always empty
-        std::string sBlind;
-
-        if (0 != AddOutput(typeOut, vecSend, address.Get(), nAmount, fSubtractFeeFromAmount, sNarr, sBlind, sError)) {
+        std::string sBlind; // Always empty
+        if (0 != AddOutput(typeOut, vecSend, dest, nAmount, fSubtractFeeFromAmount, sNarr, sBlind, sError)) {
             throw JSONRPCError(RPC_MISC_ERROR, strprintf("AddOutput failed: %s.", sError));
         }
     }

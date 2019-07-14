@@ -172,25 +172,23 @@ txnouttype Solver(const CScript& scriptPubKeyIn, std::vector<std::vector<unsigne
         return fIsTimeLocked ? TX_TIMELOCKED_SCRIPTHASH256 : TX_SCRIPTHASH256;
     }
 
-    if (!fParticlMode) {
-        int witnessversion;
-        std::vector<unsigned char> witnessprogram;
-        if (scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram)) {
-            if (witnessversion == 0 && witnessprogram.size() == WITNESS_V0_KEYHASH_SIZE) {
-                vSolutionsRet.push_back(witnessprogram);
-                return TX_WITNESS_V0_KEYHASH;
-            }
-            if (witnessversion == 0 && witnessprogram.size() == WITNESS_V0_SCRIPTHASH_SIZE) {
-                vSolutionsRet.push_back(witnessprogram);
-                return TX_WITNESS_V0_SCRIPTHASH;
-            }
-            if (witnessversion != 0) {
-                vSolutionsRet.push_back(std::vector<unsigned char>{(unsigned char)witnessversion});
-                vSolutionsRet.push_back(std::move(witnessprogram));
-                return TX_WITNESS_UNKNOWN;
-            }
-            return TX_NONSTANDARD;
+    int witnessversion;
+    std::vector<unsigned char> witnessprogram;
+    if (scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram)) {
+        if (witnessversion == 0 && witnessprogram.size() == WITNESS_V0_KEYHASH_SIZE) {
+            vSolutionsRet.push_back(witnessprogram);
+            return TX_WITNESS_V0_KEYHASH;
         }
+        if (witnessversion == 0 && witnessprogram.size() == WITNESS_V0_SCRIPTHASH_SIZE) {
+            vSolutionsRet.push_back(witnessprogram);
+            return TX_WITNESS_V0_SCRIPTHASH;
+        }
+        if (witnessversion != 0) {
+            vSolutionsRet.push_back(std::vector<unsigned char>{(unsigned char)witnessversion});
+            vSolutionsRet.push_back(std::move(witnessprogram));
+            return TX_WITNESS_UNKNOWN;
+        }
+        return TX_NONSTANDARD;
     }
 
     // Provably prunable, data-carrying output

@@ -358,7 +358,10 @@ public:
 class CHDWallet : public CWallet
 {
 public:
-    CHDWallet(interfaces::Chain& chain, const WalletLocation& location, std::unique_ptr<WalletDatabase> dbw_in) : CWallet(chain, location, std::move(dbw_in)) {};
+    CHDWallet(interfaces::Chain& chain, const WalletLocation& location, std::unique_ptr<WalletDatabase> dbw_in) : CWallet(chain, location, std::move(dbw_in))
+    {
+        m_default_address_type = OutputType::LEGACY; // In Particl segwit is enabled for all types
+    }
 
     ~CHDWallet()
     {

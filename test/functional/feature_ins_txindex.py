@@ -7,8 +7,6 @@
 # Test txindex generation and fetching
 #
 
-import json
-
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import connect_nodes, assert_equal
 
@@ -61,8 +59,8 @@ class TxIndexTest(ParticlTestFramework):
         verbose = self.nodes[0].getrawtransaction(txid, 1)
         assert(len(verbose['vout']) == 2)
 
-        str0 = json.dumps(verbose['vout'][0], indent=4, default=self.jsonDecimal)
-        str1 = json.dumps(verbose['vout'][1], indent=4, default=self.jsonDecimal)
+        str0 = self.dumpj(verbose['vout'][0])
+        str1 = self.dumpj(verbose['vout'][1])
         if addr1 in str0:
             assert_equal(verbose['vout'][0]['valueSat'], 500000000)
             assert_equal(verbose['vout'][0]['value'], 5)

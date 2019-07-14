@@ -173,7 +173,7 @@ class USBDeviceTest(ParticlTestFramework):
 
         ro = nodes[1].listtransactions()
         assert(len(ro) == 4)
-        assert('test msg' in json.dumps(ro[3], default=self.jsonDecimal))
+        assert('test msg' in self.dumpj(ro[3]))
 
         ro = nodes[1].listunspent()
         inputs = []

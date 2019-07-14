@@ -3,8 +3,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import json
-
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import assert_raises_rpc_error, connect_nodes_bi
 
@@ -70,8 +68,8 @@ class AnonTest(ParticlTestFramework):
             self.log.info(h) # debug
             assert(self.wait_for_mempool(nodes[1], h))
 
-        assert('node0 -> node1 b->a 4' in json.dumps(nodes[1].listtransactions('*', 100), default=self.jsonDecimal))
-        assert('node0 -> node1 b->a 4' in json.dumps(nodes[0].listtransactions('*', 100), default=self.jsonDecimal))
+        assert('node0 -> node1 b->a 4' in self.dumpj(nodes[1].listtransactions('*', 100)))
+        assert('node0 -> node1 b->a 4' in self.dumpj(nodes[0].listtransactions('*', 100)))
 
         self.stakeBlocks(1)
 

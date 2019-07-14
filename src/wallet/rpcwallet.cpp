@@ -216,7 +216,7 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() > 4)
+    if (request.fHelp || request.params.size() > 5)
         throw std::runtime_error(
             RPCHelpMan{"getnewaddress",
                 "\nReturns a new Particl address for receiving payments.\n"
@@ -227,7 +227,7 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
                     {"bech32", RPCArg::Type::BOOL, /* default */ "false", "Use Bech32 encoding."},
                     {"hardened", RPCArg::Type::BOOL, /* default */ "false", "Derive a hardened key."},
                     {"256bit", RPCArg::Type::BOOL, /* default */ "false", "Use 256bit hash type."},
-                    //{"address_type", RPCArg::Type::STR, /* default */ "set by -addresstype", "The address type to use. Options are \"legacy\", \"p2sh-segwit\", and \"bech32\"."},
+                    {"address_type", RPCArg::Type::STR, /* default */ "set by -addresstype", "The address type to use. Options are \"legacy\", \"p2sh-segwit\", and \"bech32\"."},
                 },
                 RPCResult{
             "\"address\"    (string) The new particl address\n"
@@ -250,6 +250,14 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
     if (!request.params[0].isNull())
         label = LabelFromValue(request.params[0]);
 
+    OutputType output_type = pwallet->m_default_address_type;
+    size_t type_ofs = fParticlMode ? 4 : 1;
+    if (!request.params[type_ofs].isNull()) {
+        if (!ParseOutputType(request.params[type_ofs].get_str(), output_type)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Unknown address type '%s'", request.params[type_ofs].get_str()));
+        }
+    }
+
     if (IsParticlWallet(pwallet)) {
         CKeyID keyID;
 
@@ -257,12 +265,17 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
         bool fHardened = request.params.size() > 2 ? GetBool(request.params[2]) : false;
         bool f256bit = request.params.size() > 3 ? GetBool(request.params[3]) : false;
 
+        if (output_type == OutputType::P2SH_SEGWIT) {
+            //throw JSONRPCError(RPC_INVALID_PARAMETER, "Valid address_types are \"legacy\" and \"bech32\"");
+        }
+        if (f256bit && output_type != OutputType::LEGACY) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "256bit must be used with address_type \"legacy\"");
+        }
+
         CPubKey newKey;
         CHDWallet *phdw = GetParticlWallet(pwallet);
         {
-            //LOCK2(cs_main, pwallet->cs_wallet);
             LOCK(cs_main);
-
             {
                 LOCK(phdw->cs_wallet);
                 if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
@@ -280,6 +293,12 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
             }
         }
 
+        if (output_type != OutputType::LEGACY) {
+            CTxDestination dest;
+            pwallet->LearnRelatedScripts(newKey, output_type);
+            dest = GetDestinationForKey(newKey, output_type);
+            return EncodeDestination(dest);
+        }
         if (f256bit) {
             CKeyID256 idKey256 = newKey.GetID256();
             return CBitcoinAddress(idKey256, fBech32).ToString();
@@ -289,13 +308,6 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
     }
 
     LOCK2(cs_main, pwallet->cs_wallet);
-
-    OutputType output_type = pwallet->m_default_address_type;
-    if (!request.params[1].isNull()) {
-        if (!ParseOutputType(request.params[1].get_str(), output_type)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Unknown address type '%s'", request.params[1].get_str()));
-        }
-    }
 
     if (!pwallet->IsLocked()) {
         pwallet->TopUpKeyPool();
@@ -1238,7 +1250,7 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() < 2 || request.params.size() > 5) {
+    if (request.fHelp || request.params.size() < 2 || request.params.size() > 6) {
         std::string msg =
             RPCHelpMan{"addmultisigaddress",
                 "\nAdd a nrequired-to-sign multisignature address to the wallet. Requires a new wallet backup.\n"
@@ -1254,9 +1266,9 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
                         },
                         },
                     {"label", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "A label to assign the addresses to."},
-                    //{"address_type", RPCArg::Type::STR, /* opt */ true, /* default_val */ "set by -addresstype", "The address type to use. Options are \"legacy\", \"p2sh-segwit\", and \"bech32\". Default is set by -addresstype."},
                     {"bech32", RPCArg::Type::BOOL, /* default */ "false", "Use Bech32 encoding."},
                     {"256bit", RPCArg::Type::BOOL, /* default */ "false", "Use 256bit hash type."},
+                    {"address_type", RPCArg::Type::STR, /* default_val */ "set by -addresstype", "The address type to use. Options are \"legacy\", \"p2sh-segwit\", and \"bech32\". Default is set by -addresstype."},
                 },
                 RPCResult{
             "{\n"
@@ -1295,17 +1307,16 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
     }
 
     OutputType output_type = pwallet->m_default_address_type;
-    if (!fParticlMode)
-    if (!request.params[3].isNull()) {
-        if (!ParseOutputType(request.params[3].get_str(), output_type)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Unknown address type '%s'", request.params[3].get_str()));
+    size_t type_ofs = fParticlMode ? 5 : 3;
+    if (!request.params[type_ofs].isNull()) {
+        if (!ParseOutputType(request.params[type_ofs].get_str(), output_type)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Unknown address type '%s'", request.params[type_ofs].get_str()));
         }
     }
 
     // Construct using pay-to-script-hash:
     CScript inner;
     CTxDestination dest = AddAndGetMultisigDestination(required, pubkeys, output_type, *pwallet, inner);
-    pwallet->SetAddressBook(dest, label, "send");
 
     UniValue result(UniValue::VOBJ);
     bool fbech32 = fParticlMode && request.params.size() > 3 ? request.params[3].get_bool() : false;
@@ -5058,7 +5069,7 @@ static const CRPCCommand commands[] =
     { "rawtransactions",    "fundrawtransaction",               &fundrawtransaction,            {"hexstring","options","iswitness"} },
     { "wallet",             "abandontransaction",               &abandontransaction,            {"txid"} },
     { "wallet",             "abortrescan",                      &abortrescan,                   {} },
-    { "wallet",             "addmultisigaddress",               &addmultisigaddress,            {"nrequired","keys","label|account","bech32","256bit"} },
+    { "wallet",             "addmultisigaddress",               &addmultisigaddress,            {"nrequired","keys","label|account","bech32","256bit","address_type"} },
     { "wallet",             "backupwallet",                     &backupwallet,                  {"destination"} },
     { "wallet",             "bumpfee",                          &bumpfee,                       {"txid", "options"} },
     { "wallet",             "createwallet",                     &createwallet,                  {"wallet_name", "disable_private_keys", "blank"} },
@@ -5068,6 +5079,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "getaddressesbylabel",              &getaddressesbylabel,           {"label"} },
     { "wallet",             "getaddressinfo",                   &getaddressinfo,                {"address"} },
     { "wallet",             "getbalance",                       &getbalance,                    {"dummy","minconf","include_watchonly"} },
+    //{ "wallet",             "getnewaddress",                    &getnewaddress,                 {"label","bech32","hardened","256bit","address_type"} },
     { "wallet",             "getnewaddress",                    &getnewaddress,                 {"label","address_type"} },
     { "wallet",             "getrawchangeaddress",              &getrawchangeaddress,           {"address_type"} },
     { "wallet",             "getreceivedbyaddress",             &getreceivedbyaddress,          {"address","minconf"} },

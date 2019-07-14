@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import time
+import json
+import decimal
 
 from .test_framework import BitcoinTestFramework
 from .util import assert_equal, coverage
 
-import decimal
-
-def jsonDecimal(obj):
-    if isinstance(obj, decimal.Decimal):
-        return str(obj)
-    raise TypeError
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     a = decimal.Decimal(a)
     b = decimal.Decimal(b)
     return abs(a-b) <= max(decimal.Decimal(rel_tol) * decimal.Decimal(max(abs(a), abs(b))), abs_tol)
+
 
 def getIndexAtProperty(arr, name, value):
     for i, o in enumerate(arr):
@@ -28,6 +25,7 @@ def getIndexAtProperty(arr, name, value):
         except:
             continue
     return -1
+
 
 class ParticlTestFramework(BitcoinTestFramework):
     def start_node(self, i, *args, **kwargs):
@@ -114,6 +112,9 @@ class ParticlTestFramework(BitcoinTestFramework):
         if isinstance(obj, decimal.Decimal):
             return str(obj)
         raise TypeError
+
+    def dumpj(self, obj):
+        return json.dumps(obj, indent=4, default=self.jsonDecimal)
 
     def set_test_params(self):
         """Tests must this method to change default values for number of nodes, topology, etc"""

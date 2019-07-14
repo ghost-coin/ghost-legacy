@@ -230,6 +230,7 @@ PARTICL_SCRIPTS = [
     'wallet_part_watchonly.py',
     'rpc_part_atomicswap.py',
     'rpc_part_signmessage.py',
+    'wallet_part_segwit_scripts.py',
 ]
 
 INSIGHT_SCRIPTS = [

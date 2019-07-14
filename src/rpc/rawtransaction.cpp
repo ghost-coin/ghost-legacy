@@ -862,6 +862,7 @@ static UniValue decodescript(const JSONRPCRequest& request)
                     }
                 }
             }
+
             UniValue sr(UniValue::VOBJ);
             CScript segwitScr;
             if (which_type == TX_PUBKEY) {
@@ -875,7 +876,6 @@ static UniValue decodescript(const JSONRPCRequest& request)
             }
             ScriptPubKeyToUniv(segwitScr, sr, true);
             sr.pushKV("p2sh-segwit", EncodeDestination(CScriptID(segwitScr)));
-            if (!fParticlMode)
             r.pushKV("segwit", sr);
         }
     }
