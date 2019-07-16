@@ -2,7 +2,7 @@ Next Release
 ==============
 
 
-0.18.1.0
+0.18.0.12
 ==============
 
 - Merged Bitcoin 0.18.1 backports.
@@ -10,6 +10,7 @@ Next Release
 - Added 'pubkey' to output of extkey info extended-secret-key.
 - Fixed help text for getspentinfo.
 - Enabled segwit addresses in Particl mode for easier integrations.
+- Raised minimum peer version to 90009.
 
 
 0.18.0.11
