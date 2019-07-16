@@ -82,7 +82,7 @@ class SegwitScriptsTest(ParticlTestFramework):
         nodes[1].sendtoaddress(ms_p2shsegwit['address'], 5)
         nodes[1].sendtoaddress(ms_btcnative['address'], 6)
 
-        self.stakeBlocks(1)
+        self.sync_all()
         txns = nodes[2].filtertransactions()
         assert(len(txns) == 6)
         walletinfo = nodes[2].getwalletinfo()

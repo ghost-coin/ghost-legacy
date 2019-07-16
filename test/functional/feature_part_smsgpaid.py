@@ -286,7 +286,13 @@ class SmsgPaidTest(ParticlTestFramework):
 
         ro = nodes[0].smsgbuckets()
         assert(int(ro['total']['numpurged']) == 1)
-        assert(int(ro['buckets'][0]['no. messages']) == int(ro['buckets'][0]['active messages']) + 1)
+        # Sum all buckets
+        num_messages = 0
+        num_active = 0
+        for b in ro['buckets']:
+            num_messages += int(b['no. messages'])
+            num_active += int(b['active messages'])
+        assert(num_messages == num_active + 1)
 
 
         self.log.info('Test listunspent include_immature')
