@@ -241,8 +241,8 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         }
 
         hashBlock = blockKernel.GetHash();
-        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-        if (mi == mapBlockIndex.end() || !::ChainActive().Contains(mi->second)) {
+        BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
+        if (mi == ::BlockIndex().end() || !::ChainActive().Contains(mi->second)) {
             return state.Invalid(ValidationInvalidReason::DOS_20, error("%s: prevout-not-in-chain", __func__), REJECT_INVALID, "prevout-not-in-chain");
         }
 

@@ -7901,8 +7901,8 @@ static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file,
             nRewind = blkdat.GetPos();
 
             num_blocks_in_file++;
-            BlockMap::iterator mi = mapBlockIndex.find(blockhash);
-            if (mi == mapBlockIndex.end()
+            BlockMap::iterator mi = ::BlockIndex().find(blockhash);
+            if (mi == ::BlockIndex().end()
                 || !::ChainActive().Contains(mi->second)) {
                 num_blocks_removed++;
             } else

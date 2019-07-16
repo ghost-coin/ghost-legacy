@@ -329,8 +329,8 @@ void ThreadSecureMsgPow()
                     }
 
                     if (!hashBlock.IsNull()) {
-                        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
-                        if (mi != mapBlockIndex.end()) {
+                        BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
+                        if (mi != ::BlockIndex().end()) {
                             CBlockIndex *pindex = mi->second;
                             if (pindex && ::ChainActive().Contains(pindex)) {
                                 blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;
@@ -3216,9 +3216,9 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
 
             int blockDepth = -1;
             const CBlockIndex *pindex = nullptr;
-            BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
+            BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
             int64_t nMsgFeePerKPerDay = 0;
-            if (mi != mapBlockIndex.end()) {
+            if (mi != ::BlockIndex().end()) {
                 pindex = mi->second;
                 if (pindex && ::ChainActive().Contains(pindex)) {
                     blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;

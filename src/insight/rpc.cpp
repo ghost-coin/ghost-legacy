@@ -737,12 +737,12 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
 
-    if (mapBlockIndex.count(hash) == 0) {
+    if (::BlockIndex().count(hash) == 0) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
     }
 
     CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hash];
+    CBlockIndex* pblockindex = ::BlockIndex()[hash];
 
     if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Block not available (pruned data)");
@@ -864,7 +864,7 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
     hashBlock = pcursor->GetBestBlock();
     {
         LOCK(cs_main);
-        nHeight = mapBlockIndex.find(hashBlock)->second->nHeight;
+        nHeight = ::BlockIndex().find(hashBlock)->second->nHeight;
     }
 
     class PerScriptTypeStats {

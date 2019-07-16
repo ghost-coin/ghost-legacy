@@ -333,8 +333,8 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
 
     {
         LOCK(cs_main);
-        BlockMap::iterator mi = mapBlockIndex.find(hash_block);
-        if (mi != mapBlockIndex.end() && mi->second) {
+        BlockMap::iterator mi = ::BlockIndex().find(hash_block);
+        if (mi != ::BlockIndex().end() && mi->second) {
             CBlockIndex *pindex = mi->second;
             if (::ChainActive().Contains(pindex)) {
                 nHeight = pindex->nHeight;

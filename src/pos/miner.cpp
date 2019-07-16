@@ -95,8 +95,8 @@ bool CheckStake(CBlock *pblock)
     {
         LOCK(cs_main);
 
-        BlockMap::const_iterator mi = mapBlockIndex.find(pblock->hashPrevBlock);
-        if (mi == mapBlockIndex.end()) {
+        BlockMap::const_iterator mi = ::BlockIndex().find(pblock->hashPrevBlock);
+        if (mi == ::BlockIndex().end()) {
             return error("%s: %s prev block not found: %s.", __func__, hashBlock.GetHex(), pblock->hashPrevBlock.GetHex());
         }
 
