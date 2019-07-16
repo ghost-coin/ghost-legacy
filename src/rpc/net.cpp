@@ -80,8 +80,6 @@ static std::string ServicesToString(ServiceFlags nSerivces)
         rv += std::string(rv.length() > 0 ? " | " : "") + "BLOOM";
     if (nSerivces & NODE_WITNESS)
         rv += std::string(rv.length() > 0 ? " | " : "") + "WITNESS";
-    if (nSerivces & NODE_XTHIN)
-        rv += std::string(rv.length() > 0 ? " | " : "") + "XTHIN";
     if (nSerivces & NODE_SMSG)
         rv += std::string(rv.length() > 0 ? " | " : "") + "SMSG";
 
