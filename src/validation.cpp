@@ -4626,7 +4626,7 @@ bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_mai
     LogPrintf("Removing %d loose headers from %s.\n", remove_headers.size(), hash.ToString());
 
     for (auto &entry : remove_headers) {
-        LogPrintf("Removing loose header %s.\n", entry->second->GetBlockHash().ToString());
+        LogPrint(BCLog::NET, "Removing loose header %s.\n", entry->second->GetBlockHash().ToString());
         setDirtyBlockIndex.erase(entry->second);
 
         if (pindexBestHeader == entry->second) {

@@ -1203,6 +1203,15 @@ void RemoveNonReceivedHeaderFromNodes(BlockMap::iterator mi) EXCLUSIVE_LOCKS_REQ
     }
 }
 
+void PassOnMisbehaviour(CNodeState *state, NodeId node_id, int howmuch) {
+    state->nMisbehavior = howmuch;
+
+    if (state->nMisbehavior >= gArgs.GetArg("-banscore", DEFAULT_BANSCORE_THRESHOLD)) {
+        state->fShouldBan = true;
+    }
+    LogPrint(BCLog::NET, "%s: %s peer=%d Inherited misbehavior (%d)%s\n", __func__, state->name, node_id, state->nMisbehavior, state->fShouldBan ? ", Banned" : "");
+}
+
 /** Increase misbehavior scores by address. */
 void MisbehavingByAddr(CNetAddr addr, int misbehavior_cfwd, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
@@ -1212,8 +1221,7 @@ void MisbehavingByAddr(CNetAddr addr, int misbehavior_cfwd, int howmuch, const s
         }
         if (addr == (CNetAddr)it->second.address) {
             if (it->second.nMisbehavior < misbehavior_cfwd) {
-                it->second.nMisbehavior = misbehavior_cfwd;
-                LogPrint(BCLog::NET, "%s: %s peer=%d Inherited misbehavior (%d)\n", __func__, it->second.name, it->first, it->second.nMisbehavior);
+                PassOnMisbehaviour(&it->second, it->first, misbehavior_cfwd);
             }
             Misbehaving(it->first, howmuch, message);
         }
@@ -1277,8 +1285,7 @@ bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
             return true;
         }
         if (state->nMisbehavior < it->second.m_misbehavior) {
-            state->nMisbehavior = it->second.m_misbehavior;
-            LogPrint(BCLog::NET, "%s: %s peer=%d Inherited misbehavior (%d)\n", __func__, state->name, node_id, state->nMisbehavior);
+            PassOnMisbehaviour(state, node_id, it->second.m_misbehavior);
         }
         it->second.m_misbehavior += 5;
         return false;
@@ -1297,8 +1304,7 @@ void IncPersistentMisbehaviour(NodeId node_id, int howmuch)
     auto it = map_dos_state.find(state->address);
     if (it != map_dos_state.end()) {
         if (state->nMisbehavior < it->second.m_misbehavior) {
-            state->nMisbehavior = it->second.m_misbehavior;
-            LogPrint(BCLog::NET, "%s: %s peer=%d Inherited misbehavior (%d)\n", __func__, state->name, node_id, state->nMisbehavior);
+            PassOnMisbehaviour(state, node_id, it->second.m_misbehavior);
         }
         it->second.m_misbehavior += howmuch;
         return;
