@@ -1681,12 +1681,10 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
         }
     }
 
-
-    if (!gArgs.GetBoolArg("-findpeers", true))
-    {
-        LogPrintf("%s: findpeers is negative, thread ending.\n", __func__);
+    if (!gArgs.GetBoolArg("-findpeers", true)) {
+        LogPrintf("%s: findpeers is unset, thread ending.\n", __func__);
         return;
-    };
+    }
 
     // Initiate network connections
     int64_t nStart = GetTime();
