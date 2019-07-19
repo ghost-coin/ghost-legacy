@@ -10,7 +10,6 @@
  */
 
 static const int PROTOCOL_VERSION = 90009;
-static const int MIN_PARTICL_VERSION = 90004;
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
