@@ -638,7 +638,7 @@ fs::path static GetAutostartFilePath()
     std::string chain = gArgs.GetChainName();
     if (chain == CBaseChainParams::MAIN)
         return GetAutostartDir() / "particl.desktop";
-    return GetAutostartDir() / strprintf("particl-%s.lnk", chain);
+    return GetAutostartDir() / strprintf("particl-%s.desktop", chain);
 }
 
 bool GetStartOnSystemStartup()
