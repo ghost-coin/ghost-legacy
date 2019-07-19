@@ -510,6 +510,7 @@ public:
         vSeeds.emplace_back("mainnet-seed.particl.io");
         vSeeds.emplace_back("dnsseed-mainnet.particl.io");
         vSeeds.emplace_back("mainnet.particl.io");
+        vSeeds.emplace_back("dnsseed.tecnovert.net");
 
 
         vDevFundSettings.emplace_back(0,
