@@ -694,6 +694,7 @@ public:
         // nodes with support for servicebits filtering should be at the top
         vSeeds.emplace_back("testnet-seed.particl.io");
         vSeeds.emplace_back("dnsseed-testnet.particl.io");
+        vSeeds.emplace_back("dnsseed-testnet.tecnovert.net");
 
         vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("rTvv9vsbu269mjYYEecPYinDG8Bt7D86qD", 10, 60)));
 
