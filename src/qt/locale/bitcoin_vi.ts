@@ -184,8 +184,8 @@
         <translation>Ví đã được mã hóa</translation>
     </message>
     <message>
-        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your bitcoins from being stolen by malware infecting your computer.</source>
-        <translation>Ví bạn đã được mã hóa bây giờ. Hãy nhớ rằng việc mã hóa ví bạn không thể hoàn toàn bảo vệ bitcoin của bạn bị đánh cắp bới phần mềm độc hại dính vào máy tính bạn</translation>
+        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation>Ví bạn đã được mã hóa bây giờ. Hãy nhớ rằng việc mã hóa ví bạn không thể hoàn toàn bảo vệ particl của bạn bị đánh cắp bới phần mềm độc hại dính vào máy tính bạn</translation>
     </message>
     <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>

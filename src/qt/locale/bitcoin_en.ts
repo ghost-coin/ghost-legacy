@@ -227,18 +227,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
-        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-11"/>
-        <source>Are you sure you wish to encrypt your wallet?</source>
+        <location line="+1"/>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
+        <source>Are you sure you wish to encrypt your wallet?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -248,7 +243,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-53"/>
+        <location line="-57"/>
+        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -322,12 +322,12 @@
         <translation>Sign &amp;message...</translation>
     </message>
     <message>
-        <location line="+687"/>
+        <location line="+704"/>
         <source>Synchronizing with network...</source>
         <translation>Synchronizing with network...</translation>
     </message>
     <message>
-        <location line="-765"/>
+        <location line="-782"/>
         <source>&amp;Overview</source>
         <translation>&amp;Overview</translation>
     </message>
@@ -337,17 +337,7 @@
         <translation>Show general overview of wallet</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>Send coins to a Particl address</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+10"/>
+        <location line="+28"/>
         <source>&amp;Transactions</source>
         <translation>&amp;Transactions</translation>
     </message>
@@ -412,57 +402,19 @@
         <translation>&amp;Change Passphrase...</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
+        <location line="+18"/>
         <source>Open &amp;URI...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Open a particl: URI or payment request</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Show the %1 help message to get a list with possible Particl command-line options</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;HD Wallet...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;Staking Setup</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+197"/>
+        <location line="+227"/>
         <source>Wallet:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+387"/>
+        <location line="+390"/>
         <source>Click to disable network activity.</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message numerus="yes">
-        <location line="+0"/>
-        <source>%n active connection(s) to Particl network</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
-        </translation>
     </message>
     <message>
         <location line="+2"/>
@@ -485,22 +437,17 @@
         <translation>Reindexing blocks on disk...</translation>
     </message>
     <message>
-        <location line="+77"/>
-        <source>Particl</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+226"/>
-        <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt; for staking only</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+64"/>
+        <location line="+367"/>
         <source>Proxy is &lt;b&gt;enabled&lt;/b&gt;: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1068"/>
+        <location line="-1152"/>
+        <source>Send coins to a Particl address</source>
+        <translation>Send coins to a Particl address</translation>
+    </message>
+    <message>
+        <location line="+67"/>
         <source>Backup wallet to another location</source>
         <translation>Backup wallet to another location</translation>
     </message>
@@ -525,7 +472,12 @@
         <translation>&amp;Verify message...</translation>
     </message>
     <message>
-        <location line="-73"/>
+        <location line="+790"/>
+        <source>Particl</source>
+        <translation>Particl</translation>
+    </message>
+    <message>
+        <location line="-863"/>
         <source>&amp;Send</source>
         <translation>&amp;Send</translation>
     </message>
@@ -550,7 +502,17 @@
         <translation>Encrypt the private keys that belong to your wallet</translation>
     </message>
     <message>
-        <location line="+120"/>
+        <location line="+7"/>
+        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <translation>Sign messages with your Particl addresses to prove you own them</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <translation>Verify messages to ensure they were signed with specified Particl addresses</translation>
+    </message>
+    <message>
+        <location line="+125"/>
         <source>&amp;File</source>
         <translation>&amp;File</translation>
     </message>
@@ -570,7 +532,12 @@
         <translation>Tabs toolbar</translation>
     </message>
     <message>
-        <location line="-196"/>
+        <location line="-281"/>
+        <source>Request payments (generates QR codes and particl: URIs)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+71"/>
         <source>Show the list of used sending addresses and labels</source>
         <translation type="unfinished"></translation>
     </message>
@@ -580,12 +547,25 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
-        <source>&amp;Command-line options</source>
+        <location line="+3"/>
+        <source>Open a particl: URI or payment request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+666"/>
+        <location line="+10"/>
+        <source>&amp;Command-line options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location line="+606"/>
+        <source>%n active connection(s) to Particl network</source>
+        <translation>
+            <numerusform>%n active connection to Particl network</numerusform>
+            <numerusform>%n active connections to Particl network</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location line="+76"/>
         <source>Indexing blocks on disk...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -638,7 +618,7 @@
         <translation>Up to date</translation>
     </message>
     <message>
-        <location line="-706"/>
+        <location line="-723"/>
         <source>&amp;Sending addresses</source>
         <translation type="unfinished"></translation>
     </message>
@@ -658,7 +638,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Close Wallet...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -668,12 +648,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+4"/>
+        <source>Show the %1 help message to get a list with possible Particl command-line options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;HD Wallet...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;Staking Setup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+33"/>
         <source>default wallet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+13"/>
         <source>Opening Wallet &lt;b&gt;%1&lt;/b&gt;...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -683,7 +678,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+59"/>
+        <location line="+15"/>
+        <source>No wallets available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+48"/>
         <source>&amp;Window</source>
         <translation type="unfinished">&amp;Window</translation>
     </message>
@@ -708,7 +708,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+248"/>
+        <location line="+251"/>
         <source>%1 client</source>
         <translation type="unfinished"></translation>
     </message>
@@ -789,7 +789,12 @@
         <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+8"/>
+        <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt; for staking only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
         <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</translation>
     </message>
@@ -1120,7 +1125,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+119"/>
+        <location line="+86"/>
+        <source>The entered address &quot;%1&quot; is not a valid Particl address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+33"/>
         <source>Address &quot;%1&quot; already exists as a receiving address with label &quot;%2&quot; and so cannot be added as a sending address.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1140,12 +1150,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+96"/>
-        <source>The entered address &quot;%1&quot; is not a valid Particl address.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+15"/>
+        <location line="+111"/>
         <source>New key generation failed.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1245,7 +1250,12 @@
         <translation>Use a custom data directory:</translation>
     </message>
     <message>
-        <location filename="../intro.cpp" line="+28"/>
+        <location filename="../intro.cpp" line="+22"/>
+        <source>Particl</source>
+        <translation type="unfinished">Particl</translation>
+    </message>
+    <message>
+        <location line="+6"/>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1255,12 +1265,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11"/>
-        <source>Particl</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
+        <location line="+8"/>
         <source>%1 will download and store a copy of the Particl block chain.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1601,37 +1606,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+81"/>
-        <source>Display notification dialog for incoming stake transactions.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>&amp;Show incoming stake notifications</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Display zero value stake transactions.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>&amp;Show zero value stakes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+30"/>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+20"/>
-        <source>Connect to the Particl network through a SOCKS5 proxy.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+37"/>
+        <location line="+181"/>
         <location line="+187"/>
         <source>IP address of the proxy (e.g. IPv4: 127.0.0.1 / IPv6: ::1)</source>
         <translation type="unfinished"></translation>
@@ -1644,12 +1619,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+35"/>
-        <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+38"/>
         <source>Use separate SOCKS&amp;5 proxy to reach peers via Tor hidden services:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1765,7 +1735,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+7"/>
+        <source>Display notification dialog for incoming stake transactions.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>&amp;Show incoming stake notifications</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Display zero value stake transactions.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>&amp;Show zero value stakes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
+        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Map port using &amp;UPnP</source>
         <translation>Map port using &amp;UPnP</translation>
     </message>
@@ -1780,7 +1775,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+7"/>
+        <source>Connect to the Particl network through a SOCKS5 proxy.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1823,7 +1823,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+130"/>
+        <location line="+25"/>
+        <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor hidden services.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+105"/>
         <source>&amp;Window</source>
         <translation>&amp;Window</translation>
     </message>
@@ -1957,7 +1962,13 @@
         <translation>Form</translation>
     </message>
     <message>
-        <location line="+352"/>
+        <location line="+62"/>
+        <location line="+539"/>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
+        <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</translation>
+    </message>
+    <message>
+        <location line="-249"/>
         <source>Watch-only:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1998,13 +2009,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+16"/>
-        <location line="+539"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-486"/>
+        <location line="+69"/>
         <source>Your current staked balance</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2097,7 +2102,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-467"/>
+        <location line="-529"/>
+        <source>Cannot start particl: click-to-pay handler</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+62"/>
         <location line="+9"/>
         <location line="+16"/>
         <location line="+16"/>
@@ -2107,7 +2117,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-43"/>
+        <location line="-53"/>
+        <source>&apos;particl://&apos; is not a valid URI. Use &apos;particl:&apos; instead.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2128,17 +2143,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-108"/>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+62"/>
-        <source>&apos;particl://&apos; is not a valid URI. Use &apos;particl:&apos; instead.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+54"/>
+        <location line="+8"/>
         <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2271,12 +2276,12 @@
         <translation type="unfinished">Amount</translation>
     </message>
     <message>
-        <location filename="../guiutil.cpp" line="+107"/>
+        <location filename="../guiutil.cpp" line="+108"/>
         <source>Enter a Particl address (e.g. %1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+687"/>
+        <location line="+695"/>
         <source>%1 d</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2386,7 +2391,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bitcoin.cpp" line="+185"/>
+        <location filename="../bitcoin.cpp" line="+189"/>
         <source>%1 didn&apos;t yet exit safely...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2457,7 +2462,7 @@
         <location line="+23"/>
         <location line="+36"/>
         <location line="+23"/>
-        <location line="+713"/>
+        <location line="+716"/>
         <location line="+23"/>
         <location line="+23"/>
         <location line="+23"/>
@@ -2479,7 +2484,7 @@
         <translation>N/A</translation>
     </message>
     <message>
-        <location line="-1427"/>
+        <location line="-1430"/>
         <source>Client version</source>
         <translation>Client version</translation>
     </message>
@@ -2579,7 +2584,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+238"/>
+        <location line="+241"/>
         <source>&amp;Reset</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2608,7 +2613,7 @@
     <message>
         <location line="+65"/>
         <location filename="../rpcconsole.cpp" line="+501"/>
-        <location line="+754"/>
+        <location line="+757"/>
         <source>Select a peer to view detailed information.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2643,13 +2648,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1161"/>
-        <location line="+1069"/>
+        <location line="-1164"/>
+        <location line="+1072"/>
         <source>User Agent</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-734"/>
+        <location line="-737"/>
         <source>Open the %1 debug log file from the current data directory. This can take a few seconds for large log files.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2664,7 +2669,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+641"/>
+        <location line="+644"/>
         <source>Services</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2714,7 +2719,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1166"/>
+        <location line="-1169"/>
         <source>Last block time</source>
         <translation>Last block time</translation>
     </message>
@@ -2729,7 +2734,7 @@
         <translation>&amp;Console</translation>
     </message>
     <message>
-        <location line="+214"/>
+        <location line="+217"/>
         <source>&amp;Network Traffic</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2749,7 +2754,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/debugwindow.ui" line="-318"/>
+        <location filename="../forms/debugwindow.ui" line="-321"/>
         <source>Debug log file</source>
         <translation>Debug log file</translation>
     </message>
@@ -2759,7 +2764,7 @@
         <translation>Clear console</translation>
     </message>
     <message>
-        <location filename="../rpcconsole.cpp" line="-249"/>
+        <location filename="../rpcconsole.cpp" line="-252"/>
         <source>1 &amp;hour</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2797,7 +2802,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+161"/>
+        <location line="+164"/>
         <source>Welcome to the %1 RPC console.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2897,7 +2902,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19"/>
+        <location line="-3"/>
+        <location line="+37"/>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-53"/>
         <location line="+32"/>
         <source>An optional label to associate with the new receiving address.</source>
         <translation type="unfinished"></translation>
@@ -2939,13 +2950,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-79"/>
-        <location line="+37"/>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
+        <location line="-29"/>
         <source>Standard</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3260,12 +3265,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+83"/>
-        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+112"/>
         <source>Recommended:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3300,7 +3300,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+629"/>
+        <location line="+626"/>
+        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>A too low fee might result in a never confirming transaction (read the tooltip)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3423,12 +3428,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+525"/>
-        <source>Warning: Invalid Particl address</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-548"/>
+        <location line="-23"/>
         <source>You can increase the fee later (signals Replace-By-Fee, BIP-125).</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3516,7 +3516,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         </translation>
     </message>
     <message>
-        <location line="+114"/>
+        <location line="+107"/>
+        <source>Warning: Invalid Particl address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>Warning: Unknown change address</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3551,18 +3556,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>Pay &amp;To:</translation>
     </message>
     <message>
-        <location line="-13"/>
-        <location line="+362"/>
-        <source>Narration:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-318"/>
-        <source>The Particl address to send the payment to</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+82"/>
+        <location line="+113"/>
         <source>&amp;Label:</source>
         <translation>&amp;Label:</translation>
     </message>
@@ -3579,7 +3573,18 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+88"/>
+        <location line="+21"/>
+        <location line="+362"/>
+        <source>Narration:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-318"/>
+        <source>The Particl address to send the payment to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+23"/>
         <location line="+230"/>
         <location line="+106"/>
         <source>Alt+A</source>
@@ -3636,12 +3641,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
+        <location line="+28"/>
         <source>This is a payment to a coldstake script.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3691,7 +3691,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+767"/>
+        <location line="+64"/>
+        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+703"/>
         <location line="+529"/>
         <source>Pay To:</source>
         <translation type="unfinished"></translation>
@@ -3792,20 +3797,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     <message>
         <location line="+21"/>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation type="unfinished"></translation>
+        <translation>Sign the message to prove you own this Particl address</translation>
     </message>
     <message>
-        <location line="+106"/>
-        <source>The Particl address the message was signed with</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+37"/>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-140"/>
+        <location line="+3"/>
         <source>Sign &amp;Message</source>
         <translation>Sign &amp;Message</translation>
     </message>
@@ -3831,7 +3826,17 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+61"/>
+        <location line="+21"/>
+        <source>The Particl address the message was signed with</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+37"/>
+        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <translation>Verify the message to ensure it was signed with the specified Particl address</translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Verify &amp;Message</source>
         <translation>Verify &amp;Message</translation>
     </message>
@@ -4564,7 +4569,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>UnitDisplayStatusBarControl</name>
     <message>
-        <location filename="../bitcoingui.cpp" line="+177"/>
+        <location filename="../bitcoingui.cpp" line="+179"/>
         <source>Unit to show amounts in. Click to select another unit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4598,7 +4603,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>WalletModel</name>
     <message>
-        <location filename="../walletmodel.cpp" line="+576"/>
+        <location filename="../walletmodel.cpp" line="+583"/>
         <location line="+4"/>
         <location line="+8"/>
         <source>Wallet Model</source>
@@ -4733,7 +4738,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+64"/>
+        <location line="+63"/>
         <source>Pruning blockstore...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4744,6 +4749,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="-259"/>
+        <source>Particl Core</source>
+        <translation type="unfinished">Particl Core</translation>
+    </message>
+    <message>
+        <location line="+1"/>
         <source>The %s developers</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4923,7 +4933,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+5"/>
         <source>Invalid amount for -%s=&lt;amount&gt;: &apos;%s&apos;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5028,17 +5038,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-254"/>
+        <location line="-253"/>
         <source>Error: Listening for incoming connections failed (listen returned error %s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-24"/>
-        <source>Particl Core</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="-22"/>
         <source> is spendable from this wallet.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5247,11 +5252,6 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     <message>
         <location line="+1"/>
         <source>Invalid -proxy address or hostname: &apos;%s&apos;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Invalid Particl address.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5784,7 +5784,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-305"/>
+        <location line="-304"/>
         <source>-maxtxfee is set very high! Fees this large could be paid on a single transaction.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5819,7 +5819,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location line="+33"/>
         <source>Keypool ran out, please call keypoolrefill first</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5864,7 +5864,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>Unknown network specified in -onlynet: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="-101"/>
+        <location line="-100"/>
         <source>Insufficient funds</source>
         <translation>Insufficient funds</translation>
     </message>
@@ -5889,7 +5889,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+65"/>
+        <location line="+64"/>
         <source>Loading block index...</source>
         <translation>Loading block index...</translation>
     </message>
@@ -5899,17 +5899,17 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>Loading wallet...</translation>
     </message>
     <message>
-        <location line="-69"/>
+        <location line="-68"/>
         <source>Cannot downgrade wallet</source>
         <translation>Cannot downgrade wallet</translation>
     </message>
     <message>
-        <location line="+102"/>
+        <location line="+101"/>
         <source>Rescanning...</source>
         <translation>Rescanning...</translation>
     </message>
     <message>
-        <location line="-84"/>
+        <location line="-83"/>
         <source>Done loading</source>
         <translation>Done loading</translation>
     </message>

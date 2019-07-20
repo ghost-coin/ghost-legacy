@@ -188,7 +188,7 @@
         <translation>Кошелёк зашифрован</translation>
     </message>
     <message>
-        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your bitcoins from being stolen by malware infecting your computer.</source>
+        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
         <translation>Бумажник зашифрован. Помните, что шифрование не способно полностью защитить Ваши биткоины, которые могут быть украдены вредоносным ПО</translation>
     </message>
     <message>

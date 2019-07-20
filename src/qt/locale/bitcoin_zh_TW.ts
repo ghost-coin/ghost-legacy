@@ -188,7 +188,7 @@
         <translation>錢包已加密</translation>
     </message>
     <message>
-        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your bitcoins from being stolen by malware infecting your computer.</source>
+        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
         <translation>錢包已經加密了。請注意，加密錢包不能完全防止入侵你的電腦的惡意程式偷取錢幣。</translation>
     </message>
     <message>

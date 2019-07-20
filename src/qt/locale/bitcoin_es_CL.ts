@@ -2819,7 +2819,7 @@
     </message>
     <message>
         <source>Particl Core</source>
-        <translation>particl core</translation>
+        <translation>bitcoin core</translation>
     </message>
     <message>
         <source>The %s developers</source>

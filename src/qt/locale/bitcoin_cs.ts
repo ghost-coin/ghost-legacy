@@ -188,8 +188,8 @@
         <translation>Peněženka je zašifrována</translation>
     </message>
     <message>
-        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your bitcoins from being stolen by malware infecting your computer.</source>
-        <translation>Vaše peněženka je nyní zašifrovaná. Pamatujte, že zašifrování peněženky nemůže plně ochránit vaše bitcoiny před krádeží, pokud by byl váš počítač napadem malwarem.</translation>
+        <source>Your wallet is now encrypted. Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation>Vaše peněženka je nyní zašifrovaná. Pamatujte, že zašifrování peněženky nemůže plně ochránit vaše particly před krádeží, pokud by byl váš počítač napadem malwarem.</translation>
     </message>
     <message>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
@@ -1087,7 +1087,7 @@
     </message>
     <message>
         <source>Disables some advanced features but all blocks will still be fully validated. Reverting this setting requires re-downloading the entire blockchain. Actual disk usage may be somewhat higher.</source>
-        <translation>Zakáže některé pokročilé funkce, ale všechny bloky budou stále plně otevřené. Obnovení tohoto nastavení vyžaduje opětovné převzetí celého blockchainu. Skutečné využít disku může být o něco vyšší.</translation>
+        <translation>Zakáže některé pokročilé funkce, ale všechny bloky budou stále plně ověřené. Obnovení tohoto nastavení vyžaduje opětovné stažení celého blockchainu. Skutečné využítí disku může být o něco vyšší.</translation>
     </message>
     <message>
         <source>Prune &amp;block storage to</source>
@@ -1099,7 +1099,7 @@
     </message>
     <message>
         <source>Reverting this setting requires re-downloading the entire blockchain.</source>
-        <translation>Obnovení tohoto nastavení vyžaduje opětovné převzetí celého blockchainu.</translation>
+        <translation>Obnovení tohoto nastavení vyžaduje opětovné stažení celého blockchainu.</translation>
     </message>
     <message>
         <source>MiB</source>
@@ -2235,8 +2235,8 @@ Poznámka: Jelikož je poplatek počítaný za bajt, poplatek o hodnotě "100 sa
         <translation>Prach:</translation>
     </message>
     <message>
-        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for bitcoin transactions than the network can process.</source>
-        <translation>Když je zde měně transakcí než místa na bloky, mineři stejně tak relay-e mohou nasadit minimální poplatky. Zaplacením pouze minimálního poplatku je v pohodě, ale mějte na paměti že toto může mít za následek nikdy neověřenou transakci pokud zde bude více bitcoinových transakcí než může síť zvládnout.</translation>
+        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
+        <translation>Když je zde měně transakcí než místa na bloky, mineři stejně tak relay-e mohou nasadit minimální poplatky. Zaplacením pouze minimálního poplatku je v pohodě, ale mějte na paměti že toto může mít za následek nikdy neověřenou transakci pokud zde bude více particlových transakcí než může síť zvládnout.</translation>
     </message>
     <message>
         <source>A too low fee might result in a never confirming transaction (read the tooltip)</source>
