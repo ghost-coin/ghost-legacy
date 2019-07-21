@@ -1014,7 +1014,7 @@ bool IncDuplicateHeaders(NodeId node_id) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     CNodeState *state = State(node_id);
     if (state == nullptr) {
-        return false;
+        return true; // Node already disconnected
     }
     auto it = map_dos_state.find(state->address);
     if (it != map_dos_state.end()) {
