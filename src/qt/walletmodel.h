@@ -45,7 +45,6 @@ class COutput;
 class CCoinControlEntry;
 class CPubKey;
 class uint256;
-class CHDWallet;
 class UniValue;
 
 namespace interfaces {
