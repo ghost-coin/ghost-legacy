@@ -656,7 +656,7 @@ static UniValue listbanned(const JSONRPCRequest& request)
 static UniValue clearbanned(const JSONRPCRequest& request)
 {
             RPCHelpMan{"clearbanned",
-                "\nClear all banned IPs.\n",
+                "\nClear all banned IPs and persistent DOS counters.\n",
                 {},
                 RPCResults{},
                 RPCExamples{
@@ -669,6 +669,11 @@ static UniValue clearbanned(const JSONRPCRequest& request)
     }
 
     g_banman->ClearBanned();
+
+    {
+    LOCK(cs_main);
+    ClearDOSStates();
+    }
 
     return NullUniValue;
 }

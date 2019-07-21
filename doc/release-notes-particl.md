@@ -2,6 +2,12 @@ Next Release
 ==============
 
 
+0.18.1.0
+==============
+
+- clearbanned rpc cmd clears persistent DOS counters too.
+
+
 0.18.0.12
 ==============
 
