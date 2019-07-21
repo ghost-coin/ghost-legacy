@@ -677,7 +677,7 @@ static UniValue clearbanned(const JSONRPCRequest& request)
     if (request.fHelp || request.params.size() != 0)
         throw std::runtime_error(
             RPCHelpMan{"clearbanned",
-                "\nClear all banned IPs.\n",
+                "\nClear all banned IPs and persistent DOS counters.\n",
                 {},
                 RPCResults{},
                 RPCExamples{
@@ -690,6 +690,11 @@ static UniValue clearbanned(const JSONRPCRequest& request)
     }
 
     g_banman->ClearBanned();
+
+    {
+    LOCK(cs_main);
+    ClearDOSStates();
+    }
 
     return NullUniValue;
 }
