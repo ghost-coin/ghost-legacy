@@ -4721,7 +4721,7 @@ uint32_t GetSmsgDifficulty(uint64_t time, bool verify) EXCLUSIVE_LOCKS_REQUIRED(
     return consensusParams.smsg_min_difficulty - consensusParams.smsg_difficulty_max_delta;
 };
 
-bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex)
+bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested)
 {
     AssertLockHeld(cs_main);
     // Check for duplicate
@@ -4731,7 +4731,7 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, CValidationState
     if (hash != chainparams.GetConsensus().hashGenesisBlock) {
         if (miSelf != m_block_index.end()) {
             // Block header is already known.
-            if (fParticlMode && !::ChainstateActive().IsInitialBlockDownload() && state.nodeId >= 0
+            if (fParticlMode && !fRequested && !::ChainstateActive().IsInitialBlockDownload() && state.nodeId >= 0
                 && !IncDuplicateHeaders(state.nodeId)) {
                 return state.Invalid(ValidationInvalidReason::DOS_5, error("%s: DoS limits, too many duplicates", __func__), REJECT_INVALID, "dos-limits");
             }
@@ -4873,7 +4873,7 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
     CBlockIndex *pindexDummy = nullptr;
     CBlockIndex *&pindex = ppindex ? *ppindex : pindexDummy;
 
-    bool accepted_header = m_blockman.AcceptBlockHeader(block, state, chainparams, &pindex);
+    bool accepted_header = m_blockman.AcceptBlockHeader(block, state, chainparams, &pindex, fRequested);
     CheckBlockIndex(chainparams.GetConsensus());
 
     if (!accepted_header)

@@ -559,7 +559,8 @@ public:
         const CBlockHeader& block,
         CValidationState& state,
         const CChainParams& chainparams,
-        CBlockIndex** ppindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        CBlockIndex** ppindex,
+        bool fRequested=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 };
 
 /**
