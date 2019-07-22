@@ -4723,8 +4723,10 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     CCoinControl coincontrol;
 
     nv = nCoinControlOfs;
-    if (request.params.size() > nv
-        && request.params[nv].isObject()) {
+    if (request.params.size() > nv) {
+        if (!request.params[nv].isObject()) {
+            throw JSONRPCError(RPC_TYPE_ERROR, "coin_control must be an object");
+        }
         const UniValue &uvCoinControl = request.params[nv].get_obj();
 
         if (uvCoinControl.exists("changeaddress")) {
@@ -4762,6 +4764,9 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 COutPoint op(uint256S(uvi["tx"].get_str()), uvi["n"].get_int());
                 coincontrol.setSelected.insert(op);
             }
+        } else
+        if (!uvInputs.isNull()) {
+            throw JSONRPCError(RPC_TYPE_ERROR, "coin_control inputs must be an array");
         }
 
         if (uvCoinControl.exists("feeRate") && uvCoinControl.exists("estimate_mode")) {
