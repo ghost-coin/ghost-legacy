@@ -294,9 +294,9 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
                 }
                 if (phdw->idDefaultAccount.IsNull()) {
                     if (!phdw->pEKMaster) {
-                        throw JSONRPCError(RPC_WALLET_ERROR, _("Wallet has no active master key."));
+                        throw JSONRPCError(RPC_WALLET_ERROR, "Wallet has no active master key.");
                     }
-                    throw JSONRPCError(RPC_WALLET_ERROR, _("No default account set."));
+                    throw JSONRPCError(RPC_WALLET_ERROR, "No default account set.");
                 }
             }
             if (0 != phdw->NewKeyFromAccount(newKey, false, fHardened, f256bit, fBech32, label.c_str())) {

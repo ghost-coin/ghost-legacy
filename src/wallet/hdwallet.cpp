@@ -18,6 +18,7 @@
 #include <pos/kernel.h>
 #include <pos/miner.h>
 #include <util/moneystr.h>
+#include <util/translation.h>
 #include <script/script.h>
 #include <script/standard.h>
 #include <script/sign.h>
@@ -156,16 +157,16 @@ int CHDWallet::FreeExtKeyMaps()
 
 void CHDWallet::AddOptions()
 {
-    gArgs.AddArg("-defaultlookaheadsize=<n>", strprintf(_("Number of keys to load into the lookahead pool per chain. (default: %u)"), N_DEFAULT_LOOKAHEAD), false, OptionsCategory::PART_WALLET);
-    gArgs.AddArg("-extkeysaveancestors", strprintf(_("On saving a key from the lookahead pool, save all unsaved keys leading up to it too. (default: %s)"), "true"), false, OptionsCategory::PART_WALLET);
-    gArgs.AddArg("-createdefaultmasterkey", strprintf(_("Generate a random master key and main account if no master key exists. (default: %s)"), "false"), false, OptionsCategory::PART_WALLET);
+    gArgs.AddArg("-defaultlookaheadsize=<n>", strprintf("Number of keys to load into the lookahead pool per chain. (default: %u)", N_DEFAULT_LOOKAHEAD), false, OptionsCategory::PART_WALLET);
+    gArgs.AddArg("-extkeysaveancestors", strprintf("On saving a key from the lookahead pool, save all unsaved keys leading up to it too. (default: %s)", "true"), false, OptionsCategory::PART_WALLET);
+    gArgs.AddArg("-createdefaultmasterkey", strprintf("Generate a random master key and main account if no master key exists. (default: %s)", "false"), false, OptionsCategory::PART_WALLET);
 
-    gArgs.AddArg("-staking", _("Stake your coins to support network and gain reward (default: true)"), false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-stakingthreads", _("Number of threads to start for staking, max 1 per active wallet, will divide wallets evenly between threads (default: 1)"), false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-minstakeinterval=<n>", _("Minimum time in seconds between successful stakes (default: 0)"), false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-minersleep=<n>", _("Milliseconds between stake attempts. Lowering this param will not result in more stakes. (default: 500)"), false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-reservebalance=<amount>", _("Ensure available balance remains above reservebalance. (default: 0)"), false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-foundationdonationpercent=<n>", _("Percentage of block reward donated to the foundation fund, overridden by system minimum. (default: 0)"), false, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-staking", "Stake your coins to support network and gain reward (default: true)", false, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-stakingthreads", "Number of threads to start for staking, max 1 per active wallet, will divide wallets evenly between threads (default: 1)", false, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-minstakeinterval=<n>", "Minimum time in seconds between successful stakes (default: 0)", false, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-minersleep=<n>", "Milliseconds between stake attempts. Lowering this param will not result in more stakes. (default: 500)", false, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-reservebalance=<amount>", "Ensure available balance remains above reservebalance. (default: 0)", false, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-foundationdonationpercent=<n>", "Percentage of block reward donated to the foundation fund, overridden by system minimum. (default: 0)", false, OptionsCategory::PART_STAKING);
 
     return;
 };
@@ -222,12 +223,12 @@ bool CHDWallet::Initialise()
             }
 
             if (rescan_height != block_height) {
-                InitError(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)"));
+                InitError(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)").translated);
                 return false;
             }
         }
 
-        uiInterface.InitMessage(_("Rescanning..."));
+        uiInterface.InitMessage(_("Rescanning...").translated);
         WalletLogPrintf("Rescanning last %i blocks (from block %i)...\n", *tip_height - rescan_height, rescan_height);
 
         // No need to read and scan block if block was created before
@@ -243,7 +244,7 @@ bool CHDWallet::Initialise()
         {
             WalletRescanReserver reserver(this);
             if (!reserver.reserve() || (ScanResult::SUCCESS != ScanForWalletTransactions(locked_chain->getBlockHash(rescan_height), {} /* stop block */, reserver, true /* update */).status)) {
-                InitError(_("Failed to rescan the wallet during initialization"));
+                InitError(_("Failed to rescan the wallet during initialization").translated);
                 return false;
             }
         }
@@ -482,7 +483,7 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
     WalletLogPrintf("Dumping wallet to JSON.\n");
 
     if (IsLocked()) {
-        return wserrorN(false, sError, __func__, _("Wallet must be unlocked."));
+        return wserrorN(false, sError, __func__, "Wallet must be unlocked.");
     }
 
     LOCK(cs_wallet);
@@ -512,11 +513,11 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
 
             if (chain["num_derives"].isStr()
                 && !ParseUInt32(chain["num_derives"].get_str(), &nDerives)) {
-                return wserrorN(false, sError, __func__, _("num_derives to int failed."));
+                return wserrorN(false, sError, __func__, "num_derives to int failed.");
             }
             if (chain["num_derives_h"].isStr()
                 && !ParseUInt32(chain["num_derives_h"].get_str(), &nDerivesH)) {
-                return wserrorN(false, sError, __func__, _("num_derives_h to int failed."));
+                return wserrorN(false, sError, __func__, "num_derives_h to int failed.");
             }
 
             eKey58.Set58(sEvkey.c_str());
@@ -700,12 +701,12 @@ bool CHDWallet::LoadJson(const UniValue &inj, std::string &sError)
     WalletLogPrintf("Loading wallet from JSON.\n");
 
     if (IsLocked()) {
-        return wserrorN(false, sError, __func__, _("Wallet must be unlocked."));
+        return wserrorN(false, sError, __func__, "Wallet must be unlocked.");
     }
 
     LOCK(cs_wallet);
 
-    return wserrorN(false, sError, __func__, _("TODO: LoadJson."));
+    return wserrorN(false, sError, __func__, "TODO: LoadJson.");
 
     return true;
 };
@@ -713,7 +714,7 @@ bool CHDWallet::LoadJson(const UniValue &inj, std::string &sError)
 
 bool CHDWallet::LoadAddressBook(CHDWalletDB *pwdb)
 {
-    LogPrint(BCLog::HDWALLET, _("Loading address book for %s.\n").c_str(), GetName());
+    LogPrint(BCLog::HDWALLET, "Loading address book for %s.\n", GetName());
 
     assert(pwdb);
     LOCK(cs_wallet);
@@ -787,10 +788,10 @@ bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
             if (LogAcceptCategory(BCLog::HDWALLET)) {
                 if ((v.nToken >> 16) < 1
                     || (v.nToken & 0xFFFF) < 1) {
-                    WalletLogPrintf(_("Clearing vote from block %d to %d.\n").c_str(),
+                    WalletLogPrintf("Clearing vote from block %d to %d.\n",
                         v.nStart, v.nEnd);
                 } else {
-                    WalletLogPrintf( _("Voting for option %u on proposal %u from block %d to %d.\n").c_str(),
+                    WalletLogPrintf("Voting for option %u on proposal %u from block %d to %d.\n",
                         v.nToken >> 16, v.nToken & 0xFFFF, v.nStart, v.nEnd);
                 }
             }
@@ -820,7 +821,7 @@ bool CHDWallet::GetVote(int nHeight, uint32_t &token)
 
 bool CHDWallet::LoadTxRecords(CHDWalletDB *pwdb)
 {
-    LogPrint(BCLog::HDWALLET, _("Loading transaction records for %s.\n").c_str(), GetName());
+    LogPrint(BCLog::HDWALLET, "Loading transaction records for %s.\n", GetName());
 
     assert(pwdb);
     LOCK(cs_wallet);
@@ -1441,7 +1442,7 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
     fParticlWallet = true;
 
     if (!ParseMoney(gArgs.GetArg("-reservebalance", ""), nReserveBalance)) {
-        InitError(_("Invalid amount for -reservebalance=<amount>"));
+        InitError(_("Invalid amount for -reservebalance=<amount>").translated);
         return DBErrors::LOAD_FAIL;
     }
 
@@ -3020,10 +3021,10 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
                 r.scriptPubKey = GetScriptForDestination(PKHash(idTo));
 
                 if (!r.pkTo.IsValid() && !GetPubKey(idTo, r.pkTo)) {
-                    return wserrorN(1, sError, __func__, _("No public key found for address %s."), EncodeDestination(r.address));
+                    return wserrorN(1, sError, __func__, "No public key found for address %s.", EncodeDestination(r.address));
                 }
                 if (r.pkTo.GetID() != idTo) {
-                    return wserrorN(1, sError, __func__, _("Mismatched pubkey for address %s."), EncodeDestination(r.address));
+                    return wserrorN(1, sError, __func__, "Mismatched pubkey for address %s.", EncodeDestination(r.address));
                 }
             } else
             if (r.address.type() == typeid(CKeyID256)) {
@@ -3033,10 +3034,10 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
                 CKeyID256 id256 = boost::get<CKeyID256>(r.address);
                 CKeyID idTo(id256);
                 if (!r.pkTo.IsValid() && !GetPubKey(idTo, r.pkTo)) {
-                    return wserrorN(1, sError, __func__, _("No public key found for address %s."), EncodeDestination(r.address));
+                    return wserrorN(1, sError, __func__, "No public key found for address %s.", EncodeDestination(r.address));
                 }
                 if (r.pkTo.GetID() != idTo) {
-                    return wserrorN(1, sError, __func__, _("Mismatched pubkey for address %s."), EncodeDestination(r.address));
+                    return wserrorN(1, sError, __func__, "Mismatched pubkey for address %s.", EncodeDestination(r.address));
                 }
             } else {
                 if (!r.fScriptSet) {
@@ -3093,7 +3094,7 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
                     WalletLogPrintf("Creating anon output to stealth generated address: %s\n", EncodeDestination(PKHash(idTo)));
                 }
             } else {
-                return wserrorN(1, sError, __func__, _("Only able to send to stealth address for now.")); // TODO: add more types?
+                return wserrorN(1, sError, __func__, "Only able to send to stealth address for now."); // TODO: add more types?
             }
 
             r.sEphem = sEphem;
@@ -3303,12 +3304,12 @@ bool CheckOutputValue(interfaces::Chain& chain, const CTempRecipient &r, const C
             && r.nAmount < 0)) {
         if (r.fSubtractFeeFromAmount && nFeeRet > 0) {
             if (r.nAmount < 0) {
-                sError = _("The transaction amount is too small to pay the fee");
+                sError = "The transaction amount is too small to pay the fee";
             } else {
-                sError = _("The transaction amount is too small to send after the fee has been deducted");
+                sError = "The transaction amount is too small to send after the fee has been deducted";
             }
         } else {
-            sError = _("Transaction amount too small");
+            sError = "Transaction amount too small";
         }
         LogPrintf("%s: Failed %s.\n", __func__, sError);
         return false;
@@ -3599,7 +3600,7 @@ int PreAcceptMempoolTx(CWalletTx &wtx, std::string &sError)
 
     // Limit size
     if (GetTransactionWeight(*wtx.tx) >= MAX_STANDARD_TX_WEIGHT) {
-        return errorN(1, sError, __func__, _("Transaction too large").c_str());
+        return errorN(1, sError, __func__, "Transaction too large");
     }
 
     if (gArgs.GetBoolArg("-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS)) {
@@ -3614,7 +3615,7 @@ int PreAcceptMempoolTx(CWalletTx &wtx, std::string &sError)
         std::string errString;
         LOCK(::mempool.cs);
         if (!mempool.CalculateMemPoolAncestors(entry, setAncestors, nLimitAncestors, nLimitAncestorSize, nLimitDescendants, nLimitDescendantSize, errString)) {
-            return errorN(1, sError, __func__, _("Transaction has too long of a mempool chain").c_str());
+            return errorN(1, sError, __func__, _("Transaction has too long of a mempool chain").translated.c_str());
         }
     }
 
@@ -3707,7 +3708,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                         coin_selection_params.use_bnb = false;
                         continue;
                     }
-                    return wserrorN(1, sError, __func__, _("Insufficient funds.").c_str());
+                    return wserrorN(1, sError, __func__, _("Insufficient funds.").translated);
                 }
             }
 
@@ -3887,7 +3888,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
             // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
             // because we must be at the maximum allowed fee.
             if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes)) {
-                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy."));
+                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy.").translated);
             }
 
             if (nFeeRet >= nFeeNeeded) {
@@ -3937,7 +3938,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                 // nFeeNeeded should not have changed
 
                 if (!nSubtractFeeFromAmount || !(--nSubFeeTries)) { // rangeproofs can change size per iteration
-                    return wserrorN(1, sError, __func__, _("Transaction fee and change calculation failed.").c_str());
+                    return wserrorN(1, sError, __func__, _("Transaction fee and change calculation failed.").translated);
                 }
                 LogPrint(BCLog::HDWALLET, "%s: nSubFeeTries %d\n", __func__, nSubFeeTries);
             }
@@ -3994,7 +3995,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
 
                 SignatureData sigdata;
                 if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata)) {
-                    return wserrorN(1, sError, __func__, _("Signing transaction failed"));
+                    return wserrorN(1, sError, __func__, _("Signing transaction failed").translated);
                 }
                 UpdateInput(txNew.vin[nIn], sigdata);
 
@@ -4025,7 +4026,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                 if (!pDevice->sError.empty()) {
                     pDevice->Close();
                     uiInterface.NotifyWaitingForDevice(true);
-                    return wserrorN(1, sError, __func__, _("PrepareTransaction for device failed: %s"), pDevice->sError);
+                    return wserrorN(1, sError, __func__, _("PrepareTransaction for device failed: %s").translated, pDevice->sError);
                 }
 
                 int nIn = 0;
@@ -4047,7 +4048,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                     if (!pDevice->sError.empty()) {
                         pDevice->Close();
                         uiInterface.NotifyWaitingForDevice(true);
-                        return wserrorN(1, sError, __func__, _("ProduceSignature from device failed: %s"), pDevice->sError);
+                        return wserrorN(1, sError, __func__, _("ProduceSignature from device failed: %s").translated, pDevice->sError);
                     }
                     UpdateInput(txNew.vin[nIn], sigdata);
 
@@ -4102,7 +4103,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
     std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError)
 {
     if (vecSend.size() < 1) {
-        return wserrorN(1, sError, __func__, _("Transaction must have at least one recipient."));
+        return wserrorN(1, sError, __func__, _("Transaction must have at least one recipient.").translated);
     }
 
     CAmount nValue = 0;
@@ -4110,7 +4111,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
     for (const auto &r : vecSend) {
         nValue += r.nAmount;
         if (nValue < 0 || r.nAmount < 0) {
-            return wserrorN(1, sError, __func__, _("Transaction amounts must not be negative."));
+            return wserrorN(1, sError, __func__, _("Transaction amounts must not be negative.").translated);
         }
 
         if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT) {
@@ -4260,7 +4261,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                 nValueIn = 0;
                 setCoins.clear();
                 if (!SelectBlindedCoins(vAvailableCoins, nValueToSelect, setCoins, nValueIn, coinControl)) {
-                    return wserrorN(1, sError, __func__, _("Insufficient funds."));
+                    return wserrorN(1, sError, __func__, _("Insufficient funds.").translated);
                 }
             }
 
@@ -4402,7 +4403,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
             // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
             // because we must be at the maximum allowed fee.
             if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes)) {
-                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy."));
+                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy.").translated);
             }
 
             if (nFeeRet >= nFeeNeeded) {
@@ -4441,7 +4442,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                         }
 
                         if (!fFound || !(--nSubFeeTries)) {
-                            return wserrorN(1, sError, __func__, _("Unable to reduce plain output to add blind change."));
+                            return wserrorN(1, sError, __func__, _("Unable to reduce plain output to add blind change.").translated);
                         }
 
                         pick_new_inputs = false;
@@ -4458,7 +4459,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                 // nFeeNeeded should not have changed
 
                 if (!nSubtractFeeFromAmount || !(--nSubFeeTries)) { // rangeproofs can change size per iteration
-                    return wserrorN(1, sError, __func__, _("Transaction fee and change calculation failed."));
+                    return wserrorN(1, sError, __func__, _("Transaction fee and change calculation failed.").translated);
                 }
                 LogPrint(BCLog::HDWALLET, "%s: nSubFeeTries %d\n", __func__, nSubFeeTries);
             }
@@ -4609,7 +4610,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                 SignatureData sigdata;
 
                 if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata)) {
-                    return wserrorN(1, sError, __func__, _("Signing transaction failed"));
+                    return wserrorN(1, sError, __func__, _("Signing transaction failed").translated);
                 }
                 UpdateInput(txNew.vin[nIn], sigdata);
 
@@ -4646,14 +4647,14 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
     std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError)
 {
     if (vecSend.size() < 1) {
-        return wserrorN(1, sError, __func__, _("Transaction must have at least one recipient."));
+        return wserrorN(1, sError, __func__, _("Transaction must have at least one recipient.").translated);
     }
 
     CAmount nValue = 0;
     for (const auto &r : vecSend) {
         nValue += r.nAmount;
         if (nValue < 0 || r.nAmount < 0) {
-            return wserrorN(1, sError, __func__, _("Transaction amounts must not be negative."));
+            return wserrorN(1, sError, __func__, _("Transaction amounts must not be negative.").translated);
         }
     }
 
@@ -4708,7 +4709,7 @@ int CHDWallet::PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t 
     const std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &vCoins, std::vector<uint8_t> &vInputBlinds, std::string &sError)
 {
     if (nRingSize < MIN_RINGSIZE || nRingSize > MAX_RINGSIZE) {
-        return wserrorN(1, sError, __func__, _("Ring size out of range [%d, %d]"), MIN_RINGSIZE, MAX_RINGSIZE);
+        return wserrorN(1, sError, __func__, _("Ring size out of range [%d, %d]").translated, MIN_RINGSIZE, MAX_RINGSIZE);
     }
 
     //GetStrongRandBytes((unsigned char*)&nSecretColumn, sizeof(nSecretColumn));
@@ -4727,11 +4728,11 @@ int CHDWallet::PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t 
                 const uint256 &txhash = coin.first->first;
                 CStoredTransaction stx;
                 if (!wdb.ReadStoredTx(txhash, stx)) {
-                    return wserrorN(1, sError, __func__, _("ReadStoredTx failed for %s"), txhash.ToString().c_str());
+                    return wserrorN(1, sError, __func__, "ReadStoredTx failed for %s", txhash.ToString().c_str());
                 }
 
                 if (!stx.tx->vpout[coin.second]->IsType(OUTPUT_RINGCT)) {
-                    return wserrorN(1, sError, __func__, _("Not anon output %s %d"), txhash.ToString().c_str(), coin.second);
+                    return wserrorN(1, sError, __func__, _("Not anon output %s %d").translated, txhash.ToString().c_str(), coin.second);
                 }
 
                 const CCmpPubKey &pk = ((CTxOutRingCT*)stx.tx->vpout[coin.second].get())->pk;
@@ -4742,11 +4743,11 @@ int CHDWallet::PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t 
 
                 int64_t index;
                 if (!pblocktree->ReadRCTOutputLink(pk, index)) {
-                    return wserrorN(1, sError, __func__, _("Anon pubkey not found in db, %s"), HexStr(pk.begin(), pk.end()));
+                    return wserrorN(1, sError, __func__, _("Anon pubkey not found in db, %s").translated, HexStr(pk.begin(), pk.end()));
                 }
 
                 if (setHave.count(index)) {
-                    return wserrorN(1, sError, __func__, _("Duplicate index found, %d"), index);
+                    return wserrorN(1, sError, __func__, _("Duplicate index found, %d").translated, index);
                 }
 
                 vMI[k][i] = index;
@@ -4764,7 +4765,7 @@ int CHDWallet::PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vec
 {
     AssertLockHeld(cs_main);
     if (nRingSize < MIN_RINGSIZE || nRingSize > MAX_RINGSIZE) {
-        return wserrorN(1, sError, __func__, _("Ring size out of range [%d, %d]"), MIN_RINGSIZE, MAX_RINGSIZE);
+        return wserrorN(1, sError, __func__, _("Ring size out of range [%d, %d]").translated, MIN_RINGSIZE, MAX_RINGSIZE);
     }
 
     int nBestHeight = locked_chain.getHeightInt();
@@ -4777,7 +4778,7 @@ int CHDWallet::PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vec
     while (nLastRCTOutIndex > 1){
         CAnonOutput ao;
         if (!pblocktree->ReadRCTOutput(nLastRCTOutIndex, ao)) {
-            return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), nLastRCTOutIndex);
+            return wserrorN(1, sError, __func__, _("Anon output not found in db, %d").translated, nLastRCTOutIndex);
         }
         if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth + nExtraDepth)) {
             nLastRCTOutIndex--;
@@ -4790,7 +4791,7 @@ int CHDWallet::PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vec
         WalletLogPrintf("%s: Last index %d, inputs %d, ring size %d, selection mode %d.\n", __func__, nLastRCTOutIndex, nInputs, nRingSize, m_mixin_selection_mode);
     }
     if (nLastRCTOutIndex < (int64_t)(nInputs * nRingSize)) {
-        return wserrorN(1, sError, __func__, _("Not enough anon outputs exist, last: %d, required: %d"), nLastRCTOutIndex, nInputs * nRingSize);
+        return wserrorN(1, sError, __func__, _("Not enough anon outputs exist, last: %d, required: %d").translated, nLastRCTOutIndex, nInputs * nRingSize);
     }
 
     // Must add real outputs to setHave before adding the decoys.
@@ -4815,7 +4816,7 @@ int CHDWallet::PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vec
             int64_t output_id = nLastRCTOutIndex - std::min(nLastRCTOutIndex-1, std::max(int64_t(1), ranges[j]));
             CAnonOutput ao;
             if (!pblocktree->ReadRCTOutput(output_id, ao)) {
-                return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), output_id);
+                return wserrorN(1, sError, __func__, _("Anon output not found in db, %d").translated, output_id);
             }
 
             int num_blocks = nBestHeight - ao.nBlockHeight;
@@ -4882,10 +4883,10 @@ int CHDWallet::PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vec
                     int64_t num_blocks, num_aos = select_max - select_min;
                     CAnonOutput ao_min, ao_max;
                     if (!pblocktree->ReadRCTOutput(select_min, ao_min)) {
-                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), select_min);
+                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d").translated, select_min);
                     }
                     if (!pblocktree->ReadRCTOutput(select_max, ao_max)) {
-                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), select_max);
+                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d").translated, select_max);
                     }
                     num_blocks = ao_max.nBlockHeight - ao_min.nBlockHeight;
 
@@ -4921,7 +4922,7 @@ int CHDWallet::PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vec
         }
 
         if (j >= nMaxTries) {
-            return wserrorN(1, sError, __func__, _("Hit nMaxTries limit, %d, %d, have %d, lastindex %d"), k, i, setHave.size(), nLastRCTOutIndex);
+            return wserrorN(1, sError, __func__, _("Hit nMaxTries limit, %d, %d, have %d, lastindex %d").translated, k, i, setHave.size(), nLastRCTOutIndex);
         }
     }
 
@@ -4935,11 +4936,11 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 {
     assert(coinControl);
     if (nRingSize < MIN_RINGSIZE || nRingSize > MAX_RINGSIZE) {
-        return wserrorN(1, sError, __func__, _("Ring size out of range"));
+        return wserrorN(1, sError, __func__, _("Ring size out of range").translated);
     }
 
     if (nInputsPerSig < 1 || nInputsPerSig > MAX_ANON_INPUTS) {
-        return wserrorN(1, sError, __func__, _("Num inputs per signature out of range"));
+        return wserrorN(1, sError, __func__, _("Num inputs per signature out of range").translated);
     }
 
     nFeeRet = 0;
@@ -4998,7 +4999,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                 nValueIn = 0;
                 setCoins.clear();
                 if (!SelectBlindedCoins(vAvailableCoins, nValueToSelect, setCoins, nValueIn, coinControl, true)) {
-                    return wserrorN(1, sError, __func__, _("Insufficient funds."));
+                    return wserrorN(1, sError, __func__, _("Insufficient funds.").translated);
                 }
             }
 
@@ -5150,7 +5151,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
             // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
             // because we must be at the maximum allowed fee.
             if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes)) {
-                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy."));
+                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy.").translated);
             }
 
             if (nFeeRet >= nFeeNeeded) {
@@ -5176,7 +5177,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                 // nFeeNeeded should not have changed
 
                 if (!nSubtractFeeFromAmount || !(--nSubFeeTries)) { // rangeproofs can change size per iteration
-                    return wserrorN(1, sError, __func__, _("Transaction fee and change calculation failed."));
+                    return wserrorN(1, sError, __func__, _("Transaction fee and change calculation failed.").translated);
                 }
                 LogPrint(BCLog::HDWALLET, "%s: nSubFeeTries %d\n", __func__, nSubFeeTries);
             }
@@ -5286,18 +5287,18 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 
                     CAnonOutput ao;
                     if (!pblocktree->ReadRCTOutput(nIndex, ao)) {
-                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), nIndex);
+                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d").translated, nIndex);
                     }
 
                     CKeyID idk = ao.pubkey.GetID();
                     CKey key;
                     if (!GetKey(idk, key)) {
-                        return wserrorN(1, sError, __func__, _("No key for anonoutput, %s"), HexStr(ao.pubkey.begin(), ao.pubkey.end()));
+                        return wserrorN(1, sError, __func__, _("No key for anonoutput, %s").translated, HexStr(ao.pubkey.begin(), ao.pubkey.end()));
                     }
 
                     // Keyimage is required for the tx hash
                     if (0 != (rv = secp256k1_get_keyimage(secp256k1_ctx_blind, &vKeyImages[k * 33], ao.pubkey.begin(), key.begin()))) {
-                        return wserrorN(1, sError, __func__, _("secp256k1_get_keyimage failed %d"), rv);
+                        return wserrorN(1, sError, __func__, "secp256k1_get_keyimage failed %d", rv);
                     }
                 }
             }
@@ -5328,7 +5329,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 
                     CAnonOutput ao;
                     if (!pblocktree->ReadRCTOutput(nIndex, ao)) {
-                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), nIndex);
+                        return wserrorN(1, sError, __func__, _("Anon output not found in db, %d").translated, nIndex);
                     }
 
                     memcpy(&vm[(i+k*nCols)*33], ao.pubkey.begin(), 33);
@@ -5339,7 +5340,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                     if (i == vSecretColumns[l]) {
                         CKeyID idk = ao.pubkey.GetID();
                         if (!GetKey(idk, vsk[k])) {
-                            return wserrorN(1, sError, __func__, _("No key for anonoutput, %s"), HexStr(ao.pubkey.begin(), ao.pubkey.end()));
+                            return wserrorN(1, sError, __func__, _("No key for anonoutput, %s").translated, HexStr(ao.pubkey.begin(), ao.pubkey.end()));
                         }
                         vpsk[k] = vsk[k].begin();
 
@@ -5347,7 +5348,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                         /*
                         // Keyimage is required for the tx hash
                         if (0 != (rv = secp256k1_get_keyimage(secp256k1_ctx_blind, &vKeyImages[k * 33], &vm[(i+k*nCols)*33], vpsk[k])))
-                            return errorN(1, sError, __func__, _("secp256k1_get_keyimage failed %d").c_str(), rv);
+                            return errorN(1, sError, __func__, "secp256k1_get_keyimage failed %d", rv);
                         */
                     }
                 }
@@ -5366,7 +5367,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                     if (0 != (rv = secp256k1_prepare_mlsag(&vm[0], blindSum,
                         vpOutCommits.size(), vpOutCommits.size(), nCols, nRows,
                         &vpInCommits[0], &vpOutCommits[0], &vpBlinds[0]))) {
-                        return wserrorN(1, sError, __func__, _("secp256k1_prepare_mlsag failed %d"), rv);
+                        return wserrorN(1, sError, __func__, "secp256k1_prepare_mlsag failed %d", rv);
                     }
                 } else {
                     vDL.resize((1 + (nSigInputs+1) * nSigRingSize) * 32 + 33); // extra element for C extra, extra row for commitment row, split input commitment
@@ -5411,7 +5412,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                     if (0 != (rv = secp256k1_prepare_mlsag(&vm[0], blindSum,
                         1, 1, nCols, nRows,
                         &vpInCommits[0], &pSplitCommit, &vpBlinds[0]))) {
-                        return wserrorN(1, sError, __func__, _("secp256k1_prepare_mlsag failed %d"), rv);
+                        return wserrorN(1, sError, __func__, "secp256k1_prepare_mlsag failed %d", rv);
                     }
 
                     vpBlinds.pop_back();
@@ -5423,7 +5424,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                 if (0 != (rv = secp256k1_generate_mlsag(secp256k1_ctx_blind, &vKeyImages[0], &vDL[0], &vDL[32],
                     randSeed, txhash.begin(), nCols, nRows, vSecretColumns[l],
                     &vpsk[0], &vm[0]))) {
-                    return wserrorN(1, sError, __func__, _("secp256k1_generate_mlsag failed %d"), rv);
+                    return wserrorN(1, sError, __func__, "secp256k1_generate_mlsag failed %d", rv);
                 }
             }
         }
@@ -5457,14 +5458,14 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
     std::vector<CTempRecipient> &vecSend, bool sign, size_t nRingSize, size_t nSigs, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError)
 {
     if (vecSend.size() < 1) {
-        return wserrorN(1, sError, __func__, _("Transaction must have at least one recipient."));
+        return wserrorN(1, sError, __func__, _("Transaction must have at least one recipient.").translated);
     }
 
     CAmount nValue = 0;
     for (const auto &r : vecSend) {
         nValue += r.nAmount;
         if (nValue < 0 || r.nAmount < 0) {
-            return wserrorN(1, sError, __func__, _("Transaction amounts must not be negative."));
+            return wserrorN(1, sError, __func__, _("Transaction amounts must not be negative.").translated);
         }
     }
 
@@ -5637,7 +5638,7 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
 
     ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idDefaultAccount);
     if (mi == mapExtAccounts.end()) {
-        return werrorN(1, "%s: %s.", __func__, _("Default account not found"));
+        return werrorN(1, "%s: %s.", __func__, "Default account not found");
     }
 
     sea = mi->second;
@@ -5649,7 +5650,7 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
             return 0;
         }
 
-        return werrorN(1, "%s: %s.", __func__, _("Confidential chain set but not found"));
+        return werrorN(1, "%s: %s.", __func__, "Confidential chain set but not found");
     }
 
     if (LogAcceptCategory(BCLog::HDWALLET)) {
@@ -5660,7 +5661,7 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
 
     CStoredExtKey *sekAccount = sea->ChainAccount();
     if (!sekAccount) {
-        return werrorN(1, "%s: %s.", __func__, _("Account chain not found"));
+        return werrorN(1, "%s: %s.", __func__, "Account chain not found");
     }
 
     std::vector<uint8_t> vAccountPath, vSubKeyPath, v;
@@ -5672,7 +5673,7 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
     CExtKey evConfidential;
     uint32_t nChild;
     if (0 != sekAccount->DeriveNextKey(evConfidential, nChild, true)) {
-        return werrorN(1, "%s: %s.", __func__, _("DeriveNextKey failed"));
+        return werrorN(1, "%s: %s.", __func__, "DeriveNextKey failed");
     }
 
     CStoredExtKey *sekConfidential = new CStoredExtKey();
@@ -5693,11 +5694,11 @@ int CHDWallet::GetDefaultConfidentialChain(CHDWalletDB *pwdb, CExtKeyAccount *&s
     if (!pwdb) {
         CHDWalletDB wdb(*database, "r+");
         if (0 != ExtKeySaveAccountToDB(&wdb, idDefaultAccount, sea)) {
-            return werrorN(1,"%s: %s.", __func__, _("ExtKeySaveAccountToDB failed"));
+            return werrorN(1,"%s: %s.", __func__, "ExtKeySaveAccountToDB failed");
         }
     } else {
         if (0 != ExtKeySaveAccountToDB(pwdb, idDefaultAccount, sea)) {
-            return werrorN(1, "%s: %s.", __func__, _("ExtKeySaveAccountToDB failed"));
+            return werrorN(1, "%s: %s.", __func__, "ExtKeySaveAccountToDB failed");
         }
     }
 
@@ -8253,7 +8254,7 @@ bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& 
 
             vecSend.emplace_back(tr);
         } else {
-            strFailReason = _("Output isn't standard.");
+            strFailReason = _("Output isn't standard.").translated;
             return false;
         }
     }

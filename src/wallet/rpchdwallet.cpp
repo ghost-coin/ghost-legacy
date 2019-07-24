@@ -24,6 +24,7 @@
 #include <anon.h>
 #include <util/moneystr.h>
 #include <util/validation.h>
+#include <util/translation.h>
 #include <util/fees.h>
 #include <util/rbf.h>
 #include <wallet/hdwallet.h>
@@ -1521,7 +1522,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
                 delete sekGenesisChain;
                 pwallet->ExtKeyRemoveAccountFromMapsAndFree(sea);
                 wdb.TxnAbort();
-                throw JSONRPCError(RPC_WALLET_ERROR, strprintf(_("NewExtKeyFromAccount failed, %s."), ExtKeyGetString(rv)));
+                throw JSONRPCError(RPC_WALLET_ERROR, strprintf("NewExtKeyFromAccount failed, %s.", ExtKeyGetString(rv)));
             }
         }
 
@@ -1655,7 +1656,7 @@ static UniValue extkeyaltversion(const JSONRPCRequest &request)
     CExtKey58 eKey58;
     CExtKeyPair ekp;
     if (eKey58.Set58(sKeyIn.c_str()) != 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid input key."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid input key.");
     }
 
     // TODO: handle testnet keys on main etc
@@ -1673,7 +1674,7 @@ static UniValue extkeyaltversion(const JSONRPCRequest &request)
         return eKey58.ToStringVersion(CChainParams::EXT_PUBLIC_KEY_BTC);
     }
 
-    throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown input key version."));
+    throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown input key version.");
 }
 
 
@@ -1722,7 +1723,7 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
             // TODO, make full path work
             std::vector<uint32_t> vPath;
             if (0 != ExtractExtKeyPath(s, vPath) || vPath.size() != 1) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, _("bad childNo."));
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "bad childNo.");
             }
             nChild = vPath[0];
             pChild = &nChild;
@@ -1735,7 +1736,7 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
     CStoredExtKey *sek = new CStoredExtKey();
     if (0 != pwallet->NewExtKeyFromAccount(strLabel, sek, pLabel, pChild, fHardened, fBech32)) {
         delete sek;
-        throw JSONRPCError(RPC_WALLET_ERROR, _("NewExtKeyFromAccount failed."));
+        throw JSONRPCError(RPC_WALLET_ERROR, "NewExtKeyFromAccount failed.");
     }
 
     // CBitcoinAddress displays public key only
@@ -1784,12 +1785,12 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
     if (request.params.size() > 1) {
         std::string s = request.params[1].get_str();
         if (s.length() && !ParseUInt32(s, &num_prefix_bits)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits invalid number."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "num_prefix_bits invalid number.");
         }
     }
 
     if (num_prefix_bits > 32) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits must be <= 32."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "num_prefix_bits must be <= 32.");
     }
 
     std::string sPrefix_num;
@@ -1801,18 +1802,18 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
     bool fMakeV2 = request.params.size() > 4 ? request.params[4].get_bool() : false;
 
     if (fMakeV2 && !fBech32) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("bech32 must be true when using makeV2."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "bech32 must be true when using makeV2.");
     }
 
     CEKAStealthKey akStealth;
     std::string sError;
     if (fMakeV2) {
         if (0 != pwallet->NewStealthKeyV2FromAccount(sLabel, akStealth, num_prefix_bits, sPrefix_num.empty() ? nullptr : sPrefix_num.c_str(), fBech32)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, _("NewStealthKeyV2FromAccount failed."));
+            throw JSONRPCError(RPC_WALLET_ERROR, "NewStealthKeyV2FromAccount failed.");
         }
     } else {
         if (0 != pwallet->NewStealthKeyFromAccount(sLabel, akStealth, num_prefix_bits, sPrefix_num.empty() ? nullptr : sPrefix_num.c_str(), fBech32)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, _("NewStealthKeyFromAccount failed."));
+            throw JSONRPCError(RPC_WALLET_ERROR, "NewStealthKeyFromAccount failed.");
         }
     }
 
@@ -1872,12 +1873,12 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     if (request.params.size() > 3) {
         std::string s = request.params[3].get_str();
         if (s.length() && !ParseUInt32(s, &num_prefix_bits)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits invalid number."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "num_prefix_bits invalid number.");
         }
     }
 
     if (num_prefix_bits > 32) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits must be <= 32."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "num_prefix_bits must be <= 32.");
     }
 
     uint32_t nPrefix = 0;
@@ -1885,7 +1886,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     if (request.params.size() > 4) {
         sPrefix_num = request.params[4].get_str();
         if (!ExtractStealthPrefix(sPrefix_num.c_str(), nPrefix)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Could not convert prefix to number."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Could not convert prefix to number.");
         }
     }
 
@@ -1901,12 +1902,12 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
         skScan = wifScanSecret.GetKey();
     } else {
         if (!DecodeBase58(sScanSecret, vchScanSecret)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Could not decode scan secret as WIF, hex or base58."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Could not decode scan secret as WIF, hex or base58.");
         }
     }
     if (vchScanSecret.size() > 0) {
         if (vchScanSecret.size() != 32) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Scan secret is not 32 bytes."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Scan secret is not 32 bytes.");
         }
         skScan.Set(&vchScanSecret[0], true);
     }
@@ -1918,18 +1919,18 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
         skSpend = wifSpendSecret.GetKey();
     } else {
         if (!DecodeBase58(sSpendSecret, vchSpendSecret)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Could not decode spend secret as hex or base58."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Could not decode spend secret as hex or base58.");
         }
     }
     if (vchSpendSecret.size() > 0) {
         if (vchSpendSecret.size() != 32) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Spend secret is not 32 bytes."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Spend secret is not 32 bytes.");
         }
         skSpend.Set(&vchSpendSecret[0], true);
     }
 
     if (skSpend == skScan) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Spend secret must be different to scan secret."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Spend secret must be different to scan secret.");
     }
 
     CStealthAddress sxAddr;
@@ -1952,10 +1953,10 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     }
 
     if (0 != SecretToPublicKey(sxAddr.scan_secret, sxAddr.scan_pubkey)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, _("Could not get scan public key."));
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Could not get scan public key.");
     }
     if (0 != SecretToPublicKey(skSpend, sxAddr.spend_pubkey)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, _("Could not get spend public key."));
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Could not get spend public key.");
     }
 
     UniValue result(UniValue::VOBJ);
@@ -1972,20 +1973,20 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
                 LOCK(pwallet->cs_wallet);
                 CPubKey pk = skSpend.GetPubKey();
                 if (!pwallet->AddKeyPubKey(skSpend, pk)) {
-                    throw JSONRPCError(RPC_WALLET_ERROR, _("Import failed - AddKeyPubKey failed."));
+                    throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - AddKeyPubKey failed.");
                 }
                 fFound = true; // update stealth address with secret
                 break;
             }
 
-            throw JSONRPCError(RPC_WALLET_ERROR, _("Import failed - stealth address exists."));
+            throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - stealth address exists.");
         }
     }
 
     {
         LOCK(pwallet->cs_wallet);
         if (pwallet->HaveStealthAddress(sxAddr)) { // check for extkeys, no update possible
-            throw JSONRPCError(RPC_WALLET_ERROR, _("Import failed - stealth address exists."));
+            throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - stealth address exists.");
         }
 
         pwallet->SetAddressBook(sxAddr, sLabel, "", fBech32);
@@ -2270,7 +2271,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
     bool f256bit = request.params.size() > 6 ? GetBool(request.params[6]) : false;
 
     if (!fSave && fAddToAddressBook) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("add_to_addressbook can't be set without save"));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "add_to_addressbook can't be set without save");
     }
     if (fSave || fHardened) {
         EnsureWalletIsUnlocked(pwallet);
@@ -2286,11 +2287,11 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
         uint32_t nChain = 0;
         if (sInKey.length() == 0) {
             if (pwallet->idDefaultAccount.IsNull()) {
-                throw JSONRPCError(RPC_WALLET_ERROR, _("No default account set."));
+                throw JSONRPCError(RPC_WALLET_ERROR, "No default account set.");
             }
             ExtKeyAccountMap::iterator mi = pwallet->mapExtAccounts.find(pwallet->idDefaultAccount);
             if (mi == pwallet->mapExtAccounts.end()) {
-                throw JSONRPCError(RPC_WALLET_ERROR, _("Unknown account."));
+                throw JSONRPCError(RPC_WALLET_ERROR, "Unknown account.");
             }
             sea = mi->second;
             nChain = sea->nActiveExternal;
@@ -2332,7 +2333,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
                 sek->kp = eKey58.GetKey();
                 idk = sek->kp.GetID();
             } else {
-                throw JSONRPCError(RPC_WALLET_ERROR, _("Invalid key."));
+                throw JSONRPCError(RPC_WALLET_ERROR, "Invalid key.");
             }
 
             if (!idk.IsNull()) {
@@ -2346,19 +2347,19 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
         }
 
         if (!sek) {
-            throw JSONRPCError(RPC_WALLET_ERROR, _("Unknown chain."));
+            throw JSONRPCError(RPC_WALLET_ERROR, "Unknown chain.");
         }
         if (fHardened && !sek->kp.IsValidV()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("extkey must have private key to derive hardened keys."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "extkey must have private key to derive hardened keys.");
         }
         if (fSave && !sea) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must have account to save keys."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Must have account to save keys.");
         }
 
         uint32_t idIndex;
         if (fAddToAddressBook) {
             if (0 != pwallet->ExtKeyGetIndex(sea, idIndex)) {
-                throw JSONRPCError(RPC_WALLET_ERROR, _("ExtKeyGetIndex failed."));
+                throw JSONRPCError(RPC_WALLET_ERROR, "ExtKeyGetIndex failed.");
             }
         }
 
@@ -3624,7 +3625,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
 
     if (sAction == "add") {
         if (mabi != pwallet->mapAddressBook.end()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Address '%s' is recorded in the address book."), sAddress));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is recorded in the address book.", sAddress));
         }
 
         if (!pwallet->SetAddressBook(nullptr, dest, sLabel, sPurpose, vPath, true)) {
@@ -3633,10 +3634,10 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     } else
     if (sAction == "edit") {
         if (request.params.size() < 3) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Need a parameter to change."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Need a parameter to change.");
         }
         if (mabi == pwallet->mapAddressBook.end()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Address '%s' is not in the address book."), sAddress));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is not in the address book.", sAddress));
         }
 
         if (!pwallet->SetAddressBook(nullptr, dest, sLabel,
@@ -3653,7 +3654,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     } else
     if (sAction == "del") {
         if (mabi == pwallet->mapAddressBook.end()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Address '%s' is not in the address book."), sAddress));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is not in the address book.", sAddress));
         }
         sLabel = mabi->second.name;
         sPurpose = mabi->second.purpose;
@@ -3664,7 +3665,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     } else
     if (sAction == "info") {
         if (mabi == pwallet->mapAddressBook.end()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(_("Address '%s' is not in the address book."), sAddress));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is not in the address book.", sAddress));
         }
 
         UniValue result(UniValue::VOBJ);
@@ -3713,7 +3714,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
             sPurpose = mabi->second.purpose;
         }
     } else {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown action, must be one of 'add/edit/del'."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown action, must be one of 'add/edit/del'.");
     }
 
     UniValue result(UniValue::VOBJ);
@@ -5722,7 +5723,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             result.pushKV(sSetting, pwallet->nStakeLimitHeight);
         }
         if (!request.params[1].isObject()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Must be json object.");
         }
         json = request.params[1].get_obj();
         const std::vector<std::string> &vKeys = json.getKeys();
@@ -5733,7 +5734,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             for (const auto &sKey : vKeys) {
                 if (sKey == "height") {
                     if (!json["height"].isNum()) {
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, _("height must be a number."));
+                        throw JSONRPCError(RPC_INVALID_PARAMETER, "height must be a number.");
                     }
 
                     pwallet->nStakeLimitHeight = json["height"].get_int();
@@ -5753,7 +5754,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         sSetting != "stakingoptions" &&
         sSetting != "anonoptions" &&
         sSetting != "unloadspent") {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown setting"));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown setting");
     }
 
     if (request.params.size() == 1) {
@@ -5766,7 +5767,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
     }
 
     if (!request.params[1].isObject()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must be json object."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Must be json object.");
     }
     json = request.params[1].get_obj();
     const std::vector<std::string> &vKeys = json.getKeys();
@@ -5775,7 +5776,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
     bool erasing = false;
     if (vKeys.size() < 1) {
         if (!pwallet->EraseSetting(sSetting)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, _("EraseSetting failed."));
+            throw JSONRPCError(RPC_WALLET_ERROR, "EraseSetting failed.");
         }
         result.pushKV(sSetting, "cleared");
         erasing = true;
@@ -5785,7 +5786,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         for (const auto &sKey : vKeys) {
             if (sKey == "address_standard") {
                 if (!json["address_standard"].isStr()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("address_standard must be a string."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "address_standard must be a string.");
                 }
 
                 std::string sAddress = json["address_standard"].get_str();
@@ -5796,29 +5797,29 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             } else
             if (sKey == "coldstakingaddress") {
                 if (!json["coldstakingaddress"].isStr()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("coldstakingaddress must be a string."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "coldstakingaddress must be a string.");
                 }
 
                 std::string sAddress = json["coldstakingaddress"].get_str();
                 CBitcoinAddress addr(sAddress);
                 if (!addr.IsValid()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid coldstakingaddress."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid coldstakingaddress.");
                 }
                 if (addr.IsValidStealthAddress()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("coldstakingaddress can't be a stealthaddress."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "coldstakingaddress can't be a stealthaddress.");
                 }
 
                 // TODO: override option?
                 if (pwallet->HaveAddress(addr.Get())) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, sAddress + _(" is spendable from this wallet."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, sAddress + " is spendable from this wallet.");
                 }
                 if (pwallet->idDefaultAccount.IsNull()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("Wallet must have a default account set."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Wallet must have a default account set.");
                 }
 
                 const Consensus::Params& consensusParams = Params().GetConsensus();
                 if (GetAdjustedTime() < consensusParams.OpIsCoinstakeTime) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("OpIsCoinstake is not active yet."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "OpIsCoinstake is not active yet.");
                 }
             } else {
                 warnings.push_back("Unknown key " + sKey);
@@ -5831,32 +5832,32 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             } else
             if (sKey == "stakecombinethreshold") {
                 if (AmountFromValue(json["stakecombinethreshold"]) < 0) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("stakecombinethreshold can't be negative."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "stakecombinethreshold can't be negative.");
                 }
             } else
             if (sKey == "stakesplitthreshold") {
                 if (AmountFromValue(json["stakesplitthreshold"]) < 0) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("stakesplitthreshold can't be negative."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "stakesplitthreshold can't be negative.");
                 }
             } else
             if (sKey == "foundationdonationpercent") {
                 if (!json["foundationdonationpercent"].isNum()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("foundationdonationpercent must be a number."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "foundationdonationpercent must be a number.");
                 }
             } else
             if (sKey == "rewardaddress") {
                 if (!json["rewardaddress"].isStr()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("rewardaddress must be a string."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "rewardaddress must be a string.");
                 }
 
                 CBitcoinAddress addr(json["rewardaddress"].get_str());
                 if (!addr.IsValid() || addr.Get().type() == typeid(CNoDestination)) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("Invalid rewardaddress."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid rewardaddress.");
                 }
             } else
             if (sKey == "smsgfeeratetarget") {
                 if (AmountFromValue(json["smsgfeeratetarget"]) < 0) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("smsgfeeratetarget can't be negative."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "smsgfeeratetarget can't be negative.");
                 }
             } else
             if (sKey == "smsgdifficultytarget") {
@@ -5869,7 +5870,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         for (const auto &sKey : vKeys) {
             if (sKey == "mixinselection") {
                 if (!json["mixinselection"].isNum()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("mixinselection must be a number."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "mixinselection must be a number.");
                 }
             } else {
                 warnings.push_back("Unknown key " + sKey);
@@ -5880,25 +5881,25 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         for (const auto &sKey : vKeys) {
             if (sKey == "mode") {
                 if (!json["mode"].isNum()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("mode must be a number."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "mode must be a number.");
                 }
             } else
             if (sKey == "mindepth") {
                 if (!json["mindepth"].isNum()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, _("mindepth must be a number."));
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "mindepth must be a number.");
                 }
             } else {
                 warnings.push_back("Unknown key " + sKey);
             }
         }
     } else {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown setting"));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown setting");
     }
 
     if (!erasing) {
         json.pushKV("time", GetTime());
         if (!pwallet->SetSetting(sSetting, json)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, _("SetSetting failed."));
+            throw JSONRPCError(RPC_WALLET_ERROR, "SetSetting failed.");
         }
     }
     // Re-apply settings if cleared
@@ -6009,7 +6010,7 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
 
     CBitcoinAddress addr(request.params[0].get_str());
     if (!addr.IsValidStealthAddress()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Must input a stealthaddress."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Must input a stealthaddress.");
     }
 
     CStealthAddress sx = boost::get<CStealthAddress>(addr.Get());
@@ -6071,7 +6072,7 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
     if (sEphem.IsValid()) {
         ec_point pkSendTo;
         if (0 != StealthSecret(sEphem, sx.scan_pubkey, sx.spend_pubkey, sShared, pkSendTo)) {
-            throw JSONRPCError(RPC_INTERNAL_ERROR, _("StealthSecret failed, try again."));
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "StealthSecret failed, try again.");
         }
 
         pkEphem = sEphem.GetPubKey();
@@ -6131,15 +6132,15 @@ static UniValue setvote(const JSONRPCRequest &request)
     uint32_t option = request.params[1].get_int();
 
     if (issue > 0xFFFF)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Proposal out of range."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Proposal out of range.");
     if (option > 0xFFFF)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Option out of range."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Option out of range.");
 
     int nStartHeight = request.params[2].get_int();
     int nEndHeight = request.params[3].get_int();
 
     if (nEndHeight < nStartHeight)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("height_end must be after height_start."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "height_end must be after height_start.");
 
     uint32_t voteToken = issue | (option << 16);
 
@@ -6164,9 +6165,9 @@ static UniValue setvote(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
 
     if (issue < 1) {
-        result.pushKV("result", _("Cleared vote token."));
+        result.pushKV("result", "Cleared vote token.");
     } else {
-        result.pushKV("result", strprintf(_("Voting for option %u on proposal %u"), option, issue));
+        result.pushKV("result", strprintf("Voting for option %u on proposal %u", option, issue));
     }
 
     result.pushKV("from_height", nStartHeight);
@@ -6288,7 +6289,7 @@ static UniValue tallyvotes(const JSONRPCRequest &request)
 
     int issue = request.params[0].get_int();
     if (issue < 1 || issue >= (1 << 16))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Proposal out of range."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Proposal out of range.");
 
     int nStartHeight = request.params[1].get_int();
     int nEndHeight = request.params[2].get_int();

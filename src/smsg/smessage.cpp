@@ -396,11 +396,11 @@ void ThreadSecureMsgPow()
 
 void AddOptions()
 {
-    gArgs.AddArg("-smsg", _("Enable secure messaging. (default: true)"), false, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgscanchain", _("Scan the block chain for public key addresses on startup. (default: false)"), false, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgscanincoming", _("Scan incoming blocks for public key addresses. (default: false)"), false, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgnotify=<cmd>", _("Execute command when a message is received. (%s in cmd is replaced by receiving address)"), false, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgsaddnewkeys", _("Scan for incoming messages on new wallet keys. (default: false)"), false, OptionsCategory::SMSG);
+    gArgs.AddArg("-smsg", "Enable secure messaging. (default: true)", false, OptionsCategory::SMSG);
+    gArgs.AddArg("-smsgscanchain", "Scan the block chain for public key addresses on startup. (default: false)", false, OptionsCategory::SMSG);
+    gArgs.AddArg("-smsgscanincoming", "Scan incoming blocks for public key addresses. (default: false)", false, OptionsCategory::SMSG);
+    gArgs.AddArg("-smsgnotify=<cmd>", "Execute command when a message is received. (%s in cmd is replaced by receiving address)", false, OptionsCategory::SMSG);
+    gArgs.AddArg("-smsgsaddnewkeys", "Scan for incoming messages on new wallet keys. (default: false)", false, OptionsCategory::SMSG);
 
     return;
 };

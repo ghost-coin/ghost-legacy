@@ -343,7 +343,7 @@ int CTrezorDevice::GetPubKey(const std::vector<uint32_t>& vPath, CPubKey& pk, st
 int CTrezorDevice::GetXPub(const std::vector<uint32_t>& vPath, CExtPubKey& ekp, std::string& sError)
 {
     if (vPath.size() < 1 || vPath.size() > 10) {
-        return errorN(1, sError, __func__, _("Path depth out of range.").c_str());
+        return errorN(1, sError, __func__, "Path depth out of range.");
     }
     size_t lenPath = vPath.size();
 
@@ -413,7 +413,7 @@ int CTrezorDevice::GetXPub(const std::vector<uint32_t>& vPath, CExtPubKey& ekp, 
 int CTrezorDevice::SignMessage(const std::vector<uint32_t>& vPath, const std::string& sMessage, std::vector<uint8_t>& vchSig, std::string& sError)
 {
     if (vPath.size() < 1 || vPath.size() > 10) {
-        return errorN(1, sError, __func__, _("Path depth out of range.").c_str());
+        return errorN(1, sError, __func__, "Path depth out of range.");
     }
 
     hw::trezor::messages::bitcoin::SignMessage msg_in;

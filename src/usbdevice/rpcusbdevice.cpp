@@ -40,7 +40,7 @@ static std::vector<uint32_t> GetPath(std::vector<uint32_t> &vPath, const UniValu
     if (path.isNum()) {
         sPath = strprintf("%d", path.get_int());
     } else {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown \"path\" type."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown \"path\" type.");
     }
 
     if (defaultpath.isNull()) {
@@ -54,7 +54,7 @@ static std::vector<uint32_t> GetPath(std::vector<uint32_t> &vPath, const UniValu
             sPath = defaultpath.get_str() + "/" + sPath;
         }
     } else {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown \"defaultpath\" type."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown \"defaultpath\" type.");
     }
 
     int rv;
@@ -97,7 +97,7 @@ static UniValue deviceloadmnemonic(const JSONRPCRequest &request)
     if (request.params.size() > 0) {
         std::string s = request.params[0].get_str();
         if (s.length() && !ParseUInt32(s, &wordcount)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("wordcount invalid number."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "wordcount invalid number.");
         }
     }
 
@@ -256,7 +256,7 @@ static UniValue unlockdevice(const JSONRPCRequest &request)
         pin = request.params[1].get_str();
     }
     if (!pin.length() && !passphraseword.length()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Neither a pin nor a passphraseword was provided."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Neither a pin nor a passphraseword was provided.");
     }
 
     std::vector<std::unique_ptr<usb_device::CUSBDevice> > vDevices;
@@ -265,10 +265,10 @@ static UniValue unlockdevice(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
 
     if (vDevices.size() > 1) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, _("Too many hardware devices connected."));
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Too many hardware devices connected.");
     }
     if (vDevices.size() != 1) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, _("No hardware devices connected."));
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "No hardware devices connected.");
     }
 
     usb_device::CUSBDevice *device = vDevices[0].get();
@@ -1034,12 +1034,12 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
     if (request.params.size() > 1) {
         std::string s = request.params[1].get_str();
         if (s.length() && !ParseUInt32(s, &num_prefix_bits)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits invalid number."));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "num_prefix_bits invalid number.");
         }
     }
 
     if (num_prefix_bits > 32) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("num_prefix_bits must be <= 32."));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "num_prefix_bits must be <= 32.");
     }
 
     std::string sPrefix_num;

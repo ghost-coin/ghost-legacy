@@ -7,6 +7,7 @@
 
 #include <chainparamsbase.h>
 #include <util/strencodings.h>
+#include <util/translation.h>
 
 #include <stdarg.h>
 
@@ -1406,11 +1407,8 @@ std::string CopyrightHolders(const std::string& strPrefix)
     const int BTC_START_YEAR = 2009;
     const int PART_START_YEAR = 2017;
 
-    std::string sRange = PART_START_YEAR == COPYRIGHT_YEAR
-        ? strprintf(" %i ", COPYRIGHT_YEAR)
-        : strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
-
-    const auto copyright_devs = strprintf(_(COPYRIGHT_HOLDERS), COPYRIGHT_HOLDERS_SUBSTITUTION);
+    std::string sRange = strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
+    const auto copyright_devs = strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION);
     std::string strCopyrightHolders = strPrefix + sRange + copyright_devs;
 
     // Make sure Bitcoin Core copyright is not removed by accident

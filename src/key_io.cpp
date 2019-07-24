@@ -363,7 +363,7 @@ std::string CBase58Data::ToString() const
         ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, vchData.begin(), vchData.end());
         std::string rv = bech32::Encode(sHrp, data);
         if (rv.empty()) {
-            return _("bech32 encode failed.");
+            return "bech32 encode failed.";
         }
         return rv;
     }
