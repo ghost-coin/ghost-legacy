@@ -40,6 +40,7 @@
 
 #include <univalue.h>
 
+
 void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue& entry,
                       int nHeight = 0, int nConfirmations = 0, int nBlockTime = 0)
 {
@@ -99,14 +100,9 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                 in.pushKV("value", ValueFromAmount(spentInfo.satoshis));
                 in.pushKV("valueSat", spentInfo.satoshis);
 
-                if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS) {
-                    in.pushKV("address", CBitcoinAddress(PKHash(*((uint160*)&spentInfo.addressHash))).ToString());
-                } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS)  {
-                    in.pushKV("address", CBitcoinAddress(ScriptHash(*((uint160*)&spentInfo.addressHash))).ToString());
-                } else if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS_256)  {
-                    in.pushKV("address", CBitcoinAddress(CKeyID256(spentInfo.addressHash)).ToString());
-                } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS_256)  {
-                    in.pushKV("address", CBitcoinAddress(CScriptID256(spentInfo.addressHash)).ToString());
+                std::string str_address;
+                if (getAddressFromIndex(spentInfo.addressType, spentInfo.addressHash, str_address)) {
+                    in.pushKV("address", str_address);
                 }
             }
         }

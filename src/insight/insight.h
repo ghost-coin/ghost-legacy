@@ -12,6 +12,7 @@
 #include <sync.h>
 #include <stdint.h>
 #include <vector>
+#include <string>
 #include <utility>
 
 extern CCriticalSection cs_main;
@@ -42,5 +43,6 @@ bool GetAddressIndex(uint256 addressHash, int type,
 bool GetAddressUnspent(uint256 addressHash, int type,
                        std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > &unspentOutputs);
 
+bool getAddressFromIndex(const int &type, const uint256 &hash, std::string &address);
 
 #endif // BITCOIN_INSIGHT_INSIGHT_H
