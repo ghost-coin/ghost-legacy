@@ -4,6 +4,7 @@
 ==============
 
 - clearbanned rpc cmd clears persistent DOS counters too.
+- Added segwit scripts to insight.
 
 
 0.18.0.12

@@ -100,7 +100,6 @@ public:
     bool GetKeyID(CKeyID &keyID) const;
     bool GetKeyID(CKeyID256 &keyID) const;
     bool GetKeyID(CKeyID &keyID, CChainParams::Base58Type prefix) const;
-    bool GetIndexKey(uint256 &hashBytes, int &type) const;
     bool IsScript() const;
 
     uint8_t getVersion()

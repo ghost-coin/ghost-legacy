@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,6 +7,8 @@
 #include <validation.h>
 #include <txdb.h>
 #include <txmempool.h>
+#include <script/standard.h>
+#include <key_io.h>
 
 #include <primitives/transaction.h>
 #include <script/interpreter.h>
@@ -24,6 +26,8 @@ bool ExtractIndexInfo(const CScript *pScript, int &scriptType, std::vector<uint8
         return ExtractIndexInfo(&tmpScript, scriptType, hashBytes);
     }
 
+    int witnessversion = 0;
+    std::vector<unsigned char> witnessprogram;
     scriptType = ADDR_INDT_UNKNOWN;
     if (pScript->IsPayToPublicKeyHash()) {
         hashBytes.assign(pScript->begin()+3, pScript->begin()+23);
@@ -40,6 +44,14 @@ bool ExtractIndexInfo(const CScript *pScript, int &scriptType, std::vector<uint8
     if (pScript->IsPayToScriptHash256()) {
         hashBytes.assign(pScript->begin()+2, pScript->begin()+34);
         scriptType = ADDR_INDT_SCRIPT_ADDRESS_256;
+    } else
+    if (pScript->IsPayToWitnessScriptHash()) {
+        hashBytes.assign(pScript->begin()+2, pScript->begin()+34);
+        scriptType = ADDR_INDT_WITNESS_V0_SCRIPTHASH;
+    } else
+    if (pScript->IsWitnessProgram(witnessversion, witnessprogram)) {
+        hashBytes.assign(witnessprogram.begin(), witnessprogram.begin() + witnessprogram.size());
+        scriptType = ADDR_INDT_WITNESS_V0_KEYHASH;
     }
 
     return true;
@@ -63,7 +75,6 @@ bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const 
     if (!fTimestampIndex) {
         return error("Timestamp index not enabled");
     }
-
     if (!pblocktree->ReadTimestampIndex(high, low, fActiveOnly, hashes)) {
         return error("Unable to get hashes for timestamps");
     }
@@ -76,11 +87,9 @@ bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value)
     if (!fSpentIndex) {
         return false;
     }
-
     if (mempool.getSpentIndex(key, value)) {
         return true;
     }
-
     if (!pblocktree->ReadSpentIndex(key, value)) {
         return false;
     }
@@ -105,7 +114,6 @@ bool GetAddressIndex(uint256 addressHash, int type,
     if (!fAddressIndex) {
         return error("Address index not enabled");
     }
-
     if (!pblocktree->ReadAddressIndex(addressHash, type, addressIndex, start, end)) {
         return error("Unable to get txids for address");
     }
@@ -119,7 +127,6 @@ bool GetAddressUnspent(uint256 addressHash, int type,
     if (!fAddressIndex) {
         return error("Address index not enabled");
     }
-
     if (!pblocktree->ReadAddressUnspentIndex(addressHash, type, unspentOutputs)) {
         return error("Unable to get txids for address");
     }
@@ -127,3 +134,22 @@ bool GetAddressUnspent(uint256 addressHash, int type,
     return true;
 };
 
+bool getAddressFromIndex(const int &type, const uint256 &hash, std::string &address)
+{
+    if (type == ADDR_INDT_SCRIPT_ADDRESS) {
+        address = EncodeDestination(CScriptID(uint160(hash.begin(), 20)));
+    } else if (type == ADDR_INDT_PUBKEY_ADDRESS) {
+        address = EncodeDestination(CKeyID(uint160(hash.begin(), 20)));
+    } else if (type == ADDR_INDT_SCRIPT_ADDRESS_256) {
+        address = EncodeDestination(CScriptID256(hash));
+    } else if (type == ADDR_INDT_PUBKEY_ADDRESS_256) {
+        address = EncodeDestination(CKeyID256(hash));
+    } else if (type == ADDR_INDT_WITNESS_V0_KEYHASH) {
+        address = EncodeDestination(WitnessV0KeyHash(uint160(hash.begin(), 20)));
+    } else if (type == ADDR_INDT_WITNESS_V0_SCRIPTHASH) {
+        address = EncodeDestination(WitnessV0ScriptHash(hash));
+    } else {
+        return false;
+    }
+    return true;
+}

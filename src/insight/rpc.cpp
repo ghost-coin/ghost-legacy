@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Particl Core developers
+// Copyright (c) 2018-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -14,52 +14,76 @@
 #include <txmempool.h>
 #include <key_io.h>
 #include <core_io.h>
+#include <script/standard.h>
 
 #include <univalue.h>
 
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
-bool getAddressFromIndex(const int &type, const uint256 &hash, std::string &address)
-{
-    if (type == ADDR_INDT_SCRIPT_ADDRESS) {
-        address = CBitcoinAddress(CScriptID(uint160(hash.begin(), 20))).ToString();
-    } else if (type == ADDR_INDT_PUBKEY_ADDRESS) {
-        address = CBitcoinAddress(CKeyID(uint160(hash.begin(), 20))).ToString();
-    } else if (type == ADDR_INDT_SCRIPT_ADDRESS_256) {
-        address = CBitcoinAddress(CScriptID256(hash)).ToString();
-    } else if (type == ADDR_INDT_PUBKEY_ADDRESS_256) {
-        address = CBitcoinAddress(CKeyID256(hash)).ToString();
-    } else {
-        return false;
+static bool GetIndexKey(const CTxDestination &dest, uint256 &hashBytes, int &type) {
+    if (dest.type() == typeid(CKeyID)) {
+        const CKeyID &id = boost::get<CKeyID>(dest);
+        memcpy(hashBytes.begin(), id.begin(), 20);
+        type = ADDR_INDT_PUBKEY_ADDRESS;
+        return true;
     }
-    return true;
+    if (dest.type() == typeid(CScriptID)) {
+        const CScriptID& id = boost::get<CScriptID>(dest);
+        memcpy(hashBytes.begin(), id.begin(), 20);
+        type = ADDR_INDT_SCRIPT_ADDRESS;
+        return true;
+    }
+    if (dest.type() == typeid(CKeyID256)) {
+        const CKeyID256& id = boost::get<CKeyID256>(dest);
+        memcpy(hashBytes.begin(), id.begin(), 32);
+        type = ADDR_INDT_PUBKEY_ADDRESS_256;
+        return true;
+    }
+    if (dest.type() == typeid(CScriptID256)) {
+        const CScriptID256& id = boost::get<CScriptID256>(dest);
+        memcpy(hashBytes.begin(), id.begin(), 32);
+        type = ADDR_INDT_SCRIPT_ADDRESS_256;
+        return true;
+    }
+    if (dest.type() == typeid(WitnessV0KeyHash)) {
+        const WitnessV0KeyHash& id = boost::get<WitnessV0KeyHash>(dest);
+        memcpy(hashBytes.begin(), id.begin(), 20);
+        type = ADDR_INDT_WITNESS_V0_KEYHASH;
+        return true;
+    }
+    if (dest.type() == typeid(WitnessV0ScriptHash)) {
+        const WitnessV0ScriptHash& id = boost::get<WitnessV0ScriptHash>(dest);
+        memcpy(hashBytes.begin(), id.begin(), 32);
+        type = ADDR_INDT_WITNESS_V0_SCRIPTHASH;
+        return true;
+    }
+    type = ADDR_INDT_UNKNOWN;
+    return false;
 }
 
 bool getAddressesFromParams(const UniValue& params, std::vector<std::pair<uint256, int> > &addresses)
 {
     if (params[0].isStr()) {
-        CBitcoinAddress address(params[0].get_str());
+        auto dest = DecodeDestination(params[0].get_str());
         uint256 hashBytes;
         int type = 0;
-        if (!address.GetIndexKey(hashBytes, type)) {
+        if (!GetIndexKey(dest, hashBytes, type)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
         }
         addresses.push_back(std::make_pair(hashBytes, type));
     } else
     if (params[0].isObject()) {
-
         UniValue addressValues = find_value(params[0].get_obj(), "addresses");
         if (!addressValues.isArray()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Addresses is expected to be an array");
         }
 
         std::vector<UniValue> values = addressValues.getValues();
-
         for (std::vector<UniValue>::iterator it = values.begin(); it != values.end(); ++it) {
-            CBitcoinAddress address(it->get_str());
+            auto dest = DecodeDestination(it->get_str());
             uint256 hashBytes;
             int type = 0;
-            if (!address.GetIndexKey(hashBytes, type)) {
+            if (!GetIndexKey(dest, hashBytes, type)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
             }
             addresses.push_back(std::make_pair(hashBytes, type));
@@ -641,17 +665,11 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
                 CSpentIndexKey spentKey(input.prevout.hash, input.prevout.n);
 
                 if (GetSpentIndex(spentKey, spentInfo)) {
-                    if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS) {
-                        delta.pushKV("address", EncodeDestination(CKeyID(uint160(spentInfo.addressHash.begin(), 20))));
-                    } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS)  {
-                        delta.pushKV("address", EncodeDestination(CScriptID(uint160(spentInfo.addressHash.begin(), 20))));
-                    } else if (spentInfo.addressType == ADDR_INDT_PUBKEY_ADDRESS_256) {
-                        delta.pushKV("address", EncodeDestination(CKeyID256(spentInfo.addressHash)));
-                    } else if (spentInfo.addressType == ADDR_INDT_SCRIPT_ADDRESS_256)  {
-                        delta.pushKV("address", EncodeDestination(CScriptID256(spentInfo.addressHash)));
-                    } else {
+                    std::string address;
+                    if (!getAddressFromIndex(spentInfo.addressType, spentInfo.addressHash, address)) {
                         continue;
                     }
+                    delta.pushKV("address", address);
                     delta.pushKV("satoshis", -1 * spentInfo.satoshis);
                     delta.pushKV("index", (int)j);
                     delta.pushKV("prevtxid", input.prevout.hash.GetHex());

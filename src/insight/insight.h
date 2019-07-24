@@ -14,6 +14,7 @@
 #include <insight/addressindex.h>
 #include <insight/spentindex.h>
 #include <insight/timestampindex.h>
+#include <string>
 
 extern CCriticalSection cs_main;
 
@@ -36,5 +37,6 @@ bool GetAddressIndex(uint256 addressHash, int type,
 bool GetAddressUnspent(uint256 addressHash, int type,
                        std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > &unspentOutputs);
 
+bool getAddressFromIndex(const int &type, const uint256 &hash, std::string &address);
 
 #endif // BITCOIN_INSIGHT_INSIGHT_H
