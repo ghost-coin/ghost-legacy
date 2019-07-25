@@ -622,7 +622,7 @@ bool CCoinsViewDB::Upgrade() {
 
     int64_t count = 0;
     LogPrintf("Upgrading utxo-set database...\n");
-    LogPrintf("[0%%]..."); / Continued /
+    LogPrintf("[0%%]...\n"); / Continued /
     uiInterface.ShowProgress(_("Upgrading UTXO database").translated, 0, true);
     size_t batch_size = 1 << 24;
     CDBBatch batch(db);
