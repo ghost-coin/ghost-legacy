@@ -579,9 +579,6 @@ public:
             /* nTxCount */ 542694,
             /* dTxRate  */ 0.007
         };
-
-        /* disable fallback fee on mainnet */
-        m_fallback_fee_enabled = false;
     }
 
     void SetOld()
@@ -749,9 +746,6 @@ public:
             /* nTxCount */ 482495,
             /* dTxRate  */ 0.008
         };
-
-        /* enable fallback fee on testnet */
-        m_fallback_fee_enabled = true;
     }
 };
 
@@ -884,9 +878,6 @@ public:
             0,
             0
         };
-
-        /* enable fallback fee on regtest */
-        m_fallback_fee_enabled = true;
     }
 
     void SetOld()

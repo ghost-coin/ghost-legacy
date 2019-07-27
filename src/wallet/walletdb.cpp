@@ -167,7 +167,6 @@ public:
     unsigned int m_unknown_records{0};
     bool fIsEncrypted{false};
     bool fAnyUnordered{false};
-    int nFileVersion{0};
     std::vector<uint256> vWalletUpgrade;
 
     CWalletScanState() {
@@ -378,12 +377,6 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
 
             pwallet->LoadKeyPool(nIndex, keypool);
         }
-        else if (strType == "version")
-        {
-            ssValue >> wss.nFileVersion;
-            if (wss.nFileVersion == 10300)
-                wss.nFileVersion = 300;
-        }
         else if (strType == "cscript")
         {
             uint160 hash;
@@ -426,7 +419,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             ssKey >> output;
             pwallet->LockCoin(output);
         } else if (strType != "bestblock" && strType != "bestblock_nomerkle" &&
-                strType != "minversion" && strType != "acentry") {
+                strType != "minversion" && strType != "acentry" && strType != "version") {
             wss.m_unknown_records++;
         }
     } catch (const std::exception& e) {
@@ -529,7 +522,12 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
     if (result != DBErrors::LOAD_OK)
         return result;
 
-    pwallet->WalletLogPrintf("nFileVersion = %d\n", wss.nFileVersion);
+    // Last client version to open this wallet, was previously the file version number
+    int last_client = CLIENT_VERSION;
+    m_batch.Read(std::string("version"), last_client);
+
+    int wallet_version = pwallet->GetVersion();
+    pwallet->WalletLogPrintf("Wallet File Version = %d\n", wallet_version > 0 ? wallet_version : last_client);
 
     pwallet->WalletLogPrintf("Keys: %u plaintext, %u encrypted, %u w/ metadata, %u total. Unknown wallet records: %u\n",
            wss.nKeys, wss.nCKeys, wss.nKeyMeta, wss.nKeys + wss.nCKeys, wss.m_unknown_records);
@@ -542,11 +540,11 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
         WriteTx(pwallet->mapWallet.at(hash));
 
     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
-    if (wss.fIsEncrypted && (wss.nFileVersion == 40000 || wss.nFileVersion == 50000))
+    if (wss.fIsEncrypted && (last_client == 40000 || last_client == 50000))
         return DBErrors::NEED_REWRITE;
 
-    if (wss.nFileVersion < CLIENT_VERSION) // Update
-        WriteVersion(CLIENT_VERSION);
+    if (last_client < CLIENT_VERSION) // Update
+        m_batch.Write(std::string("version"), CLIENT_VERSION);
 
     if (wss.fAnyUnordered)
         result = pwallet->ReorderTransactions();
@@ -838,16 +836,6 @@ bool WalletBatch::TxnCommit()
 bool WalletBatch::TxnAbort()
 {
     return m_batch.TxnAbort();
-}
-
-bool WalletBatch::ReadVersion(int& nVersion)
-{
-    return m_batch.ReadVersion(nVersion);
-}
-
-bool WalletBatch::WriteVersion(int nVersion)
-{
-    return m_batch.WriteVersion(nVersion);
 }
 
 bool WalletBatch::WriteLockedUnspentOutput(const COutPoint &o)

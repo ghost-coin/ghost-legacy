@@ -250,10 +250,6 @@ public:
     bool TxnCommit();
     //! Abort current transaction
     bool TxnAbort();
-    //! Read wallet version
-    bool ReadVersion(int& nVersion);
-    //! Write wallet version
-    bool WriteVersion(int nVersion);
 
     bool WriteLockedUnspentOutput(const COutPoint &o);
     bool EraseLockedUnspentOutput(const COutPoint &o);
