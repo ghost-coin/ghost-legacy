@@ -93,6 +93,7 @@ src/qt/particl-qt.includes
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
+!depends/Makefile
 particl-qt
 Particl-Qt.app
 background.tiff*
