@@ -6491,12 +6491,12 @@ int CHDWallet::ExtKeyEncryptAll(CHDWalletDB *pwdb, const CKeyingMaterial &vMKey)
     size_t nKeys = 0;
 
     uint32_t fFlags = DB_SET_RANGE;
-    ssKey << std::string("ek32");
+    ssKey << std::string(DBKeys::PART_EXTKEY);
     while (pwdb->ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "ek32") {
+        if (strType != DBKeys::PART_EXTKEY) {
             break;
         }
 
@@ -6801,12 +6801,12 @@ int CHDWallet::ExtKeyLoadAccounts()
     std::string strType;
 
     unsigned int fFlags = DB_SET_RANGE;
-    ssKey << std::string("eacc");
+    ssKey << std::string(DBKeys::PART_EXTACC);
     while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "eacc") {
+        if (strType != DBKeys::PART_EXTACC) {
             break;
         }
 
@@ -7003,14 +7003,14 @@ int CHDWallet::ExtKeyLoadAccountPacks()
 
     size_t nStealthKeys = 0;
     ssKey.clear();
-    ssKey << std::string("espk");
+    ssKey << std::string(DBKeys::PART_SXADDRKEYPACK);
     fFlags = DB_SET_RANGE;
     while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         aksPak.clear();
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "espk") {
+        if (strType != DBKeys::PART_SXADDRKEYPACK) {
             break;
         }
 
@@ -8589,12 +8589,12 @@ int CHDWallet::LoadStealthAddresses()
     std::string strType;
 
     unsigned int fFlags = DB_SET_RANGE;
-    ssKey << std::string("sxad");
+    ssKey << std::string(DBKeys::PART_SXADDR);
     while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "sxad") {
+        if (strType != DBKeys::PART_SXADDR) {
             break;
         }
 
@@ -12800,13 +12800,13 @@ int LoopExtKeysInDB(CHDWallet *pwallet, bool fInactive, bool fInAccount, LoopExt
     std::string strType;
 
     uint32_t fFlags = DB_SET_RANGE;
-    ssKey << std::string("ek32");
+    ssKey << std::string(DBKeys::PART_EXTKEY);
 
     while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "ek32") {
+        if (strType != DBKeys::PART_EXTKEY) {
             break;
         }
 
@@ -12842,13 +12842,13 @@ int LoopExtAccountsInDB(CHDWallet *pwallet, bool fInactive, LoopExtKeyCallback &
     std::string strType, sError;
 
     uint32_t fFlags = DB_SET_RANGE;
-    ssKey << std::string("eacc");
+    ssKey << std::string(DBKeys::PART_EXTACC);
 
     while (wdb.ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
         fFlags = DB_NEXT;
 
         ssKey >> strType;
-        if (strType != "eacc") {
+        if (strType != DBKeys::PART_EXTACC) {
             break;
         }
 
