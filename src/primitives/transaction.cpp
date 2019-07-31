@@ -249,20 +249,22 @@ CAmount CTransaction::GetValueOut() const
     CAmount nValueOut = 0;
     for (const auto& tx_out : vout) {
         nValueOut += tx_out.nValue;
-        if (!MoneyRange(tx_out.nValue) || !MoneyRange(nValueOut))
+        if (!MoneyRange(tx_out.nValue) || !MoneyRange(nValueOut)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
+        }
     }
 
-    for (auto &txout : vpout)
-    {
-        if (!txout->IsStandardOutput())
+    for (auto &txout : vpout) {
+        if (!txout->IsStandardOutput()) {
             continue;
+        }
 
         CAmount nValue = txout->GetValue();
         nValueOut += txout->GetValue();
-        if (!MoneyRange(nValue) || !MoneyRange(nValueOut))
+        if (!MoneyRange(nValue) || !MoneyRange(nValueOut)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
-    };
+        }
+    }
 
     return nValueOut;
 }
@@ -272,29 +274,49 @@ CAmount CTransaction::GetPlainValueOut(size_t &nStandard, size_t &nCT, size_t &n
     // accumulators not cleared here intentionally
     CAmount nValueOut = 0;
 
-    for (const auto &txout : vpout)
-    {
-        if (txout->IsType(OUTPUT_CT))
-        {
+    for (const auto &txout : vpout) {
+        if (txout->IsType(OUTPUT_CT)) {
             nCT++;
         } else
-        if (txout->IsType(OUTPUT_RINGCT))
-        {
+        if (txout->IsType(OUTPUT_RINGCT)) {
             nRingCT++;
-        };
+        }
 
-        if (!txout->IsStandardOutput())
+        if (!txout->IsStandardOutput()) {
             continue;
+        }
 
         nStandard++;
         CAmount nValue = txout->GetValue();
         nValueOut += nValue;
-        if (!MoneyRange(nValue) || !MoneyRange(nValueOut))
+        if (!MoneyRange(nValue) || !MoneyRange(nValueOut)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
-    };
+        }
+    }
 
     return nValueOut;
-};
+}
+
+CAmount CTransaction::GetTotalSMSGFees() const
+{
+    CAmount smsg_fees = 0;
+    for (const auto &v : vpout) {
+        if (!v->IsType(OUTPUT_DATA)) {
+            continue;
+        }
+        CTxOutData *txd = (CTxOutData*) v.get();
+        if (txd->vData.size() < 25 || txd->vData[0] != DO_FUND_MSG) {
+            continue;
+        }
+        size_t n = (txd->vData.size()-1) / 24;
+        for (size_t k = 0; k < n; ++k) {
+            uint32_t nAmount;
+            memcpy(&nAmount, &txd->vData[1+k*24+20], 4);
+            smsg_fees += nAmount;
+        }
+    }
+    return smsg_fees;
+}
 
 unsigned int CTransaction::GetTotalSize() const
 {

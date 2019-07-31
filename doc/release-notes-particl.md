@@ -1,6 +1,11 @@
 Next Release
 ==============
 
+0.18.1.1
+==============
+
+- Don't include paid smsg fees for fee estimates.
+
 
 0.18.1.0
 ==============

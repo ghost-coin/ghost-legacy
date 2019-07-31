@@ -534,22 +534,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             }
 
             // Enforce smsg fees
-            CAmount nTotalMsgFees = 0;
-            for (const auto &v : tx.vpout) {
-                if (!v->IsType(OUTPUT_DATA)) {
-                    continue;
-                }
-                CTxOutData *txd = (CTxOutData*) v.get();
-                if (txd->vData.size() < 25 || txd->vData[0] != DO_FUND_MSG) {
-                    continue;
-                }
-                size_t n = (txd->vData.size()-1) / 24;
-                for (size_t k = 0; k < n; ++k) {
-                    uint32_t nAmount;
-                    memcpy(&nAmount, &txd->vData[1+k*24+20], 4);
-                    nTotalMsgFees += nAmount;
-                }
-            }
+            CAmount nTotalMsgFees = tx.GetTotalSMSGFees();
             if (nTotalMsgFees > 0) {
                 size_t nTxBytes = GetVirtualTransactionSize(tx);
                 const Consensus::Params& consensusParams = ::Params().GetConsensus();
