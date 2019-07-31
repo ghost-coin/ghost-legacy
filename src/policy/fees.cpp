@@ -592,7 +592,15 @@ void CBlockPolicyEstimator::processTransaction(const CTxMemPoolEntry& entry, boo
     trackedTxs++;
 
     // Feerates are stored and reported as BTC-per-kb:
-    CFeeRate feeRate(entry.GetFee(), entry.GetTxSize());
+
+    CAmount smsg_fees = entry.GetTx().GetTotalSMSGFees();
+    if (smsg_fees > entry.GetFee()) {
+        LogPrint(BCLog::ESTIMATEFEE, "Blockpolicy error mempool tx %s pays more smsg fees than total\n",
+                 hash.ToString().c_str());
+        untrackedTxs++;
+        return;
+    }
+    CFeeRate feeRate(entry.GetFee() - smsg_fees, entry.GetTxSize());
 
     mapMemPoolTxs[hash].blockHeight = txHeight;
     unsigned int bucketIndex = feeStats->NewTx(txHeight, (double)feeRate.GetFeePerK());

@@ -922,6 +922,8 @@ public:
         return vpout[0]->GetSmsgDifficulty(compact);
     }
 
+    CAmount GetTotalSMSGFees() const;
+
     friend bool operator==(const CTransaction& a, const CTransaction& b)
     {
         return a.hash == b.hash;
