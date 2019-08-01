@@ -102,4 +102,7 @@ void IncPersistentMisbehaviour(NodeId node_id, int howmuch) EXCLUSIVE_LOCKS_REQU
 int GetNumDOSStates() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 void ClearDOSStates() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+/** Relay transaction to every node */
+void RelayTransaction(const uint256&, const CConnman& connman);
+
 #endif // BITCOIN_NET_PROCESSING_H

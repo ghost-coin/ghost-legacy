@@ -124,7 +124,6 @@ bool WalletBatch::WriteCryptedKey(const CPubKey& vchPubKey,
         return false;
     }
     EraseIC(std::make_pair(DBKeys::KEY, vchPubKey));
-    EraseIC(std::make_pair(DBKeys::OLD_KEY, vchPubKey));
     return true;
 }
 
@@ -265,7 +264,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             ssValue >> fYes;
             if (fYes == '1')
                 pwallet->LoadWatchOnly(script);
-        } else if (strType == DBKeys::KEY || strType == DBKeys::OLD_KEY) {
+        } else if (strType == DBKeys::KEY) {
             CPubKey vchPubKey;
             ssKey >> vchPubKey;
             if (!vchPubKey.IsValid())
@@ -277,14 +276,8 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             CPrivKey pkey;
             uint256 hash;
 
-            if (strType == DBKeys::KEY) {
-                wss.nKeys++;
-                ssValue >> pkey;
-            } else {
-                OldKey wkey;
-                ssValue >> wkey;
-                pkey = wkey.vchPrivKey;
-            }
+            wss.nKeys++;
+            ssValue >> pkey;
 
             // Old wallets store keys as DBKeys::KEY [pubkey] => [privkey]
             // ... which was slow for wallets with lots of keys, because the public key is re-derived from the private key
@@ -416,6 +409,9 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 strErr = "Error reading wallet database: Unknown non-tolerable wallet flags found";
                 return false;
             }
+        } else if (strType == DBKeys::OLD_KEY) {
+            strErr = "Found unsupported 'wkey' record, try loading with version 0.18";
+            return false;
         } else if (strType == DBKeys::PART_LOCKEDUTXO) {
             COutPoint output;
             ssKey >> output;
@@ -441,7 +437,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
 
 bool WalletBatch::IsKeyType(const std::string& strType)
 {
-    return (strType == DBKeys::KEY || strType == DBKeys::OLD_KEY ||
+    return (strType == DBKeys::KEY ||
             strType == DBKeys::MASTER_KEY || strType == DBKeys::CRYPTED_KEY)
             || (fParticlMode &&
                 (strType == DBKeys::PART_EXTACC || strType == DBKeys::PART_EXTKEY

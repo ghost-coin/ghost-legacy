@@ -3894,21 +3894,23 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
     std::vector<COutput> vecOutputs;
 
     bool include_unsafe = false;
-    bool fIncludeImmature = true;
     CAmount nMinimumAmount = 0;
     CAmount nMaximumAmount = MAX_MONEY;
     CAmount nMinimumSumAmount = MAX_MONEY;
     uint64_t nMaximumCount = 0;
-    int nMinDepth = 0;
-    int nMaxDepth = 0x7FFFFFFF;
     int nHeight, nRequiredDepth;
 
     {
+        CCoinControl cctl;
+        cctl.m_avoid_address_reuse = false;
+        cctl.m_min_depth = 0;
+        cctl.m_max_depth = 0x7FFFFFFF;
+        cctl.m_include_immature = true;
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         nHeight = ::ChainActive().Tip()->nHeight;
         nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(nHeight / 2));
-        pwallet->AvailableCoins(*locked_chain, vecOutputs, !include_unsafe, nullptr, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount, nMinDepth, nMaxDepth, fIncludeImmature);
+        pwallet->AvailableCoins(*locked_chain, vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
     }
 
     LOCK(pwallet->cs_wallet);
@@ -4126,10 +4128,14 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
     assert(pwallet != nullptr);
 
     {
+        CCoinControl cctl;
+        cctl.m_min_depth = nMinDepth;
+        cctl.m_max_depth = nMaxDepth;
+        cctl.m_include_immature = fIncludeImmature;
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         // TODO: filter on stealth address
-        pwallet->AvailableAnonCoins(*locked_chain, vecOutputs, !include_unsafe, nullptr, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount, nMinDepth, nMaxDepth, fIncludeImmature);
+        pwallet->AvailableAnonCoins(*locked_chain, vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
     }
 
     LOCK(pwallet->cs_wallet);
@@ -4337,9 +4343,12 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
     assert(pwallet != nullptr);
 
     {
+        CCoinControl cctl;
+        cctl.m_min_depth = nMinDepth;
+        cctl.m_max_depth = nMaxDepth;
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
-        pwallet->AvailableBlindedCoins(*locked_chain, vecOutputs, !include_unsafe, nullptr, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount, nMinDepth, nMaxDepth);
+        pwallet->AvailableBlindedCoins(*locked_chain, vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
     }
 
     LOCK(pwallet->cs_wallet);

@@ -23,7 +23,6 @@ public:
     int64_t nTxTime;
 };
 
-
 class CInputData
 {
 public:
@@ -31,6 +30,9 @@ public:
     uint256 blind;
     CScriptWitness scriptWitness;
 };
+
+const int DEFAULT_MIN_DEPTH = 0;
+const int DEFAULT_MAX_DEPTH = 9999999;
 
 /** Coin Control Features. */
 class CCoinControl
@@ -61,7 +63,9 @@ public:
     //! Fee estimation mode to control arguments to estimateSmartFee
     FeeEstimateMode m_fee_mode;
     //! Minimum chain depth value for coin availability
-    int m_min_depth{0};
+    int m_min_depth = DEFAULT_MIN_DEPTH;
+    //! Maximum chain depth value for coin availability
+    int m_max_depth = DEFAULT_MAX_DEPTH;
 
     int nCoinType;
     mutable bool fHaveAnonOutputs = false;
@@ -71,7 +75,7 @@ public:
     bool fAllowLocked = false;
     mutable int nChangePos = -1;
     bool m_addChangeOutput = true;
-    //MapRecords_t mapRecords; // hack for COutputR
+    bool m_include_immature = false;
 
 
     CCoinControl()
