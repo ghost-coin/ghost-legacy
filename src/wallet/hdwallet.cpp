@@ -157,16 +157,16 @@ int CHDWallet::FreeExtKeyMaps()
 
 void CHDWallet::AddOptions()
 {
-    gArgs.AddArg("-defaultlookaheadsize=<n>", strprintf("Number of keys to load into the lookahead pool per chain. (default: %u)", N_DEFAULT_LOOKAHEAD), false, OptionsCategory::PART_WALLET);
-    gArgs.AddArg("-extkeysaveancestors", strprintf("On saving a key from the lookahead pool, save all unsaved keys leading up to it too. (default: %s)", "true"), false, OptionsCategory::PART_WALLET);
-    gArgs.AddArg("-createdefaultmasterkey", strprintf("Generate a random master key and main account if no master key exists. (default: %s)", "false"), false, OptionsCategory::PART_WALLET);
+    gArgs.AddArg("-defaultlookaheadsize=<n>", strprintf("Number of keys to load into the lookahead pool per chain. (default: %u)", N_DEFAULT_LOOKAHEAD), ArgsManager::ALLOW_ANY, OptionsCategory::PART_WALLET);
+    gArgs.AddArg("-extkeysaveancestors", strprintf("On saving a key from the lookahead pool, save all unsaved keys leading up to it too. (default: %s)", "true"), ArgsManager::ALLOW_ANY, OptionsCategory::PART_WALLET);
+    gArgs.AddArg("-createdefaultmasterkey", strprintf("Generate a random master key and main account if no master key exists. (default: %s)", "false"), ArgsManager::ALLOW_ANY, OptionsCategory::PART_WALLET);
 
-    gArgs.AddArg("-staking", "Stake your coins to support network and gain reward (default: true)", false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-stakingthreads", "Number of threads to start for staking, max 1 per active wallet, will divide wallets evenly between threads (default: 1)", false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-minstakeinterval=<n>", "Minimum time in seconds between successful stakes (default: 0)", false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-minersleep=<n>", "Milliseconds between stake attempts. Lowering this param will not result in more stakes. (default: 500)", false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-reservebalance=<amount>", "Ensure available balance remains above reservebalance. (default: 0)", false, OptionsCategory::PART_STAKING);
-    gArgs.AddArg("-foundationdonationpercent=<n>", "Percentage of block reward donated to the foundation fund, overridden by system minimum. (default: 0)", false, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-staking", "Stake your coins to support network and gain reward (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-stakingthreads", "Number of threads to start for staking, max 1 per active wallet, will divide wallets evenly between threads (default: 1)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-minstakeinterval=<n>", "Minimum time in seconds between successful stakes (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-minersleep=<n>", "Milliseconds between stake attempts. Lowering this param will not result in more stakes. (default: 500)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-reservebalance=<amount>", "Ensure available balance remains above reservebalance. (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-foundationdonationpercent=<n>", "Percentage of block reward donated to the foundation fund, overridden by system minimum. (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
 
     return;
 };

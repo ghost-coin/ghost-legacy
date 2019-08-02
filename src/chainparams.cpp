@@ -47,7 +47,7 @@ int64_t CChainParams::GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64
 
 int64_t CChainParams::GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const
 {
-     return (smsg_fee_prev * consensus.smsg_fee_max_delta_percent) / 1000000;
+    return (smsg_fee_prev * consensus.smsg_fee_max_delta_percent) / 1000000;
 };
 
 bool CChainParams::CheckImportCoinbase(int nHeight, uint256 &hash) const
