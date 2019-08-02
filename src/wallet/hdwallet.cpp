@@ -411,6 +411,15 @@ bool CHDWallet::ProcessWalletSettings(std::string &sError)
         }
     }
 
+    if (GetSetting("other", json)) {
+        if (!json["onlyinstance"].isNull()) {
+            try { m_is_only_instance = json["onlyinstance"].get_bool();
+            } catch (std::exception &e) {
+                AppendError(sError, "\"onlyinstance\" not boolean.");
+            }
+        }
+    }
+
     if (m_min_collapse_depth < 2) {
         AppendError(sError, "\"mindepth\" must be >= 2.");
         m_min_collapse_depth = 2;
@@ -2071,8 +2080,7 @@ CAmount CHDWallet::GetDebit(CHDWalletDB *pwdb, const CTransactionRecord &rtx, co
     LOCK(cs_wallet);
 
     COutPoint kiPrevout;
-    for (const auto &prevout : rtx.vin)
-    {
+    for (const auto &prevout : rtx.vin) {
         const auto *pPrevout = &prevout;
         if (rtx.nFlags & ORF_ANON_IN) {
             CCmpPubKey ki;
@@ -2088,8 +2096,7 @@ CAmount CHDWallet::GetDebit(CHDWalletDB *pwdb, const CTransactionRecord &rtx, co
 
         MapWallet_t::const_iterator mi = mapWallet.find(pPrevout->hash);
         MapRecords_t::const_iterator mri;
-        if (mi != mapWallet.end())
-        {
+        if (mi != mapWallet.end()) {
             const CWalletTx &prev = (*mi).second;
             if (pPrevout->n < prev.tx->vpout.size())
                 if (IsMine(prev.tx->vpout[pPrevout->n].get()) & filter)
@@ -2639,11 +2646,9 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal)
         if (wtx.IsTrusted(*locked_chain)) {
             bal.nPart += wtx.GetAvailableCredit(*locked_chain);
             bal.nPartWatchOnly += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_WATCH_ONLY);
-        } else {
-            if (wtx.GetDepthInMainChain(*locked_chain) == 0 && wtx.InMempool()) {
-                bal.nPartUnconf += wtx.GetAvailableCredit(*locked_chain);
-                bal.nPartWatchOnlyUnconf += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_WATCH_ONLY);
-            }
+        } else if (wtx.GetDepthInMainChain(*locked_chain) == 0 && wtx.InMempool()) {
+            bal.nPartUnconf += wtx.GetAvailableCredit(*locked_chain);
+            bal.nPartWatchOnlyUnconf += wtx.GetAvailableCredit(*locked_chain, true, ISMINE_WATCH_ONLY);
         }
     }
 
@@ -8980,6 +8985,7 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
     size_t nProcessed = 0; // incl any failed attempts
     size_t nExpanded = 0;
     std::set<uint256> setChanged;
+    int64_t earliest_anon_out_time = std::numeric_limits<int64_t>::max();
 
     {
     CHDWalletDB wdb(*database);
@@ -9061,11 +9067,14 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
                     fUpdated = true;
                     rtx.InsertOutput(*pout);
                 }
+                if (earliest_anon_out_time > rtx.GetTxTime()) {
+                    earliest_anon_out_time = rtx.GetTxTime();
+                }
                 break;
             default:
                 WalletLogPrintf("%s: Error: Output is unexpected type %d %s.\n", __func__, txout->nVersion, op.ToString());
                 continue;
-        };
+        }
 
         if (fUpdated) {
             // If txn has change, it must have been sent by this wallet
@@ -9082,17 +9091,29 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
         }
 
         nExpanded++;
-    };
+    }
 
     pcursor->close();
 
     wdb.TxnCommit();
     }
+
+    // Trigger a rescan from the deepest anon out, spend info may need to be updated
+    // Only possible if outputs were spent from a different wallet.
+    if (!m_is_only_instance
+        && earliest_anon_out_time != std::numeric_limits<int64_t>::max()) {
+        WalletRescanReserver reserver(this);
+        if (!reserver.reserve()) {
+            WalletLogPrintf("%s: Wallet is currently rescanning.\n", __func__);
+        } else {
+            RescanFromTime(earliest_anon_out_time, reserver, true);
+        }
+    }
+
     // Notify UI of updated transaction
     for (const auto &hash : setChanged) {
         NotifyTransactionChanged(this, hash, CT_REPLACE);
     }
-
 
     LogPrint(BCLog::HDWALLET, "%s %s: Expanded %u/%u output%s.\n", GetDisplayName(), __func__, nExpanded, nProcessed, nProcessed == 1 ? "" : "s");
 
@@ -9765,18 +9786,15 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint2
             }
 
             miw = mapWallet.find(txin.prevout.hash);
-            if (miw != mapWallet.end())
-            {
+            if (miw != mapWallet.end()) {
                 const CWalletTx &prev = miw->second;
                 if (txin.prevout.n < prev.tx->vpout.size()
-                    && IsMine(prev.tx->vpout[txin.prevout.n].get()) & ISMINE_ALL)
-                {
+                    && IsMine(prev.tx->vpout[txin.prevout.n].get()) & ISMINE_ALL) {
                     fIsFromMe = true;
                     break; // only need one match
-                };
-
+                }
                 continue; // a txn in mapWallet shouldn't be in mapRecords too
-            };
+            }
 
             mir = mapRecords.find(txin.prevout.hash);
             if (mir != mapRecords.end()) {
@@ -9798,7 +9816,6 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint2
                 WakeThreadStakeMiner(this); // wallet balance may have changed
                 return rv;
             }
-
             return false;
         }
 
@@ -9941,23 +9958,27 @@ int CHDWallet::OwnStandardOut(const CTxOutStandard *pout, const CTxOutData *pdat
     CExtKeyAccount *pa = nullptr;
     bool isInvalid;
     isminetype mine = IsMine(pout->scriptPubKey, idk, pak, pasc, pa, isInvalid);
-    if (!(mine & ISMINE_ALL))
+    if (!(mine & ISMINE_ALL)) {
         return 0;
+    }
 
-    if (pa && pak && pa->nActiveInternal == pak->nParent) // TODO: could check EKVT_KEY_TYPE
+    if (pa && pak && pa->nActiveInternal == pak->nParent) { // TODO: could check EKVT_KEY_TYPE
         rout.nFlags |= ORF_CHANGE | ORF_FROM;
+    }
 
     rout.nType = OUTPUT_STANDARD;
-    if (mine & ISMINE_SPENDABLE)
+    if (mine & ISMINE_SPENDABLE) {
         rout.nFlags |= ORF_OWNED;
-    else
-    if (mine & ISMINE_WATCH_COLDSTAKE)
+    } else
+    if (mine & ISMINE_WATCH_COLDSTAKE) {
         rout.nFlags |= ORF_STAKEONLY;
-    else
+    } else {
         rout.nFlags |= ORF_WATCHONLY;
+    }
 
-    if (mine & ISMINE_HARDWARE_DEVICE)
+    if (mine & ISMINE_HARDWARE_DEVICE) {
         rout.nFlags |= ORF_HARDWARE_DEVICE;
+    }
 
     rout.nValue = pout->nValue;
     rout.scriptPubKey = pout->scriptPubKey;
@@ -10023,6 +10044,8 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     };
     */
 
+    rout.nType = OUTPUT_CT;
+
     CKeyID idk;
     const CEKAKey *pak = nullptr;
     const CEKASCKey *pasc = nullptr;
@@ -10036,8 +10059,6 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     if (pa && pak && pa->nActiveInternal == pak->nParent) {
         rout.nFlags |= ORF_CHANGE | ORF_FROM;
     }
-
-    rout.nType = OUTPUT_CT;
 
     if (mine & ISMINE_SPENDABLE) {
         rout.nFlags |= ORF_OWNED;
@@ -10055,7 +10076,7 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
             && !pwdb->HaveLockedAnonOut(op)) {
             rout.nValue = 0;
             fUpdated = true;
-            if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: Adding locked output %s, %d.\n", __func__, txhash.ToString(), rout.n);
+            if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: Adding locked blind output %s, %d.\n", __func__, txhash.ToString(), rout.n);
             if (!pwdb->WriteLockedAnonOut(op)) {
                 WalletLogPrintf("Error: %s - WriteLockedAnonOut failed.\n", __func__);
             }
@@ -10067,11 +10088,9 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     if (!GetKey(idk, key)) {
         return werrorN(0, "%s: GetKey failed.", __func__);
     }
-
     if (pout->vData.size() < 33) {
         return werrorN(0, "%s: vData.size() < 33.", __func__);
     }
-
 
     CPubKey pkEphem;
     pkEphem.Set(pout->vData.begin(), pout->vData.begin() + 33);
@@ -10127,46 +10146,48 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
 {
     CKeyID idk = pout->pk.GetID();
     CKey key;
-    CKeyID idStealth;
     const CEKAKey *pak = nullptr;
     const CEKASCKey *pasc = nullptr;
     CExtKeyAccount *pa = nullptr;
 
     rout.nType = OUTPUT_RINGCT;
 
-    if (IsLocked()) {
-        if (!HaveKey(idk, pak, pasc, pa)) {
-            return 0;
-        }
-        if (pa && pak && pa->nActiveInternal == pak->nParent) {
-            rout.nFlags |= ORF_CHANGE | ORF_FROM;
-        }
+    isminetype mine = HaveKey(idk, pak, pasc, pa);
+    if (!(mine & ISMINE_ALL)) {
+        return 0;
+    }
 
+    if (pa && pak && pa->nActiveInternal == pak->nParent) {
+        rout.nFlags |= ORF_CHANGE | ORF_FROM;
+    }
+
+    if (mine & ISMINE_SPENDABLE) {
         rout.nFlags |= ORF_OWNED;
+    } else {
+        rout.nFlags |= ORF_WATCHONLY;
+    }
 
+    if (mine & ISMINE_HARDWARE_DEVICE) {
+        rout.nFlags |= ORF_HARDWARE_DEVICE;
+    }
+
+    if (IsLocked()) {
         COutPoint op(txhash, rout.n);
         if ((rout.nFlags & ORF_LOCKED)
             && !pwdb->HaveLockedAnonOut(op)) {
             rout.nValue = 0;
-            if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: Adding locked output %s, %d.\n", __func__, txhash.ToString(), rout.n);
+            fUpdated = true;
+            if (LogAcceptCategory(BCLog::HDWALLET)) WalletLogPrintf("%s: Adding locked anon output %s, %d.\n", __func__, txhash.ToString(), rout.n);
             if (!pwdb->WriteLockedAnonOut(op)) {
                 WalletLogPrintf("Error: %s - WriteLockedAnonOut failed.\n", __func__);
             }
         }
-
-        fUpdated = true;
         return 1;
-    };
-
-    CEKAKey ak;
-    if (!GetKey(idk, key, pa, ak, idStealth)) {
-        //return errorN(0, "%s: GetKey failed.", __func__);
-        return 0;
-    }
-    if (pa && pa->nActiveInternal == ak.nParent) {
-        rout.nFlags |= ORF_CHANGE | ORF_FROM;
     }
 
+    if (!GetKey(idk, key)) {
+        return werrorN(0, "%s: GetKey failed.", __func__);
+    }
     if (pout->vData.size() < 33) {
         return werrorN(0, "%s: vData.size() < 33.", __func__);
     }
@@ -10209,9 +10230,6 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
         rout.sNarration.assign((const char*)msg, nNarr);
     }
 
-    rout.nFlags |= ORF_OWNED;
-    rout.nValue = amountOut;
-
     if (rout.vPath.size() == 0) {
         CStealthAddress sx;
         if (GetStealthLinked(idk, sx)) {
@@ -10236,7 +10254,9 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
         WalletLogPrintf("Error: %s - WriteAnonKeyImage failed.\n", __func__);
     }
 
+    rout.nValue = amountOut;
     rout.nFlags &= ~ORF_LOCKED;
+
     stx.InsertBlind(rout.n, blindOut);
     fUpdated = true;
 
@@ -10346,6 +10366,14 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
         }
     }
 
+    // Anon input spend info depends on keys in wallet
+    for (const auto &txin : tx.vin) {
+        if (txin.IsAnonInput()) {
+            rtx.nFlags |= ORF_ANON_IN;
+            AddTxinToSpends(txin, txhash);
+        }
+    }
+
     bool fInsertedNew = ret.second;
     if (fInsertedNew) {
         rtx.nTimeReceived = GetAdjustedTime();
@@ -10354,14 +10382,14 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
         rtxOrdered.insert(std::make_pair(rtx.nTimeReceived, mri));
 
         for (const auto &txin : tx.vin) {
-            if (txin.IsAnonInput()) {
-                rtx.nFlags |= ORF_ANON_IN;
+            if (!txin.IsAnonInput()) {
+                AddTxinToSpends(txin, txhash);
             }
-            AddTxinToSpends(txin, txhash);
         }
 
         if (rtx.nFlags & ORF_ANON_IN) {
             COutPoint op;
+            rtx.vin.clear();
             for (const auto &txin : tx.vin) {
                 if (!txin.IsAnonInput()) {
                     continue;
@@ -11583,7 +11611,7 @@ bool CHDWallet::IsSpent(interfaces::Chain::Lock& locked_chain, const uint256& ha
             int depth = mit->second.GetDepthInMainChain(locked_chain);
             if (depth > 0  || (depth == 0 && !mit->second.isAbandoned()))
                 return true; // Spent
-        };
+        }
 
         MapRecords_t::const_iterator rit = mapRecords.find(wtxid);
         if (rit != mapRecords.end()) {
@@ -11596,7 +11624,7 @@ bool CHDWallet::IsSpent(interfaces::Chain::Lock& locked_chain, const uint256& ha
                 return true; // Spent
             }
         }
-    };
+    }
 
     return false;
 };

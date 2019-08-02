@@ -5513,6 +5513,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         result.pushKV("mapTxCollapsedSpends_size", (int)pwallet->mapTxCollapsedSpends.size());
         result.pushKV("m_collapsed_txns_size", (int)pwallet->m_collapsed_txns.size());
         result.pushKV("m_collapsed_txn_inputs_size", (int)pwallet->m_collapsed_txn_inputs.size());
+        result.pushKV("m_is_only_instance", pwallet->m_is_only_instance);
 
         std::map<uint256, CWalletTx>::const_iterator it;
         for (it = pwallet->mapWallet.begin(); it != pwallet->mapWallet.end(); ++it) {
@@ -5716,6 +5717,9 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "  \"mode\"                      (int, optional, default=0) Mode, 0 disabled, 1 coinstake only, 2 all txns.\n"
                 "  \"mindepth\"                  (int, optional, default=3) Number of spends before outputs are unloaded.\n"
                 "}\n"
+                "\"other\" {\n"
+                "  \"onlyinstance\"              (bool, optional, default=true) Set to false if other wallets spending from the same keys exist.\n"
+                "}\n"
                 "Omit the json object to print the settings group.\n"
                 "Pass an empty json object to clear the settings group.\n" +
                 HelpRequiringPassphrase(pwallet) + "\n",
@@ -5785,8 +5789,9 @@ static UniValue walletsettings(const JSONRPCRequest &request)
     if (sSetting != "changeaddress" &&
         sSetting != "stakingoptions" &&
         sSetting != "anonoptions" &&
-        sSetting != "unloadspent") {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, _("Unknown setting"));
+        sSetting != "unloadspent" &&
+        sSetting != "other") {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown setting");
     }
 
     if (request.params.size() == 1) {
@@ -5919,6 +5924,17 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             if (sKey == "mindepth") {
                 if (!json["mindepth"].isNum()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, _("mindepth must be a number."));
+                }
+            } else {
+                warnings.push_back("Unknown key " + sKey);
+            }
+        }
+    } else
+    if (sSetting == "other") {
+        for (const auto &sKey : vKeys) {
+            if (sKey == "onlyinstance") {
+                if (!json["onlyinstance"].isBool()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "onlyinstance must be boolean.");
                 }
             } else {
                 warnings.push_back("Unknown key " + sKey);
