@@ -517,6 +517,7 @@ public:
 
     int64_t m_smsg_fee_rate_target = 0;
     uint32_t m_smsg_difficulty_target = 0; // 0 = auto
+    bool m_is_only_instance = true; // Set to false if spends can happen in a different wallet
 
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);

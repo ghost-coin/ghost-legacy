@@ -729,6 +729,11 @@ class WalletParticlTest(ParticlTestFramework):
         self.log.info('Test disablewallet')
         assert_raises_rpc_error(-32601, 'Method not found', nodes[3].getwalletinfo)
 
+        self.log.info('Test walletsettings other')
+        assert(nodes[1].debugwallet()['m_is_only_instance'] == True)
+        nodes[1].walletsettings('other', {'onlyinstance': False})
+        assert(nodes[1].debugwallet()['m_is_only_instance'] == False)
+
 
 if __name__ == '__main__':
     WalletParticlTest().main()

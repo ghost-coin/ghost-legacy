@@ -5,6 +5,7 @@ Next Release
 ==============
 
 - Don't include paid smsg fees for fee estimates.
+- Fixed rescanblockchain needing to be run after clearwallettransactions to find anon-tx spends.
 
 
 0.18.1.0
