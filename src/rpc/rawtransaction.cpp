@@ -556,7 +556,11 @@ static UniValue createrawtransaction(const JSONRPCRequest& request)
         }, true
     );
 
-    CMutableTransaction rawTx = ConstructTransaction(request.params[0], request.params[1], request.params[2], request.params[3]);
+    bool rbf = false;
+    if (!request.params[3].isNull()) {
+        rbf = request.params[3].isTrue();
+    }
+    CMutableTransaction rawTx = ConstructTransaction(request.params[0], request.params[1], request.params[2], rbf);
 
     return EncodeHexTx(CTransaction(rawTx));
 }
@@ -965,14 +969,14 @@ static UniValue sendrawtransaction(const JSONRPCRequest& request)
         max_raw_tx_fee = fr.GetFee((weight+3)/4);
     }
 
-    uint256 txid;
     std::string err_string;
-    const TransactionError err = BroadcastTransaction(tx, txid, err_string, max_raw_tx_fee);
+    AssertLockNotHeld(cs_main);
+    const TransactionError err = BroadcastTransaction(tx, err_string, max_raw_tx_fee, /*relay*/ true, /*wait_callback*/ true);
     if (TransactionError::OK != err) {
         throw JSONRPCTransactionError(err, err_string);
     }
 
-    return txid.GetHex();
+    return tx->GetHash().GetHex();
 }
 
 static UniValue testmempoolaccept(const JSONRPCRequest& request)
@@ -1524,7 +1528,11 @@ UniValue createpsbt(const JSONRPCRequest& request)
         }, true
     );
 
-    CMutableTransaction rawTx = ConstructTransaction(request.params[0], request.params[1], request.params[2], request.params[3]);
+    bool rbf = false;
+    if (!request.params[3].isNull()) {
+        rbf = request.params[3].isTrue();
+    }
+    CMutableTransaction rawTx = ConstructTransaction(request.params[0], request.params[1], request.params[2], rbf);
 
     // Make a blank psbt
     PartiallySignedTransaction psbtx;

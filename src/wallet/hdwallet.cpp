@@ -8472,18 +8472,11 @@ bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::
 
         if (fBroadcastTransactions) {
             // Broadcast
-            if (!wtxNew.AcceptToMemoryPool(*locked_chain, state)) {
-                LogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", state.GetRejectReason());
-                // If we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
-                if (state.GetRejectCode() != REJECT_DUPLICATE) {
-                    const uint256 hash = wtxNew.GetHash();
-                    UnloadTransaction(hash);
-                    CHDWalletDB wdb(*database);
-                    wdb.EraseTx(hash);
-                    return false;
-                }
-            } else {
-                wtxNew.RelayWalletTransaction(*locked_chain);
+            wtxNew.BindWallet(this);
+            std::string err_string;
+            if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true)) {
+                WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", err_string);
+                // TODO: if we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
             }
         }
     }
@@ -8505,20 +8498,11 @@ bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx, CV
 
         if (fBroadcastTransactions) {
             // Broadcast
-            if (!wtxNew.AcceptToMemoryPool(*locked_chain, state)) {
-                LogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", state.GetRejectReason());
-                // If we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
-                if (state.GetRejectCode() != REJECT_DUPLICATE) {
-                    const uint256 hash = wtxNew.GetHash();
-                    UnloadTransaction(hash);
-                    CHDWalletDB wdb(*database);
-                    wdb.EraseTxRecord(hash);
-                    wdb.EraseStoredTx(hash);
-                    return false;
-                }
-            } else {
-                wtxNew.BindWallet(this);
-                wtxNew.RelayWalletTransaction(*locked_chain);
+            wtxNew.BindWallet(this);
+            std::string err_string;
+            if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true)) {
+                WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", err_string);
+                // TODO: if we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
             }
         }
     }
@@ -10539,7 +10523,8 @@ std::vector<uint256> CHDWallet::ResendRecordTransactionsBefore(interfaces::Chain
         }
 
         if (twi != mapTempWallet.end()) {
-            if (twi->second.RelayWalletTransaction(locked_chain)) {
+            std::string unused_err_string;
+            if (twi->second.SubmitMemoryPoolAndRelay(unused_err_string, true)) {
                 result.push_back(txhash);
             }
         }
@@ -10577,7 +10562,8 @@ void CHDWallet::ResendWalletTransactions()
             // only rebroadcast unconfirmed txes older than 5 minutes before the
             // last block was found
             if (wtx.nTimeReceived > m_best_block_time - 5 * 60) continue;
-            if (wtx.RelayWalletTransaction(*locked_chain)) ++relayed_tx_count;
+            std::string unused_err_string;
+            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true)) ++relayed_tx_count;
         }
 
         std::vector<uint256> relayed_records = ResendRecordTransactionsBefore(*locked_chain, m_best_block_time - 5 * 60);

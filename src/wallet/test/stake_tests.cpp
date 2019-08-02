@@ -106,7 +106,6 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     auto locked_chain = pwallet->chain().lock();
     LockAssertion lock(::cs_main);
 
-    CValidationState state;
     BOOST_REQUIRE(address.IsValid());
 
     std::vector<CTempRecipient> vecSend;
@@ -125,7 +124,8 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     BOOST_CHECK(0 == pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, true, nFee, &coinControl, sError));
 
     wtx.BindWallet(pwallet);
-    BOOST_REQUIRE(wtx.AcceptToMemoryPool(*locked_chain, state));
+    std::string err_string;
+    BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(err_string, true));
     } // cs_main
     SyncWithValidationInterfaceQueue();
 }
