@@ -22,6 +22,13 @@ class SecMsgPurged;
 extern CCriticalSection cs_smsgDB;
 extern leveldb::DB *smsgDB;
 
+extern const std::string DBK_PUBLICKEY;
+extern const std::string DBK_SECRETKEY;
+extern const std::string DBK_INBOX;
+extern const std::string DBK_OUTBOX;
+extern const std::string DBK_QUEUED;
+extern const std::string DBK_PURGED_TOKEN;
+
 class SecMsgDB
 {
 public:

@@ -24,29 +24,18 @@ Notes:
 
 #include <smsg/smessage.h>
 
-#include <stdint.h>
-#include <time.h>
-#include <map>
-#include <stdexcept>
-#include <errno.h>
-#include <limits>
-
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/thread/thread.hpp>
-
-
 #include <secp256k1.h>
 #include <secp256k1_ecdh.h>
-
 #include <crypto/hmac_sha256.h>
 #include <crypto/sha512.h>
-
 #include <script/ismine.h>
 #include <support/allocators/secure.h>
+#include <util/strencodings.h>
 #include <consensus/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
-
+#include <smsg/crypter.h>
+#include <smsg/db.h>
 #include <sync.h>
 #include <random.h>
 #include <chain.h>
@@ -58,13 +47,18 @@ Notes:
 #include <interfaces/chain.h>
 #endif
 
-#include <util/strencodings.h>
 
+#include <stdint.h>
+#include <time.h>
+#include <map>
+#include <stdexcept>
+#include <errno.h>
+#include <limits>
 
 #include <xxhash/xxhash.h>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/thread/thread.hpp>
 
-#include <smsg/crypter.h>
-#include <smsg/db.h>
 
 extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
 extern CChain &chainActive;
@@ -75,12 +69,13 @@ smsg::CSMSG smsgModule;
 namespace smsg {
 bool fSecMsgEnabled = false;
 
-uint32_t SMSG_BUCKET_LEN     = 60 * 60 * 1; // seconds
-
-uint32_t SMSG_SECONDS_IN_DAY = 86400;
-uint32_t SMSG_MAX_FREE_TTL   = SMSG_SECONDS_IN_DAY * SMSG_FREE_MSG_DAYS;
-uint32_t SMSG_MAX_PAID_TTL   = SMSG_SECONDS_IN_DAY * 31;
-uint32_t SMSG_RETENTION      = SMSG_MAX_PAID_TTL;
+uint32_t SMSG_SECONDS_IN_HOUR   = 60 * 60;
+uint32_t SMSG_BUCKET_LEN        = SMSG_SECONDS_IN_HOUR * 1;
+uint32_t SMSG_SECONDS_IN_DAY    = SMSG_SECONDS_IN_HOUR * 24;
+uint32_t SMSG_MIN_TTL           = SMSG_SECONDS_IN_HOUR;
+uint32_t SMSG_MAX_FREE_TTL      = SMSG_SECONDS_IN_DAY * 7;
+uint32_t SMSG_MAX_PAID_TTL      = SMSG_SECONDS_IN_DAY * 31;
+uint32_t SMSG_RETENTION         = SMSG_MAX_PAID_TTL;
 
 boost::thread_group threadGroupSmsg;
 
@@ -88,13 +83,10 @@ boost::signals2::signal<void (SecMsgStored &inboxHdr)> NotifySecMsgInboxChanged;
 boost::signals2::signal<void (SecMsgStored &outboxHdr)> NotifySecMsgOutboxChanged;
 boost::signals2::signal<void ()> NotifySecMsgWalletUnlocked;
 
+const std::string STORE_DIR = "smsgstore2";
+
 
 secp256k1_context *secp256k1_context_smsg = nullptr;
-
-uint32_t SMSGGetSecondsInDay()
-{
-    return SMSG_SECONDS_IN_DAY;
-}
 
 std::string SecMsgToken::ToString() const
 {
@@ -110,7 +102,7 @@ void SecMsgBucket::hashBucket()
     nActive = 0;
     nLeastTTL = 0;
     for (auto it = setTokens.begin(); it != setTokens.end(); ++it) {
-        if (it->timestamp + it->ttl * SMSGGetSecondsInDay() < now) {
+        if (it->timestamp + it->ttl < now) {
             continue;
         }
 
@@ -140,7 +132,7 @@ size_t SecMsgBucket::CountActive() const
 
     int64_t now = GetAdjustedTime();
     for (auto it = setTokens.begin(); it != setTokens.end(); ++it) {
-        if (it->timestamp + it->ttl * SMSGGetSecondsInDay() < now) {
+        if (it->timestamp + it->ttl < now) {
             continue;
         }
         nMessages++;
@@ -171,7 +163,7 @@ void ThreadSecureMsg()
                 bool fErase = it->first < cutoffTime;
 
                 if (!fErase
-                    && it->first + it->second.nLeastTTL * SMSGGetSecondsInDay() < now) {
+                    && it->first + it->second.nLeastTTL < now) {
                     it->second.hashBucket();
 
                     // TODO: periodically prune files
@@ -185,7 +177,7 @@ void ThreadSecureMsg()
 
                     std::string fileName = std::to_string(it->first);
 
-                    fs::path fullPath = GetDataDir() / "smsgstore" / (fileName + "_01.dat");
+                    fs::path fullPath = GetDataDir() / STORE_DIR / (fileName + "_01.dat");
                     if (fs::exists(fullPath)) {
                         try { fs::remove(fullPath);
                         } catch (const fs::filesystem_error &ex) {
@@ -196,7 +188,7 @@ void ThreadSecureMsg()
                     }
 
                     // Look for a wl file, it stores incoming messages when wallet is locked
-                    fullPath = GetDataDir() / "smsgstore" / (fileName + "_01_wl.dat");
+                    fullPath = GetDataDir() / STORE_DIR / (fileName + "_01_wl.dat");
                     if (fs::exists(fullPath)) {
                         try { fs::remove(fullPath);
                         } catch (const fs::filesystem_error &ex) {
@@ -219,7 +211,7 @@ void ThreadSecureMsg()
                 }
             }
 
-            if (smsgModule.nLastProcessedPurged + SMSGGetSecondsInDay() < now) {
+            if (smsgModule.nLastProcessedPurged + SMSG_SECONDS_IN_DAY < now) {
                 smsgModule.BuildPurgedSets();
             }
         } // cs_smsg
@@ -273,7 +265,6 @@ void ThreadSecureMsgPow()
     std::vector<uint8_t> vchKey;
     SecMsgStored smsgStored;
 
-    std::string sPrefix("qm");
     uint8_t chKey[30];
 
     while (fSecMsgEnabled) {
@@ -298,7 +289,7 @@ void ThreadSecureMsgPow()
             }
             {
                 LOCK(cs_smsgDB);
-                if (!dbOutbox.NextSmesg(it, sPrefix, chKey, smsgStored))
+                if (!dbOutbox.NextSmesg(it, DBK_QUEUED, chKey, smsgStored))
                     break;
             }
 
@@ -464,7 +455,7 @@ int CSMSG::BuildBucketSet()
     uint32_t nFiles         = 0;
     uint32_t nMessages      = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgstore";
+    fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir)
@@ -546,29 +537,22 @@ int CSMSG::BuildBucketSet()
                     break;
                 }
                 token.timestamp = smsg.timestamp;
-
-                uint32_t nDaysToLive = smsg.version[0] == 0 && smsg.version[1] == 0 ? 0  // Purged message header
-                    : smsg.version[0] < 3 ? SMSG_FREE_MSG_DAYS : smsg.nonce[0];
-
-                token.ttl = nDaysToLive;
-                if (nDaysToLive > 0 && (bucket.nLeastTTL == 0 || nDaysToLive < bucket.nLeastTTL)) {
-                    bucket.nLeastTTL = nDaysToLive;
+                token.ttl = smsg.version[0] == 0 && smsg.version[1] == 0 ? 0  // Purged message header
+                    : smsg.m_ttl;
+                if (smsg.m_ttl > 0 && (bucket.nLeastTTL == 0 || smsg.m_ttl < bucket.nLeastTTL)) {
+                    bucket.nLeastTTL = smsg.m_ttl;
                 }
-
                 if (smsg.nPayload < 8) {
                     continue;
                 }
-
                 if (fread(token.sample, sizeof(uint8_t), 8, fp) != 8) {
                     LogPrintf("fread failed: %s\n", strerror(errno));
                     break;
                 }
-
                 if (fseek(fp, smsg.nPayload-8, SEEK_CUR) != 0) {
                     LogPrintf("fseek failed: %s.\n", strerror(errno));
                     break;
                 }
-
                 tokenSet.insert(token);
             }
 
@@ -600,12 +584,11 @@ int CSMSG::BuildPurgedSets()
 
     int64_t now = GetTime();
     size_t nPurged = 0;
-    std::string sPrefix("pm");
     uint8_t chKey[30];
     SecMsgPurged purged;
     leveldb::Iterator *it = db.pdb->NewIterator(leveldb::ReadOptions());
-    while (db.NextPurged(it, sPrefix, chKey, purged)) {
-        if (purged.timepurged + 31 * SMSGGetSecondsInDay() < now) {
+    while (db.NextPurged(it, DBK_PURGED_TOKEN, chKey, purged)) {
+        if (purged.timepurged + 31 * SMSG_SECONDS_IN_DAY < now) {
             db.ErasePurged(chKey);
             continue;
         }
@@ -652,12 +635,12 @@ int CSMSG::AddWalletAddresses()
             continue;
         }
 
-        bool fExists = 0;
+        bool fExists = false;
         for (std::vector<SecMsgAddress>::iterator it = addresses.begin(); it != addresses.end(); ++it) {
             if (keyID != it->address) {
                 continue;
             }
-            fExists = 1;
+            fExists = true;
             break;
         }
 
@@ -665,8 +648,8 @@ int CSMSG::AddWalletAddresses()
             continue;
         }
 
-        bool recvEnabled    = 1;
-        bool recvAnon       = 1;
+        bool recvEnabled    = true;
+        bool recvAnon       = false;
 
         addresses.push_back(SecMsgAddress(keyID, recvEnabled, recvAnon));
         nAdded++;
@@ -687,11 +670,10 @@ int CSMSG::LoadKeyStore()
     }
 
     size_t nKeys = 0;
-    std::string sPrefix("sk");
     CKeyID idk;
     SecMsgKey key;
     leveldb::Iterator *it = db.pdb->NewIterator(leveldb::ReadOptions());
-    while (db.NextPrivKey(it, sPrefix, idk, key)) {
+    while (db.NextPrivKey(it, DBK_SECRETKEY, idk, key)) {
         if (!(key.nFlags & SMK_RECEIVE_ON)) {
             continue;
         }
@@ -845,11 +827,13 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain)
         return error("%s: Secure messaging is already started.", __func__);
     }
     if (Params().NetworkIDString() == "regtest") {
-        SMSG_BUCKET_LEN     = 60 * 5; // seconds
-        SMSG_SECONDS_IN_DAY = 600;
-        SMSG_MAX_FREE_TTL   = SMSG_SECONDS_IN_DAY * SMSG_FREE_MSG_DAYS;
-        SMSG_MAX_PAID_TTL   = SMSG_SECONDS_IN_DAY * 31;
-        SMSG_RETENTION      = SMSG_MAX_PAID_TTL;
+        SMSG_SECONDS_IN_HOUR    = 60 * 2; // seconds
+        SMSG_BUCKET_LEN         = 60 * 2; // seconds
+        SMSG_SECONDS_IN_DAY     = 600;
+        SMSG_MIN_TTL            = SMSG_SECONDS_IN_HOUR;
+        SMSG_MAX_PAID_TTL       = SMSG_SECONDS_IN_DAY * 31;
+        SMSG_MAX_FREE_TTL       = SMSG_MAX_PAID_TTL;
+        SMSG_RETENTION          = SMSG_MAX_PAID_TTL;
         LogPrintf("Adjusted SMSG_SECONDS_IN_DAY to %d for regtest.\n", SMSG_SECONDS_IN_DAY);
     }
 
@@ -1310,7 +1294,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 size_t nMessages = 0;
                 uint8_t *p = &vchDataOut[8];
                 for (it = tokenSet.begin(); it != tokenSet.end(); ++it) {
-                    if (it->timestamp + it->ttl * SMSGGetSecondsInDay() < now) {
+                    if (it->timestamp + it->ttl < now) {
                         continue;
                     }
                     memcpy(p, &it->timestamp, 8);
@@ -1586,7 +1570,6 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
 
     LOCK(pto->smsgData.cs_smsg_net);
 
-    //LogPrintf("SecureMsgSendData() %s.\n", pto->GetAddrName());
     int64_t now = GetTime();
 
     if (pto->smsgData.lastSeen <= 0) {
@@ -1920,7 +1903,7 @@ bool CSMSG::ScanBuckets()
     uint32_t nMessages      = 0;
     uint32_t nFoundMessages = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgstore";
+    fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir)
@@ -2097,7 +2080,7 @@ int CSMSG::WalletUnlocked()
     uint32_t nMessages      = 0;
     uint32_t nFoundMessages = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgstore";
+    fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir)
@@ -2347,10 +2330,9 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
         uint160 hash;
         HashMsg(*psmsg, pPayload, nPayload-(psmsg->IsPaidVersion() ? 32 : 0), hash);
 
-        std::string sPrefix("im");
         uint8_t chKey[30];
         int64_t timestamp_be = bswap_64(psmsg->timestamp);
-        memcpy(&chKey[0], sPrefix.data(), 2);
+        memcpy(&chKey[0], DBK_INBOX.data(), 2);
         memcpy(&chKey[2], &timestamp_be, 8);
         memcpy(&chKey[10], hash.begin(), 20);
 
@@ -2663,7 +2645,7 @@ int CSMSG::Retrieve(const SecMsgToken &token, std::vector<uint8_t> &vchData)
     LogPrint(BCLog::SMSG, "%s: %d.\n", __func__, token.timestamp);
     AssertLockHeld(cs_smsg);
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgstore";
+    fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
 
     int64_t bucket = token.timestamp - (token.timestamp % SMSG_BUCKET_LEN);
     std::string fileName = std::to_string(bucket) + "_01.dat";
@@ -2709,7 +2691,7 @@ int CSMSG::Remove(const SecMsgToken &token)
     LogPrint(BCLog::SMSG, "%s: %d.\n", __func__, token.timestamp);
     AssertLockHeld(cs_smsg);
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgstore";
+    fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
 
     int64_t bucket = token.timestamp - (token.timestamp % SMSG_BUCKET_LEN);
     std::string fileName = std::to_string(bucket) + "_01.dat";
@@ -2886,8 +2868,8 @@ int CSMSG::CheckPurged(const SecureMessage *psmsg, const uint8_t *pPayload)
     std::vector<uint8_t> vMsgId = GetMsgID(psmsg, pPayload);
 
     uint8_t chKey[30];
-    chKey[0] = 'p';
-    chKey[1] = 'm';
+    chKey[0] = DBK_PURGED_TOKEN[0];
+    chKey[1] = DBK_PURGED_TOKEN[1];
     memcpy(chKey+2, vMsgId.data(), 28);
 
     LOCK2(cs_smsg, cs_smsgDB);
@@ -2932,7 +2914,7 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
 
     fs::path pathSmsgDir;
     try {
-        pathSmsgDir = GetDataDir() / "smsgstore";
+        pathSmsgDir = GetDataDir() / STORE_DIR;
         fs::create_directory(pathSmsgDir);
     } catch (const fs::filesystem_error &ex) {
         return errorN(SMSG_GENERAL_ERROR, "%s - Failed to create directory %s - %s.", __func__, pathSmsgDir.string(), ex.what());
@@ -2986,7 +2968,7 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     long int ofs;
     fs::path pathSmsgDir;
     try {
-        pathSmsgDir = GetDataDir() / "smsgstore";
+        pathSmsgDir = GetDataDir() / STORE_DIR;
         fs::create_directory(pathSmsgDir);
     } catch (const fs::filesystem_error &ex) {
         return errorN(SMSG_GENERAL_ERROR, "Failed to create directory %s - %s.", pathSmsgDir.string(), ex.what());
@@ -3001,8 +2983,8 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
 
     int64_t bucketTime = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
-    uint32_t nDaysToLive = psmsg->IsPaidVersion() ? psmsg->nonce[0] : SMSG_FREE_MSG_DAYS;
-    SecMsgToken token(psmsg->timestamp, pPayload, nPayload, 0, nDaysToLive);
+    uint32_t nTTL = psmsg->m_ttl;
+    SecMsgToken token(psmsg->timestamp, pPayload, nPayload, 0, nTTL);
 
     SecMsgBucket &bucket = buckets[bucketTime];
     std::set<SecMsgToken> &tokenSet = bucket.setTokens;
@@ -3043,8 +3025,8 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     token.offset = ofs;
     tokenSet.insert(token);
 
-    if (nDaysToLive > 0 && (bucket.nLeastTTL == 0 || nDaysToLive < bucket.nLeastTTL)) {
-        bucket.nLeastTTL = nDaysToLive;
+    if (nTTL > 0 && (bucket.nLeastTTL == 0 || nTTL < bucket.nLeastTTL)) {
+        bucket.nLeastTTL = nTTL;
     }
 
     if (fHashBucket) {
@@ -3078,8 +3060,8 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
     SecMsgPurged purged(msgtime, now);
 
     uint8_t chKey[30];
-    chKey[0] = 'i';
-    chKey[1] = 'm';
+    chKey[0] = DBK_INBOX[0];
+    chKey[1] = DBK_INBOX[1];
     memcpy(chKey+2, vMsgId.data(), 28);
     db.EraseSmesg(chKey);
 
@@ -3175,8 +3157,11 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         return SMSG_TIME_IN_FUTURE;
     }
 
-    size_t nDaysRetention = psmsg->IsPaidVersion() ? psmsg->nonce[0] : SMSG_FREE_MSG_DAYS;
-    int64_t ttl = SMSGGetSecondsInDay() * nDaysRetention;
+    int64_t ttl = psmsg->m_ttl;
+    size_t nDaysRetention = psmsg->m_ttl / SMSG_SECONDS_IN_DAY;
+    if (nDaysRetention < 1) {
+        nDaysRetention = 1;
+    }
     if (now > psmsg->timestamp + ttl) {
         LogPrint(BCLog::SMSG, "Time expired %d, ttl %d.\n", psmsg->timestamp, ttl);
         return SMSG_TIME_EXPIRED;
@@ -3188,8 +3173,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             LogPrintf("%s: Paid SMSG not yet active on mainnet.\n", __func__);
             return SMSG_GENERAL_ERROR;
         }
-
-        if (ttl < SMSGGetSecondsInDay() || ttl > SMSG_MAX_PAID_TTL) {
+        if (ttl < SMSG_MIN_TTL || ttl > SMSG_MAX_PAID_TTL) {
             LogPrint(BCLog::SMSG, "TTL out of range %d.\n", ttl);
             return SMSG_GENERAL_ERROR;
         }
@@ -3210,7 +3194,6 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             if (!GetTransaction(txid, txOut, consensusParams, hashBlock) || hashBlock.IsNull()) {
                 return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s not found for message %s.\n", __func__, txid.ToString(), msgId.ToString());
             }
-
             if (txOut->IsCoinStake()) {
                 return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s for message %s, is coinstake.\n", __func__, txid.ToString(), msgId.ToString());
             }
@@ -3281,6 +3264,11 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         }
 
         return SMSG_NO_ERROR; // smsg is valid and funded
+    }
+
+    if (ttl < SMSG_MIN_TTL || ttl > SMSG_MAX_FREE_TTL) {
+        LogPrint(BCLog::SMSG, "TTL out of range %d.\n", ttl);
+        return SMSG_GENERAL_ERROR;
     }
 
     if (psmsg->version[0] != 2) {
@@ -3588,7 +3576,7 @@ int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread)
 
 int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     SecureMessage &smsg, std::string &sError, bool fPaid,
-    size_t nDaysRetention, bool fTestFee, CAmount *nFee, bool fFromFile, bool submit_msg, bool add_to_outbox)
+    size_t nRetention, bool fTestFee, CAmount *nFee, bool fFromFile, bool submit_msg, bool add_to_outbox)
 {
 #ifdef ENABLE_WALLET
     /* Encrypt secure message, and place it on the network
@@ -3608,6 +3596,10 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     }
     if (pwallet->IsLocked()) {
         return errorN(SMSG_WALLET_LOCKED, sError, __func__, "Wallet is locked, wallet must be unlocked to send messages");
+    }
+    if (nRetention < SMSG_MIN_TTL || nRetention > SMSG_MAX_PAID_TTL) {
+        LogPrint(BCLog::SMSG, "TTL out of range %d.\n", nRetention);
+        return SMSG_GENERAL_ERROR;
     }
 
     std::string sFromFile;
@@ -3653,7 +3645,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     }
 
     int rv;
-    smsg = SecureMessage(fPaid, nDaysRetention);
+    smsg = SecureMessage(fPaid, nRetention);
     if ((rv = Encrypt(smsg, addressFrom, addressTo, sData)) != 0) {
         sError = GetString(rv);
         return errorN(rv, "%s: %s.", __func__, sError);
@@ -3673,12 +3665,6 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         if (fTestFee) {
             return SMSG_NO_ERROR;
         }
-    } else
-    if (submit_msg) {
-        // HACK: Premine so hash unpaid outbox hashes match, remove with unpaid messages
-        if (SMSG_NO_ERROR != SetHash((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)) {
-            return errorN(SMSG_FUND_FAILED, "%s: SetHash failed %s.", __func__, sError);
-        }
     }
 
     uint160 msgId;
@@ -3686,10 +3672,9 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
     if (submit_msg) {
         // Place message in send queue, proof of work will happen in a thread.
-        std::string sPrefix("qm");
         uint8_t chKey[30];
         int64_t timestamp_be = bswap_64(smsg.timestamp);
-        memcpy(&chKey[0], sPrefix.data(), 2);
+        memcpy(&chKey[0], DBK_QUEUED.data(), 2);
         memcpy(&chKey[2], &timestamp_be, 8);
         memcpy(&chKey[10], msgId.begin(), 20);
 
@@ -3756,7 +3741,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             LogPrintf("Encrypting a copy for outbox, using address %s\n", EncodeDestination(addressOutbox));
         }
 
-        SecureMessage smsgForOutbox(fPaid, nDaysRetention);
+        SecureMessage smsgForOutbox(fPaid, nRetention);
         smsgForOutbox.timestamp = smsg.timestamp;
         if ((rv = Encrypt(smsgForOutbox, addressFrom, addressOutbox, sData)) != 0) {
             LogPrintf("%s: Encrypt for outbox failed, %d.\n", __func__, rv);
@@ -3771,10 +3756,9 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             }
 
             // Save sent message to db
-            std::string sPrefix("sm");
             uint8_t chKey[30];
             int64_t timestamp_be = bswap_64(smsgForOutbox.timestamp);
-            memcpy(&chKey[0], sPrefix.data(), 2);
+            memcpy(&chKey[0], DBK_OUTBOX.data(), 2);
             memcpy(&chKey[2], &timestamp_be, 8);
             memcpy(&chKey[10], msgId.begin(), 20);
 
@@ -3835,7 +3819,7 @@ int CSMSG::HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t 
     }
 
     CRIPEMD160()
-        .Write(smsg.data(), SMSG_HDR_LEN)
+        .Write(smsg.data() + 8, SMSG_HDR_LEN - 8) // MsgId excludes checksum and nonce
         .Write(pPayload, nPayload)
         .Finalize(hash.begin());
 
@@ -3854,7 +3838,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         return errorN(SMSG_UNKNOWN_VERSION, sError, __func__, "Bad message version.");
     }
 
-    size_t nDaysRetention = smsg.nonce[0];
+    size_t nDaysRetention = smsg.m_ttl / SMSG_SECONDS_IN_DAY;
     if (nDaysRetention < 1 || nDaysRetention > 31) {
         return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Bad message ttl.");
     }

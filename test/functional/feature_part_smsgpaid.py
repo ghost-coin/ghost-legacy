@@ -61,7 +61,7 @@ class SmsgPaidTest(ParticlTestFramework):
         text_1 = "['data':'test','value':1]"
         ro = nodes[1].smsgsend(address1, address0, text_1, True, 4, True)
         assert(ro['result'] == 'Not Sent.')
-        assert(isclose(ro['fee'], 0.00085800))
+        assert(isclose(ro['fee'], 0.00086600))
 
 
         ro = nodes[1].smsgsend(address1, address0, text_1, True, 4)
@@ -175,11 +175,13 @@ class SmsgPaidTest(ParticlTestFramework):
         with open(filepath, 'wb', encoding=None) as fp:
             fp.write(msg)
 
-        ro = nodes[1].smsgsend(address1, address0_1, filepath, True, 4, False, True)
+        sendoptions = {'fromfile': True}
+        ro = nodes[1].smsgsend(address1, address0_1, filepath, True, 4, False, sendoptions)
         assert(ro['result'] == 'Sent.')
         msgid = ro['msgid']
 
-        ro = nodes[1].smsgsend(address1, address0_1, binascii.hexlify(msg).decode("utf-8"), True, 4, False, False, True)
+        sendoptions = {'decodehex': True}
+        ro = nodes[1].smsgsend(address1, address0_1, binascii.hexlify(msg).decode("utf-8"), True, 4, False, sendoptions)
         msgid2 = ro['msgid']
         self.stakeBlocks(1, nStakeNode=1)
 

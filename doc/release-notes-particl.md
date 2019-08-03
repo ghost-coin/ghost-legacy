@@ -4,6 +4,12 @@
 
 - Don't include paid smsg fees for fee estimates.
 - Fixed rescanblockchain needing to be run after clearwallettransactions to find anon-tx spends.
+- SMSG is incompatible with earlier releases, new bucket dir and db prefixes prevent collisions with existing data.
+  - Changed SMSG days retention to ttl in seconds.
+  - Listen for anon messages is set to false by default.
+  - Moved some smsgsend arguments to an options object
+  - New parameter ttl_is_seconds for smsgsend, if true interprets days_retention as seconds
+  - New min ttl of 1 hour, max 31 days for paid and 7 for free
 
 
 0.18.1.0

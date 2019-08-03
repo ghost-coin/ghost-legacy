@@ -56,11 +56,12 @@ enum SecureMessageCodes {
     SMSG_PURGED_MSG,
 };
 
-const uint32_t SMSG_HDR_LEN        = 104;               // length of unencrypted header, 4 + 2 + 1 + 8 + 16 + 33 + 32 + 4 + 4
+const uint32_t SMSG_HDR_LEN        = 108;               // length of unencrypted header, 4 + 4 + 2 + 1 + 8 + 4 + 16 + 33 + 32 + 4
 const uint32_t SMSG_PL_HDR_LEN     = 1+20+65+4;         // length of encrypted header in payload
 
 extern uint32_t SMSG_BUCKET_LEN;                        // seconds
 extern uint32_t SMSG_SECONDS_IN_DAY;
+extern uint32_t SMSG_MIN_TTL;
 extern uint32_t SMSG_MAX_FREE_TTL;
 extern uint32_t SMSG_MAX_PAID_TTL;
 extern uint32_t SMSG_RETENTION;
@@ -83,7 +84,9 @@ const uint32_t SMSG_MAX_MSG_BYTES_PAID = 512 * 1024;    // the user input part (
 const uint32_t SMSG_MAX_MSG_WORST = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES+SMSG_PL_HDR_LEN);
 const uint32_t SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES_PAID+SMSG_PL_HDR_LEN);
 
-static const int MIN_SMSG_PROTO_VERSION = 90008;
+static const int MIN_SMSG_PROTO_VERSION = 90010;
+
+extern const std::string STORE_DIR;
 
 #define SMSG_MASK_UNREAD (1 << 0)
 
@@ -97,9 +100,6 @@ extern boost::signals2::signal<void (SecMsgStored &outboxHdr)> NotifySecMsgOutbo
 
 // Wallet unlocked, called after all messages received while locked have been processed.
 extern boost::signals2::signal<void ()> NotifySecMsgWalletUnlocked;
-
-
-uint32_t SMSGGetSecondsInDay();
 
 inline bool GetFundingTxid(const uint8_t *pPayload, size_t nPayload, uint256 &txid)
 {
@@ -115,14 +115,13 @@ class SecureMessage
 {
 public:
     SecureMessage() {};
-    SecureMessage(bool fPaid, size_t nDaysRetention)
+    SecureMessage(bool fPaid, uint32_t ttl)
     {
         if (fPaid) {
             version[0] = 3;
             version[1] = 0;
-
-            nonce[0] = nDaysRetention;
         }
+        m_ttl = ttl;
     };
     ~SecureMessage()
     {
@@ -163,13 +162,14 @@ public:
     };
 
     uint8_t hash[4] = {0, 0, 0, 0};
+    uint8_t nonce[4] = {0, 0, 0, 0};
     uint8_t version[2] = {2, 1};
     uint8_t flags = 0;
     int64_t timestamp = 0;
+    uint32_t m_ttl = 0;
     uint8_t iv[16];
     uint8_t cpkR[33];
     uint8_t mac[32];
-    uint8_t nonce[4] = {0, 0, 0, 0}; // nDaysRetention when paid message
     uint32_t nPayload = 0;
     uint8_t *pPayload = nullptr;
 };
@@ -189,7 +189,7 @@ class SecMsgToken
 {
 public:
     SecMsgToken() {};
-    SecMsgToken(int64_t ts, const uint8_t *p, int np, long int o, uint8_t ttl_)
+    SecMsgToken(int64_t ts, const uint8_t *p, int np, long int o, uint32_t ttl_)
     {
         timestamp = ts;
 
@@ -213,9 +213,9 @@ public:
     std::string ToString() const;
 
     int64_t timestamp;
-    uint8_t sample[8];    // first 8 bytes of payload
-    int64_t offset;       // offset
-    mutable uint8_t ttl;  // days
+    uint8_t sample[8];      // first 8 bytes of payload
+    int64_t offset;         // offset
+    mutable uint32_t ttl;   // seconds
 };
 
 class SecMsgPurged // Purged token marker
@@ -276,7 +276,7 @@ public:
     int64_t               timeChanged;
     uint32_t              hash;           // token set should get ordered the same on each node
     uint32_t              nLockCount;     // set when smsgWant first sent, unset at end of smsgMsg, ticks down in ThreadSecureMsg()
-    uint32_t              nLeastTTL;      // lowest ttl in days of messages in bkt
+    uint32_t              nLeastTTL;      // lowest ttl in seconds of messages in bucket
     uint32_t              nActive;        // Number of untimedout messages in bucket
     NodeId                nLockPeerId;    // id of peer that bucket is locked for
     std::set<SecMsgToken> setTokens;
@@ -440,8 +440,8 @@ public:
     int Import(SecureMessage *psmsg, std::string &sError, bool setread);
 
     int Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
-        SecureMessage &smsg, std::string &sError, bool fPaid=false,
-        size_t nDaysRetention=0, bool fTestFee=false, CAmount *nFee=NULL, bool fFromFile=false, bool submit_msg=true, bool add_to_outbox=true);
+        SecureMessage &smsg, std::string &sError, bool fPaid, size_t nRetention,
+        bool fTestFee=false, CAmount *nFee=NULL, bool fFromFile=false, bool submit_msg=true, bool add_to_outbox=true);
 
     bool GetPowHash(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_t nPayload, uint256 &hash);
     int HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t nPayload, uint160 &hash);

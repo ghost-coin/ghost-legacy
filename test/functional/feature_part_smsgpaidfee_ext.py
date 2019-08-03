@@ -46,7 +46,7 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
         text = 'Some text to test'
         ro = nodes[1].smsgsend(address1, address0, text, True, 10, True)
         assert(ro['result'] == 'Not Sent.')
-        assert(isclose(ro['fee'], 0.00157000))
+        assert(isclose(ro['fee'], 0.00159000))
 
 
         assert(nodes[0].smsggetfeerate() == 50000)
@@ -62,14 +62,14 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
         assert(ro['result'] == 'Sent.')
         assert('msgid' in ro)
         assert('txid' in ro)
-        assert(isclose(ro['fee'], 0.00157000))
+        assert(isclose(ro['fee'], 0.00159000))
 
         self.stakeBlocks(1)
         assert(nodes[0].smsggetfeerate() == 61939)
 
         ro = nodes[1].smsgsend(address1, address0, text, True, 10, True)
         assert(ro['result'] == 'Not Sent.')
-        assert(isclose(ro['fee'], 0.00186600))
+        assert(isclose(ro['fee'], 0.00189080))
 
         ro = nodes[1].getblock(nodes[1].getblockhash(50), 2)
         assert(ro['tx'][0]['vout'][0]['smsgfeerate'] * COIN == 61939)
@@ -110,7 +110,6 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
         ro = nodes[1].getblock(nodes[1].getblockhash(52), 2)
         assert(ro['tx'][0]['vout'][0]['smsgfeerate'] * COIN > block_51_smsgfeerate)
         assert(int(ro['tx'][0]['vout'][0]['smsgdifficulty'], 16) < block_51_smsgdifficulty)
-
 
 
 if __name__ == '__main__':
