@@ -701,12 +701,17 @@ static UniValue smsgsend(const JSONRPCRequest &request)
                     {"address_to", RPCArg::Type::STR, RPCArg::Optional::NO, "The address of the recipient."},
                     {"message", RPCArg::Type::STR, RPCArg::Optional::NO, "The message to send."},
                     {"paid_msg", RPCArg::Type::BOOL, /* default */ "false", "Send as paid message."},
-                    {"days_retention", RPCArg::Type::NUM, /* default */ "1", "No. of days for which paid message will be retained by network."},
+                    {"days_retention", RPCArg::Type::NUM, /* default */ "1", "No. of days for which the message will be retained by network."},
                     {"testfee", RPCArg::Type::BOOL, /* default */ "false", "Don't send the message, only estimate the fee."},
-                    {"fromfile", RPCArg::Type::BOOL, /* default */ "false", "Send file as message, path specified in \"message\"."},
-                    {"decodehex", RPCArg::Type::BOOL, /* default */ "false", "Decode \"message\" from hex before sending."},
-                    {"submitmsg", RPCArg::Type::BOOL, /* default */ "true", "Submit smsg to network, if false POW is not set and hex encoded smsg returned."},
-                    {"savemsg", RPCArg::Type::BOOL, /* default */ "true", "Save smsg to outbox."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
+                        {
+                            {"fromfile", RPCArg::Type::BOOL, /* default */ "false", "Send file as message, path specified in \"message\"."},
+                            {"decodehex", RPCArg::Type::BOOL, /* default */ "false", "Decode \"message\" from hex before sending."},
+                            {"submitmsg", RPCArg::Type::BOOL, /* default */ "true", "Submit smsg to network, if false POW is not set and hex encoded smsg returned."},
+                            {"savemsg", RPCArg::Type::BOOL, /* default */ "true", "Save smsg to outbox."},
+                            {"ttl_is_seconds", RPCArg::Type::BOOL, /* default */ "false", "If true days_retention parameter is interpreted as seconds to live."},
+                        },
+                        "options"},
                 },
                 RPCResult{
             "{\n"
@@ -727,7 +732,7 @@ static UniValue smsgsend(const JSONRPCRequest &request)
 
     RPCTypeCheck(request.params,
         {UniValue::VSTR, UniValue::VSTR, UniValue::VSTR,
-         UniValue::VBOOL, UniValue::VNUM, UniValue::VBOOL}, true);
+         UniValue::VBOOL, UniValue::VNUM, UniValue::VBOOL, UniValue::VOBJ}, true);
 
     std::string addrFrom  = request.params[0].get_str();
     std::string addrTo    = request.params[1].get_str();
@@ -736,11 +741,39 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     bool fPaid = request.params[3].isNull() ? false : request.params[3].get_bool();
     int nRetention = request.params[4].isNull() ? 1 : request.params[4].get_int();
     bool fTestFee = request.params[5].isNull() ? false : request.params[5].get_bool();
-    bool fFromFile = request.params[6].isNull() ? false : request.params[6].get_bool();
-    bool fDecodeHex = request.params[7].isNull() ? false : request.params[7].get_bool();
-    bool submit_msg = request.params[8].isNull() ? true : request.params[8].get_bool();
-    bool save_msg = request.params[9].isNull() ? true : request.params[9].get_bool();
 
+    bool fFromFile = false;
+    bool fDecodeHex = false;
+    bool submit_msg = true;
+    bool save_msg = true;
+    bool ttl_in_seconds = false;
+
+    UniValue options = request.params[6];
+    if (options.isObject()) {
+        RPCTypeCheckObj(options,
+        {
+            {"fromfile",          UniValueType(UniValue::VBOOL)},
+            {"decodehex",         UniValueType(UniValue::VBOOL)},
+            {"submitmsg",         UniValueType(UniValue::VBOOL)},
+            {"savemsg",           UniValueType(UniValue::VBOOL)},
+            {"ttl_is_seconds",    UniValueType(UniValue::VBOOL)},
+        }, true, false);
+        if (!options["fromfile"].isNull()) {
+            fFromFile = options["fromfile"].get_bool();
+        }
+        if (!options["decodehex"].isNull()) {
+            fDecodeHex = options["decodehex"].get_bool();
+        }
+        if (!options["submitmsg"].isNull()) {
+            submit_msg = options["submitmsg"].get_bool();
+        }
+        if (!options["savemsg"].isNull()) {
+            save_msg = options["savemsg"].get_bool();
+        }
+        if (!options["ttl_is_seconds"].isNull()) {
+            ttl_in_seconds = options["ttl_is_seconds"].get_bool();
+        }
+    }
     if (fFromFile && fDecodeHex) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Can't use decodehex with fromfile.");
     }
@@ -769,6 +802,9 @@ static UniValue smsgsend(const JSONRPCRequest &request)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid to address.");
     }
 
+    if (!ttl_in_seconds) {
+        nRetention *= smsg::SMSG_SECONDS_IN_DAY;
+    }
 
     UniValue result(UniValue::VOBJ);
     std::string sError;
@@ -824,10 +860,11 @@ static UniValue smsgsendanon(const JSONRPCRequest &request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid to address.");
     }
 
+    uint32_t ttl = smsg::SMSG_FREE_MSG_DAYS * smsg::SMSG_SECONDS_IN_DAY;
     UniValue result(UniValue::VOBJ);
     std::string sError;
     smsg::SecureMessage smsgOut;
-    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError) != 0) {
+    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, false, ttl) != 0) {
         result.pushKV("result", "Send failed.");
         result.pushKV("error", sError);
     } else {
@@ -859,7 +896,8 @@ static UniValue smsginbox(const JSONRPCRequest &request)
             "  \"version\": \"str\"                  (string) The message version\n"
             "  \"received\": \"time\"                (string) Time the message was received\n"
             "  \"sent\": \"time\"                    (string) Time the message was sent\n"
-            "  \"daysretention\": int              (int) Number of days message will stay in the network for\n"
+            "  \"daysretention\": int              (int) DEPRECATED Number of days message will stay in the network for\n"
+            "  \"ttl\": int                        (int) Seconds message will stay in the network for\n"
             "  \"from\": \"str\"                     (string) Address the message was sent from\n"
             "  \"to\": \"str\"                       (string) Address the message was sent to\n"
             "  \"text\": \"str\"                     (string) Message text\n"
@@ -898,14 +936,13 @@ static UniValue smsginbox(const JSONRPCRequest &request)
         }
 
         uint32_t nMessages = 0;
-        std::string sPrefix("im");
         uint8_t chKey[30];
 
         if (mode == "clear") {
             dbInbox.TxnBegin();
 
             leveldb::Iterator *it = dbInbox.pdb->NewIterator(leveldb::ReadOptions());
-            while (dbInbox.NextSmesgKey(it, sPrefix, chKey)) {
+            while (dbInbox.NextSmesgKey(it, smsg::DBK_INBOX, chKey)) {
                 dbInbox.EraseSmesg(chKey);
                 nMessages++;
             }
@@ -926,7 +963,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
             leveldb::Iterator *it = dbInbox.pdb->NewIterator(leveldb::ReadOptions());
             UniValue messageList(UniValue::VARR);
 
-            while (dbInbox.NextSmesg(it, sPrefix, chKey, smsgStored)) {
+            while (dbInbox.NextSmesg(it, smsg::DBK_INBOX, chKey, smsgStored)) {
                 if (fCheckReadStatus
                     && !(smsgStored.status & SMSG_MASK_UNREAD)) {
                     continue;
@@ -954,9 +991,10 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                     PushTime(objM, "sent", msg.timestamp);
                     objM.pushKV("paid", UniValue(psmsg->IsPaidVersion()));
 
-                    uint32_t nDaysRetention = psmsg->IsPaidVersion() ? psmsg->nonce[0] : 2;
-                    int64_t ttl = smsg::SMSGGetSecondsInDay() * nDaysRetention;
-                    objM.pushKV("daysretention", (int)nDaysRetention);
+                    int64_t ttl = psmsg->m_ttl;
+                    objM.pushKV("ttl", ttl);
+                    int nDaysRetention = ttl / smsg::SMSG_SECONDS_IN_DAY;
+                    objM.pushKV("daysretention", nDaysRetention);
                     PushTime(objM, "expiration", psmsg->timestamp + ttl);
 
                     uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
@@ -1050,7 +1088,6 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
     UniValue result(UniValue::VOBJ);
 
-    std::string sPrefix("sm");
     uint8_t chKey[30];
     memset(&chKey[0], 0, sizeof(chKey));
 
@@ -1068,7 +1105,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
             dbOutbox.TxnBegin();
 
             leveldb::Iterator *it = dbOutbox.pdb->NewIterator(leveldb::ReadOptions());
-            while (dbOutbox.NextSmesgKey(it, sPrefix, chKey)) {
+            while (dbOutbox.NextSmesgKey(it, smsg::DBK_OUTBOX, chKey)) {
                 dbOutbox.EraseSmesg(chKey);
                 nMessages++;
             }
@@ -1084,7 +1121,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
             UniValue messageList(UniValue::VARR);
 
-            while (dbOutbox.NextSmesg(it, sPrefix, chKey, smsgStored)) {
+            while (dbOutbox.NextSmesg(it, smsg::DBK_OUTBOX, chKey, smsgStored)) {
                 uint8_t *pHeader = &smsgStored.vchMessage[0];
                 const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) pHeader;
 
@@ -1107,9 +1144,10 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                     PushTime(objM, "sent", msg.timestamp);
                     objM.pushKV("paid", UniValue(psmsg->IsPaidVersion()));
 
-                    uint32_t nDaysRetention = psmsg->IsPaidVersion() ? psmsg->nonce[0] : 2;
-                    int64_t ttl = smsg::SMSGGetSecondsInDay() * nDaysRetention;
-                    objM.pushKV("daysretention", (int)nDaysRetention);
+                    int64_t ttl = psmsg->m_ttl;
+                    objM.pushKV("ttl", ttl);
+                    int nDaysRetention = ttl / smsg::SMSG_SECONDS_IN_DAY;
+                    objM.pushKV("daysretention", nDaysRetention);
                     PushTime(objM, "expiration", psmsg->timestamp + ttl);
 
                     uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
@@ -1150,7 +1188,6 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
     return result;
 };
-
 
 static UniValue smsgbuckets(const JSONRPCRequest &request)
 {
@@ -1206,7 +1243,7 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
                     objM.pushKV("last changed", part::GetTimeString(it->second.timeChanged, cbuf, sizeof(cbuf)));
                 }
 
-                fs::path fullPath = GetDataDir() / "smsgstore" / sFile;
+                fs::path fullPath = GetDataDir() / smsg::STORE_DIR / sFile;
                 if (!fs::exists(fullPath)) {
                     if (tokenSet.size() == 0) {
                         objM.pushKV("file size", "Empty bucket.");
@@ -1251,7 +1288,7 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
                 std::string sFile = std::to_string(it->first) + "_01.dat";
 
                 try {
-                    fs::path fullPath = GetDataDir() / "smsgstore" / sFile;
+                    fs::path fullPath = GetDataDir() / smsg::STORE_DIR / sFile;
                     fs::remove(fullPath);
                 } catch (const fs::filesystem_error& ex) {
                     //objM.push_back(Pair("file size, error", ex.what()));
@@ -1416,8 +1453,8 @@ static UniValue smsgview(const JSONRPCRequest &request)
     std::vector<std::pair<int64_t, UniValue> > vMessages;
 
     std::vector<std::string> vPrefixes;
-    vPrefixes.push_back("im");
-    vPrefixes.push_back("sm");
+    vPrefixes.push_back(smsg::DBK_INBOX);
+    vPrefixes.push_back(smsg::DBK_OUTBOX);
 
     uint8_t chKey[30];
     size_t nMessages = 0;
@@ -1435,7 +1472,7 @@ static UniValue smsgview(const JSONRPCRequest &request)
         std::vector<std::string>::iterator itp;
         std::vector<CKeyID>::iterator its;
         for (itp = vPrefixes.begin(); itp < vPrefixes.end(); ++itp) {
-            bool fInbox = *itp == std::string("im");
+            bool fInbox = *itp == smsg::DBK_INBOX;
 
             dbMsg.TxnBegin();
 
@@ -1585,7 +1622,8 @@ static UniValue smsgone(const JSONRPCRequest &request)
             "  \"read\": bool                        (bool) Read status\n"
             "  \"sent\": int                         (int) Time the message was created\n"
             "  \"paid\": bool                        (bool) Paid or free message\n"
-            "  \"daysretention\": int                (int) Number of days message will stay in the network for\n"
+            "  \"daysretention\": int                (int) DEPRECATED Number of days message will stay in the network for\n"
+            "  \"ttl\": int                          (int) Seconds message will stay in the network for\n"
             "  \"expiration\": int                   (int) Time the message will be dropped from the network\n"
             "  \"payloadsize\": int                  (int) Size of user message\n"
             "  \"from\": \"str\"                     (string) Address the message was sent from\n"
@@ -1615,7 +1653,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
     std::string sType;
 
     uint8_t chKey[30];
-    chKey[1] = 'm';
+    chKey[1] = 'M';
     memcpy(chKey+2, vMsgId.data(), 28);
     smsg::SecMsgStored smsgStored;
     UniValue result(UniValue::VOBJ);
@@ -1627,13 +1665,13 @@ static UniValue smsgone(const JSONRPCRequest &request)
         if (!dbMsg.Open("cr+"))
             throw std::runtime_error("Could not open DB.");
 
-        if ((chKey[0] = 'i') && dbMsg.ReadSmesg(chKey, smsgStored)) {
+        if ((chKey[0] = 'I') && dbMsg.ReadSmesg(chKey, smsgStored)) {
             sType = "inbox";
         } else
-        if ((chKey[0] = 's') && dbMsg.ReadSmesg(chKey, smsgStored)) {
+        if ((chKey[0] = 'S') && dbMsg.ReadSmesg(chKey, smsgStored)) {
             sType = "outbox";
         } else
-        if ((chKey[0] = 'q') && dbMsg.ReadSmesg(chKey, smsgStored)) {
+        if ((chKey[0] = 'Q') && dbMsg.ReadSmesg(chKey, smsgStored)) {
             sType = "sending";
         } else {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unknown message id.");
@@ -1678,9 +1716,10 @@ static UniValue smsgone(const JSONRPCRequest &request)
     PushTime(result, "sent", psmsg->timestamp);
     result.pushKV("paid", UniValue(psmsg->IsPaidVersion()));
 
-    uint32_t nDaysRetention = psmsg->IsPaidVersion() ? psmsg->nonce[0] : 2;
-    int64_t ttl = smsg::SMSGGetSecondsInDay() * nDaysRetention;
-    result.pushKV("daysretention", (int)nDaysRetention);
+    int64_t ttl = psmsg->m_ttl;
+    result.pushKV("ttl", ttl);
+    int nDaysRetention = ttl / smsg::SMSG_SECONDS_IN_DAY;
+    result.pushKV("daysretention", nDaysRetention);
     PushTime(result, "expiration", psmsg->timestamp + ttl);
 
 
@@ -1932,7 +1971,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgaddlocaladdress",    &smsgaddlocaladdress,    {"address"} },
     { "smsg",               "smsgimportprivkey",      &smsgimportprivkey,      {"privkey","label"} },
     { "smsg",               "smsggetpubkey",          &smsggetpubkey,          {"address"} },
-    { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","fromfile","decodehex","submitmsg","savemsg"} },
+    { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","options"} },
     { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message"} },
     { "smsg",               "smsginbox",              &smsginbox,              {"mode","filter","options"} },
     { "smsg",               "smsgoutbox",             &smsgoutbox,             {"mode","filter","options"} },

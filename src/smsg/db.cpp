@@ -13,18 +13,12 @@
 
 namespace smsg {
 
-/*
-prefixes
-    name
-
-    pk      - public key
-    sk      - secret key
-
-    im      - inbox message
-    sm      - sent message
-    qm      - queued message
-    pm      - purged message token
-*/
+const std::string DBK_PUBLICKEY     = "pk";
+const std::string DBK_SECRETKEY     = "sk";
+const std::string DBK_INBOX         = "IM";
+const std::string DBK_OUTBOX        = "SM";
+const std::string DBK_QUEUED        = "QM";
+const std::string DBK_PURGED_TOKEN  = "pm";
 
 CCriticalSection cs_smsgDB;
 leveldb::DB *smsgDB = nullptr;
@@ -67,7 +61,7 @@ class SecMsgBatchScanner : public leveldb::WriteBatch::Handler
 public:
     std::string needle;
     bool *deleted;
-    std::string* foundValue;
+    std::string *foundValue;
     bool foundEntry;
 
     SecMsgBatchScanner() : foundEntry(false) {}
@@ -157,8 +151,8 @@ bool SecMsgDB::ReadPK(const CKeyID &addr, CPubKey &pubkey)
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     ssKey.reserve(sizeof(addr) + 2);
-    ssKey << 'p';
-    ssKey << 'k';
+    ssKey << DBK_PUBLICKEY[0];
+    ssKey << DBK_PUBLICKEY[1];
     ssKey << addr;
     std::string strValue;
 
@@ -201,8 +195,8 @@ bool SecMsgDB::WritePK(const CKeyID &addr, CPubKey &pubkey)
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     ssKey.reserve(sizeof(addr) + 2);
-    ssKey << 'p';
-    ssKey << 'k';
+    ssKey << DBK_PUBLICKEY[0];
+    ssKey << DBK_PUBLICKEY[1];
     ssKey << addr;
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
     ssValue.reserve(sizeof(pubkey));
@@ -231,8 +225,8 @@ bool SecMsgDB::ExistsPK(const CKeyID &addr)
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     ssKey.reserve(sizeof(addr)+2);
-    ssKey << 'p';
-    ssKey << 'k';
+    ssKey << DBK_PUBLICKEY[0];
+    ssKey << DBK_PUBLICKEY[1];
     ssKey << addr;
     std::string unused;
 
@@ -255,8 +249,8 @@ bool SecMsgDB::ReadKey(const CKeyID &idk, SecMsgKey &key)
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     ssKey.reserve(sizeof(idk) + 2);
-    ssKey << 's';
-    ssKey << 'k';
+    ssKey << DBK_SECRETKEY[0];
+    ssKey << DBK_SECRETKEY[1];
     ssKey << idk;
     std::string strValue;
 
@@ -298,8 +292,8 @@ bool SecMsgDB::WriteKey(const CKeyID &idk, const SecMsgKey &key)
     }
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     ssKey.reserve(sizeof(idk) + 2);
-    ssKey << 's';
-    ssKey << 'k';
+    ssKey << DBK_SECRETKEY[0];
+    ssKey << DBK_SECRETKEY[1];
     ssKey << idk;
 
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);

@@ -19,7 +19,7 @@ struct SmsgTestingSetup : public TestingSetup {
 
 BOOST_FIXTURE_TEST_SUITE(smsg_tests, SmsgTestingSetup)
 
-
+const std::string sTestMessage = "A short test message 0123456789 !@#$%^&*()_+-=";
 
 BOOST_AUTO_TEST_CASE(smsg_test_ckeyId_inits_null)
 {
@@ -27,13 +27,28 @@ BOOST_AUTO_TEST_CASE(smsg_test_ckeyId_inits_null)
     BOOST_CHECK(k.IsNull());
 }
 
+#ifdef ENABLE_WALLET
+
+void CheckValid(smsg::SecureMessage &smsg, CKeyID &kFrom, CKeyID &kTo, bool expect_pass)
+{
+    int rv = 0;
+    BOOST_CHECK(0 == smsgModule.Encrypt(smsg, kFrom, kTo, sTestMessage));
+    BOOST_CHECK(0 == smsgModule.SetHash((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload));
+    if (expect_pass) {
+        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Validate((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)), "Validate failed " << rv);
+    } else {
+        BOOST_CHECK_MESSAGE(0 != (rv = smsgModule.Validate((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)), "Validate passed " << rv);
+    }
+
+    // Reset
+    delete[] smsg.pPayload;
+    smsg.pPayload = nullptr;
+    smsg.nPayload = 0;
+}
+
 BOOST_AUTO_TEST_CASE(smsg_test)
 {
-#ifdef ENABLE_WALLET
     SeedInsecureRand();
-
-    const std::string sTestMessage =
-        "A short test message 0123456789 !@#$%^&*()_+-=";
 
     int rv = 0;
     const int nKeys = 12;
@@ -55,13 +70,23 @@ BOOST_AUTO_TEST_CASE(smsg_test)
 
     BOOST_CHECK(true == smsgModule.Start(wallet, false));
 
-    CKeyID idNull;
-    BOOST_CHECK(idNull.IsNull());
+    smsg::SecureMessage smsg;
+    smsg.m_ttl = 1;
+    CKeyID kFrom = keyOwn[0].GetPubKey().GetID();
+    CKeyID kTo = keyRemote[0].GetPubKey().GetID();
+    CheckValid(smsg, kFrom, kTo, false);
+    smsg.m_ttl = smsg::SMSG_MAX_FREE_TTL + 1;
+    CheckValid(smsg, kFrom, kTo, false);
+    smsg.m_ttl = smsg::SMSG_MAX_FREE_TTL;
+    CheckValid(smsg, kFrom, kTo, true);
+    smsg.m_ttl = smsg::SMSG_MIN_TTL;
+    CheckValid(smsg, kFrom, kTo, true);
 
+    CKeyID idNull;
     for (int i = 0; i < nKeys; i++) {
         smsg::SecureMessage smsg;
-        smsg.SetNull();
         smsg::MessageData msg;
+        smsg.m_ttl = 1 * smsg::SMSG_SECONDS_IN_DAY;
         CKeyID kFrom = keyOwn[i].GetPubKey().GetID();
         CKeyID kTo = keyRemote[i].GetPubKey().GetID();
         CKeyID kFail = keyRemote[(i+1) % nKeys].GetPubKey().GetID();
@@ -87,8 +112,7 @@ BOOST_AUTO_TEST_CASE(smsg_test)
     }
 
     smsgModule.Shutdown();
-
-#endif
 }
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

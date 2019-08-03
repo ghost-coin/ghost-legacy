@@ -118,7 +118,9 @@ class SmsgTest(ParticlTestFramework):
         assert('Completed' in ro['result'])
 
         self.log.info('Test smsgsend without submitmsg')
-        ro = nodes[1].smsgsend(address1, address0, 'Test 1->0 no network', False, 0, False, False, False, False)
+        sendoptions = {'submitmsg': False}
+        ro = nodes[1].smsgsend(address1, address0, 'Test 1->0 no network', False, 1, False, sendoptions)
+        print(ro)
         assert('Not Sent' in ro['result'])
         msg0_from1 = ro['msg']
         msg0_id = ro['msgid']
@@ -130,7 +132,8 @@ class SmsgTest(ParticlTestFramework):
         assert(len(ro['messages']) == 1)
         assert(ro['messages'][0]['text'] == 'Test 1->0 no network')
 
-        ro = nodes[1].smsgsend(address1, address0, 'Test 1->0 no network, no outbox', False, 0, False, False, False, False, False)
+        sendoptions = {'submitmsg': False, 'savemsg': False}
+        ro = nodes[1].smsgsend(address1, address0, 'Test 1->0 no network, no outbox', False, 1, False, sendoptions)
         assert(len(nodes[1].smsgoutbox()['messages']) == 4)  # No change
 
         self.log.info('Test nosmsg')

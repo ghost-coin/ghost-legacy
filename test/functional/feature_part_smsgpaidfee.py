@@ -189,7 +189,8 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         assert(int(nodes[1].smsgoutbox()['result']) == 0)
         assert(int(nodes[0].smsginbox()['result']) == 0)
 
-        ro = nodes[1].smsgsend(address1, address0, text, False, 10, False, False, False, False, False)
+        sendoptions = {'submitmsg': False, 'savemsg': False}
+        ro = nodes[1].smsgsend(address1, address0, text, False, 10, False, sendoptions)
         assert('msg' in ro)
         msg = ro['msg']
         msg_id = ro['msgid']
