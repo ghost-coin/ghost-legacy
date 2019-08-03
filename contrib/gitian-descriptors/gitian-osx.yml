@@ -1,5 +1,5 @@
 ---
-name: "particl-osx-0.18.1.0"
+name: "particl-osx-0.18.1.1"
 enable_cache: true
 suites:
 - "bionic"
