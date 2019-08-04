@@ -9,7 +9,7 @@
   - Listen for anon messages is set to false by default.
   - Moved some smsgsend arguments to an options object
   - New parameter ttl_is_seconds for smsgsend, if true interprets days_retention as seconds
-  - New min ttl of 1 hour, max 31 days for paid and 7 for free
+  - New min ttl of 1 hour, max 31 days for paid and 14 for free
 
 
 0.18.1.0
