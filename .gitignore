@@ -98,6 +98,9 @@ particl-qt
 Particl-Qt.app
 background.tiff*
 
+# Qt Creator
+Makefile.am.user
+
 # Unit-tests
 Makefile.test
 particl-qt_test

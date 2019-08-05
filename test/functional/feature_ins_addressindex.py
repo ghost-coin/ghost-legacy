@@ -11,7 +11,7 @@
 import time
 
 from test_framework.test_particl import ParticlTestFramework
-from test_framework.util import connect_nodes, assert_equal
+from test_framework.util import connect_nodes_bi, assert_equal
 
 
 class AddressIndexTest(ParticlTestFramework):
@@ -33,9 +33,10 @@ class AddressIndexTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-        connect_nodes(self.nodes[0], 1)
-        connect_nodes(self.nodes[0], 2)
-        connect_nodes(self.nodes[0], 3)
+        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes, 0, 2)
+        connect_nodes_bi(self.nodes, 0, 3)
+        connect_nodes_bi(self.nodes, 1, 3)
 
         self.sync_all()
 

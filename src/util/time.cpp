@@ -33,6 +33,10 @@ T GetTime()
 {
     const std::chrono::seconds mocktime{nMockTime.load(std::memory_order_relaxed)};
 
+    if (mockTimeOffset) {
+        return std::chrono::duration_cast<T>(std::chrono::microseconds{GetTimeMicros()} - mocktime);
+    }
+
     return std::chrono::duration_cast<T>(
         mocktime.count() ?
             mocktime :
