@@ -15,7 +15,8 @@ public:
     int64_t lastMatched = 0;
     int64_t ignoreUntil = 0;
     uint32_t nWakeCounter = 0;
-    uint8_t misbehaving = 0;
+    uint16_t misbehaving = 0;
+    uint16_t m_num_want_sent = 0;
     bool fEnabled = false;
 };
 

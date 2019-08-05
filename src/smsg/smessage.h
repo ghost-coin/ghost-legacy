@@ -74,6 +74,7 @@ const uint32_t SMSG_THREAD_LOG_GAP = 6;
 
 const uint32_t SMSG_TIME_LEEWAY    = 24;
 const uint32_t SMSG_TIME_IGNORE    = 90;                // seconds a peer is ignored for if they fail to deliver messages for a smsgWant
+const uint32_t SMSG_TIME_BAN       = 8 * 60 * 60;
 
 
 const uint32_t SMSG_MAX_MSG_BYTES  = 24000;             // the user input part
