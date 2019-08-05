@@ -77,6 +77,10 @@ uint32_t SMSG_MAX_FREE_TTL      = SMSG_SECONDS_IN_DAY * 14;
 uint32_t SMSG_MAX_PAID_TTL      = SMSG_SECONDS_IN_DAY * 31;
 uint32_t SMSG_RETENTION         = SMSG_MAX_PAID_TTL;
 
+const size_t MAX_BUNCH_MESSAGES = 500;
+const size_t MAX_BUNCH_BYTES = SMSG_MAX_MSG_BYTES_PAID * 4;
+const uint16_t MAX_WANT_SENT = 16000;
+
 boost::thread_group threadGroupSmsg;
 
 boost::signals2::signal<void (SecMsgStored &inboxHdr)> NotifySecMsgInboxChanged;
@@ -1177,20 +1181,20 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, has expired.\n", time);
 
                 if (time < now - SMSG_RETENTION - SMSG_TIME_LEEWAY) {
-                    Misbehaving(pfrom->GetId(), 1);
+                    SmsgMisbehaving(pfrom, 1);
                 }
                 continue;
             }
             if (time > now + SMSG_TIME_LEEWAY) {
                 LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, in the future.\n", time);
-                Misbehaving(pfrom->GetId(), 1);
+                SmsgMisbehaving(pfrom, 1);
                 continue;
             }
 
             if (now - start_time > SMSG_BUCKET_LEN * 2) { // buckets should be fully matched after time
                  if (time < now - SMSG_BUCKET_LEN * 3) {
                     LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, in the past.\n", time);
-                    Misbehaving(pfrom->GetId(), 1);
+                    SmsgMisbehaving(pfrom, 1);
                     continue;
                  }
             }
@@ -1341,6 +1345,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             return SMSG_GENERAL_ERROR;
         }
 
+        if (pfrom->smsgData.m_num_want_sent >= MAX_WANT_SENT) {
+            LogPrint(BCLog::SMSG, "Too many messages already requested from peer: %d, %d.\n", pfrom->GetId(), pfrom->smsgData.m_num_want_sent);
+            return SMSG_NO_ERROR;
+        }
+
         std::vector<uint8_t> vchDataOut;
 
         {
@@ -1388,8 +1397,10 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         } // cs_smsg
 
         if (vchDataOut.size() > 8) {
+            size_t n_messages = (vchDataOut.size() - 8) / 16;
+            pfrom->smsgData.m_num_want_sent += n_messages;
             if (LogAcceptCategory(BCLog::SMSG)) {
-                LogPrintf("Asking peer for %u messages.\n", (vchDataOut.size() - 8) / 16);
+                LogPrintf("Asking peer for %u messages.\n", n_messages);
                 LogPrintf("Locking bucket %u for peer %d.\n", time, pfrom->GetId());
             }
             {
@@ -1443,18 +1454,18 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     token.offset = it->offset;
 
                     // Place in vchOne so if SecureMsgRetrieve fails it won't corrupt vchBunch
-                    if (Retrieve(token, vchOne) == SMSG_NO_ERROR) {
-                        nBunch++;
-                        vchBunch.insert(vchBunch.end(), vchOne.begin(), vchOne.end()); // append
-                    } else {
+                    if (Retrieve(token, vchOne) != SMSG_NO_ERROR) {
                         LogPrintf("SecureMsgRetrieve failed %d.\n", token.timestamp);
+                        continue;
                     }
 
-                    if (nBunch >= 500
-                        || vchBunch.size() >= 96000) {
+                    if (nBunch >= MAX_BUNCH_MESSAGES
+                        || vchBunch.size() + vchOne.size() >= MAX_BUNCH_BYTES) {
                         LogPrint(BCLog::SMSG, "Break bunch %u, %u.\n", nBunch, vchBunch.size());
                         break; // end here, peer will send more want messages if needed.
                     }
+                    nBunch++;
+                    vchBunch.insert(vchBunch.end(), vchOne.begin(), vchOne.end()); // append
                 }
                 p += 16;
             }
@@ -2745,11 +2756,11 @@ int CSMSG::SmsgMisbehaving(CNode *pfrom, uint8_t n)
 {
     LOCK(pfrom->smsgData.cs_smsg_net);
     pfrom->smsgData.misbehaving += n;
-    LogPrintf("SmsgMisbehaving peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.misbehaving);
+    LogPrintf("SmsgMisbehaving peer %d, %d.\n", pfrom->GetId(), pfrom->smsgData.misbehaving);
 
     if (pfrom->smsgData.misbehaving > 100) {
         pfrom->smsgData.misbehaving = 0;
-        pfrom->smsgData.ignoreUntil = GetTime() + SMSG_TIME_IGNORE;
+        pfrom->smsgData.ignoreUntil = GetTime() + SMSG_TIME_BAN;
         LogPrintf("Node is ignoring peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.ignoreUntil);
     }
 
@@ -2786,9 +2797,15 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
 
     std::map<int64_t, SecMsgBucket>::iterator itb;
 
-    if (nBunch == 0 || nBunch > 500) {
-        LogPrintf("Error: Invalid no. messages received in bunch %u, for bucket %d.\n", nBunch, bktTime);
-        Misbehaving(pfrom->GetId(), 1);
+    if (nBunch > pfrom->smsgData.m_num_want_sent) {
+        LogPrintf("Error: Received unsolicited message bunch from peer %d: %d, %d.\n", pfrom->GetId(), nBunch, pfrom->smsgData.m_num_want_sent);
+        SmsgMisbehaving(pfrom, 20);
+    }
+    pfrom->smsgData.m_num_want_sent -= nBunch;
+
+    if (nBunch == 0 || nBunch > MAX_BUNCH_MESSAGES || vchData.size() > MAX_BUNCH_BYTES) {
+        LogPrintf("Error: Invalid message bunch received for bucket %d: %d, %d.\n", bktTime, nBunch, vchData.size());
+        SmsgMisbehaving(pfrom, 20);
 
         {
             LOCK(cs_smsg);
