@@ -120,7 +120,6 @@ class SmsgTest(ParticlTestFramework):
         self.log.info('Test smsgsend without submitmsg')
         sendoptions = {'submitmsg': False}
         ro = nodes[1].smsgsend(address1, address0, 'Test 1->0 no network', False, 1, False, sendoptions)
-        print(ro)
         assert('Not Sent' in ro['result'])
         msg0_from1 = ro['msg']
         msg0_id = ro['msgid']

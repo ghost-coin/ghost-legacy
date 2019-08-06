@@ -47,6 +47,7 @@
 #include <validationinterface.h>
 #include <warnings.h>
 #include <smsg/smessage.h>
+#include <net.h>
 #include <pos/kernel.h>
 #include <anon.h>
 #include <rctindex.h>

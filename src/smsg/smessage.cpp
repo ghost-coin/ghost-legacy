@@ -40,6 +40,8 @@ Notes:
 #include <random.h>
 #include <chain.h>
 #include <netmessagemaker.h>
+#include <net.h>
+#include <streams.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/coincontrol.h>
@@ -562,7 +564,7 @@ int CSMSG::BuildBucketSet()
             }
 
             fclose(fp);
-            buckets[fileTime].hashBucket();
+            bucket.hashBucket();
             nTokenSetSize = tokenSet.size();
         } // cs_smsg
 
@@ -1341,8 +1343,9 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
         {
             LOCK(cs_smsg);
-            if (buckets[time].nLockCount > 0) {
-                LogPrint(BCLog::SMSG, "Bucket %d lock count %u, waiting for message data from peer %u.\n", time, buckets[time].nLockCount, buckets[time].nLockPeerId);
+            SecMsgBucket &bucket = buckets[time];
+            if (bucket.nLockCount > 0) {
+                LogPrint(BCLog::SMSG, "Bucket %d lock count %u, waiting for message data from peer %u.\n", time, bucket.nLockCount, bucket.nLockPeerId);
                 return SMSG_GENERAL_ERROR;
             }
 
@@ -1351,7 +1354,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             vchDataOut.resize(8);
             memcpy(&vchDataOut[0], &vchData[0], 8);
 
-            std::set<SecMsgToken> &tokenSet = buckets[time].setTokens;
+            std::set<SecMsgToken> &tokenSet = bucket.setTokens;
             SecMsgToken token;
             SecMsgPurged purgedToken;
             uint8_t *p = &vchData[8];
@@ -1381,23 +1384,20 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     memcpy(&vchDataOut[nd], p, 16);
                 }
             }
-        } // cs_smsg
 
-        if (vchDataOut.size() > 8) {
-            size_t n_messages = (vchDataOut.size() - 8) / 16;
-            pfrom->smsgData.m_num_want_sent += n_messages;
-            if (LogAcceptCategory(BCLog::SMSG)) {
-                LogPrintf("Asking peer for %u messages.\n", n_messages);
-                LogPrintf("Locking bucket %u for peer %d.\n", time, pfrom->GetId());
+            if (vchDataOut.size() > 8) {
+                size_t n_messages = (vchDataOut.size() - 8) / 16;
+                pfrom->smsgData.m_num_want_sent += n_messages;
+                if (LogAcceptCategory(BCLog::SMSG)) {
+                    LogPrintf("Asking peer for %u messages.\n", n_messages);
+                    LogPrintf("Locking bucket %u for peer %d.\n", time, pfrom->GetId());
+                }
+                bucket.nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
+                bucket.nLockPeerId  = pfrom->GetId();
+                g_connman->PushMessage(pfrom,
+                    CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgWant", vchDataOut));
             }
-            {
-                LOCK(cs_smsg);
-                buckets[time].nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
-                buckets[time].nLockPeerId  = pfrom->GetId();
-            }
-            g_connman->PushMessage(pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgWant", vchDataOut));
-        }
+        } // cs_smsg
     } else
     if (strCommand == "smsgWant") {
         std::vector<uint8_t> vchData;
@@ -2791,12 +2791,6 @@ int CSMSG::SmsgMisbehaving(CNode *pfrom, uint8_t n)
     }
 
     return 0;
-};
-
-void CSMSG::SmsgDecMisbehaving(CNode *pnode)
-{
-    LOCK(pnode->smsgData.cs_smsg_net);
-
 };
 
 int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
