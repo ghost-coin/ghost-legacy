@@ -21,8 +21,6 @@
 #include <ui_interface.h>
 #include <util/strencodings.h>
 
-#include <smsg/smessage.h>
-
 #ifdef WIN32
 #include <string.h>
 #else
@@ -2001,9 +1999,7 @@ void CConnman::ThreadMessageHandler()
             for (auto *pnode : vNodesCopy) {
                 DecMisbehaving(pnode->id, 1);
 
-                if (smsg::fSecMsgEnabled) {
-                    smsgModule.SmsgDecMisbehaving(pnode);
-                }
+                pnode->smsgData.DecSmsgMisbehaving();
             }
             nTimeNextBanReduced = nTimeNow + nTimeDecBanThreshold;
         }

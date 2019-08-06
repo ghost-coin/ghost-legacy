@@ -5,7 +5,7 @@
 #include <smsg/db.h>
 #include <smsg/smessage.h>
 #include <smsg/keystore.h>
-#include <serialize.h>
+#include <streams.h>
 #include <clientversion.h>
 
 #include <leveldb/db.h>

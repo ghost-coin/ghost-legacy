@@ -7,7 +7,6 @@
 #define PARTICL_SMSG_SMESSAGE_H
 
 #include <key_io.h>
-#include <net.h>
 #include <serialize.h>
 #include <ui_interface.h>
 #include <lz4/lz4.h>
@@ -17,6 +16,9 @@
 #include <boost/signals2/signal.hpp>
 
 class CWallet;
+class CNode;
+class CDataStream;
+typedef int64_t NodeId;
 
 namespace smsg {
 
@@ -426,7 +428,6 @@ public:
     int Remove(const SecMsgToken &token);
 
     int SmsgMisbehaving(CNode *pfrom, uint8_t n);
-    void SmsgDecMisbehaving(CNode *pnode);
     int Receive(CNode *pfrom, std::vector<uint8_t> &vchData);
 
     int CheckPurged(const SecureMessage *psmsg, const uint8_t *pPayload);

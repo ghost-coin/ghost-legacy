@@ -16,6 +16,7 @@
 #include <base58.h>
 #include <rpc/util.h>
 #include <validation.h>
+#include <timedata.h>
 
 #include <leveldb/db.h>
 

@@ -27,6 +27,10 @@ public:
     uint16_t m_num_want_sent = 0;
     bool fEnabled = false;
     std::map<int64_t, PeerBucket> m_buckets;
+
+    void DecSmsgMisbehaving() {
+        LOCK(cs_smsg_net);
+    }
 };
 
 #endif // PARTICL_SMSG_NET_H
