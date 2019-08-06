@@ -7,6 +7,14 @@
 
 #include <sync.h>
 
+class PeerBucket
+{
+public:
+    PeerBucket(uint32_t active, uint32_t hash) : m_active(active), m_hash(hash) {};
+    uint32_t m_active;
+    uint32_t m_hash;
+};
+
 class SecMsgNode
 {
 public:
@@ -18,6 +26,7 @@ public:
     uint16_t misbehaving = 0;
     uint16_t m_num_want_sent = 0;
     bool fEnabled = false;
+    std::map<int64_t, PeerBucket> m_buckets;
 };
 
 #endif // PARTICL_SMSG_NET_H

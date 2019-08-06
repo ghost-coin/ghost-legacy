@@ -79,6 +79,7 @@ uint32_t SMSG_RETENTION         = SMSG_MAX_PAID_TTL;
 const size_t MAX_BUNCH_MESSAGES = 500;
 const size_t MAX_BUNCH_BYTES = SMSG_MAX_MSG_BYTES_PAID * 4;
 const uint16_t MAX_WANT_SENT = 16000;
+const size_t SMSG_MAX_SHOW = 64;
 
 boost::thread_group threadGroupSmsg;
 
@@ -206,7 +207,7 @@ void ThreadSecureMsg()
 
                         if (it->second.nLockCount == 0) { // lock timed out
                             vTimedOutLocks.push_back(std::make_pair(it->first, it->second.nLockPeerId)); // g_connman->cs_vNodes
-                            it->second.nLockPeerId = 0;
+                            it->second.nLockPeerId = -1;
                         }
                     }
 
@@ -396,7 +397,8 @@ void AddOptions()
     gArgs.AddArg("-smsgscanincoming", "Scan incoming blocks for public key addresses. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
     gArgs.AddArg("-smsgnotify=<cmd>", "Execute command when a message is received. (%s in cmd is replaced by receiving address)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
     gArgs.AddArg("-smsgsaddnewkeys", "Scan for incoming messages on new wallet keys. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
-
+    gArgs.AddArg("-smsgbantime=<n>", strprintf("Number of seconds to ignore misbehaving peers for (default: %u)", SMSG_DEFAULT_BANTIME), ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
+    gArgs.AddArg("-smsgsregtestadjust", "Adjust durations in regtest (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
     return;
 };
 
@@ -829,7 +831,8 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain)
     if (fSecMsgEnabled) {
         return error("%s: Secure messaging is already started.", __func__);
     }
-    if (Params().NetworkIDString() == "regtest") {
+    if (Params().NetworkIDString() == "regtest" &&
+        gArgs.GetArg("-smsgsregtestadjust", true)) {
         SMSG_SECONDS_IN_HOUR    = 60 * 2; // seconds
         SMSG_BUCKET_LEN         = 60 * 2; // seconds
         SMSG_SECONDS_IN_DAY     = 600;
@@ -1146,24 +1149,18 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         memcpy(&nInvBuckets, &vchData[0], 4);
         LogPrint(BCLog::SMSG, "Remote node sent %d bucket headers, this has %d.\n", nInvBuckets, nBuckets);
 
-
         // Check no of buckets:
         if (nInvBuckets > (SMSG_RETENTION / SMSG_BUCKET_LEN) + 1) { // +1 for some leeway
             LogPrintf("Peer sent more bucket headers than possible %u, %u.\n", nInvBuckets, (SMSG_RETENTION / SMSG_BUCKET_LEN));
-            Misbehaving(pfrom->GetId(), 1);
+            SmsgMisbehaving(pfrom, 10);
             return SMSG_GENERAL_ERROR;
         }
 
         if (vchData.size() < 4 + nInvBuckets * 16) {
             LogPrintf("Remote node did not send enough data.\n");
-            Misbehaving(pfrom->GetId(), 1);
+            SmsgMisbehaving(pfrom, 10);
             return SMSG_GENERAL_ERROR;
         }
-
-        std::vector<uint8_t> vchDataOut;
-        vchDataOut.reserve(4 + 8 * nInvBuckets); // Reserve max possible size
-        vchDataOut.resize(4);
-        uint32_t nShowBuckets = 0;
 
         uint8_t *p = &vchData[4];
         for (uint32_t i = 0; i < nInvBuckets; ++i) {
@@ -1176,6 +1173,12 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             p += 16;
 
             // Check time valid:
+
+            if (time % SMSG_BUCKET_LEN) {
+                LogPrint(BCLog::SMSG, "Not a valid bucket time %d.\n", time);
+                SmsgMisbehaving(pfrom, 10);
+            }
+
             if (time < now - SMSG_RETENTION) {
                 LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, has expired.\n", time);
 
@@ -1203,51 +1206,36 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 continue;
             }
 
-            if (LogAcceptCategory(BCLog::SMSG)) {
-                LogPrintf("Peer bucket %d %u %u.\n", time, ncontent, hash);
-                LogPrintf("This bucket %d %u %u.\n", time, buckets[time].setTokens.size(), buckets[time].hash);
-            }
             {
                 LOCK(cs_smsg);
-                if (buckets[time].nLockCount > 0) {
-                    LogPrint(BCLog::SMSG, "Bucket is locked %u, waiting for peer %u to send data.\n", buckets[time].nLockCount, buckets[time].nLockPeerId);
+                const auto it_lb = buckets.find(time);
+                if (LogAcceptCategory(BCLog::SMSG)) {
+                    LogPrintf("Peer bucket %d %u %u.\n", time, ncontent, hash);
+                    if (it_lb != buckets.end()) {
+                        LogPrintf("This bucket %d %u %u.\n", time, it_lb->second.setTokens.size(), it_lb->second.hash);
+                    }
+                }
+
+                if (it_lb != buckets.end() && it_lb->second.nLockCount > 0) {
+                    LogPrint(BCLog::SMSG, "Bucket is locked %u, waiting for peer %u to send data.\n", it_lb->second.nLockCount, it_lb->second.nLockPeerId);
                     nLocked++;
                     continue;
                 }
 
                 // If this node has more than the peer node, peer node will pull from this
                 //  if then peer node has more this node will pull fom peer
-                if (buckets[time].nActive < ncontent
-                    || (buckets[time].nActive == ncontent
-                        && buckets[time].hash != hash)) { // if same amount in buckets check hash
-                    LogPrint(BCLog::SMSG, "Requesting contents of bucket %d.\n", time);
 
-                    uint32_t sz = vchDataOut.size();
-                    vchDataOut.resize(sz + 8);
-                    memcpy(&vchDataOut[sz], &time, 8);
-
-                    nShowBuckets++;
+                if (it_lb == buckets.end()
+                    || it_lb->second.nActive < ncontent
+                    || (it_lb->second.nActive == ncontent
+                        && it_lb->second.hash != hash)) { // if same amount in buckets check hash
+                        auto nv = PeerBucket(ncontent, hash);
+                        auto ret = pfrom->smsgData.m_buckets.insert(std::pair<int64_t, PeerBucket>(time, nv));
+                        if (!ret.second) {
+                            ret.first->second = nv;
+                        }
                 }
             } // cs_smsg
-        }
-
-        // TODO: should include hash?
-        memcpy(&vchDataOut[0], &nShowBuckets, 4);
-        if (vchDataOut.size() > 4) {
-            g_connman->PushMessage(pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgShow", vchDataOut));
-        } else
-        if (nLocked < 1) { // Don't report buckets as matched if any are locked
-            // Peer has no buckets we want, don't send them again until something changes
-            //  peer will still request buckets from this node if needed (< ncontent)
-            vchDataOut.resize(8);
-            memcpy(&vchDataOut[0], &now, 8);
-            g_connman->PushMessage(pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgMatch", vchDataOut));
-            LogPrint(BCLog::SMSG, "Sending smsgMatch, no locked buckets, time = %d.\n", now);
-        } else
-        if (nLocked >= 1) {
-            LogPrint(BCLog::SMSG, "%u buckets were locked, time = %d.\n", nLocked, now);
         }
     } else
     if (strCommand == "smsgShow") {
@@ -1609,7 +1597,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         std::map<int64_t, SecMsgBucket>::iterator it;
 
         uint32_t nBuckets = buckets.size();
-        if (nBuckets > 0) { // no need to send keep alive pkts, coin messages already do that
+        if (nBuckets > 0) {
             std::vector<uint8_t> vchData;
             vchData.reserve(4 + nBuckets*16); // timestamp + size + hash
 
@@ -1679,6 +1667,44 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                     CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgInv", vchData));
             }
         }
+
+        if (pto->smsgData.m_buckets.size() > 0) {
+            uint32_t nShowBuckets = 0;
+            std::vector<uint8_t> vchDataOut;
+            vchDataOut.reserve(4 + 8 * SMSG_MAX_SHOW); // Reserve max possible size
+            vchDataOut.resize(4);
+            for (auto it = pto->smsgData.m_buckets.begin(); it != pto->smsgData.m_buckets.end();) {
+                if (nShowBuckets >= SMSG_MAX_SHOW) {
+                     break;
+                }
+
+                PeerBucket &bkt = it->second;
+                const auto it_lb = buckets.find(it->first);
+
+                if (it_lb == buckets.end()
+                    || (it_lb->second.nLockPeerId < 0 || it_lb->second.nLockPeerId == pto->GetId())) {
+                    if (it_lb != buckets.end() &&
+                        (it_lb->second.nActive > bkt.m_active || (it_lb->second.nActive == bkt.m_active && it_lb->second.hash == bkt.m_hash))) {
+                        LogPrint(BCLog::SMSG, "Not requesting list of bucket %d.\n", it->first);
+                    } else {
+                        LogPrint(BCLog::SMSG, "Requesting list of bucket %d.\n", it->first);
+                        uint32_t sz = vchDataOut.size();
+                        vchDataOut.resize(sz + 8);
+                        memcpy(&vchDataOut[sz], &it->first, 8);
+                        nShowBuckets++;
+                    }
+                    pto->smsgData.m_buckets.erase(it++);
+                    continue;
+                }
+                ++it;
+            }
+
+            if (nShowBuckets > 0) {
+                memcpy(&vchDataOut[0], &nShowBuckets, 4);
+                g_connman->PushMessage(pto,
+                    CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgShow", vchDataOut));
+            }
+        }
     } // cs_smsg
 
     pto->smsgData.lastSeen = now;
@@ -1742,8 +1768,9 @@ static bool ScanBlock(CSMSG &smsg, const CBlock &block, SecMsgDB &addrpkdb,
     for (const auto &tx : block.vtx) {
         // Harvest public keys from coinstake txns
 
-        if (!tx->IsParticlVersion()) // skip legacy txns
+        if (!tx->IsParticlVersion()) {
             continue;
+        }
 
         for (const auto &txin : tx->vin) {
             if (txin.IsAnonInput()) {
@@ -2759,11 +2786,17 @@ int CSMSG::SmsgMisbehaving(CNode *pfrom, uint8_t n)
 
     if (pfrom->smsgData.misbehaving > 100) {
         pfrom->smsgData.misbehaving = 0;
-        pfrom->smsgData.ignoreUntil = GetTime() + SMSG_TIME_BAN;
+        pfrom->smsgData.ignoreUntil = GetTime() + gArgs.GetArg("-smsgbantime", SMSG_DEFAULT_BANTIME);
         LogPrintf("Node is ignoring peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.ignoreUntil);
     }
 
     return 0;
+};
+
+void CSMSG::SmsgDecMisbehaving(CNode *pnode)
+{
+    LOCK(pnode->smsgData.cs_smsg_net);
+
 };
 
 int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
@@ -2867,7 +2900,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         }
 
         itb->second.nLockCount  = 0; // This node has received data from peer, release lock
-        itb->second.nLockPeerId = 0;
+        itb->second.nLockPeerId = -1;
         itb->second.hashBucket();
     } // cs_smsg
 
