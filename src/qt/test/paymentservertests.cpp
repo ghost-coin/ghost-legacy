@@ -18,6 +18,7 @@
 #include <key/stealth.h>
 #include <key/extkey.h>
 
+#include <openssl/ssl.h>
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
 
@@ -70,6 +71,7 @@ void PaymentServerTests::paymentServerTests()
 {
     return; // skip tests
 
+    SSL_library_init();
     BasicTestingSetup testing_setup(CBaseChainParams::MAIN);
     auto node = interfaces::MakeNode();
     OptionsModel optionsModel(*node);
