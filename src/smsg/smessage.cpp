@@ -401,6 +401,7 @@ void AddOptions()
     gArgs.AddArg("-smsgnotify=<cmd>", _("Execute command when a message is received. (%s in cmd is replaced by receiving address)"), false, OptionsCategory::SMSG);
     gArgs.AddArg("-smsgsaddnewkeys", _("Scan for incoming messages on new wallet keys. (default: false)"), false, OptionsCategory::SMSG);
     gArgs.AddArg("-smsgbantime=<n>", strprintf("Number of seconds to ignore misbehaving peers for (default: %u)", SMSG_DEFAULT_BANTIME), false, OptionsCategory::SMSG);
+    gArgs.AddArg("-smsgmaxreceive=<n>", strprintf("Max number of data messages to tolerate from peers, counter decreases over time (default: %u)", SMSG_DEFAULT_MAXRCV), false, OptionsCategory::SMSG);
     gArgs.AddArg("-smsgsregtestadjust", "Adjust durations in regtest (default: true)", false, OptionsCategory::HIDDEN);
     return;
 };
@@ -846,6 +847,8 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain)
         LogPrintf("Adjusted SMSG_SECONDS_IN_DAY to %d for regtest.\n", SMSG_SECONDS_IN_DAY);
     }
 
+    m_smsg_max_receive_count = gArgs.GetArg("-smsgmaxreceive", SMSG_DEFAULT_MAXRCV);
+
     SetActiveWallet(pwalletIn);
 
     fSecMsgEnabled = true;
@@ -1101,8 +1104,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             (1) In response to
         + smsgPing = ping request
         + smsgPong = pong response
-        + smsgMatch =
-            Obsolete, it used tell a node up to which time their messages were synced in response to smsg, but this is overhead because we know exactly when we sent them
     */
 
     if (LogAcceptCategory(BCLog::SMSG)) {
@@ -1117,7 +1118,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     }
 
     if (!fSecMsgEnabled) {
-        if (strCommand == "smsgPing") { // ignore smsgPing
+        if (strCommand == "smsgPing") { // Ignore smsgPing
             return SMSG_NO_ERROR;
         }
         return SMSG_UNKNOWN_MESSAGE;
@@ -1131,9 +1132,24 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     {
         LOCK(pfrom->smsgData.cs_smsg_net);
 
+        if (pfrom->smsgData.m_receive_counter < m_smsg_max_receive_count) {
+            pfrom->smsgData.m_receive_counter++;
+        }
+
         if (now < pfrom->smsgData.ignoreUntil) {
             LogPrint(BCLog::SMSG, "Node is ignoring peer %d until %d.\n", pfrom->GetId(), pfrom->smsgData.ignoreUntil);
             return SMSG_GENERAL_ERROR;
+        }
+
+        if (pfrom->smsgData.m_receive_counter >= m_smsg_max_receive_count) {
+            LogPrintf("Peer %d exceeded rate limit.\n", pfrom->GetId());
+            pfrom->smsgData.m_ignored_counter += 1;
+            // Try ignore peer for short periods before banning from smsg
+            if (pfrom->smsgData.m_ignored_counter < 5) {
+                pfrom->smsgData.ignoreUntil = GetTime() + SMSG_TIME_IGNORE;
+            } else {
+                SmsgMisbehaving(pfrom, 100);
+            }
         }
     }
 
@@ -1475,37 +1491,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         LogPrint(BCLog::SMSG, "smsgMsg vchData.size() %u.\n", vchData.size());
 
         Receive(pfrom, vchData);
-    } else
-    if (strCommand == "smsgMatch") {
-        /*
-        Basically all this code has to go..
-        For now we can use it to punish nodes running the older version, not that it's really need because the overhead is small.
-        TODO: remove this code.
-        */
-        std::vector<uint8_t> vchData;
-        vRecv >> vchData;
-
-        if (vchData.size() < 8) {
-            LogPrintf("smsgMatch, not enough data %u.\n", vchData.size());
-            Misbehaving(pfrom->GetId(), 1);
-            return SMSG_GENERAL_ERROR;
-        }
-
-        int64_t time;
-        memcpy(&time, &vchData[0], 8);
-
-        int64_t now = GetAdjustedTime();
-        if (time > now + SMSG_TIME_LEEWAY) {
-            LogPrintf("Warning: Peer buckets matched in the future: %d.\nEither this node or the peer node has the incorrect time set.\n", time);
-            LogPrint(BCLog::SMSG, "Peer match time set to now.\n");
-            time = now;
-        }
-        /*
-        {
-            LOCK(pfrom->smsgData.cs_smsg_net);
-            pfrom->smsgData.lastMatched = time;
-        }*/
-        LogPrint(BCLog::SMSG, "Peer buckets matched in smsgWant at %d.\n", time);
     } else
     if (strCommand == "smsgPing") {
         // smsgPing is the initial message, send reply

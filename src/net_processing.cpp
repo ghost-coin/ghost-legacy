@@ -1057,7 +1057,6 @@ int GetNumDOSStates()
     return map_dos_state.size();
 }
 
-
 void ClearDOSStates()
 {
     map_dos_state.clear();
