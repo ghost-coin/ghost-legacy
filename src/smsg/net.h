@@ -7,6 +7,8 @@
 
 #include <sync.h>
 
+const uint32_t SMSG_RCVCOUNT_REDUCE = 200;
+
 class PeerBucket
 {
 public:
@@ -25,11 +27,18 @@ public:
     uint32_t nWakeCounter = 0;
     uint16_t misbehaving = 0;
     uint16_t m_num_want_sent = 0;
+    uint16_t m_receive_counter = 0;
+    uint16_t m_ignored_counter = 0;
     bool fEnabled = false;
     std::map<int64_t, PeerBucket> m_buckets;
 
     void DecSmsgMisbehaving() {
         LOCK(cs_smsg_net);
+        if (m_receive_counter < SMSG_RCVCOUNT_REDUCE) {
+            m_receive_counter = 0;
+        } else {
+            m_receive_counter -= SMSG_RCVCOUNT_REDUCE;
+        }
     }
 };
 

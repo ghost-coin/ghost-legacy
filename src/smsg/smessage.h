@@ -77,7 +77,7 @@ const uint32_t SMSG_THREAD_LOG_GAP = 6;
 const uint32_t SMSG_TIME_LEEWAY    = 24;
 const uint32_t SMSG_TIME_IGNORE    = 90;                // seconds a peer is ignored for if they fail to deliver messages for a smsgWant
 const uint32_t SMSG_DEFAULT_BANTIME = 8 * 60 * 60;
-
+const uint32_t SMSG_DEFAULT_MAXRCV = 4000;
 
 const uint32_t SMSG_MAX_MSG_BYTES  = 24000;             // the user input part
 const uint32_t SMSG_MAX_AMSG_BYTES = 512;               // the user input part (ANON)
@@ -478,6 +478,7 @@ public:
     int64_t start_time = 0;
     int64_t nLastProcessedPurged = 0;
     CAmount m_absurd_smsg_fee = 500 * COIN;
+    uint16_t m_smsg_max_receive_count = SMSG_DEFAULT_MAXRCV;
 };
 
 double GetDifficulty(uint32_t compact);
