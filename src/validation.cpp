@@ -4838,7 +4838,7 @@ bool CChainState::AcceptBlockHeader(const CBlockHeader& block, CValidationState&
             // Block header is already known.
             if (fParticlMode && !fRequested && !IsInitialBlockDownload() && state.nodeId >= 0
                 && !IncDuplicateHeaders(state.nodeId)) {
-                return state.DoS(5, error("%s: DoS limits, too many duplicates", __func__), REJECT_INVALID, "dos-limits");
+                Misbehaving(state.nodeId, 5, "Too many duplicates");
             }
 
             pindex = miSelf->second;

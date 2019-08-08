@@ -231,7 +231,7 @@ class DoSTest(ParticlTestFramework):
         found_dos_line = False
         with open(log_path, 'r', encoding='utf8') as fp:
             for line in fp:
-                if line.find('DoS limits, too many duplicate') > -1:
+                if line.find('Too many duplicates') > -1:
                     found_dos_line = True
                     self.log.info('Found line in log: ' + line)
                     break
