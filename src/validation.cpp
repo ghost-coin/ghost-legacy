@@ -4743,7 +4743,7 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, CValidationState
             // Block header is already known.
             if (fParticlMode && !fRequested && !::ChainstateActive().IsInitialBlockDownload() && state.nodeId >= 0
                 && !IncDuplicateHeaders(state.nodeId)) {
-                return state.Invalid(ValidationInvalidReason::DOS_5, error("%s: DoS limits, too many duplicates", __func__), REJECT_INVALID, "dos-limits");
+                Misbehaving(state.nodeId, 5, "Too many duplicates");
             }
 
             pindex = miSelf->second;
