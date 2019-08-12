@@ -101,7 +101,8 @@ std::string SecMsgToken::ToString() const
 
 void SecMsgBucket::hashBucket()
 {
-    void *state = XXH32_init(1);
+    XXH32_state_t *state = XXH32_createState();
+    XXH32_reset(state, 1);
 
     int64_t now = GetAdjustedTime();
 
@@ -120,6 +121,7 @@ void SecMsgBucket::hashBucket()
     }
 
     uint32_t hash_new = XXH32_digest(state);
+    XXH32_freeState(state);
 
     if (hash != hash_new) {
         LogPrint(BCLog::SMSG, "Bucket hash updated from %u to %u.\n", hash, hash_new);

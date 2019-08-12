@@ -6,10 +6,10 @@
 
 #include <test/setup_common.h>
 #include <net.h>
-
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
 #endif
+#include <xxhash/xxhash.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -20,6 +20,16 @@ struct SmsgTestingSetup : public TestingSetup {
 BOOST_FIXTURE_TEST_SUITE(smsg_tests, SmsgTestingSetup)
 
 const std::string sTestMessage = "A short test message 0123456789 !@#$%^&*()_+-=";
+
+BOOST_AUTO_TEST_CASE(smsg_test_xxhash)
+{
+    XXH32_state_t *state = XXH32_createState();
+    XXH32_reset(state, 1);
+    XXH32_update(state, sTestMessage.data(), sTestMessage.length());
+    uint32_t hash_new = XXH32_digest(state);
+    BOOST_CHECK(hash_new == 474992878);
+    XXH32_freeState(state);
+}
 
 BOOST_AUTO_TEST_CASE(smsg_test_ckeyId_inits_null)
 {
