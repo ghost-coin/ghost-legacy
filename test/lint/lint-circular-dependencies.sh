@@ -53,6 +53,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "key/extkey -> key_io -> script/standard -> key/extkey"
     "key/stealth -> key_io -> script/standard -> key/stealth"
     "init -> usbdevice/rpcusbdevice -> wallet/rpcwallet -> init"
+    "anon -> validation -> policy/fees -> anon"
 )
 
 EXIT_CODE=0

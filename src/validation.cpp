@@ -805,8 +805,9 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
 
             for (unsigned int j = 0; j < tx.vin.size(); j++)
             {
-                if (tx.vin[j].IsAnonInput())
+                if (tx.vin[j].IsAnonInput()) {
                     continue;
+                }
                 // We don't want to accept replacements that require low
                 // feerate junk to be mined first. Ideally we'd keep track of
                 // the ancestor feerates and make the decision based on that,
