@@ -26,7 +26,7 @@ static void BlockToJsonVerbose(benchmark::State& state) {
     blockindex.nBits = 403014710;
 
     while (state.KeepRunning()) {
-        (void)blockToJSON(block, &blockindex, &blockindex, /*verbose*/ true);
+        (void)blockToJSON(block, &blockindex, &blockindex, /*verbose*/ true, false);
     }
 }
 

@@ -23,6 +23,10 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
     uint256 &hashProofOfStake, uint256 &targetProofOfStake,
     bool fPrintProofOfStake=false);
 
+/**
+ * Get kernel hash and value for blockindex and coinstake tx
+ */
+bool GetKernelInfo(const CBlockIndex *blockindex, const CTransaction &tx, uint256 &hash, CAmount &value, CScript &script, uint256 &blockhash);
 
 /**
  * Check kernel hash target and coinstake signature

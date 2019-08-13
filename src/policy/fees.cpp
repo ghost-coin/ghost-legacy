@@ -528,7 +528,7 @@ bool GetFeeRate(const CTxMemPoolEntry *entry, CFeeRate &feeRate)
         if (pScriptPubKey && pScriptPubKey->size() >= 1 && *pScriptPubKey->begin() == OP_RETURN) {
             LogPrint(BCLog::ESTIMATEFEE, "Tx %s may be a destruction tx.\n",
                  tx.GetHash().ToString().c_str());
-        return false;
+            return false;
         }
     }
 
@@ -541,6 +541,7 @@ bool GetFeeRate(const CTxMemPoolEntry *entry, CFeeRate &feeRate)
                  tx.GetHash().ToString().c_str());
         return false;
     }
+
     feeRate = CFeeRate(tx_fee - smsg_fees, entry->GetTxSize());
     return true;
 }

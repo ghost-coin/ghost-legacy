@@ -34,6 +34,8 @@
 #include <versionbitsinfo.h>
 #include <warnings.h>
 
+#include <pos/kernel.h>
+
 #include <assert.h>
 #include <stdint.h>
 
@@ -119,7 +121,7 @@ UniValue blockheaderToJSON(const CBlockIndex* tip, const CBlockIndex* blockindex
     return result;
 }
 
-UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIndex* blockindex, bool txDetails)
+UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIndex* blockindex, bool txDetails, bool coinstakeDetails)
 {
     // Serialize passed information without accessing chain state of the active chain!
     AssertLockNotHeld(cs_main); // For performance reasons
@@ -162,8 +164,17 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
         result.pushKV("previousblockhash", blockindex->pprev->GetBlockHash().GetHex());
     if (pnext)
         result.pushKV("nextblockhash", pnext->GetBlockHash().GetHex());
-    if (txDetails) { // verbosity >= 2
+    if (coinstakeDetails && blockindex->pprev) {
         result.pushKV("blocksig", HexStr(block.vchBlockSig));
+        result.pushKV("prevstakemodifier", blockindex->pprev->bnStakeModifier.GetHex());
+        uint256 kernelhash, kernelblockhash;
+        CAmount kernelvalue;
+        CScript kernelscript;
+        GetKernelInfo(blockindex, *block.vtx[0], kernelhash, kernelvalue, kernelscript, kernelblockhash);
+        result.pushKV("hashproofofstake", kernelhash.GetHex());
+        result.pushKV("stakekernelvalue", ValueFromAmount(kernelvalue));
+        result.pushKV("stakekernelscript", HexStr(kernelscript.begin(), kernelscript.end()));
+        result.pushKV("stakekernelblockhash", kernelblockhash.GetHex());
     }
     return result;
 }
@@ -831,6 +842,7 @@ static UniValue getblock(const JSONRPCRequest& request)
                 {
                     {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The block hash"},
                     {"verbosity", RPCArg::Type::NUM, /* default */ "1", "0 for hex-encoded data, 1 for a json object, and 2 for json object with transaction data"},
+                    {"coinstakeinfo", RPCArg::Type::BOOL, /* default */ "false", "Display more Proof of Stake info"},
                 },
                 {
                     RPCResult{"for verbosity = 0",
@@ -890,6 +902,8 @@ static UniValue getblock(const JSONRPCRequest& request)
             verbosity = request.params[1].get_bool() ? 1 : 0;
     }
 
+    bool with_coinstakeinfo = !request.params[2].isNull() ? request.params[2].get_bool() : false;
+
     CBlock block;
     const CBlockIndex* pblockindex;
     const CBlockIndex* tip;
@@ -913,7 +927,7 @@ static UniValue getblock(const JSONRPCRequest& request)
         return strHex;
     }
 
-    return blockToJSON(block, tip, pblockindex, verbosity >= 2);
+    return blockToJSON(block, tip, pblockindex, verbosity >= 2, with_coinstakeinfo);
 }
 
 struct CCoinsStats
@@ -2365,7 +2379,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "getblockstats",          &getblockstats,          {"hash_or_height", "stats"} },
     { "blockchain",         "getbestblockhash",       &getbestblockhash,       {} },
     { "blockchain",         "getblockcount",          &getblockcount,          {} },
-    { "blockchain",         "getblock",               &getblock,               {"blockhash","verbosity"} },
+    { "blockchain",         "getblock",               &getblock,               {"blockhash","verbosity","coinstakeinfo"} },
     { "blockchain",         "getblockhash",           &getblockhash,           {"height"} },
     { "blockchain",         "getblockheader",         &getblockheader,         {"blockhash","verbose"} },
     { "blockchain",         "getchaintips",           &getchaintips,           {} },

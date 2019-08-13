@@ -85,7 +85,7 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
 
     targetProofOfStake = ArithToUint256(bnTarget);
 
-    uint256 bnStakeModifier = pindexPrev->bnStakeModifier;
+    const uint256 &bnStakeModifier = pindexPrev->bnStakeModifier;
     int nStakeModifierHeight = pindexPrev->nHeight;
     int64_t nStakeModifierTime = pindexPrev->nTime;
 
@@ -120,6 +120,40 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
 
     return true;
 }
+
+bool GetKernelInfo(const CBlockIndex *blockindex, const CTransaction &tx, uint256 &hash, CAmount &value, CScript &script, uint256 &blockhash)
+{
+    if (!blockindex->pprev) {
+        return false;
+    }
+    if (tx.vin.size() < 1) {
+        return false;
+    }
+    const COutPoint &prevout = tx.vin[0].prevout;
+    CTransactionRef txPrev;
+    CBlock blockKernel; // block containing stake kernel, GetTransaction should only fill the header.
+    if (!GetTransaction(prevout.hash, txPrev, Params().GetConsensus(), blockKernel)
+        || prevout.n >= txPrev->vpout.size()) {
+        return false;
+    }
+    const CTxOutBase *outPrev = txPrev->vpout[prevout.n].get();
+    if (!outPrev->IsStandardOutput()) {
+        return false;
+    }
+    value = outPrev->GetValue();
+    script = *outPrev->GetPScriptPubKey();
+    blockhash = blockKernel.GetHash();
+
+    uint32_t nBlockFromTime = blockKernel.nTime;
+    uint32_t nTime = blockindex->nTime;
+
+    CDataStream ss(SER_GETHASH, 0);
+    ss << blockindex->pprev->bnStakeModifier;
+    ss << nBlockFromTime << prevout.hash << prevout.n << nTime;
+    hash = Hash(ss.begin(), ss.end());
+
+    return true;
+};
 
 bool IsConfirmedInNPrevBlocks(const uint256 &hashBlock, const CBlockIndex *pindexFrom, int nMaxDepth, int &nActualDepth)
 {
