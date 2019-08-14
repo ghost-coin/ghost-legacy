@@ -125,7 +125,7 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
 
     wtx.BindWallet(pwallet);
     std::string err_string;
-    BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(err_string, true));
+    BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain));
     } // cs_main
     SyncWithValidationInterfaceQueue();
 }

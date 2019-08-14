@@ -8475,7 +8475,7 @@ bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::
             // Broadcast
             wtxNew.BindWallet(this);
             std::string err_string;
-            if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true)) {
+            if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain)) {
                 WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", err_string);
                 // TODO: if we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
             }
@@ -8501,7 +8501,7 @@ bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx, CV
             // Broadcast
             wtxNew.BindWallet(this);
             std::string err_string;
-            if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true)) {
+            if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain)) {
                 WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", err_string);
                 // TODO: if we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
             }
@@ -10525,7 +10525,7 @@ std::vector<uint256> CHDWallet::ResendRecordTransactionsBefore(interfaces::Chain
 
         if (twi != mapTempWallet.end()) {
             std::string unused_err_string;
-            if (twi->second.SubmitMemoryPoolAndRelay(unused_err_string, true)) {
+            if (twi->second.SubmitMemoryPoolAndRelay(unused_err_string, true, locked_chain)) {
                 result.push_back(txhash);
             }
         }
@@ -10564,7 +10564,7 @@ void CHDWallet::ResendWalletTransactions()
             // last block was found
             if (wtx.nTimeReceived > m_best_block_time - 5 * 60) continue;
             std::string unused_err_string;
-            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true)) ++relayed_tx_count;
+            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true, *locked_chain)) ++relayed_tx_count;
         }
 
         std::vector<uint256> relayed_records = ResendRecordTransactionsBefore(*locked_chain, m_best_block_time - 5 * 60);
