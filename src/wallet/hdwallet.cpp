@@ -10342,18 +10342,13 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
             // Lookup 1st input to set type
             Coin coin;
             const auto &prevout0 = tx.vin[0].prevout;
-            if (pcoinsdbview->GetCoin(prevout0, coin)) {
-                if (coin.nType == OUTPUT_CT) {
+            uint256 hashBlock;
+            CTransactionRef txPrev;
+            // ::ChainstateActive().CoinsTip().GetCoin(prevout0, coin) requires cs_main
+            if (GetTransaction(prevout0.hash, txPrev, Params().GetConsensus(), hashBlock)) {
+                if (txPrev->vpout.size() > prevout0.n
+                    && txPrev->vpout[prevout0.n]->IsType(OUTPUT_CT)) {
                     rtx.nFlags |= ORF_BLIND_IN;
-                }
-            } else {
-                uint256 hashBlock;
-                CTransactionRef txPrev;
-                if (GetTransaction(prevout0.hash, txPrev, Params().GetConsensus(), hashBlock)) {
-                    if (txPrev->vpout.size() > prevout0.n
-                        && txPrev->vpout[prevout0.n]->IsType(OUTPUT_CT)) {
-                        rtx.nFlags |= ORF_BLIND_IN;
-                    }
                 }
             }
         }

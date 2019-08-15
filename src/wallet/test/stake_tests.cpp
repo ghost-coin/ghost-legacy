@@ -199,9 +199,12 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     const CTxIn &txin = block.vtx[0]->vin[0];
 
-    CCoinsViewCache view(pcoinsTip.get());
+    {
+    LOCK(cs_main);
+    CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
     const Coin &coin = view.AccessCoin(txin.prevout);
     BOOST_REQUIRE(coin.IsSpent());
+
 
     DisconnectTip(block, pindexDelete, view, chainparams);
 
@@ -209,6 +212,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     const Coin &coin2 = view.AccessCoin(txin.prevout);
     BOOST_REQUIRE(!coin2.IsSpent());
+    }
 
     BOOST_CHECK(::ChainActive().Height() == pindexDelete->nHeight - 1);
     BOOST_CHECK(::ChainActive().Tip()->GetBlockHash() == pindexDelete->pprev->GetBlockHash());
@@ -221,7 +225,8 @@ BOOST_AUTO_TEST_CASE(stake_test)
         std::shared_ptr<const CBlock> pblock = std::make_shared<const CBlock>(block);
         BOOST_REQUIRE(ActivateBestChain(state, chainparams, pblock));
 
-        CCoinsViewCache view(pcoinsTip.get());
+        LOCK(cs_main);
+        CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
         const Coin &coin = view.AccessCoin(txin.prevout);
         BOOST_REQUIRE(coin.IsSpent());
         BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000079274);
@@ -277,8 +282,11 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CBlock block;
         BOOST_REQUIRE(ReadBlockFromDisk(block, pindexDelete, chainparams.GetConsensus()));
 
-        CCoinsViewCache view(pcoinsTip.get());
+        {
+        LOCK(cs_main);
+        CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
         DisconnectTip(block, pindexDelete, view, chainparams);
+        }
 
 
         BOOST_CHECK(prevTipHash == ::ChainActive().Tip()->GetBlockHash());
@@ -292,7 +300,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
             BOOST_CHECK(Params().GetCoinYearReward(0) == 1 * CENT);
 
             CValidationState state;
-            CCoinsViewCache view(pcoinsTip.get());
+            CCoinsViewCache view(&::ChainstateActive().CoinsTip());
             BOOST_REQUIRE(false == ConnectBlock(block, state, pindexDelete, view, chainparams, false));
 
             BOOST_CHECK(state.IsInvalid());
@@ -305,7 +313,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
             // block should connect now
             CValidationState clearstate;
-            CCoinsViewCache clearview(pcoinsTip.get());
+            CCoinsViewCache &clearview = ::ChainstateActive().CoinsTip();
             BOOST_REQUIRE(ConnectBlock(block, clearstate, pindexDelete, clearview, chainparams, false));
 
             BOOST_CHECK(!clearstate.IsInvalid());
@@ -341,6 +349,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 4);
 
         for (size_t i = 0; i < 2; ++i) {
+            LOCK(cs_main);
             // Disconnect last block
             uint256 prevTipHash = ::ChainActive().Tip()->pprev->GetBlockHash();
             CBlockIndex *pindexDelete = ::ChainActive().Tip();
@@ -349,7 +358,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
             CBlock block;
             BOOST_REQUIRE(ReadBlockFromDisk(block, pindexDelete, chainparams.GetConsensus()));
 
-            CCoinsViewCache view(pcoinsTip.get());
+            CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
             DisconnectTip(block, pindexDelete, view, chainparams);
 
             BOOST_CHECK(prevTipHash == ::ChainActive().Tip()->GetBlockHash());

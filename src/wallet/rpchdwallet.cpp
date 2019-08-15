@@ -7724,7 +7724,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
     CCoinsViewCache view(&viewDummy);
     {
         LOCK2(cs_main, mempool.cs);
-        CCoinsViewCache &viewChain = *pcoinsTip;
+        CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
         CCoinsViewMemPool viewMempool(&viewChain, mempool);
         view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
 
@@ -7977,7 +7977,7 @@ static UniValue rewindchain(const JSONRPCRequest &request)
 
     UniValue result(UniValue::VOBJ);
 
-    CCoinsViewCache view(pcoinsTip.get());
+    CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
     view.fForceDisconnect = true;
     CBlockIndex* pindexState = ::ChainActive().Tip();
     CValidationState state;

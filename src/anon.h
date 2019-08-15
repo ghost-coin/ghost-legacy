@@ -5,9 +5,12 @@
 #ifndef PARTICL_ANON_H
 #define PARTICL_ANON_H
 
+#include <primitives/transaction.h>
+#include <sync.h>
+
 #include <stdint.h>
 
-#include <primitives/transaction.h>
+extern RecursiveMutex cs_main;
 
 class CTxMemPool;
 class CValidationState;
@@ -23,7 +26,6 @@ const size_t DEFAULT_RING_SIZE = 5;
 const size_t DEFAULT_INPUTS_PER_SIG = 1;
 
 
-
 bool VerifyMLSAG(const CTransaction &tx, CValidationState &state);
 
 bool AddKeyImagesToMempool(const CTransaction &tx, CTxMemPool &pool);
@@ -33,7 +35,7 @@ bool AllAnonOutputsUnknown(const CTransaction &tx, CValidationState &state);
 
 bool RollBackRCTIndex(int64_t nLastValidRCTOutput, int64_t nExpectErase, std::set<CCmpPubKey> &setKi);
 
-bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError);
+bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 bool RewindRangeProof(const std::vector<uint8_t> &rangeproof, const std::vector<uint8_t> &commitment, const uint256 &nonce,
                       std::vector<uint8_t> &blind_out, CAmount &value_out);

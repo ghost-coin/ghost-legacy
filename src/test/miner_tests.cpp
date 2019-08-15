@@ -377,7 +377,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
         CBlockIndex* prev = ::ChainActive().Tip();
         CBlockIndex* next = new CBlockIndex();
         next->phashBlock = new uint256(InsecureRand256());
-        pcoinsTip->SetBestBlock(next->GetBlockHash(), prev->nHeight + 1);
+        ::ChainstateActive().CoinsTip().SetBestBlock(next->GetBlockHash(), prev->nHeight + 1);
         next->pprev = prev;
         next->nHeight = prev->nHeight + 1;
         next->BuildSkip();
@@ -389,7 +389,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
         CBlockIndex* prev = ::ChainActive().Tip();
         CBlockIndex* next = new CBlockIndex();
         next->phashBlock = new uint256(InsecureRand256());
-        pcoinsTip->SetBestBlock(next->GetBlockHash(), prev->nHeight + 1);
+        ::ChainstateActive().CoinsTip().SetBestBlock(next->GetBlockHash(), prev->nHeight + 1);
         next->pprev = prev;
         next->nHeight = prev->nHeight + 1;
         next->BuildSkip();
@@ -419,7 +419,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     while (::ChainActive().Tip()->nHeight > nHeight) {
         CBlockIndex* del = ::ChainActive().Tip();
         ::ChainActive().SetTip(del->pprev);
-        pcoinsTip->SetBestBlock(del->pprev->GetBlockHash(), del->pprev->nHeight);
+        ::ChainstateActive().CoinsTip().SetBestBlock(del->pprev->GetBlockHash(), del->pprev->nHeight);
         delete del->phashBlock;
         delete del;
     }

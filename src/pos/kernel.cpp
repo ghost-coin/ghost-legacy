@@ -260,7 +260,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
     CAmount amount;
 
     Coin coin;
-    if (!pcoinsTip->GetCoin(txin.prevout, coin) || coin.IsSpent()) {
+    if (!::ChainstateActive().CoinsTip().GetCoin(txin.prevout, coin) || coin.IsSpent()) {
         // Find the prevout in the txdb / blocks
 
         CBlock blockKernel; // block containing stake kernel, GetTransaction should only fill the header.
@@ -341,7 +341,7 @@ bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, c
         for (size_t k = 1; k < tx.vin.size(); ++k) {
             const CTxIn &txin = tx.vin[k];
             Coin coin;
-            if (!pcoinsTip->GetCoin(txin.prevout, coin) || coin.IsSpent()) {
+            if (!::ChainstateActive().CoinsTip().GetCoin(txin.prevout, coin) || coin.IsSpent()) {
                 if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), hashBlock)
                     || txin.prevout.n >= txPrev->vpout.size()) {
                     return state.Invalid(ValidationInvalidReason::DOS_1, error("%s: prevout-not-in-chain %d", __func__, k), REJECT_INVALID, "prevout-not-in-chain");
@@ -405,25 +405,33 @@ bool CheckKernel(const CBlockIndex *pindexPrev, unsigned int nBits, int64_t nTim
     uint256 hashProofOfStake, targetProofOfStake;
 
     Coin coin;
-    if (!pcoinsTip->GetCoin(prevout, coin))
-        return error("%s: prevout not found", __func__);
-    if (coin.nType != OUTPUT_STANDARD)
+    {
+        LOCK(::cs_main);
+        if (!::ChainstateActive().CoinsTip().GetCoin(prevout, coin)) {
+            return error("%s: prevout not found", __func__);
+        }
+    }
+    if (coin.nType != OUTPUT_STANDARD) {
         return error("%s: prevout not standard output", __func__);
-    if (coin.IsSpent())
+    }
+    if (coin.IsSpent()) {
         return error("%s: prevout is spent", __func__);
+    }
 
     CBlockIndex *pindex = ::ChainActive()[coin.nHeight];
-    if (!pindex)
+    if (!pindex) {
         return false;
+    }
 
     int nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(pindexPrev->nHeight / 2));
     int nDepth = pindexPrev->nHeight - coin.nHeight;
 
-    if (nRequiredDepth > nDepth)
+    if (nRequiredDepth > nDepth) {
         return false;
-
-    if (pBlockTime)
+    }
+    if (pBlockTime) {
         *pBlockTime = pindex->GetBlockTime();
+    }
 
     CAmount amount = coin.out.nValue;
     return CheckStakeKernelHash(pindexPrev, nBits, *pBlockTime,

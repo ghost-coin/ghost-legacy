@@ -334,7 +334,7 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
     int64_t nLastRCTOutput = 0;
 
     const CChainParams& chainparams = Params();
-    CCoinsViewCache view(pcoinsTip.get());
+    CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
     view.fForceDisconnect = true;
     CValidationState state;
 
