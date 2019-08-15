@@ -51,4 +51,3 @@ task:
     - ccache --max-size=${CCACHE_SIZE}
   ci_script:
     - ./ci/test_run_all.sh
->>>>>>> bitcoin
