@@ -93,6 +93,22 @@ class SegwitScriptsTest(ParticlTestFramework):
         assert(walletinfo['balance'] == 21.0)
         assert(walletinfo['unconfirmed_balance'] == 0.0)
 
+        self.log.info('Test p2wpkh changeaddress')
+        addr_p2wpkh = nodes[1].getnewaddress('p2wpkh change addr', False, False, False, 'bech32')
+        assert(addr_p2wpkh.startswith('rtpw1'))
+        rv = nodes[1].walletsettings('changeaddress', {'address_standard': addr_p2wpkh})
+        assert(rv['changeaddress']['address_standard'] == addr_p2wpkh)
+        txid = nodes[1].sendtoaddress(ms_standard['address'], 7)
+        wtx = nodes[1].gettransaction(txid)
+        # addr_p2wpkh was derived from the external chain and won't be seen as change.
+        assert(len(wtx['details']) == 3)
+        addrs = set()
+        for i in range(3):
+            addrs.add(wtx['details'][i]['address'])
+        assert(len(addrs) == 2)
+        assert(ms_standard['address'] in addrs)
+        assert(addr_p2wpkh in addrs)
+
 
 if __name__ == '__main__':
     SegwitScriptsTest().main()

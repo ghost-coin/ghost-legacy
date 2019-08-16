@@ -3464,7 +3464,7 @@ static bool ExpandChangeAddress(CHDWallet *phdw, CTempRecipient &r, std::string 
             }
         }
         return true;
-    };
+    }
 
     if (r.address.type() == typeid(CExtKeyPair)) {
         CExtKeyPair ek = boost::get<CExtKeyPair>(r.address);
@@ -3516,11 +3516,12 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
 
     // coin control: send change to custom address
     if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange)) {
+        WalletLogPrintf("%s: Set from coincontrol dest.\n", __func__);
         r.address = coinControl->destChange;
-
         return ExpandChangeAddress(this, r, sError);
-    } else
+    }
     if (coinControl && coinControl->scriptChange.size() > 0) {
+        WalletLogPrintf("%s: Set from coincontrol script.\n", __func__);
         if (r.nType == OUTPUT_RINGCT) {
             return wserrorN(0, sError, __func__, "Change script on anon output.");
         }
@@ -3541,92 +3542,90 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
         }
 
         return true;
-    } else {
-        UniValue jsonSettings;
-        GetSetting("changeaddress", jsonSettings);
+    }
 
-        bool fIsSet = false;
-        if (r.nType == OUTPUT_STANDARD) {
-            if (jsonSettings["address_standard"].isStr()) {
-                std::string sAddress = jsonSettings["address_standard"].get_str();
+    UniValue jsonSettings;
+    GetSetting("changeaddress", jsonSettings);
 
-                CBitcoinAddress addr(sAddress);
-                if (!addr.IsValid()) {
-                    return wserrorN(0, sError, __func__, "Invalid address setting.");
-                }
-                r.address = addr.Get();
-                if (!ExpandChangeAddress(this, r, sError)) {
-                    return false;
-                }
+    bool fIsSet = false;
+    if (r.nType == OUTPUT_STANDARD) {
+        if (jsonSettings["address_standard"].isStr()) {
+            WalletLogPrintf("%s: Set from changeaddress address_standard.\n", __func__);
+            std::string sAddress = jsonSettings["address_standard"].get_str();
 
-                fIsSet = true;
+            CTxDestination dest = DecodeDestination(sAddress);
+            if (!IsValidDestination(dest)) {
+                return wserrorN(0, sError, __func__, "Invalid address setting.");
             }
+            r.address = dest;
+            if (!ExpandChangeAddress(this, r, sError)) {
+                return false;
+            }
+
+            fIsSet = true;
+        }
+    }
+
+    if (!fIsSet) {
+        CPubKey pkChange;
+        if (0 != GetChangeAddress(pkChange)) {
+            return wserrorN(0, sError, __func__, "GetChangeAddress failed.");
         }
 
-        if (!fIsSet) {
-            CPubKey pkChange;
-            if (0 != GetChangeAddress(pkChange)) {
-                return wserrorN(0, sError, __func__, "GetChangeAddress failed.");
+        CKeyID idChange = pkChange.GetID();
+        r.pkTo = pkChange;
+        r.address = idChange;
+        r.scriptPubKey = GetScriptForDestination(idChange);
+    }
+
+    if (r.nType == OUTPUT_STANDARD) {
+        if (jsonSettings["coldstakingaddress"].isStr()) {
+            WalletLogPrintf("%s: Adding coldstaking script.\n", __func__);
+            std::string sAddress = jsonSettings["coldstakingaddress"].get_str();
+
+            CTxDestination destStake = DecodeDestination(sAddress, true);
+            if (destStake.type() == typeid(CNoDestination)) {
+                return wserrorN(0, sError, __func__, "Invalid coldstaking address setting.");
+            }
+            r.addressColdStaking = destStake;
+
+            CScript scriptStaking;
+            if (r.addressColdStaking.type() == typeid(CExtKeyPair)) {
+                CExtKeyPair ek = boost::get<CExtKeyPair>(r.addressColdStaking);
+                uint32_t nChildKey;
+
+                CPubKey pkTemp;
+                if (0 != ExtKeyGetDestination(ek, pkTemp, nChildKey)) {
+                    return wserrorN(false, sError, __func__, "ExtKeyGetDestination failed.");
+                }
+
+                r.nChildKeyColdStaking = nChildKey;
+                scriptStaking = GetScriptForDestination(pkTemp.GetID());
+            } else
+            if (r.addressColdStaking.type() == typeid(CKeyID)) {
+                CKeyID idk = boost::get<CKeyID>(r.addressColdStaking);
+                scriptStaking = GetScriptForDestination(idk);
             }
 
-            CKeyID idChange = pkChange.GetID();
-            r.pkTo = pkChange;
+            // Switch to sha256 hash
+            CKeyID256 idChange = r.pkTo.GetID256();
             r.address = idChange;
             r.scriptPubKey = GetScriptForDestination(idChange);
-        }
 
-        if (r.nType == OUTPUT_STANDARD) {
-            if (jsonSettings["coldstakingaddress"].isStr()) {
-                WalletLogPrintf("%s: Adding coldstaking script.\n", __func__);
-                std::string sAddress = jsonSettings["coldstakingaddress"].get_str();
-
-                CTxDestination destStake = DecodeDestination(sAddress, true);
-                if (destStake.type() == typeid(CNoDestination)) {
-                    return wserrorN(0, sError, __func__, "Invalid coldstaking address setting.");
-                }
-                r.addressColdStaking = destStake;
-
-                CScript scriptStaking;
-                if (r.addressColdStaking.type() == typeid(CExtKeyPair)) {
-                    CExtKeyPair ek = boost::get<CExtKeyPair>(r.addressColdStaking);
-                    uint32_t nChildKey;
-
-                    CPubKey pkTemp;
-                    if (0 != ExtKeyGetDestination(ek, pkTemp, nChildKey))
-                        return wserrorN(false, sError, __func__, "ExtKeyGetDestination failed.");
-
-                    r.nChildKeyColdStaking = nChildKey;
-                    CKeyID idTo = pkTemp.GetID();
-                    scriptStaking = GetScriptForDestination(idTo);
-                } else
-                if (r.addressColdStaking.type() == typeid(CKeyID)) {
-                    CKeyID idk = boost::get<CKeyID>(r.addressColdStaking);
-
-                    scriptStaking = GetScriptForDestination(idk);
-                }
-
-                // Switch to sha256 hash
-                CKeyID256 idChange = r.pkTo.GetID256();
-                r.address = idChange;
-                r.scriptPubKey = GetScriptForDestination(idChange);
-
-                if (scriptStaking.IsPayToPublicKeyHash()) {
-                    CScript script = CScript() << OP_ISCOINSTAKE << OP_IF;
-                    script += scriptStaking;
-                    script << OP_ELSE;
-                    script += r.scriptPubKey;
-                    script << OP_ENDIF;
-                    r.scriptPubKey = script;
-                } else {
-                    return wserrorN(false, sError, __func__, "Unknown scriptStaking type, must be pay-to-public-key-hash.");
-                }
+            if (scriptStaking.IsPayToPublicKeyHash()) {
+                CScript script = CScript() << OP_ISCOINSTAKE << OP_IF;
+                script += scriptStaking;
+                script << OP_ELSE;
+                script += r.scriptPubKey;
+                script << OP_ENDIF;
+                r.scriptPubKey = script;
+            } else {
+                return wserrorN(false, sError, __func__, "Unknown scriptStaking type, must be pay-to-public-key-hash.");
             }
         }
+    }
 
-        return true;
-    };
-
-    return false;
+    return true;
 };
 
 static bool InsertChangeAddress(CTempRecipient &r, std::vector<CTempRecipient> &vecSend, int &nChangePosInOut)
@@ -5493,7 +5492,6 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 }
             }
         }
-
 
         rtx.nFee = nFeeRet;
         AddOutputRecordMetaData(rtx, vecSend);

@@ -1,4 +1,10 @@
 
+0.18.1.3
+==============
+
+- Log source of change address, allow p2wpkh changeaddresses.
+
+
 0.18.1.2
 ==============
 
