@@ -1613,8 +1613,9 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
                 entry.pushKV("involvesWatchonly", true);
             }
             MaybePushAddress(entry, s.destination);
-            if (s.destStake.type() != typeid(CNoDestination))
+            if (s.destStake.type() != typeid(CNoDestination)) {
                 entry.pushKV("coldstake_address", EncodeDestination(s.destStake));
+            }
             entry.pushKV("category", "send");
             entry.pushKV("amount", ValueFromAmount(-s.amount));
             if (pwallet->mapAddressBook.count(s.destination)) {
@@ -1622,15 +1623,14 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
             }
             entry.pushKV("vout", s.vout);
             entry.pushKV("fee", ValueFromAmount(-nFee));
-            if (fLong)
+            if (fLong) {
                 WalletTxToJSON(pwallet->chain(), locked_chain, wtx, entry);
-            else
-            {
+            } else {
                 std::string sNarrKey = strprintf("n%d", s.vout);
                 mapValue_t::const_iterator mi = wtx.mapValue.find(sNarrKey);
                 if (mi != wtx.mapValue.end() && !mi->second.empty())
                     entry.pushKV("narration", mi->second);
-            };
+            }
             entry.pushKV("abandoned", wtx.isAbandoned());
 
             ret.push_back(entry);

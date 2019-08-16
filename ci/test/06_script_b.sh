@@ -14,14 +14,6 @@ if [ "$RUN_UNIT_TESTS" = "true" ]; then
   END_FOLD
 fi
 
-if [ $(($(date +%s)-START_TIME)) -gt $RUN_TESTS_TIMEOUT ]; then
-  RUN_FUNCTIONAL_TESTS=false;
-fi
-
-echo $(($(date +%s)-START_TIME))
-echo $RUN_TESTS_TIMEOUT
-echo "$RUN_FUNCTIONAL_TESTS"
-
 if [ "$RUN_FUNCTIONAL_TESTS" = "true" ]; then
   BEGIN_FOLD functional-tests
   DOCKER_EXEC test/functional/test_runner.py --ci --combinedlogslen=4000 ${TEST_RUNNER_EXTRA} --quiet --failfast --particl --insight --bitcoin

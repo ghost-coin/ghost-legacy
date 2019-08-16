@@ -314,13 +314,11 @@ bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes)
 
     if (rc58
         && nVersionBytes != 4
-        && vchTemp.size() == BIP32_KEY_N_BYTES + 4) // no point checking smaller keys
-    {
-        if (0 == memcmp(&vchTemp[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4))
+        && vchTemp.size() == BIP32_KEY_N_BYTES + 4) { // no point checking smaller keys
+        if (0 == memcmp(&vchTemp[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4)) {
             nVersionBytes = 4;
-        else
-        if (0 == memcmp(&vchTemp[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4))
-        {
+        } else
+        if (0 == memcmp(&vchTemp[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4)) {
             nVersionBytes = 4;
 
             // Never display secret in a CBitcoinAddress
@@ -333,8 +331,8 @@ bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes)
             ekp.EncodeP(&vchData[0]);
             memory_cleanse(&vchTemp[0], vchData.size());
             return true;
-        };
-    };
+        }
+    }
 
     if ((!rc58) || (vchTemp.size() < nVersionBytes)) {
         vchData.clear();

@@ -5804,9 +5804,9 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 }
 
                 std::string sAddress = json["address_standard"].get_str();
-                CBitcoinAddress addr(sAddress);
-                if (!addr.IsValid() || addr.Get().type() == typeid(CNoDestination)) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid address_standard.");
+                CTxDestination dest = DecodeDestination(sAddress);
+                if (!IsValidDestination(dest)) {
+                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address_standard.");
                 }
             } else
             if (sKey == "coldstakingaddress") {

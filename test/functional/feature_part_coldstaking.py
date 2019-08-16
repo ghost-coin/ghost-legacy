@@ -56,7 +56,7 @@ class ColdStakingTest(ParticlTestFramework):
             break
         assert(coldstakingaddr == 'pparszNYZ1cpWxnNiYLgR193XoZMaJBXDkwyeQeQvThTJKjz3sgbR4NjJT3bqAiHBk7Bd5PBRzEqMiHvma9BG6i9qH2iEf4BgYvfr5v3DaXEayNE')
 
-        changeaddress = {'coldstakingaddress':coldstakingaddr}
+        changeaddress = {'coldstakingaddress': coldstakingaddr}
         ro = nodes[0].walletsettings('changeaddress', changeaddress)
         assert(ro['changeaddress']['coldstakingaddress'] == coldstakingaddr)
 
@@ -83,7 +83,7 @@ class ColdStakingTest(ParticlTestFramework):
             break
         assert(externalChain0 == 'pparszMzzW1247AwkKCH1MqneucXJfDoR3M5KoLsJZJpHkcjayf1xUMwPoTcTfUoQ32ahnkHhjvD2vNiHN5dHL6zmx8vR799JxgCw95APdkwuGm1')
 
-        changeaddress = {'coldstakingaddress':externalChain0}
+        changeaddress = {'coldstakingaddress': externalChain0}
         try:
             ro = nodes[0].walletsettings('changeaddress', changeaddress)
             assert(False), 'Added known address as cold-staking-change-address.'
