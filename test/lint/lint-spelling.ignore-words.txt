@@ -12,6 +12,7 @@ cachable
 errorstring
 keyserver
 homogenous
+setban
 aks
 nd
 uncrypted
@@ -20,5 +21,4 @@ diable
 rade
 tim
 endianess
-instanciated
 te
