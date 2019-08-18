@@ -42,6 +42,7 @@ Notes:
 #include <netmessagemaker.h>
 #include <net.h>
 #include <streams.h>
+#include <univalue.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/coincontrol.h>
@@ -67,6 +68,22 @@ extern CChain &chainActive;
 extern CCriticalSection cs_main;
 
 smsg::CSMSG smsgModule;
+
+namespace SMSGMsgType {
+const char *PING="smsgPing";
+const char *PONG="smsgPong";
+const char *DISABLED="smsgDisabled";
+const char *INV="smsgInv";
+const char *SHOW="smsgShow";
+const char *HAVE="smsgHave";
+const char *WANT="smsgWant";
+const char *MSG="smsgMsg";
+const char *IGNORE="smsgIgnore";
+
+const static std::string allTypes[] = {
+    PING, PONG, DISABLED, INV, SHOW, HAVE, WANT, MSG, IGNORE
+};
+} // namespace SMSGMsgType
 
 namespace smsg {
 bool fSecMsgEnabled = false;
@@ -100,7 +117,7 @@ std::string SecMsgToken::ToString() const
     return strprintf("%d-%08x", timestamp, *((uint64_t*)sample));
 }
 
-void SecMsgBucket::hashBucket()
+void SecMsgBucket::hashBucket(int64_t bucket_time)
 {
     void *state = XXH32_init(1);
 
@@ -123,13 +140,11 @@ void SecMsgBucket::hashBucket()
     uint32_t hash_new = XXH32_digest(state);
 
     if (hash != hash_new) {
-        LogPrint(BCLog::SMSG, "Bucket hash updated from %u to %u.\n", hash, hash_new);
+        LogPrint(BCLog::SMSG, "Bucket %d hashed %u messages updated from %u to %u.\n", bucket_time, nActive, hash, hash_new);
 
         hash = hash_new;
         timeChanged = GetAdjustedTime();
     }
-
-    LogPrint(BCLog::SMSG, "Hashed %u messages, hash %u\n", nActive, hash_new);
     return;
 };
 
@@ -159,7 +174,7 @@ void ThreadSecureMsg()
         int64_t now = GetAdjustedTime();
 
         if (LogAcceptCategory(BCLog::SMSG) && nLoop % SMSG_THREAD_LOG_GAP == 0) { // log every SMSG_THREAD_LOG_GAP instance, is useful source of timestamps
-            LogPrintf("SecureMsgThread %d \n", now);
+            LogPrintf("SecureMsgThread %d.\n", now);
         }
 
         vTimedOutLocks.resize(0);
@@ -171,7 +186,7 @@ void ThreadSecureMsg()
 
                 if (!fErase
                     && it->first + it->second.nLeastTTL < now) {
-                    it->second.hashBucket();
+                    it->second.hashBucket(it->first);
 
                     // TODO: periodically prune files
                     if (it->second.nActive < 1) {
@@ -180,7 +195,7 @@ void ThreadSecureMsg()
                 }
 
                 if (fErase) {
-                    LogPrint(BCLog::SMSG, "Removing bucket %d \n", it->first);
+                    LogPrint(BCLog::SMSG, "Removing bucket %d.\n", it->first);
 
                     std::string fileName = std::to_string(it->first);
 
@@ -191,7 +206,7 @@ void ThreadSecureMsg()
                             LogPrintf("Error removing bucket file %s.\n", ex.what());
                         }
                     } else {
-                        LogPrintf("Path %s does not exist \n", fullPath.string());
+                        LogPrintf("Path %s does not exist.\n", fullPath.string());
                     }
 
                     // Look for a wl file, it stores incoming messages when wallet is locked
@@ -249,7 +264,7 @@ void ThreadSecureMsg()
                     vchData.resize(8);
                     memcpy(&vchData[0], &ignoreUntil, 8);
                     g_connman->PushMessage(pnode,
-                        CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgIgnore", vchData));
+                        CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::IGNORE, vchData));
 
                     LogPrint(BCLog::SMSG, "This node will ignore peer %d until %d.\n", nPeerId, ignoreUntil);
                     break;
@@ -566,7 +581,7 @@ int CSMSG::BuildBucketSet()
             }
 
             fclose(fp);
-            bucket.hashBucket();
+            bucket.hashBucket(fileTime);
             nTokenSetSize = tokenSet.size();
         } // cs_smsg
 
@@ -978,9 +993,9 @@ bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
                 continue;
             }
             g_connman->PushMessage(pnode,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPing")); // smsgData.fEnabled will be set on receiving smsgPong response from peer
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PING)); // smsgData.fEnabled will be set on receiving smsgPong response from peer
             g_connman->PushMessage(pnode,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPong")); // Send pong as have missed initial ping sent by peer when it connected
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG)); // Send pong as have missed initial ping sent by peer when it connected
         }
     }
 
@@ -1021,7 +1036,7 @@ bool CSMSG::Disable()
             }
             LOCK(pnode->smsgData.cs_smsg_net);
             g_connman->PushMessage(pnode,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgDisabled"));
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::DISABLED));
             pnode->smsgData.fEnabled = false;
         }
     }
@@ -1067,6 +1082,25 @@ std::string CSMSG::GetWalletName()
     return pwallet ? pwallet->GetName() : "Not set.";
 #endif
     return "Wallet Disabled.";
+};
+
+void CSMSG::GetNodesStats(UniValue &result)
+{
+    LOCK(g_connman->cs_vNodes);
+    for (auto *pnode : g_connman->vNodes) {
+        LOCK(pnode->smsgData.cs_smsg_net);
+        if (!pnode->smsgData.fEnabled) {
+            continue;
+        }
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("id", pnode->GetId());
+        obj.pushKV("ignoreuntil", pnode->smsgData.ignoreUntil);
+        obj.pushKV("misbehaving", (int) pnode->smsgData.misbehaving);
+        obj.pushKV("numwantsent", (int) pnode->smsgData.m_num_want_sent);
+        obj.pushKV("receivecounter", (int) pnode->smsgData.m_receive_counter);
+        obj.pushKV("ignoredcounter", (int) pnode->smsgData.m_ignored_counter);
+        result.push_back(obj);
+    }
 };
 
 int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv)
@@ -1125,6 +1159,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     }
 
     if (pfrom->nVersion < MIN_SMSG_PROTO_VERSION) {
+        LogPrint(BCLog::SMSG, "Peer %d version %d too low.\n", pfrom->GetId(), pfrom->nVersion);
         return SMSG_NO_ERROR;
     }
 
@@ -1150,10 +1185,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             } else {
                 SmsgMisbehaving(pfrom, 100);
             }
+            return SMSG_GENERAL_ERROR;
         }
     }
 
-    if (strCommand == "smsgInv") {
+    if (strCommand == SMSGMsgType::INV) {
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
@@ -1166,7 +1202,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         uint32_t nLocked = 0;           // no. of locked buckets on this node
         uint32_t nInvBuckets;           // no. of bucket headers sent by peer in smsgInv
         memcpy(&nInvBuckets, &vchData[0], 4);
-        LogPrint(BCLog::SMSG, "Remote node sent %d bucket headers, this has %d.\n", nInvBuckets, nBuckets);
+        LogPrint(BCLog::SMSG, "Peer %d sent %d bucket headers, this has %d.\n", pfrom->GetId(), nInvBuckets, nBuckets);
 
         // Check no of buckets:
         if (nInvBuckets > (SMSG_RETENTION / SMSG_BUCKET_LEN) + 1) { // +1 for some leeway
@@ -1176,7 +1212,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         }
 
         if (vchData.size() < 4 + nInvBuckets * 16) {
-            LogPrintf("Remote node did not send enough data.\n");
+            LogPrintf("Peer did not send enough data.\n");
             SmsgMisbehaving(pfrom, 10);
             return SMSG_GENERAL_ERROR;
         }
@@ -1257,7 +1293,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             } // cs_smsg
         }
     } else
-    if (strCommand == "smsgShow") {
+    if (strCommand == SMSGMsgType::SHOW) {
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
@@ -1272,7 +1308,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             return SMSG_GENERAL_ERROR;
         }
 
-        LogPrint(BCLog::SMSG, "smsgShow: peer wants to see content of %u buckets.\n", nBuckets);
+        LogPrint(BCLog::SMSG, "Peer %d requests contents of %u buckets.\n", pfrom->GetId(), nBuckets);
 
         std::map<int64_t, SecMsgBucket>::iterator itb;
         std::set<SecMsgToken>::iterator it;
@@ -1322,10 +1358,10 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 }
             }
             g_connman->PushMessage(pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgHave", vchDataOut));
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::HAVE, vchDataOut));
         }
     } else
-    if (strCommand == "smsgHave") {
+    if (strCommand == SMSGMsgType::HAVE) {
         // Peer has these messages in bucket
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
@@ -1342,11 +1378,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         // Check time valid:
         int64_t now = GetAdjustedTime();
         if (time < now - SMSG_RETENTION) {
-            LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, has expired.\n", time);
+            LogPrint(BCLog::SMSG, "Not interested in peer %d bucket %d, has expired.\n", pfrom->GetId(), time);
             return SMSG_GENERAL_ERROR;
         }
         if (time > now + SMSG_TIME_LEEWAY) {
-            LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, in the future.\n", time);
+            LogPrint(BCLog::SMSG, "Not interested in peer %d bucket %d, in the future.\n", pfrom->GetId(), time);
             Misbehaving(pfrom->GetId(), 1);
             return SMSG_GENERAL_ERROR;
         }
@@ -1412,11 +1448,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 bucket.nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
                 bucket.nLockPeerId  = pfrom->GetId();
                 g_connman->PushMessage(pfrom,
-                    CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgWant", vchDataOut));
+                    CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::WANT, vchDataOut));
             }
         } // cs_smsg
     } else
-    if (strCommand == "smsgWant") {
+    if (strCommand == SMSGMsgType::WANT) {
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
@@ -1481,10 +1517,10 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             memcpy(&vchBunch[0], &nBunch, 4);
             memcpy(&vchBunch[4], &time, 8);
             g_connman->PushMessage(pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgMsg", vchBunch));
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::MSG, vchBunch));
         }
     } else
-    if (strCommand == "smsgMsg") {
+    if (strCommand == SMSGMsgType::MSG) {
         std::vector<uint8_t> vchData;
         vRecv >> vchData;
 
@@ -1492,20 +1528,31 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
         Receive(pfrom, vchData);
     } else
-    if (strCommand == "smsgPing") {
+    if (strCommand == SMSGMsgType::PING) {
         // smsgPing is the initial message, send reply
         g_connman->PushMessage(pfrom,
-            CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPong"));
+            CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG));
     } else
-    if (strCommand == "smsgPong") {
+    if (strCommand == SMSGMsgType::PONG) {
         LogPrint(BCLog::SMSG, "Peer replied, secure messaging enabled.\n");
 
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
             pfrom->smsgData.fEnabled = true;
         }
+        {
+            LOCK(pfrom->cs_vRecv);
+            // Init counters
+            size_t num_types = ARRAYLEN(SMSGMsgType::allTypes);
+            for (size_t t = 0; t < num_types; ++t) {
+                mapMsgCmdSize::iterator i = pfrom->mapRecvBytesPerMsgCmd.find(SMSGMsgType::allTypes[t]);
+                if (i == pfrom->mapRecvBytesPerMsgCmd.end()) {
+                    pfrom->mapRecvBytesPerMsgCmd[SMSGMsgType::allTypes[t]] = 0;
+                }
+            }
+        }
     } else
-    if (strCommand == "smsgDisabled") {
+    if (strCommand == SMSGMsgType::DISABLED) {
         LogPrint(BCLog::SMSG, "Peer %d has disabled secure messaging.\n", pfrom->GetId());
 
         {
@@ -1513,7 +1560,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             pfrom->smsgData.fEnabled = false;
         }
     } else
-    if (strCommand == "smsgIgnore") {
+    if (strCommand == SMSGMsgType::IGNORE) {
         // Peer is reporting that it will ignore this node until time.
         //  Ignore peer too
         std::vector<uint8_t> vchData;
@@ -1561,12 +1608,12 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         LogPrint(BCLog::SMSG, "%s: New node %s, peer id %u.\n", __func__, pto->GetAddrName(), pto->GetId());
         // Send smsgPing once, do nothing until receive 1st smsgPong (then set fEnabled)
         g_connman->PushMessage(pto,
-            CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPing"));
+            CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PING));
 
         // Send smsgPong message if received smsgPing from peer while syncing chain
         if (pto->smsgData.lastSeen < 0) {
             g_connman->PushMessage(pto,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgPong"));
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG));
         }
 
         pto->smsgData.lastSeen = GetTime();
@@ -1626,7 +1673,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                 uint32_t hash = bkt.hash;
 
                 if (LogAcceptCategory(BCLog::SMSG)) {
-                    LogPrintf("Preparing bucket with hash %d for transfer to node %u. timeChanged=%d > lastMatched=%d\n", hash, pto->GetId(), bkt.timeChanged, pto->smsgData.lastMatched);
+                    LogPrintf("Preparing bucket with hash %d for transfer to node %d. timeChanged=%d > lastMatched=%d\n", hash, pto->GetId(), bkt.timeChanged, pto->smsgData.lastMatched);
                 }
 
                 size_t sz = vchData.size();
@@ -1650,7 +1697,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                 LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
 
                 g_connman->PushMessage(pto,
-                    CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgInv", vchData));
+                    CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::INV, vchData));
             }
         }
 
@@ -1673,7 +1720,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                         (it_lb->second.nActive > bkt.m_active || (it_lb->second.nActive == bkt.m_active && it_lb->second.hash == bkt.m_hash))) {
                         LogPrint(BCLog::SMSG, "Not requesting list of bucket %d.\n", it->first);
                     } else {
-                        LogPrint(BCLog::SMSG, "Requesting list of bucket %d.\n", it->first);
+                        LogPrint(BCLog::SMSG, "Requesting list of bucket %d from peer %d.\n", it->first, pto->GetId());
                         uint32_t sz = vchDataOut.size();
                         vchDataOut.resize(sz + 8);
                         memcpy(&vchDataOut[sz], &it->first, 8);
@@ -1688,7 +1735,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
             if (nShowBuckets > 0) {
                 memcpy(&vchDataOut[0], &nShowBuckets, 4);
                 g_connman->PushMessage(pto,
-                    CNetMsgMaker(INIT_PROTO_VERSION).Make("smsgShow", vchDataOut));
+                    CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::SHOW, vchDataOut));
             }
         }
     } // cs_smsg
@@ -2881,7 +2928,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
 
         itb->second.nLockCount  = 0; // This node has received data from peer, release lock
         itb->second.nLockPeerId = -1;
-        itb->second.hashBucket();
+        itb->second.hashBucket(itb->first);
     } // cs_smsg
 
     return SMSG_NO_ERROR;
@@ -3059,7 +3106,7 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
 
     if (fHashBucket) {
-        bucket.hashBucket();
+        bucket.hashBucket(bucketTime);
     }
 
     LogPrint(BCLog::SMSG, "SecureMsg added to bucket %d.\n", bucketTime);

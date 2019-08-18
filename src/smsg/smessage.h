@@ -15,9 +15,10 @@
 
 #include <boost/signals2/signal.hpp>
 
+class UniValue;
+class CDataStream;
 class CWallet;
 class CNode;
-class CDataStream;
 typedef int64_t NodeId;
 
 namespace smsg {
@@ -273,7 +274,7 @@ public:
         nActive         = 0;
     };
 
-    void hashBucket();
+    void hashBucket(int64_t bucket_time);
     size_t CountActive() const;
 
     int64_t               timeChanged;
@@ -393,9 +394,12 @@ public:
 
     bool Enable(std::shared_ptr<CWallet> pwallet);
     bool Disable();
+
     bool WalletUnloaded(CWallet *pwallet_removed);
     bool SetActiveWallet(std::shared_ptr<CWallet> pwallet_in);
     std::string GetWalletName();
+
+    void GetNodesStats(UniValue &result);
 
     int ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv);
     bool SendData(CNode *pto, bool fSendTrickle);

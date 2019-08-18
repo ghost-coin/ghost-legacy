@@ -1918,7 +1918,7 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
             RPCHelpMan{"smsggetfeerate",
                 "\nReturn paid SMSG fee.\n",
                 {
-                    {"height", RPCArg::Type::STR_HEX, /* default */ "", "Chain height to get fee rate for, pass a negative number for more detailed output."},
+                    {"height", RPCArg::Type::NUM, /* default */ "", "Chain height to get fee rate for, pass a negative number for more detailed output."},
                 },
                 RPCResult{
             "Fee rate in satoshis."
@@ -1978,7 +1978,7 @@ static UniValue smsggetdifficulty(const JSONRPCRequest &request)
             RPCHelpMan{"smsggetdifficulty",
                 "\nReturn free SMSG difficulty.\n",
                 {
-                    {"time", RPCArg::Type::STR_HEX, /* default */ "", "Chain time to get smsg difficulty for."},
+                    {"time", RPCArg::Type::NUM, /* default */ "", "Chain time to get smsg difficulty for."},
                 },
                 RPCResult{
             "Difficulty."
@@ -2035,6 +2035,45 @@ static UniValue smsggetinfo(const JSONRPCRequest &request)
     return obj;
 }
 
+static UniValue smsgpeers(const JSONRPCRequest &request)
+{
+     if (request.fHelp || request.params.size() > 0)
+        throw std::runtime_error(
+            RPCHelpMan{"smsgpeers",
+                "\nReturns data about each connected SMSG node as a json array of objects.\n",
+                {
+                },
+                RPCResult{
+                    "[\n"
+                    "  {\n"
+                    "    \"id\": n,                   (numeric) Peer index\n"
+                    "    \"ignoreuntil\": n,          (numeric) Peer ignored until time\n"
+                    "    \"misbehaving\": n,          (numeric) Misbehaviour counter\n"
+                    "    \"numwantsent\": n,          (numeric) Number of smsges requested from peer\n"
+                    "    \"receivecounter\": n,       (numeric) Messages received from peer in window\n"
+                    "    \"ignoredcounter\": n,       (numeric) Number of times peer has been ignored\n"
+                    "  }\n"
+                    "  ,...\n"
+                    "]\n"
+                },
+                RPCExamples{
+            HelpExampleCli("smsgpeers", "") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("smsgpeers", "")
+                },
+            }.ToString());
+
+    EnsureSMSGIsEnabled();
+
+    LOCK(cs_main);
+
+    UniValue result(UniValue::VARR);
+
+    smsgModule.GetNodesStats(result);
+
+    return result;
+}
+
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
@@ -2061,6 +2100,8 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsggetfeerate",         &smsggetfeerate,         {"height"}},
     { "smsg",               "smsggetdifficulty",      &smsggetdifficulty,      {"time"}},
     { "smsg",               "smsggetinfo",            &smsggetinfo,            {""}},
+    { "smsg",               "smsgpeers",              &smsgpeers,              {""}},
+
 };
 
 void RegisterSmsgRPCCommands(CRPCTable &tableRPC)
