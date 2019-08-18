@@ -9,6 +9,18 @@
 
 const uint32_t SMSG_RCVCOUNT_REDUCE = 200;
 
+namespace SMSGMsgType {
+extern const char *PING;
+extern const char *PONG;
+extern const char *DISABLED;
+extern const char *INV;
+extern const char *SHOW;
+extern const char *HAVE;
+extern const char *WANT;
+extern const char *MSG;
+extern const char *IGNORE;
+};
+
 class PeerBucket
 {
 public:
@@ -24,7 +36,6 @@ public:
     int64_t lastSeen = 0;
     int64_t lastMatched = 0;
     int64_t ignoreUntil = 0;
-    uint32_t nWakeCounter = 0;
     uint16_t misbehaving = 0;
     uint16_t m_num_want_sent = 0;
     uint16_t m_receive_counter = 0;
