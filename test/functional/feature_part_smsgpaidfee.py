@@ -205,6 +205,19 @@ class SmsgPaidFeeTest(ParticlTestFramework):
         assert(ro['messages'][0]['msgid'] == msg_id)
         assert(ro['messages'][0]['text'] == text)
 
+        self.log.info('Text export')
+        ro = nodes[0].smsg(msg_id, {'export': True})
+        msg_exported = ro['raw']
+        assert(nodes[0].smsgimport(msg_exported)['msgid'] == msg_id)
+
+        self.log.info('Text smsggetfeerate targetrate')
+        ro = nodes[0].smsggetfeerate(-1)
+        assert(ro['currentrate'] == 50000)
+        assert(ro['currentrateblockheight'] == 0)
+        assert(ro['targetrate'] == 50000)
+        assert(ro['targetblockheight'] == 1)
+        assert(ro['nextratechangeheight'] == 50)
+
         assert(nodes[0].smsggetdifficulty() > 0.06)
 
 

@@ -1610,6 +1610,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
                             {"delete", RPCArg::Type::BOOL, /* default */ "false", "Delete msg if true."},
                             {"setread", RPCArg::Type::BOOL, /* default */ "false", "Set read status to value."},
                             {"encoding", RPCArg::Type::STR, /* default */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
+                            {"export", RPCArg::Type::BOOL, /* default */ "false", "Display the full smsg as a hex encoded string."},
                         },
                         "options"},
                 },
@@ -1732,6 +1733,11 @@ static UniValue smsgone(const JSONRPCRequest &request)
     std::string sEnc;
     if (options.isObject() && options["encoding"].isStr()) {
         sEnc = options["encoding"].get_str();
+    }
+
+    bool export_smsg = options.isObject() && options["export"].isBool() ? options["export"].get_bool() : false;
+    if (export_smsg) {
+        result.pushKV("raw", HexStr(smsgStored.vchMessage));
     }
 
     int rv;
@@ -1868,7 +1874,7 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
             RPCHelpMan{"smsggetfeerate",
                 "\nReturn paid SMSG fee.\n",
                 {
-                    {"height", RPCArg::Type::STR_HEX, /* default */ "", "Chain height to get fee rate for."},
+                    {"height", RPCArg::Type::STR_HEX, /* default */ "", "Chain height to get fee rate for, pass a negative number for more detailed output."},
                 },
                 RPCResult{
             "Fee rate in satoshis."
@@ -1885,6 +1891,33 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
     CBlockIndex *pblockindex = nullptr;
     if (!request.params[0].isNull()) {
         int nHeight = request.params[0].get_int();
+
+        if (nHeight < 0) {
+            UniValue result(UniValue::VOBJ);
+            const CBlockIndex *pTip = ::ChainActive().Tip();
+            const Consensus::Params &consensusParams = Params().GetConsensus();
+            int chain_height = pTip->nHeight;
+
+            if (pTip->nTime < consensusParams.smsg_fee_time) {
+                result.pushKV("inactiveuntil", int64_t(consensusParams.smsg_fee_time));
+                return result;
+            }
+
+            result.pushKV("currentrate", GetSmsgFeeRate(nullptr));
+            int fee_height = (chain_height / consensusParams.smsg_fee_period) * consensusParams.smsg_fee_period;
+            result.pushKV("currentrateblockheight", fee_height);
+
+            int64_t smsg_fee_rate_target;
+            CBlock block;
+            if (!ReadBlockFromDisk(block, pTip, Params().GetConsensus())) {
+                throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
+            }
+            block.vtx[0]->GetSmsgFeeRate(smsg_fee_rate_target);
+            result.pushKV("targetrate", smsg_fee_rate_target);
+            result.pushKV("targetblockheight", chain_height);
+            result.pushKV("nextratechangeheight", int(fee_height + consensusParams.smsg_fee_period));
+            return result;
+        }
         if (nHeight > ::ChainActive().Height()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
         }

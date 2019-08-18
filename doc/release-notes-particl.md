@@ -8,6 +8,8 @@ Next Major Version
 ==============
 
 - Log source of change address, allow p2wpkh changeaddresses.
+- rpc: smsggetfeerate cmd will display target rate if passed a negative height.
+- rpc: smsg cmd can export full message.
 
 
 0.18.1.2
