@@ -286,6 +286,8 @@ bool LoadChainTip(const CChainParams& chainparams) EXCLUSIVE_LOCKS_REQUIRED(cs_m
 void UnloadBlockIndex();
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
+/** Check whether we are doing an initial block download (synchronizing from disk or network) */
+bool IsInitialBlockDownload();
 /** Return the average number of blocks that other nodes claim to have */
 int GetNumBlocksOfPeers();
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
