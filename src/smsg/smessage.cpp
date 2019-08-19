@@ -78,10 +78,10 @@ const char *SHOW="smsgShow";
 const char *HAVE="smsgHave";
 const char *WANT="smsgWant";
 const char *MSG="smsgMsg";
-const char *IGNORE="smsgIgnore";
+const char *IGNORING="smsgIgnore";
 
 const static std::string allTypes[] = {
-    PING, PONG, DISABLED, INV, SHOW, HAVE, WANT, MSG, IGNORE
+    PING, PONG, DISABLED, INV, SHOW, HAVE, WANT, MSG, IGNORING
 };
 } // namespace SMSGMsgType
 
@@ -264,7 +264,7 @@ void ThreadSecureMsg()
                     vchData.resize(8);
                     memcpy(&vchData[0], &ignoreUntil, 8);
                     g_connman->PushMessage(pnode,
-                        CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::IGNORE, vchData));
+                        CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::IGNORING, vchData));
 
                     LogPrint(BCLog::SMSG, "This node will ignore peer %d until %d.\n", nPeerId, ignoreUntil);
                     break;
@@ -1559,7 +1559,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             pfrom->smsgData.fEnabled = false;
         }
     } else
-    if (strCommand == SMSGMsgType::IGNORE) {
+    if (strCommand == SMSGMsgType::IGNORING) {
         // Peer is reporting that it will ignore this node until time.
         //  Ignore peer too
         std::vector<uint8_t> vchData;

@@ -18,7 +18,7 @@ extern const char *SHOW;
 extern const char *HAVE;
 extern const char *WANT;
 extern const char *MSG;
-extern const char *IGNORE;
+extern const char *IGNORING;
 };
 
 class PeerBucket

@@ -1362,8 +1362,12 @@ void UpdateNumBlocksOfPeers(NodeId id, int height) EXCLUSIVE_LOCKS_REQUIRED(cs_m
     std::list<HeightEntry>::iterator oldest = peer_blocks.end();
     for (auto it = peer_blocks.begin(); it != peer_blocks.end(); ) {
         if (id == it->m_id) {
-            it = peer_blocks.erase(it);
-            continue;
+            if (height == it->m_height) {
+                inserted = true;
+            } else {
+                it = peer_blocks.erase(it);
+                continue;
+            }
         }
         if (!inserted && it->m_height > height) {
             peer_blocks.emplace(it, height, id, GetTime());
@@ -1378,9 +1382,11 @@ void UpdateNumBlocksOfPeers(NodeId id, int height) EXCLUSIVE_LOCKS_REQUIRED(cs_m
 
     if (!inserted) {
         peer_blocks.emplace_back(height, id, GetTime());
+        num_elements++;
     }
-    if (num_elements >= max_peer_blocks) {
+    if (num_elements > max_peer_blocks && oldest != peer_blocks.end()) {
         peer_blocks.erase(oldest);
+        num_elements--;
     }
 
     size_t stop = num_elements / 2;
