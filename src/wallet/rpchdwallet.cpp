@@ -7893,7 +7893,7 @@ static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file,
 
     const CChainParams& chainparams = Params();
     CBufferedFile blkdat(fp, 2*MAX_BLOCK_SERIALIZED_SIZE, MAX_BLOCK_SERIALIZED_SIZE+8, SER_DISK, CLIENT_VERSION);
-    uint64_t blk_start_pos, nRewind = blkdat.GetPos();
+    uint64_t nRewind = blkdat.GetPos();
 
     while (!blkdat.eof()) {
         boost::this_thread::interruption_point();
@@ -7906,7 +7906,6 @@ static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file,
             // locate a header
             unsigned char buf[CMessageHeader::MESSAGE_START_SIZE];
             blkdat.FindByte(chainparams.MessageStart()[0]);
-            blk_start_pos = blkdat.GetPos();
             nRewind = blkdat.GetPos()+1;
             blkdat >> buf;
             if (memcmp(buf, chainparams.MessageStart(), CMessageHeader::MESSAGE_START_SIZE))
