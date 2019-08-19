@@ -3215,7 +3215,7 @@ int CSMSG::AdjustDifficulty(int64_t time)
 int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload)
 {
     // return SecureMessageCodes
-    SecureMessage *psmsg = (SecureMessage*) pHeader;
+    const SecureMessage *psmsg = (SecureMessage*) pHeader;
 
     if (psmsg->IsPaidVersion()) {
         if (nPayload > SMSG_MAX_MSG_BYTES_PAID) {
@@ -3232,7 +3232,7 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
         return SMSG_TIME_IN_FUTURE;
     }
 
-    int64_t ttl = psmsg->m_ttl;
+    const uint32_t ttl = psmsg->m_ttl;
     size_t nDaysRetention = psmsg->m_ttl / SMSG_SECONDS_IN_DAY;
     if (nDaysRetention < 1) {
         nDaysRetention = 1;

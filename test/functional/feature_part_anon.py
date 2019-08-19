@@ -139,6 +139,7 @@ class AnonTest(ParticlTestFramework):
         assert(nodes[1].lockunspent(False, [unspent[1]], True) == True)
         assert(len(nodes[1].listlockunspent()) == 2)
         # Restart node
+        self.sync_all()
         self.stop_node(1)
         self.start_node(1, self.extra_args[1])
         assert(len(nodes[1].listlockunspent()) == 2)
@@ -149,7 +150,6 @@ class AnonTest(ParticlTestFramework):
         assert(nodes[1].lockunspent(True) == True)
         assert(len(nodes[1].listunspentanon()) == len(unspent))
         assert(nodes[1].lockunspent(True) == True)
-
 
 
 if __name__ == '__main__':
