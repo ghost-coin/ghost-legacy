@@ -113,6 +113,8 @@ static constexpr unsigned int AVG_FEEFILTER_BROADCAST_INTERVAL = 10 * 60;
 /** Maximum feefilter broadcast delay after significant change. */
 static constexpr unsigned int MAX_FEEFILTER_CHANGE_DELAY = 5 * 60;
 
+extern void UpdateNumBlocksOfPeers(NodeId id, int height);
+
 // Internal stuff
 namespace {
     /** Number of nodes with fSyncStarted. */
@@ -2254,7 +2256,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         pfrom->nChainHeight = nStartingHeight;
         {
             LOCK(cs_main);
-            connman->cPeerBlockCounts.input(pfrom->nChainHeight);
+            UpdateNumBlocksOfPeers(pfrom->GetId(), nStartingHeight);
         }
         pfrom->nServices = nServices;
         pfrom->SetAddrLocal(addrMe);
@@ -3335,7 +3337,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             pfrom->nChainHeight = nChainHeight;
             {
                 LOCK(cs_main);
-                connman->cPeerBlockCounts.input(nChainHeight);
+                UpdateNumBlocksOfPeers(pfrom->GetId(), nChainHeight);
             }
 
             // Echo the message back with the nonce. This allows for two useful features:

@@ -2161,8 +2161,6 @@ CConnman::CConnman(uint64_t nSeed0In, uint64_t nSeed1In) : nSeed0(nSeed0In), nSe
 {
     SetTryNewOutboundPeer(false);
 
-    cPeerBlockCounts.set(5, 0);
-
     SetTryNewOutboundPeer(false);
 
     Options connOptions;

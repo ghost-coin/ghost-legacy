@@ -273,7 +273,7 @@ void UnloadBlockIndex();
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck(int worker_num);
 /** Return the average number of blocks that other nodes claim to have */
-int GetNumBlocksOfPeers() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+int GetNumBlocksOfPeers();
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256 &hash, CTransactionRef &tx, const Consensus::Params& params, uint256 &hashBlock, const CBlockIndex* const block_index = nullptr);
 

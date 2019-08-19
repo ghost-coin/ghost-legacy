@@ -408,7 +408,6 @@ public:
     mutable CCriticalSection cs_vNodes;
     std::atomic<NodeId> nLastNodeId{0};
     unsigned int nPrevNodeCount{0};
-    CMedianFilter<int> cPeerBlockCounts;
 
     /** Services this instance offers */
     ServiceFlags nLocalServices;
