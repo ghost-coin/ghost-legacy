@@ -115,6 +115,7 @@ class AnonTest(ParticlTestFramework):
         assert(nodes[1].lockunspent(False, [unspent[1]], True) == True)
         assert(len(nodes[1].listlockunspent()) == 2)
         # Restart node
+        self.sync_all()
         self.stop_node(1)
         self.start_node(1, self.extra_args[1])
         connect_nodes_bi(self.nodes, 0, 1)
@@ -131,8 +132,7 @@ class AnonTest(ParticlTestFramework):
         assert(ro['height'] == 2)
 
         self.log.info('Test recover from mnemonic')
-        # Txns currently in the mempool will be reprocessed in thenext block
-        self.sync_all()
+        # Txns currently in the mempool will be reprocessed in the next block
         self.stakeBlocks(1)
         wi_1 = nodes[1].getwalletinfo()
 
