@@ -400,6 +400,7 @@ public:
     std::string GetWalletName();
 
     void GetNodesStats(UniValue &result);
+    void ClearBanned();
 
     int ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv);
     bool SendData(CNode *pto, bool fSendTrickle);

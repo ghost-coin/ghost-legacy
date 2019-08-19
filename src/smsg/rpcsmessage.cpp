@@ -2028,6 +2028,43 @@ static UniValue smsgpeers(const JSONRPCRequest &request)
     return result;
 }
 
+static UniValue smsgdebug(const JSONRPCRequest &request)
+{
+    RPCHelpMan{"smsgdebug",
+        "\nCommands useful for debugging.\n",
+        {
+            {"command", RPCArg::Type::STR, /* default */ "", "\"clearbanned\"."},
+        },
+        RPCResult{
+            "{\n"
+            "}\n"
+        },
+        RPCExamples{
+    HelpExampleCli("smsgdebug", "") +
+    "\nAs a JSON-RPC call\n"
+    + HelpExampleRpc("smsgdebug", "")
+        },
+    }.Check(request);
+
+    EnsureSMSGIsEnabled();
+
+    std::string mode = "none";
+    if (request.params.size() > 0) {
+        mode = request.params[0].get_str();
+    }
+
+    UniValue result(UniValue::VOBJ);
+
+    if (mode == "clearbanned") {
+        result.pushKV("command", mode);
+        smsgModule.ClearBanned();
+    } else {
+        result.pushKV("error", "Unknown command");
+    }
+
+    return result;
+}
+
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
@@ -2053,8 +2090,9 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgpurge",              &smsgpurge,              {"msgid"}},
     { "smsg",               "smsggetfeerate",         &smsggetfeerate,         {"height"}},
     { "smsg",               "smsggetdifficulty",      &smsggetdifficulty,      {"time"}},
-    { "smsg",               "smsggetinfo",            &smsggetinfo,            {""}},
-    { "smsg",               "smsgpeers",              &smsgpeers,              {""}},
+    { "smsg",               "smsggetinfo",            &smsggetinfo,            {}},
+    { "smsg",               "smsgpeers",              &smsgpeers,              {}},
+    { "smsg",               "smsgdebug",              &smsgdebug,              {"command"}},
 
 };
 

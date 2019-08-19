@@ -1104,6 +1104,19 @@ void CSMSG::GetNodesStats(UniValue &result)
     }
 };
 
+void CSMSG::ClearBanned()
+{
+    LOCK(g_connman->cs_vNodes);
+    for (auto *pnode : g_connman->vNodes) {
+        LOCK(pnode->smsgData.cs_smsg_net);
+        if (!pnode->smsgData.fEnabled) {
+            continue;
+        }
+        pnode->smsgData.ignoreUntil = 0;
+        pnode->smsgData.misbehaving = 0;
+    }
+};
+
 int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv)
 {
     /*

@@ -138,6 +138,9 @@ class SmsgTest(ParticlTestFramework):
         self.log.info('Test nosmsg')
         assert('SMSG' not in nodes[2].getnetworkinfo()['localservices_str'])
 
+        self.log.info('Test smsgdebug')
+        nodes[0].smsgdebug('clearbanned')
+
 
 if __name__ == '__main__':
     SmsgTest().main()
