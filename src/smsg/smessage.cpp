@@ -1145,14 +1145,14 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     }
 
     if (IsInitialBlockDownload()) { // Wait until chain synced
-        if (strCommand == "smsgPing") {
+        if (strCommand == SMSGMsgType::PING) {
             pfrom->smsgData.lastSeen = -1; // Mark node as requiring a response once chain is synced
         }
         return SMSG_NO_ERROR;
     }
 
     if (!fSecMsgEnabled) {
-        if (strCommand == "smsgPing") { // Ignore smsgPing
+        if (strCommand == SMSGMsgType::PING) { // Ignore smsgPing
             return SMSG_NO_ERROR;
         }
         return SMSG_UNKNOWN_MESSAGE;
@@ -1251,7 +1251,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             if (now - start_time > SMSG_BUCKET_LEN * 2) { // buckets should be fully matched after time
                  if (time < now - SMSG_BUCKET_LEN * 3) {
                     LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, in the past.\n", time);
-                    SmsgMisbehaving(pfrom, 1);
                     continue;
                  }
             }
