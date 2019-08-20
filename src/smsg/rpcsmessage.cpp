@@ -502,7 +502,13 @@ static UniValue smsgscanbuckets(const JSONRPCRequest &request)
             RPCHelpMan{"smsgscanbuckets",
                 "\nForce rescan of all messages in the bucket store.\n"
                 "Wallet must be unlocked if any receiving keys are stored in the wallet.\n",
-                {},
+                {
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
+                        {
+                            {"scanexpired", RPCArg::Type::BOOL, /* default */ "false", "Scan all messages."},
+                        },
+                        "options"},
+                },
                 RPCResults{},
                 RPCExamples{""},
             }.Check(request);
@@ -516,8 +522,20 @@ static UniValue smsgscanbuckets(const JSONRPCRequest &request)
     }
 #endif
 
+    bool scan_all = false;
+    if (request.params[0].isObject()) {
+        UniValue options = request.params[0].get_obj();
+        RPCTypeCheckObj(options,
+        {
+            {"scanexpired",          UniValueType(UniValue::VBOOL)},
+        }, true, true);
+        if (options["scanexpired"].isBool()) {
+            scan_all = options["scanexpired"].get_bool();
+        }
+    }
+
     UniValue result(UniValue::VOBJ);
-    if (!smsgModule.ScanBuckets()) {
+    if (!smsgModule.ScanBuckets(scan_all)) {
         result.pushKV("result", "Scan Buckets Failed.");
     } else {
         result.pushKV("result", "Scan Buckets Completed.");
@@ -586,8 +604,8 @@ static UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
 static UniValue smsgimportprivkey(const JSONRPCRequest &request)
 {
             RPCHelpMan{"smsgimportprivkey",
-                "\nAdds a private key (as returned by dumpprivkey) to the smsg database.\n"
-                "The imported key can receive messages even if the wallet is locked.\n",
+                "\nAdds a private key (as returned by dumpprivkey) to the SMSG database.\n"
+                "Keys imported into SMSG will be stored unencrypted and can receive messages even if the wallet is locked.\n",
                 {
                     {"privkey", RPCArg::Type::STR, RPCArg::Optional::NO, "The private key to import (see dumpprivkey)."},
                     {"label", RPCArg::Type::STR, /* default */ "", "An optional label."},
@@ -622,6 +640,43 @@ static UniValue smsgimportprivkey(const JSONRPCRequest &request)
     }
 
     return NullUniValue;
+}
+
+static UniValue smsgdumpprivkey(const JSONRPCRequest &request)
+{
+    RPCHelpMan{"smsgdumpprivkey",
+        "\nReveals the private key corresponding to 'address'.\n",
+        {
+            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The particl address for the private key"},
+        },
+        RPCResult{
+    "\"key\"                (string) The private key\n"
+        },
+        RPCExamples{
+            HelpExampleCli("dumpprivkey", "\"myaddress\"")
+    + HelpExampleCli("smsgimportprivkey", "\"mykey\"")
+    + HelpExampleRpc("smsgdumpprivkey", "\"myaddress\"")
+        },
+    }.Check(request);
+
+    std::string strAddress = request.params[0].get_str();
+    CTxDestination dest = DecodeDestination(strAddress);
+    if (!IsValidDestination(dest)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+    }
+
+    if (dest.type() != typeid(PKHash)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address not a key id");
+    }
+    const CKeyID &idk = CKeyID(boost::get<PKHash>(dest));
+
+    CKey key_out;
+    int rv = smsgModule.DumpPrivkey(idk, key_out);
+    if (0 != rv) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Private key for address " + strAddress + " is not known");
+    }
+
+    return EncodeSecret(key_out);
 }
 
 static UniValue smsggetpubkey(const JSONRPCRequest &request)
@@ -2074,10 +2129,11 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgoptions",            &smsgoptions,            {} },
     { "smsg",               "smsglocalkeys",          &smsglocalkeys,          {} },
     { "smsg",               "smsgscanchain",          &smsgscanchain,          {} },
-    { "smsg",               "smsgscanbuckets",        &smsgscanbuckets,        {} },
+    { "smsg",               "smsgscanbuckets",        &smsgscanbuckets,        {"options"} },
     { "smsg",               "smsgaddaddress",         &smsgaddaddress,         {"address","pubkey"} },
     { "smsg",               "smsgaddlocaladdress",    &smsgaddlocaladdress,    {"address"} },
     { "smsg",               "smsgimportprivkey",      &smsgimportprivkey,      {"privkey","label"} },
+    { "smsg",               "smsgdumpprivkey",        &smsgdumpprivkey,        {"address"} },
     { "smsg",               "smsggetpubkey",          &smsggetpubkey,          {"address"} },
     { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","options"} },
     { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message"} },

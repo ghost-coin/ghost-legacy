@@ -1965,7 +1965,7 @@ bool CSMSG::ScanBlockChain()
     return true;
 };
 
-bool CSMSG::ScanBuckets()
+bool CSMSG::ScanBuckets(bool scan_all)
 {
     LogPrint(BCLog::SMSG, "%s\n", __func__);
 
@@ -2079,15 +2079,21 @@ bool CSMSG::ScanBuckets()
                     break;
                 }
 
-                // Don't report to gui,
-                bool fOwnMessage;
-                int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage);
-                if (rv == SMSG_NO_ERROR) {
-                    nFoundMessages++;
-                } else {
-                    // SecureMsgScanMessage failed
+                if (smsg.version[0] == 0 && smsg.version[1] == 0) {
+                    // Purged message header
+                } else
+                if (!scan_all && smsg.timestamp + smsg.m_ttl < now) {
+                    // Expired message
+                } else
+                {
+                    bool fOwnMessage;
+                    int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage);
+                    if (rv == SMSG_NO_ERROR) {
+                        nFoundMessages++;
+                    } else {
+                        // SecureMsgScanMessage failed
+                    }
                 }
-
                 nMessages++;
             }
 
@@ -2630,6 +2636,25 @@ int CSMSG::ImportPrivkey(const CBitcoinSecret &vchSecret, const std::string &sLa
     }
 
     keyStore.AddKey(idk, key);
+
+    return SMSG_NO_ERROR;
+};
+
+int CSMSG::DumpPrivkey(const CKeyID &idk, CKey &key_out)
+{
+    LOCK(cs_smsgDB);
+
+    SecMsgDB db;
+    if (!db.Open("cr+")) {
+        return SMSG_GENERAL_ERROR;
+    }
+
+    SecMsgKey key;
+    if (!db.ReadKey(idk, key)) {
+        return 1;
+    }
+
+    key_out = key.key;
 
     return SMSG_NO_ERROR;
 };

@@ -12,6 +12,8 @@ Next Major Version
 - rpc: smsg cmd can export full message.
 - rpc: Add smsgpeers command.
 - net: Enable per message received byte counters for smsg.
+- rpc: smsgscanbuckets will skip expired messages.
+- rpc: Added smsgdumpprivkey command.
 
 
 0.18.1.2

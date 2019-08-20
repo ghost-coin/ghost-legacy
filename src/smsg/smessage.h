@@ -408,7 +408,7 @@ public:
     bool ScanBlock(const CBlock &block);
     bool ScanChainForPublicKeys(CBlockIndex *pindexStart);
     bool ScanBlockChain();
-    bool ScanBuckets();
+    bool ScanBuckets(bool scan_all);
 
     int ManageLocalKey(CKeyID &keyId, ChangeType mode);
     int WalletUnlocked();
@@ -423,6 +423,7 @@ public:
     int AddAddress(std::string &address, std::string &publicKey);
     int AddLocalAddress(const std::string &sAddress);
     int ImportPrivkey(const CBitcoinSecret &vchSecret, const std::string &sLabel);
+    int DumpPrivkey(const CKeyID &idk, CKey &key_out);
 
     bool SetWalletAddressOption(const CKeyID &idk, std::string sOption, bool fValue);
     bool SetSmsgAddressOption(const CKeyID &idk, std::string sOption, bool fValue);

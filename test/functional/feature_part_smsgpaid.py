@@ -74,10 +74,12 @@ class SmsgPaidTest(ParticlTestFramework):
         assert(len(ro['messages']) == 1)
         assert(ro['messages'][0]['text'] == text_1)
 
-
-        ro = nodes[0].smsgimportprivkey('7pHSJFY1tNwi6d68UttGzB8YnXq2wFWrBVoadLv4Y6ekJD3L1iKs', 'smsg test key')
-
+        self.log.info('Test smsgimportprivkey and smsgdumpprivkey')
+        test_privkey = '7pHSJFY1tNwi6d68UttGzB8YnXq2wFWrBVoadLv4Y6ekJD3L1iKs'
         address0_1 = 'pasdoMwEn35xQUXFvsChWAQjuG8rEKJQW9'
+        nodes[0].smsgimportprivkey(test_privkey, 'smsg test key')
+        assert(nodes[0].smsgdumpprivkey(address0_1) == test_privkey)
+
         text_2 = "['data':'test','value':2]"
         ro = nodes[0].smsglocalkeys()
         assert(len(ro['smsg_keys']) == 1)
