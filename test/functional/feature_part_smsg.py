@@ -141,6 +141,9 @@ class SmsgTest(ParticlTestFramework):
         self.log.info('Test smsgdebug')
         nodes[0].smsgdebug('clearbanned')
 
+        self.log.info('Test smsgpeers')
+        assert(len(nodes[0].smsgpeers()) == 2)
+
 
 if __name__ == '__main__':
     SmsgTest().main()

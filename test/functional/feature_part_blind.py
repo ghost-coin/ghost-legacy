@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2018 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 from test_framework.test_particl import ParticlTestFramework, isclose
-from test_framework.util import connect_nodes_bi
+from test_framework.util import connect_nodes_bi, sync_mempools
 from test_framework.authproxy import JSONRPCException
 
 
@@ -56,6 +56,7 @@ class BlindTest(ParticlTestFramework):
         assert(isclose(ro['total_balance'], 99996.597968))
         assert(self.wait_for_mempool(nodes[1], txnHash))
 
+        sync_mempools([nodes[0], nodes[1]])
         ro = nodes[1].getwalletinfo()
         assert(isclose(ro['unconfirmed_blind'], 3.4))
 
