@@ -142,3 +142,7 @@ db4/
 .vscode
 # clang-check
 *.plist
+
+osx_volname
+dist/
+*.background.tiff
