@@ -271,6 +271,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "smsggetfeerate", 0, "height" },
     { "smsggetdifficulty", 0, "time" },
     { "smsgscanbuckets", 0, "options" },
+    { "smsgpeers", 0, "index" },
 
 
     { "devicesignrawtransaction", 1, "prevtxs" },

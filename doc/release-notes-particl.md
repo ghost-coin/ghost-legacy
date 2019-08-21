@@ -14,6 +14,7 @@ Next Major Version
 - net: Enable per message received byte counters for smsg.
 - rpc: smsgscanbuckets will skip expired messages.
 - rpc: Added smsgdumpprivkey command.
+- Relaxed smsg anti-spam constraint to allow backdated free messages if they pass the current difficulty.
 
 
 0.18.1.2

@@ -1833,7 +1833,7 @@ static UniValue smsgimport(const JSONRPCRequest &request)
                     {"msg", RPCArg::Type::STR, RPCArg::Optional::NO, "Hex encoded smsg."},
                     {"options", RPCArg::Type::OBJ, /* default */ "", "",
                         {
-                            //{"submitmsg", RPCArg::Type::BOOL, /* default */ "false", "Submit msg to network if true."},
+                            {"submitmsg", RPCArg::Type::BOOL, /* default */ "false", "Submit msg to network if true."},
                             {"setread", RPCArg::Type::BOOL, /* default */ "false", "Set read status to value."},
                         },
                         "options"},
@@ -1872,12 +1872,16 @@ static UniValue smsgimport(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
     std::string str_error;
     bool setread = false;
+    bool submitmsg = false;
     UniValue options = request.params[1];
     if (options.isObject() && options["setread"].isBool()) {
         setread = options["setread"].get_bool();
     }
+    if (options.isObject() && options["submitmsg"].isBool()) {
+        submitmsg = options["submitmsg"].get_bool();
+    }
 
-    if (smsgModule.Import(&smsg, str_error, setread) != 0) {
+    if (smsgModule.Import(&smsg, str_error, setread, submitmsg) != 0) {
         smsg.pPayload = nullptr;
         throw JSONRPCError(RPC_MISC_ERROR, "Import failed: " + str_error);
     }
@@ -2051,11 +2055,13 @@ static UniValue smsgpeers(const JSONRPCRequest &request)
     RPCHelpMan{"smsgpeers",
         "\nReturns data about each connected SMSG node as a json array of objects.\n",
         {
+            {"index", RPCArg::Type::NUM, /* default */ "", "Peer index, omit for list."},
         },
         RPCResult{
             "[\n"
             "  {\n"
             "    \"id\": n,                   (numeric) Peer index\n"
+            "    \"version\": n,              (numeric) Peer version\n"
             "    \"ignoreuntil\": n,          (numeric) Peer ignored until time\n"
             "    \"misbehaving\": n,          (numeric) Misbehaviour counter\n"
             "    \"numwantsent\": n,          (numeric) Number of smsges requested from peer\n"
@@ -2074,11 +2080,13 @@ static UniValue smsgpeers(const JSONRPCRequest &request)
 
     EnsureSMSGIsEnabled();
 
+    int index = request.params[0].isNull() ? -1 : request.params[0].get_int();
+
     LOCK(cs_main);
 
     UniValue result(UniValue::VARR);
 
-    smsgModule.GetNodesStats(result);
+    smsgModule.GetNodesStats(index, result);
 
     return result;
 }
@@ -2147,7 +2155,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsggetfeerate",         &smsggetfeerate,         {"height"}},
     { "smsg",               "smsggetdifficulty",      &smsggetdifficulty,      {"time"}},
     { "smsg",               "smsggetinfo",            &smsggetinfo,            {}},
-    { "smsg",               "smsgpeers",              &smsgpeers,              {}},
+    { "smsg",               "smsgpeers",              &smsgpeers,              {"index"}},
     { "smsg",               "smsgdebug",              &smsgdebug,              {"command"}},
 
 };

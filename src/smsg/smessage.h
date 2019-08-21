@@ -23,6 +23,8 @@ typedef int64_t NodeId;
 
 namespace smsg {
 
+const int SMSG_VERSION = 1;
+
 enum SecureMessageCodes {
     SMSG_NO_ERROR = 0,
     SMSG_GENERAL_ERROR,
@@ -73,7 +75,6 @@ const uint32_t SMSG_FREE_MSG_DAYS  = 2;
 
 const uint32_t SMSG_SEND_DELAY     = 2;                 // seconds, SecureMsgSendData will delay this long between firing
 const uint32_t SMSG_THREAD_DELAY   = 30;
-const uint32_t SMSG_THREAD_LOG_GAP = 6;
 
 const uint32_t SMSG_TIME_LEEWAY    = 24;
 const uint32_t SMSG_TIME_IGNORE    = 90;                // seconds a peer is ignored for if they fail to deliver messages for a smsgWant
@@ -218,7 +219,8 @@ public:
 
     int64_t timestamp;
     uint8_t sample[8];      // first 8 bytes of payload
-    int64_t offset;         // offset
+    int64_t offset;         // offset in file
+    int m_changed = 0;          // time changed relative to timestamp
     mutable uint32_t ttl;   // seconds
 };
 
@@ -268,10 +270,10 @@ public:
     {
         timeChanged     = 0;
         hash            = 0;
-        nLockCount      = 0;
-        nLockPeerId     = 0;
         nLeastTTL       = 0;
         nActive         = 0;
+        nLockCount      = 0;
+        nLockPeerId     = -1;
     };
 
     void hashBucket(int64_t bucket_time);
@@ -279,10 +281,11 @@ public:
 
     int64_t               timeChanged;
     uint32_t              hash;           // token set should get ordered the same on each node
-    uint32_t              nLockCount;     // set when smsgWant first sent, unset at end of smsgMsg, ticks down in ThreadSecureMsg()
     uint32_t              nLeastTTL;      // lowest ttl in seconds of messages in bucket
     uint32_t              nActive;        // Number of untimedout messages in bucket
+    uint32_t              nLockCount;     // set when smsgWant first sent, unset at end of smsgMsg, ticks down in ThreadSecureMsg()
     NodeId                nLockPeerId;    // id of peer that bucket is locked for
+
     std::set<SecMsgToken> setTokens;
 };
 
@@ -399,7 +402,7 @@ public:
     bool SetActiveWallet(std::shared_ptr<CWallet> pwallet_in);
     std::string GetWalletName();
 
-    void GetNodesStats(UniValue &result);
+    void GetNodesStats(int node_id, UniValue &result);
     void ClearBanned();
 
     int ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv);
@@ -446,7 +449,7 @@ public:
 
     int AdjustDifficulty(int64_t time);
 
-    int Import(SecureMessage *psmsg, std::string &sError, bool setread);
+    int Import(SecureMessage *psmsg, std::string &sError, bool setread, bool submitmsg);
 
     int Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         SecureMessage &smsg, std::string &sError, bool fPaid, size_t nRetention,
@@ -482,9 +485,12 @@ public:
     std::unique_ptr<interfaces::Handler> m_handler_unload;
 
     int64_t start_time = 0;
+    int64_t m_last_changed = 0;  // Updated whenever a message is stored
     int64_t nLastProcessedPurged = 0;
     CAmount m_absurd_smsg_fee = 500 * COIN;
     uint16_t m_smsg_max_receive_count = SMSG_DEFAULT_MAXRCV;
+
+    std::map<int64_t, int64_t> m_show_requests;
 };
 
 double GetDifficulty(uint32_t compact);

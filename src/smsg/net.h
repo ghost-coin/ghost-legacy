@@ -41,7 +41,9 @@ public:
     uint16_t m_receive_counter = 0;
     uint16_t m_ignored_counter = 0;
     bool fEnabled = false;
+    int m_version = 0;
     std::map<int64_t, PeerBucket> m_buckets;
+    std::map<int64_t, int64_t> m_buckets_last_shown;
 
     void DecSmsgMisbehaving() {
         LOCK(cs_smsg_net);
