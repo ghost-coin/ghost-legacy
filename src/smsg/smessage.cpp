@@ -143,7 +143,7 @@ void SecMsgBucket::hashBucket(int64_t bucket_time)
         LogPrint(BCLog::SMSG, "Bucket %d hashed %u messages updated from %u to %u.\n", bucket_time, nActive, hash, hash_new);
 
         hash = hash_new;
-        timeChanged = GetAdjustedTime();
+        timeChanged = GetTime();
     }
     return;
 };
@@ -167,15 +167,11 @@ void ThreadSecureMsg()
 {
     // Bucket management thread
 
-    uint32_t nLoop = 0;
+    static uint32_t nLoop = 0;
     std::vector<std::pair<int64_t, NodeId> > vTimedOutLocks;
     while (fSecMsgEnabled) {
         nLoop++;
         int64_t now = GetAdjustedTime();
-
-        if (LogAcceptCategory(BCLog::SMSG) && nLoop % SMSG_THREAD_LOG_GAP == 0) { // log every SMSG_THREAD_LOG_GAP instance, is useful source of timestamps
-            LogPrintf("SecureMsgThread %d.\n", now);
-        }
 
         vTimedOutLocks.resize(0);
         int64_t cutoffTime = now - SMSG_RETENTION;
@@ -236,7 +232,32 @@ void ThreadSecureMsg()
             if (smsgModule.nLastProcessedPurged + SMSG_SECONDS_IN_DAY < now) {
                 smsgModule.BuildPurgedSets();
             }
+
+            if (nLoop % 20 == 0) {
+                // Erase any unreceived show_requests
+                int64_t local_time = GetTime();
+                for (auto it = smsgModule.m_show_requests.begin(); it != smsgModule.m_show_requests.end(); ) {
+                    if (it->second < local_time) {
+                        it = smsgModule.m_show_requests.erase(it);
+                    }
+                    ++it;
+                }
+            }
         } // cs_smsg
+
+        if (nLoop % 20 == 0) {
+            LOCK(g_connman->cs_vNodes);
+            for (auto *pnode : g_connman->vNodes) {
+                LOCK(pnode->smsgData.cs_smsg_net);
+                int64_t cutoffTime = now - SMSG_SECONDS_IN_DAY;
+                for (auto it = pnode->smsgData.m_buckets_last_shown.begin(); it != pnode->smsgData.m_buckets_last_shown.end(); ) {
+                    if (it->first < cutoffTime) {
+                        it = pnode->smsgData.m_buckets_last_shown.erase(it);
+                    }
+                    ++it;
+                }
+            }
+        }
 
         for (std::vector<std::pair<int64_t, NodeId> >::iterator it(vTimedOutLocks.begin()); it != vTimedOutLocks.end(); it++) {
             NodeId nPeerId = it->second;
@@ -563,6 +584,7 @@ int CSMSG::BuildBucketSet()
                 token.timestamp = smsg.timestamp;
                 token.ttl = smsg.version[0] == 0 && smsg.version[1] == 0 ? 0  // Purged message header
                     : smsg.m_ttl;
+                token.m_changed = now - fileTime;
                 if (smsg.m_ttl > 0 && (bucket.nLeastTTL == 0 || smsg.m_ttl < bucket.nLeastTTL)) {
                     bucket.nLeastTTL = smsg.m_ttl;
                 }
@@ -1084,21 +1106,47 @@ std::string CSMSG::GetWalletName()
     return "Wallet Disabled.";
 };
 
-void CSMSG::GetNodesStats(UniValue &result)
+void CSMSG::GetNodesStats(int node_id, UniValue &result)
 {
     LOCK(g_connman->cs_vNodes);
     for (auto *pnode : g_connman->vNodes) {
+        if (node_id > -1 && node_id != pnode->GetId()) {
+            continue;
+        }
         LOCK(pnode->smsgData.cs_smsg_net);
         if (!pnode->smsgData.fEnabled) {
             continue;
         }
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("id", pnode->GetId());
+        obj.pushKV("address", pnode->GetAddrName());
+        obj.pushKV("version", pnode->smsgData.m_version);
         obj.pushKV("ignoreuntil", pnode->smsgData.ignoreUntil);
         obj.pushKV("misbehaving", (int) pnode->smsgData.misbehaving);
         obj.pushKV("numwantsent", (int) pnode->smsgData.m_num_want_sent);
         obj.pushKV("receivecounter", (int) pnode->smsgData.m_receive_counter);
         obj.pushKV("ignoredcounter", (int) pnode->smsgData.m_ignored_counter);
+        obj.pushKV("num_pending_inv", (int) pnode->smsgData.m_buckets.size());
+        obj.pushKV("num_shown_buckets", (int) pnode->smsgData.m_buckets_last_shown.size());
+        if (node_id > -1) {
+            UniValue pending_inv_buckets(UniValue::VARR);
+            for (auto it = pnode->smsgData.m_buckets.begin(); it != pnode->smsgData.m_buckets.end(); ++it) {
+                UniValue bucket(UniValue::VOBJ);
+                obj.pushKV("active", (int) it->second.m_active);
+                obj.pushKV("hash", std::to_string(it->second.m_hash));
+                pending_inv_buckets.push_back(bucket);
+            }
+            obj.pushKV("pending_inv_buckets", pending_inv_buckets);
+            UniValue shown_buckets(UniValue::VARR);
+            for (auto it = pnode->smsgData.m_buckets_last_shown.begin(); it != pnode->smsgData.m_buckets_last_shown.end(); ++it) {
+                UniValue bucket(UniValue::VOBJ);
+                obj.pushKV("time", it->first);
+                obj.pushKV("last_shown", it->second);
+                shown_buckets.push_back(bucket);
+            }
+            obj.pushKV("shown_buckets", shown_buckets);
+        }
+
         result.push_back(obj);
     }
 };
@@ -1246,7 +1294,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 LogPrint(BCLog::SMSG, "Not a valid bucket time %d.\n", time);
                 SmsgMisbehaving(pfrom, 10);
             }
-
             if (time < now - SMSG_RETENTION) {
                 LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, has expired.\n", time);
 
@@ -1259,13 +1306,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, in the future.\n", time);
                 SmsgMisbehaving(pfrom, 1);
                 continue;
-            }
-
-            if (now - start_time > SMSG_BUCKET_LEN * 2) { // buckets should be fully matched after time
-                 if (time < now - SMSG_BUCKET_LEN * 3) {
-                    LogPrint(BCLog::SMSG, "Not interested in peer bucket %d, in the past.\n", time);
-                    continue;
-                 }
             }
 
             if (ncontent < 1) {
@@ -1331,6 +1371,15 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         for (uint32_t i = 0; i < nBuckets; ++i, pIn += 8) {
             memcpy(&time, pIn, 8);
 
+            int64_t last_shown = 0;
+            {
+                LOCK(pfrom->smsgData.cs_smsg_net);
+                auto it = pfrom->smsgData.m_buckets_last_shown.find(time);
+                if (it != pfrom->smsgData.m_buckets_last_shown.end()) {
+                    last_shown = it->second;
+                }
+            }
+
             {
                 LOCK(cs_smsg);
                 itb = buckets.find(time);
@@ -1355,6 +1404,9 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     if (it->timestamp + it->ttl < now) {
                         continue;
                     }
+                    if (time + it->m_changed < last_shown) {
+                        continue;
+                    }
                     memcpy(p, &it->timestamp, 8);
                     memcpy(p+8, &it->sample, 8);
 
@@ -1369,6 +1421,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                     }
                 }
             }
+            {
+                LOCK(pfrom->smsgData.cs_smsg_net);
+                pfrom->smsgData.m_buckets_last_shown[time] = now;
+            }
+
             g_connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::HAVE, vchDataOut));
         }
@@ -1399,15 +1456,17 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             return SMSG_GENERAL_ERROR;
         }
 
-        if (pfrom->smsgData.m_num_want_sent >= MAX_WANT_SENT) {
-            LogPrint(BCLog::SMSG, "Too many messages already requested from peer: %d, %d.\n", pfrom->GetId(), pfrom->smsgData.m_num_want_sent);
-            return SMSG_NO_ERROR;
-        }
-
         std::vector<uint8_t> vchDataOut;
 
         {
             LOCK(cs_smsg);
+            m_show_requests.erase(time);
+
+            if (pfrom->smsgData.m_num_want_sent >= MAX_WANT_SENT) {
+                LogPrint(BCLog::SMSG, "Too many messages already requested from peer: %d, %d.\n", pfrom->GetId(), pfrom->smsgData.m_num_want_sent);
+                return SMSG_NO_ERROR;
+            }
+
             SecMsgBucket &bucket = buckets[time];
             if (bucket.nLockCount > 0) {
                 LogPrint(BCLog::SMSG, "Bucket %d lock count %u, waiting for message data from peer %u.\n", time, bucket.nLockCount, bucket.nLockPeerId);
@@ -1543,16 +1602,22 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     if (strCommand == SMSGMsgType::PING) {
         // smsgPing is the initial message, send reply
         g_connman->PushMessage(pfrom,
-            CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG));
+            CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG, SMSG_VERSION));
     } else
     if (strCommand == SMSGMsgType::PONG) {
         LogPrint(BCLog::SMSG, "Peer replied, secure messaging enabled.\n");
 
+        bool was_enabled = false;
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
+            was_enabled = pfrom->smsgData.fEnabled;
             pfrom->smsgData.fEnabled = true;
+
+            if (vRecv.size() >= 4) {
+                vRecv >> pfrom->smsgData.m_version;
+            }
         }
-        {
+        if (!was_enabled) {
             LOCK(pfrom->cs_vRecv);
             // Init counters
             size_t num_types = ARRAYLEN(SMSGMsgType::allTypes);
@@ -1637,123 +1702,137 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         return true;
     }
 
-    {
+    if (pto->smsgData.lastMatched <= m_last_changed) {
         LOCK(cs_smsg);
         std::map<int64_t, SecMsgBucket>::iterator it;
+        std::vector<uint8_t> vchData;
 
-        uint32_t nBuckets = buckets.size();
-        if (nBuckets > 0) {
-            std::vector<uint8_t> vchData;
-            vchData.reserve(4 + nBuckets*16); // timestamp + size + hash
+        uint32_t nBucketsShown = 0;
 
-            uint32_t nBucketsShown = 0;
-            vchData.resize(4);
+        /*
+        Get time before loop and after looping through messages set nLastMatched to time before loop.
+        This prevents scenario where:
+            Loop()
+                message = locked and  thus skipped
+               message become free and nTimeChanged is updated
+            End loop
+
+            nLastMatched = GetTime()
+            => bucket that became free in loop is now skipped :/
+
+        Scenario 2:
+            Same as one but time is updated before
+
+                bucket nTimeChanged is updated but not unlocked yet
+                now = GetTime()
+                Loop of buckets skips message
+
+            But this is nanoseconds, very unlikely.
+
+         */
+
+        for (it = buckets.begin(); it != buckets.end(); ++it) {
+            SecMsgBucket &bkt = it->second;
+
+            uint32_t nMessages = bkt.nActive;
 
             /*
-            Get time before loop and after looping through messages set nLastMatched to time before loop.
-            This prevents scenario where:
-                Loop()
-                    message = locked and  thus skipped
-                   message become free and nTimeChanged is updated
-                End loop
-
-                nLastMatched = GetTime()
-                => bucket that became free in loop is now skipped :/
-
-            Scenario 2:
-                Same as one but time is updated before
-
-                    bucket nTimeChanged is updated but not unlocked yet
-                    now = GetTime()
-                    Loop of buckets skips message
-
-                But this is nanoseconds, very unlikely.
-
+            const auto it_pb = pto->smsgData.m_buckets.find(it->first);
+            if (it_pb != pto->smsgData.m_buckets.end() && it_pb->second.m_hash == bkt.hash) {
+                continue;
+            }
              */
 
-            for (it = buckets.begin(); it != buckets.end(); ++it) {
-                SecMsgBucket &bkt = it->second;
-
-                uint32_t nMessages = bkt.nActive;
-
-                if (bkt.timeChanged < pto->smsgData.lastMatched     // peer was last sent all buckets at time of lastMatched. It should have this bucket
-                    || (pto->smsgData.lastMatched > 0 && it->first < pto->smsgData.lastMatched - SMSG_BUCKET_LEN * 3)
-                    || nMessages < 1) {                             // this bucket is empty
-                    continue;
-                }
-
-                uint32_t hash = bkt.hash;
-
-                if (LogAcceptCategory(BCLog::SMSG)) {
-                    LogPrintf("Preparing bucket with hash %d for transfer to node %d. timeChanged=%d > lastMatched=%d\n", hash, pto->GetId(), bkt.timeChanged, pto->smsgData.lastMatched);
-                }
-
-                size_t sz = vchData.size();
-                try { vchData.resize(vchData.size() + 16); } catch (std::exception& e) {
-                    LogPrintf("vchData.resize %u threw: %s.\n", vchData.size() + 16, e.what());
-                    continue;
-                }
-
-                uint8_t *p = &vchData[sz];
-                memcpy(p, &it->first, 8);
-                memcpy(p+8, &nMessages, 4);
-                memcpy(p+12, &hash, 4);
-
-                nBucketsShown++;
-                //if (fDebug)
-                //    LogPrintf("Sending bucket %d, size %d \n", it->first, it->second.size());
+            if (bkt.timeChanged < pto->smsgData.lastMatched     // peer was last sent all buckets at time of lastMatched. It should have this bucket
+                || nMessages < 1) {                             // this bucket is empty
+                continue;
             }
 
-            if (vchData.size() > 4) {
-                memcpy(&vchData[0], &nBucketsShown, 4);
-                LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
+            uint32_t hash = bkt.hash;
 
-                g_connman->PushMessage(pto,
-                    CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::INV, vchData));
+            if (LogAcceptCategory(BCLog::SMSG)) {
+                LogPrintf("Preparing bucket with hash %d for transfer to node %d. timeChanged=%d > lastMatched=%d\n", hash, pto->GetId(), bkt.timeChanged, pto->smsgData.lastMatched);
             }
+
+            size_t sz = vchData.size();
+            if (sz == 0) {
+                vchData.resize(4);
+                sz = 4;
+            }
+            try { vchData.resize(vchData.size() + 16); } catch (std::exception& e) {
+                LogPrintf("vchData.resize %u threw: %s.\n", vchData.size() + 16, e.what());
+                continue;
+            }
+
+            uint8_t *p = &vchData[sz];
+            memcpy(p, &it->first, 8);
+            memcpy(p+8, &nMessages, 4);
+            memcpy(p+12, &hash, 4);
+
+            nBucketsShown++;
+            //if (fDebug)
+            //    LogPrintf("Sending bucket %d, size %d \n", it->first, it->second.size());
         }
 
-        if (pto->smsgData.m_buckets.size() > 0) {
-            uint32_t nShowBuckets = 0;
-            std::vector<uint8_t> vchDataOut;
-            vchDataOut.reserve(4 + 8 * SMSG_MAX_SHOW); // Reserve max possible size
-            vchDataOut.resize(4);
-            for (auto it = pto->smsgData.m_buckets.begin(); it != pto->smsgData.m_buckets.end();) {
-                if (nShowBuckets >= SMSG_MAX_SHOW) {
-                     break;
-                }
+        if (vchData.size() > 4) {
+            memcpy(&vchData[0], &nBucketsShown, 4);
+            LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
 
-                PeerBucket &bkt = it->second;
-                const auto it_lb = buckets.find(it->first);
+            g_connman->PushMessage(pto,
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::INV, vchData));
+            pto->smsgData.lastMatched = now;
+        }
+    }
 
-                if (it_lb == buckets.end()
-                    || (it_lb->second.nLockPeerId < 0 || it_lb->second.nLockPeerId == pto->GetId())) {
-                    if (it_lb != buckets.end() &&
-                        (it_lb->second.nActive > bkt.m_active || (it_lb->second.nActive == bkt.m_active && it_lb->second.hash == bkt.m_hash))) {
-                        LogPrint(BCLog::SMSG, "Not requesting list of bucket %d.\n", it->first);
-                    } else {
-                        LogPrint(BCLog::SMSG, "Requesting list of bucket %d from peer %d.\n", it->first, pto->GetId());
-                        uint32_t sz = vchDataOut.size();
-                        vchDataOut.resize(sz + 8);
-                        memcpy(&vchDataOut[sz], &it->first, 8);
-                        nShowBuckets++;
-                    }
-                    pto->smsgData.m_buckets.erase(it++);
-                    continue;
-                }
+    if (pto->smsgData.m_buckets.size() > 0) {
+        LOCK(cs_smsg);
+        uint32_t nShowBuckets = 0;
+        std::vector<uint8_t> vchDataOut;
+        for (auto it = pto->smsgData.m_buckets.begin(); it != pto->smsgData.m_buckets.end();) {
+            if (nShowBuckets >= SMSG_MAX_SHOW) {
+                 break;
+            }
+
+            const auto it_sr = m_show_requests.find(it->first);
+            if (it_sr != m_show_requests.end() && it_sr->second > now) {
                 ++it;
+                continue; // Waiting for peer response
             }
 
-            if (nShowBuckets > 0) {
-                memcpy(&vchDataOut[0], &nShowBuckets, 4);
-                g_connman->PushMessage(pto,
-                    CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::SHOW, vchDataOut));
+            PeerBucket &bkt = it->second;
+            const auto it_lb = buckets.find(it->first);
+
+            if (it_lb == buckets.end()
+                || (it_lb->second.nLockPeerId < 0 || it_lb->second.nLockPeerId == pto->GetId())) {
+                if (it_lb != buckets.end() &&
+                    (it_lb->second.nActive > bkt.m_active || (it_lb->second.nActive == bkt.m_active && it_lb->second.hash == bkt.m_hash))) {
+                    LogPrint(BCLog::SMSG, "Not requesting list of bucket %d.\n", it->first);
+                } else {
+                    LogPrint(BCLog::SMSG, "Requesting list of bucket %d from peer %d.\n", it->first, pto->GetId());
+                    uint32_t sz = vchDataOut.size();
+                    if (sz == 0) {
+                        vchDataOut.resize(4);
+                        sz = 4;
+                    }
+                    vchDataOut.resize(sz + 8);
+                    memcpy(&vchDataOut[sz], &it->first, 8);
+                    nShowBuckets++;
+                    m_show_requests[it->first] = now + 10;
+                }
+                pto->smsgData.m_buckets.erase(it++);
+                continue;
             }
+            ++it;
         }
-    } // cs_smsg
 
-    pto->smsgData.lastSeen = now;
-    pto->smsgData.lastMatched = now; //bug fix smsg 3
+        if (nShowBuckets > 0) {
+            memcpy(&vchDataOut[0], &nShowBuckets, 4);
+            g_connman->PushMessage(pto,
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::SHOW, vchDataOut));
+        }
+    }
+
+    pto->smsgData.lastSeen = now + GetRandInt(1);
 
     return true;
 };
@@ -2121,8 +2200,7 @@ int CSMSG::ManageLocalKey(CKeyID &keyId, ChangeType mode)
             break;
         }
 
-        switch(mode)
-        {
+        switch(mode) {
             case CT_REPLACE:
             case CT_NEW:
                 if (itFound == addresses.end()) {
@@ -2141,7 +2219,7 @@ int CSMSG::ManageLocalKey(CKeyID &keyId, ChangeType mode)
                 break;
             default:
                 break;
-        };
+        }
     } // cs_smsg
 
     return SMSG_NO_ERROR;
@@ -2880,16 +2958,21 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
     // Check bktTime ()
     //  Bucket may not exist yet - will be created when messages are added
     int64_t now = GetAdjustedTime();
+    if (bktTime % SMSG_BUCKET_LEN) {
+        LogPrint(BCLog::SMSG, "Not a valid bucket time %d.\n", bktTime);
+        SmsgMisbehaving(pfrom, 10);
+    }
     if (bktTime > now + SMSG_TIME_LEEWAY) {
         LogPrint(BCLog::SMSG, "bktTime > now.\n");
         // misbehave?
         return SMSG_GENERAL_ERROR;
-    } else
+    }
     if (bktTime < now - SMSG_RETENTION) {
         LogPrint(BCLog::SMSG, "bktTime < now - SMSG_RETENTION.\n");
         // misbehave?
         return SMSG_GENERAL_ERROR;
     }
+
 
     std::map<int64_t, SecMsgBucket>::iterator itb;
 
@@ -2907,8 +2990,10 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
             LOCK(cs_smsg);
             // Release lock on bucket if it exists
             itb = buckets.find(bktTime);
-            if (itb != buckets.end())
+            if (itb != buckets.end()) {
                 itb->second.nLockCount = 0;
+                itb->second.nLockPeerId = -1;
+            }
         } // cs_smsg
         return SMSG_GENERAL_ERROR;
     }
@@ -2921,10 +3006,32 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
             break;
         }
 
-        SecureMessage *psmsg = (SecureMessage*) &vchData[n];
+        const SecureMessage *psmsg = (SecureMessage*) &vchData[n];
+        const uint8_t *pPayload = &vchData[n + SMSG_HDR_LEN];
+        if (!psmsg->IsPaidVersion() &&
+            now - start_time > SMSG_BUCKET_LEN * 2) { // buckets should be fully matched after time
+            if (psmsg->timestamp < now - SMSG_BUCKET_LEN * 3) {
+                // If a free message is backdated, compare the hash to the current difficulty
+
+                uint256 msg_hash;
+                arith_uint256 target;
+                if (!GetPowHash(psmsg, pPayload, psmsg->nPayload, msg_hash)) {
+                    return SMSG_INVALID_HASH;
+                }
+                {
+                LOCK(cs_main);
+                target.SetCompact(GetSmsgDifficulty(now, true));
+                }
+
+                if (UintToArith256(msg_hash) > target) {
+                    LogPrint(BCLog::SMSG, "Refusing free message %d, in the past.\n", psmsg->timestamp);
+                    continue;
+                }
+            }
+        }
 
         int rv;
-        if ((rv = Validate(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload)) != 0) {
+        if ((rv = Validate(psmsg->data(), pPayload, psmsg->nPayload)) != 0) {
             // Message dropped
             if (rv == SMSG_INVALID_HASH) { // Invalid proof of work
                 SmsgMisbehaving(pfrom, 10);
@@ -3098,6 +3205,7 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     int64_t bucketTime = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
     uint32_t nTTL = psmsg->m_ttl;
     SecMsgToken token(psmsg->timestamp, pPayload, nPayload, 0, nTTL);
+    token.m_changed = now - bucketTime;
 
     SecMsgBucket &bucket = buckets[bucketTime];
     std::set<SecMsgToken> &tokenSet = bucket.setTokens;
@@ -3147,6 +3255,8 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
 
     LogPrint(BCLog::SMSG, "SecureMsg added to bucket %d.\n", bucketTime);
+
+    m_last_changed = GetTime();
 
     return SMSG_NO_ERROR;
 };
@@ -3658,7 +3768,7 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
     return SMSG_NO_ERROR;
 };
 
-int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread)
+int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread, bool submitmsg)
 {
     if (psmsg->IsPaidVersion() && psmsg->nPayload < 33) {
         sError = "Payload too short.";
@@ -3679,10 +3789,29 @@ int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread)
         return SMSG_GENERAL_ERROR;
     }
 
-    if (!fOwnMessage) {
+    if (!fOwnMessage && !submitmsg) {
         sError = "Message not received.";
         return SMSG_GENERAL_ERROR;
     }
+
+    if (!submitmsg) {
+        return SMSG_NO_ERROR;
+    }
+    LOCK(cs_smsg);
+
+    int rv = SetHash(psmsg->data(), psmsg->pPayload, psmsg->nPayload);
+    if (rv != SMSG_NO_ERROR) {
+        sError = "SetHash failed " + std::string(GetString(rv));
+        return rv;
+    }
+
+    rv = Validate(psmsg->data(), psmsg->pPayload, psmsg->nPayload);
+    if (rv != SMSG_NO_ERROR) {
+        sError = "Validation failed " + std::string(GetString(rv));
+        return rv;
+    }
+
+    Store(*psmsg, true);
 
     return SMSG_NO_ERROR;
 };
