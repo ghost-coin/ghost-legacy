@@ -87,6 +87,7 @@ std::string strSubVersion;
 
 extern void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern void CheckUnreceivedHeaders(int64_t now) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+extern void UpdateNumPeers(int num_peers);
 
 limitedmap<uint256, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
@@ -1052,6 +1053,7 @@ void CConnman::NotifyNumConnectionsChanged()
         nPrevNodeCount = vNodesSize;
         if(clientInterface)
             clientInterface->NotifyNumConnectionsChanged(vNodesSize);
+        UpdateNumPeers(vNodesSize);
     }
 }
 

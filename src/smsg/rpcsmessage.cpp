@@ -2129,8 +2129,6 @@ static UniValue smsgpeers(const JSONRPCRequest &request)
 
     int index = request.params[0].isNull() ? -1 : request.params[0].get_int();
 
-    LOCK(cs_main);
-
     UniValue result(UniValue::VARR);
 
     smsgModule.GetNodesStats(index, result);
