@@ -224,7 +224,6 @@ void ThreadSecureMsg()
                             it->second.nLockPeerId = -1;
                         }
                     }
-
                     ++it;
                 }
             }
@@ -239,8 +238,9 @@ void ThreadSecureMsg()
                 for (auto it = smsgModule.m_show_requests.begin(); it != smsgModule.m_show_requests.end(); ) {
                     if (it->second < local_time) {
                         it = smsgModule.m_show_requests.erase(it);
+                    } else {
+                        ++it;
                     }
-                    ++it;
                 }
             }
         } // cs_smsg
@@ -253,8 +253,9 @@ void ThreadSecureMsg()
                 for (auto it = pnode->smsgData.m_buckets_last_shown.begin(); it != pnode->smsgData.m_buckets_last_shown.end(); ) {
                     if (it->first < cutoffTime) {
                         it = pnode->smsgData.m_buckets_last_shown.erase(it);
+                    } else {
+                        ++it;
                     }
-                    ++it;
                 }
             }
         }
@@ -291,8 +292,6 @@ void ThreadSecureMsg()
                     break;
                 }
             } // g_connman->cs_vNodes
-
-            LogPrint(BCLog::SMSG, "smsg-thread: ignoring - looked peer %d, status on search %u\n", nPeerId, fExists);
         }
 
         MilliSleep(SMSG_THREAD_DELAY * 1000); //  // check every SMSG_THREAD_DELAY seconds
@@ -1259,11 +1258,13 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
             return SMSG_GENERAL_ERROR; // Not enough data received to be a valid smsgInv
         }
 
-        uint32_t nBuckets = buckets.size();
         uint32_t nLocked = 0;           // no. of locked buckets on this node
         uint32_t nInvBuckets;           // no. of bucket headers sent by peer in smsgInv
         memcpy(&nInvBuckets, &vchData[0], 4);
-        LogPrint(BCLog::SMSG, "Peer %d sent %d bucket headers, this has %d.\n", pfrom->GetId(), nInvBuckets, nBuckets);
+        if (LogAcceptCategory(BCLog::SMSG)) {
+            LOCK(cs_smsg);
+            LogPrintf("Peer %d sent %d bucket headers, this has %d.\n", pfrom->GetId(), nInvBuckets, buckets.size());
+        }
 
         // Check no of buckets:
         if (nInvBuckets > (SMSG_RETENTION / SMSG_BUCKET_LEN) + 1) { // +1 for some leeway
@@ -1726,22 +1727,12 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                     bucket nTimeChanged is updated but not unlocked yet
                     now = GetTime()
                     Loop of buckets skips message
-
-                But this is nanoseconds, very unlikely.
-
              */
 
             for (it = buckets.begin(); it != buckets.end(); ++it) {
                 SecMsgBucket &bkt = it->second;
 
                 uint32_t nMessages = bkt.nActive;
-
-                /*
-                const auto it_pb = pto->smsgData.m_buckets.find(it->first);
-                if (it_pb != pto->smsgData.m_buckets.end() && it_pb->second.m_hash == bkt.hash) {
-                    continue;
-                }
-                 */
 
                 if (bkt.timeChanged < pto->smsgData.lastMatched     // peer was last sent all buckets at time of lastMatched. It should have this bucket
                     || nMessages < 1) {                             // this bucket is empty
@@ -1769,8 +1760,6 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                 memcpy(p+12, &hash, 4);
 
                 nBucketsShown++;
-                //if (fDebug)
-                //    LogPrintf("Sending bucket %d, size %d \n", it->first, it->second.size());
             }
         }
     }
@@ -3014,9 +3003,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
 
                 uint256 msg_hash;
                 arith_uint256 target;
-                if (!GetPowHash(psmsg, pPayload, psmsg->nPayload, msg_hash)) {
-                    return SMSG_INVALID_HASH;
-                }
+                GetPowHash(psmsg, pPayload, psmsg->nPayload, msg_hash);
                 {
                 LOCK(cs_main);
                 target.SetCompact(GetSmsgDifficulty(now, true));
@@ -3514,7 +3501,6 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
     LOCK(cs_main);
     target.SetCompact(GetSmsgDifficulty(psmsg->timestamp, true));
     }
-    //LogPrintf("[rm] target_compact %x\n", target_compact);
 
     if (UintToArith256(msg_hash) <= target) {
         rv = SMSG_NO_ERROR; // smsg is valid
