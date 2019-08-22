@@ -1703,94 +1703,96 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         return true;
     }
 
-    if (pto->smsgData.lastMatched <= m_last_changed) {
+    uint32_t nBucketsShown = 0;
+    std::vector<uint8_t> vchData;
+    {
         LOCK(cs_smsg);
-        std::map<int64_t, SecMsgBucket>::iterator it;
-        std::vector<uint8_t> vchData;
+        if (pto->smsgData.lastMatched <= m_last_changed) {
 
-        uint32_t nBucketsShown = 0;
-
-        /*
-        Get time before loop and after looping through messages set nLastMatched to time before loop.
-        This prevents scenario where:
-            Loop()
-                message = locked and  thus skipped
-               message become free and nTimeChanged is updated
-            End loop
-
-            nLastMatched = GetTime()
-            => bucket that became free in loop is now skipped :/
-
-        Scenario 2:
-            Same as one but time is updated before
-
-                bucket nTimeChanged is updated but not unlocked yet
-                now = GetTime()
-                Loop of buckets skips message
-
-            But this is nanoseconds, very unlikely.
-
-         */
-
-        for (it = buckets.begin(); it != buckets.end(); ++it) {
-            SecMsgBucket &bkt = it->second;
-
-            uint32_t nMessages = bkt.nActive;
+            std::map<int64_t, SecMsgBucket>::iterator it;
 
             /*
-            const auto it_pb = pto->smsgData.m_buckets.find(it->first);
-            if (it_pb != pto->smsgData.m_buckets.end() && it_pb->second.m_hash == bkt.hash) {
-                continue;
-            }
+            Get time before loop and after looping through messages set nLastMatched to time before loop.
+            This prevents scenario where:
+                Loop()
+                    message = locked and  thus skipped
+                   message become free and nTimeChanged is updated
+                End loop
+
+                nLastMatched = GetTime()
+                => bucket that became free in loop is now skipped :/
+
+            Scenario 2:
+                Same as one but time is updated before
+
+                    bucket nTimeChanged is updated but not unlocked yet
+                    now = GetTime()
+                    Loop of buckets skips message
+
+                But this is nanoseconds, very unlikely.
+
              */
 
-            if (bkt.timeChanged < pto->smsgData.lastMatched     // peer was last sent all buckets at time of lastMatched. It should have this bucket
-                || nMessages < 1) {                             // this bucket is empty
-                continue;
+            for (it = buckets.begin(); it != buckets.end(); ++it) {
+                SecMsgBucket &bkt = it->second;
+
+                uint32_t nMessages = bkt.nActive;
+
+                /*
+                const auto it_pb = pto->smsgData.m_buckets.find(it->first);
+                if (it_pb != pto->smsgData.m_buckets.end() && it_pb->second.m_hash == bkt.hash) {
+                    continue;
+                }
+                 */
+
+                if (bkt.timeChanged < pto->smsgData.lastMatched     // peer was last sent all buckets at time of lastMatched. It should have this bucket
+                    || nMessages < 1) {                             // this bucket is empty
+                    continue;
+                }
+
+                uint32_t hash = bkt.hash;
+
+                if (LogAcceptCategory(BCLog::SMSG)) {
+                    LogPrintf("Preparing bucket with hash %d for transfer to node %d. timeChanged=%d > lastMatched=%d\n", hash, pto->GetId(), bkt.timeChanged, pto->smsgData.lastMatched);
+                }
+
+                size_t sz = vchData.size();
+                try { vchData.resize(sz + 16 + (sz == 0 ? 4 : 0)); } catch (std::exception& e) {
+                    LogPrintf("vchData.resize %u threw: %s.\n", vchData.size() + 16 + (sz == 0 ? 4 : 0), e.what());
+                    continue;
+                }
+                if (sz == 0) {
+                    sz = 4;
+                }
+
+                uint8_t *p = &vchData[sz];
+                memcpy(p, &it->first, 8);
+                memcpy(p+8, &nMessages, 4);
+                memcpy(p+12, &hash, 4);
+
+                nBucketsShown++;
+                //if (fDebug)
+                //    LogPrintf("Sending bucket %d, size %d \n", it->first, it->second.size());
             }
-
-            uint32_t hash = bkt.hash;
-
-            if (LogAcceptCategory(BCLog::SMSG)) {
-                LogPrintf("Preparing bucket with hash %d for transfer to node %d. timeChanged=%d > lastMatched=%d\n", hash, pto->GetId(), bkt.timeChanged, pto->smsgData.lastMatched);
-            }
-
-            size_t sz = vchData.size();
-            if (sz == 0) {
-                vchData.resize(4);
-                sz = 4;
-            }
-            try { vchData.resize(vchData.size() + 16); } catch (std::exception& e) {
-                LogPrintf("vchData.resize %u threw: %s.\n", vchData.size() + 16, e.what());
-                continue;
-            }
-
-            uint8_t *p = &vchData[sz];
-            memcpy(p, &it->first, 8);
-            memcpy(p+8, &nMessages, 4);
-            memcpy(p+12, &hash, 4);
-
-            nBucketsShown++;
-            //if (fDebug)
-            //    LogPrintf("Sending bucket %d, size %d \n", it->first, it->second.size());
-        }
-
-        if (vchData.size() > 4) {
-            memcpy(&vchData[0], &nBucketsShown, 4);
-            LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
-
-            g_connman->PushMessage(pto,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::INV, vchData));
-            pto->smsgData.lastMatched = now;
         }
     }
+    if (nBucketsShown > 0) {
+        memcpy(&vchData[0], &nBucketsShown, 4);
+        LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
 
+        g_connman->PushMessage(pto,
+            CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::INV, vchData));
+        pto->smsgData.lastMatched = now;
+    }
+    if (vchData.size() > 0) {
+        vchData.clear();
+    }
+
+    size_t nBucketsContestReq = 0;
     if (pto->smsgData.m_buckets.size() > 0) {
         LOCK(cs_smsg);
-        uint32_t nShowBuckets = 0;
-        std::vector<uint8_t> vchDataOut;
         for (auto it = pto->smsgData.m_buckets.begin(); it != pto->smsgData.m_buckets.end();) {
-            if (nShowBuckets >= SMSG_MAX_SHOW) {
+            if (nBucketsContestReq >= SMSG_MAX_SHOW) {
                  break;
             }
 
@@ -1810,14 +1812,16 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                     LogPrint(BCLog::SMSG, "Not requesting list of bucket %d.\n", it->first);
                 } else {
                     LogPrint(BCLog::SMSG, "Requesting list of bucket %d from peer %d.\n", it->first, pto->GetId());
-                    uint32_t sz = vchDataOut.size();
+                    size_t sz = vchData.size();
+                    try { vchData.resize(sz + 8 + (sz == 0 ? 4 : 0)); } catch (std::exception& e) {
+                        LogPrintf("vchData.resize %u threw: %s.\n", vchData.size() + 8 + (sz == 0 ? 4 : 0), e.what());
+                        continue;
+                    }
                     if (sz == 0) {
-                        vchDataOut.resize(4);
                         sz = 4;
                     }
-                    vchDataOut.resize(sz + 8);
-                    memcpy(&vchDataOut[sz], &it->first, 8);
-                    nShowBuckets++;
+                    memcpy(&vchData[sz], &it->first, 8);
+                    nBucketsContestReq++;
                     m_show_requests[it->first] = now + 10;
                 }
                 pto->smsgData.m_buckets.erase(it++);
@@ -1825,12 +1829,11 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
             }
             ++it;
         }
-
-        if (nShowBuckets > 0) {
-            memcpy(&vchDataOut[0], &nShowBuckets, 4);
-            g_connman->PushMessage(pto,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::SHOW, vchDataOut));
-        }
+    }
+    if (nBucketsContestReq > 0) {
+        memcpy(&vchData[0], &nBucketsContestReq, 4);
+        g_connman->PushMessage(pto,
+            CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::SHOW, vchData));
     }
 
     pto->smsgData.lastSeen = now + GetRandInt(1);
@@ -2974,9 +2977,6 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         return SMSG_GENERAL_ERROR;
     }
 
-
-    std::map<int64_t, SecMsgBucket>::iterator itb;
-
     if (nBunch > pfrom->smsgData.m_num_want_sent) {
         LogPrintf("Error: Received unsolicited message bunch from peer %d: %d, %d.\n", pfrom->GetId(), nBunch, pfrom->smsgData.m_num_want_sent);
         SmsgMisbehaving(pfrom, 20);
@@ -2990,7 +2990,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
         {
             LOCK(cs_smsg);
             // Release lock on bucket if it exists
-            itb = buckets.find(bktTime);
+            auto itb = buckets.find(bktTime);
             if (itb != buckets.end()) {
                 itb->second.nLockCount = 0;
                 itb->second.nLockPeerId = -1;
@@ -3065,7 +3065,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
     {
         LOCK(cs_smsg);
         // If messages have been added, bucket must exist now
-        itb = buckets.find(bktTime);
+        auto itb = buckets.find(bktTime);
         if (itb == buckets.end()) {
             LogPrint(BCLog::SMSG, "Don't have bucket %d.\n", bktTime);
             return SMSG_GENERAL_ERROR;

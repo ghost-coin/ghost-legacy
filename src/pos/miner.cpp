@@ -332,7 +332,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             nBestHeight = ::ChainActive().Height();
             nBestTime = ::ChainActive().Tip()->nTime;
             num_blocks_of_peers = GetNumBlocksOfPeers();
-            num_nodes = g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL);
+            num_nodes = GetNumPeers();
         }
 
         if (fTryToSync) {

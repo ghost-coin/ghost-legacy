@@ -268,8 +268,10 @@ bool LoadChainTip(const CChainParams& chainparams) EXCLUSIVE_LOCKS_REQUIRED(cs_m
 void UnloadBlockIndex();
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck(int worker_num);
-/** Return the average number of blocks that other nodes claim to have */
+/** Return the median number of blocks that other nodes claim to have */
 int GetNumBlocksOfPeers();
+/** Return the median number of connected nodes */
+int GetNumPeers();
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256 &hash, CTransactionRef &tx, const Consensus::Params& params, uint256 &hashBlock, const CBlockIndex* const block_index = nullptr);
 

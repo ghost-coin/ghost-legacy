@@ -1222,11 +1222,6 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     return nSubsidy;
 }
 
-int GetNumPeers()
-{
-    return g_connman ? g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) : 0;
-}
-
 //! Returns last CBlockIndex* that is a checkpoint
 static CBlockIndex* GetLastCheckpoint(const CCheckpointData& data) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
@@ -1252,8 +1247,19 @@ public:
     int64_t m_time;
 };
 static std::atomic_int nPeerBlocks(std::numeric_limits<int>::max());
+static std::atomic_int nPeers(0);
 static std::list<HeightEntry> peer_blocks;
 const size_t max_peer_blocks = 9;
+
+void UpdateNumPeers(int num_peers)
+{
+    nPeers = num_peers;
+}
+
+int GetNumPeers()
+{
+    return nPeers;
+}
 
 void UpdateNumBlocksOfPeers(NodeId id, int height) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {

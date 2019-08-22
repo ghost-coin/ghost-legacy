@@ -460,7 +460,7 @@ public:
 
     mutable int m_greatest_txn_depth = 0; // depth of most deep txn
     //mutable int m_least_txn_depth = 0; // depth of least deep txn
-    mutable bool m_have_spendable_balance_cached = false;
+    mutable std::atomic_bool m_have_spendable_balance_cached {false};
     mutable CAmount m_spendable_balance_cached = 0;
 
     enum eStakingState {
@@ -498,7 +498,7 @@ public:
     CBitcoinAddress rewardAddress;
     int nStakeLimitHeight = 0; // for regtest, don't stake above nStakeLimitHeight
 
-    mutable bool m_have_cached_stakeable_coins = false;
+    mutable std::atomic_bool m_have_cached_stakeable_coins {false};
     mutable std::vector<COutput> m_cached_stakeable_coins;
 
     bool fUnlockForStakingOnly = false; // Use coldstaking instead
