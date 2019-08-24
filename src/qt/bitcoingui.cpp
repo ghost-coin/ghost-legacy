@@ -348,9 +348,9 @@ void BitcoinGUI::createActions()
     showHelpMessageAction->setMenuRole(QAction::NoRole);
     showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible Particl command-line options").arg(PACKAGE_NAME));
 
-    mnemonicAction = new QAction(platformStyle->TextColorIcon(":/icons/info"), tr("&HD Wallet..."), this);
+    mnemonicAction = new QAction(tr("&HD Wallet..."), this);
     mnemonicAction->setMenuRole(QAction::NoRole);
-    coldstakingAction = new QAction(platformStyle->TextColorIcon(":/icons/info"), tr("&Staking Setup"), this);
+    coldstakingAction = new QAction(tr("&Staking Setup"), this);
     coldstakingAction->setMenuRole(QAction::NoRole);
 
     connect(quitAction, &QAction::triggered, qApp, QApplication::quit);
