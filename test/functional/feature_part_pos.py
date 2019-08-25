@@ -174,7 +174,9 @@ class PosTest(ParticlTestFramework):
         self.stakeBlocks(1)
         coinstakehash = nodes[0].getblock(nodes[0].getblockhash(7))['tx'][0]
         ro = nodes[0].getrawtransaction(coinstakehash, True)
-        assert(len(ro['vout']) == 3)
+        for output in ro['vout'][1:]:
+            assert(output['type'] == 'standard')
+            assert(output['value'] > 1.0)
 
 
 if __name__ == '__main__':
