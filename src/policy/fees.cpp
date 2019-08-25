@@ -580,8 +580,8 @@ bool GetFeeRate(const CTxMemPoolEntry *entry, CFeeRate &feeRate)
         const CScript *pScriptPubKey = txout->GetPScriptPubKey();
         if (pScriptPubKey && pScriptPubKey->size() >= 1 && *pScriptPubKey->begin() == OP_RETURN) {
             LogPrint(BCLog::ESTIMATEFEE, "Tx %s may be a destruction tx.\n",
-                 tx.GetHash().ToString().c_str());
-        return false;
+                 tx.GetHash().ToString());
+            return false;
         }
     }
 
@@ -591,7 +591,7 @@ bool GetFeeRate(const CTxMemPoolEntry *entry, CFeeRate &feeRate)
 
     if (smsg_fees > tx_fee) {
         LogPrint(BCLog::ESTIMATEFEE, "Blockpolicy error tx %s pays more smsg fees than total.\n",
-                 tx.GetHash().ToString().c_str());
+                 tx.GetHash().ToString());
         return false;
     }
     feeRate = CFeeRate(tx_fee - smsg_fees, entry->GetTxSize());

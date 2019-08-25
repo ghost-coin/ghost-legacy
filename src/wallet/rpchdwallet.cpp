@@ -311,7 +311,7 @@ static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bo
             objC.pushKV("active", sek->nFlags & EAF_ACTIVE ? "true" : "false");
             objC.pushKV("receive_on", sek->nFlags & EAF_RECEIVE_ON ? "true" : "false");
 
-            mapEKValue_t::iterator it = sek->mapValue.find(EKVT_KEY_TYPE);
+            mapEKValue_t::const_iterator it = sek->mapValue.find(EKVT_KEY_TYPE);
             if (it != sek->mapValue.end() && it->second.size() > 0) {
                 std::string sUseType;
                 switch (it->second[0]) {
