@@ -47,7 +47,7 @@ task:
     folder: "/tmp/cirrus-ci-build/depends/sdk-sources"
   install_script:
     - apt-get update
-    - apt-get -y install git bash ccache
+    - apt-get -y install git bash ccache libudev-dev
     - ccache --max-size=${CCACHE_SIZE}
   ci_script:
     - ./ci/test_run_all.sh
