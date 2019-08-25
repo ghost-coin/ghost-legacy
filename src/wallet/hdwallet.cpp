@@ -7580,7 +7580,7 @@ int CHDWallet::NewKeyFromAccount(CPubKey &pkOut, bool fInternal, bool fHardened,
 };
 
 int CHDWallet::NewStealthKeyFromAccount(
-    CHDWalletDB *pwdb, const CKeyID &idAccount, std::string &sLabel,
+    CHDWalletDB *pwdb, const CKeyID &idAccount, const std::string &sLabel,
     CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32)
 {
     // Scan secrets must be stored uncrypted - always derive hardened keys
@@ -7638,72 +7638,17 @@ int CHDWallet::NewStealthKeyFromAccount(
     nPrefix = nPrefix & nMask;
 
     CPubKey pkSpend = kSpend.GetPubKey();
-    CEKAStealthKey aks(nChain, nScanOut, kScan, nChain, nSpendOut, pkSpend, nPrefixBits, nPrefix);
-    aks.sLabel = sLabel;
+    akStealthOut = CEKAStealthKey(nChain, nScanOut, kScan, nChain, nSpendOut, pkSpend, nPrefixBits, nPrefix);
+    akStealthOut.sLabel = sLabel;
 
-    CStealthAddress sxAddr;
-    if (0 != aks.SetSxAddr(sxAddr)) {
-        return werrorN(1, "%s SetSxAddr failed.", __func__);
+    if (0 != SaveStealthAddress(pwdb, sea, akStealthOut, fBech32)) {
+        return werrorN(1, "SaveStealthAddress failed.");
     }
 
-    // Set path for address book
-    std::vector<uint32_t> vPath;
-    uint32_t idIndex;
-    bool requireUpdateDB;
-    if (0 == ExtKeyGetIndex(pwdb, sea, idIndex, requireUpdateDB)) {
-        vPath.push_back(idIndex); // first entry is the index to the account / master key
-    }
-
-    if (0 == AppendChainPath(sek, vPath)) {
-        uint32_t nChild = nScanOut;
-        vPath.push_back(SetHardenedBit(nChild));
-    } else {
-        WalletLogPrintf("Warning: %s - missing path value.\n", __func__);
-        vPath.clear();
-    }
-
-    std::vector<CEKAStealthKeyPack> aksPak;
-
-    CKeyID idKey = aks.GetID();
-    sea->mapStealthKeys[idKey] = aks;
-
-    if (!pwdb->ReadExtStealthKeyPack(idAccount, sea->nPackStealth, aksPak)) {
-        // New pack
-        aksPak.clear();
-        if (LogAcceptCategory(BCLog::HDWALLET)) {
-            WalletLogPrintf("Account %s, starting new stealth keypack %u.\n", idAccount.ToString(), sea->nPackStealth);
-        }
-    }
-
-    aksPak.push_back(CEKAStealthKeyPack(idKey, aks));
-
-    if (!pwdb->WriteExtStealthKeyPack(idAccount, sea->nPackStealth, aksPak)) {
-        sea->mapStealthKeys.erase(idKey);
-        sek->SetCounter(nChildBkp, true);
-        return werrorN(1, "%s Save key pack %u failed.", __func__, sea->nPackStealth);
-    }
-
-    if (!pwdb->WriteExtKey(sea->vExtKeyIDs[nChain], *sek)) {
-        sea->mapStealthKeys.erase(idKey);
-        sek->SetCounter(nChildBkp, true);
-        return werrorN(1, "%s Save account chain failed.", __func__);
-    }
-
-    if ((uint32_t)aksPak.size() >= MAX_KEY_PACK_SIZE-1) {
-        sea->nPackStealth++;
-        CKeyID idAccount = sea->GetID();
-        if (!pwdb->WriteExtAccount(idAccount, *sea)) {
-            return werrorN(1, "%s WriteExtAccount failed.", __func__);
-        }
-    }
-
-    SetAddressBook(pwdb, sxAddr, sLabel, "receive", vPath, false, fBech32);
-
-    akStealthOut = aks;
     return 0;
 };
 
-int CHDWallet::NewStealthKeyFromAccount(std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32)
+int CHDWallet::NewStealthKeyFromAccount(const std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32)
 {
     {
         LOCK(cs_wallet);
@@ -7803,7 +7748,6 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
 
 int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const CEKAStealthKey &akStealth, bool fBech32)
 {
-    AssertLockHeld(cs_wallet);
     LogPrint(BCLog::HDWALLET, "%s.\n", __func__);
     assert(sea);
 
@@ -7813,6 +7757,8 @@ int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
 
     uint32_t nScanChain = akStealth.nScanParent;
     uint32_t nSpendChain = akStealth.akSpend.nParent;
+
+    bool is_v1_key = nScanChain == nSpendChain; // v2 stealth addresses use two chains.
 
     CStoredExtKey *sekScan, *sekSpend;
     if (!(sekScan = sea->GetChain(nScanChain))) {
@@ -7839,7 +7785,7 @@ int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
     }
 
     if (!pwdb->WriteExtKey(sea->vExtKeyIDs[nScanChain], *sekScan)
-        || !pwdb->WriteExtKey(sea->vExtKeyIDs[nSpendChain], *sekSpend)) {
+        || (!is_v1_key && !pwdb->WriteExtKey(sea->vExtKeyIDs[nSpendChain], *sekSpend))) {
         sea->mapStealthKeys.erase(idKey);
         return werrorN(1, "WriteExtKey failed.");
     }
@@ -7851,15 +7797,28 @@ int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
         vPath.push_back(idIndex); // first entry is the index to the account / master key
     }
 
+    // V1 stealth addrs use the path of the scan secret
+    bool have_path = false;
+    if (is_v1_key) {
+        if (0 == AppendChainPath(sekScan, vPath)) {
+            uint32_t nChild = akStealth.nScanKey;
+            vPath.push_back(SetHardenedBit(nChild));
+            have_path = true;
+        }
+    } else
     if (0 == AppendChainPath(sekSpend, vPath)) {
         vPath.push_back(akStealth.akSpend.nKey);
-    } else {
+        have_path = true;
+    }
+
+    if (!have_path) {
         WalletLogPrintf("Warning: %s - missing path value.\n", __func__);
         vPath.clear();
     }
 
-    if ((uint32_t)aksPak.size() >= MAX_KEY_PACK_SIZE-1)
+    if ((uint32_t)aksPak.size() >= MAX_KEY_PACK_SIZE-1) {
         sea->nPackStealth++;
+    }
     if (((uint32_t)aksPak.size() >= MAX_KEY_PACK_SIZE-1 || requireUpdateDB)
         && !pwdb->WriteExtAccount(idAccount, *sea)) {
         return werrorN(1, "WriteExtAccount failed.");
@@ -7876,7 +7835,7 @@ int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
 };
 
 int CHDWallet::NewStealthKeyV2FromAccount(
-    CHDWalletDB *pwdb, const CKeyID &idAccount, std::string &sLabel,
+    CHDWalletDB *pwdb, const CKeyID &idAccount, const std::string &sLabel,
     CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32)
 {
     // Scan secrets must be stored uncrypted - always derive hardened keys
@@ -7925,7 +7884,6 @@ int CHDWallet::NewStealthKeyV2FromAccount(
         return werrorN(1, "%s Unknown stealth spend chain.", __func__);
     }
 
-
     CPubKey pkSpend;
     uint32_t nSpendGenerated;
     if (0 != sekSpend->DeriveNextKey(pkSpend, nSpendGenerated, true)) {
@@ -7950,7 +7908,6 @@ int CHDWallet::NewStealthKeyV2FromAccount(
         memcpy(&nPrefix, tmp32, 4);
     }
 
-
     uint32_t nMask = SetStealthMask(nPrefixBits);
     nPrefix = nPrefix & nMask;
     akStealthOut = CEKAStealthKey(nScanChain, nScanOut, kScan, nSpendChain, WithHardenedBit(nSpendGenerated), pkSpend, nPrefixBits, nPrefix);
@@ -7963,7 +7920,7 @@ int CHDWallet::NewStealthKeyV2FromAccount(
     return 0;
 };
 
-int CHDWallet::NewStealthKeyV2FromAccount(std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32)
+int CHDWallet::NewStealthKeyV2FromAccount(const std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32)
 {
     {
         LOCK(cs_wallet);
@@ -9207,7 +9164,7 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
 
         nFoundStealth++;
         return true;
-    };
+    }
 
     // ext account stealth keys
     ExtKeyAccountMap::const_iterator mi;
