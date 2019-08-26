@@ -10511,7 +10511,7 @@ CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_bl
                 nKey += 1;
             }
         } else {
-            WalletLogPrintf("%s: No active stealth chain found, not adding V1 stealth lookahead keys.\n");
+            WalletLogPrintf("%s: No active stealth chain found, not adding V1 stealth lookahead keys.\n", __func__);
         }
 
         uint32_t nScanKey = 0, nSpendKey = 0;
@@ -10545,7 +10545,7 @@ CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_bl
             WalletLogPrintf("%s TxnCommit failed.\n", __func__);
         }
     } else {
-        WalletLogPrintf("%s: No default account found or wallet is locked, not adding stealth lookahead keys.\n");
+        WalletLogPrintf("%s: No default account found or wallet is locked, not adding stealth lookahead keys.\n", __func__);
     }
 
     ScanResult rv = CWallet::ScanForWalletTransactions(first_block, last_block, reserver, fUpdate);
