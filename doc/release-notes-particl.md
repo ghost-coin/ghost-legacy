@@ -4,6 +4,12 @@ Next Major Version
 - rpc: Add coinstakeinfo option to getblock.
 
 
+0.18.1.4
+==============
+
+- Stealth address lookahead when rescanning an uncrypted or unlocked wallet.
+
+
 0.18.1.3
 ==============
 

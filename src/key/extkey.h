@@ -69,6 +69,12 @@ enum AccountFlagTypes
 
 enum {HK_NO = 0, HK_YES, HK_LOOKAHEAD, HK_LOOKAHEAD_DO_UPDATE};
 
+inline bool IsHardened(uint32_t n)              { return (n & (1 << 31)); };
+inline uint32_t &SetHardenedBit(uint32_t &n)    { return (n |= (1 << 31)); };
+inline uint32_t &ClearHardenedBit(uint32_t &n)  { return (n &= ~(1 << 31)); };
+inline uint32_t WithHardenedBit(uint32_t n)     { return (n |= (1 << 31)); };
+inline uint32_t WithoutHardenedBit(uint32_t n)  { return (n &= ~(1 << 31)); };
+
 struct CExtPubKey {
     unsigned char nDepth;
     unsigned char vchFingerprint[4];
@@ -349,7 +355,7 @@ public:
             return rv;
         }
 
-        nChild = nChildOut & ~(1 << 31); // Clear the hardened bit
+        nChild = WithoutHardenedBit(nChildOut);
         if (fUpdate) {
             SetCounter(nChild+1, fHardened);
         }
@@ -827,7 +833,8 @@ public:
     AccKeySCMap mapStealthChildKeys; // keys derived from stealth addresses
 
     AccStealthKeyMap mapStealthKeys;
-    AccStealthKeyMap mapLookAheadStealth;
+    std::set<const CEKAStealthKey*> setLookAheadStealth;
+    std::set<const CEKAStealthKey*> setLookAheadStealthV2;
 
     std::string sLabel; // account name
     CKeyID idMaster;
@@ -878,12 +885,6 @@ bool GetCKeyID(const std::vector<uint8_t> &v, CKeyID &n);
 std::vector<uint8_t> &SetString(std::vector<uint8_t> &v, const char *s);
 std::vector<uint8_t> &SetChar(std::vector<uint8_t> &v, const uint8_t c);
 std::vector<uint8_t> &PushUInt32(std::vector<uint8_t> &v, const uint32_t i);
-
-
-inline bool IsHardened(uint32_t n)              { return (n & (1 << 31)); };
-inline uint32_t &SetHardenedBit(uint32_t &n)    { return (n |= (1 << 31)); };
-inline uint32_t &ClearHardenedBit(uint32_t &n)  { return (n &= ~(1 << 31)); };
-inline uint32_t WithHardenedBit(uint32_t n)     { return (n |= (1 << 31)); };
 
 int ExtractExtKeyPath(const std::string &sPath, std::vector<uint32_t> &vPath);
 
