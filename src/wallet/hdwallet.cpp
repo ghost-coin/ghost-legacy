@@ -7568,16 +7568,16 @@ int CHDWallet::NewKeyFromAccount(CPubKey &pkOut, bool fInternal, bool fHardened,
 
 int CHDWallet::NewStealthKeyFromAccount(
     CHDWalletDB *pwdb, const CKeyID &idAccount, const std::string &sLabel,
-    CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32)
+    CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32, uint32_t *pscankey_num)
 {
     // Scan secrets must be stored uncrypted - always derive hardened keys
 
     if (LogAcceptCategory(BCLog::HDWALLET)) {
-        WalletLogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
+        WalletLogPrintf("%s %s%s.\n", __func__, HDAccIDToString(idAccount), pscankey_num ? " for lookahead" : "");
         AssertLockHeld(cs_wallet);
     }
 
-    assert(pwdb);
+    assert(pwdb || pscankey_num);
 
     if (IsLocked()) {
         return werrorN(1, "%s Wallet must be unlocked to derive hardened keys.", __func__);
@@ -7599,13 +7599,22 @@ int CHDWallet::NewStealthKeyFromAccount(
 
     CKey kScan, kSpend;
     uint32_t nScanOut, nSpendOut;
-    if (0 != sek->DeriveNextKey(kScan, nScanOut, true)) {
-        return werrorN(1, "%s Derive failed.", __func__);
-    }
-
-    if (0 != sek->DeriveNextKey(kSpend, nSpendOut, true)) {
-        sek->SetCounter(nChildBkp, true);
-        return werrorN(1, "%s Derive failed.", __func__);
+    if (pscankey_num) {
+        if (0 != sek->DeriveKey(kScan, *pscankey_num, nScanOut, true)) {
+            return werrorN(1, "%s Derive failed.", __func__);
+        }
+        if (0 != sek->DeriveKey(kSpend, WithoutHardenedBit(nScanOut) + 1, nSpendOut, true)) {
+            return werrorN(1, "%s Derive failed.", __func__);
+        }
+        *pscankey_num = WithoutHardenedBit(nSpendOut);
+    } else {
+        if (0 != sek->DeriveNextKey(kScan, nScanOut, true)) {
+            return werrorN(1, "%s Derive failed.", __func__);
+        }
+        if (0 != sek->DeriveNextKey(kSpend, nSpendOut, true)) {
+            sek->SetCounter(nChildBkp, true);
+            return werrorN(1, "%s Derive failed.", __func__);
+        }
     }
 
     uint32_t nPrefix = 0;
@@ -7628,6 +7637,11 @@ int CHDWallet::NewStealthKeyFromAccount(
     akStealthOut = CEKAStealthKey(nChain, nScanOut, kScan, nChain, nSpendOut, pkSpend, nPrefixBits, nPrefix);
     akStealthOut.sLabel = sLabel;
 
+    if (pscankey_num) {
+        CKeyID idKey = akStealthOut.GetID();
+        auto insert = sea->mapStealthKeys.insert(std::pair<CKeyID, CEKAStealthKey>(idKey, akStealthOut));
+        sea->setLookAheadStealth.insert(&insert.first->second);
+    } else
     if (0 != SaveStealthAddress(pwdb, sea, akStealthOut, fBech32)) {
         return werrorN(1, "SaveStealthAddress failed.");
     }
@@ -7700,7 +7714,8 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
     sekStealthScan->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
     sekStealthScan->mapValue[EKVT_KEY_TYPE] = SetChar(vData, EKT_STEALTH_SCAN);
     sea->InsertChain(sekStealthScan);
-    mapExtKeys[sekStealthScan->GetID()] = sekStealthScan;
+    CKeyID id_scan = sekStealthScan->GetID();
+    mapExtKeys[id_scan] = sekStealthScan;
     uint32_t nStealthScanChain = sea->NumChains();
 
     CExtKey evStealthSpend;
@@ -7719,11 +7734,23 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
     sekStealthSpend->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
     sekStealthSpend->mapValue[EKVT_KEY_TYPE] = SetChar(vData, EKT_STEALTH_SPEND);
     sea->InsertChain(sekStealthSpend);
-    mapExtKeys[sekStealthSpend->GetID()] = sekStealthSpend;
+    CKeyID id_spend = sekStealthSpend->GetID();
+    mapExtKeys[id_spend] = sekStealthSpend;
     uint32_t nStealthSpendChain = sea->NumChains();
 
     sea->mapValue[EKVT_STEALTH_SCAN_CHAIN] = SetCompressedInt64(vData, nStealthScanChain);
     sea->mapValue[EKVT_STEALTH_SPEND_CHAIN] = SetCompressedInt64(vData, nStealthSpendChain);
+
+    if (IsCrypted() &&
+        (ExtKeyEncrypt(sekStealthScan, vMasterKey, false) != 0 ||
+         ExtKeyEncrypt(sekStealthSpend, vMasterKey, false) != 0)) {
+        return werrorN(1, "%s: ExtKeyEncrypt failed.", __func__);
+    }
+
+    if (!pwdb->WriteExtKey(id_scan, *sekStealthScan) ||
+        !pwdb->WriteExtKey(id_spend, *sekStealthSpend)) {
+        return werrorN(1, "%s WriteExtKey failed.", __func__);
+    }
 
     CKeyID idAccount = sea->GetID();
     if (!pwdb->WriteExtAccount(idAccount, *sea)) {
@@ -7823,16 +7850,16 @@ int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
 
 int CHDWallet::NewStealthKeyV2FromAccount(
     CHDWalletDB *pwdb, const CKeyID &idAccount, const std::string &sLabel,
-    CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32)
+    CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32, uint32_t *pscankey_num, uint32_t *pspendkey_num)
 {
     // Scan secrets must be stored uncrypted - always derive hardened keys
 
     if (LogAcceptCategory(BCLog::HDWALLET)) {
-        WalletLogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
+        WalletLogPrintf("%s %s%s.\n", __func__, HDAccIDToString(idAccount), pscankey_num ? " for lookahead" : "");
         AssertLockHeld(cs_wallet);
     }
 
-    assert(pwdb);
+    assert(pwdb || pscankey_num);
 
     if (IsLocked()) {
         return werrorN(1, "%s Wallet must be unlocked to derive hardened keys.", __func__);
@@ -7871,16 +7898,26 @@ int CHDWallet::NewStealthKeyV2FromAccount(
         return werrorN(1, "%s Unknown stealth spend chain.", __func__);
     }
 
-    CPubKey pkSpend;
-    uint32_t nSpendGenerated;
-    if (0 != sekSpend->DeriveNextKey(pkSpend, nSpendGenerated, true)) {
-        return werrorN(1, "DeriveNextKey failed.");
-    }
-
     CKey kScan;
-    uint32_t nScanOut;
-    if (0 != sekScan->DeriveNextKey(kScan, nScanOut, true)) {
-        return werrorN(1, "DeriveNextKey failed.");
+    CPubKey pkSpend;
+    uint32_t nScanOut, nSpendGenerated;
+    if (pscankey_num) {
+        assert(pspendkey_num);
+        if (0 != sekScan->DeriveKey(kScan, *pscankey_num, nScanOut, true)) {
+            return werrorN(1, "Derive failed.");
+        }
+        *pscankey_num = WithoutHardenedBit(nScanOut);
+        if (0 != sekSpend->DeriveKey(pkSpend, *pspendkey_num, nSpendGenerated, true)) {
+            return werrorN(1, "Derive failed.");
+        }
+        *pspendkey_num = WithoutHardenedBit(nSpendGenerated);
+    } else {
+        if (0 != sekScan->DeriveNextKey(kScan, nScanOut, true)) {
+            return werrorN(1, "Derive failed.");
+        }
+        if (0 != sekSpend->DeriveNextKey(pkSpend, nSpendGenerated, true)) {
+            return werrorN(1, "Derive failed.");
+        }
     }
 
     uint32_t nPrefix = 0;
@@ -7900,6 +7937,11 @@ int CHDWallet::NewStealthKeyV2FromAccount(
     akStealthOut = CEKAStealthKey(nScanChain, nScanOut, kScan, nSpendChain, WithHardenedBit(nSpendGenerated), pkSpend, nPrefixBits, nPrefix);
     akStealthOut.sLabel = sLabel;
 
+    if (pscankey_num) {
+        CKeyID idKey = akStealthOut.GetID();
+        auto insert = sea->mapStealthKeys.insert(std::pair<CKeyID, CEKAStealthKey>(idKey, akStealthOut));
+        sea->setLookAheadStealthV2.insert(&insert.first->second);
+    } else
     if (0 != SaveStealthAddress(pwdb, sea, akStealthOut, fBech32)) {
         return werrorN(1, "SaveStealthAddress failed.");
     }
@@ -9055,6 +9097,75 @@ inline bool MatchPrefix(uint32_t nAddrBits, uint32_t addrPrefix, uint32_t output
     return (addrPrefix & mask) == (outputPrefix & mask);
 };
 
+void CHDWallet::ProcessStealthLookahead(CExtKeyAccount *ea, const CEKAStealthKey &aks, bool v2)
+{
+    auto &use_set = v2 ? ea->setLookAheadStealthV2 : ea->setLookAheadStealth;
+    auto it = use_set.find(&aks);
+    if (it != use_set.end()) {
+        const CEKAStealthKey *psx = *it;
+        CHDWalletDB wdb(*database, "r+");
+        if (!wdb.TxnBegin()) {
+            WalletLogPrintf("%s TxnBegin failed.\n", __func__);
+            return;
+        }
+
+        uint32_t greatestScanKey = 0;
+        uint32_t greatestSpendKey = 0;
+        for (auto itd = use_set.begin(); itd != use_set.end();) {
+            const CEKAStealthKey *psx_test = *itd;
+            if (psx_test->nScanKey > greatestScanKey) {
+                greatestScanKey = psx_test->nScanKey;
+            }
+            if (psx_test->akSpend.nKey > greatestSpendKey) {
+                greatestSpendKey = psx_test->akSpend.nKey;
+            }
+            if (psx_test->nScanKey <= psx->nScanKey) {
+                CStealthAddress sxAddr;
+                if (0 != psx_test->SetSxAddr(sxAddr)) {
+                    WalletLogPrintf("%s: Warning SetSxAddr failed.\n", __func__);
+                }
+                WalletLogPrintf("Promoting stealth address %s from lookahead.\n", sxAddr.ToString());
+
+                if (0 != SaveStealthAddress(&wdb, ea, *psx_test, v2)) {
+                    WalletLogPrintf("%s: Warning SetSxAddr failed.\n", __func__);
+                }
+                itd = use_set.erase(itd);
+            } else {
+                itd++;
+            }
+        }
+
+        if (!wdb.TxnCommit()) {
+            WalletLogPrintf("%s TxnCommit failed.\n", __func__);
+            return;
+        }
+
+        uint32_t nScanKey = WithoutHardenedBit(greatestScanKey) + 1;
+        uint32_t nSpendKey = WithoutHardenedBit(greatestSpendKey) + 1;
+        size_t num_loops = 0;
+        while (use_set.size() < m_rescan_stealth_lookahead) {
+            CEKAStealthKey akStealth;
+            if (v2) {
+                if (0 != NewStealthKeyV2FromAccount(nullptr, idDefaultAccount, "", akStealth, 0, nullptr, true, &nScanKey, &nSpendKey)) {
+                    WalletLogPrintf("%s NewStealthKeyFromAccount failed.\n", __func__);
+                    return;
+                }
+                nSpendKey += 1;
+            } else
+            if (0 != NewStealthKeyFromAccount(nullptr, idDefaultAccount, "", akStealth, 0, nullptr, false, &nScanKey)) {
+                WalletLogPrintf("%s NewStealthKeyFromAccount failed.\n", __func__);
+                return;
+            }
+            nScanKey += 1;
+
+            if (++num_loops > m_rescan_stealth_lookahead) {
+                WalletLogPrintf("%s Loop stuck.\n", __func__);
+                return;
+            }
+        }
+    }
+};
+
 bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
     std::vector<uint8_t> &vchEphemPK, uint32_t prefix, bool fHavePrefix, CKey &sShared, bool fNeedShared)
 {
@@ -9239,6 +9350,8 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
                 return werror("%s: UpdateStealthAddressIndex failed.\n", __func__);
             }
 
+            ProcessStealthLookahead(ea, aks, false);
+            ProcessStealthLookahead(ea, aks, true);
             return true;
         }
     }
@@ -10447,6 +10560,84 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
     ClearCachedBalances();
 
     return true;
+};
+
+CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_block, const uint256& last_block, const WalletRescanReserver& reserver, bool fUpdate)
+{
+    CExtKeyAccount *sea = nullptr;
+
+    if (!IsLocked()) {
+        ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idDefaultAccount);
+        if (mi != mapExtAccounts.end()) {
+            sea = mi->second;
+        }
+    }
+
+    if (sea) {
+        LOCK(cs_wallet);
+        CEKAStealthKey akStealth;
+
+        uint32_t nChain = sea->nActiveStealth;
+        CStoredExtKey *sek = sea->GetChain(nChain);
+        if (sek) {
+            uint32_t nKey = sek->nHGenerated;
+            for (size_t k = 0; k < m_rescan_stealth_lookahead; ++k) {
+                NewStealthKeyFromAccount(nullptr, idDefaultAccount, "", akStealth, 0, nullptr, false, &nKey);
+                nKey += 1;
+            }
+        } else {
+            WalletLogPrintf("%s: No active stealth chain found, not adding V1 stealth lookahead keys.\n", __func__);
+        }
+
+        uint32_t nScanKey = 0, nSpendKey = 0;
+        mapEKValue_t::iterator mvi = sea->mapValue.find(EKVT_STEALTH_SCAN_CHAIN);
+        if (mvi != sea->mapValue.end()) {
+            uint64_t nScanChain;
+            GetCompressedInt64(mvi->second, nScanChain);
+            CStoredExtKey *sekScan = sea->GetChain(nScanChain);
+            nScanKey = sekScan->nHGenerated;
+        }
+        mvi = sea->mapValue.find(EKVT_STEALTH_SPEND_CHAIN);
+        if (mvi != sea->mapValue.end()) {
+            uint64_t nSpendChain;
+            GetCompressedInt64(mvi->second, nSpendChain);
+            CStoredExtKey *sekSpend = sea->GetChain(nSpendChain);
+            nSpendKey = sekSpend->nHGenerated;
+        }
+
+        // May need to initialise the stealth v2 chains
+        CHDWalletDB wdb(*database, "r+");
+        if (!wdb.TxnBegin()) {
+            WalletLogPrintf("%s TxnBegin failed.\n", __func__);
+        } else
+        for (size_t k = 0; k < m_rescan_stealth_lookahead; ++k) {
+            NewStealthKeyV2FromAccount(&wdb, idDefaultAccount, "", akStealth, 0, nullptr, true, &nScanKey, &nSpendKey);
+            nScanKey += 1;
+            nSpendKey += 1;
+        }
+
+        if (!wdb.TxnCommit()) {
+            WalletLogPrintf("%s TxnCommit failed.\n", __func__);
+        }
+    } else {
+        WalletLogPrintf("%s: No default account found or wallet is locked, not adding stealth lookahead keys.\n", __func__);
+    }
+
+    ScanResult rv = CWallet::ScanForWalletTransactions(first_block, last_block, reserver, fUpdate);
+
+    // Remove lookahead keys
+    if (sea) {
+        for (const auto &lookahead : sea->setLookAheadStealth) {
+            sea->mapStealthKeys.erase(lookahead->GetID());
+        }
+        for (const auto &lookahead : sea->setLookAheadStealthV2) {
+            sea->mapStealthKeys.erase(lookahead->GetID());
+        }
+        sea->setLookAheadStealth.clear();
+        sea->setLookAheadStealthV2.clear();
+    }
+
+    return rv;
 };
 
 std::vector<uint256> CHDWallet::ResendRecordTransactionsBefore(interfaces::Chain::Lock& locked_chain, int64_t nTime, CConnman *connman)

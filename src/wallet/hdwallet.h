@@ -598,12 +598,12 @@ public:
     int NewKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, CPubKey &pkOut, bool fInternal, bool fHardened, bool f256bit=false, bool fBech32=false, const char *plabel=nullptr);
     int NewKeyFromAccount(CPubKey &pkOut, bool fInternal=false, bool fHardened=false, bool f256bit=false, bool fBech32=false, const char *plabel=nullptr); // wrapper - use default account
 
-    int NewStealthKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, const std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32=false) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    int NewStealthKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, const std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32=false, uint32_t *pscankey_num=nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     int NewStealthKeyFromAccount(const std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32=false); // wrapper - use default account
 
     int InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea);
     int SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const CEKAStealthKey &akStealth, bool fBech32) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    int NewStealthKeyV2FromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, const std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32=false) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    int NewStealthKeyV2FromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, const std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32=false, uint32_t *pscankey_num=nullptr, uint32_t *pspendkey_num=nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     int NewStealthKeyV2FromAccount(const std::string &sLabel, CEKAStealthKey &akStealthOut, uint32_t nPrefixBits, const char *pPrefix, bool fBech32=false); // wrapper - use default account
 
     int NewExtKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, std::string &sLabel, CStoredExtKey *sekOut, const char *plabel=nullptr, const uint32_t *childNo=nullptr, bool fHardened=false, bool fBech32=false) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
@@ -644,6 +644,8 @@ public:
     bool ProcessLockedStealthOutputs();
     bool ProcessLockedBlindedOutputs();
     bool CountRecords(std::string sPrefix, int64_t rv);
+
+    void ProcessStealthLookahead(CExtKeyAccount *ea, const CEKAStealthKey &aks, bool v2) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool ProcessStealthOutput(const CTxDestination &address,
         std::vector<uint8_t> &vchEphemPK, uint32_t prefix, bool fHavePrefix, CKey &sShared, bool fNeedShared=false);
 
@@ -679,6 +681,7 @@ public:
     bool AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
         const uint256& block_hash, int posInBlock, bool fFlushOnClose=true);
 
+    ScanResult ScanForWalletTransactions(const uint256& first_block, const uint256& last_block, const WalletRescanReserver& reserver, bool fUpdate) override;
     std::vector<uint256> ResendRecordTransactionsBefore(interfaces::Chain::Lock& locked_chain, int64_t nTime, CConnman *connman);
     void ResendWalletTransactions(int64_t nBestBlockTime, CConnman *connman) override EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -800,6 +803,8 @@ public:
     int64_t m_smsg_fee_rate_target = 0;
     uint32_t m_smsg_difficulty_target = 0; // 0 = auto
     bool m_is_only_instance = true; // Set to false if spends can happen in a different wallet
+
+    size_t m_rescan_stealth_lookahead = 5;
 
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);
