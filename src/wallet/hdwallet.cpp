@@ -6630,60 +6630,6 @@ int CHDWallet::ExtKeyUnlock(const CKeyingMaterial &vMKey)
     return 0;
 };
 
-
-int CHDWallet::ExtKeyCreateInitial(CHDWalletDB *pwdb)
-{
-    WalletLogPrintf("Creating intital extended master key and account.\n");
-
-    CKeyID idMaster;
-
-    if (!pwdb->TxnBegin()) {
-        return werrorN(1, "%s TxnBegin failed.", __func__);
-    }
-
-    if (ExtKeyNewMaster(pwdb, idMaster, true) != 0
-        || ExtKeySetMaster(pwdb, idMaster) != 0) {
-        pwdb->TxnAbort();
-        return werrorN(1, "%s Make or SetNewMasterKey failed.", __func__);
-    }
-
-    CExtKeyAccount *seaDefault = new CExtKeyAccount();
-
-    if (ExtKeyDeriveNewAccount(pwdb, seaDefault, "default") != 0) {
-        delete seaDefault;
-        pwdb->TxnAbort();
-        return werrorN(1, "%s DeriveNewExtAccount failed.", __func__);
-    }
-
-    idDefaultAccount = seaDefault->GetID();
-    if (!pwdb->WriteNamedExtKeyId("defaultAccount", idDefaultAccount)) {
-        pwdb->TxnAbort();
-        return werrorN(1, "%s WriteNamedExtKeyId failed.", __func__);
-    }
-
-    CPubKey newKey;
-    if (0 != NewKeyFromAccount(pwdb, idDefaultAccount, newKey, false, false)) {
-        pwdb->TxnAbort();
-        return werrorN(1, "%s NewKeyFromAccount failed.", __func__);
-    }
-
-    CEKAStealthKey aks;
-    std::string strLbl = "Default Stealth Address";
-    if (0 != NewStealthKeyFromAccount(pwdb, idDefaultAccount, strLbl, aks, 0, nullptr)) {
-        pwdb->TxnAbort();
-        return werrorN(1, "%s NewStealthKeyFromAccount failed.", __func__);
-    }
-
-    if (!pwdb->TxnCommit()) {
-        // TxnCommit destroys activeTxn
-        return werrorN(1, "%s TxnCommit failed.", __func__);
-    }
-
-    SetAddressBook(CBitcoinAddress(PKHash(newKey)).Get(), "Default Address", "receive");
-
-    return 0;
-}
-
 int CHDWallet::ExtKeyLoadMaster()
 {
     WalletLogPrintf("Loading master ext key.\n");
@@ -6694,23 +6640,6 @@ int CHDWallet::ExtKeyLoadMaster()
 
     CHDWalletDB wdb(*database, "r+");
     if (!wdb.ReadNamedExtKeyId("master", idMaster)) {
-        int nValue;
-        if (!wdb.ReadFlag("madeDefaultEKey", nValue)
-            || nValue == 0) {
-            /*
-            if (IsLocked())
-            {
-                fMakeExtKeyInitials = true; // set flag for unlock
-                LogPrintf("Wallet locked, master key will be created when unlocked.\n");
-                return 0;
-            };
-
-            if (ExtKeyCreateInitial(&wdb) != 0)
-                return errorN(1, "ExtKeyCreateDefaultMaster failed.");
-
-            return 0;
-            */
-        }
         WalletLogPrintf("Warning: No master ext key has been set.\n");
         return 1;
     }
@@ -6826,7 +6755,7 @@ int CHDWallet::ExtKeyLoadAccounts()
 
         ExtKeyAccountMap::iterator mi = mapExtAccounts.find(idAccount);
         if (mi != mapExtAccounts.end()) {
-            // Account already loaded, skip, can be caused by ExtKeyCreateInitial()
+            // Account already loaded, skip
             if (LogAcceptCategory(BCLog::HDWALLET)) {
                 WalletLogPrintf("Account already loaded.\n");
             }

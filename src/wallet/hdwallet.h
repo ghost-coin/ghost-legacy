@@ -273,7 +273,6 @@ public:
     int ExtKeyUnlock(CStoredExtKey *sek, const CKeyingMaterial &vMKey);
     int ExtKeyUnlock(const CKeyingMaterial &vMKey) override;
 
-    int ExtKeyCreateInitial(CHDWalletDB *pwdb) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     int ExtKeyLoadMaster();
 
     int ExtKeyLoadAccountKeys(CHDWalletDB *pwdb, CExtKeyAccount *sea);
