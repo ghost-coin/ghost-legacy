@@ -152,6 +152,8 @@ int CHDWallet::FreeExtKeyMaps()
 void CHDWallet::AddOptions()
 {
     gArgs.AddArg("-defaultlookaheadsize=<n>", strprintf(_("Number of keys to load into the lookahead pool per chain. (default: %u)"), N_DEFAULT_LOOKAHEAD), false, OptionsCategory::PART_WALLET);
+    gArgs.AddArg("-stealthv1lookaheadsize=<n>", strprintf("Number of V1 stealth keys to look ahead during a rescan. (default: %u)", DEFAULT_STEALTH_LOOKAHEAD_SIZE), false, OptionsCategory::PART_WALLET);
+    gArgs.AddArg("-stealthv2lookaheadsize=<n>", strprintf("Number of V2 stealth keys to look ahead during a rescan. (default: %u)", DEFAULT_STEALTH_LOOKAHEAD_SIZE), false, OptionsCategory::PART_WALLET);
     gArgs.AddArg("-extkeysaveancestors", strprintf(_("On saving a key from the lookahead pool, save all unsaved keys leading up to it too. (default: %s)"), "true"), false, OptionsCategory::PART_WALLET);
     gArgs.AddArg("-createdefaultmasterkey", strprintf(_("Generate a random master key and main account if no master key exists. (default: %s)"), "false"), false, OptionsCategory::PART_WALLET);
 
@@ -168,6 +170,7 @@ void CHDWallet::AddOptions()
 bool CHDWallet::Initialise()
 {
     // Continue from CHDWallet::LoadWallet
+
     PostProcessUnloadSpent();
 
     LockAnnotation lock(::cs_main); // Temporary, for FindForkInGlobalIndex below. Removed in upcoming commit.
@@ -1438,6 +1441,9 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
         InitError(_("Invalid amount for -reservebalance=<amount>"));
         return DBErrors::LOAD_FAIL;
     }
+
+    m_rescan_stealth_v1_lookahead = gArgs.GetArg("-stealthv1lookaheadsize", DEFAULT_STEALTH_LOOKAHEAD_SIZE);
+    m_rescan_stealth_v2_lookahead = gArgs.GetArg("-stealthv2lookaheadsize", DEFAULT_STEALTH_LOOKAHEAD_SIZE);
 
     std::string sError;
     ProcessStakingSettings(sError);
@@ -6888,7 +6894,7 @@ int CHDWallet::ExtKeyAddAccountToMaps(const CKeyID &idAccount, CExtKeyAccount *s
 
         if (sek->nFlags & EAF_ACTIVE
             && sek->nFlags & EAF_RECEIVE_ON) {
-            uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", N_DEFAULT_LOOKAHEAD);
+            uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", DEFAULT_LOOKAHEAD_SIZE);
 
             mapEKValue_t::iterator itV = sek->mapValue.find(EKVT_N_LOOKAHEAD);
             if (itV != sek->mapValue.end()) {
@@ -7088,7 +7094,7 @@ int CHDWallet::PrepareLookahead()
 
             if (sek->nFlags & EAF_ACTIVE
                 && sek->nFlags & EAF_RECEIVE_ON) {
-                uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", N_DEFAULT_LOOKAHEAD);
+                uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", DEFAULT_LOOKAHEAD_SIZE);
                 mapEKValue_t::iterator itV = sek->mapValue.find(EKVT_N_LOOKAHEAD);
                 if (itV != sek->mapValue.end()) {
                     nLookAhead = GetCompressedInt64(itV->second, nLookAhead);
@@ -8077,7 +8083,7 @@ int CHDWallet::NewExtKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount,
         return werrorN(1, "DB Write failed.");
     }
 
-    uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", N_DEFAULT_LOOKAHEAD);
+    uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", DEFAULT_LOOKAHEAD_SIZE);
     mvi = sekOut->mapValue.find(EKVT_N_LOOKAHEAD);
     if (mvi != sekOut->mapValue.end()) {
         nLookAhead = GetCompressedInt64(mvi->second, nLookAhead);
@@ -9100,6 +9106,7 @@ inline bool MatchPrefix(uint32_t nAddrBits, uint32_t addrPrefix, uint32_t output
 void CHDWallet::ProcessStealthLookahead(CExtKeyAccount *ea, const CEKAStealthKey &aks, bool v2)
 {
     auto &use_set = v2 ? ea->setLookAheadStealthV2 : ea->setLookAheadStealth;
+    size_t rescan_stealth_lookahead = v2 ? m_rescan_stealth_v2_lookahead : m_rescan_stealth_v1_lookahead;
     auto it = use_set.find(&aks);
     if (it != use_set.end()) {
         const CEKAStealthKey *psx = *it;
@@ -9143,7 +9150,7 @@ void CHDWallet::ProcessStealthLookahead(CExtKeyAccount *ea, const CEKAStealthKey
         uint32_t nScanKey = WithoutHardenedBit(greatestScanKey) + 1;
         uint32_t nSpendKey = WithoutHardenedBit(greatestSpendKey) + 1;
         size_t num_loops = 0;
-        while (use_set.size() < m_rescan_stealth_lookahead) {
+        while (use_set.size() < rescan_stealth_lookahead) {
             CEKAStealthKey akStealth;
             if (v2) {
                 if (0 != NewStealthKeyV2FromAccount(nullptr, idDefaultAccount, "", akStealth, 0, nullptr, true, &nScanKey, &nSpendKey)) {
@@ -9158,7 +9165,7 @@ void CHDWallet::ProcessStealthLookahead(CExtKeyAccount *ea, const CEKAStealthKey
             }
             nScanKey += 1;
 
-            if (++num_loops > m_rescan_stealth_lookahead) {
+            if (++num_loops > rescan_stealth_lookahead) {
                 WalletLogPrintf("%s Loop stuck.\n", __func__);
                 return;
             }
@@ -10581,7 +10588,7 @@ CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_bl
         CStoredExtKey *sek = sea->GetChain(nChain);
         if (sek) {
             uint32_t nKey = sek->nHGenerated;
-            for (size_t k = 0; k < m_rescan_stealth_lookahead; ++k) {
+            for (size_t k = 0; k < m_rescan_stealth_v1_lookahead; ++k) {
                 NewStealthKeyFromAccount(nullptr, idDefaultAccount, "", akStealth, 0, nullptr, false, &nKey);
                 nKey += 1;
             }
@@ -10610,7 +10617,7 @@ CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_bl
         if (!wdb.TxnBegin()) {
             WalletLogPrintf("%s TxnBegin failed.\n", __func__);
         } else
-        for (size_t k = 0; k < m_rescan_stealth_lookahead; ++k) {
+        for (size_t k = 0; k < m_rescan_stealth_v2_lookahead; ++k) {
             NewStealthKeyV2FromAccount(&wdb, idDefaultAccount, "", akStealth, 0, nullptr, true, &nScanKey, &nSpendKey);
             nScanKey += 1;
             nSpendKey += 1;

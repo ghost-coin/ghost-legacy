@@ -12,6 +12,8 @@
 #include <key/extkey.h>
 #include <key/stealth.h>
 
+static const size_t DEFAULT_STEALTH_LOOKAHEAD_SIZE = 5;
+
 typedef std::map<CKeyID, CStealthKeyMetadata> StealthKeyMetaMap;
 typedef std::map<CKeyID, CExtKeyAccount*> ExtKeyAccountMap;
 typedef std::map<CKeyID, CStoredExtKey*> ExtKeyMap;
@@ -804,7 +806,8 @@ public:
     uint32_t m_smsg_difficulty_target = 0; // 0 = auto
     bool m_is_only_instance = true; // Set to false if spends can happen in a different wallet
 
-    size_t m_rescan_stealth_lookahead = 5;
+    size_t m_rescan_stealth_v1_lookahead = DEFAULT_STEALTH_LOOKAHEAD_SIZE;
+    size_t m_rescan_stealth_v2_lookahead = DEFAULT_STEALTH_LOOKAHEAD_SIZE;
 
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);

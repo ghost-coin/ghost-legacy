@@ -628,7 +628,7 @@ static int ManageExtKey(CStoredExtKey &sek, std::string &sOptName, std::string &
         result.pushKV("receive_on", sek.nFlags & EAF_RECEIVE_ON ? "true" : "false");
     } else
     if (sOptName == "look_ahead") {
-        uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", N_DEFAULT_LOOKAHEAD);
+        uint64_t nLookAhead = gArgs.GetArg("-defaultlookaheadsize", DEFAULT_LOOKAHEAD_SIZE);
 
         if (sOptValue.length() > 0) {
             if (!ParseUInt64(sOptValue, &nLookAhead)) {

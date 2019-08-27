@@ -19,7 +19,7 @@ static const uint32_t BIP32_KEY_LEN = 82;       // raw, 74 + 4 bytes id + 4 chec
 static const uint32_t BIP32_KEY_N_BYTES = 74;   // raw without id and checksum
 
 static const uint32_t MAX_KEY_PACK_SIZE = 128;
-static const uint32_t N_DEFAULT_LOOKAHEAD = 64;
+static const uint32_t DEFAULT_LOOKAHEAD_SIZE = 64;
 
 static const uint32_t BIP44_PURPOSE = (((uint32_t)44) | (1 << 31));
 
