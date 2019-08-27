@@ -3,6 +3,7 @@
 ==============
 
 - Stealth address lookahead when rescanning an uncrypted or unlocked wallet.
+- RingCT send options are saved by the Qt gui.
 
 
 0.18.1.3
