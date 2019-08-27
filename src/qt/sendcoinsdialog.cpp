@@ -139,8 +139,15 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
     ui->customFee->setValue(settings.value("nTransactionFee").toLongLong());
     minimizeFeeSection(settings.value("fFeeSectionMinimized").toBool());
 
-    ui->spinRingSize->setValue(DEFAULT_RING_SIZE);
-    ui->spinMaxInputs->setValue(DEFAULT_INPUTS_PER_SIG);
+
+    if (!settings.contains("nRingSize")) {
+        settings.setValue("nRingSize", (int)DEFAULT_RING_SIZE);
+    }
+    if (!settings.contains("nInputsPerMLSAG")) {
+        settings.setValue("nInputsPerMLSAG", (int)DEFAULT_INPUTS_PER_SIG);
+    }
+    ui->spinRingSize->setValue(settings.value("nRingSize").toInt());
+    ui->spinMaxInputs->setValue(settings.value("nInputsPerMLSAG").toInt());
 }
 
 void SendCoinsDialog::setClientModel(ClientModel *_clientModel)
@@ -225,6 +232,9 @@ SendCoinsDialog::~SendCoinsDialog()
     settings.setValue("nFeeRadio", ui->groupFee->checkedId());
     settings.setValue("nConfTarget", getConfTargetForIndex(ui->confTargetSelector->currentIndex()));
     settings.setValue("nTransactionFee", (qint64)ui->customFee->value());
+
+    settings.setValue("nRingSize", ui->spinRingSize->value());
+    settings.setValue("nInputsPerMLSAG", ui->spinMaxInputs->value());
 
     delete ui;
 }
