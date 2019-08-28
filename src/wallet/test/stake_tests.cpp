@@ -256,7 +256,6 @@ BOOST_AUTO_TEST_CASE(stake_test)
         BOOST_CHECK(pwallet->CreateTransaction(*locked_chain, vecSend, tx_new, nFeeRequired, nChangePosRet, strError, coinControl));
     }
     {
-        g_connman = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
         CValidationState state;
         pwallet->SetBroadcastTransactions(true);
         mapValue_t mapValue;
