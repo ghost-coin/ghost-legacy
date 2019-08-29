@@ -425,7 +425,7 @@ public:
         consensus.BIP34Height = 0;
         consensus.BIP65Height = 0;
         consensus.BIP66Height = 0;
-        consensus.CSVHeight = 0;
+        consensus.CSVHeight = 1;
         consensus.SegwitHeight = 0;
         consensus.OpIsCoinstakeTime = 0x5A04EC00;       // 2017-11-10 00:00:00 UTC
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
@@ -608,7 +608,7 @@ public:
         consensus.BIP34Height = 0;
         consensus.BIP65Height = 0;
         consensus.BIP66Height = 0;
-        consensus.CSVHeight = 0;
+        consensus.CSVHeight = 1;
         consensus.SegwitHeight = 0;
 
         consensus.OpIsCoinstakeTime = 0;

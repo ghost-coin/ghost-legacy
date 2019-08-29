@@ -2420,7 +2420,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
 
     // Start enforcing BIP68 (sequence locks)
     int nLockTimeFlags = 0;
-    if (fParticlMode || pindex->nHeight >= chainparams.GetConsensus().CSVHeight) {
+    if ((fParticlMode && pindex->pprev) || pindex->nHeight >= chainparams.GetConsensus().CSVHeight) {
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
@@ -4380,7 +4380,7 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
 
     // Start enforcing BIP113 (Median Time Past).
     int nLockTimeFlags = 0;
-    if (fParticlMode || nHeight >= consensusParams.CSVHeight) {
+    if ((fParticlMode && pindexPrev) || nHeight >= consensusParams.CSVHeight) {
         assert(pindexPrev != nullptr);
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
