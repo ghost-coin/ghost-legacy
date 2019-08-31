@@ -401,6 +401,7 @@ public:
     bool WalletUnloaded(CWallet *pwallet_removed);
     bool SetActiveWallet(std::shared_ptr<CWallet> pwallet_in);
     std::string GetWalletName();
+    std::string LookupLabel(PKHash &hash);
 
     void GetNodesStats(int node_id, UniValue &result);
     void ClearBanned();
@@ -421,6 +422,7 @@ public:
 
     int GetStoredKey(const CKeyID &ckid, CPubKey &cpkOut);
     int GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut);
+    int GetLocalKey(const CKeyID &key_id, CKey &key_out);
     int GetLocalPublicKey(const std::string &strAddress, std::string &strPublicKey);
 
     int AddAddress(std::string &address, std::string &publicKey);
@@ -481,7 +483,9 @@ public:
     std::set<SecMsgPurged> setPurged;
     std::set<int64_t> setPurgedTimestamps;
     SecMsgOptions options;
-    std::shared_ptr<CWallet> pwallet;
+    std::shared_ptr<CWallet> pactive_wallet; // The wallet used to fund smsges
+    std::vector<std::shared_ptr<CWallet>> vpwallets;
+
     std::unique_ptr<interfaces::Handler> m_handler_unload;
 
     int64_t start_time = 0;

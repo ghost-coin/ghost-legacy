@@ -486,7 +486,7 @@ const char *GetString(size_t errorCode)
 static void NotifyUnload(CSMSG *ps, CWallet *pw)
 {
     LogPrintf("SMSG NotifyUnload\n");
-    ps->SetActiveWallet(nullptr);
+    ps->WalletUnloaded(pw);
 };
 
 int CSMSG::BuildBucketSet()
@@ -658,49 +658,46 @@ int CSMSG::AddWalletAddresses()
     LogPrint(BCLog::SMSG, "%s\n", __func__);
 
 #ifdef ENABLE_WALLET
-    if (!pwallet) {
-        return errorN(SMSG_WALLET_UNSET, "No wallet.");
-    }
-
     if (!gArgs.GetBoolArg("-smsgsaddnewkeys", false)) {
         LogPrint(BCLog::SMSG, "%s smsgsaddnewkeys option is disabled.\n", __func__);
-        return SMSG_GENERAL_ERROR;
+        return SMSG_NO_ERROR;
     }
 
     uint32_t nAdded = 0;
-
-    LOCK(pwallet->cs_wallet);
-    for (const auto &entry : pwallet->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
-        if (!IsMine(*pwallet, entry.first)) {
-            continue;
-        }
-
-        // TODO: skip addresses for stealth transactions
-        CKeyID keyID;
-        CBitcoinAddress coinAddress(entry.first);
-        if (!coinAddress.IsValid()
-            || !coinAddress.GetKeyID(keyID)) {
-            continue;
-        }
-
-        bool fExists = false;
-        for (std::vector<SecMsgAddress>::iterator it = addresses.begin(); it != addresses.end(); ++it) {
-            if (keyID != it->address) {
+    for (const auto &pw : vpwallets) {
+        LOCK(pw->cs_wallet);
+        for (const auto &entry : pw->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
+            if (!IsMine(*pw, entry.first)) {
                 continue;
             }
-            fExists = true;
-            break;
+
+            // TODO: skip addresses for stealth transactions
+            CKeyID keyID;
+            CBitcoinAddress coinAddress(entry.first);
+            if (!coinAddress.IsValid()
+                || !coinAddress.GetKeyID(keyID)) {
+                continue;
+            }
+
+            bool fExists = false;
+            for (std::vector<SecMsgAddress>::iterator it = addresses.begin(); it != addresses.end(); ++it) {
+                if (keyID != it->address) {
+                    continue;
+                }
+                fExists = true;
+                break;
+            }
+
+            if (fExists) {
+                continue;
+            }
+
+            bool recvEnabled    = true;
+            bool recvAnon       = false;
+
+            addresses.push_back(SecMsgAddress(keyID, recvEnabled, recvAnon));
+            nAdded++;
         }
-
-        if (fExists) {
-            continue;
-        }
-
-        bool recvEnabled    = true;
-        bool recvAnon       = false;
-
-        addresses.push_back(SecMsgAddress(keyID, recvEnabled, recvAnon));
-        nAdded++;
     }
 
     LogPrint(BCLog::SMSG, "Added %u addresses to whitelist.\n", nAdded);
@@ -986,7 +983,8 @@ bool CSMSG::Shutdown()
         m_handler_unload->disconnect();
     }
 #endif
-    pwallet.reset();
+    pactive_wallet.reset();
+    vpwallets.clear();
     return true;
 };
 
@@ -1072,7 +1070,7 @@ bool CSMSG::Disable()
 bool CSMSG::WalletUnloaded(CWallet *pwallet_removed)
 {
 #ifdef ENABLE_WALLET
-    if (pwallet_removed && pwallet.get() == pwallet_removed) {
+    if (pwallet_removed && pactive_wallet.get() == pwallet_removed) {
         return SetActiveWallet(nullptr);
     }
 #endif
@@ -1086,12 +1084,14 @@ bool CSMSG::SetActiveWallet(std::shared_ptr<CWallet> pwallet_in)
     if (m_handler_unload) {
         m_handler_unload->disconnect();
     }
-    pwallet.reset();
-    pwallet = pwallet_in;
+    pactive_wallet.reset();
+    pactive_wallet = pwallet_in;
+    vpwallets.clear();
 
-    if (pwallet) {
-        m_handler_unload = interfaces::MakeHandler(pwallet->NotifyUnload.connect(boost::bind(&NotifyUnload, this, pwallet.get())));
-        LogPrintf("Secure messaging using wallet %s.\n", pwallet->GetName());
+    if (pactive_wallet) {
+        m_handler_unload = interfaces::MakeHandler(pactive_wallet->NotifyUnload.connect(boost::bind(&NotifyUnload, this, pactive_wallet.get())));
+        vpwallets.push_back(pactive_wallet);
+        LogPrintf("Secure messaging using wallet %s.\n", pactive_wallet->GetName());
     } else {
         LogPrintf("Secure messaging using no wallet.\n");
     }
@@ -1103,9 +1103,21 @@ bool CSMSG::SetActiveWallet(std::shared_ptr<CWallet> pwallet_in)
 std::string CSMSG::GetWalletName()
 {
 #ifdef ENABLE_WALLET
-    return pwallet ? pwallet->GetName() : "Not set.";
+    return pactive_wallet ? pactive_wallet->GetName() : "Not set.";
 #endif
     return "Wallet Disabled.";
+};
+
+std::string CSMSG::LookupLabel(PKHash &hash)
+{
+    for (const auto &pw : vpwallets) {
+        LOCK(pw->cs_wallet);
+        auto mi(pw->mapAddressBook.find(hash));
+        if (mi != pw->mapAddressBook.end()) {
+            return mi->second.name;
+        }
+    }
+    return "";
 };
 
 void CSMSG::GetNodesStats(int node_id, UniValue &result)
@@ -2046,13 +2058,6 @@ bool CSMSG::ScanBuckets(bool scan_all)
         return error("%s: SMSG is disabled.\n", __func__);
     }
 
-#ifdef ENABLE_WALLET
-    if (pwallet && pwallet->IsLocked()
-        && addresses.size() > 0) {
-        return error("%s: Wallet is locked.\n", __func__);
-    }
-#endif
-
     int64_t  mStart         = GetTimeMillis();
     int64_t  now            = GetTime();
     uint32_t nFiles         = 0;
@@ -2226,13 +2231,13 @@ int CSMSG::WalletUnlocked()
     /*
     When the wallet is unlocked, scan messages received while wallet was locked.
     */
-    if (!fSecMsgEnabled || !pwallet) {
+    if (!fSecMsgEnabled || !pactive_wallet) {
         return SMSG_WALLET_UNSET;
     }
 
     LogPrintf("SecureMsgWalletUnlocked()\n");
 
-    if (pwallet->IsLocked()) {
+    if (pactive_wallet->IsLocked()) {
         return errorN(SMSG_WALLET_LOCKED, "%s: Wallet is locked.", __func__);
     }
 
@@ -2321,6 +2326,11 @@ int CSMSG::WalletUnlocked()
                 if (fread(&vchData[0], sizeof(uint8_t), smsg.nPayload, fp) != smsg.nPayload) {
                     LogPrintf("fread data failed: %s\n", strerror(errno));
                     break;
+                }
+
+                if (now > smsg.timestamp + smsg.m_ttl) {
+                    LogPrint(BCLog::SMSG, "Time expired %d, ttl %d.\n", smsg.timestamp, smsg.m_ttl);
+                    continue;
                 }
 
                 // Don't report to gui,
@@ -2428,25 +2438,9 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
         }
     }
 
+    bool was_locked = false;
     if (!fOwnMessage) {
 #ifdef ENABLE_WALLET
-        if (!pwallet) {
-            LogPrint(BCLog::SMSG, "%s: Wallet is not set.\n", __func__);
-            return SMSG_NO_ERROR;
-        }
-
-        if (pwallet->IsLocked()) {
-            LogPrint(BCLog::SMSG, "%s: Wallet is locked, storing message to scan later.\n", __func__);
-
-            if (addresses.size() > 0) { // Only save unscanned if there are addresses
-                int rv;
-                if ((rv = StoreUnscanned(pHeader, pPayload, nPayload)) != 0) {
-                    return SMSG_GENERAL_ERROR;
-                }
-            }
-
-            return SMSG_WALLET_LOCKED;
-        }
 
         for (std::vector<SecMsgAddress>::iterator it = addresses.begin(); it != addresses.end(); ++it) {
             if (!it->fReceiveEnabled) {
@@ -2456,7 +2450,18 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
             addressTo = it->address;
 
             CKey keyDest;
-            if (!pwallet->GetKey(addressTo, keyDest)) {
+            for (const auto &pw : vpwallets) {
+                if (pw->IsLocked()) {
+                    if (pw->HaveKey(addressTo)) {
+                        was_locked = true;
+                    }
+                    continue;
+                }
+                if (pw->GetKey(addressTo, keyDest)) {
+                    break;
+                }
+            }
+            if (!keyDest.IsValid()) {
                 continue;
             }
 
@@ -2482,6 +2487,17 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
             }
         }
 #endif
+    }
+
+    if (!fOwnMessage && was_locked) {
+        LogPrint(BCLog::SMSG, "%s: Wallet is locked, storing message to scan later.\n", __func__);
+        // Only save unscanned if there are addresses
+        // was_locked will onlye be set if addresses.size() > 0
+        int rv;
+        if ((rv = StoreUnscanned(pHeader, pPayload, nPayload)) != 0) {
+            return SMSG_GENERAL_ERROR;
+        }
+        return SMSG_WALLET_LOCKED;
     }
 
     if (fOwnMessage) {
@@ -2554,22 +2570,38 @@ int CSMSG::GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut)
     }
 
 #ifdef ENABLE_WALLET
-    if (!pwallet) {
-        return errorN(SMSG_WALLET_UNSET, "%s: Wallet disabled.", __func__);
+    for (const auto &pw : vpwallets) {
+        if (pw->GetPubKey(ckid, cpkOut) && cpkOut.IsValid()) {
+            return SMSG_NO_ERROR;
+        }
     }
-
-    if (!pwallet->GetPubKey(ckid, cpkOut)) {
-        return SMSG_WALLET_NO_PUBKEY;
-    }
-
-    if (!cpkOut.IsValid()
-        || !cpkOut.IsCompressed()) {
-        return errorN(SMSG_INVALID_PUBKEY, "%s: Public key is invalid %s.", __func__, HexStr(cpkOut));
-    }
-    return SMSG_NO_ERROR;
 #endif
 
     return SMSG_WALLET_NO_PUBKEY;
+};
+
+int CSMSG::GetLocalKey(const CKeyID &key_id, CKey &key_out)
+{
+    LogPrint(BCLog::SMSG, "%s\n", __func__);
+
+    if (keyStore.GetKey(key_id, key_out)) {
+        return SMSG_NO_ERROR;
+    }
+
+#ifdef ENABLE_WALLET
+    for (const auto &pw : vpwallets) {
+        for (const auto &pw : vpwallets) {
+            if (pw->IsLocked()) {
+                continue;
+            }
+            if (pw->GetKey(key_id, key_out)) {
+                return SMSG_NO_ERROR;
+            }
+        }
+    }
+#endif
+
+    return SMSG_WALLET_NO_KEY;
 };
 
 int CSMSG::GetLocalPublicKey(const std::string &strAddress, std::string &strPublicKey)
@@ -2663,10 +2695,6 @@ int CSMSG::AddLocalAddress(const std::string &sAddress)
 #ifdef ENABLE_WALLET
     LogPrintf("%s: %s\n", __func__, sAddress);
 
-    if (!pwallet) {
-        return errorN(SMSG_WALLET_UNSET, "%s: Wallet disabled.", __func__);
-    }
-
     CBitcoinAddress addr(sAddress);
     if (!addr.IsValid(CChainParams::PUBKEY_ADDRESS)) {
         return errorN(SMSG_INVALID_ADDRESS, "%s - Address is not valid: %s.", __func__, sAddress);
@@ -2677,8 +2705,16 @@ int CSMSG::AddLocalAddress(const std::string &sAddress)
         return errorN(SMSG_INVALID_ADDRESS, "%s - GetKeyID failed: %s.", __func__, sAddress);
     }
 
-    if (!pwallet->HaveKey(idk)) {
-        return errorN(SMSG_WALLET_NO_KEY, "%s: Key to %s not found in wallet.", __func__, sAddress);
+    bool have_key = false;
+    for (const auto &pw : vpwallets) {
+        if (pw->HaveKey(idk)) {
+            have_key = true;
+            break;
+        }
+    }
+
+    if (!have_key) {
+        return errorN(SMSG_WALLET_NO_KEY, "%s: Key to %s not found in wallets.", __func__, sAddress);
     }
 
     return ManageLocalKey(idk, CT_NEW);
@@ -3587,7 +3623,6 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
 int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID &addressTo, const std::string &message)
 {
-#ifdef ENABLE_WALLET
     /* Create a secure message
 
     Using similar method to bitmessage.
@@ -3712,7 +3747,7 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
 
         memcpy(&vchPayload[SMSG_PL_HDR_LEN], pMsgData, lenMsgData);
         // Compact signature proves ownership of from address and allows the public key to be recovered, recipient can always reply.
-        if (!pwallet->GetKey(ckidFrom, keyFrom)) {
+        if (GetLocalKey(ckidFrom, keyFrom) != 0) {
             return errorN(SMSG_UNKNOWN_KEY_FROM, "%s: Could not get private key for addressFrom.", __func__);
         }
 
@@ -3753,7 +3788,6 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
     ctx.Write((uint8_t*) vchCiphertext.data(), vchCiphertext.size());
     ctx.Finalize(smsg.mac);
 
-#endif
     return SMSG_NO_ERROR;
 };
 
@@ -3809,7 +3843,6 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     SecureMessage &smsg, std::string &sError, bool fPaid,
     size_t nRetention, bool fTestFee, CAmount *nFee, size_t *nTxBytes, bool fFromFile, bool submit_msg, bool add_to_outbox, bool fund_from_rct, size_t nRingSize)
 {
-#ifdef ENABLE_WALLET
     /* Encrypt secure message, and place it on the network
         Make a copy of the message to sender's first address and place in send queue db
         proof of work thread will pick up messages from  send queue db
@@ -3822,12 +3855,6 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             fSendAnonymous ? "anon" : EncodeDestination(PKHash(addressFrom)), EncodeDestination(PKHash(addressTo)));
     }
 
-    if (!pwallet) {
-        return errorN(SMSG_WALLET_LOCKED, sError, __func__, "Wallet is not enabled");
-    }
-    if (pwallet->IsLocked()) {
-        return errorN(SMSG_WALLET_LOCKED, sError, __func__, "Wallet is locked, wallet must be unlocked to send messages");
-    }
     if (nRetention < SMSG_MIN_TTL || nRetention > SMSG_MAX_PAID_TTL) {
         LogPrint(BCLog::SMSG, "TTL out of range %d.\n", nRetention);
         return SMSG_GENERAL_ERROR;
@@ -3936,34 +3963,34 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         }
     }
 
+    if (!add_to_outbox) {
+        return SMSG_NO_ERROR;
+    }
+
     //  For outbox create a copy encrypted for owned address
     //   if the wallet is encrypted private key needed to decrypt will be unavailable
 
     LogPrint(BCLog::SMSG, "Encrypting message for outbox.\n");
-
     CKeyID addressOutbox;
-
-    {
-        LOCK(pwallet->cs_wallet);
-        for (const auto &entry : pwallet->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
+#ifdef ENABLE_WALLET
+    if (!pactive_wallet) {
+        addressOutbox = addressFrom;
+    } else {
+        LOCK(pactive_wallet->cs_wallet);
+        for (const auto &entry : pactive_wallet->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
             // Get first owned address
-            if (!IsMine(*pwallet, entry.first)) {
+            if (!IsMine(*pactive_wallet, entry.first)) {
                 continue;
             }
-
-            const CBitcoinAddress &address = CBitcoinAddress(entry.first);
-
-            if (!address.IsValid()) {
-                continue;
+            if (entry.first.type() == typeid(PKHash)) {
+                addressOutbox = CKeyID(boost::get<PKHash>(entry.first));
+                break;
             }
-            address.GetKeyID(addressOutbox);
-            break;
         }
     }
-
-    if (!add_to_outbox) {
-        return SMSG_NO_ERROR;
-    }
+#else
+    addressOutbox = addressFrom;
+#endif
 
     if (addressOutbox.IsNull()) {
         LogPrintf("%s: Warning, could not find an address to encrypt outbox message with.\n", __func__);
@@ -4021,7 +4048,6 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         }
     }
 
-#endif
     return SMSG_NO_ERROR;
 };
 
@@ -4061,7 +4087,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
 {
     // smsg.pPayload must have smsg.nPayload + 32 bytes allocated
 #ifdef ENABLE_WALLET
-    if (!pwallet) {
+    if (!pactive_wallet) {
         return SMSG_WALLET_UNSET;
     }
 
@@ -4107,10 +4133,10 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
 
     OutputTypes fund_from = fund_from_rct ? OUTPUT_RINGCT : OUTPUT_STANDARD;
     {
-        auto locked_chain = pwallet->chain().lock();
-        LOCK(pwallet->cs_wallet);
+        auto locked_chain = pactive_wallet->chain().lock();
+        LOCK(pactive_wallet->cs_wallet);
         CTransactionRef tx_new;
-        CWalletTx wtx(pwallet.get(), tx_new);
+        CWalletTx wtx(pactive_wallet.get(), tx_new);
 
         if (fund_from == OUTPUT_STANDARD) {
             txFund.nVersion = PARTICL_TXN_VERSION;
@@ -4118,20 +4144,20 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
             out0->vData = vData;
             txFund.vpout.push_back(out0);
             const std::set<int> setSubtractFeeFromOutputs;
-            if (!pwallet->FundTransaction(txFund, nFeeRet, nChangePosInOut, sError, false, setSubtractFeeFromOutputs, coinControl)) {
+            if (!pactive_wallet->FundTransaction(txFund, nFeeRet, nChangePosInOut, sError, false, setSubtractFeeFromOutputs, coinControl)) {
                 return errorN(SMSG_GENERAL_ERROR, "%s: FundTransaction failed.\n", __func__);
             }
-            if (!fTestFee && !pwallet->SignTransaction(txFund)) {
+            if (!fTestFee && !pactive_wallet->SignTransaction(txFund)) {
                 return errorN(SMSG_GENERAL_ERROR, sError, __func__, "SignTransaction failed.");
             }
-            wtx = CWalletTx(pwallet.get(), MakeTransactionRef(txFund));
+            wtx = CWalletTx(pactive_wallet.get(), MakeTransactionRef(txFund));
 
             if (nFee) {
-                *nFee = pwallet->GetDebit(*wtx.tx, ISMINE_ALL) - pwallet->GetCredit(*wtx.tx, ISMINE_ALL);
+                *nFee = pactive_wallet->GetDebit(*wtx.tx, ISMINE_ALL) - pactive_wallet->GetCredit(*wtx.tx, ISMINE_ALL);
             }
         } else
         if (fund_from == OUTPUT_RINGCT) {
-            CHDWallet *const pw = GetParticlWallet(pwallet.get());
+            CHDWallet *const pw = GetParticlWallet(pactive_wallet.get());
             std::vector<CTempRecipient> vec_send;
             CTransactionRecord rtx;
             CTempRecipient tr;
@@ -4169,16 +4195,16 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
 
         txfundId = wtx.tx->GetHash();
 
-        if (!pwallet->GetBroadcastTransactions()) {
+        if (!pactive_wallet->GetBroadcastTransactions()) {
             return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Broadcast transactions disabled.");
         }
 
-        wtx.BindWallet(pwallet.get());
+        wtx.BindWallet(pactive_wallet.get());
         std::string err_string;
         if (!wtx.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain, m_absurd_smsg_fee)) {
             return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Transaction cannot be broadcast immediately: %s.", err_string);
         }
-        pwallet->AddToWallet(wtx);
+        pactive_wallet->AddToWallet(wtx);
     }
     memcpy(smsg.pPayload+(smsg.nPayload-32), txfundId.begin(), 32);
 #else
@@ -4395,10 +4421,18 @@ int CSMSG::Decrypt(bool fTestOnly, const CKeyID &address, const uint8_t *pHeader
 
 #ifdef ENABLE_WALLET
     if (!keyDest.IsValid()) {
-        if (pwallet->IsLocked()) {
-            return SMSG_WALLET_LOCKED;
+        for (const auto &pw : smsgModule.vpwallets) {
+            if (pw->IsLocked()) {
+                if (pw->HaveKey(address)) {
+                    return SMSG_WALLET_LOCKED;
+                }
+                continue;
+            }
+            pw->GetKey(address, keyDest);
+            if (keyDest.IsValid()) {
+                break;
+            }
         }
-        pwallet->GetKey(address, keyDest);
     }
 #endif
     if (!keyDest.IsValid()) {
