@@ -67,8 +67,9 @@ public:
     bool fAllowLocked = false;
     mutable int nChangePos = -1;
     bool m_addChangeOutput = true;
-    //MapRecords_t mapRecords; // hack for COutputR
-
+    bool m_include_immature = false;
+    //! Appended to ct fee data output
+    std::vector<uint8_t> m_extra_data0;
 
     CCoinControl()
     {

@@ -23,4 +23,5 @@ void CCoinControl::SetNull()
     nCoinType = OUTPUT_STANDARD;
     fHaveAnonOutputs = false;
     m_extrafee = 0;
+    m_extra_data0.clear();
 }
