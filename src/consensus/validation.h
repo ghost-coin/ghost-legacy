@@ -12,6 +12,8 @@
 #include <primitives/transaction.h>
 #include <primitives/block.h>
 
+#include <consensus/params.h>
+
 /** "reject" message codes */
 static const unsigned char REJECT_MALFORMED = 0x01;
 static const unsigned char REJECT_INVALID = 0x10;
@@ -162,6 +164,15 @@ public:
     bool rct_active = false; // per block
     bool fHasAnonOutput = false; // per tx
     bool fHasAnonInput = false; // per tx
+    bool fIncDataOutputs = false; // per block
+
+    void setHardForks(int64_t time, const Consensus::Params& consensusParams)
+    {
+        fEnforceSmsgFees = time >= consensusParams.nPaidSmsgTime;
+        fBulletproofsActive = time >= consensusParams.bulletproof_time;
+        rct_active = time >= consensusParams.rct_time;
+        fIncDataOutputs = time >= consensusParams.extra_dataoutput_time;
+    }
 
     int nodeId;
     int nFlags;

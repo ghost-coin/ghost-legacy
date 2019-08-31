@@ -5074,6 +5074,9 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
             OUTPUT_PTR<CTxOutData> outFee = MAKE_OUTPUT<CTxOutData>();
             outFee->vData.push_back(DO_FEE);
             outFee->vData.resize(9); // More bytes than varint fee could use
+            if (coinControl->m_extra_data0.size() > 0) {
+                outFee->vData.insert(outFee->vData.end(), coinControl->m_extra_data0.begin(), coinControl->m_extra_data0.end());
+            }
             txNew.vpout.push_back(outFee);
 
             bool fFirst = true;
@@ -5128,7 +5131,6 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                     return 1; // sError is set
                 }
             }
-
 
             // Fill in dummy signatures for fee calculation.
             for (size_t l = 0; l < txNew.vin.size(); ++l) {
@@ -5216,7 +5218,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
             // Include more fee and try again.
             nFeeRet = nFeeNeeded;
             continue;
-        };
+        }
         coinControl->nChangePos = nChangePosInOut;
 
         LogPrint(BCLog::HDWALLET, "%s: Using %d inputs, ringsize %d.\n", __func__, setCoins.size(), nRingSize);
@@ -5277,6 +5279,9 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
         vData.resize(1);
         if (0 != PutVarInt(vData, nFeeRet)) {
             return werrorN(1, "%s: PutVarInt %d failed\n", __func__, nFeeRet);
+        }
+        if (coinControl->m_extra_data0.size() > 0) {
+            vData.insert(vData.end(), coinControl->m_extra_data0.begin(), coinControl->m_extra_data0.end());
         }
 
         if (sign) {
@@ -5468,7 +5473,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
     std::vector<CTempRecipient> &vecSend, bool sign, size_t nRingSize, size_t nSigs, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError)
 {
-    if (vecSend.size() < 1) {
+    if (vecSend.size() < 1 && (!coinControl || coinControl->m_extra_data0.size() < 1)) {
         return wserrorN(1, sError, __func__, _("Transaction must have at least one recipient.").translated);
     }
 

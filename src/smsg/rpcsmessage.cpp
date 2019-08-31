@@ -17,6 +17,7 @@
 #include <rpc/util.h>
 #include <validation.h>
 #include <timedata.h>
+#include <anon.h>
 
 #include <leveldb/db.h>
 
@@ -766,6 +767,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
                             {"submitmsg", RPCArg::Type::BOOL, /* default */ "true", "Submit smsg to network, if false POW is not set and hex encoded smsg returned."},
                             {"savemsg", RPCArg::Type::BOOL, /* default */ "true", "Save smsg to outbox."},
                             {"ttl_is_seconds", RPCArg::Type::BOOL, /* default */ "false", "If true days_retention parameter is interpreted as seconds to live."},
+                            {"fund_from_rct", RPCArg::Type::BOOL, /* default */ "false", "Fund message from anon balance."},
+                            {"rct_ring_size", RPCArg::Type::NUM, /* default */ strprintf("%d", DEFAULT_RING_SIZE), "Ring size to use with fund_from_rct."},
                         },
                         "options"},
                 },
@@ -803,6 +806,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     bool submit_msg = true;
     bool save_msg = true;
     bool ttl_in_seconds = false;
+    bool fund_from_rct = false;
+    size_t rct_ring_size = DEFAULT_RING_SIZE;
 
     UniValue options = request.params[6];
     if (options.isObject()) {
@@ -813,6 +818,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             {"submitmsg",         UniValueType(UniValue::VBOOL)},
             {"savemsg",           UniValueType(UniValue::VBOOL)},
             {"ttl_is_seconds",    UniValueType(UniValue::VBOOL)},
+            {"fund_from_rct",     UniValueType(UniValue::VBOOL)},
+            {"rct_ring_size",     UniValueType(UniValue::VNUM)},
         }, true, false);
         if (!options["fromfile"].isNull()) {
             fFromFile = options["fromfile"].get_bool();
@@ -829,6 +836,12 @@ static UniValue smsgsend(const JSONRPCRequest &request)
         if (!options["ttl_is_seconds"].isNull()) {
             ttl_in_seconds = options["ttl_is_seconds"].get_bool();
         }
+        if (!options["fund_from_rct"].isNull()) {
+            fund_from_rct = options["fund_from_rct"].get_bool();
+        }
+        if (!options["rct_ring_size"].isNull()) {
+            rct_ring_size = options["rct_ring_size"].get_int();
+        }
     }
     if (fFromFile && fDecodeHex) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Can't use decodehex with fromfile.");
@@ -842,7 +855,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
         msg = std::string(vData.begin(), vData.end());
     }
 
-    CAmount nFee;
+    CAmount nFee = 0;
+    size_t nTxBytes = 0;
 
     if (fPaid && Params().GetConsensus().nPaidSmsgTime > GetTime()) {
         throw std::runtime_error("Paid SMSG not yet active on mainnet.");
@@ -865,7 +879,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
     std::string sError;
     smsg::SecureMessage smsgOut;
-    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, fPaid, nRetention, fTestFee, &nFee, fFromFile, submit_msg, save_msg) != 0) {
+    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, fPaid, nRetention, fTestFee, &nFee, &nTxBytes,
+                        fFromFile, submit_msg, save_msg, fund_from_rct, rct_ring_size) != 0) {
         result.pushKV("result", "Send failed.");
         result.pushKV("error", sError);
     } else {
@@ -887,6 +902,7 @@ static UniValue smsgsend(const JSONRPCRequest &request)
                 result.pushKV("txid", txid.ToString());
             }
             result.pushKV("fee", ValueFromAmount(nFee));
+            result.pushKV("tx_bytes", (int)nTxBytes);
         }
     }
 

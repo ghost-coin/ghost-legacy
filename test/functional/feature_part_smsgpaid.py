@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2018 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,7 +12,7 @@ from test_framework.test_particl import (
     isclose,
     getIndexAtProperty,
 )
-from test_framework.util import assert_raises_rpc_error, connect_nodes
+from test_framework.util import assert_raises_rpc_error, connect_nodes, sync_mempools
 from test_framework.authproxy import JSONRPCException
 
 
@@ -45,6 +45,9 @@ class SmsgPaidTest(ParticlTestFramework):
         address1 = nodes[1].getnewaddress()
         assert(address1 == 'pX9N6S76ZtA5BfsiJmqBbjaEgLMHpt58it')
 
+        sx_addr0 = nodes[0].getnewstealthaddress()
+        nodes[1].sendtypeto('part', 'part', [{'address':sx_addr0, 'amount':20},])
+
         ro = nodes[0].smsglocalkeys()
         assert(len(ro['wallet_keys']) == 0)
 
@@ -68,6 +71,8 @@ class SmsgPaidTest(ParticlTestFramework):
         assert(ro['result'] == 'Sent.')
 
         self.stakeBlocks(1, nStakeNode=1)
+        for i in range(20):
+            nodes[0].sendtypeto('part', 'anon', [{'address':sx_addr0, 'amount':0.5},])
         self.waitForSmsgExchange(1, 1, 0)
 
         ro = nodes[0].smsginbox()
@@ -355,6 +360,29 @@ class SmsgPaidTest(ParticlTestFramework):
         nodes[0].smsgenable()
         ro = nodes[0].smsggetinfo()
         assert(ro['enabled'] is True)
+
+        self.log.info('Test funding from RCT balance')
+        nodes[1].smsginbox()  # Clear inbox
+        ro = nodes[1].smsgaddlocaladdress(address1)
+        assert('Receiving messages enabled for address' in ro['result'])
+
+        msg = 'Test funding from RCT balance'
+        sendoptions = {'fund_from_rct': True, 'rct_ring_size': 6}
+        ro = nodes[0].smsgsend(address0, address1, msg, True, 4, False, sendoptions)
+        assert(ro['result'] == 'Sent.')
+        fund_tx = nodes[0].getrawtransaction(ro['txid'], True)
+        assert(fund_tx['vin'][0]['type'] == 'anon')
+
+        sync_mempools([nodes[0], nodes[1]])
+        self.stakeBlocks(1, nStakeNode=1)
+        i = 0
+        for i in range(20):
+            ro = nodes[1].smsginbox()
+            if len(ro['messages']) > 0:
+                break
+            time.sleep(1)
+        assert(i < 19)
+        assert(msg == ro['messages'][0]['text'])
 
 
 if __name__ == '__main__':

@@ -335,9 +335,8 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
             return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-vout-not-empty");
         }
 
-        size_t nStandardOutputs = 0;
+        size_t nStandardOutputs = 0, nDataOutputs = 0, nBlindOutputs = 0, nAnonOutputs = 0;
         CAmount nValueOut = 0;
-        size_t nDataOutputs = 0;
         for (const auto &txout : tx.vpout) {
             switch (txout->nVersion) {
                 case OUTPUT_STANDARD:
@@ -350,11 +349,13 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
                     if (!CheckBlindOutput(state, (CTxOutCT*) txout.get())) {
                         return false;
                     }
+                    nBlindOutputs++;
                     break;
                 case OUTPUT_RINGCT:
                     if (!CheckAnonOutput(state, (CTxOutRingCT*) txout.get())) {
                         return false;
                     }
+                    nAnonOutputs++;
                     break;
                 case OUTPUT_DATA:
                     if (!CheckDataOutput(state, (CTxOutData*) txout.get())) {
@@ -371,7 +372,11 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
             }
         }
 
-        if (nDataOutputs > 1 + nStandardOutputs) { // extra 1 for ct fee output
+        size_t max_data_outputs = 1 + nStandardOutputs; // extra 1 for ct fee output
+        if (state.fIncDataOutputs) {
+            max_data_outputs += nBlindOutputs + nAnonOutputs;
+        }
+        if (nDataOutputs > max_data_outputs) {
             return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "too-many-data-outputs");
         }
     } else {
