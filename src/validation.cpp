@@ -4584,7 +4584,6 @@ bool ProcessDuplicateStakeHeader(CBlockIndex *pindex, NodeId nodeId) EXCLUSIVE_L
 
     if (fMakeValid) {
         pindex->nFlags &= (~BLOCK_FAILED_DUPLICATE_STAKE);
-        pindex->nStatus |= BLOCK_VALID_HEADER;
         pindex->nStatus &= (~BLOCK_FAILED_VALID);
         setDirtyBlockIndex.insert(pindex);
 
@@ -4598,7 +4597,6 @@ bool ProcessDuplicateStakeHeader(CBlockIndex *pindex, NodeId nodeId) EXCLUSIVE_L
 
                 if (pindexPrev->nFlags & BLOCK_FAILED_DUPLICATE_STAKE) {
                     pindexPrev->nFlags &= (~BLOCK_FAILED_DUPLICATE_STAKE);
-                    pindexPrev->nStatus |= BLOCK_VALID_HEADER;
                     pindexPrev->nStatus &= (~BLOCK_FAILED_VALID);
                     setDirtyBlockIndex.insert(pindexPrev);
 
