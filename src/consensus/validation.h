@@ -166,7 +166,7 @@ public:
     bool fHasAnonInput = false; // per tx
     bool fIncDataOutputs = false; // per block
 
-    void setHardForks(int64_t time, const Consensus::Params& consensusParams)
+    void SetHardForks(int64_t time, const Consensus::Params& consensusParams)
     {
         fEnforceSmsgFees = time >= consensusParams.nPaidSmsgTime;
         fBulletproofsActive = time >= consensusParams.bulletproof_time;

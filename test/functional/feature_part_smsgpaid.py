@@ -368,10 +368,13 @@ class SmsgPaidTest(ParticlTestFramework):
 
         msg = 'Test funding from RCT balance'
         sendoptions = {'fund_from_rct': True, 'rct_ring_size': 6}
-        ro = nodes[0].smsgsend(address0, address1, msg, True, 4, False, sendoptions)
-        assert(ro['result'] == 'Sent.')
-        fund_tx = nodes[0].getrawtransaction(ro['txid'], True)
+        sent_msg = nodes[0].smsgsend(address0, address1, msg, True, 4, False, sendoptions)
+        assert(sent_msg['result'] == 'Sent.')
+        fund_tx = nodes[0].getrawtransaction(sent_msg['txid'], True)
         assert(fund_tx['vin'][0]['type'] == 'anon')
+
+        ro = nodes[0].smsgoutbox('all', '', {'sending': True})
+        assert(ro['messages'][0]['msgid'] == sent_msg['msgid'])
 
         sync_mempools([nodes[0], nodes[1]])
         self.stakeBlocks(1, nStakeNode=1)
@@ -383,6 +386,9 @@ class SmsgPaidTest(ParticlTestFramework):
             time.sleep(1)
         assert(i < 19)
         assert(msg == ro['messages'][0]['text'])
+
+        ro = nodes[0].smsgoutbox('all', '', {'sending': True})
+        assert(len(ro['messages']) == 0)
 
 
 if __name__ == '__main__':

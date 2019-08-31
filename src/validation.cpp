@@ -492,7 +492,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
     }
 
     const Consensus::Params &consensus = Params().GetConsensus();
-    state.setHardForks(nAcceptTime, consensus);
+    state.SetHardForks(nAcceptTime, consensus);
 
     if (!CheckTransaction(tx, state))
         return false; // state filled in by CheckTransaction
@@ -2239,7 +2239,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     int64_t nTimeStart = GetTimeMicros();
 
     const Consensus::Params &consensus = Params().GetConsensus();
-    state.setHardForks(block.nTime, consensus);
+    state.SetHardForks(block.nTime, consensus);
 
     // Check it again in case a previous version let a bad block in
     // NOTE: We don't currently (re-)invoke ContextualCheckBlock() or
@@ -4091,7 +4091,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW))
         return false;
 
-    state.setHardForks(block.nTime, consensusParams);
+    state.SetHardForks(block.nTime, consensusParams);
 
     // Check the merkle root.
     if (fCheckMerkleRoot) {
