@@ -1159,6 +1159,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                     {"options", RPCArg::Type::OBJ, /* default */ "", "",
                         {
                             {"encoding", RPCArg::Type::STR, /* default */ "text", "Display message data in encoding, values: \"text\", \"hex\", \"none\"."},
+                            {"sending", RPCArg::Type::BOOL, /* default */ "false", "Display messages in sending queue."},
                         },
                         "options"},
                 },
@@ -1182,11 +1183,15 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
     std::string mode = request.params[0].isStr() ? request.params[0].get_str() : "all";
     std::string filter = request.params[1].isStr() ? request.params[1].get_str() : "";
 
+    bool show_sending = false;
     std::string sEnc = "text";
     if (request.params[2].isObject()) {
         UniValue options = request.params[2].get_obj();
         if (options["encoding"].isStr()) {
             sEnc = options["encoding"].get_str();
+        }
+        if (options["sending"].isBool()) {
+            show_sending = options["sending"].get_bool();
         }
     }
 
@@ -1205,11 +1210,12 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
         uint32_t nMessages = 0;
 
+        std::string db_prefix = show_sending ? smsg::DBK_QUEUED : smsg::DBK_OUTBOX;
         if (mode == "clear") {
             dbOutbox.TxnBegin();
 
             leveldb::Iterator *it = dbOutbox.pdb->NewIterator(leveldb::ReadOptions());
-            while (dbOutbox.NextSmesgKey(it, smsg::DBK_OUTBOX, chKey)) {
+            while (dbOutbox.NextSmesgKey(it, db_prefix, chKey)) {
                 dbOutbox.EraseSmesg(chKey);
                 nMessages++;
             }
@@ -1225,7 +1231,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 
             UniValue messageList(UniValue::VARR);
 
-            while (dbOutbox.NextSmesg(it, smsg::DBK_OUTBOX, chKey, smsgStored)) {
+            while (dbOutbox.NextSmesg(it, db_prefix, chKey, smsgStored)) {
                 uint8_t *pHeader = &smsgStored.vchMessage[0];
                 const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) pHeader;
 
