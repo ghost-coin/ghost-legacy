@@ -52,6 +52,7 @@ bool AddWallet(const std::shared_ptr<CWallet>& wallet)
     std::vector<std::shared_ptr<CWallet>>::const_iterator i = std::find(vpwallets.begin(), vpwallets.end(), wallet);
     if (i != vpwallets.end()) return false;
     vpwallets.push_back(wallet);
+    NotifyWalletAdded(wallet);
     return true;
 }
 
@@ -146,14 +147,15 @@ std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const WalletLocati
         error = "Wallet loading failed.";
         return nullptr;
     }
+    if (fParticlMode && !((CHDWallet*)wallet.get())->Initialise()) {
+        error = "Particl wallet initialise failed.";
+        return nullptr;
+    }
+
     AddWallet(wallet);
     wallet->postInitProcess();
 
     if (fParticlMode) {
-        if (!((CHDWallet*)wallet.get())->Initialise()) {
-            error = "Particl wallet initialise failed.";
-            return nullptr;
-        }
         RestartStakingThreads();
     }
     return wallet;
@@ -4786,3 +4788,5 @@ bool CWallet::AddKeyOrigin(const CPubKey& pubkey, const KeyOriginInfo& info)
     mapKeyMetadata[pubkey.GetID()].hdKeypath = WriteHDKeypath(info.path);
     return WriteKeyMetadata(mapKeyMetadata[pubkey.GetID()], pubkey, true);
 }
+
+boost::signals2::signal<void (const std::shared_ptr<CWallet>& wallet)> NotifyWalletAdded;

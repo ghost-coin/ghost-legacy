@@ -26,8 +26,7 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
         connect_nodes(self.nodes[0], 1)
         self.sync_all()
 
-    def run_test (self):
-        tmpdir = self.options.tmpdir
+    def run_test(self):
         nodes = self.nodes
 
         nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')

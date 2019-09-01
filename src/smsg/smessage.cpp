@@ -47,6 +47,7 @@ Notes:
 #ifdef ENABLE_WALLET
 #include <wallet/coincontrol.h>
 #include <wallet/hdwallet.h>
+#include <wallet/wallet.h>
 #include <interfaces/chain.h>
 #include <policy/policy.h>
 #endif
@@ -488,6 +489,14 @@ static void NotifyUnload(CSMSG *ps, CWallet *pw)
     ps->WalletUnloaded(pw);
 };
 
+static void ListenWalletAdded(CSMSG *ps, const std::shared_ptr<CWallet>& wallet)
+{
+#ifdef ENABLE_WALLET
+    LogPrintf("SMSG NotifyWalletAdded: %s\n", wallet->GetName());
+    ps->LoadWallet(wallet);
+#endif
+};
+
 int CSMSG::BuildBucketSet()
 {
     /*
@@ -663,7 +672,7 @@ int CSMSG::AddWalletAddresses()
     }
 
     uint32_t nAdded = 0;
-    for (const auto &pw : vpwallets) {
+    for (const auto &pw : m_vpwallets) {
         LOCK(pw->cs_wallet);
         for (const auto &entry : pw->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
             if (!IsMine(*pw, entry.first)) {
@@ -863,7 +872,7 @@ int CSMSG::WriteIni()
     return SMSG_NO_ERROR;
 };
 
-bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain)
+bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, std::vector<std::shared_ptr<CWallet>> &vpwallets, bool fScanChain)
 {
     LogPrintf("Secure messaging starting.\n");
 
@@ -883,6 +892,18 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain)
     }
 
     m_smsg_max_receive_count = gArgs.GetArg("-smsgmaxreceive", SMSG_DEFAULT_MAXRCV);
+
+#ifdef ENABLE_WALLET
+    UnloadAllWallets();
+
+    for (const auto &pw : vpwallets) {
+        CHDWallet *const ppartw = GetParticlWallet(pw.get());
+        if (!ppartw || !ppartw->m_smsg_enabled) {
+            continue;
+        }
+        LoadWallet(pw);
+    }
+#endif
 
     SetActiveWallet(pwalletIn);
 
@@ -943,6 +964,9 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain)
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
 
+#ifdef ENABLE_WALLET
+    m_wallet_load_handler = interfaces::MakeHandler(NotifyWalletAdded.connect(boost::bind(&ListenWalletAdded, this, _1)));
+#endif
     return true;
 };
 
@@ -977,17 +1001,16 @@ bool CSMSG::Shutdown()
     }
     secp256k1_context_smsg = nullptr;
 
+    UnloadAllWallets();
 #ifdef ENABLE_WALLET
-    if (m_handler_unload) {
-        m_handler_unload->disconnect();
+    if (m_wallet_load_handler) {
+        m_wallet_load_handler->disconnect();
     }
 #endif
-    pactive_wallet.reset();
-    vpwallets.clear();
     return true;
 };
 
-bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
+bool CSMSG::Enable(std::shared_ptr<CWallet> pactive_wallet, std::vector<std::shared_ptr<CWallet>> &vpwallets)
 {
     // Start secure messaging at runtime
     if (fSecMsgEnabled) {
@@ -1001,7 +1024,7 @@ bool CSMSG::Enable(std::shared_ptr<CWallet> pwallet)
         addresses.clear(); // should be empty already
         buckets.clear(); // should be empty already
 
-        if (!Start(pwallet, false)) {
+        if (!Start(pactive_wallet, vpwallets, false)) {
             return error("%s: SecureMsgStart failed.\n", __func__);
         }
     }
@@ -1066,33 +1089,67 @@ bool CSMSG::Disable()
     return true;
 };
 
-bool CSMSG::WalletUnloaded(CWallet *pwallet_removed)
+bool CSMSG::UnloadAllWallets()
 {
 #ifdef ENABLE_WALLET
+    for (auto it = m_wallet_unload_handlers.begin(); it != m_wallet_unload_handlers.end(); ++it) {
+        it->second->disconnect();
+    }
+    m_wallet_unload_handlers.clear();
+    pactive_wallet.reset();
+    m_vpwallets.clear();
+#endif
+    return true;
+};
+
+bool CSMSG::LoadWallet(std::shared_ptr<CWallet> pwallet_in)
+{
+#ifdef ENABLE_WALLET
+    std::vector<std::shared_ptr<CWallet>>::iterator i = std::find(m_vpwallets.begin(), m_vpwallets.end(), pwallet_in);
+    if (i != m_vpwallets.end()) return true;
+    m_wallet_unload_handlers[pwallet_in.get()] = interfaces::MakeHandler(pwallet_in->NotifyUnload.connect(boost::bind(&NotifyUnload, this, pwallet_in.get())));
+    m_vpwallets.push_back(pwallet_in);
+#endif
+    return true;
+};
+
+bool CSMSG::WalletUnloaded(CWallet *pwallet_removed)
+{
+    LOCK(cs_smsg);
+    bool removed = false;
+#ifdef ENABLE_WALLET
     if (pwallet_removed && pactive_wallet.get() == pwallet_removed) {
-        return SetActiveWallet(nullptr);
+        SetActiveWallet(nullptr);
+    }
+    for (size_t i = 0; i < m_vpwallets.size(); ++i) {
+        if (m_vpwallets[i].get() != pwallet_removed) {
+            continue;
+        }
+        m_vpwallets.erase(m_vpwallets.begin() + i);
+        removed = true;
+        break;
+    }
+    auto it = m_wallet_unload_handlers.find(pwallet_removed);
+    if (it != m_wallet_unload_handlers.end()) {
+        it->second->disconnect();
+        m_wallet_unload_handlers.erase(it);
     }
 #endif
-    return false;
+    return removed;
 };
 
 bool CSMSG::SetActiveWallet(std::shared_ptr<CWallet> pwallet_in)
 {
 #ifdef ENABLE_WALLET
     LOCK(cs_smsg);
-    if (m_handler_unload) {
-        m_handler_unload->disconnect();
-    }
     pactive_wallet.reset();
-    pactive_wallet = pwallet_in;
-    vpwallets.clear();
 
-    if (pactive_wallet) {
-        m_handler_unload = interfaces::MakeHandler(pactive_wallet->NotifyUnload.connect(boost::bind(&NotifyUnload, this, pactive_wallet.get())));
-        vpwallets.push_back(pactive_wallet);
-        LogPrintf("Secure messaging using wallet %s.\n", pactive_wallet->GetName());
+    if (pwallet_in) {
+        pactive_wallet = pwallet_in;
+        LoadWallet(pwallet_in);
+        LogPrintf("Secure messaging using active wallet %s.\n", pactive_wallet->GetName());
     } else {
-        LogPrintf("Secure messaging using no wallet.\n");
+        LogPrintf("Secure messaging unset active wallet.\n");
     }
     return true;
 #endif
@@ -1109,13 +1166,15 @@ std::string CSMSG::GetWalletName()
 
 std::string CSMSG::LookupLabel(CKeyID &hash)
 {
-    for (const auto &pw : vpwallets) {
+#ifdef ENABLE_WALLET
+    for (const auto &pw : m_vpwallets) {
         LOCK(pw->cs_wallet);
         auto mi(pw->mapAddressBook.find(hash));
         if (mi != pw->mapAddressBook.end()) {
             return mi->second.name;
         }
     }
+#endif
     return "";
 };
 
@@ -2223,21 +2282,17 @@ int CSMSG::ManageLocalKey(CKeyID &keyId, ChangeType mode)
     return SMSG_NO_ERROR;
 };
 
-int CSMSG::WalletUnlocked()
+int CSMSG::WalletUnlocked(CWallet *pwallet)
 {
 #ifdef ENABLE_WALLET
     /*
     When the wallet is unlocked, scan messages received while wallet was locked.
     */
-    if (!fSecMsgEnabled || !pactive_wallet) {
+    if (!fSecMsgEnabled || m_vpwallets.size() < 1) {
         return SMSG_WALLET_UNSET;
     }
 
     LogPrintf("SecureMsgWalletUnlocked()\n");
-
-    if (pactive_wallet->IsLocked()) {
-        return errorN(SMSG_WALLET_LOCKED, "%s: Wallet is locked.", __func__);
-    }
 
     int64_t  now            = GetTime();
     uint32_t nFiles         = 0;
@@ -2295,6 +2350,7 @@ int CSMSG::WalletUnlocked()
             continue;
         }
 
+        bool remove_file = true;
         {
             LOCK(cs_smsg);
             FILE *fp;
@@ -2337,7 +2393,9 @@ int CSMSG::WalletUnlocked()
                 if (rv == 0) {
                     nFoundMessages++;
                 } else
-                if (rv != 0) {
+                if (rv == SMSG_WALLET_LOCKED) {
+                    remove_file = false;
+                } else {
                     // SecureMsgScanMessage failed
                 }
 
@@ -2347,13 +2405,15 @@ int CSMSG::WalletUnlocked()
             fclose(fp);
 
             // Remove wl file when scanned
-            try {
-                fs::remove(itd->path());
-            } catch (const fs::filesystem_error &ex) {
-                return errorN(SMSG_GENERAL_ERROR, "%s: Could not remove file %s - %s.", __func__, fileName, ex.what());
+            if (remove_file) {
+                try {
+                    fs::remove(itd->path());
+                } catch (const fs::filesystem_error &ex) {
+                    return errorN(SMSG_GENERAL_ERROR, "%s: Could not remove file %s - %s.", __func__, fileName, ex.what());
+                }
             }
         } // cs_smsg
-    };
+    }
 
     LogPrintf("Processed %u files, scanned %u messages, received %u messages.\n", nFiles, nMessages, nFoundMessages);
 
@@ -2448,7 +2508,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
             addressTo = it->address;
 
             CKey keyDest;
-            for (const auto &pw : vpwallets) {
+            for (const auto &pw : m_vpwallets) {
                 if (pw->IsLocked()) {
                     if (pw->HaveKey(addressTo)) {
                         was_locked = true;
@@ -2561,14 +2621,12 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
 
 int CSMSG::GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut)
 {
-    LogPrint(BCLog::SMSG, "%s\n", __func__);
-
     if (keyStore.GetPubKey(ckid, cpkOut)) {
         return SMSG_NO_ERROR;
     }
 
 #ifdef ENABLE_WALLET
-    for (const auto &pw : vpwallets) {
+    for (const auto &pw : m_vpwallets) {
         if (pw->GetPubKey(ckid, cpkOut) && cpkOut.IsValid()) {
             return SMSG_NO_ERROR;
         }
@@ -2580,21 +2638,17 @@ int CSMSG::GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut)
 
 int CSMSG::GetLocalKey(const CKeyID &key_id, CKey &key_out)
 {
-    LogPrint(BCLog::SMSG, "%s\n", __func__);
-
     if (keyStore.GetKey(key_id, key_out)) {
         return SMSG_NO_ERROR;
     }
 
 #ifdef ENABLE_WALLET
-    for (const auto &pw : vpwallets) {
-        for (const auto &pw : vpwallets) {
-            if (pw->IsLocked()) {
-                continue;
-            }
-            if (pw->GetKey(key_id, key_out)) {
-                return SMSG_NO_ERROR;
-            }
+    for (const auto &pw : m_vpwallets) {
+        if (pw->IsLocked()) {
+            continue;
+        }
+        if (pw->GetKey(key_id, key_out)) {
+            return SMSG_NO_ERROR;
         }
     }
 #endif
@@ -2704,7 +2758,7 @@ int CSMSG::AddLocalAddress(const std::string &sAddress)
     }
 
     bool have_key = false;
-    for (const auto &pw : vpwallets) {
+    for (const auto &pw : m_vpwallets) {
         if (pw->HaveKey(idk)) {
             have_key = true;
             break;
@@ -4173,6 +4227,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
             }
             size_t nInputsPerSig = 1;
             CAmount nFeeRet;
+            LockAnnotation lock(::cs_main);
             if (0 != pw->AddAnonInputs(wtx, rtx, vec_send, !fTestFee, nRingSize, nInputsPerSig, nFeeRet, &coinControl, sError)) {
                 return SMSG_FUND_FAILED;
             }
@@ -4420,7 +4475,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKeyID &address, const uint8_t *pHeader
 
 #ifdef ENABLE_WALLET
     if (!keyDest.IsValid()) {
-        for (const auto &pw : smsgModule.vpwallets) {
+        for (const auto &pw : smsgModule.m_vpwallets) {
             if (pw->IsLocked()) {
                 if (pw->HaveKey(address)) {
                     return SMSG_WALLET_LOCKED;

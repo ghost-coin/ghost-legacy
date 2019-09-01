@@ -809,6 +809,8 @@ public:
     size_t m_rescan_stealth_v1_lookahead = DEFAULT_STEALTH_LOOKAHEAD_SIZE;
     size_t m_rescan_stealth_v2_lookahead = DEFAULT_STEALTH_LOOKAHEAD_SIZE;
 
+    bool m_smsg_enabled = true;
+
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);
 

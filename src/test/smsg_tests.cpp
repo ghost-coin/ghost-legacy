@@ -68,7 +68,8 @@ BOOST_AUTO_TEST_CASE(smsg_test)
         wallet->AddKey(keyRemote[i]); // need pubkey
     }
 
-    BOOST_CHECK(true == smsgModule.Start(wallet, false));
+    std::vector<std::shared_ptr<CWallet>> temp_vpwallets;
+    BOOST_CHECK(true == smsgModule.Start(wallet, temp_vpwallets, false));
 
     smsg::SecureMessage smsg;
     smsg.m_ttl = 1;

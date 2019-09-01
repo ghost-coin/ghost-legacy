@@ -5719,6 +5719,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "}\n"
                 "\"other\" {\n"
                 "  \"onlyinstance\"              (bool, optional, default=true) Set to false if other wallets spending from the same keys exist.\n"
+                "  \"smsgenabled\"               (bool, optional, default=true) Set to false to have smsg ignore the wallet.\n"
                 "}\n"
                 "Omit the json object to print the settings group.\n"
                 "Pass an empty json object to clear the settings group.\n" +
@@ -5935,6 +5936,11 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             if (sKey == "onlyinstance") {
                 if (!json["onlyinstance"].isBool()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "onlyinstance must be boolean.");
+                }
+            } else
+            if (sKey == "smsgenabled") {
+                if (!json["smsgenabled"].isBool()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "smsgenabled must be boolean.");
                 }
             } else {
                 warnings.push_back("Unknown key " + sKey);

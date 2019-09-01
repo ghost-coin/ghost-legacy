@@ -233,6 +233,10 @@ PARTICL_SCRIPTS = [
     'wallet_part_segwit_scripts.py',
 ]
 
+PARTICL_SCRIPTS_EXT = [
+    'feature_part_smsg_multiwallet.py',
+]
+
 INSIGHT_SCRIPTS = [
     'feature_ins_addressindex.py',
     'feature_ins_timestampindex.py',
@@ -242,7 +246,7 @@ INSIGHT_SCRIPTS = [
 ]
 
 # Place EXTENDED_SCRIPTS first since it has the 3 longest running tests
-ALL_SCRIPTS = EXTENDED_SCRIPTS + BASE_SCRIPTS + PARTICL_SCRIPTS + INSIGHT_SCRIPTS
+ALL_SCRIPTS = EXTENDED_SCRIPTS + BASE_SCRIPTS + PARTICL_SCRIPTS + INSIGHT_SCRIPTS + PARTICL_SCRIPTS_EXT
 
 NON_SCRIPTS = [
     # These are python files that live in the functional tests directory, but are not test scripts.
@@ -268,6 +272,7 @@ def main():
     parser.add_argument('--extended', action='store_true', help='run the extended test suite in addition to the basic tests')
     parser.add_argument('--bitcoin', action='store_true', help='run Bitcoin specific tests')
     parser.add_argument('--particl', action='store_true', help='run Particl specific tests')
+    parser.add_argument('--particlext', action='store_true', help='run Particl extended tests')
     parser.add_argument('--insight', action='store_true', help='run Insight specific tests')
     parser.add_argument('--withstdout', action='store_true', help='print stdout when test passed also')
     parser.add_argument('--help', '-h', '-?', action='store_true', help='print help text and exit')
@@ -334,6 +339,8 @@ def main():
             test_list += INSIGHT_SCRIPTS
         if args.bitcoin:
             test_list += BASE_SCRIPTS
+        if args.particlext:
+            test_list += PARTICL_SCRIPTS_EXT
 
     # Remove the test cases that the user has explicitly asked to exclude.
     if args.exclude:

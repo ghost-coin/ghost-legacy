@@ -1965,9 +1965,10 @@ bool AppInitMain(InitInterfaces& interfaces)
     if (fParticlMode && gArgs.GetBoolArg("-smsg", true)) { // SMSG breaks functional tests with services flag, see version msg
 #ifdef ENABLE_WALLET
         auto vpwallets = GetWallets();
-        smsgModule.Start(vpwallets.size() > 0 ? vpwallets[0] : nullptr, gArgs.GetBoolArg("-smsgscanchain", false));
+        smsgModule.Start(vpwallets.size() > 0 ? vpwallets[0] : nullptr, vpwallets, gArgs.GetBoolArg("-smsgscanchain", false));
 #else
-        smsgModule.Start(nullptr, gArgs.GetBoolArg("-smsgscanchain", false));
+        std::vector<std::shared_ptr<CWallet>> empty;
+        smsgModule.Start(nullptr, empty, gArgs.GetBoolArg("-smsgscanchain", false));
 #endif
     }
 

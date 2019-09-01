@@ -4,6 +4,7 @@
 
 - Stealth address lookahead when rescanning an uncrypted or unlocked wallet.
 - RingCT send options are saved by the Qt gui.
+- SMSG can listen for incoming messages on multiple wallets.
 
 
 0.18.1.3
