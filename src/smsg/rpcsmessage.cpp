@@ -22,7 +22,7 @@
 #include <leveldb/db.h>
 
 #ifdef ENABLE_WALLET
-#include <wallet/wallet.h>
+#include <wallet/hdwallet.h>
 #endif
 
 #include <univalue.h>
@@ -36,11 +36,10 @@ static void EnsureSMSGIsEnabled()
 static UniValue smsgenable(const JSONRPCRequest &request)
 {
             RPCHelpMan{"smsgenable",
-                "Enable secure messaging on the specified wallet.\n"
-                "Uses the first available wallet if none specified.\n"
-                "SMSG can only be enabled on one wallet.\n",
+                "Enable secure messaging with the specified wallet as the active wallet.\n"
+                "Uses the first smsg-enabled wallet as the active wallet if none specified.\n",
                 {
-                    {"walletname", RPCArg::Type::STR, /* default */ "wallet.dat", "Enable smsg on a specific wallet."},
+                    {"walletname", RPCArg::Type::STR, /* default */ "wallet.dat", "Active smsg wallet."},
                 },
                 RPCResults{},
                 RPCExamples{
@@ -57,34 +56,39 @@ static UniValue smsgenable(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
 
     std::shared_ptr<CWallet> pwallet;
-    std::string wallet_name = "Not set.";
+    std::string sFindWallet, wallet_name = "Not set.";
 #ifdef ENABLE_WALLET
     auto vpwallets = GetWallets();
 
     if (!request.params[0].isNull()) {
-        std::string sFindWallet = request.params[0].get_str();
-
-        for (const auto &pw : vpwallets) {
-            if (pw->GetName() != sFindWallet) {
-                continue;
-            }
+        sFindWallet = request.params[0].get_str();
+    }
+    for (const auto &pw : vpwallets) {
+        CHDWallet *const ppartw = GetParticlWallet(pw.get());
+        if (!ppartw) {
+            continue;
+        }
+        if (!request.params[0].isNull() && ppartw->GetName() == sFindWallet) {
             pwallet = pw;
             break;
         }
-        if (!pwallet) {
-            throw JSONRPCError(RPC_MISC_ERROR, "Wallet not found: \"" + sFindWallet + "\"");
+        if (ppartw->m_smsg_enabled) {
+            pwallet = pw;
+            break;
         }
-    } else {
-        if (vpwallets.size() > 0) {
-            pwallet = vpwallets[0];
-        }
+    }
+    if (!request.params[0].isNull() && !pwallet) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Wallet not found: \"" + sFindWallet + "\"");
     }
     if (pwallet) {
         wallet_name = pwallet->GetName();
     }
-#endif
+    result.pushKV("result", (smsgModule.Enable(pwallet, vpwallets) ? "Enabled secure messaging." : "Failed."));
+#else
+    std::vector<std::shared_ptr<CWallet>> empty;
+    result.pushKV("result", (smsgModule.Enable(pwallet, empty) ? "Enabled secure messaging." : "Failed."));
+ #endif
 
-    result.pushKV("result", (smsgModule.Enable(pwallet) ? "Enabled secure messaging." : "Failed."));
     result.pushKV("wallet", wallet_name);
 
     return result;
@@ -411,7 +415,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
 #ifdef ENABLE_WALLET
         uint32_t nKeys = 0;
         UniValue keys(UniValue::VOBJ);
-        for (const auto &pw : smsgModule.vpwallets) {
+        for (const auto &pw : smsgModule.m_vpwallets) {
             LOCK(pw->cs_wallet);
 
             for (const auto &entry : pw->mapAddressBook) {
@@ -1441,7 +1445,7 @@ static UniValue smsgview(const JSONRPCRequest &request)
 
                 std::map<CTxDestination, CAddressBookData>::iterator itl;
 
-                for (const auto &pw : smsgModule.vpwallets) {
+                for (const auto &pw : smsgModule.m_vpwallets) {
                     LOCK(pw->cs_wallet);
                     for (itl = pw->mapAddressBook.begin(); itl != pw->mapAddressBook.end(); ++itl) {
                         if (part::stringsMatchI(itl->second.name, sTemp, matchType)) {
@@ -2037,7 +2041,7 @@ static UniValue smsggetinfo(const JSONRPCRequest &request)
         obj.pushKV("active_wallet", smsgModule.GetWalletName());
 #ifdef ENABLE_WALLET
         UniValue wallet_names(UniValue::VARR);
-        for (const auto &pw : smsgModule.vpwallets) {
+        for (const auto &pw : smsgModule.m_vpwallets) {
             wallet_names.push_back(pw->GetName());
         }
         obj.pushKV("enabled_wallets", wallet_names);

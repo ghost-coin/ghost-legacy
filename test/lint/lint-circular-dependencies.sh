@@ -54,6 +54,8 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "key/stealth -> key_io -> script/standard -> key/stealth"
     "init -> usbdevice/rpcusbdevice -> wallet/rpcwallet -> init"
     "anon -> validation -> policy/fees -> anon"
+    "smsg/smessage -> wallet/hdwallet -> smsg/smessage"
+    "net_processing -> smsg/smessage -> wallet/hdwallet -> rpc/util -> node/transaction -> net_processing"
 )
 
 EXIT_CODE=0

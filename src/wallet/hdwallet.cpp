@@ -432,6 +432,12 @@ bool CHDWallet::ProcessWalletSettings(std::string &sError)
                 AppendError(sError, "\"onlyinstance\" not boolean.");
             }
         }
+        if (!json["smsgenabled"].isNull()) {
+            try { m_smsg_enabled = json["smsgenabled"].get_bool();
+            } catch (std::exception &e) {
+                AppendError(sError, "\"smsgenabled\" not boolean.");
+            }
+        }
     }
 
     if (m_min_collapse_depth < 2) {
@@ -1108,7 +1114,7 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase, bool accept_no_k
         ProcessLockedStealthOutputs();
         ProcessLockedBlindedOutputs();
     }
-    smsgModule.WalletUnlocked();
+    smsgModule.WalletUnlocked(this);
 
     WakeThreadStakeMiner(this);
 

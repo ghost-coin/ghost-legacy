@@ -392,12 +392,14 @@ public:
     int ReadIni();
     int WriteIni();
 
-    bool Start(std::shared_ptr<CWallet> pwalletIn, bool fScanChain);
+    bool Start(std::shared_ptr<CWallet> pwalletIn, std::vector<std::shared_ptr<CWallet>> &vpwallets, bool fScanChain);
     bool Shutdown();
 
-    bool Enable(std::shared_ptr<CWallet> pwallet);
+    bool Enable(std::shared_ptr<CWallet> pwallet, std::vector<std::shared_ptr<CWallet>> &vpwallets);
     bool Disable();
 
+    bool UnloadAllWallets();
+    bool LoadWallet(std::shared_ptr<CWallet> pwallet_in);
     bool WalletUnloaded(CWallet *pwallet_removed);
     bool SetActiveWallet(std::shared_ptr<CWallet> pwallet_in);
     std::string GetWalletName();
@@ -415,7 +417,7 @@ public:
     bool ScanBuckets(bool scan_all);
 
     int ManageLocalKey(CKeyID &keyId, ChangeType mode);
-    int WalletUnlocked();
+    int WalletUnlocked(CWallet *pwallet);
     int WalletKeyChanged(CKeyID &keyId, const std::string &sLabel, ChangeType mode);
 
     int ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui, bool &received_msg);
@@ -484,9 +486,9 @@ public:
     std::set<int64_t> setPurgedTimestamps;
     SecMsgOptions options;
     std::shared_ptr<CWallet> pactive_wallet; // The wallet used to fund smsges
-    std::vector<std::shared_ptr<CWallet>> vpwallets;
-
-    std::unique_ptr<interfaces::Handler> m_handler_unload;
+    std::vector<std::shared_ptr<CWallet>> m_vpwallets;
+    std::map<CWallet*, std::unique_ptr<interfaces::Handler>> m_wallet_unload_handlers;
+    std::unique_ptr<interfaces::Handler> m_wallet_load_handler;
 
     int64_t start_time = 0;
     int64_t m_last_changed = 0;  // Updated whenever a message is stored

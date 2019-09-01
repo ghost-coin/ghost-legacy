@@ -27,7 +27,6 @@ class SmsgTest(ParticlTestFramework):
         connect_nodes_bi(self.nodes, 0, 2)
 
     def run_test(self):
-        tmpdir = self.options.tmpdir
         nodes = self.nodes
 
         nodes[0].extkeyimportmaster(nodes[0].mnemonic('new')['master'])
