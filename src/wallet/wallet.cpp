@@ -1998,6 +1998,10 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(const uint256& start_bloc
 
 void CWallet::ReacceptWalletTransactions(interfaces::Chain::Lock& locked_chain)
 {
+    // During reindex, importing and IBD, old wallet transactions become
+    // unconfirmed. Don't resend them as that would spam other nodes.
+    if (::fImporting || ::fReindex || IsInitialBlockDownload()) return;
+
     // If transactions aren't being broadcasted, don't let them into local mempool either
     if (!fBroadcastTransactions)
         return;
