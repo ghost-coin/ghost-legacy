@@ -139,7 +139,7 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
 
             if (state.m_spend_height - ao.nBlockHeight < consensus.nMinRCTOutputDepth) {
                 LogPrint(BCLog::RINGCT, "%s: Low input depth %s\n", __func__, state.m_spend_height - ao.nBlockHeight);
-                return state.DoS(100, false, REJECT_INVALID, "bad-anonin-depth");
+                return state.DoS(0, false, REJECT_NONSTANDARD, "bad-anonin-depth");
             }
         }
 

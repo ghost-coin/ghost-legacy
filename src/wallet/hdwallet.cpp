@@ -4849,13 +4849,12 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI,
     int64_t nLastRCTOutIndex = chainActive.Tip()->nAnonOutputs;
 
     // Remove outputs without required depth
-    int nExtraDepth = gArgs.GetBoolArg("-regtest", false) ? -1 : 2; // if not on regtest pick outputs deeper than consensus checks to prevent banning
     while (nLastRCTOutIndex > 1){
         CAnonOutput ao;
         if (!pblocktree->ReadRCTOutput(nLastRCTOutIndex, ao)) {
             return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), nLastRCTOutIndex);
         }
-        if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth + nExtraDepth)) {
+        if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth)) {
             nLastRCTOutIndex--;
             continue;
         }
