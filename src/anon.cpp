@@ -22,6 +22,7 @@
 
 bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
 {
+    const Consensus::Params &consensus = Params().GetConsensus();
     int rv;
     std::set<int64_t> setHaveI; // Anon prev-outputs can only be used once per transaction.
     std::set<CCmpPubKey> setHaveKI;
@@ -135,6 +136,11 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
             memcpy(&vM[(i+k*nCols)*33], ao.pubkey.begin(), 33);
             vCommitments.push_back(ao.commitment);
             vpInCommits[i+k*nCols] = vCommitments.back().data;
+
+            if (state.m_spend_height - ao.nBlockHeight < consensus.nMinRCTOutputDepth) {
+                LogPrint(BCLog::RINGCT, "%s: Low input depth %s\n", __func__, state.m_spend_height - ao.nBlockHeight);
+                return state.DoS(100, false, REJECT_INVALID, "bad-anonin-depth");
+            }
         }
 
         uint256 txhashKI;

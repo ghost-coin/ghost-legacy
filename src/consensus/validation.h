@@ -100,13 +100,17 @@ public:
     bool fHasAnonOutput = false; // per tx
     bool fHasAnonInput = false; // per tx
     bool fIncDataOutputs = false; // per block
+    int m_spend_height = 0;
 
-    void setHardForks(int64_t time, const Consensus::Params& consensusParams)
+    void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams)
     {
         fEnforceSmsgFees = time >= consensusParams.nPaidSmsgTime;
         fBulletproofsActive = time >= consensusParams.bulletproof_time;
         rct_active = time >= consensusParams.rct_time;
         fIncDataOutputs = time >= consensusParams.extra_dataoutput_time;
+        if (spend_height > -1) {
+            m_spend_height = spend_height; // Pass through connectblock->checkblock
+        }
     }
 };
 
