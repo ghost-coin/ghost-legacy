@@ -464,10 +464,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1510704000; // November 15th, 2017.
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000060bfaa72f125f5cd55");
+        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000065119d6b4ac6628f42");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x4f99098be0e8c21571d0b10ac246265a6b1ac52a609dbd16690c5b3ff9ac2ec6"); // 501540
+        consensus.defaultAssumeValid = uint256S("0x65ff74dc7dee992958af41ecf0011e029778fcbf30c28e1c92f4b784c5596a75"); // 521036
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -570,14 +570,15 @@ public:
                 { 421718,   uint256S("0xd22f8acde6c5aed109087eb2799620c560a78e573fa587a1660aef854069d75d")},
                 { 443228,   uint256S("0x1e2ae3edb2fa5b398c2f719d2bbb44b3089fb96170b6676c0c963f12bceba489")},
                 { 501540,   uint256S("0x4f99098be0e8c21571d0b10ac246265a6b1ac52a609dbd16690c5b3ff9ac2ec6")},
+                { 521036,   uint256S("0x65ff74dc7dee992958af41ecf0011e029778fcbf30c28e1c92f4b784c5596a75")},
             }
         };
 
         chainTxData = ChainTxData {
-            // Data from rpc: getchaintxstats 4096 943c5f0d66f5a1ce573e142f89b3337b605ad1e2287784b90faa01fe80a568dc
-            /* nTime    */ 1564908864,
-            /* nTxCount */ 556498,
-            /* dTxRate  */ 0.0075
+            // Data from rpc: getchaintxstats 4096 65ff74dc7dee992958af41ecf0011e029778fcbf30c28e1c92f4b784c5596a75
+            /* nTime    */ 1567421712,
+            /* nTxCount */ 580689,
+            /* dTxRate  */ 0.009
         };
 
         /* disable fallback fee on mainnet */
@@ -655,10 +656,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1493596800; // May 1st 2017
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000005f4f87ef27c913d89");
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000649534a7af31cbdec");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x801444340d20609ad4525bac23f75d47c9525bd9c7a2390f2a41106c4048e4a5"); // 455325
+        consensus.defaultAssumeValid = uint256S("0x4b95cc3e678f400dcfdfefe17c2787e2a1a5928fcea1d43f83b1198c9e1f3279"); // 472199
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -740,14 +741,15 @@ public:
                 {375987, uint256S("0x96bb6bb7085d0fdb85757069af7b1513c6a86b476ba531a67af6e9dd21385255")},
                 {428386, uint256S("0x08bbc92c831b864c809b575901e37aaa9aa2b2e38212594aedf2712a87267da9")},
                 {455325, uint256S("0x801444340d20609ad4525bac23f75d47c9525bd9c7a2390f2a41106c4048e4a5")},
+                {472199, uint256S("0x4b95cc3e678f400dcfdfefe17c2787e2a1a5928fcea1d43f83b1198c9e1f3279")},
             }
         };
 
         chainTxData = ChainTxData{
-            // Data from rpc: getchaintxstats 4096 7e99af711dfcd1394b9e943d105152b30ff078682079eb186547e1d039186eb9
-            /* nTime    */ 1564909760,
-            /* nTxCount */ 497620,
-            /* dTxRate  */ 0.009
+            // Data from rpc: getchaintxstats 4096 4b95cc3e678f400dcfdfefe17c2787e2a1a5928fcea1d43f83b1198c9e1f3279
+            /* nTime    */ 1567421648,
+            /* nTxCount */ 515930,
+            /* dTxRate  */ 0.004
         };
 
         /* enable fallback fee on testnet */
