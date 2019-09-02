@@ -26,7 +26,7 @@ const size_t DEFAULT_RING_SIZE = 5;
 const size_t DEFAULT_INPUTS_PER_SIG = 1;
 
 
-bool VerifyMLSAG(const CTransaction &tx, CValidationState &state);
+bool VerifyMLSAG(const CTransaction &tx, CValidationState &state) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 bool AddKeyImagesToMempool(const CTransaction &tx, CTxMemPool &pool);
 bool RemoveKeyImagesFromMempool(const uint256 &hash, const CTxIn &txin, CTxMemPool &pool);

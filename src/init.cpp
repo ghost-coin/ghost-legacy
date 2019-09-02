@@ -2063,11 +2063,11 @@ bool AppInitMain(InitInterfaces& interfaces)
     }
 
     // ********************************************************* Step 12.5: start staking
-    #ifdef ENABLE_WALLET
+#ifdef ENABLE_WALLET
     if (fParticlWallet) {
         StartThreadStakeMiner();
     }
-    #endif
+#endif
 
     // ********************************************************* Step 13: finished
 
