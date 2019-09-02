@@ -45,7 +45,7 @@ class AnonTest(ParticlTestFramework):
         txnHashes.append(nodes[0].sendblindtoanon(sxAddrTo1_1, 100, '', '', False, 'node0 -> node1 b->a 3'))
         txnHashes.append(nodes[0].sendblindtoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 b->a 4'))
 
-        for k in range(4):
+        for k in range(5):
             txnHash = nodes[0].sendparttoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 p->a')
             txnHashes.append(txnHash)
         for k in range(10):
@@ -53,13 +53,12 @@ class AnonTest(ParticlTestFramework):
             txnHashes.append(txnHash)
 
         for h in txnHashes:
-            self.log.info(h) # debug
             assert(self.wait_for_mempool(nodes[1], h))
 
         assert('node0 -> node1 b->a 4' in self.dumpj(nodes[1].listtransactions('*', 100)))
         assert('node0 -> node1 b->a 4' in self.dumpj(nodes[0].listtransactions('*', 100)))
 
-        self.stakeBlocks(1)
+        self.stakeBlocks(2)
 
         block1_hash = nodes[1].getblockhash(1)
         ro = nodes[1].getblock(block1_hash)
@@ -72,12 +71,11 @@ class AnonTest(ParticlTestFramework):
         assert(self.wait_for_mempool(nodes[0], txnHash))
         self.stakeBlocks(1)
 
-        block1_hash = nodes[1].getblockhash(2)
-        ro = nodes[1].getblock(block1_hash)
+        ro = nodes[1].getblock(nodes[1].getblockhash(3))
         for txnHash in txnHashes:
             assert(txnHash in ro['tx'])
 
-        assert(nodes[1].anonoutput()['lastindex'] == 26)
+        assert(nodes[1].anonoutput()['lastindex'] == 28)
 
         txnHashes.clear()
         txnHashes.append(nodes[1].sendanontoanon(sxAddrTo0_1, 101, '', '', False, 'node1 -> node0 a->a', 5, 1))
@@ -129,7 +127,7 @@ class AnonTest(ParticlTestFramework):
         assert(nodes[1].lockunspent(True) == True)
 
         ro = nodes[2].getblockstats(nodes[2].getblockchaininfo()['blocks'])
-        assert(ro['height'] == 2)
+        assert(ro['height'] == 3)
 
         self.log.info('Test recover from mnemonic')
         # Txns currently in the mempool will be reprocessed in the next block

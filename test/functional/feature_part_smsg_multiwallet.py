@@ -13,7 +13,7 @@ class SmsgMultiWalletTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True  # Don't copy from cache
         self.num_nodes = 3
-        self.extra_args = [ ['-debug'] for i in range(self.num_nodes) ]
+        self.extra_args = [ ['-debug', '-reservebalance=10000000'] for i in range(self.num_nodes) ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
