@@ -809,7 +809,7 @@ public:
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0x00");
 
-        consensus.nMinRCTOutputDepth = 1;
+        consensus.nMinRCTOutputDepth = 2;
 
         pchMessageStart[0] = 0x09;
         pchMessageStart[1] = 0x12;

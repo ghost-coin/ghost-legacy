@@ -4854,7 +4854,7 @@ int CHDWallet::PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI,
         if (!pblocktree->ReadRCTOutput(nLastRCTOutIndex, ao)) {
             return wserrorN(1, sError, __func__, _("Anon output not found in db, %d"), nLastRCTOutIndex);
         }
-        if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth)) {
+        if (nBestHeight - ao.nBlockHeight + 1 < consensusParams.nMinRCTOutputDepth) {
             nLastRCTOutIndex--;
             continue;
         }
