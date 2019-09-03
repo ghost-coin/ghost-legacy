@@ -137,7 +137,7 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
             vCommitments.push_back(ao.commitment);
             vpInCommits[i+k*nCols] = vCommitments.back().data;
 
-            if (state.m_spend_height - ao.nBlockHeight < consensus.nMinRCTOutputDepth) {
+            if (state.m_spend_height - ao.nBlockHeight + 1 < consensus.nMinRCTOutputDepth) {
                 LogPrint(BCLog::RINGCT, "%s: Low input depth %s\n", __func__, state.m_spend_height - ao.nBlockHeight);
                 return state.Invalid(ValidationInvalidReason::TX_PREMATURE_SPEND, false, REJECT_NONSTANDARD, "bad-anonin-depth");
             }

@@ -4797,7 +4797,7 @@ int CHDWallet::PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vec
         if (!pblocktree->ReadRCTOutput(nLastRCTOutIndex, ao)) {
             return wserrorN(1, sError, __func__, _("Anon output not found in db, %d").translated, nLastRCTOutIndex);
         }
-        if (ao.nBlockHeight > nBestHeight - (consensusParams.nMinRCTOutputDepth)) {
+        if (nBestHeight - ao.nBlockHeight + 1 < consensusParams.nMinRCTOutputDepth) {
             nLastRCTOutIndex--;
             continue;
         }
