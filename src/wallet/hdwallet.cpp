@@ -912,8 +912,8 @@ bool CHDWallet::LoadTxRecords(CHDWalletDB *pwdb)
                 } else
                 if ((mwi = mapWallet.find(prevout.hash)) != mapWallet.end()) {
                     CWalletTx &prevtx = mwi->second;
-                    if (prevtx.nIndex == -1 && !prevtx.hashUnset()) {
-                        MarkConflicted(prevtx.hashBlock, txhash);
+                    if (prevtx.isConflicted()) {
+                        MarkConflicted(prevtx.m_confirm.hashBlock, txhash);
                     }
                 }
             }
@@ -5545,34 +5545,21 @@ void CHDWallet::ClearCachedBalances()
     return;
 }
 
-void CHDWallet::LoadToWallet(const CWalletTx& wtxIn)
+void CHDWallet::LoadToWallet(CWalletTx& wtxIn)
 {
-    uint256 hash = wtxIn.GetHash();
-    const auto& ins = mapWallet.emplace(hash, wtxIn);
-    CWalletTx& wtx = ins.first->second;
-    wtx.BindWallet(this);
-    if (/* insertion took place */ ins.second) {
-        wtx.m_it_wtxOrdered = wtxOrdered.insert(std::make_pair(wtx.nOrderPos, &wtx));
-    }
-    AddToSpends(hash);
-    for (const auto &txin : wtx.tx->vin) {
-        auto it = mapWallet.find(txin.prevout.hash);
-        if (it != mapWallet.end()) {
-            CWalletTx& prevtx = it->second;
-            if (prevtx.nIndex == -1 && !prevtx.hashUnset()) {
-                MarkConflicted(prevtx.hashBlock, wtx.GetHash());
-            }
-        }
-    }
+    // If wallet doesn't have a chain (e.g wallet-tool), lock can't be taken.
+    auto locked_chain = LockChain();
+    CWallet::LoadToWallet(wtxIn);
 
     int nBestHeight = ::ChainActive().Height();
-    if (wtx.IsCoinStake() && wtx.isAbandoned()) {
+    if (wtxIn.IsCoinStake() && wtxIn.isAbandoned()) {
         int csHeight;
-        if (wtx.tx->GetCoinStakeHeight(csHeight)
+        if (wtxIn.tx->GetCoinStakeHeight(csHeight)
             && csHeight > nBestHeight - (MAX_STAKE_SEEN_SIZE * 1.5)) {
             // Add to MapStakeSeen to prevent node submitting a block that would be rejected.
             LOCK(cs_main);
-            const COutPoint &kernel = wtx.tx->vin[0].prevout;
+            const COutPoint &kernel = wtxIn.tx->vin[0].prevout;
+            uint256 hash = wtxIn.GetHash();
             AddToMapStakeSeen(kernel, hash);
         }
     }
@@ -9657,7 +9644,7 @@ void CHDWallet::AddToSpends(const uint256& wtxid)
     }
 }
 
-bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint256& block_hash, int posInBlock, bool fUpdate)
+bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::Status status, const uint256& block_hash, int posInBlock, bool fUpdate)
 {
     const CTransaction& tx = *ptx;
 
@@ -9771,6 +9758,7 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint2
                 if (!AbandonTransaction(* locked_chain, hashTx)) {
                     WalletLogPrintf("ERROR: %s - Orphaning stake, AbandonTransaction failed for %s\n", __func__, hashTx.ToString());
                 }
+                status = CWalletTx::ABANDONED;
             }
 
             CWalletTx wtx(this, MakeTransactionRef(tx));
@@ -9779,10 +9767,10 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const uint2
                 wtx.mapValue.insert(mapNarr.begin(), mapNarr.end());
             }
 
-            // Get merkle branch if transaction was found in a block
-            if (!block_hash.IsNull()) {
-                wtx.SetMerkleBranch(block_hash, posInBlock);
-            }
+            // Block disconnection override an abandoned tx as unconfirmed
+            // which means user may have to call abandontransaction again
+            wtx.SetConf(status, block_hash, posInBlock);
+
             bool rv = AddToWallet(wtx, false);
             WakeThreadStakeMiner(this); // wallet balance may have changed
             return rv;
@@ -9852,8 +9840,15 @@ int CHDWallet::InsertTempTxn(const uint256 &txid, const CTransactionRecord *rtx)
     wtx.tx = stx.tx;
 
     if (rtx) {
-        wtx.hashBlock = rtx->blockHash;
-        wtx.nIndex = rtx->nIndex;
+        wtx.m_confirm.hashBlock = rtx->blockHash;
+        wtx.m_confirm.nIndex = rtx->nIndex;
+        if (rtx->nIndex == -1 && rtx->blockHash == ABANDON_HASH) {
+            wtx.setAbandoned();
+        } else if (rtx->nIndex == -1) {
+            wtx.setConflicted();
+        } else if (!rtx->blockHash.IsNull()) {
+            wtx.setConfirmed();
+        }
         wtx.nTimeSmart = rtx->GetTxTime();
         wtx.nTimeReceived = rtx->nTimeReceived;
     }
@@ -10296,12 +10291,6 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
         if (chain().findBlock(rtx.blockHash, nullptr /* block */, &blocktime)) {
             rtx.nBlockTime = blocktime;
         }
-
-        // Update blockhash of mapTempWallet if exists
-        CWalletTx *ptwtx = GetTempWalletTx(txhash);
-        if (ptwtx) {
-            ptwtx->SetMerkleBranch(block_hash, posInBlock);
-        }
     }
 
     // Anon input spend info depends on keys in wallet
@@ -10488,6 +10477,8 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
 
     // Notify UI of new or updated transaction
     NotifyTransactionChanged(this, txhash, fInsertedNew ? CT_NEW : CT_UPDATED);
+
+#if HAVE_SYSTEM
     // notify an external script when a wallet transaction comes in or is updated
     std::string strCmd = gArgs.GetArg("-walletnotify", "");
 
@@ -10496,6 +10487,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
         std::thread t(runCommand, strCmd);
         t.detach(); // thread runs free
     }
+#endif
 
     std::string sName = GetName();
     GetMainSignals().TransactionAddedToWallet(sName, MakeTransactionRef(tx));
@@ -11802,8 +11794,7 @@ bool CHDWallet::AbandonTransaction(interfaces::Chain::Lock& locked_chain, const 
         todo.erase(now);
         done.insert(now);
 
-        if ((mri = mapRecords.find(now)) != mapRecords.end())
-        {
+        if ((mri = mapRecords.find(now)) != mapRecords.end()) {
             CTransactionRecord &rtx = mri->second;
             int currentconfirm = GetDepthInMainChain(locked_chain, rtx.blockHash, rtx.nIndex);
             if (currentconfirm > 0) {
@@ -11837,7 +11828,6 @@ bool CHDWallet::AbandonTransaction(interfaces::Chain::Lock& locked_chain, const 
             {
                 // If the orig tx was not in block/mempool, none of its spends can be in mempool
                 assert(!wtx.InMempool());
-                wtx.nIndex = -1;
                 wtx.setAbandoned();
                 wtx.MarkDirty();
                 walletdb.WriteTx(wtx);
@@ -11873,6 +11863,7 @@ bool CHDWallet::AbandonTransaction(interfaces::Chain::Lock& locked_chain, const 
 
 void CHDWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx)
 {
+    if (!m_chain) return;
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
@@ -11931,8 +11922,9 @@ void CHDWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx)
             if (conflictconfirms < currentconfirm) {
                 // Block is 'more conflicted' than current confirm; update.
                 // Mark transaction as conflicted with this block.
-                wtx.nIndex = -1;
-                wtx.hashBlock = hashBlock;
+                wtx.m_confirm.nIndex = 0;
+                wtx.m_confirm.hashBlock = hashBlock;
+                wtx.setConflicted();
                 wtx.MarkDirty();
                 walletdb.WriteTx(wtx);
                 // Iterate over all its outputs, and mark transactions in the wallet that spend them conflicted too
