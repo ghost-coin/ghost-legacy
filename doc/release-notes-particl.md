@@ -4,6 +4,13 @@ Next Major Version
 - rpc: Add coinstakeinfo option to getblock.
 
 
+0.18.1.5
+==============
+
+- rpc: smsgsend accepts a coincontrol parameter.
+- Fixed infinite loop bug in AddStandardInputs when sum of specified inputs is too low.
+
+
 0.18.1.4
 ==============
 

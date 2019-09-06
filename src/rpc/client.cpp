@@ -265,6 +265,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "smsgsend", 4, "days_retention" },
     { "smsgsend", 5, "testfee" },
     { "smsgsend", 6, "options" },
+    { "smsgsend", 7, "coincontrol" },
     { "smsg", 1, "options" },
     { "smsgimport", 1, "options" },
     { "smsginbox", 2, "options" },

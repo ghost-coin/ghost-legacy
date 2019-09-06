@@ -42,7 +42,7 @@
 #include <univalue.h>
 #include <boost/thread.hpp>
 
-static void EnsureWalletIsUnlocked(CHDWallet *pwallet)
+void EnsureWalletIsUnlocked(CHDWallet *pwallet)
 {
     if (pwallet->IsLocked()) {
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Wallet locked, please enter the wallet passphrase with walletpassphrase first.");
@@ -4461,6 +4461,85 @@ static int AddOutput(uint8_t nType, std::vector<CTempRecipient> &vecSend, const 
     return 0;
 };
 
+void ReadCoinControlOptions(const UniValue &obj, CHDWallet *pwallet, CCoinControl &coin_control)
+{
+    if (obj.exists("changeaddress")) {
+        std::string sChangeAddress = obj["changeaddress"].get_str();
+
+        // Check for script
+        bool fHaveScript = false;
+        if (IsHex(sChangeAddress)) {
+            std::vector<uint8_t> vScript = ParseHex(sChangeAddress);
+            CScript script(vScript.begin(), vScript.end());
+
+            txnouttype whichType;
+            if (IsStandard(script, whichType)) {
+                coin_control.scriptChange = script;
+                fHaveScript = true;
+            }
+        }
+
+        if (!fHaveScript) {
+            CTxDestination dest = DecodeDestination(sChangeAddress);
+            if (!IsValidDestination(dest)) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "changeAddress must be a valid particl address");
+            }
+            coin_control.destChange = dest;
+        }
+    }
+
+    const UniValue &uvInputs = obj["inputs"];
+    if (uvInputs.isArray()) {
+        for (size_t i = 0; i < uvInputs.size(); ++i) {
+            const UniValue &uvi = uvInputs[i];
+            RPCTypeCheckObj(uvi,
+            {
+                {"tx", UniValueType(UniValue::VSTR)},
+                {"n", UniValueType(UniValue::VNUM)},
+            });
+
+            COutPoint op(uint256S(uvi["tx"].get_str()), uvi["n"].get_int());
+            coin_control.setSelected.insert(op);
+        }
+    } else
+    if (!uvInputs.isNull()) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "coin_control inputs must be an array");
+    }
+
+    if (obj.exists("feeRate") && obj.exists("estimate_mode")) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot specify both estimate_mode and feeRate");
+    }
+    if (obj.exists("feeRate") && obj.exists("conf_target")) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot specify both conf_target and feeRate");
+    }
+
+    if (obj.exists("replaceable")) {
+        if (!obj["replaceable"].isBool())
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Replaceable parameter must be boolean.");
+        coin_control.m_signal_bip125_rbf = obj["replaceable"].get_bool();
+    }
+
+    if (obj.exists("conf_target")) {
+        if (!obj["conf_target"].isNum())
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "conf_target parameter must be numeric.");
+        coin_control.m_confirm_target = ParseConfirmTarget(obj["conf_target"], pwallet->chain().estimateMaxBlocks());
+    }
+
+    if (obj.exists("estimate_mode")) {
+        if (!obj["estimate_mode"].isStr())
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "estimate_mode parameter must be a string.");
+        if (!FeeModeFromString(obj["estimate_mode"].get_str(), coin_control.m_fee_mode))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid estimate_mode parameter");
+    }
+
+    if (obj.exists("feeRate")) {
+        coin_control.m_feerate = CFeeRate(AmountFromValue(obj["feeRate"]));
+        coin_control.fOverrideFeeRate = true;
+    }
+
+    coin_control.m_avoid_address_reuse = GetAvoidReuseFlag(pwallet, obj["avoid_reuse"]);
+};
+
 static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, OutputTypes typeOut)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -4551,18 +4630,15 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 fSubtractFeeFromAmount = obj["subfee"].get_bool();
             }
 
-            std::string sNarr;
+            std::string sNarr, sBlind;
             if (obj.exists("narr")) {
                 sNarr = obj["narr"].get_str();
             }
-
-            std::string sBlind;
             if (obj.exists("blindingfactor")) {
                 std::string s = obj["blindingfactor"].get_str();
                 if (!IsHex(s) || !(s.size() == 64)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Blinding factor must be 32 bytes and hex encoded.");
                 }
-
                 sBlind = s;
             }
 
@@ -4713,76 +4789,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         }
         const UniValue &uvCoinControl = request.params[nv].get_obj();
 
-        if (uvCoinControl.exists("changeaddress")) {
-            std::string sChangeAddress = uvCoinControl["changeaddress"].get_str();
-
-            // Check for script
-            bool fHaveScript = false;
-            if (IsHex(sChangeAddress)) {
-                std::vector<uint8_t> vScript = ParseHex(sChangeAddress);
-                CScript script(vScript.begin(), vScript.end());
-
-                txnouttype whichType;
-                if (IsStandard(script, whichType)) {
-                    coincontrol.scriptChange = script;
-                    fHaveScript = true;
-                }
-            }
-
-            if (!fHaveScript) {
-                CBitcoinAddress addrChange(sChangeAddress);
-                coincontrol.destChange = addrChange.Get();
-            }
-        }
-
-        const UniValue &uvInputs = uvCoinControl["inputs"];
-        if (uvInputs.isArray()) {
-            for (size_t i = 0; i < uvInputs.size(); ++i) {
-                const UniValue &uvi = uvInputs[i];
-                RPCTypeCheckObj(uvi,
-                {
-                    {"tx", UniValueType(UniValue::VSTR)},
-                    {"n", UniValueType(UniValue::VNUM)},
-                });
-
-                COutPoint op(uint256S(uvi["tx"].get_str()), uvi["n"].get_int());
-                coincontrol.setSelected.insert(op);
-            }
-        } else
-        if (!uvInputs.isNull()) {
-            throw JSONRPCError(RPC_TYPE_ERROR, "coin_control inputs must be an array");
-        }
-
-        if (uvCoinControl.exists("feeRate") && uvCoinControl.exists("estimate_mode")) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot specify both estimate_mode and feeRate");
-        }
-        if (uvCoinControl.exists("feeRate") && uvCoinControl.exists("conf_target")) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot specify both conf_target and feeRate");
-        }
-
-        if (uvCoinControl.exists("replaceable")) {
-            if (!uvCoinControl["replaceable"].isBool())
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Replaceable parameter must be boolean.");
-            coincontrol.m_signal_bip125_rbf = uvCoinControl["replaceable"].get_bool();
-        }
-
-        if (uvCoinControl.exists("conf_target")) {
-            if (!uvCoinControl["conf_target"].isNum())
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "conf_target parameter must be numeric.");
-            coincontrol.m_confirm_target = ParseConfirmTarget(uvCoinControl["conf_target"], pwallet->chain().estimateMaxBlocks());
-        }
-
-        if (uvCoinControl.exists("estimate_mode")) {
-            if (!uvCoinControl["estimate_mode"].isStr())
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "estimate_mode parameter must be a string.");
-            if (!FeeModeFromString(uvCoinControl["estimate_mode"].get_str(), coincontrol.m_fee_mode))
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid estimate_mode parameter");
-        }
-
-        if (uvCoinControl.exists("feeRate")) {
-            coincontrol.m_feerate = CFeeRate(AmountFromValue(uvCoinControl["feeRate"]));
-            coincontrol.fOverrideFeeRate = true;
-        }
+        ReadCoinControlOptions(uvCoinControl, pwallet, coincontrol);
 
         if (uvCoinControl["debug"].isBool() && uvCoinControl["debug"].get_bool() == true) {
             fShowHex = true;
@@ -4790,7 +4797,6 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         if (uvCoinControl["show_fee"].isBool() && uvCoinControl["show_fee"].get_bool() == true) {
             fShowFee = true;
         }
-        coincontrol.m_avoid_address_reuse = GetAvoidReuseFlag(pwallet, uvCoinControl["avoid_reuse"]);
     }
     coincontrol.m_avoid_partial_spends |= coincontrol.m_avoid_address_reuse;
 

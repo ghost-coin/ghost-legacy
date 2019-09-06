@@ -18,6 +18,7 @@
 class UniValue;
 class CDataStream;
 class CWallet;
+class CCoinControl;
 class CNode;
 typedef int64_t NodeId;
 
@@ -457,11 +458,11 @@ public:
 
     int Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         SecureMessage &smsg, std::string &sError, bool fPaid, size_t nRetention,
-        bool fTestFee=false, CAmount *nFee=nullptr, size_t *nTxBytes=nullptr, bool fFromFile=false, bool submit_msg=true, bool add_to_outbox=true, bool fund_from_rct=false, size_t nRingSize=5);
+        bool fTestFee=false, CAmount *nFee=nullptr, size_t *nTxBytes=nullptr, bool fFromFile=false, bool submit_msg=true, bool add_to_outbox=true, bool fund_from_rct=false, size_t nRingSize=5, CCoinControl *coin_control=nullptr);
 
     bool GetPowHash(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_t nPayload, uint256 &hash);
     int HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t nPayload, uint160 &hash);
-    int FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee, size_t *nTxBytes, bool fund_from_rct, size_t nRingSize);
+    int FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee, size_t *nTxBytes, bool fund_from_rct, size_t nRingSize, CCoinControl *coin_control);
 
     std::vector<uint8_t> GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload);
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);

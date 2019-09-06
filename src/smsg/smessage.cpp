@@ -3894,7 +3894,7 @@ int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread, bool 
 
 int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     SecureMessage &smsg, std::string &sError, bool fPaid,
-    size_t nRetention, bool fTestFee, CAmount *nFee, size_t *nTxBytes, bool fFromFile, bool submit_msg, bool add_to_outbox, bool fund_from_rct, size_t nRingSize)
+    size_t nRetention, bool fTestFee, CAmount *nFee, size_t *nTxBytes, bool fFromFile, bool submit_msg, bool add_to_outbox, bool fund_from_rct, size_t nRingSize, CCoinControl *coin_control)
 {
     /* Encrypt secure message, and place it on the network
         Make a copy of the message to sender's first address and place in send queue db
@@ -3969,7 +3969,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         memcpy(smsg.hash, msg_hash.begin(), 4);
     }
     if (fPaid) {
-        if (0 != FundMsg(smsg, sError, fTestFee, nFee, nTxBytes, fund_from_rct, nRingSize)) {
+        if (0 != FundMsg(smsg, sError, fTestFee, nFee, nTxBytes, fund_from_rct, nRingSize, coin_control)) {
             return errorN(SMSG_FUND_FAILED, "%s: SecureMsgFund failed %s.", __func__, sError);
         }
 
@@ -4136,10 +4136,12 @@ int CSMSG::HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t 
     return SMSG_NO_ERROR;
 };
 
-int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee, size_t *nTxBytes, bool fund_from_rct, size_t nRingSize)
+int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmount *nFee, size_t *nTxBytes, bool fund_from_rct, size_t nRingSize, CCoinControl *coin_control)
 {
     // smsg.pPayload must have smsg.nPayload + 32 bytes allocated
 #ifdef ENABLE_WALLET
+    assert(coin_control);
+
     if (!pactive_wallet) {
         return SMSG_WALLET_UNSET;
     }
@@ -4162,61 +4164,39 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
     }
 
     size_t nMsgBytes = SMSG_HDR_LEN + smsg.nPayload;
-
-    const Consensus::Params &consensusParams = Params().GetConsensus();
-    CCoinControl coinControl;
-    coinControl.m_feerate = CFeeRate(consensusParams.smsg_fee_funding_tx_per_k);
-    coinControl.fOverrideFeeRate = true;
-    {
-        LOCK(cs_main);
-        coinControl.m_extrafee = ((GetSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
-    }
-
-    assert(coinControl.m_extrafee <= std::numeric_limits<uint32_t>::max());
-    uint32_t msgFee = coinControl.m_extrafee;
-
-    std::vector<uint8_t> vData;
-    vData.resize(25); // 4 byte fee, max 42.94967295
-    vData[0] = DO_FUND_MSG;
-    memcpy(&vData[1], msgId.begin(), 20);
-    memcpy(&vData[21], &msgFee, 4);
-
-    int nChangePosInOut;
     CAmount nFeeRet;
-
     OutputTypes fund_from = fund_from_rct ? OUTPUT_RINGCT : OUTPUT_STANDARD;
     {
         auto locked_chain = pactive_wallet->chain().lock();
         LOCK(pactive_wallet->cs_wallet);
+
+        const Consensus::Params &consensusParams = Params().GetConsensus();
+        coin_control->m_feerate = CFeeRate(consensusParams.smsg_fee_funding_tx_per_k);
+        coin_control->fOverrideFeeRate = true;
+        coin_control->m_extrafee = ((GetSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
+        assert(coin_control->m_extrafee <= std::numeric_limits<uint32_t>::max());
+        uint32_t msgFee = coin_control->m_extrafee;
+
+        std::vector<CTempRecipient> vec_send;
+        CTransactionRecord rtx;
+        CTempRecipient tr;
+        tr.nType = OUTPUT_DATA;
+        tr.vData.resize(25); // 4 byte fee, max 42.94967295
+        tr.vData[0] = DO_FUND_MSG;
+        memcpy(&tr.vData[1], msgId.begin(), 20);
+        memcpy(&tr.vData[21], &msgFee, 4);
+        vec_send.push_back(tr);
+
+        CHDWallet *const pw = GetParticlWallet(pactive_wallet.get());
         CTransactionRef tx_new;
         CWalletTx wtx(pactive_wallet.get(), tx_new);
 
         if (fund_from == OUTPUT_STANDARD) {
-            txFund.nVersion = PARTICL_TXN_VERSION;
-            OUTPUT_PTR<CTxOutData> out0 = MAKE_OUTPUT<CTxOutData>();
-            out0->vData = vData;
-            txFund.vpout.push_back(out0);
-            const std::set<int> setSubtractFeeFromOutputs;
-            if (!pactive_wallet->FundTransaction(txFund, nFeeRet, nChangePosInOut, sError, false, setSubtractFeeFromOutputs, coinControl)) {
-                return errorN(SMSG_GENERAL_ERROR, "%s: FundTransaction failed.\n", __func__);
-            }
-            if (!fTestFee && !pactive_wallet->SignTransaction(txFund)) {
-                return errorN(SMSG_GENERAL_ERROR, sError, __func__, "SignTransaction failed.");
-            }
-            wtx = CWalletTx(pactive_wallet.get(), MakeTransactionRef(txFund));
-
-            if (nFee) {
-                *nFee = pactive_wallet->GetDebit(*wtx.tx, ISMINE_ALL) - pactive_wallet->GetCredit(*wtx.tx, ISMINE_ALL);
+            if (0 != pw->AddStandardInputs(*locked_chain, wtx, rtx, vec_send, !fTestFee, nFeeRet, coin_control, sError)) {
+                return SMSG_FUND_FAILED;
             }
         } else
         if (fund_from == OUTPUT_RINGCT) {
-            CHDWallet *const pw = GetParticlWallet(pactive_wallet.get());
-            std::vector<CTempRecipient> vec_send;
-            CTransactionRecord rtx;
-            CTempRecipient tr;
-            tr.nType = OUTPUT_DATA;
-            tr.vData = vData;
-            vec_send.push_back(tr);
             const Consensus::Params &consensusParams = Params().GetConsensus();
             if (consensusParams.extra_dataoutput_time > GetAdjustedTime()) {
                 tr.nType = OUTPUT_STANDARD;
@@ -4227,17 +4207,16 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
                 vec_send.push_back(tr);
             }
             size_t nInputsPerSig = 1;
-            CAmount nFeeRet;
-            if (0 != pw->AddAnonInputs(*locked_chain, wtx, rtx, vec_send, !fTestFee, nRingSize, nInputsPerSig, nFeeRet, &coinControl, sError)) {
+            if (0 != pw->AddAnonInputs(*locked_chain, wtx, rtx, vec_send, !fTestFee, nRingSize, nInputsPerSig, nFeeRet, coin_control, sError)) {
                 return SMSG_FUND_FAILED;
-            }
-            if (nFee) {
-                *nFee = nFeeRet;
             }
         } else {
             return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Unknown fund from coin type.");
         }
 
+        if (nFee) {
+            *nFee = nFeeRet;
+        }
         if (nTxBytes) {
             *nTxBytes = GetVirtualTransactionSize(*(wtx.tx));
         }

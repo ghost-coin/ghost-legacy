@@ -3937,8 +3937,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
 
                 // If we have change output already, just increase it
                 if (nFeeRet > nFeeNeeded && nChangePosInOut != -1
-                    && nSubtractFeeFromAmount == 0)
-                {
+                    && nSubtractFeeFromAmount == 0) {
                     auto &r = vecSend[nChangePosInOut];
                     CAmount extraFeePaid = nFeeRet - nFeeNeeded;
                     CTxOutBaseRef c = txNew.vpout[r.n];
@@ -3946,7 +3945,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                     r.nAmount = c->GetValue();
 
                     nFeeRet -= extraFeePaid;
-                };
+                }
                 break; // Done, enough fee included.
             } else
             if (!pick_new_inputs) {
@@ -3995,7 +3994,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
             if (0 != PutVarInt(vData, nFeeRet)) {
                 return werrorN(1, "%s: PutVarInt %d failed\n", __func__, nFeeRet);
             }
-        };
+        }
 
         if (sign) {
             int nIn = 0;
@@ -10890,23 +10889,24 @@ bool CHDWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const C
     std::set<CInputCoin>& setCoinsRet, CAmount& nValueRet, const CCoinControl& coin_control, CoinSelectionParams& coin_selection_params, bool& bnb_used) const
 {
     std::vector<COutput> vCoins(vAvailableCoins);
+    bnb_used = false;  // Can return before reaching SelectCoinsMinConf
 
     // coin control -> return all selected outputs (we want all selected to go into the transaction for sure)
-    if (coin_control.HasSelected() && !coin_control.fAllowOtherInputs)
-    {
-        for (auto &out : vCoins)
-        {
+    if (coin_control.HasSelected() && !coin_control.fAllowOtherInputs) {
+        for (auto &out : vCoins) {
             COutPoint op(out.tx->GetHash(), out.i);
-            if (!coin_control.IsSelected(op))
+            if (!coin_control.IsSelected(op)) {
                 continue;
-            if (!out.fSpendable)
-                 continue;
+            }
+            if (!out.fSpendable) {
+                continue;
+            }
             CInputCoin ic(out.tx->tx, out.i);
             nValueRet += ic.GetValue();
             setCoinsRet.insert(ic);
-        };
+        }
         return (nValueRet >= nTargetValue);
-    };
+    }
 
     // calculate value from preset inputs and store them
     std::set<CInputCoin> setPresetCoins;
@@ -10915,42 +10915,41 @@ bool CHDWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const C
     std::vector<COutPoint> vPresetInputs;
     coin_control.ListSelected(vPresetInputs);
 
-    for (auto &outpoint : vPresetInputs)
-    {
+    for (auto &outpoint : vPresetInputs) {
         MapWallet_t::const_iterator it = mapTempWallet.find(outpoint.hash);
-        if (it != mapTempWallet.end())
-        {
+        if (it != mapTempWallet.end()) {
             const CWalletTx *pcoin = &it->second;
             // Clearly invalid input, fail
-            if (pcoin->tx->vpout.size() <= outpoint.n)
+            if (pcoin->tx->vpout.size() <= outpoint.n) {
                 return false;
+            }
             CInputCoin ic(pcoin->tx, outpoint.n);
             nValueFromPresetInputs += ic.GetValue();
             setPresetCoins.insert(ic);
-        } else
-        {
+        } else {
             it = mapWallet.find(outpoint.hash);
-            if (it != mapWallet.end())
-            {
+            if (it != mapWallet.end()) {
                 const CWalletTx *pcoin = &it->second;
                 // Clearly invalid input, fail
-                if (pcoin->tx->vpout.size() <= outpoint.n)
+                if (pcoin->tx->vpout.size() <= outpoint.n) {
                     return false;
+                }
                 CInputCoin ic(pcoin->tx, outpoint.n);
                 nValueFromPresetInputs += ic.GetValue();
                 setPresetCoins.insert(ic);
-            } else
+            } else {
                 return false; // TODO: Allow non-wallet inputs
-        };
-    };
+            }
+        }
+    }
 
     // remove preset inputs from vCoins
-    for (std::vector<COutput>::iterator it = vCoins.begin(); it != vCoins.end() && coin_control.HasSelected();)
-    {
-        if (setPresetCoins.count(CInputCoin(it->tx->tx, it->i)))
+    for (std::vector<COutput>::iterator it = vCoins.begin(); it != vCoins.end() && coin_control.HasSelected();) {
+        if (setPresetCoins.count(CInputCoin(it->tx->tx, it->i))) {
             it = vCoins.erase(it);
-        else
+        } else {
             ++it;
+        }
     }
 
     // form groups from remaining coins; note that preset coins will not
