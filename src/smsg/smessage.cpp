@@ -4167,6 +4167,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
     OutputTypes fund_from = fund_from_rct ? OUTPUT_RINGCT : OUTPUT_STANDARD;
     {
         auto locked_chain = pactive_wallet->chain().lock();
+        LockAnnotation lock(::cs_main);
         LOCK(pactive_wallet->cs_wallet);
 
         const Consensus::Params &consensusParams = Params().GetConsensus();
@@ -4206,7 +4207,6 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
                 vec_send.push_back(tr);
             }
             size_t nInputsPerSig = 1;
-            LockAnnotation lock(::cs_main);
             if (0 != pw->AddAnonInputs(wtx, rtx, vec_send, !fTestFee, nRingSize, nInputsPerSig, nFeeRet, coin_control, sError)) {
                 return SMSG_FUND_FAILED;
             }
