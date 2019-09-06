@@ -23,6 +23,9 @@
 
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
+#include <wallet/coincontrol.h>
+extern void EnsureWalletIsUnlocked(CHDWallet *pwallet);
+extern void ReadCoinControlOptions(const UniValue &obj, CHDWallet *pwallet, CCoinControl &coin_control);
 #endif
 
 #include <univalue.h>
@@ -759,7 +762,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
 
 static UniValue smsgsend(const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() < 3 || request.params.size() > 10)
+    if (request.fHelp || request.params.size() < 3 || request.params.size() > 8)
         throw std::runtime_error(
             RPCHelpMan{"smsgsend",
                 "\nSend an encrypted message from \"address_from\" to \"address_to\".\n",
@@ -781,6 +784,31 @@ static UniValue smsgsend(const JSONRPCRequest &request)
                             {"rct_ring_size", RPCArg::Type::NUM, /* default */ strprintf("%d", DEFAULT_RING_SIZE), "Ring size to use with fund_from_rct."},
                         },
                         "options"},
+                    {"coin_control", RPCArg::Type::OBJ, /* default */ "", "",
+                        {
+                            {"changeaddress", RPCArg::Type::STR, /* default */ "", "The particl address to receive the change"},
+                            {"inputs", RPCArg::Type::ARR, /* default */ "", "A json array of json objects",
+                                {
+                                    {"", RPCArg::Type::OBJ, /* default */ "", "",
+                                        {
+                                            {"tx", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "txn id"},
+                                            {"n", RPCArg::Type::NUM, RPCArg::Optional::NO, "txn vout"},
+                                        },
+                                    },
+                                },
+                            },
+                            {"replaceable", RPCArg::Type::BOOL, /* default */ "", "Marks this transaction as BIP125 replaceable.\n"
+                            "                              Allows this transaction to be replaced by a transaction with higher fees"},
+                            {"conf_target", RPCArg::Type::NUM, /* default */ "", "Confirmation target (in blocks)"},
+                            {"estimate_mode", RPCArg::Type::STR, /* default */ "UNSET", "The fee estimate mode, must be one of:\n"
+                            "         \"UNSET\"\n"
+                            "         \"ECONOMICAL\"\n"
+                            "         \"CONSERVATIVE\""},
+                            {"avoid_reuse", RPCArg::Type::BOOL, /* default */ "true", "(only available if avoid_reuse wallet flag is set) Avoid spending from dirty addresses; addresses are considered\n"
+                            "                             dirty if they have previously been used in a transaction."},
+                            {"feeRate", RPCArg::Type::AMOUNT, /* default */ "not set: makes wallet determine the fee", "Set a specific fee rate in " + CURRENCY_UNIT + "/kB"},
+                        },
+                    },
                 },
                 RPCResult{
             "{\n"
@@ -853,6 +881,7 @@ static UniValue smsgsend(const JSONRPCRequest &request)
             rct_ring_size = options["rct_ring_size"].get_int();
         }
     }
+
     if (fFromFile && fDecodeHex) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Can't use decodehex with fromfile.");
     }
@@ -889,8 +918,28 @@ static UniValue smsgsend(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
     std::string sError;
     smsg::SecureMessage smsgOut;
+
+#ifdef ENABLE_WALLET
+    CCoinControl cctl;
+    if (fPaid) {
+        if (!smsgModule.pactive_wallet) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Active wallet must be set to send a paid smsg.");
+        }
+        CHDWallet *const pw = GetParticlWallet(smsgModule.pactive_wallet.get());
+        if (!fTestFee) {
+            EnsureWalletIsUnlocked(pw);
+        }
+        UniValue uv_cctl = request.params[7];
+        if (uv_cctl.isObject()) {
+            ReadCoinControlOptions(uv_cctl, pw, cctl);
+        }
+    }
     if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, fPaid, nRetention, fTestFee, &nFee, &nTxBytes,
-                        fFromFile, submit_msg, save_msg, fund_from_rct, rct_ring_size) != 0) {
+                        fFromFile, submit_msg, save_msg, fund_from_rct, rct_ring_size, &cctl) != 0) {
+#else
+    if (smsgModule.Send(kiFrom, kiTo, msg, smsgOut, sError, fPaid, nRetention, fTestFee, &nFee, &nTxBytes,
+                        fFromFile, submit_msg, save_msg) != 0) {
+#endif
         result.pushKV("result", "Send failed.");
         result.pushKV("error", sError);
     } else {
@@ -2190,7 +2239,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgimportprivkey",      &smsgimportprivkey,      {"privkey","label"} },
     { "smsg",               "smsgdumpprivkey",        &smsgdumpprivkey,        {"address"} },
     { "smsg",               "smsggetpubkey",          &smsggetpubkey,          {"address"} },
-    { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","options"} },
+    { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","options","coincontrol"} },
     { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message"} },
     { "smsg",               "smsginbox",              &smsginbox,              {"mode","filter","options"} },
     { "smsg",               "smsgoutbox",             &smsgoutbox,             {"mode","filter","options"} },
