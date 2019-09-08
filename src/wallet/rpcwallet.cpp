@@ -4150,7 +4150,10 @@ UniValue signrawtransactionwithwallet(const JSONRPCRequest& request)
     }
     pwallet->chain().findCoins(coins);
 
-    return SignTransaction(mtx, request.params[1], pwallet, coins, false, request.params[2]);
+    // Parse the prevtxs array
+    ParsePrevouts(request.params[1], nullptr, coins, mtx.IsCoinStake());
+
+    return SignTransaction(mtx, pwallet, coins, request.params[2]);
 }
 
 static UniValue bumpfee(const JSONRPCRequest& request)
