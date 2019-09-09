@@ -387,6 +387,8 @@ void BitcoinGUI::createActions()
             for (const std::pair<const std::string, bool>& i : m_wallet_controller->listWalletDir()) {
                 const std::string& path = i.first;
                 QString name = path.empty() ? QString("["+tr("default wallet")+"]") : QString::fromStdString(path);
+                // Menu items remove single &. Single & are shown when && is in the string, but only the first occurrence. So replace only the first & with &&
+                name.replace(name.indexOf(QChar('&')), 1, QString("&&"));
                 QAction* action = m_open_wallet_menu->addAction(name);
 
                 if (i.second) {
@@ -483,24 +485,16 @@ void BitcoinGUI::createMenuBar()
     connect(qApp, &QApplication::focusWindowChanged, [zoom_action] (QWindow* window) {
         zoom_action->setEnabled(window != nullptr);
     });
-#else
-    QAction* restore_action = window_menu->addAction(tr("Restore"));
-    connect(restore_action, &QAction::triggered, [] {
-        qApp->focusWindow()->showNormal();
-    });
-
-    connect(qApp, &QApplication::focusWindowChanged, [restore_action] (QWindow* window) {
-        restore_action->setEnabled(window != nullptr);
-    });
 #endif
 
     if (walletFrame) {
+#ifdef Q_OS_MAC
         window_menu->addSeparator();
         QAction* main_window_action = window_menu->addAction(tr("Main Window"));
         connect(main_window_action, &QAction::triggered, [this] {
             GUIUtil::bringToFront(this);
         });
-
+#endif
         window_menu->addSeparator();
         window_menu->addAction(usedSendingAddressesAction);
         window_menu->addAction(usedReceivingAddressesAction);
