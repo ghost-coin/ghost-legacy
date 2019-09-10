@@ -110,16 +110,21 @@ class USBDeviceTest(ParticlTestFramework):
         except JSONRPCException as e:
             pass
 
-        txnid0 = nodes[0].sendtoaddress(addr1_0, 10)
+        extaddr1_0 = nodes[1].getnewextaddress()
+
+        txnid0 = nodes[0].sendtoaddress(addr1_0, 6)
+        txnid1 = nodes[0].sendtoaddress(extaddr1_0, 6)
 
         self.stakeBlocks(1)
-        assert(txnid0 in nodes[0].getblock(nodes[0].getblockhash(nodes[0].getblockcount()))['tx'])
+        block_txns = nodes[0].getblock(nodes[0].getblockhash(nodes[0].getblockcount()))['tx']
+        assert(txnid0 in block_txns)
+        assert(txnid1 in block_txns)
 
         ro = nodes[1].getwalletinfo()
-        assert(isclose(ro['balance'], 10.0))
+        assert(isclose(ro['balance'], 12.0))
 
         addr0_0 = nodes[0].getnewaddress()
-        hexRaw = nodes[1].createrawtransaction([], {addr0_0:1})
+        hexRaw = nodes[1].createrawtransaction([], {addr0_0:10})
         hexFunded = nodes[1].fundrawtransaction(hexRaw)['hex']
         txDecoded = nodes[1].decoderawtransaction(hexFunded)
 
@@ -134,8 +139,12 @@ class USBDeviceTest(ParticlTestFramework):
         ro = nodes[1].devicesignrawtransaction(hexFunded)
         assert(ro['errors'][0]['error'] == 'Input not found or already spent')
 
-        prevtxns = [{'txid':txDecoded['vin'][0]['txid'],'vout':txDecoded['vin'][0]['vout'],'scriptPubKey':va_addr1_0['scriptPubKey'],'amount':10},]
-        ro = nodes[1].devicesignrawtransaction(hexFunded, prevtxns, ['0/0',])
+        prevtxns = []
+        for vin in txDecoded['vin']:
+            rtx = nodes[1].getrawtransaction(vin['txid'], True)
+            prev_out = rtx['vout'][vin['vout']]
+            prevtxns.append({'txid': vin['txid'], 'vout': vin['vout'], 'scriptPubKey': prev_out['scriptPubKey']['hex'], 'amount': prev_out['value']})
+        ro = nodes[1].devicesignrawtransaction(hexFunded, prevtxns, ['0/0', '2/0'])
         assert(ro['complete'] == True)
 
         ro = nodes[1].listunspent()
@@ -146,8 +155,7 @@ class USBDeviceTest(ParticlTestFramework):
 
         self.sync_all()
 
-        ro = nodes[0].filtertransactions()
-        assert(ro[0]['txid'] == txnid2)
+        assert(nodes[0].filtertransactions()[0]['txid'] == txnid2)
 
         hwsxaddr = nodes[1].devicegetnewstealthaddress()
         assert(hwsxaddr == 'tps1qqpdwu7gqjqz9s9wfek843akvkzvw0xq3tkzs93sj4ceq60cp54mvzgpqf4tp6d7h0nza2xe362am697dax24hcr33yxqwvq58l5cf6j6q5hkqqqgykgrc')
@@ -172,8 +180,8 @@ class USBDeviceTest(ParticlTestFramework):
         self.stakeBlocks(1)
 
         ro = nodes[1].listtransactions()
-        assert(len(ro) == 4)
-        assert('test msg' in self.dumpj(ro[3]))
+        assert(len(ro) == 5)
+        assert('test msg' in self.dumpj(ro[4]))
 
         ro = nodes[1].listunspent()
         inputs = []
@@ -212,8 +220,6 @@ class USBDeviceTest(ParticlTestFramework):
         addrtest2 = nodes[2].getnewstealthaddress('lbl2 4bits', '4', '0xaaaa', True, True)
         assert(addrtest2 == hwsxaddr2)
 
-
-        extaddr1_0 = nodes[1].getnewextaddress()
         extaddr2_0 = nodes[2].getnewextaddress()
         assert(extaddr1_0 == extaddr2_0)
 
