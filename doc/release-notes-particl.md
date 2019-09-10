@@ -4,6 +4,7 @@
 
 - rpc: smsgsend accepts a coincontrol parameter.
 - Fixed infinite loop bug in AddStandardInputs when sum of specified inputs is too low.
+- Fixed bug preventing outputs received with extkey addresses from hardware linked wallets being spent.
 
 
 0.18.1.4
