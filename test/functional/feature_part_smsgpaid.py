@@ -330,7 +330,7 @@ class SmsgPaidTest(ParticlTestFramework):
             assert('hex' not in msg)
 
         self.log.info('Test disablewallet')
-        assert('SMSG' in nodes[2].getnetworkinfo()['localservices_str'])
+        assert('SMSG' in self.dumpj(nodes[2].getnetworkinfo()['localservicesnames']))
         assert_raises_rpc_error(-32601, 'Method not found', nodes[2].getwalletinfo)
         for i in range(20):
             if nodes[0].smsgbuckets('total')['total']['messages'] != nodes[2].smsgbuckets('total')['total']['messages']:

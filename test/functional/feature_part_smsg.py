@@ -36,7 +36,7 @@ class SmsgTest(ParticlTestFramework):
         address1 = nodes[1].getnewaddress()
         assert(address1 == 'pX9N6S76ZtA5BfsiJmqBbjaEgLMHpt58it')
 
-        assert('SMSG' in nodes[1].getnetworkinfo()['localservices_str'])
+        assert('SMSG' in self.dumpj(nodes[1].getnetworkinfo()['localservicesnames']))
 
         ro = nodes[0].smsglocalkeys()
         assert(len(ro['wallet_keys']) == 1)
@@ -135,7 +135,7 @@ class SmsgTest(ParticlTestFramework):
         assert(len(nodes[1].smsgoutbox()['messages']) == 4)  # No change
 
         self.log.info('Test nosmsg')
-        assert('SMSG' not in nodes[2].getnetworkinfo()['localservices_str'])
+        assert('SMSG' not in self.dumpj(nodes[2].getnetworkinfo()['localservicesnames']))
 
         self.log.info('Test smsgdebug')
         nodes[0].smsgdebug('clearbanned')
