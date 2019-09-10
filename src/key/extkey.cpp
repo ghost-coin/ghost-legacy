@@ -1083,6 +1083,20 @@ inline void AppendPathLink(std::string &s, uint32_t n, char cH)
     }
 };
 
+int ConvertPath(const std::vector<uint8_t> &path_in, std::vector<uint32_t> &path_out)
+{
+    path_out.clear();
+    if (path_in.size() % 4 != 0) {
+        return 1;
+    }
+    for (size_t o = 0; o < path_in.size(); o+=4) {
+        uint32_t n;
+        memcpy(&n, &path_in[o], 4);
+        path_out.push_back(n);
+    }
+    return 0;
+};
+
 int PathToString(const std::vector<uint8_t> &vPath, std::string &sPath, char cH, size_t nStart)
 {
     sPath = "";

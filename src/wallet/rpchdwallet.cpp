@@ -5553,6 +5553,40 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                     continue;
                 }
 
+                if ((sek->nFlags & EAF_HARDWARE_DEVICE)) {
+                    std::vector<uint8_t> vPath;
+                    auto mi = sek->mapValue.find(EKVT_PATH);
+                    if (mi != sek->mapValue.end()) {
+                        vPath = mi->second;
+                    }
+                    if (vPath.size() > 8) {
+                        // Trim the 44h/44h appended to hardware accounts
+                        std::vector<uint32_t> vPathTest;
+                        if (0 == ConvertPath(vPath, vPathTest) &&
+                            vPathTest.size() > 1 &&
+                            vPathTest[0] == WithHardenedBit(44)) {
+
+                            UniValue tmp(UniValue::VOBJ);
+                            CKeyID idChain = sek->GetID();
+                            CBitcoinAddress addr;
+                            addr.Set(idChain, CChainParams::EXT_KEY_HASH);
+                            tmp.pushKV("type", "HW device account chain path too long.");
+                            tmp.pushKV("chain", addr.ToString());
+                            tmp.pushKV("attempt_fix", attempt_repair);
+                            if (attempt_repair) {
+                                vPath.erase(vPath.begin(), vPath.begin() + 8);
+                                sek->mapValue[EKVT_PATH] = vPath;
+
+                                CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+                                if (!wdb.WriteExtKey(idChain, *sek)) {
+                                    tmp.pushKV("error", "WriteExtKey failed");
+                                }
+                            }
+                            warnings.push_back(tmp);
+                        }
+                    }
+                }
+
                 UniValue rva(UniValue::VARR);
                 LogPrintf("Checking chain %s\n", sek->GetIDString58());
                 uint32_t nGenerated = sek->GetCounter(false);

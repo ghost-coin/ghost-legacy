@@ -888,6 +888,8 @@ std::vector<uint8_t> &PushUInt32(std::vector<uint8_t> &v, const uint32_t i);
 
 int ExtractExtKeyPath(const std::string &sPath, std::vector<uint32_t> &vPath);
 
+int ConvertPath(const std::vector<uint8_t> &path_in, std::vector<uint32_t> &path_out);
+
 int PathToString(const std::vector<uint8_t> &vPath, std::string &sPath, char cH='\'', size_t nStart = 0);
 int PathToString(const std::vector<uint32_t> &vPath, std::string &sPath, char cH='\'', size_t nStart = 0);
 

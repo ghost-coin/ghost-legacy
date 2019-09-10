@@ -233,7 +233,6 @@ class StealthTest(ParticlTestFramework):
         assert(wi_info['txcount'] == w1_info['txcount'] - 1)
 
         wi_ls = w_import.liststealthaddresses()
-        w1_ls = w_import.liststealthaddresses()
         w1_ls_flat = self.dumpj(w1_ls)
         for sx in wi_ls[0]['Stealth Addresses']:
             assert(sx['Address'] in w1_ls_flat)

@@ -4020,8 +4020,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
             }
 
 #if ENABLE_USBDEVICE
-            if (coinControl->fNeedHardwareKey)
-            {
+            if (coinControl->fNeedHardwareKey) {
                 CCoinsView viewDummy;
                 CCoinsViewCache view(&viewDummy);
                 for (const auto &coin : setCoins) {
@@ -4085,7 +4084,6 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                 }
 
                 pDevice->Close();
-                //return errorN(1, sError, __func__, "Need key from hardware: TODO"); // []
 
                 uiInterface.NotifyWaitingForDevice(true);
             }
@@ -7959,6 +7957,15 @@ int CHDWallet::NewExtKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount,
     uint32_t nNewChildNo;
 
     if (sekAccount->nFlags & EAF_HARDWARE_DEVICE) {
+        if (vAccountPath.size() > 8) {
+            // Trim the 44h/44h appended to hardware accounts
+            std::vector<uint32_t> vAccountPathTest;
+            if (0 == ConvertPath(vAccountPath, vAccountPathTest) &&
+                vAccountPathTest.size() > 1 &&
+                vAccountPathTest[0] == WithHardenedBit(44)) {
+                vAccountPath.erase(vAccountPath.begin(), vAccountPath.begin() + 8);
+            }
+        }
         CExtPubKey epNewKey;
         if (childNo) {
             if ((0 != sekAccount->DeriveKey(epNewKey, *childNo, nNewChildNo, fHardened)) != 0) {
