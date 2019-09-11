@@ -161,6 +161,12 @@ class LockImpl : public Chain::Lock, public UniqueLock<CCriticalSection>
         return CheckFinalTx(tx);
     }
 
+    int64_t getSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height) override
+    {
+        LockAssertion lock(::cs_main);
+        return GetSmsgFeeRate(pindex, reduce_height);
+    }
+
     using UniqueLock::UniqueLock;
 };
 

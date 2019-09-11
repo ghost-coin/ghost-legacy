@@ -25,6 +25,8 @@ enum class RBFTransactionState;
 struct CBlockLocator;
 struct FeeCalculation;
 
+class CBlockIndex;
+
 namespace interfaces {
 
 class Handler;
@@ -125,6 +127,8 @@ public:
 
         //! Check if transaction will be final given chain height current time.
         virtual bool checkFinalTx(const CTransaction& tx) = 0;
+
+        virtual int64_t getSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height=false) = 0;
     };
 
     //! Return Lock interface. Chain is locked when this is called, and

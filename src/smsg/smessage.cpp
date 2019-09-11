@@ -4173,7 +4173,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         const Consensus::Params &consensusParams = Params().GetConsensus();
         coin_control->m_feerate = CFeeRate(consensusParams.smsg_fee_funding_tx_per_k);
         coin_control->fOverrideFeeRate = true;
-        coin_control->m_extrafee = ((GetSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
+        coin_control->m_extrafee = ((locked_chain->getSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
         assert(coin_control->m_extrafee <= std::numeric_limits<uint32_t>::max());
         uint32_t msgFee = coin_control->m_extrafee;
 
