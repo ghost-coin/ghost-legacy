@@ -184,6 +184,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "tallyvotes", 1, "height_start" },
     { "tallyvotes", 2, "height_end" },
 
+
     { "sendparttoblind", 1, "amount" },
     { "sendparttoblind", 4, "subtractfeefromamount" },
     { "sendparttoanon", 1, "amount" },
@@ -231,6 +232,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "getnewstealthaddress", 3, "bech32" },
     { "getnewstealthaddress", 4, "makeV2" },
     { "importstealthaddress", 5, "bech32" },
+    { "liststealthaddresses", 1, "options" },
 
     { "listunspentanon", 0, "minconf" },
     { "listunspentanon", 1, "maxconf" },

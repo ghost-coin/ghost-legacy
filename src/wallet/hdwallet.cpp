@@ -496,7 +496,7 @@ static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &deriv
 
 extern int ListLooseExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &nKeys);
 extern int ListAccountExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &nKeys);
-extern int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo);
+extern int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo, bool show_pubkeys=false, bool bech32=false);
 bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
 {
     WalletLogPrintf("Dumping wallet to JSON.\n");
@@ -9155,6 +9155,13 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
         uint32_t sxId;
         if (!UpdateStealthAddressIndex(ckidMatch, sxi, sxId)) {
             return werror("%s: UpdateStealthAddressIndex failed.\n", __func__);
+        }
+
+        if (!HaveKey(it->spend_secret_id)) {
+            const auto script = GetScriptForDestination(address);
+            AddWatchOnly(script, 0 /* nCreateTime */);
+            nFoundStealth++;
+            return true;
         }
 
         if (IsLocked()) {
