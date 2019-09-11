@@ -144,6 +144,13 @@ int SecretToPublicKey(const CKey &secret, ec_point &out)
     return 0;
 };
 
+int SetPublicKey(const CPubKey &pk, ec_point &out)
+{
+    out.resize(EC_COMPRESSED_SIZE);
+    memcpy(&out[0], pk.begin(), EC_COMPRESSED_SIZE);
+    return 0;
+};
+
 int StealthShared(const CKey &secret, const ec_point &pubkey, CKey &sharedSOut)
 {
     if (pubkey.size() != EC_COMPRESSED_SIZE) {

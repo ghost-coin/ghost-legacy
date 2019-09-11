@@ -1843,7 +1843,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
                 HelpRequiringPassphrase(pwallet) + "\n",
                 {
                     {"scan_secret", RPCArg::Type::STR, RPCArg::Optional::NO, "The hex or WIF encoded scan secret."},
-                    {"spend_secret", RPCArg::Type::STR, RPCArg::Optional::NO, "The hex or WIF encoded spend secret."},
+                    {"spend_secret", RPCArg::Type::STR, RPCArg::Optional::NO, "The hex or WIF encoded spend secret or hex public key."},
                     {"label", RPCArg::Type::STR, /* default */ "", "If specified the key is added to the address book."},
                     {"num_prefix_bits", RPCArg::Type::NUM, /* default */ "0", ""},
                     {"prefix_num", RPCArg::Type::NUM, /* default */ "", "If prefix_num is not specified the prefix will be selected deterministically.\n"
@@ -1870,9 +1870,11 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     EnsureWalletIsUnlocked(pwallet);
 
     std::string sScanSecret  = request.params[0].get_str();
-    std::string sSpendSecret = request.params[1].get_str();
-    std::string sLabel;
+    std::string sLabel, sSpendSecret;
 
+    if (request.params.size() > 1) {
+        sSpendSecret = request.params[1].get_str();
+    }
     if (request.params.size() > 2) {
         sLabel = request.params[2].get_str();
     }
@@ -1903,6 +1905,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     std::vector<uint8_t> vchScanSecret, vchSpendSecret;
     CBitcoinSecret wifScanSecret, wifSpendSecret;
     CKey skScan, skSpend;
+    CPubKey pkSpend;
     if (IsHex(sScanSecret)) {
         vchScanSecret = ParseHex(sScanSecret);
     } else
@@ -1931,10 +1934,19 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
         }
     }
     if (vchSpendSecret.size() > 0) {
-        if (vchSpendSecret.size() != 32) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, _("Spend secret is not 32 bytes."));
+        if (vchSpendSecret.size() == 32) {
+            skSpend.Set(&vchSpendSecret[0], true);
+        } else
+        if (vchSpendSecret.size() == 33) {
+            // watchonly
+            pkSpend = CPubKey(vchSpendSecret.begin(), vchSpendSecret.end());
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Spend secret is not 32 or 33 bytes.");
         }
-        skSpend.Set(&vchSpendSecret[0], true);
+    }
+
+    if (!pkSpend.IsValid() && !skSpend.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Must provide the spend key or pubkey.");
     }
 
     if (skSpend == skScan) {
@@ -1944,7 +1956,12 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     CStealthAddress sxAddr;
     sxAddr.label = sLabel;
     sxAddr.scan_secret = skScan;
-    sxAddr.spend_secret_id = skSpend.GetPubKey().GetID();
+    if (skSpend.IsValid()) {
+        pkSpend = skSpend.GetPubKey();
+        sxAddr.spend_secret_id = pkSpend.GetID();
+    } else {
+        sxAddr.spend_secret_id = pkSpend.GetID();
+    }
 
     sxAddr.prefix.number_bits = num_prefix_bits;
     if (sxAddr.prefix.number_bits > 0) {
@@ -1963,8 +1980,10 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     if (0 != SecretToPublicKey(sxAddr.scan_secret, sxAddr.scan_pubkey)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, _("Could not get scan public key."));
     }
-    if (0 != SecretToPublicKey(skSpend, sxAddr.spend_pubkey)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, _("Could not get spend public key."));
+    if (skSpend.IsValid() && 0 != SecretToPublicKey(skSpend, sxAddr.spend_pubkey)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Could not get spend public key.");
+    } else {
+        SetPublicKey(pkSpend, sxAddr.spend_pubkey);
     }
 
     UniValue result(UniValue::VOBJ);
@@ -1977,7 +1996,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
             && sxAddrIt.spend_pubkey == sxAddr.spend_pubkey) {
             CKeyID sid = sxAddrIt.GetSpendKeyID();
 
-            if (!pwallet->HaveKey(sid)) {
+            if (!pwallet->HaveKey(sid) && skSpend.IsValid()) {
                 LOCK(pwallet->cs_wallet);
                 CPubKey pk = skSpend.GetPubKey();
                 if (!pwallet->AddKeyPubKey(skSpend, pk)) {
@@ -1991,14 +2010,14 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
         }
     }
 
-    {
+    if (!fFound) {
         LOCK(pwallet->cs_wallet);
         if (pwallet->HaveStealthAddress(sxAddr)) { // check for extkeys, no update possible
             throw JSONRPCError(RPC_WALLET_ERROR, _("Import failed - stealth address exists."));
         }
-
-        pwallet->SetAddressBook(sxAddr, sLabel, "", fBech32);
     }
+
+    pwallet->SetAddressBook(sxAddr, sLabel, "", fBech32);
 
     if (fFound) {
         result.pushKV("result", "Success, updated " + sxAddr.Encoded(fBech32));
@@ -2008,18 +2027,22 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
         }
         result.pushKV("result", "Success");
         result.pushKV("stealth_address", sxAddr.Encoded(fBech32));
+
+        if (!skSpend.IsValid()) {
+            result.pushKV("watchonly", true);
+        }
     }
 
     return result;
 }
 
-int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
+int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo, bool show_pubkeys=false, bool bech32=false) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     std::set<CStealthAddress>::iterator it;
     for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it) {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("Label", it->label);
-        obj.pushKV("Address", it->Encoded());
+        obj.pushKV("Address", it->ToString(bech32));
 
         if (fShowSecrets) {
             obj.pushKV("Scan Secret", CBitcoinSecret(it->scan_secret).ToString());
@@ -2029,6 +2052,11 @@ int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecre
             if (pwallet->GetKey(sid, skSpend)) {
                 obj.pushKV("Spend Secret", CBitcoinSecret(skSpend).ToString());
             }
+        }
+
+        if (show_pubkeys) {
+            obj.pushKV("scan_public_key", HexStr(it->scan_pubkey));
+            obj.pushKV("spend_public_key", HexStr(it->spend_pubkey));
         }
 
         if (fAddressBookInfo) {
@@ -2073,6 +2101,11 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
                 {
                     {"show_secrets", RPCArg::Type::BOOL, /* default */ "false", "Display secret keys to stealth addresses.\n"
                 "                  Wallet must be unlocked if true."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "JSON with options",
+                        {
+                            {"bech32", RPCArg::Type::BOOL, /* default */ "false", "Display addresses in bech32 format"},
+                        },
+                        "options"},
                 },
                 RPCResult{
             "[\n"
@@ -2084,6 +2117,8 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
             "        \"Address\": \"str\",        (string) Stealth address.\n"
             "        \"Scan Secret\": \"str\",    (string) Scan secret, if show_secrets=1.\n"
             "        \"Spend Secret\": \"str\",   (string) Spend secret, if show_secrets=1.\n"
+            "        \"scan_public_key\": \"str\",    (string) Hex encoded scan public key, if show_secrets=1.\n"
+            "        \"spend_public_key\": \"str\",   (string) Hex encoded spend public key, if show_secrets=1.\n"
             "      }\n"
             "    ]\n"
             "  }...\n"
@@ -2098,6 +2133,18 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
             }.ToString());
 
     bool fShowSecrets = request.params.size() > 0 ? GetBool(request.params[0]) : false;
+
+    bool show_in_bech32 = false;
+    if (!request.params[1].isNull()) {
+        const UniValue &options = request.params[1].get_obj();
+        RPCTypeCheckObj(options,
+            {
+                {"bech32",               UniValueType(UniValue::VBOOL)},
+            }, true, false);
+        if (options.exists("bech32")) {
+            show_in_bech32 = options["bech32"].get_bool();
+        }
+    }
 
     if (fShowSecrets) {
         EnsureWalletIsUnlocked(pwallet);
@@ -2126,10 +2173,14 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
 
             UniValue objA(UniValue::VOBJ);
             objA.pushKV("Label", aks.sLabel);
-            objA.pushKV("Address", aks.ToStealthAddress());
+
+            CStealthAddress sxAddr;
+            aks.SetSxAddr(sxAddr);
+            objA.pushKV("Address", sxAddr.ToString(show_in_bech32));
 
             if (fShowSecrets) {
                 objA.pushKV("Scan Secret", CBitcoinSecret(aks.skScan).ToString());
+                objA.pushKV("scan_public_key", HexStr(aks.pkScan));
                 std::string sSpend;
                 CStoredExtKey *sekAccount = ea->ChainAccount();
                 if (sekAccount && !sekAccount->fLocked) {
@@ -2143,6 +2194,7 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
                     sSpend = "Account Locked.";
                 }
                 objA.pushKV("Spend Secret", sSpend);
+                objA.pushKV("spend_public_key", HexStr(aks.pkSpend));
             }
 
             arrayKeys.push_back(objA);
@@ -2161,7 +2213,7 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
 
         rAcc.pushKV("Account", "Loose Keys");
 
-        ListLooseStealthAddresses(arrayKeys, pwallet, fShowSecrets, false);
+        ListLooseStealthAddresses(arrayKeys, pwallet, fShowSecrets, false, fShowSecrets, show_in_bech32);
 
         if (arrayKeys.size() > 0) {
             rAcc.pushKV("Stealth Addresses", arrayKeys);
@@ -8265,7 +8317,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "getnewextaddress",                 &getnewextaddress,              {"label","childNo","bech32","hardened"} },
     { "wallet",             "getnewstealthaddress",             &getnewstealthaddress,          {"label","num_prefix_bits","prefix_num","bech32","makeV2"} },
     { "wallet",             "importstealthaddress",             &importstealthaddress,          {"scan_secret","spend_secret","label","num_prefix_bits","prefix_num","bech32"} },
-    { "wallet",             "liststealthaddresses",             &liststealthaddresses,          {"show_secrets"} },
+    { "wallet",             "liststealthaddresses",             &liststealthaddresses,          {"show_secrets","options"} },
 
     { "wallet",             "reservebalance",                   &reservebalance,                {"enabled","amount"} },
     { "wallet",             "deriverangekeys",                  &deriverangekeys,               {"start","end","key/id","hardened","save","add_to_addressbook","256bithash"} },

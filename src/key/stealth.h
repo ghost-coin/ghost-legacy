@@ -123,6 +123,7 @@ public:
 };
 
 int SecretToPublicKey(const CKey &secret, ec_point &out);
+int SetPublicKey(const CPubKey &pk, ec_point &out);
 
 int StealthShared(const CKey &secret, const ec_point &pubkey, CKey &sharedSOut);
 int StealthSecret(const CKey &secret, const ec_point &pubkey, const ec_point &pkSpend, CKey &sharedSOut, ec_point &pkOut);
