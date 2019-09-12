@@ -80,14 +80,17 @@ public:
     bool getCoinControlFeatures() const { return fCoinControlFeatures; }
     const QString& getOverriddenByCommandLine() { return strOverriddenByCommandLine; }
 
-    bool getShowIncomingStakeNotifications() { return fShowIncomingStakeNotifications; }
-    bool getShowZeroValueCoinstakes() { return show_zero_value_coinstakes; }
+    /* Explicit setters */
+    void SetPrune(bool prune, bool force = false);
 
     /* Restart flag helper */
     void setRestartRequired(bool fRequired);
     bool isRestartRequired() const;
 
     interfaces::Node& node() const { return m_node; }
+
+    bool getShowIncomingStakeNotifications() { return fShowIncomingStakeNotifications; }
+    bool getShowZeroValueCoinstakes() { return show_zero_value_coinstakes; }
 
 private:
     interfaces::Node& m_node;

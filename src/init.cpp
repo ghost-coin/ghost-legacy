@@ -1253,8 +1253,7 @@ bool AppInitParameterInteraction()
     }
 
     // TODO: Check pruning
-    if (fPruneMode && fParticlMode)
-    {
+    if (fPruneMode && fParticlMode) {
         LogPrintf("Block pruning disabled.  Todo.\n");
         fPruneMode = false;
     }
