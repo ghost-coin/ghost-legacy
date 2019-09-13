@@ -685,15 +685,7 @@ void BitcoinGUI::setCurrentWallet(WalletModel* wallet_model)
         }
     }
 
-    WalletView *walletView = walletFrame->currentWalletView();
-    if (!walletView) {
-        return;
-    }
-    WalletModel *walletModel = walletView->getWalletModel();
-    if (!walletModel) {
-        return;
-    }
-    if (!test_mode && !walletModel->wallet().hdEnabled() && !ShutdownRequested()) {
+    if (!test_mode && !wallet_model->wallet().hdEnabled() && !ShutdownRequested()) {
         showMnemonicClicked();
     }
 

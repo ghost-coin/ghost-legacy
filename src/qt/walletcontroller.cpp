@@ -197,7 +197,9 @@ void CreateWalletActivity::askPasshprase()
 
 void CreateWalletActivity::createWallet()
 {
-    showProgressDialog(tr("Creating Wallet <b>%1</b>...").arg(m_create_wallet_dialog->walletName().toHtmlEscaped()));
+    if (!fParticlMode) {
+        showProgressDialog(tr("Creating Wallet <b>%1</b>...").arg(m_create_wallet_dialog->walletName().toHtmlEscaped()));
+    }
 
     std::string name = m_create_wallet_dialog->walletName().toStdString();
     uint64_t flags = 0;
@@ -220,7 +222,9 @@ void CreateWalletActivity::createWallet()
 
 void CreateWalletActivity::finish()
 {
-    m_progress_dialog->hide();
+    if (m_progress_dialog) {
+        m_progress_dialog->hide();
+    }
 
     if (!m_error_message.empty()) {
         QMessageBox::critical(m_parent_widget, tr("Create wallet failed"), QString::fromStdString(m_error_message));

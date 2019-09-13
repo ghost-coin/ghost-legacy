@@ -11,6 +11,8 @@
 
 #include <QPushButton>
 
+extern bool fParticlMode;
+
 CreateWalletDialog::CreateWalletDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::CreateWalletDialog)
@@ -19,6 +21,10 @@ CreateWalletDialog::CreateWalletDialog(QWidget* parent) :
     ui->buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Create"));
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->wallet_name_line_edit->setFocus(Qt::ActiveWindowFocusReason);
+
+    if (fParticlMode) {
+        ui->blank_wallet_checkbox->setChecked(true);
+    }
 
     connect(ui->wallet_name_line_edit, &QLineEdit::textEdited, [this](const QString& text) {
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!text.isEmpty());
