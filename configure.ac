@@ -234,7 +234,7 @@ AC_ARG_ENABLE([bip70],
   [AS_HELP_STRING([--enable-bip70],
   [enable BIP70 (payment protocol) support in the GUI (default is to disable)])],
   [enable_bip70=$enableval],
-  [enable_bip70=no])
+  [enable_bip70=auto])
 
 AC_ARG_WITH([protoc-bindir],[AS_HELP_STRING([--with-protoc-bindir=BIN_DIR],[specify protoc bin path])], [protoc_bin_path=$withval], [])
 
