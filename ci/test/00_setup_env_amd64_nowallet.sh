@@ -8,6 +8,6 @@ export LC_ALL=C.UTF-8
 
 export HOST=x86_64-unknown-linux-gnu
 export PACKAGES="python3-zmq"
-export DEP_OPTS="NO_WALLET=1 NO_USB=1 "
+export DEP_OPTS="NO_WALLET=1 NO_USB=1"
 export GOAL="install"
 export BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports"

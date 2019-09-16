@@ -5,6 +5,7 @@ WORK_PATH = $(BASEDIR)/work
 BASE_CACHE ?= $(BASEDIR)/built
 SDK_PATH ?= $(BASEDIR)/SDKs
 NO_QT ?=
+PROTOBUF ?=
 RAPIDCHECK ?=
 NO_WALLET ?=
 NO_ZMQ ?=
@@ -102,13 +103,15 @@ ifeq ($(NO_USB),)
 endif
 
 
+protobuf_packages_$(PROTOBUF) = $(protobuf_packages)
 rapidcheck_packages_$(RAPIDCHECK) = $(rapidcheck_packages)
 
 packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_) $(usb_packages_)
 native_packages += $($(host_arch)_$(host_os)_native_packages) $($(host_os)_native_packages)
 
-ifneq ($(qt_packages_),)
-native_packages += $(qt_native_packages)
+ifeq ($(protobuf_packages_),)
+native_packages += $(protobuf_native_packages)
+packages += $(protobuf_packages)
 endif
 
 ifneq ($(zmq_packages_),)
@@ -156,6 +159,7 @@ $(host_prefix)/share/config.site : config.site.in $(host_prefix)/.stamp_$(final_
             -e 's|@allow_host_packages@|$(ALLOW_HOST_PACKAGES)|' \
             -e 's|@no_qt@|$(NO_QT)|' \
             -e 's|@no_zmq@|$(NO_ZMQ)|' \
+            -e 's|@enable_bip70@|$(PROTOBUF)|' \
             -e 's|@no_wallet@|$(NO_WALLET)|' \
             -e 's|@no_upnp@|$(NO_UPNP)|' \
             -e 's|@no_usb@|$(NO_USB)|' \
