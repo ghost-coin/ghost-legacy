@@ -11,9 +11,10 @@ from test_framework.test_particl import (
     ParticlTestFramework,
     isclose,
     getIndexAtProperty,
+    connect_nodes_bi,
 )
 from test_framework.test_framework import SkipTest
-from test_framework.util import connect_nodes_bi, assert_raises_rpc_error
+from test_framework.util import assert_raises_rpc_error
 from test_framework.authproxy import JSONRPCException
 
 

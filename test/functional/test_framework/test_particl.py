@@ -8,7 +8,7 @@ import json
 import decimal
 
 from .test_framework import BitcoinTestFramework
-from .util import assert_equal, coverage
+from .util import assert_equal, coverage, connect_nodes
 
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
@@ -16,6 +16,9 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     b = decimal.Decimal(b)
     return abs(a-b) <= max(decimal.Decimal(rel_tol) * decimal.Decimal(max(abs(a), abs(b))), abs_tol)
 
+def connect_nodes_bi(nodes, a, b):
+    connect_nodes(nodes[a], b)
+    connect_nodes(nodes[b], a)
 
 def getIndexAtProperty(arr, name, value):
     for i, o in enumerate(arr):

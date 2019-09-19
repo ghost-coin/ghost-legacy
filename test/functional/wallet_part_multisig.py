@@ -5,8 +5,8 @@
 
 from decimal import Decimal
 
-from test_framework.test_particl import ParticlTestFramework, isclose
-from test_framework.util import connect_nodes_bi, satoshi_round
+from test_framework.test_particl import ParticlTestFramework, isclose, connect_nodes_bi
+from test_framework.util import satoshi_round
 from test_framework.authproxy import JSONRPCException
 
 
