@@ -18,6 +18,7 @@
 #include <validation.h>
 #include <timedata.h>
 #include <anon.h>
+#include <validationinterface.h>
 
 #include <leveldb/db.h>
 
@@ -304,10 +305,10 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
         || mode == "all") {
         LOCK(smsgModule.cs_smsg);
         uint32_t nKeys = 0;
-        int all = mode == "all" ? 1 : 0;
 
         UniValue keys(UniValue::VARR);
 #ifdef ENABLE_WALLET
+        int all = mode == "all" ? 1 : 0;
         for (auto it = smsgModule.addresses.begin(); it != smsgModule.addresses.end(); ++it) {
             if (!all
                 && !it->fReceiveEnabled) {
@@ -1364,8 +1365,6 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
         {
             LOCK(smsgModule.cs_smsg);
             std::map<int64_t, smsg::SecMsgBucket>::const_iterator it;
-            it = smsgModule.buckets.begin();
-
             for (it = smsgModule.buckets.begin(); it != smsgModule.buckets.end(); ++it) {
                 const std::set<smsg::SecMsgToken> &tokenSet = it->second.setTokens;
 
@@ -1427,8 +1426,6 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
         {
             LOCK(smsgModule.cs_smsg);
             std::map<int64_t, smsg::SecMsgBucket>::iterator it;
-            it = smsgModule.buckets.begin();
-
             for (it = smsgModule.buckets.begin(); it != smsgModule.buckets.end(); ++it) {
                 std::string sFile = std::to_string(it->first) + "_01.dat";
 
@@ -1780,7 +1777,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
     RPCTypeCheckObj(request.params,
         {
             {"msgid",             UniValueType(UniValue::VSTR)},
-            {"option",            UniValueType(UniValue::VOBJ)},
+            {"options",           UniValueType(UniValue::VOBJ)},
         }, true, false);
 
     std::string sMsgId = request.params[0].get_str();
@@ -1939,7 +1936,7 @@ static UniValue smsgimport(const JSONRPCRequest &request)
     RPCTypeCheckObj(request.params,
         {
             {"msg",             UniValueType(UniValue::VSTR)},
-            {"option",            UniValueType(UniValue::VOBJ)},
+            {"option",          UniValueType(UniValue::VOBJ)},
         }, true, false);
 
     std::string str_msg = request.params[0].get_str();
@@ -2185,14 +2182,112 @@ static UniValue smsgpeers(const JSONRPCRequest &request)
     return result;
 }
 
-static UniValue smsgdebug(const JSONRPCRequest &request)
+static UniValue smsgzmqpush(const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 1)
+        throw std::runtime_error(
+            RPCHelpMan{"smsgzmqpush",
+                "\nResend ZMQ notifications.\n",
+                {
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
+                        {
+                            {"timefrom", RPCArg::Type::NUM, /* default */ "0", "Skip messages received before timestamp."},
+                            {"timeto", RPCArg::Type::NUM, /* default */ "max_int", "Skip messages received after timestamp."},
+                            {"unreadonly", RPCArg::Type::BOOL, /* default */ "true", "Resend only unread messages."},
+                        },
+                        "options"},
+                },
+                RPCResult{
+            "{\n"
+            "  \"numsent\": n,          (numeric) Number of notifications sent\n"
+            "}\n"
+                },
+                RPCExamples{
+            HelpExampleCli("smsgzmqpush", "'{ \"unreadonly\": false }'") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("smsgzmqpush", "{ \"unreadonly\": false }")
+                },
+            }.ToString());
+
+    EnsureSMSGIsEnabled();
+
+    RPCTypeCheck(request.params, {UniValue::VOBJ}, true);
+
+    bool unreadonly = true;
+    int64_t timefrom = 0;
+    int64_t timeto = std::numeric_limits<int64_t>::max();
+    int num_sent = 0;
+
+    UniValue options = request.params[0];
+    if (options.isObject()) {
+        RPCTypeCheckObj(options,
+        {
+            {"timefrom",        UniValueType(UniValue::VNUM)},
+            {"timeto",          UniValueType(UniValue::VNUM)},
+            {"unreadonly",      UniValueType(UniValue::VBOOL)},
+        }, true, true);
+        if (options["timefrom"].isNum()) {
+            timefrom = options["timefrom"].get_int64();
+        }
+        if (options["timeto"].isNum()) {
+            timeto = options["timeto"].get_int64();
+        }
+        if (options["unreadonly"].isBool()) {
+            unreadonly = options["unreadonly"].get_bool();
+        }
+    }
+
+     {
+        LOCK(smsg::cs_smsgDB);
+
+        smsg::SecMsgDB dbInbox;
+        if (!dbInbox.Open("cr+")) {
+            throw std::runtime_error("Could not open DB.");
+        }
+
+        uint8_t chKey[30];
+        smsg::SecMsgStored smsgStored;
+        leveldb::Iterator *it = dbInbox.pdb->NewIterator(leveldb::ReadOptions());
+        while (dbInbox.NextSmesg(it, smsg::DBK_INBOX, chKey, smsgStored)) {
+            if (unreadonly
+                && !(smsgStored.status & SMSG_MASK_UNREAD)) {
+                continue;
+            }
+            if (smsgStored.timeReceived < timefrom ||
+                smsgStored.timeReceived > timeto) {
+                continue;
+            }
+
+            uint8_t *pHeader = &smsgStored.vchMessage[0];
+            const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) pHeader;
+
+            std::vector<uint8_t> vchUint160;
+            vchUint160.resize(20);
+            memcpy(vchUint160.data(), &chKey[10], 20);
+            uint160 hash(vchUint160);
+
+            GetMainSignals().NewSecureMessage(psmsg, hash);
+            num_sent++;
+        }
+        delete it;
+    } // cs_smsgDB
+
+    UniValue result(UniValue::VOBJ);
+
+    result.pushKV("numsent", num_sent);
+
+    return result;
+};
+
+static UniValue smsgdebug(const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
             RPCHelpMan{"smsgdebug",
                 "\nCommands useful for debugging.\n",
                 {
-                    {"command", RPCArg::Type::STR, /* default */ "", "\"clearbanned\"."},
+                    {"command", RPCArg::Type::STR, /* default */ "", "\"clearbanned\",\"dumpids\"."},
+                    {"arg1", RPCArg::Type::STR, /* default */ "", ""},
                 },
                 RPCResult{
                     "{\n"
@@ -2217,7 +2312,45 @@ static UniValue smsgdebug(const JSONRPCRequest &request)
     if (mode == "clearbanned") {
         result.pushKV("command", mode);
         smsgModule.ClearBanned();
-    } else {
+    } else
+    if (mode == "dumpids") {
+        fs::path filepath = "smsg_ids.txt";
+        if (request.params[1].isStr()) {
+            filepath = request.params[1].get_str();
+        }
+        if (fs::exists(filepath)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, filepath.string() + " already exists. If you are sure this is what you want, move it out of the way first");
+        }
+
+        fsbridge::ofstream file;
+        file.open(filepath);
+        if (!file.is_open()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot open dump file");
+        }
+
+        int num_messages = 0;
+        LOCK(smsgModule.cs_smsg);
+        std::map<int64_t, smsg::SecMsgBucket>::const_iterator it;
+        std::vector<uint8_t> vch_msg;
+        for (it = smsgModule.buckets.begin(); it != smsgModule.buckets.end(); ++it) {
+            const std::set<smsg::SecMsgToken> &token_set = it->second.setTokens;
+            for (auto token : token_set) {
+                if (smsgModule.Retrieve(token, vch_msg) != smsg::SMSG_NO_ERROR) {
+                    LogPrintf("SecureMsgRetrieve failed %d.\n", token.timestamp);
+                    continue;
+                }
+                const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) vch_msg.data();
+                if (psmsg->version[0] == 0 && psmsg->version[1] == 0) {
+                    continue; // Skip purged
+                }
+                file << strprintf("%d,%s\n", it->first, HexStr(smsgModule.GetMsgID(psmsg, vch_msg.data() + smsg::SMSG_HDR_LEN)));
+                num_messages++;
+            }
+        }
+
+        file.close();
+        result.pushKV("messages", num_messages);
+    } else{
         result.pushKV("error", "Unknown command");
     }
 
@@ -2252,7 +2385,8 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsggetdifficulty",      &smsggetdifficulty,      {"time"}},
     { "smsg",               "smsggetinfo",            &smsggetinfo,            {}},
     { "smsg",               "smsgpeers",              &smsgpeers,              {"index"}},
-    { "smsg",               "smsgdebug",              &smsgdebug,              {"command"}},
+    { "smsg",               "smsgzmqpush",            &smsgzmqpush,            {"options"}},
+    { "smsg",               "smsgdebug",              &smsgdebug,              {"command","arg1"}},
 
 };
 
