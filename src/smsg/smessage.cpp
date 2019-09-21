@@ -1063,7 +1063,6 @@ bool CSMSG::Disable()
 
         // Clear buckets
         std::map<int64_t, SecMsgBucket>::iterator it;
-        it = buckets.begin();
         for (it = buckets.begin(); it != buckets.end(); ++it) {
             it->second.setTokens.clear();
         }
@@ -1635,7 +1634,6 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 if (it == tokenSet.end()) {
                     LogPrint(BCLog::SMSG, "Don't have wanted message %d.\n", token.timestamp);
                 } else {
-                    //LogPrintf("Have message at %d.\n", it->offset); // DEBUG
                     token.offset = it->offset;
 
                     // Place in vchOne so if SecureMsgRetrieve fails it won't corrupt vchBunch

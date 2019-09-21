@@ -11,6 +11,7 @@ Next Major Version
 - Fixed infinite loop bug in AddStandardInputs when sum of specified inputs is too low.
 - Fixed bug preventing outputs received with extkey addresses from hardware linked wallets being spent.
 - rpc: importstealthaddress can import watchonly stealth addresses.
+- rpc: smsgzmqpush resends zmq smsg notifications.
 
 
 0.18.1.4

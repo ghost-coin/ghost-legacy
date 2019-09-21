@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2015-2016 The Bitcoin Core developers
+# Copyright (c) 2018-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.z
 """Test the ZMQ API."""
@@ -76,6 +77,23 @@ class ZMQTest(ParticlTestFramework):
             # Destroy the zmq context
             self.log.debug("Destroying zmq context")
             self.zmqContext.destroy(linger=None)
+
+    def waitForZmqSmsg(self, msgid):
+        for count in range(0, 100):
+            try:
+                msg = self.zmqSubSocket.recv_multipart(self.zmq.NOBLOCK)
+            except self.zmq.ZMQError:
+                time.sleep(0.25)
+                continue
+
+            topic = msg[0].decode('utf-8')
+            if topic == 'smsg':
+                fFound = True
+                zmqhash = msg[1].hex()
+                assert(zmqhash[:4] == '0300')  # version 3.0
+                assert(zmqhash[4:] == msgid)
+                return True
+        return False
 
     def _zmq_test(self):
         nodes = self.nodes
@@ -171,27 +189,19 @@ class ZMQTest(ParticlTestFramework):
         self.stakeBlocks(1, nStakeNode=1)
         self.waitForSmsgExchange(1, 1, 0)
 
-        fFound = False
-        for count in range(0, 100):
-            try:
-                msg = self.zmqSubSocket.recv_multipart(self.zmq.NOBLOCK)
-            except self.zmq.ZMQError:
-                time.sleep(0.5)
-                continue
-
-            topic = msg[0].decode('utf-8')
-            if topic == 'smsg':
-                fFound = True
-                zmqhash = msg[1].hex()
-                assert(zmqhash[:4] == '0300')  # version 3.0
-                assert(zmqhash[4:] == msgid)
-                break
-        assert(fFound)
+        assert(self.waitForZmqSmsg(msgid))
 
         ro = nodes[0].getnewzmqserverkeypair()
         assert(len(ro['server_secret_key']) == 40)
         assert(len(ro['server_public_key']) == 40)
         assert(len(ro['server_secret_key_b64']) > 40)
+
+        ro = nodes[0].smsgzmqpush()
+        assert(ro['numsent'] == 1)
+        assert(self.waitForZmqSmsg(msgid))
+
+        ro = nodes[0].smsgzmqpush({"timefrom": int(time.time()) + 1})
+        assert(ro['numsent'] == 0)
 
 
 if __name__ == '__main__':
