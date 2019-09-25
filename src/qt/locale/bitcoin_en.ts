@@ -3049,7 +3049,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-53"/>
+        <location line="-69"/>
+        <location line="+187"/>
+        <source>An optional amount to request. Leave this empty or zero to not request a specific amount.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-171"/>
         <location line="+32"/>
         <source>An optional label to associate with the new receiving address.</source>
         <translation type="unfinished"></translation>
@@ -3060,28 +3066,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-55"/>
-        <location line="+187"/>
-        <source>An optional amount to request. Leave this empty or zero to not request a specific amount.</source>
-        <translation type="unfinished"></translation>
+        <source></source>
+        <translation></translation>
     </message>
     <message>
-        <location line="-59"/>
-        <source>Clear all fields of the form.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Clear</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+143"/>
-        <source>Requested payments history</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-192"/>
+        <location line="+27"/>
         <source>Standard</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3106,7 +3095,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+99"/>
+        <location line="+17"/>
+        <source>Clear all fields of the form.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Clear</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+79"/>
         <source>Use bech32 encoding.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3116,7 +3115,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+86"/>
+        <location line="+61"/>
+        <source>Requested payments history</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
         <source>Show the selected request (does the same as double clicking an entry)</source>
         <translation type="unfinished"></translation>
     </message>

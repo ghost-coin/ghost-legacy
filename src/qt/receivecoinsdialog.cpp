@@ -151,7 +151,7 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
 
     /* Generate new receiving address
     OutputType address_type;
-    if (!ui->useLegacyAddress->isChecked()) {
+    if (ui->useBech32->isChecked()) {
         address_type = OutputType::BECH32;
     } else {
         address_type = model->wallet().getDefaultAddressType();
