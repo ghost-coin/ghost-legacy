@@ -421,7 +421,7 @@ public:
     int WalletUnlocked(CWallet *pwallet);
     int WalletKeyChanged(CKeyID &keyId, const std::string &sLabel, ChangeType mode);
 
-    int ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui, bool &received_msg);
+    int ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui, bool &received_msg, bool unlocking=false);
 
     int GetStoredKey(const CKeyID &ckid, CPubKey &cpkOut);
     int GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut);

@@ -2218,8 +2218,7 @@ bool CSMSG::ScanBuckets(bool scan_all)
                 } else
                 if (!scan_all && smsg.timestamp + smsg.m_ttl < now) {
                     // Expired message
-                } else
-                {
+                } else {
                     bool fOwnMessage;
                     int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage);
                     if (rv == SMSG_NO_ERROR) {
@@ -2388,7 +2387,7 @@ int CSMSG::WalletUnlocked(CWallet *pwallet)
 
                 // Don't report to gui,
                 bool fOwnMessage;
-                int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage);
+                int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage, true);
                 if (rv == 0) {
                     nFoundMessages++;
                 } else
@@ -2447,7 +2446,7 @@ int CSMSG::WalletKeyChanged(CKeyID &keyId, const std::string &sLabel, ChangeType
     return ManageLocalKey(keyId, mode);
 };
 
-int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui, bool &fOwnMessage)
+int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui, bool &fOwnMessage, bool unlocking)
 {
     LogPrint(BCLog::SMSG, "%s\n", __func__);
     /*
@@ -2546,7 +2545,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
 #endif
     }
 
-    if (!fOwnMessage && was_locked) {
+    if (!fOwnMessage && was_locked && !unlocking) {
         LogPrint(BCLog::SMSG, "%s: Wallet is locked, storing message to scan later.\n", __func__);
         // Only save unscanned if there are addresses
         // was_locked will onlye be set if addresses.size() > 0
