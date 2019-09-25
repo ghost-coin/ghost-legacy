@@ -1105,6 +1105,7 @@ bool AppInitParameterInteraction()
         if (gArgs.GetBoolArg("-regtest", false)) {
             ResetParams(CBaseChainParams::REGTEST, fParticlMode);
         }
+        maxTxFee = DEFAULT_TRANSACTION_MAXFEE_BTC;
     }
 
     const CChainParams& chainparams = Params();
