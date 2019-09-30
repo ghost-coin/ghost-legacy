@@ -427,6 +427,8 @@ public:
         consensus.BIP66Height = 0;
         consensus.CSVHeight = 1;
         consensus.SegwitHeight = 0;
+        consensus.MinBIP9WarningHeight = 0;
+
         consensus.OpIsCoinstakeTime = 0x5A04EC00;       // 2017-11-10 00:00:00 UTC
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
         consensus.nPaidSmsgTime = 0x5C791EC0;           // 2019-03-01 12:00:00
@@ -583,6 +585,7 @@ public:
         consensus.BIP66Height = 363725; // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
         consensus.CSVHeight = 419328; // 000000000000000004a1b34462cb8aeebd5799177f7a29cf28f2d1961716b5b5
         consensus.SegwitHeight = 481824; // 0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893
+        consensus.MinBIP9WarningHeight = consensus.SegwitHeight + consensus.nMinerConfirmationWindow;
         consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
         genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
@@ -611,6 +614,7 @@ public:
         consensus.BIP66Height = 0;
         consensus.CSVHeight = 1;
         consensus.SegwitHeight = 0;
+        consensus.MinBIP9WarningHeight = 0;
 
         consensus.OpIsCoinstakeTime = 0;
         consensus.fAllowOpIsCoinstakeWithP2PKH = true; // TODO: clear for next testnet
@@ -753,6 +757,7 @@ public:
         consensus.BIP66Height = 1251; // BIP66 activated on regtest (Used in functional tests)
         consensus.CSVHeight = 432; // CSV activated on regtest (Used in rpc activation tests)
         consensus.SegwitHeight = 0; // SEGWIT is always activated on regtest unless overridden
+        consensus.MinBIP9WarningHeight = 0;
 
         consensus.OpIsCoinstakeTime = 0;
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;

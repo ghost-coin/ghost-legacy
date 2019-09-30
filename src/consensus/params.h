@@ -63,6 +63,10 @@ struct Params {
      * Note that segwit v0 script rules are enforced on all blocks except the
      * BIP 16 exception blocks. */
     int SegwitHeight;
+    /** Don't warn about unknown BIP 9 activations below this height.
+     * This prevents us from warning about the CSV and segwit activations. */
+    int MinBIP9WarningHeight;
+
     /** Time at which OP_ISCOINSTAKE becomes active */
     int64_t OpIsCoinstakeTime;
     bool fAllowOpIsCoinstakeWithP2PKH;
@@ -87,6 +91,7 @@ struct Params {
     int64_t smsg_fee_max_delta_percent; /* Divided by 1000000 */
     uint32_t smsg_min_difficulty;
     uint32_t smsg_difficulty_max_delta;
+
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks in a retargeting period,
      * (nPowTargetTimespan / nPowTargetSpacing) which is also used for BIP9 deployments.
