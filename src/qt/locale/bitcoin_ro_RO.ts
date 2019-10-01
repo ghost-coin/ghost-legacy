@@ -359,7 +359,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Trimite monede către o adresă Particl.</translation>
+        <translation>Trimite monede către o adresă Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -382,8 +382,8 @@
         <translation>&amp;Verifică mesaj...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -455,7 +455,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n conexiune activă către reţeaua Particl.</numerusform><numerusform>%n conexiuni active către reţeaua Particl.</numerusform><numerusform>%n de conexiuni active către reţeaua Particl.</numerusform></translation>
+        <translation><numerusform>%n conexiune activă către reţeaua Particl</numerusform><numerusform>%n conexiuni active către reţeaua Particl</numerusform><numerusform>%n de conexiuni active către reţeaua Particl</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -499,7 +499,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
-        <translation>Arată mesajul de ajutor %1 pentru a obţine o listă cu opţiunile posibile de linii de comandă Particl.</translation>
+        <translation>Arată mesajul de ajutor %1 pentru a obţine o listă cu opţiunile posibile de linii de comandă Particl</translation>
     </message>
     <message>
         <source>%1 client</source>
@@ -857,8 +857,8 @@
         <translation>Foloseşte un dosar de date personalizat:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -870,7 +870,7 @@
     </message>
     <message>
         <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 va descarca si stoca o copie a blockchainului Particl.</translation>
+        <translation>%1 va descarca si stoca o copie a blockchainului Particl</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -901,7 +901,7 @@
     </message>
     <message>
         <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the particl network, as detailed below.</source>
-        <translation>Tranzactiile recente pot sa nu fie inca vizibile, de aceea balanta portofelului poate fi incorecta. Aceasta informatie va fi corecta de indata ce portofelul va fi complet sincronizat cu reteaua Particl. asa cum este detaliat mai jos.</translation>
+        <translation>Tranzactiile recente pot sa nu fie inca vizibile, de aceea balanta portofelului poate fi incorecta. Aceasta informatie va fi corecta de indata ce portofelul va fi complet sincronizat cu reteaua Particl, asa cum este detaliat mai jos.</translation>
     </message>
     <message>
         <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
@@ -2500,7 +2500,7 @@ Nota: Cum taxa este calculata per byte, o taxa de "100 satoshi per kB" pentru o 
     </message>
     <message>
         <source>Sign the message to prove you own this Particl address</source>
-        <translation>Semnează mesajul pentru a dovedi ca deţineţi acestă adresă Particl.</translation>
+        <translation>Semnează mesajul pentru a dovedi ca deţineţi acestă adresă Particl</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2524,7 +2524,7 @@ Nota: Cum taxa este calculata per byte, o taxa de "100 satoshi per kB" pentru o 
     </message>
     <message>
         <source>The Particl address the message was signed with</source>
-        <translation>Introduceţi o adresă Particl.</translation>
+        <translation>Introduceţi o adresă Particl</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Particl address</source>
@@ -3173,7 +3173,7 @@ Nota: Cum taxa este calculata per byte, o taxa de "100 satoshi per kB" pentru o 
     </message>
     <message>
         <source>Particl Core</source>
-        <translation>Nucleul Particl.</translation>
+        <translation>Nucleul Particl</translation>
     </message>
     <message>
         <source>The %s developers</source>

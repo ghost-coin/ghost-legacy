@@ -7,13 +7,8 @@ immediately.
 
 <!--
 Please provide clear motivation for your patch and explain how it improves
-<<<<<<< HEAD
 Particl Core user experience or Particl Core developer experience
-significantly.
-=======
-Bitcoin Core user experience or Bitcoin Core developer experience
 significantly:
->>>>>>> bitcoin
 
 * Any test improvements or new tests that improve coverage are always welcome.
 * All other changes should have accompanying unit tests (see `src/test/`) or
@@ -36,12 +31,8 @@ significantly:
   changes are usually rejected.
 -->
 
-<<<<<<< HEAD
-Particl Core has a thorough review process and even the most trivial change
-=======
 <!--
-Bitcoin Core has a thorough review process and even the most trivial change
->>>>>>> bitcoin
+Particl Core has a thorough review process and even the most trivial change
 needs to pass a lot of eyes and requires non-zero or even substantial time
 effort to review. There is a huge lack of active reviewers on the project, so
 patches often sit for a long time.

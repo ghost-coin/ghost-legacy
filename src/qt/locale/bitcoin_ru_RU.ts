@@ -378,7 +378,7 @@
         <translation>&amp;Проверить сообщение...</translation>
     </message>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>Particl Core</translation>
     </message>
     <message>
@@ -451,7 +451,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n активное подключение к сети Particl.</numerusform><numerusform>%n активных подключения к сети Particl.</numerusform><numerusform>%n активных подключений к сети Particl.</numerusform><numerusform>%n активных подключений к сети Particl.</numerusform></translation>
+        <translation><numerusform>%n активное подключение к сети Particl</numerusform><numerusform>%n активных подключения к сети Particl</numerusform><numerusform>%n активных подключений к сети Particl</numerusform><numerusform>%n активных подключений к сети Particl</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -797,7 +797,7 @@
         <translation>Использовать пользовательскую директорию данных</translation>
     </message>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>Particl Core</translation>
     </message>
     <message>

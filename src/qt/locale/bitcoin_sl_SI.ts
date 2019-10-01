@@ -355,7 +355,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Izvedite plačilo na naslov Particl.</translation>
+        <translation>Izvedite plačilo na naslov Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -378,8 +378,8 @@
         <translation>&amp;Preveri sporočilo ...</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -407,11 +407,11 @@
     </message>
     <message>
         <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Podpišite poljubno sporočilo z enim svojih naslovov Particl. da prejemniku sporočila dokažete, da je ta naslov v vaši lasti.</translation>
+        <translation>Podpišite poljubno sporočilo z enim svojih naslovov Particl, da prejemniku sporočila dokažete, da je ta naslov v vaši lasti.</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Preverite, če je bilo prejeto sporočilo podpisano z določenim naslovom Particl.</translation>
+        <translation>Preverite, če je bilo prejeto sporočilo podpisano z določenim naslovom Particl</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -451,7 +451,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n aktivna povezava v omrežje Particl.</numerusform><numerusform>%n aktivni povezavi v omrežje Particl.</numerusform><numerusform>%n aktivne povezave v omrežje Particl.</numerusform><numerusform>%n aktivnih povezav v omrežje Particl.</numerusform></translation>
+        <translation><numerusform>%n aktivna povezava v omrežje Particl</numerusform><numerusform>%n aktivni povezavi v omrežje Particl</numerusform><numerusform>%n aktivne povezave v omrežje Particl</numerusform><numerusform>%n aktivnih povezav v omrežje Particl</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -707,8 +707,8 @@
         <translation>Uporabi to podatkovno mapo:</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -948,7 +948,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
-        <translation>Prikazani podatki so morda zastareli. Program ob vzpostavitvi povezave samodejno sinhronizira denarnico z omrežjem Particl. a trenutno ta proces še ni zaključen.</translation>
+        <translation>Prikazani podatki so morda zastareli. Program ob vzpostavitvi povezave samodejno sinhronizira denarnico z omrežjem Particl, a trenutno ta proces še ni zaključen.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1545,7 +1545,7 @@
     </message>
     <message>
         <source>The Particl address to send the payment to</source>
-        <translation>Naslov Particl. na katerega bo plačilo poslano</translation>
+        <translation>Naslov Particl, na katerega bo plačilo poslano</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -1626,7 +1626,7 @@
     </message>
     <message>
         <source>The Particl address to sign the message with</source>
-        <translation>Naslov Particl. s katerim podpisujete sporočilo</translation>
+        <translation>Naslov Particl, s katerim podpisujete sporočilo</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -1682,7 +1682,7 @@
     </message>
     <message>
         <source>The Particl address the message was signed with</source>
-        <translation>Naslov Particl. s katerim je bilo sporočilo podpisano</translation>
+        <translation>Naslov Particl, s katerim je bilo sporočilo podpisano</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Particl address</source>

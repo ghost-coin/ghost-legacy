@@ -47,11 +47,11 @@
     </message>
     <message>
         <source>Choose the address to send coins to</source>
-        <translation>Choisissez une adresse où envoyer les particl</translation>
+        <translation>Choisissez une adresse où envoyer les particls</translation>
     </message>
     <message>
         <source>Choose the address to receive coins with</source>
-        <translation>Choisissez une adresse où recevoir les particl</translation>
+        <translation>Choisissez une adresse où recevoir les particls</translation>
     </message>
     <message>
         <source>C&amp;hoose</source>
@@ -347,7 +347,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Envoyer des pièces à une adresse Particl.</translation>
+        <translation>Envoyer des pièces à une adresse Particl</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -370,8 +370,8 @@
         <translation>&amp;Vérification du message</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -443,7 +443,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Particl network</source>
-        <translation><numerusform>%n connexion active avec le réseau Particl.</numerusform><numerusform>%n connexions actives avec le réseau Particl.</numerusform></translation>
+        <translation><numerusform>%n connexion active avec le réseau Particl</numerusform><numerusform>%n connexions actives avec le réseau Particl</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -483,7 +483,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
-        <translation>Afficher le %1 message d'aide pour récupérer une liste des options de ligne de commande Particl </translation>
+        <translation>Afficher le %1 message d'aide pour récupérer une liste des options de ligne de commande Particl</translation>
     </message>
     <message>
         <source>%1 client</source>
@@ -815,8 +815,8 @@
         <translation>Utiliser votre propre répertoire</translation>
     </message>
     <message>
-        <source>Particl.</source>
-        <translation>Particl.</translation>
+        <source>Particl</source>
+        <translation>Particl</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -1606,7 +1606,7 @@
     </message>
     <message>
         <source>S&amp;end</source>
-        <translation>En&amp;voyer</translation>
+        <translation>E&amp;voyer</translation>
     </message>
     <message>
         <source>Copy quantity</source>

@@ -314,7 +314,7 @@
         <translation>Onay mesajı...</translation>
     </message>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>Bitcoin
 </translation>
     </message>
@@ -507,7 +507,7 @@
         <translation>Hoş geldiniz</translation>
     </message>
     <message>
-        <source>Particl.</source>
+        <source>Particl</source>
         <translation>Bitcoin
 </translation>
     </message>
