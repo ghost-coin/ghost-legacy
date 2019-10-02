@@ -57,6 +57,6 @@ static void SetInternalName(std::string name) { }
 
 void util::ThreadRename(std::string&& name)
 {
-    SetThreadName(("particl-" + name).c_str());
+    SetThreadName(("p-" + name).c_str());
     SetInternalName(std::move(name));
 }
