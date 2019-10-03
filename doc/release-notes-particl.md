@@ -1,7 +1,12 @@
 Next Major Version
 ==============
 
+
+0.19.0.1
+==============
+
 - rpc: Add coinstakeinfo option to getblock.
+
 
 
 0.18.1.5
