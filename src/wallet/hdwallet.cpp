@@ -3902,11 +3902,10 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
             }
 
             nFeeNeeded = GetMinimumFee(*this, nBytes, *coinControl, &feeCalc);
-
-            // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
-            // because we must be at the maximum allowed fee.
-            if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes)) {
-                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy.").translated);
+            if (feeCalc.reason == FeeReason::FALLBACK && !m_allow_fallback_fee) {
+                // eventually allow a fallback fee
+                sError = _("Fee estimation failed. Fallbackfee is disabled. Wait a few blocks or enable -fallbackfee.").translated;
+                return false;
             }
 
             if (nFeeRet >= nFeeNeeded) {
@@ -4414,13 +4413,11 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
             nBytes = GetVirtualTransactionSize(CTransaction(txNew));
 
             nFeeNeeded = GetMinimumFee(*this, nBytes, *coinControl, &feeCalc);
-
-            // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
-            // because we must be at the maximum allowed fee.
-            if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes)) {
-                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy.").translated);
+            if (feeCalc.reason == FeeReason::FALLBACK && !m_allow_fallback_fee) {
+                // eventually allow a fallback fee
+                sError = _("Fee estimation failed. Fallbackfee is disabled. Wait a few blocks or enable -fallbackfee.").translated;
+                return false;
             }
-
             if (nFeeRet >= nFeeNeeded) {
                 // Reduce fee to only the needed amount if possible. This
                 // prevents potential overpayment in fees if the coins
@@ -5163,11 +5160,10 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
             nBytes = GetVirtualTransactionSize(CTransaction(txNew));
 
             nFeeNeeded = GetMinimumFee(*this, nBytes, *coinControl, &feeCalc);
-
-            // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
-            // because we must be at the maximum allowed fee.
-            if (nFeeNeeded < ::minRelayTxFee.GetFee(nBytes)) {
-                return wserrorN(1, sError, __func__, _("Transaction too large for fee policy.").translated);
+            if (feeCalc.reason == FeeReason::FALLBACK && !m_allow_fallback_fee) {
+                // eventually allow a fallback fee
+                sError = _("Fee estimation failed. Fallbackfee is disabled. Wait a few blocks or enable -fallbackfee.").translated;
+                return false;
             }
 
             if (nFeeRet >= nFeeNeeded) {
@@ -8368,6 +8364,7 @@ bool CHDWallet::CreateTransaction(interfaces::Chain::Lock& locked_chain, std::ve
  */
 bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm, CValidationState& state)
 {
+    assert(tx.get());
     {
         auto locked_chain = chain().lock();
         LOCK(cs_wallet);

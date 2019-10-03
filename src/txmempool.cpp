@@ -420,12 +420,12 @@ void CTxMemPool::addAddressIndex(const CTxMemPoolEntry &entry, const CCoinsViewC
     std::vector<CMempoolAddressDeltaKey> inserted;
 
     uint256 txhash = tx.GetHash();
-    for (unsigned int j = 0; j < tx.vin.size(); j++)
-    {
+    for (unsigned int j = 0; j < tx.vin.size(); j++) {
         const CTxIn input = tx.vin[j];
 
-        if (input.IsAnonInput())
+        if (input.IsAnonInput()) {
             continue;
+        }
 
         const Coin &coin = view.AccessCoin(input.prevout);
 
@@ -438,29 +438,29 @@ void CTxMemPool::addAddressIndex(const CTxMemPoolEntry &entry, const CCoinsViewC
         CAmount nValue = coin.nType == OUTPUT_CT ? 0 : coin.out.nValue;
 
         if (!ExtractIndexInfo(pScript, scriptType, hashBytes)
-            || scriptType == 0)
+            || scriptType == 0) {
             continue;
+        }
 
         CMempoolAddressDeltaKey key(scriptType, uint256(hashBytes.data(), hashBytes.size()), txhash, j, 1);
-        CMempoolAddressDelta delta(entry.GetTime(), nValue * -1, input.prevout.hash, input.prevout.n);
+        CMempoolAddressDelta delta(count_seconds(entry.GetTime()), nValue * -1, input.prevout.hash, input.prevout.n);
         mapAddress.insert(std::make_pair(key, delta));
         inserted.push_back(key);
-    };
+    }
 
-    for (unsigned int k = 0; k < tx.vpout.size(); k++)
-    {
+    for (unsigned int k = 0; k < tx.vpout.size(); k++) {
         const CTxOutBase *out = tx.vpout[k].get();
 
         if (!out->IsType(OUTPUT_STANDARD)
-            && !out->IsType(OUTPUT_CT))
+            && !out->IsType(OUTPUT_CT)) {
             continue;
+        }
 
         const CScript *pScript;
-        if (!(pScript = out->GetPScriptPubKey()))
-        {
+        if (!(pScript = out->GetPScriptPubKey())) {
             LogPrintf("ERROR: %s - expected script pointer.\n", __func__);
             continue;
-        };
+        }
         CAmount nValue = out->IsType(OUTPUT_STANDARD) ? out->GetValue() : 0;
 
         std::vector<uint8_t> hashBytes;
@@ -470,9 +470,9 @@ void CTxMemPool::addAddressIndex(const CTxMemPoolEntry &entry, const CCoinsViewC
             continue;
 
         CMempoolAddressDeltaKey key(scriptType, uint256(hashBytes.data(), hashBytes.size()), txhash, k, 0);
-        mapAddress.insert(std::make_pair(key, CMempoolAddressDelta(entry.GetTime(), nValue)));
+        mapAddress.insert(std::make_pair(key, CMempoolAddressDelta(count_seconds(entry.GetTime()), nValue)));
         inserted.push_back(key);
-    };
+    }
 
     mapAddressInserted.insert(std::make_pair(txhash, inserted));
 }
@@ -519,12 +519,12 @@ void CTxMemPool::addSpentIndex(const CTxMemPoolEntry &entry, const CCoinsViewCac
     std::vector<CSpentIndexKey> inserted;
 
     uint256 txhash = tx.GetHash();
-    for (unsigned int j = 0; j < tx.vin.size(); j++)
-    {
+    for (unsigned int j = 0; j < tx.vin.size(); j++) {
         const CTxIn input = tx.vin[j];
 
-        if (input.IsAnonInput())
+        if (input.IsAnonInput()) {
             continue;
+        }
 
         const Coin &coin = view.AccessCoin(input.prevout);
         assert(coin.nType == OUTPUT_STANDARD || coin.nType == OUTPUT_CT);
@@ -534,19 +534,21 @@ void CTxMemPool::addSpentIndex(const CTxMemPoolEntry &entry, const CCoinsViewCac
         int scriptType = 0;
         CAmount nValue = coin.nType == OUTPUT_CT ? -1 : coin.out.nValue;
 
-        if (!ExtractIndexInfo(pScript, scriptType, hashBytes))
+        if (!ExtractIndexInfo(pScript, scriptType, hashBytes)) {
             continue;
+        }
 
         uint256 addressHash;
-        if (scriptType != 0)
+        if (scriptType != 0) {
             addressHash = uint256(hashBytes.data(), hashBytes.size());
+        }
 
         CSpentIndexKey key = CSpentIndexKey(input.prevout.hash, input.prevout.n);
         CSpentIndexValue value = CSpentIndexValue(txhash, j, -1, nValue, scriptType, addressHash);
 
         mapSpent.insert(std::make_pair(key, value));
         inserted.push_back(key);
-    };
+    }
 
     mapSpentInserted.insert(std::make_pair(txhash, inserted));
 }
@@ -586,11 +588,10 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason)
     const uint256 hash = it->GetTx().GetHash();
     for (const CTxIn& txin : it->GetTx().vin)
     {
-        if (txin.IsAnonInput())
-        {
+        if (txin.IsAnonInput()) {
             RemoveKeyImagesFromMempool(hash, txin, *this);
             continue;
-        };
+        }
         mapNextTx.erase(txin.prevout);
     }
 
@@ -1188,7 +1189,8 @@ void CTxMemPool::RemoveStaged(setEntries &stage, bool updateDescendants, MemPool
     }
 }
 
-int CTxMemPool::Expire(int64_t time) {
+int CTxMemPool::Expire(std::chrono::seconds time)
+{
     AssertLockHeld(cs);
     indexed_transaction_set::index<entry_time>::type::iterator it = mapTx.get<entry_time>().begin();
     setEntries toremove;
