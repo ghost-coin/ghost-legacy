@@ -6824,7 +6824,7 @@ int CHDWallet::ExtKeyAddAccountToMaps(const CKeyID &idAccount, CExtKeyAccount *s
     for (size_t i = 0; i < sea->vExtKeys.size(); ++i) {
         CStoredExtKey *sek = sea->vExtKeys[i];
 
-        if (sek->nFlags & EAF_IS_CRYPTED) {
+        if (IsLocked() && sek->nFlags & EAF_IS_CRYPTED) {
             sek->fLocked = 1;
         }
 
