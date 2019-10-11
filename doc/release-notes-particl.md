@@ -1,4 +1,9 @@
 
+0.18.1.6
+==============
+- Fixed crash when rescanning a watchonly account.
+
+
 0.18.1.5
 ==============
 

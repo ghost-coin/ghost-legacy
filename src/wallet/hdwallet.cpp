@@ -10603,7 +10603,7 @@ CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_bl
         }
     }
 
-    if (sea) {
+    if (sea && sea->nFlags & EAF_HAVE_SECRET) {
         LOCK(cs_wallet);
         CEKAStealthKey akStealth;
 
@@ -10650,7 +10650,8 @@ CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_bl
             WalletLogPrintf("%s TxnCommit failed.\n", __func__);
         }
     } else {
-        WalletLogPrintf("%s: No default account found or wallet is locked, not adding stealth lookahead keys.\n", __func__);
+        WalletLogPrintf("%s: %s, not adding stealth lookahead keys.\n", __func__,
+                        IsLocked() ? "Wallet is locked" : sea ? "Default account has no private key" : "Default account not found");
     }
 
     ScanResult rv = CWallet::ScanForWalletTransactions(first_block, last_block, reserver, fUpdate);
