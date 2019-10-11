@@ -74,6 +74,8 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
         assert(ro['ismine'] == True)
         assert(ro['iswatchonly'] == False)
 
+        nodes[2].rescanblockchain(0)
+
 
 if __name__ == '__main__':
     WalletParticlWatchOnlyTest().main()
