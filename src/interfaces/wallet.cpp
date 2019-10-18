@@ -8,7 +8,6 @@
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
-#include <policy/feerate.h>
 #include <policy/fees.h>
 #include <primitives/transaction.h>
 #include <script/standard.h>
@@ -23,15 +22,18 @@
 #include <wallet/rpcwallet.h>
 #include <wallet/load.h>
 #include <wallet/wallet.h>
-#include <wallet/walletutil.h>
-#include <wallet/hdwallet.h>
-#include <wallet/rpchdwallet.h>
-#include <smsg/smessage.h>
 
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+
+#include <wallet/walletutil.h>
+#include <wallet/hdwallet.h>
+#include <wallet/rpchdwallet.h>
+#include <smsg/smessage.h>
+
 
 void LockWallet(CWallet* pWallet)
 {

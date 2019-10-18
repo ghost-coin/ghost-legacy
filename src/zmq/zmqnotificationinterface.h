@@ -7,8 +7,6 @@
 
 #include <validationinterface.h>
 #include <netaddress.h>
-#include <string>
-#include <map>
 #include <list>
 #include <thread>
 #include <atomic>

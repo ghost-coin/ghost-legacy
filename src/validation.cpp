@@ -29,7 +29,6 @@
 #include <script/script.h>
 #include <script/interpreter.h>
 #include <script/sigcache.h>
-#include <script/standard.h>
 #include <shutdown.h>
 #include <timedata.h>
 #include <tinyformat.h>
@@ -53,8 +52,6 @@
 #include <rctindex.h>
 #include <insight/insight.h>
 
-#include <future>
-#include <sstream>
 #include <string>
 
 #include <boost/algorithm/string/replace.hpp>

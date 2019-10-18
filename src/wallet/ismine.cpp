@@ -9,7 +9,6 @@
 #include <key/extkey.h>
 #include <key/stealth.h>
 #include <script/script.h>
-#include <script/sign.h>
 #include <script/signingprovider.h>
 #include <wallet/wallet.h>
 
