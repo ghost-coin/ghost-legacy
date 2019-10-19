@@ -3,6 +3,8 @@
 ==============
 - Fixed crash when rescanning a watchonly account.
 - Fixed errors when calling the mnemonic rpc function concurrently.
+- Fixed crash when initaccountfromdevice is called before setting udev rules.
+- Added udev rule hint to Qt gui if initaccountfromdevice fails.
 
 
 0.18.1.5
