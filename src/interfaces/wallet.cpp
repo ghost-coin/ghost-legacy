@@ -747,19 +747,21 @@ public:
 
     bool setUnlockedForStaking() override
     {
-        if (!m_wallet_part)
+        if (!m_wallet_part || m_wallet_part->IsLocked()) {
             return false;
-        if (m_wallet_part->IsLocked())
-            return false;
+        }
         m_wallet_part->fUnlockForStakingOnly = true;
         return true;
     }
 
     bool isDefaultAccountSet() override
     {
-        if (!m_wallet_part)
-            return false;
-        return (!m_wallet_part->idDefaultAccount.IsNull());
+        return (m_wallet_part && !m_wallet_part->idDefaultAccount.IsNull());
+    }
+
+    bool isHardwareLinkedWallet() override
+    {
+        return (m_wallet_part && m_wallet_part->IsHardwareLinkedWallet());
     }
 
     CAmount getCredit(const CTxOutBase *txout, isminefilter filter) override
