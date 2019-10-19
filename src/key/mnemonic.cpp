@@ -168,8 +168,8 @@ int MnemonicDetectLanguage(const std::string &sWordList)
 
         int nHit = 0;
         int nMiss = 0;
-        char *p;
-        p = strtok(tmp, " ");
+        char *p, *token;
+        p = strtok_r(tmp, " ", &token);
         while (p != nullptr) {
             int ofs;
             if (0 == GetWordOffset(p, pwl, m, ofs)) {
@@ -181,7 +181,7 @@ int MnemonicDetectLanguage(const std::string &sWordList)
             if (!maxTries--) {
                 break;
             }
-            p = strtok(nullptr, " ");
+            p = strtok_r(nullptr, " ", &token);
         }
 
         // Chinese dialects overlap too much to tolerate failures
@@ -323,8 +323,8 @@ int MnemonicDecode(int &nLanguage, const std::string &sWordListIn, std::vector<u
 
     std::vector<int> vWordInts;
 
-    char *p;
-    p = strtok(tmp, " ");
+    char *p, *token;
+    p = strtok_r(tmp, " ", &token);
     while (p != nullptr) {
         int ofs;
         if (0 != GetWordOffset(p, pwl, m, ofs)) {
@@ -333,7 +333,7 @@ int MnemonicDecode(int &nLanguage, const std::string &sWordListIn, std::vector<u
         }
 
         vWordInts.push_back(ofs);
-        p = strtok(nullptr, " ");
+        p = strtok_r(nullptr, " ", &token);
     }
 
     if (!fIgnoreChecksum

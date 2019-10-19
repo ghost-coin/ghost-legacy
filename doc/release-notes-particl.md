@@ -11,6 +11,7 @@ Next Major Version
 0.18.1.6
 ==============
 - Fixed crash when rescanning a watchonly account.
+- Fixed errors when calling the mnemonic rpc function concurrently.
 
 
 0.18.1.5
