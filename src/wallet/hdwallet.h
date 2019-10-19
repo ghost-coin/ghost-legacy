@@ -383,6 +383,9 @@ public:
     /* Returns true if HD is enabled, and default account set */
     bool IsHDEnabled() const override;
 
+    /* Returns true if the wallet's default account requires a hardware device to sign */
+    bool IsHardwareLinkedWallet() const;
+
     /** Unsets a single wallet flag, returns false on fail */
     bool UnsetWalletFlagRV(CHDWalletDB *pwdb, uint64_t flag);
 

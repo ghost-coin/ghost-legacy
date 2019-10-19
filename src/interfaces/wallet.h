@@ -304,6 +304,7 @@ public:
     virtual void lockWallet() = 0;
     virtual bool setUnlockedForStaking() = 0;
     virtual bool isDefaultAccountSet() = 0;
+    virtual bool isHardwareLinkedWallet() = 0;
     virtual CAmount getCredit(const CTxOutBase *txout, isminefilter filter) = 0;
     virtual isminetype txoutIsMine(const CTxOutBase *txout) = 0;
 };

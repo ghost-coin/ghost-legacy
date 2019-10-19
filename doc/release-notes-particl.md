@@ -5,6 +5,7 @@
 - Fixed errors when calling the mnemonic rpc function concurrently.
 - Fixed crash when initaccountfromdevice is called before setting udev rules.
 - Added udev rule hint to Qt gui if initaccountfromdevice fails.
+- Creating a stealth address from the Qt gui works if the wallet was initialised with a hardware device.
 
 
 0.18.1.5

@@ -443,6 +443,27 @@ bool CHDWallet::IsHDEnabled() const
     return mapExtAccounts.find(idDefaultAccount) != mapExtAccounts.end();
 }
 
+bool CHDWallet::IsHardwareLinkedWallet() const
+{
+    LOCK(cs_wallet);
+    ExtKeyAccountMap::const_iterator mi = mapExtAccounts.find(idDefaultAccount);
+    if (mi == mapExtAccounts.end()) {
+        return false;
+    }
+
+    const CExtKeyAccount *pa = mi->second;
+    if (pa->nFlags & EAF_HAVE_SECRET) {
+        return false;
+    }
+
+    mapEKValue_t::const_iterator mvi = pa->mapValue.find(EKVT_HARDWARE_DEVICE);
+    if (mvi != pa->mapValue.end()) {
+        return true;
+    }
+
+    return false;
+}
+
 bool CHDWallet::UnsetWalletFlagRV(CHDWalletDB *pwdb, uint64_t flag)
 {
     LOCK(cs_wallet);

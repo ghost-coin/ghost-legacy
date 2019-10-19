@@ -378,11 +378,12 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
         switch (addrType)
         {
             case ADDR_STEALTH:
-                sCommand = "getnewstealthaddress ";
-                sCommand += "\""+label+ "\" ";
-                sCommand += " 0 ";
-                sCommand += " 0 ";
-                sCommand += (address_type == OutputType::BECH32) ? " true " : " false ";
+                if (walletModel->isHardwareLinkedWallet()) {
+                    sCommand = "devicegetnewstealthaddress \"" + label + "\"";
+                } else {
+                    sCommand = "getnewstealthaddress \"" + label + "\"  0  0 ";
+                    sCommand += (address_type == OutputType::BECH32) ? " true " : " false ";
+                }
                 break;
             case ADDR_EXT:
                 sCommand = "getnewextaddress ";
