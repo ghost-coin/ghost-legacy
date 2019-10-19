@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017 The Particl Core developers
+# Copyright (c) 2017-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -35,7 +35,7 @@ class MnemonicTest(ParticlTestFramework):
         assert(key.startswith('xpar')), 'Key is not bip32.'
 
 
-        checkLangs = ['english', 'french', 'japanese', 'spanish', 'chinese_s', 'chinese_t', 'italian', 'korean']
+        checkLangs = ['english', 'french', 'japanese', 'spanish', 'chinese_s', 'chinese_t', 'italian', 'korean', 'czech']
 
         for i in range(8):
             for l in checkLangs:
@@ -102,7 +102,7 @@ class MnemonicTest(ParticlTestFramework):
             assert(ro['num_words'] == 2048)
 
         ro = node.mnemonic('listlanguages')
-        assert(len(ro) == 8)
+        assert(len(ro) == 9)
 
 
         # Test incorrect parameter order: mnemonic,password vs password,mnemonic

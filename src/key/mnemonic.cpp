@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2015 The ShadowCoin developers
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -20,6 +20,7 @@
 #include <key/wordlists/chinese_traditional.h>
 #include <key/wordlists/italian.h>
 #include <key/wordlists/korean.h>
+#include <key/wordlists/czech.h>
 
 
 static const unsigned char *mnLanguages[] =
@@ -33,6 +34,7 @@ static const unsigned char *mnLanguages[] =
     chinese_traditional_txt,
     italian_txt,
     korean_txt,
+    czech_txt,
 };
 
 static const uint32_t mnLanguageLens[] =
@@ -46,6 +48,7 @@ static const uint32_t mnLanguageLens[] =
     chinese_traditional_txt_len,
     italian_txt_len,
     korean_txt_len,
+    czech_txt_len,
 };
 
 const char *mnLanguagesDesc[WLL_MAX] =
@@ -59,6 +62,7 @@ const char *mnLanguagesDesc[WLL_MAX] =
     "Chinese Traditional",
     "Italian",
     "Korean",
+    "Czech",
 };
 
 const char *mnLanguagesTag[WLL_MAX] =
@@ -72,6 +76,7 @@ const char *mnLanguagesTag[WLL_MAX] =
     "chinese_t",
     "italian",
     "korean",
+    "czech",
 };
 
 static void NormaliseUnicode(std::string &str)

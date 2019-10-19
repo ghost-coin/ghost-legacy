@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -75,8 +75,7 @@ BOOST_AUTO_TEST_CASE(mnemonic_addchecksum)
 void runTests(int nLanguage, UniValue &tests)
 {
     std::string sError;
-    for (unsigned int idx = 0; idx < tests.size(); idx++)
-    {
+    for (unsigned int idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
 
         assert(test.size() > 2);
@@ -89,11 +88,10 @@ void runTests(int nLanguage, UniValue &tests)
         {
             sPassphrase = test[2].get_str();
             sSeed = test[3].get_str();
-        } else
-        {
+        } else {
             sPassphrase = "TREZOR";
             sSeed = test[2].get_str();
-        };
+        }
 
         std::vector<uint8_t> vEntropy = ParseHex(sEntropy);
         std::vector<uint8_t> vEntropyTest;
@@ -113,8 +111,7 @@ void runTests(int nLanguage, UniValue &tests)
         BOOST_CHECK(0 == MnemonicToSeed(sWords, sPassphrase, vSeedTest));
         BOOST_CHECK(vSeed == vSeedTest);
 
-        if (test.size() > 4)
-        {
+        if (test.size() > 4) {
             CExtKey58 eKey58;
             std::string sExtKey = test[4].get_str();
 
@@ -123,9 +120,9 @@ void runTests(int nLanguage, UniValue &tests)
 
             eKey58.SetKey(CExtKeyPair(ekTest), CChainParams::EXT_SECRET_KEY_BTC);
             BOOST_CHECK(eKey58.ToString() == sExtKey);
-        };
-    };
-};
+        }
+    }
+}
 
 BOOST_AUTO_TEST_CASE(mnemonic_test_json)
 {

@@ -41,12 +41,20 @@ int GetLanguageOffset(std::string sIn)
 
 UniValue mnemonic(const JSONRPCRequest &request)
 {
+    std::string enabled_languages;
+    for (size_t k = 1; k < WLL_MAX; ++k) {
+        if (enabled_languages.size()) {
+            enabled_languages += "|";
+        }
+        enabled_languages += mnLanguagesTag[k];
+    }
+
     std::string help = ""
         "mnemonic new|decode|addchecksum|dumpwords|listlanguages\n"
         "mnemonic new ( \"password\" language nBytesEntropy bip44 )\n"
         "    Generate a new extended key and mnemonic\n"
         "    password, can be blank "", default blank\n"
-        "    language, english|french|japanese|spanish|chinese_s|chinese_t|italian|korean, default english\n"
+        "    language, " + enabled_languages + ", default english\n"
         "    nBytesEntropy, 16 -> 64, default 32\n"
         "    bip44, true|false, default true\n"
         "mnemonic decode \"password\" \"mnemonic\" ( bip44 )\n"

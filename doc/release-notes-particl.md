@@ -1,6 +1,8 @@
 Next Major Version
 ==============
 
+- Added Czech bip39 wordlist.
+
 
 0.19.0.1
 ==============
