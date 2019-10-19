@@ -161,7 +161,7 @@ bool ImportOutputs(CBlockTemplate *pblocktemplate, int nHeight)
 
     int nOutput = 0, nAdded = 0;
     char cLine[512];
-    char *pAddress, *pAmount;
+    char *pAddress, *pAmount, *token;
 
     while (fgets(cLine, 512, fp)) {
         cLine[511] = '\0'; // safety
@@ -170,8 +170,8 @@ bool ImportOutputs(CBlockTemplate *pblocktemplate, int nHeight)
             cLine[len-1] = '\0', len--;
         }
 
-        if (!(pAddress = strtok(cLine, ","))
-            || !(pAmount = strtok(nullptr, ","))) {
+        if (!(pAddress = strtok_r(cLine, ",", &token))
+            || !(pAmount = strtok_r(nullptr, ",", &token))) {
             continue;
         }
 

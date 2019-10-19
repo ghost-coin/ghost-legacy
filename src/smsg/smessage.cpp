@@ -756,7 +756,7 @@ int CSMSG::ReadIni()
     }
 
     char cLine[512];
-    char *pName, *pValue;
+    char *pName, *pValue, *token;
 
     char cAddress[64];
     int addrRecv, addrRecvAnon;
@@ -771,8 +771,8 @@ int CSMSG::ReadIni()
             continue;
         }
 
-        if (!(pName = strtok(cLine, "="))
-            || !(pValue = strtok(nullptr, "="))) {
+        if (!(pName = strtok_r(cLine, "=", &token))
+            || !(pValue = strtok_r(nullptr, "=", &token))) {
             continue;
         }
 

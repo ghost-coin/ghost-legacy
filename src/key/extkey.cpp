@@ -217,7 +217,7 @@ int ExtractExtKeyPath(const std::string &sPath, std::vector<uint32_t> &vPath)
 
     vPath.reserve(nSlashes + 1);
 
-    char *p = strtok(data, "/");
+    char *token, *p = strtok_r(data, "/", &token);
 
     while (p) {
         uint32_t nChild;
@@ -255,7 +255,7 @@ int ExtractExtKeyPath(const std::string &sPath, std::vector<uint32_t> &vPath)
 
         vPath.push_back(nChild);
 
-        p = strtok(nullptr, "/");
+        p = strtok_r(nullptr, "/", &token);
     }
 
     if (vPath.size() < 1) {
