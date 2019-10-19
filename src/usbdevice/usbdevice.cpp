@@ -92,6 +92,7 @@ void ListHIDDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
     devs = hid_enumerate(0x0, 0x0);
     cur_dev = devs;
     while (cur_dev) {
+        if (cur_dev->serial_number) // Possibly no access permission, check udev rules.
         for (const auto &type : usbDeviceTypes) {
             if (cur_dev->vendor_id != type.nVendorId
                 || cur_dev->product_id != type.nProductId) {
@@ -132,6 +133,7 @@ void ListWebUSBDevices(std::vector<std::unique_ptr<CUSBDevice> > &vDevices)
     devs = webusb_enumerate(0x0, 0x0);
     cur_dev = devs;
     while (cur_dev) {
+        if (cur_dev->serial_number) // Possibly no access permission, check udev rules.
         for (const auto &type : webusbDeviceTypes) {
             if (cur_dev->vendor_id != type.nVendorId
                 || cur_dev->product_id != type.nProductId) {
