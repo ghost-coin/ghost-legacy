@@ -569,6 +569,10 @@ void WalletModel::UnlockContext::CopyFrom(UnlockContext&& rhs)
     rhs.relock = false;
 }
 
+bool WalletModel::isHardwareLinkedWallet() const {
+    return m_wallet->isHardwareLinkedWallet();
+}
+
 bool WalletModel::tryCallRpc(const QString &sCommand, UniValue &rv, bool returnError) const
 {
     try {
