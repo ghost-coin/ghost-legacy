@@ -32,7 +32,7 @@ int GetLanguageOffset(std::string sIn)
         break;
     }
 
-    if (nLanguage < 1 || nLanguage >= WLL_MAX) {
+    if (nLanguage < 1 || nLanguage >= WLL_MAX || !MnemonicHaveLanguage(nLanguage)) {
         throw std::runtime_error("Unknown language.");
     }
 
@@ -43,6 +43,9 @@ UniValue mnemonic(const JSONRPCRequest &request)
 {
     std::string enabled_languages;
     for (size_t k = 1; k < WLL_MAX; ++k) {
+        if (!MnemonicHaveLanguage(k)) {
+            continue;
+        }
         if (enabled_languages.size()) {
             enabled_languages += "|";
         }
@@ -269,6 +272,9 @@ UniValue mnemonic(const JSONRPCRequest &request)
     } else
     if (mode == "listlanguages") {
         for (size_t k = 1; k < WLL_MAX; ++k) {
+            if (!MnemonicHaveLanguage(k)) {
+                continue;
+            }
             std::string sName(mnLanguagesTag[k]);
             std::string sDesc(mnLanguagesDesc[k]);
             result.pushKV(sName, sDesc);

@@ -3,6 +3,17 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
+#define ENABLE_BIP39_ENGLISH 1
+#define ENABLE_BIP39_FRENCH 1
+#define ENABLE_BIP39_JAPANESE 1
+#define ENABLE_BIP39_SPANISH 1
+#define ENABLE_BIP39_CHINESE_S 1
+#define ENABLE_BIP39_CHINESE_T 1
+#define ENABLE_BIP39_ITALIAN 1
+#define ENABLE_BIP39_KOREAN 1
+#define ENABLE_BIP39_CZECH 1
+
 #include <key/mnemonic.h>
 
 #include <util/system.h>
@@ -12,15 +23,60 @@
 #include <unilib/uninorms.h>
 #include <unilib/utf8.h>
 
+#ifdef ENABLE_BIP39_ENGLISH
 #include <key/wordlists/english.h>
+#else
+unsigned char *english_txt = nullptr;
+uint32_t english_txt_len = 0;
+#endif
+#ifdef ENABLE_BIP39_FRENCH
 #include <key/wordlists/french.h>
+#else
+unsigned char *french_txt = nullptr;
+uint32_t french_txt_len = 0;
+#endif
+#ifdef ENABLE_BIP39_JAPANESE
 #include <key/wordlists/japanese.h>
+#else
+unsigned char *japanese_txt = nullptr;
+uint32_t japanese_txt_len = 0;
+#endif
+#ifdef ENABLE_BIP39_SPANISH
 #include <key/wordlists/spanish.h>
+#else
+unsigned char *spanish_txt = nullptr;
+uint32_t spanish_txt_len = 0;
+#endif
+#ifdef ENABLE_BIP39_CHINESE_S
 #include <key/wordlists/chinese_simplified.h>
+#else
+unsigned char *chinese_simplified_txt = nullptr;
+uint32_t chinese_simplified_txt_len = 0;
+#endif
+#ifdef ENABLE_BIP39_CHINESE_T
 #include <key/wordlists/chinese_traditional.h>
+#else
+unsigned char *chinese_traditional_txt = nullptr;
+uint32_t chinese_traditional_txt_len = 0;
+#endif
+#ifdef ENABLE_BIP39_ITALIAN
 #include <key/wordlists/italian.h>
+#else
+unsigned char *italian_txt = nullptr;
+uint32_t italian_txt_len = 0;
+#endif
+#ifdef ENABLE_BIP39_KOREAN
 #include <key/wordlists/korean.h>
+#else
+unsigned char *korean_txt = nullptr;
+uint32_t korean_txt_len = 0;
+#endif
+#ifdef ENABLE_BIP39_CZECH
 #include <key/wordlists/czech.h>
+#else
+unsigned char *czech_txt = nullptr;
+uint32_t czech_txt_len = 0;
+#endif
 
 
 static const unsigned char *mnLanguages[] =
@@ -163,12 +219,14 @@ int MnemonicDetectLanguage(const std::string &sWordList)
     }
 
     for (int l = 1; l < WLL_MAX; ++l) {
+        char *pwl = (char*) mnLanguages[l];
+        if (!pwl) {
+            continue;
+        }
+        int m = mnLanguageLens[l];
         strcpy(tmp, sWordList.c_str());
 
-        char *pwl = (char*) mnLanguages[l];
-        int m = mnLanguageLens[l];
-
-        // The chinese dialects have many words in common, match full phrase
+        // The Chinese dialects have many words in common, match full phrase
         int maxTries = (l == WLL_CHINESE_S || l == WLL_CHINESE_T) ? 24 : 8;
 
         int nHit = 0;
@@ -209,7 +267,7 @@ int MnemonicEncode(int nLanguage, const std::vector<uint8_t> &vEntropy, std::str
 
     sWordList = "";
 
-    if (nLanguage < 1 || nLanguage >= WLL_MAX) {
+    if (nLanguage < 1 || nLanguage >= WLL_MAX || !mnLanguages[nLanguage]) {
         sError = "Unknown language.";
         return errorN(1, "%s: %s", __func__, sError.c_str());
     }
@@ -303,7 +361,7 @@ int MnemonicDecode(int &nLanguage, const std::string &sWordListIn, std::vector<u
         nLanguage = MnemonicDetectLanguage(sWordList);
     }
 
-    if (nLanguage < 1 || nLanguage >= WLL_MAX) {
+    if (nLanguage < 1 || nLanguage >= WLL_MAX || !mnLanguages[nLanguage]) {
         sError = "Unknown language";
         return errorN(1, "%s: %s", __func__, sError.c_str());
     }
@@ -519,7 +577,7 @@ int MnemonicAddChecksum(int nLanguageIn, const std::string &sWordListIn, std::st
 
 int MnemonicGetWord(int nLanguage, int nWord, std::string &sWord, std::string &sError)
 {
-    if (nLanguage < 1 || nLanguage >= WLL_MAX) {
+    if (nLanguage < 1 || nLanguage >= WLL_MAX || !mnLanguages[nLanguage]) {
         sError = "Unknown language.";
         return errorN(1, "%s: %s", __func__, sError.c_str());
     }
@@ -537,9 +595,13 @@ int MnemonicGetWord(int nLanguage, int nWord, std::string &sWord, std::string &s
 
 std::string MnemonicGetLanguage(int nLanguage)
 {
-    if (nLanguage < 1 || nLanguage >= WLL_MAX) {
+    if (nLanguage < 1 || nLanguage >= WLL_MAX || !mnLanguages[nLanguage]) {
         return "Unknown";
     }
 
     return mnLanguagesDesc[nLanguage];
 };
+
+bool MnemonicHaveLanguage(int nLanguage){
+    return mnLanguages[nLanguage];
+}

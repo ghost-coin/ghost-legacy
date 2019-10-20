@@ -37,6 +37,7 @@ int MnemonicToSeed(const std::string &sMnemonic, const std::string &sPasswordIn,
 int MnemonicAddChecksum(int nLanguageIn, const std::string &sWordListIn, std::string &sWordListOut, std::string &sError);
 int MnemonicGetWord(int nLanguage, int nWord, std::string &sWord, std::string &sError);
 std::string MnemonicGetLanguage(int nLanguage);
+bool MnemonicHaveLanguage(int nLanguage);
 
 
 #endif // PARTICL_KEY_MNEMONIC_H
