@@ -259,7 +259,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CValidationState state;
         pwallet->SetBroadcastTransactions(true);
         mapValue_t mapValue;
-        BOOST_CHECK(pwallet->CommitTransaction(tx_new, std::move(mapValue), {} /* orderForm */, state));
+        pwallet->CommitTransaction(tx_new, std::move(mapValue), {} /* orderForm */);
     }
 
     StakeNBlocks(pwallet, 1);

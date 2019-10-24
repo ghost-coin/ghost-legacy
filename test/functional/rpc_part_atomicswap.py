@@ -614,7 +614,8 @@ class AtomicSwapTest(ParticlTestFramework):
 
         rawtx_i_refund = createRefundTxCT(nodes[0], rawtx_i, output_amounts_i, scriptInitiate, lockTime, privKeyA, pubKeyA, addrA_sx)
         ro = nodes[0].testmempoolaccept([rawtx_i_refund,])
-        assert('64: non-final' in ro[0]['reject-reason'])
+        print(ro)
+        assert('non-final' in ro[0]['reject-reason'])
 
         txnid1 = nodes[0].sendrawtransaction(rawtx_i)
         self.stakeBlocks(1)
@@ -659,7 +660,7 @@ class AtomicSwapTest(ParticlTestFramework):
 
         rawtx_p_refund = createRefundTxCT(nodes[1], rawtx_p, output_amounts_p, scriptParticipate, lockTime, privKeyB, pubKeyB, addrB_sx)
         ro = nodes[1].testmempoolaccept([rawtx_p_refund,])
-        assert('64: non-final' in ro[0]['reject-reason'])
+        assert('non-final' in ro[0]['reject-reason'])
 
         txnid_p = nodes[0].sendrawtransaction(rawtx_p)
         self.stakeBlocks(1)

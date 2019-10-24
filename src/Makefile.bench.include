@@ -41,6 +41,8 @@ bench_bench_particl_SOURCES = \
   bench/prevector.cpp \
   bench/blind.cpp \
   bench/mlsag.cpp \
+  test/lib/transaction_utils.h \
+  test/lib/transaction_utils.cpp \
   test/setup_common.h \
   test/setup_common.cpp \
   test/util.h \

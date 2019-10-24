@@ -8383,7 +8383,7 @@ bool CHDWallet::CreateTransaction(interfaces::Chain::Lock& locked_chain, std::ve
 /**
  * Call after CreateTransaction unless you want to abort
  */
-bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm, CValidationState& state)
+void CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm)
 {
     assert(tx.get());
     {
@@ -8435,7 +8435,6 @@ bool CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::
             }
         }
     }
-    return true;
 }
 
 

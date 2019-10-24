@@ -4922,9 +4922,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     CValidationState state;
     if (typeIn == OUTPUT_STANDARD && typeOut == OUTPUT_STANDARD) {
-        if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, state)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
-        }
+        pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm);
     } else {
         if (!pwallet->CommitTransaction(wtx, rtx, state)) {
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
