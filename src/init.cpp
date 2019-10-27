@@ -1129,6 +1129,15 @@ bool AppInitParameterInteraction()
         if (!g_enabled_filter_types.empty()) {
             return InitError(_("Prune mode is incompatible with -blockfilterindex.").translated);
         }
+
+        #define CHECK_ARG_FOR_PRUNE_MODE(name, default_mode)                                \
+        if (gArgs.GetBoolArg(name, default_mode)) {                                         \
+            return InitError(_("Prune mode is incompatible with " name ".").translated); }
+        CHECK_ARG_FOR_PRUNE_MODE("-addressindex", DEFAULT_ADDRESSINDEX)
+        CHECK_ARG_FOR_PRUNE_MODE("-timestampindex", DEFAULT_TIMESTAMPINDEX)
+        CHECK_ARG_FOR_PRUNE_MODE("-spentindex", DEFAULT_SPENTINDEX)
+        CHECK_ARG_FOR_PRUNE_MODE("-csindex", DEFAULT_CSINDEX)
+        #undef CHECK_ARG_FOR_PRUNE_MODE
     }
 
     // -bind and -whitebind can't be set when not listening
