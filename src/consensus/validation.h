@@ -150,9 +150,13 @@ public:
     bool fHasAnonInput = false; // per tx
     bool fIncDataOutputs = false; // per block
     int m_spend_height = 0;
+    bool m_particl_mode = false;
+    bool m_skip_rangeproof = false;
+    const Consensus::Params *m_consensus_params;
 
-    void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams)
+    void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool particl_mode, bool skip_rangeproof)
     {
+        m_consensus_params = &consensusParams;
         fEnforceSmsgFees = time >= consensusParams.nPaidSmsgTime;
         fBulletproofsActive = time >= consensusParams.bulletproof_time;
         rct_active = time >= consensusParams.rct_time;
@@ -160,6 +164,8 @@ public:
         if (spend_height > -1) {
             m_spend_height = spend_height; // Pass through connectblock->checkblock
         }
+        m_particl_mode = particl_mode;
+        m_skip_rangeproof = skip_rangeproof;
     }
 
     int nodeId;

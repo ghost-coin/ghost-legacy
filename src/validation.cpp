@@ -605,7 +605,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     }
 
     const Consensus::Params &consensus = Params().GetConsensus();
-    state.SetStateInfo(nAcceptTime, ::ChainActive().Height(), consensus);
+    state.SetStateInfo(nAcceptTime, ::ChainActive().Height(), consensus, fParticlMode, (fBusyImporting && fSkipRangeproof));
 
     if (!CheckTransaction(tx, state))
         return false; // state filled in by CheckTransaction
@@ -2424,7 +2424,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     int64_t nTimeStart = GetTimeMicros();
 
     const Consensus::Params &consensus = Params().GetConsensus();
-    state.SetStateInfo(block.nTime, pindex->nHeight, consensus);
+    state.SetStateInfo(block.nTime, pindex->nHeight, consensus, fParticlMode, (fBusyImporting && fSkipRangeproof));
 
     // Check it again in case a previous version let a bad block in
     // NOTE: We don't currently (re-)invoke ContextualCheckBlock() or
@@ -4289,7 +4289,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW))
         return false;
 
-    state.SetStateInfo(block.nTime, -1, consensusParams);
+    state.SetStateInfo(block.nTime, -1, consensusParams, fParticlMode, (fBusyImporting && fSkipRangeproof));
 
     // Check the merkle root.
     if (fCheckMerkleRoot) {

@@ -19,7 +19,7 @@
 #include <netbase.h>
 #include <txdb.h> // for -dbcache defaults
 
-#include <QNetworkProxy>
+#include <QDebug>
 #include <QSettings>
 #include <QStringList>
 
@@ -517,24 +517,6 @@ void OptionsModel::setDisplayUnit(const QVariant &value)
         settings.setValue("nDisplayUnit", nDisplayUnit);
         Q_EMIT displayUnitChanged(nDisplayUnit);
     }
-}
-
-bool OptionsModel::getProxySettings(QNetworkProxy& proxy) const
-{
-    // Directly query current base proxy, because
-    // GUI settings can be overridden with -proxy.
-    proxyType curProxy;
-    if (m_node.getProxy(NET_IPV4, curProxy)) {
-        proxy.setType(QNetworkProxy::Socks5Proxy);
-        proxy.setHostName(QString::fromStdString(curProxy.proxy.ToStringIP()));
-        proxy.setPort(curProxy.proxy.GetPort());
-
-        return true;
-    }
-    else
-        proxy.setType(QNetworkProxy::NoProxy);
-
-    return false;
 }
 
 void OptionsModel::setRestartRequired(bool fRequired)

@@ -90,7 +90,8 @@ private:
     PeerTableModel *peerTableModel;
     BanTableModel *banTableModel;
 
-    QTimer *pollTimer;
+    //! A thread to interact with m_node asynchronously
+    QThread* const m_thread;
 
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
@@ -115,7 +116,6 @@ Q_SIGNALS:
     void waitingForDevice(bool fCompleted);
 
 public Q_SLOTS:
-    void updateTimer();
     void updateNumConnections(int numConnections);
     void updateNetworkActive(bool networkActive);
     void updateAlert();

@@ -106,7 +106,6 @@ ifeq ($(NO_USB),)
     native_packages += $(usb_native_packages)
 endif
 
-
 protobuf_packages_$(PROTOBUF) = $(protobuf_packages)
 rapidcheck_packages_$(RAPIDCHECK) = $(rapidcheck_packages)
 
@@ -163,9 +162,9 @@ $(host_prefix)/share/config.site : config.site.in $(host_prefix)/.stamp_$(final_
             -e 's|@allow_host_packages@|$(ALLOW_HOST_PACKAGES)|' \
             -e 's|@no_qt@|$(NO_QT)|' \
             -e 's|@no_zmq@|$(NO_ZMQ)|' \
-            -e 's|@enable_bip70@|$(PROTOBUF)|' \
             -e 's|@no_wallet@|$(NO_WALLET)|' \
             -e 's|@no_upnp@|$(NO_UPNP)|' \
+            -e 's|@enable_usbdevice@|$(PROTOBUF)|' \
             -e 's|@no_usb@|$(NO_USB)|' \
             -e 's|@debug@|$(DEBUG)|' \
             $< > $@
