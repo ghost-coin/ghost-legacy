@@ -486,6 +486,8 @@ public:
     mutable bool fInMempool;
     mutable CAmount nChangeCached;
 
+    mutable int m_cached_height = 0;
+
     CWalletTx(const CWallet* pwalletIn, CTransactionRef arg)
         : tx(std::move(arg))
     {

@@ -1411,6 +1411,10 @@ void CWallet::MarkConflicted(const uint256& hashBlock, const uint256& hashTx)
 
 void CWallet::SyncTransaction(const CTransactionRef& ptx, CWalletTx::Status status, const uint256& block_hash, int posInBlock, bool update_tx)
 {
+    auto it = mapWallet.find(ptx->GetHash());
+    if (it != mapWallet.end()) {
+        it->second.m_cached_height = 0;
+    }
     if (!AddToWalletIfInvolvingMe(ptx, status, block_hash, posInBlock, update_tx))
         return; // Not one of ours
 
@@ -4892,7 +4896,15 @@ int CWalletTx::GetDepthInMainChain(interfaces::Chain::Lock& locked_chain) const
 {
     if (isUnconfirmed() || isAbandoned()) return 0;
 
-    return locked_chain.getBlockDepth(m_confirm.hashBlock) * (isConflicted() ? -1 : 1);
+    //return locked_chain.getBlockDepth(m_confirm.hashBlock) * (isConflicted() ? -1 : 1);
+    if (!m_cached_height) {
+        const Optional<int> height = locked_chain.getBlockHeight(m_confirm.hashBlock);
+        if (!height) {
+            return 0;
+        }
+        m_cached_height = *height;
+    }
+    return (isConflicted() ? -1 : 1) * (locked_chain.getHeightInt() - m_cached_height + 1);
 }
 
 int CWalletTx::GetBlocksToMaturity(interfaces::Chain::Lock& locked_chain, const int *pdepth) const
