@@ -1,7 +1,7 @@
 Dependencies
 ============
 
-These are the dependencies currently used by Bitcoin Core. You can find instructions for installing them in the `build-*.md` file for your platform.
+These are the dependencies currently used by Particl Core. You can find instructions for installing them in the `build-*.md` file for your platform.
 
 | Dependency | Version used | Minimum required | CVEs | Shared | [Bundled Qt library](https://doc.qt.io/qt-5/configure-options.html#third-party-libraries) |
 | --- | --- | --- | --- | --- | --- |
@@ -26,6 +26,10 @@ These are the dependencies currently used by Bitcoin Core. You can find instruct
 | xkbcommon |  |  |  |  | [Yes](https://github.com/bitcoin/bitcoin/blob/master/depends/packages/qt.mk) (Linux only) |
 | ZeroMQ | [4.3.1](https://github.com/zeromq/libzmq/releases) | 4.0.0 | No |  |  |
 | zlib | [1.2.11](https://zlib.net/) |  |  |  | No |
+| protobuf | [2.6.1](https://github.com/google/protobuf/releases) |  | No |  |  |
+| hidapi | [0.9.0-rc1](https://github.com/particl/hidapi/releases) |  | No |  |  |
+| libusb | [1.0.22](https://github.com/libusb/libusb/releases) |  | No |  |  |
+
 
 Controlling dependencies
 ------------------------
@@ -37,6 +41,7 @@ Some dependencies are not needed in all configurations. The following are some f
 * Qt is not needed with `--without-gui`.
 * If the qrencode dependency is absent, QR support won't be added. To force an error when that happens, pass `--with-qrencode`.
 * ZeroMQ is needed only with the `--with-zmq` option.
+* Protobuf, HIDAPI and libusb are only needed with `--enable-usbdevice`
 
 #### Other
 * librsvg is only needed if you need to run `make deploy` on (cross-compilation to) macOS.
