@@ -675,7 +675,7 @@ int CSMSG::AddWalletAddresses()
     for (const auto &pw : m_vpwallets) {
         LOCK(pw->cs_wallet);
         for (const auto &entry : pw->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
-            if (!IsMine(*pw, entry.first)) {
+            if (!pw->IsMine(entry.first)) {
                 continue;
             }
 
@@ -4029,7 +4029,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
         LOCK(pactive_wallet->cs_wallet);
         for (const auto &entry : pactive_wallet->mapAddressBook) { // PAIRTYPE(CTxDestination, CAddressBookData)
             // Get first owned address
-            if (!IsMine(*pactive_wallet, entry.first)) {
+            if (!pactive_wallet->IsMine(entry.first)) {
                 continue;
             }
             if (entry.first.type() == typeid(PKHash)) {

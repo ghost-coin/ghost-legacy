@@ -152,7 +152,7 @@ public:
     int m_spend_height = 0;
     bool m_particl_mode = false;
     bool m_skip_rangeproof = false;
-    const Consensus::Params *m_consensus_params;
+    const Consensus::Params *m_consensus_params = nullptr;
 
     void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool particl_mode, bool skip_rangeproof)
     {

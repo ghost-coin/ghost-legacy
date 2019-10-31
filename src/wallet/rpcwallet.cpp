@@ -71,7 +71,7 @@ static bool ParseIncludeWatchonly(const UniValue& include_watchonly, const CWall
 
 
 /** Checks if a CKey is in the given CWallet compressed or otherwise*/
-bool HaveKey(const CWallet& wallet, const CKey& key)
+bool HaveKey(const SigningProvider& wallet, const CKey& key)
 {
     CKey key2;
     key2.Set(key.begin(), key.end(), !key.IsCompressed());
@@ -321,7 +321,10 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
 
         if (output_type != OutputType::LEGACY) {
             CTxDestination dest;
-            pwallet->LearnRelatedScripts(newKey, output_type);
+            LegacyScriptPubKeyMan* spk_man = pwallet->GetLegacyScriptPubKeyMan();
+            if (spk_man) {
+                spk_man->LearnRelatedScripts(newKey, output_type);
+            }
             dest = GetDestinationForKey(newKey, output_type);
             return EncodeDestination(dest);
         }
@@ -430,7 +433,7 @@ static UniValue setlabel(const JSONRPCRequest& request)
 
     std::string label = LabelFromValue(request.params[1]);
 
-    if (IsMine(*pwallet, dest)) {
+    if (pwallet->IsMine(dest)) {
         pwallet->SetAddressBook(dest, label, "receive");
     } else {
         pwallet->SetAddressBook(dest, label, "send");
@@ -745,14 +748,16 @@ static UniValue signmessage(const JSONRPCRequest& request)
     if (!pkhash && !keyID256) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
     }
+
+    const SigningProvider* provider = pwallet->GetSigningProvider();
     CKey key;
     if (pkhash) {
         CKeyID keyID(*pkhash);
-        if (!pwallet->GetKey(keyID, key)) {
+        if (!provider->GetKey(keyID, key)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
         }
     } else {
-        if (!pwallet->GetKey(CKeyID(*keyID256), key)) {
+        if (!provider->GetKey(CKeyID(*keyID256), key)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
         }
     }
@@ -811,7 +816,7 @@ static UniValue getreceivedbyaddress(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
     }
     CScript scriptPubKey = GetScriptForDestination(dest);
-    if (!IsMine(*pwallet, scriptPubKey)) {
+    if (!pwallet->IsMine(scriptPubKey)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Address not found in wallet");
     }
 
@@ -907,7 +912,7 @@ static UniValue getreceivedbylabel(const JSONRPCRequest& request)
             for (auto &txout : wtx.tx->vpout) {
                 CTxDestination address;
                 if (txout->IsStandardOutput()
-                    && ExtractDestination(*txout->GetPScriptPubKey(), address) && IsMine(*pwallet, address) && setAddress.count(address)) {
+                    && ExtractDestination(*txout->GetPScriptPubKey(), address) && pwallet->IsMine(address) && setAddress.count(address)) {
                     if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth) {
                         nAmount += txout->GetValue();
                     }
@@ -917,7 +922,7 @@ static UniValue getreceivedbylabel(const JSONRPCRequest& request)
         for (const CTxOut& txout : wtx.tx->vout)
         {
             CTxDestination address;
-            if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwallet, address) && setAddress.count(address)) {
+            if (ExtractDestination(txout.scriptPubKey, address) && pwallet->IsMine(address) && setAddress.count(address)) {
                 if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth)
                     nAmount += txout.nValue;
             }
@@ -1254,6 +1259,11 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
                 },
             }.Check(request);
 
+    LegacyScriptPubKeyMan* spk_man = pwallet->GetLegacyScriptPubKeyMan();
+    if (!spk_man) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "This type of wallet does not support this command");
+    }
+
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
@@ -1270,7 +1280,7 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
         if (IsHex(keys_or_addrs[i].get_str()) && (keys_or_addrs[i].get_str().length() == 66 || keys_or_addrs[i].get_str().length() == 130)) {
             pubkeys.push_back(HexToPubKey(keys_or_addrs[i].get_str()));
         } else {
-            pubkeys.push_back(AddrToPubKey(pwallet, keys_or_addrs[i].get_str()));
+            pubkeys.push_back(AddrToPubKey(spk_man, keys_or_addrs[i].get_str()));
         }
     }
 
@@ -1284,7 +1294,7 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
 
     // Construct using pay-to-script-hash:
     CScript inner;
-    CTxDestination dest = AddAndGetMultisigDestination(required, pubkeys, output_type, *pwallet, inner);
+    CTxDestination dest = AddAndGetMultisigDestination(required, pubkeys, output_type, *spk_man, inner);
 
     UniValue result(UniValue::VOBJ);
     bool fbech32 = fParticlMode && request.params.size() > 3 ? request.params[3].get_bool() : false;
@@ -1366,7 +1376,7 @@ static UniValue ListReceived(interfaces::Chain::Lock& locked_chain, CWallet * co
             if (!ExtractDestination(pOut->scriptPubKey, address))
                 continue;
 
-            isminefilter mine = IsMine(*pwallet, address);
+            isminefilter mine = pwallet->IsMine(address);
             if (!(mine & filter))
                 continue;
 
@@ -1388,7 +1398,7 @@ static UniValue ListReceived(interfaces::Chain::Lock& locked_chain, CWallet * co
                 continue;
             }
 
-            isminefilter mine = IsMine(*pwallet, address);
+            isminefilter mine = pwallet->IsMine(address);
             if(!(mine & filter))
                 continue;
 
@@ -3061,7 +3071,8 @@ static UniValue getbalances(const JSONRPCRequest& request)
         }
         balances.pushKV("mine", balances_mine);
     }
-    if (wallet.HaveWatchOnly()) {
+    auto spk_man = wallet.GetLegacyScriptPubKeyMan();
+    if (spk_man && spk_man->HaveWatchOnly()) {
         UniValue balances_watchonly{UniValue::VOBJ};
         balances_watchonly.pushKV("trusted", ValueFromAmount(bal.m_watchonly_trusted));
         balances_watchonly.pushKV("untrusted_pending", ValueFromAmount(bal.m_watchonly_untrusted_pending));
@@ -3185,7 +3196,10 @@ static UniValue getwalletinfo(const JSONRPCRequest& request)
         size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
         obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
         obj.pushKV("keypoolsize", (int64_t)kpExternalSize);
-        seed_id = pwallet->GetHDChain().seed_id;
+        LegacyScriptPubKeyMan* spk_man = pwallet->GetLegacyScriptPubKeyMan();
+        if (spk_man) {
+            seed_id = spk_man->GetHDChain().seed_id;
+        }
         if (pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
             obj.pushKV("keypoolsize_hd_internal",   (int64_t)(pwallet->GetKeyPoolSize() - kpExternalSize));
         }
@@ -3743,10 +3757,11 @@ static UniValue listunspent(const JSONRPCRequest& request)
                 entry.pushKV("label", i->second.name);
             }
 
+            const SigningProvider* provider = pwallet->GetSigningProvider();
             if (scriptPubKey->IsPayToScriptHash()) {
                 const CScriptID& hash = CScriptID(boost::get<ScriptHash>(address));
                 CScript redeemScript;
-                if (pwallet->GetCScript(hash, redeemScript)) {
+                if (provider->GetCScript(hash, redeemScript)) {
                     entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
                     // Now check if the redeemScript is actually a P2WSH script
                     CTxDestination witness_destination;
@@ -3758,7 +3773,7 @@ static UniValue listunspent(const JSONRPCRequest& request)
                         CScriptID id;
                         CRIPEMD160().Write(whash.begin(), whash.size()).Finalize(id.begin());
                         CScript witnessScript;
-                        if (pwallet->GetCScript(id, witnessScript)) {
+                        if (provider->GetCScript(id, witnessScript)) {
                             entry.pushKV("witnessScript", HexStr(witnessScript.begin(), witnessScript.end()));
                         }
                     }
@@ -3768,7 +3783,7 @@ static UniValue listunspent(const JSONRPCRequest& request)
                 CScriptID id;
                 CRIPEMD160().Write(whash.begin(), whash.size()).Finalize(id.begin());
                 CScript witnessScript;
-                if (pwallet->GetCScript(id, witnessScript)) {
+                if (provider->GetCScript(id, witnessScript)) {
                     entry.pushKV("witnessScript", HexStr(witnessScript.begin(), witnessScript.end()));
                 }
             }
@@ -3777,7 +3792,7 @@ static UniValue listunspent(const JSONRPCRequest& request)
                 CScriptID scriptID;
                 scriptID.Set(hash);
                 CScript redeemScript;
-                if (pwallet->GetCScript(scriptID, redeemScript)) {
+                if (provider->GetCScript(scriptID, redeemScript)) {
                     entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
                 }
             }
@@ -3805,7 +3820,7 @@ static UniValue listunspent(const JSONRPCRequest& request)
         entry.pushKV("spendable", out.fSpendable);
         entry.pushKV("solvable", out.fSolvable);
         if (out.fSolvable) {
-            auto descriptor = InferDescriptor(*scriptPubKey, *pwallet);
+            auto descriptor = InferDescriptor(*scriptPubKey, *pwallet->GetLegacyScriptPubKeyMan());
             entry.pushKV("desc", descriptor->ToString());
         }
         if (avoid_reuse) entry.pushKV("reused", reused);
@@ -4137,7 +4152,7 @@ UniValue signrawtransactionwithwallet(const JSONRPCRequest& request)
     // Parse the prevtxs array
     ParsePrevouts(request.params[1], nullptr, coins, mtx.IsCoinStake());
 
-    return SignTransaction(mtx, pwallet, coins, request.params[2]);
+    return SignTransaction(mtx, &*pwallet->GetLegacyScriptPubKeyMan(), coins, request.params[2]);
 }
 
 static UniValue bumpfee(const JSONRPCRequest& request)
@@ -4408,7 +4423,7 @@ UniValue rescanblockchain(const JSONRPCRequest& request)
 class DescribeWalletAddressVisitor : public boost::static_visitor<UniValue>
 {
 public:
-    CWallet * const pwallet;
+    const SigningProvider * const provider;
 
     void ProcessSubScript(const CScript& subscript, UniValue& obj) const
     {
@@ -4444,7 +4459,7 @@ public:
         }
     }
 
-    explicit DescribeWalletAddressVisitor(CWallet* _pwallet) : pwallet(_pwallet) {}
+    explicit DescribeWalletAddressVisitor(const SigningProvider* _provider) : provider(_provider) {}
 
     UniValue operator()(const CNoDestination& dest) const { return UniValue(UniValue::VOBJ); }
 
@@ -4453,7 +4468,7 @@ public:
         CKeyID keyID(pkhash);
         UniValue obj(UniValue::VOBJ);
         CPubKey vchPubKey;
-        if (pwallet && pwallet->GetPubKey(keyID, vchPubKey)) {
+        if (provider && provider->GetPubKey(keyID, vchPubKey)) {
             obj.pushKV("pubkey", HexStr(vchPubKey));
             obj.pushKV("iscompressed", vchPubKey.IsCompressed());
         }
@@ -4465,7 +4480,7 @@ public:
         CScriptID scriptID(scripthash);
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
-        if (pwallet && pwallet->GetCScript(scriptID, subscript)) {
+        if (provider && provider->GetCScript(scriptID, subscript)) {
             ProcessSubScript(subscript, obj);
         }
         return obj;
@@ -4475,7 +4490,7 @@ public:
     {
         UniValue obj(UniValue::VOBJ);
         CPubKey pubkey;
-        if (pwallet && pwallet->GetPubKey(CKeyID(id), pubkey)) {
+        if (provider && provider->GetPubKey(CKeyID(id), pubkey)) {
             obj.pushKV("pubkey", HexStr(pubkey));
         }
         return obj;
@@ -4488,7 +4503,7 @@ public:
         CRIPEMD160 hasher;
         uint160 hash;
         hasher.Write(id.begin(), 32).Finalize(hash.begin());
-        if (pwallet && pwallet->GetCScript(CScriptID(hash), subscript)) {
+        if (provider && provider->GetCScript(CScriptID(hash), subscript)) {
             ProcessSubScript(subscript, obj);
         }
         return obj;
@@ -4513,7 +4528,7 @@ public:
         CPubKey vchPubKey;
         obj.pushKV("is256bit", true);
         CKeyID id160(idk256);
-        if (pwallet && pwallet->GetPubKey(id160, vchPubKey)) {
+        if (provider && provider->GetPubKey(id160, vchPubKey)) {
             obj.pushKV("pubkey", HexStr(vchPubKey));
             obj.pushKV("iscompressed", vchPubKey.IsCompressed());
         }
@@ -4526,7 +4541,7 @@ public:
         obj.pushKV("isscript", true);
         CScriptID scriptID;
         scriptID.Set(scriptID256);
-        if (pwallet && pwallet->GetCScript(scriptID, subscript)) {
+        if (provider && provider->GetCScript(scriptID, subscript)) {
             ProcessSubScript(subscript, obj);
         }
         return obj;
@@ -4539,8 +4554,12 @@ static UniValue DescribeWalletAddress(CWallet* pwallet, const CTxDestination& de
 {
     UniValue ret(UniValue::VOBJ);
     UniValue detail = DescribeAddress(dest);
+    const SigningProvider* provider = nullptr;
+    if (pwallet) {
+        provider = pwallet->GetSigningProvider();
+    }
     ret.pushKVs(detail);
-    ret.pushKVs(boost::apply_visitor(DescribeWalletAddressVisitor(pwallet), dest));
+    ret.pushKVs(boost::apply_visitor(DescribeWalletAddressVisitor(provider), dest));
     return ret;
 }
 
@@ -4636,6 +4655,7 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
 
     CScript scriptPubKey = GetScriptForDestination(dest);
     ret.pushKV("scriptPubKey", HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+    const SigningProvider* provider = pwallet->GetSigningProvider();
 
     isminetype mine = ISMINE_NO;
     if (IsParticlWallet(pwallet)) {
@@ -4702,20 +4722,20 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
                 }
             }
         } else {
-            mine = phdw ? IsMine(*phdw, dest) : ISMINE_NO;
+            mine = phdw ? phdw->IsMine(dest) : ISMINE_NO;
         }
         if (mine & ISMINE_HARDWARE_DEVICE) {
             ret.pushKV("isondevice", true);
         }
     } else {
-        mine = IsMine(*pwallet, dest);
+        mine = pwallet->IsMine(dest);
     }
 
     ret.pushKV("ismine", bool(mine & ISMINE_SPENDABLE));
-    bool solvable = IsSolvable(*pwallet, scriptPubKey);
+    bool solvable = IsSolvable(*provider, scriptPubKey);
     ret.pushKV("solvable", solvable);
     if (solvable) {
-       ret.pushKV("desc", InferDescriptor(scriptPubKey, *pwallet)->ToString());
+       ret.pushKV("desc", InferDescriptor(scriptPubKey, *provider)->ToString());
     }
     ret.pushKV("iswatchonly", bool(mine & ISMINE_WATCH_ONLY));
     if (is_stake_only_version) {
@@ -4728,7 +4748,7 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
     }
     ret.pushKV("ischange", pwallet->IsChange(scriptPubKey));
     const CKeyMetadata* meta = nullptr;
-    CKeyID key_id = GetKeyForDestination(*pwallet, dest);
+    CKeyID key_id = GetKeyForDestination(*provider, dest);
     if (!key_id.IsNull()) {
         auto it = pwallet->mapKeyMetadata.find(key_id);
         if (it != pwallet->mapKeyMetadata.end()) {
@@ -4906,6 +4926,11 @@ UniValue sethdseed(const JSONRPCRequest& request)
                 },
             }.Check(request);
 
+    LegacyScriptPubKeyMan* spk_man = pwallet->GetLegacyScriptPubKeyMan();
+    if (!spk_man) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "This type of wallet does not support this command");
+    }
+
     if (pwallet->chain().isInitialBlockDownload()) {
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Cannot set a new HD seed while still in Initial Block Download");
     }
@@ -4934,22 +4959,22 @@ UniValue sethdseed(const JSONRPCRequest& request)
 
     CPubKey master_pub_key;
     if (request.params[1].isNull()) {
-        master_pub_key = pwallet->GenerateNewSeed();
+        master_pub_key = spk_man->GenerateNewSeed();
     } else {
         CKey key = DecodeSecret(request.params[1].get_str());
         if (!key.IsValid()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key");
         }
 
-        if (HaveKey(*pwallet, key)) {
+        if (HaveKey(*spk_man, key)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Already have this key (either as an HD seed or as a loose private key)");
         }
 
-        master_pub_key = pwallet->DeriveNewSeed(key);
+        master_pub_key = spk_man->DeriveNewSeed(key);
     }
 
-    pwallet->SetHDSeed(master_pub_key);
-    if (flush_key_pool) pwallet->NewKeyPool();
+    spk_man->SetHDSeed(master_pub_key);
+    if (flush_key_pool) spk_man->NewKeyPool();
 
     return NullUniValue;
 }

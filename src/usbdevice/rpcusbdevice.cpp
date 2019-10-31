@@ -629,7 +629,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     }
 
 #ifdef ENABLE_WALLET
-    const FillableSigningProvider& keystore = ((fGivenKeys || !pwallet) ? (FillableSigningProvider&)tempKeystore : (FillableSigningProvider&)*pwallet);
+    const FillableSigningProvider& keystore = ((fGivenKeys || !pwallet) ? (FillableSigningProvider&)tempKeystore : (const FillableSigningProvider&)*static_cast<const FillableSigningProvider*>(pwallet->GetSigningProvider()));
 #else
     const FillableSigningProvider& keystore = tempKeystore;
 #endif

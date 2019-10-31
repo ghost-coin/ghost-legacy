@@ -202,44 +202,47 @@ bool DeviceSignatureCreator::CreateSig(const SigningProvider &provider, std::vec
         return false;
     }
 
-    //uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, sigversion);
-    const CHDWallet *pw = dynamic_cast<const CHDWallet*>(&provider);
-    if (pw) {
-        const CEKAKey *pak = nullptr;
-        const CEKASCKey *pasc = nullptr;
-        CExtKeyAccount *pa = nullptr;
-        if (!pw->HaveKey(keyid, pak, pasc, pa) || !pa) {
-            return false;
-        }
-
-        std::vector<uint32_t> vPath;
-        std::vector<uint8_t> vSharedSecret;
-        if (pak) {
-            if (!pw->GetFullChainPath(pa, pak->nParent, vPath)) {
-                return error("%s: GetFullAccountPath failed.", __func__);
+    const LegacyScriptPubKeyMan *pkm = dynamic_cast<const LegacyScriptPubKeyMan*>(&provider);
+    if (pkm) {
+        //uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, sigversion);
+        const CHDWallet *pw = dynamic_cast<const CHDWallet*>(pkm->m_particl);
+        if (pw) {
+            const CEKAKey *pak = nullptr;
+            const CEKASCKey *pasc = nullptr;
+            CExtKeyAccount *pa = nullptr;
+            if (!pw->HaveKey(keyid, pak, pasc, pa) || !pa) {
+                return false;
             }
 
-            vPath.push_back(pak->nKey);
-        } else
-        if (pasc) {
-            AccStealthKeyMap::const_iterator miSk = pa->mapStealthKeys.find(pasc->idStealthKey);
-            if (miSk == pa->mapStealthKeys.end()) {
-                return error("%s: CEKASCKey Stealth key not found.", __func__);
-            }
-            if (!pw->GetFullChainPath(pa, miSk->second.akSpend.nParent, vPath)) {
-                return error("%s: GetFullAccountPath failed.", __func__);
-            }
+            std::vector<uint32_t> vPath;
+            std::vector<uint8_t> vSharedSecret;
+            if (pak) {
+                if (!pw->GetFullChainPath(pa, pak->nParent, vPath)) {
+                    return error("%s: GetFullAccountPath failed.", __func__);
+                }
 
-            vPath.push_back(miSk->second.akSpend.nKey);
-            vSharedSecret.resize(32);
-            memcpy(vSharedSecret.data(), pasc->sShared.begin(), 32);
-        } else {
-            return error("%s: HaveKey error.", __func__);
+                vPath.push_back(pak->nKey);
+            } else
+            if (pasc) {
+                AccStealthKeyMap::const_iterator miSk = pa->mapStealthKeys.find(pasc->idStealthKey);
+                if (miSk == pa->mapStealthKeys.end()) {
+                    return error("%s: CEKASCKey Stealth key not found.", __func__);
+                }
+                if (!pw->GetFullChainPath(pa, miSk->second.akSpend.nParent, vPath)) {
+                    return error("%s: GetFullAccountPath failed.", __func__);
+                }
+
+                vPath.push_back(miSk->second.akSpend.nKey);
+                vSharedSecret.resize(32);
+                memcpy(vSharedSecret.data(), pasc->sShared.begin(), 32);
+            } else {
+                return error("%s: HaveKey error.", __func__);
+            }
+            if (0 != pDevice->SignTransaction(vPath, vSharedSecret, txTo, nIn, scriptCode, nHashType, amount, sigversion, vchSig, pDevice->sError)) {
+                return error("%s: SignTransaction failed.", __func__);
+            }
+            return true;
         }
-        if (0 != pDevice->SignTransaction(vPath, vSharedSecret, txTo, nIn, scriptCode, nHashType, amount, sigversion, vchSig, pDevice->sError)) {
-            return error("%s: SignTransaction failed.", __func__);
-        }
-        return true;
     }
 
     const CPathKeyStore *pks = dynamic_cast<const CPathKeyStore*>(&provider);

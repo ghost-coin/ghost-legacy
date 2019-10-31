@@ -42,7 +42,7 @@ std::vector<Test1> vTestVector1 = {
 static void AddKey(CWallet& wallet, const CKey& key)
 {
     LOCK(wallet.cs_wallet);
-    wallet.AddKeyPubKey(key, key.GetPubKey());
+    wallet.m_spk_man->AddKeyPubKey(key, key.GetPubKey());
 }
 
 BOOST_AUTO_TEST_CASE(new_ext_key)
@@ -408,8 +408,8 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         CTxDestination addr;
         BOOST_CHECK(ExtractDestination(s, addr));
         BOOST_CHECK(addr == keyaddr[0]);
-        BOOST_CHECK(IsMine(keystore, s));
-        BOOST_CHECK(!IsMine(emptykeystore, s));
+        BOOST_CHECK(keystore.IsMine(s));
+        BOOST_CHECK(!emptykeystore.IsMine(s));
     }
     {
         std::vector<valtype> solutions;
@@ -420,8 +420,8 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         CTxDestination addr;
         BOOST_CHECK(ExtractDestination(s, addr));
         BOOST_CHECK(addr == keyaddr[0]);
-        BOOST_CHECK(IsMine(keystore, s));
-        BOOST_CHECK(!IsMine(emptykeystore, s));
+        BOOST_CHECK(keystore.IsMine(s));
+        BOOST_CHECK(!emptykeystore.IsMine(s));
     }
     {
         std::vector<valtype> solutions;
@@ -431,9 +431,9 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         BOOST_CHECK_EQUAL(solutions.size(), 4U);
         CTxDestination addr;
         BOOST_CHECK(!ExtractDestination(s, addr));
-        BOOST_CHECK(IsMineP2SH(keystore, s));
-        BOOST_CHECK(!IsMine(emptykeystore, s));
-        BOOST_CHECK(!IsMine(partialkeystore, s));
+        BOOST_CHECK(keystore.m_spk_man->IsMineP2SH(s));
+        BOOST_CHECK(!emptykeystore.IsMine(s));
+        BOOST_CHECK(!partialkeystore.IsMine(s));
     }
     {
         std::vector<valtype> solutions;
@@ -448,9 +448,9 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         BOOST_CHECK(addrs[0] == keyaddr[0]);
         BOOST_CHECK(addrs[1] == keyaddr[1]);
         BOOST_CHECK(nRequired == 1);
-        BOOST_CHECK(IsMineP2SH(keystore, s));
-        BOOST_CHECK(!IsMine(emptykeystore, s));
-        BOOST_CHECK(!IsMine(partialkeystore, s));
+        BOOST_CHECK(keystore.m_spk_man->IsMineP2SH(s));
+        BOOST_CHECK(!emptykeystore.IsMine(s));
+        BOOST_CHECK(!partialkeystore.IsMine(s));
     }
     {
         std::vector<valtype> solutions;
@@ -524,8 +524,8 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     BOOST_CHECK(!IsStandard(script, whichType));
 
 
-    BOOST_CHECK(IsMine(keystoreB, script));
-    BOOST_CHECK(IsMine(keystoreA, script));
+    BOOST_CHECK(keystoreA.IsMine(script));
+    BOOST_CHECK(keystoreB.IsMine(script));
 
 
     CAmount nValue = 100000;
@@ -554,8 +554,8 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     memcpy(&vchAmount[0], &nValue, 8);
 
 
-    BOOST_CHECK(ProduceSignature(keystoreA, MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataA));
-    BOOST_CHECK(!ProduceSignature(keystoreB, MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataB));
+    BOOST_CHECK(ProduceSignature(*keystoreA.GetSigningProvider(), MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataA));
+    BOOST_CHECK(!ProduceSignature(*keystoreB.GetSigningProvider(), MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataB));
 
 
     ScriptError serror = SCRIPT_ERR_OK;
@@ -571,8 +571,8 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     // This should fail anyway as the txn changed
     BOOST_CHECK(!VerifyScript(scriptSig, script, &sigdataA.scriptWitness, nFlags, MutableTransactionSignatureChecker(&txn, 0, vchAmount), &serror));
 
-    BOOST_CHECK(!ProduceSignature(keystoreA, MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataC));
-    BOOST_CHECK(ProduceSignature(keystoreB, MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataB));
+    BOOST_CHECK(!ProduceSignature(*keystoreA.GetSigningProvider(), MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataC));
+    BOOST_CHECK(ProduceSignature(*keystoreB.GetSigningProvider(), MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataB));
 
     BOOST_CHECK(VerifyScript(scriptSig, script, &sigdataB.scriptWitness, nFlags, MutableTransactionSignatureChecker(&txn, 0, vchAmount), &serror));
 

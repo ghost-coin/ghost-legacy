@@ -1991,7 +1991,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
             if (!pwallet->HaveKey(sid) && skSpend.IsValid()) {
                 LOCK(pwallet->cs_wallet);
                 CPubKey pk = skSpend.GetPubKey();
-                if (!pwallet->AddKeyPubKey(skSpend, pk)) {
+                if (!pwallet->m_spk_man->AddKeyPubKey(skSpend, pk)) {
                     throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - AddKeyPubKey failed.");
                 }
                 fFound = true; // update stealth address with secret
@@ -4451,10 +4451,11 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 }
             }
 
+            const SigningProvider *provider = pwallet->GetSigningProvider();
             if (scriptPubKey->IsPayToScriptHash()) {
                 const CScriptID& hash = CScriptID(boost::get<ScriptHash>(address));
                 CScript redeemScript;
-                if (pwallet->GetCScript(hash, redeemScript))
+                if (provider->GetCScript(hash, redeemScript))
                     entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
             } else
             if (scriptPubKey->IsPayToScriptHash256()) {
@@ -4462,7 +4463,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 CScriptID scriptID;
                 scriptID.Set(hash);
                 CScript redeemScript;
-                if (pwallet->GetCScript(scriptID, redeemScript))
+                if (provider->GetCScript(scriptID, redeemScript))
                     entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
             }
         }
@@ -4479,7 +4480,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
         entry.pushKV("spendable", out.fSpendable);
         entry.pushKV("solvable", out.fSolvable);
         if (out.fSolvable) {
-            auto descriptor = InferDescriptor(*scriptPubKey, *pwallet);
+            auto descriptor = InferDescriptor(*scriptPubKey, *pwallet->GetLegacyScriptPubKeyMan());
             entry.pushKV("desc", descriptor->ToString());
         }
         if (avoid_reuse) entry.pushKV("reused", reused);
@@ -5298,16 +5299,17 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
     {
         if (pwallet) {
             CTxDestination redeemDest;
+            const SigningProvider *provider = pwallet->GetSigningProvider();
             if (ExtractDestination(scriptPubKey, redeemDest)) {
                 if (redeemDest.type() == typeid(ScriptHash)) {
                     const CScriptID& scriptID = CScriptID(boost::get<ScriptHash>(redeemDest));
-                    pwallet->GetCScript(scriptID, scriptRedeem);
+                    provider->GetCScript(scriptID, scriptRedeem);
                 } else
                 if (redeemDest.type() == typeid(CScriptID256)) {
                     const CScriptID256& hash = boost::get<CScriptID256>(redeemDest);
                     CScriptID scriptID;
                     scriptID.Set(hash);
-                    pwallet->GetCScript(scriptID, scriptRedeem);
+                    provider->GetCScript(scriptID, scriptRedeem);
                 }
             }
         }
@@ -5330,7 +5332,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unsupported signing key type.");
         }
-        pkeystore = pwallet;
+        pkeystore = pwallet->GetLegacyScriptPubKeyMan();
     } else {
         std::string strPrivkey = request.params[2].get_str();
         CKey key = DecodeSecret(strPrivkey);
@@ -8247,7 +8249,8 @@ static UniValue rehashblock(const JSONRPCRequest &request)
         if (!IsValidDestination(dest)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
         }
-        auto keyid = GetKeyForDestination(*pwallet, dest);
+        const SigningProvider *provider = pwallet->GetSigningProvider();
+        auto keyid = GetKeyForDestination(*provider, dest);
         if (keyid.IsNull()) {
             throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
         }

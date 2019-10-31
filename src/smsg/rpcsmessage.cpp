@@ -423,7 +423,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             LOCK(pw->cs_wallet);
 
             for (const auto &entry : pw->mapAddressBook) {
-                if (!IsMine(*pw, entry.first)) {
+                if (!pw->IsMine(entry.first)) {
                     continue;
                 }
 

@@ -32,19 +32,7 @@ enum isminetype : uint8_t
 */
 /** used for bitflags of isminetype */
 typedef uint8_t isminefilter;
-
 typedef std::vector<unsigned char> valtype;
-bool HaveKeys(const std::vector<valtype>& pubkeys, const CWallet& keystore);
-
-/* isInvalid becomes true when the script is found invalid by consensus or policy. This will terminate the recursion
- * and return ISMINE_NO immediately, as an invalid script should never be considered as "mine". This is needed as
- * different SIGVERSION may have different network rules. Currently the only use of isInvalid is indicate uncompressed
- * keys in SigVersion::WITNESS_V0 script, but could also be used in similar cases in the future
- */
-isminetype IsMine(const CWallet& keystore, const CScript& scriptPubKey, bool& isInvalid);
-isminetype IsMine(const CWallet& keystore, const CScript& scriptPubKey);
-isminetype IsMine(const CWallet& keystore, const CTxDestination& dest);
-isminetype IsMineP2SH(const CWallet& keystore, const CScript& scriptPubKey);
 
 /**
  * Cachable amount subdivided into watchonly and spendable parts.

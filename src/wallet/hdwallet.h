@@ -77,12 +77,15 @@ public:
     {
         m_default_address_type = OutputType::LEGACY; // In Particl segwit is enabled for all types
         m_fallback_fee = CFeeRate(DEFAULT_FALLBACK_FEE_PART);
+        m_spk_man->m_particl = this;
     }
 
     ~CHDWallet()
     {
         Finalise();
     }
+
+    bool IsParticlWallet() const override { return true; };
 
     int Finalise();
     int FreeExtKeyMaps();
@@ -132,9 +135,7 @@ public:
 
     int GetKey(const CKeyID &address, CKey &keyOut, CExtKeyAccount *&pa, CEKAKey &ak, CKeyID &idStealth) const;
     bool GetKey(const CKeyID &address, CKey &keyOut) const override;
-
     bool GetPubKey(const CKeyID &address, CPubKey &pkOut) const override;
-
     bool GetKeyFromPool(CPubKey &key, bool internal = false) override;
 
     isminetype HaveStealthAddress(const CStealthAddress &sxAddr) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
@@ -159,6 +160,7 @@ public:
     std::set< std::set<CTxDestination> > GetAddressGroupings() override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     std::map<CTxDestination, CAmount> GetAddressBalances(interfaces::Chain::Lock& locked_chain) override;
 
+    using CWallet::IsMine;
     isminetype IsMine(const CTxIn& txin) const override;
     isminetype IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         const CEKAKey *&pak, const CEKASCKey *&pasc, CExtKeyAccount *&pa, bool &isInvalid, SigVersion = SigVersion::BASE) const;
@@ -579,9 +581,9 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CHDWallet *wa
 
 void RestartStakingThreads();
 
-bool IsParticlWallet(const FillableSigningProvider *win);
-CHDWallet *GetParticlWallet(FillableSigningProvider *win);
-const CHDWallet *GetParticlWallet(const FillableSigningProvider *win);
+bool IsParticlWallet(const WalletStorage *win);
+CHDWallet *GetParticlWallet(WalletStorage *win);
+const CHDWallet *GetParticlWallet(const WalletStorage *win);
 
 
 #endif // PARTICL_WALLET_HDWALLET_H

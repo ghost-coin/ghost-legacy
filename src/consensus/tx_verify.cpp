@@ -10,6 +10,7 @@
 #include <consensus/validation.h>
 #include <validation.h>
 #include <consensus/params.h>
+#include <chainparams.h>
 
 #include <blind.h>
 #include <timedata.h>
@@ -189,6 +190,10 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     // reset per tx
     state.fHasAnonOutput = false;
     state.fHasAnonInput = false;
+
+    if (!state.m_consensus_params) {
+        state.m_consensus_params = &::Params().GetConsensus();
+    }
 
     bool is_particl_tx = tx.IsParticlVersion();
     if (is_particl_tx && tx.vin.size() < 1) { // early out

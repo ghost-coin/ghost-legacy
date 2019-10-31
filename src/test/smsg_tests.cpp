@@ -7,7 +7,7 @@
 #include <test/setup_common.h>
 #include <net.h>
 #ifdef ENABLE_WALLET
-#include <wallet/wallet.h>
+#include <wallet/hdwallet.h>
 #endif
 #include <xxhash/xxhash.h>
 
@@ -63,19 +63,19 @@ BOOST_AUTO_TEST_CASE(smsg_test)
     int rv = 0;
     const int nKeys = 12;
     auto chain = interfaces::MakeChain();
-    std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+    std::shared_ptr<CHDWallet> wallet = std::make_shared<CHDWallet>(chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
     std::vector<CKey> keyOwn(nKeys);
     for (int i = 0; i < nKeys; i++) {
         InsecureNewKey(keyOwn[i], true);
         LOCK(wallet->cs_wallet);
-        wallet->AddKey(keyOwn[i]);
+        wallet->m_spk_man->AddKey(keyOwn[i]);
     }
 
     std::vector<CKey> keyRemote(nKeys);
     for (int i = 0; i < nKeys; i++) {
         InsecureNewKey(keyRemote[i], true);
         LOCK(wallet->cs_wallet);
-        wallet->AddKey(keyRemote[i]); // need pubkey
+        wallet->m_spk_man->AddKey(keyRemote[i]); // need pubkey
     }
 
     std::vector<std::shared_ptr<CWallet>> temp_vpwallets;
