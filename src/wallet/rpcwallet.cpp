@@ -4538,7 +4538,7 @@ public:
     UniValue operator()(const CScriptID256 &scriptID256) const {
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
-        obj.pushKV("isscript", true);
+        obj.pushKV("is256bit", true);
         CScriptID scriptID;
         scriptID.Set(scriptID256);
         if (provider && provider->GetCScript(scriptID, subscript)) {
