@@ -6,6 +6,7 @@
 - Fixed crash when initaccountfromdevice is called before setting udev rules.
 - Added udev rule hint to Qt gui if initaccountfromdevice fails.
 - Creating a stealth address from the Qt gui works if the wallet was initialised with a hardware device.
+- Added moneysupply and anonoutputs to getblockheader rpc output.
 
 
 0.18.1.5
