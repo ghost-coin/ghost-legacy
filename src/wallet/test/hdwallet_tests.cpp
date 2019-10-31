@@ -18,7 +18,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-extern bool CheckAnonOutput(CValidationState &state, const CTxOutRingCT *p);
+extern bool CheckAnonOutput(TxValidationState &state, const CTxOutRingCT *p);
 extern void SetCTOutVData(std::vector<uint8_t> &vData, CPubKey &pkEphem, const CTempRecipient &r);
 
 BOOST_FIXTURE_TEST_SUITE(hdwallet_tests, HDWalletTestingSetup)
@@ -347,7 +347,7 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     BOOST_CHECK_MESSAGE(wallet->AddCTData(txout.get(), r, strError) == 0, "failed to add CT Data");
 
     BOOST_MESSAGE("---------------- Checking RingCT Output---------------------\n");
-    CValidationState state;
+    TxValidationState state;
     state.rct_active = true;
     BOOST_CHECK_MESSAGE(CheckAnonOutput(state, (CTxOutRingCT*)txout.get()), "failed to check ringct output");
 

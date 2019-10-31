@@ -7,5 +7,3 @@
 #include <primitives/transaction.h>
 #include <consensus/validation.h>
 
-
-

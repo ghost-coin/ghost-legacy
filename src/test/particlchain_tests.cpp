@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
         }
 
         CTransaction tx_c(txn);
-        CValidationState state;
+        TxValidationState state;
         Consensus::CheckTxInputs(tx_c, state, inputs, nSpendHeight, txfee);
 
         if (t.second) {

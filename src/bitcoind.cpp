@@ -12,6 +12,7 @@
 #include <compat.h>
 #include <init.h>
 #include <interfaces/chain.h>
+#include <node/context.h>
 #include <noui.h>
 #include <shutdown.h>
 #include <ui_interface.h>
@@ -24,13 +25,13 @@
 
 const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
 
-static void WaitForShutdown()
+static void WaitForShutdown(NodeContext& node)
 {
     while (!ShutdownRequestedMainThread())
     {
         MilliSleep(200);
     }
-    Interrupt();
+    Interrupt(node);
 }
 
 #if ENABLE_ZMQ
@@ -43,8 +44,8 @@ extern int GetNewZMQKeypair(char *server_public_key, char *server_secret_key);
 //
 static bool AppInit(int argc, char* argv[])
 {
-    InitInterfaces interfaces;
-    interfaces.chain = interfaces::MakeChain();
+    NodeContext node;
+    node.chain = interfaces::MakeChain(node);
 
     bool fRet = false;
 
@@ -171,7 +172,7 @@ static bool AppInit(int argc, char* argv[])
         }
 #endif
 
-        fRet = AppInitMain(interfaces);
+        fRet = AppInitMain(node);
     }
     catch (const std::exception& e) {
         PrintExceptionContinue(&e, "AppInit()");
@@ -181,11 +182,11 @@ static bool AppInit(int argc, char* argv[])
 
     if (!fRet)
     {
-        Interrupt();
+        Interrupt(node);
     } else {
-        WaitForShutdown();
+        WaitForShutdown(node);
     }
-    Shutdown(interfaces);
+    Shutdown(node);
 
     return fRet;
 }

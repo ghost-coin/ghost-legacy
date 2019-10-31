@@ -185,7 +185,7 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
     return nSigOps;
 }
 
-bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
+bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
 {
     // reset per tx
     state.fHasAnonOutput = false;
@@ -197,13 +197,13 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
 
     bool is_particl_tx = tx.IsParticlVersion();
     if (is_particl_tx && tx.vin.size() < 1) { // early out
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txn-no-inputs",
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txn-no-inputs",
                          strprintf("%s: no inputs", __func__));
     }
 
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
-        return state.Invalid(ValidationInvalidReason::TX_MISSING_INPUTS, false, "bad-txns-inputs-missingorspent",
+        return state.Invalid(TxValidationResult::TX_MISSING_INPUTS, "bad-txns-inputs-missingorspent",
                          strprintf("%s: inputs missing/spent", __func__));
     }
 
@@ -232,12 +232,12 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                     // Scale in the depth restriction to start the chain
                     int nRequiredDepth = std::min(COINBASE_MATURITY, (int)(coin.nHeight / 2));
                     if (nSpendHeight - coin.nHeight < nRequiredDepth) {
-                        return state.Invalid(ValidationInvalidReason::TX_PREMATURE_SPEND, false,
+                        return state.Invalid(TxValidationResult::TX_PREMATURE_SPEND,
                             "bad-txns-premature-spend-of-coinbase",
                             strprintf("tried to spend coinbase at height %d at depth %d, required %d", coin.nHeight, nSpendHeight - coin.nHeight, nRequiredDepth));
                     }
                 } else
-                return state.Invalid(ValidationInvalidReason::TX_PREMATURE_SPEND, false, "bad-txns-premature-spend-of-coinbase",
+                return state.Invalid(TxValidationResult::TX_PREMATURE_SPEND, "bad-txns-premature-spend-of-coinbase",
                     strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
             }
         }
@@ -247,7 +247,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             if (coin.nType == OUTPUT_STANDARD) {
                 nValueIn += coin.out.nValue;
                 if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn)) {
-                    return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-inputvalues-outofrange");
+                    return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-inputvalues-outofrange");
                 }
                 nStandard++;
             } else
@@ -255,18 +255,18 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                 vpCommitsIn.push_back(&coin.commitment);
                 nCt++;
             } else {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-input-type");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-input-type");
             }
         } else {
             nValueIn += coin.out.nValue;
             if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn)) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-inputvalues-outofrange");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-inputvalues-outofrange");
             }
         }
     }
 
     if ((nStandard > 0) + (nCt > 0) + (nRingCT > 0) > 1) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "mixed-input-types");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "mixed-input-types");
     }
 
     size_t nRingCTInputs = nRingCT;
@@ -280,23 +280,24 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             // Tally transaction fees
             if (nCt > 0 || nRingCT > 0) {
                 if (!tx.GetCTFee(txfee)) {
-                    return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: bad-fee-output", __func__), "bad-fee-output");
+                    LogPrintf("%s: bad-fee-output", __func__);
+                    return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-fee-output");
                 }
             } else {
                 txfee = nValueIn - nPlainValueOut;
 
                 if (nValueIn < nPlainValueOut) {
-                    return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-in-belowout",
+                    return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-in-belowout",
                         strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn), FormatMoney(nPlainValueOut)));
                 }
             }
 
             if (txfee < 0) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-fee-negative");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-fee-negative");
             }
             nFees += txfee;
             if (!MoneyRange(nFees)) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-fee-outofrange");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-fee-outofrange");
             }
 
             // Enforce smsg fees
@@ -308,7 +309,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
 
                 if (txfee < nTotalExpectedFees) {
                     if (state.fEnforceSmsgFees) {
-                        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-fee-smsg",
+                        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-fee-smsg",
                             strprintf("fees (%s) < expected (%s)", FormatMoney(txfee), FormatMoney(nTotalExpectedFees)));
                     } else {
                         LogPrintf("%s: bad-txns-fee-smsg, %d expected %d, not enforcing.\n", __func__, txfee, nTotalExpectedFees);
@@ -319,13 +320,13 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             // Return stake reward in txfee
             txfee = nPlainValueOut - nValueIn;
             if (nCt > 0 || nRingCT > 0) { // Counters track both outputs and inputs
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: non-standard elements in coinstake", __func__),
-                    "bad-coinstake-output");
+                LogPrintf("%s: non-standard elements in coinstake", __func__);
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-coinstake-output");
             }
         }
     } else {
         if (nValueIn < tx.GetValueOut()) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-in-belowout",
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-in-belowout",
                 strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn), FormatMoney(tx.GetValueOut())));
         }
 
@@ -333,7 +334,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         txfee = nValueIn - tx.GetValueOut();
         nFees += txfee;
         if (!MoneyRange(nFees)) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-fee-outofrange");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-fee-outofrange");
         }
     }
 
@@ -341,10 +342,10 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         nPlainValueOut += txfee;
 
         if (!MoneyRange(nPlainValueOut)) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-out-outofrange");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-out-outofrange");
         }
         if (!MoneyRange(nValueIn)) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-inputvalues-outofrange");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-inputvalues-outofrange");
         }
 
         // commitments must sum to 0
@@ -353,14 +354,14 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         memset(blindPlain, 0, 32);
         if (nValueIn > 0) {
             if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainInCommitment, blindPlain, (uint64_t) nValueIn, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "commit-failed");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "commit-failed");
             }
             vpCommitsIn.push_back(&plainInCommitment);
         }
 
         if (nPlainValueOut > 0) {
             if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainOutCommitment, blindPlain, (uint64_t) nPlainValueOut, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "commit-failed");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "commit-failed");
             }
             vpCommitsOut.push_back(&plainOutCommitment);
         }
@@ -376,7 +377,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             vpCommitsIn.data(), vpCommitsIn.size(), vpCommitsOut.data(), vpCommitsOut.size());
 
         if (rv != 1) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-commitment-sum");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-commitment-sum");
         }
     }
 
@@ -385,21 +386,21 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
 
 
 
-static bool CheckStandardOutput(CValidationState &state, const CTxOutStandard *p, CAmount &nValueOut)
+static bool CheckStandardOutput(TxValidationState &state, const CTxOutStandard *p, CAmount &nValueOut)
 {
     if (p->nValue < 0)
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vout-negative");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vout-negative");
     if (p->nValue > MAX_MONEY)
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vout-toolarge");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vout-toolarge");
     nValueOut += p->nValue;
 
     if (HasIsCoinstakeOp(p->scriptPubKey)) {
         if (GetAdjustedTime() < state.m_consensus_params->OpIsCoinstakeTime) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vout-opiscoinstake");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vout-opiscoinstake");
         }
         if (!state.m_consensus_params->fAllowOpIsCoinstakeWithP2PKH) {
             if (IsSpendScriptP2PKH(p->scriptPubKey)) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vout-opiscoinstake-spend-p2pkh");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vout-opiscoinstake-spend-p2pkh");
             }
         }
     }
@@ -407,14 +408,14 @@ static bool CheckStandardOutput(CValidationState &state, const CTxOutStandard *p
     return true;
 }
 
-static bool CheckBlindOutput(CValidationState &state, const CTxOutCT *p)
+static bool CheckBlindOutput(TxValidationState &state, const CTxOutCT *p)
 {
     if (p->vData.size() < 33 || p->vData.size() > 33 + 5 + 33) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-ctout-ephem-size");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-ctout-ephem-size");
     }
     size_t nRangeProofLen = 5134;
     if (p->vRangeproof.size() < 500 || p->vRangeproof.size() > nRangeProofLen) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-ctout-rangeproof-size");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-ctout-rangeproof-size");
     }
 
     if (state.m_skip_rangeproof) {
@@ -441,24 +442,24 @@ static bool CheckBlindOutput(CValidationState &state, const CTxOutCT *p)
     }
 
     if (rv != 1) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-ctout-rangeproof-verify");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-ctout-rangeproof-verify");
     }
 
     return true;
 }
 
-bool CheckAnonOutput(CValidationState &state, const CTxOutRingCT *p)
+bool CheckAnonOutput(TxValidationState &state, const CTxOutRingCT *p)
 {
     if (!state.rct_active) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "rctout-before-active");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "rctout-before-active");
     }
     if (p->vData.size() < 33 || p->vData.size() > 33 + 5 + 33) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-rctout-ephem-size");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-rctout-ephem-size");
     }
 
     size_t nRangeProofLen = 5134;
     if (p->vRangeproof.size() < 500 || p->vRangeproof.size() > nRangeProofLen) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-rctout-rangeproof-size");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-rctout-rangeproof-size");
     }
 
     if (state.m_skip_rangeproof) {
@@ -485,42 +486,42 @@ bool CheckAnonOutput(CValidationState &state, const CTxOutRingCT *p)
     }
 
     if (rv != 1) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-rctout-rangeproof-verify");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-rctout-rangeproof-verify");
     }
 
     return true;
 }
 
-static bool CheckDataOutput(CValidationState &state, const CTxOutData *p)
+static bool CheckDataOutput(TxValidationState &state, const CTxOutData *p)
 {
     if (p->vData.size() < 1) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-output-data-size");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-output-data-size");
     }
 
     const size_t MAX_DATA_OUTPUT_SIZE = 34 + 5 + 34; // DO_STEALTH 33, DO_STEALTH_PREFIX 4, DO_NARR_CRYPT (max 32 bytes)
     if (p->vData.size() > MAX_DATA_OUTPUT_SIZE) {
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-output-data-size");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-output-data-size");
     }
 
     return true;
 }
 
-bool CheckTransaction(const CTransaction& tx, CValidationState &state)
+bool CheckTransaction(const CTransaction& tx, TxValidationState &state)
 {
     // Basic checks that don't depend on any context
     if (tx.vin.empty())
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vin-empty");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vin-empty");
 
     // Size limits (this doesn't take the witness into account, as that hasn't been checked for malleability)
     if (::GetSerializeSize(tx, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-oversize");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-oversize");
 
     if (tx.IsParticlVersion()) {
         if (tx.vpout.empty()) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vpout-empty");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vpout-empty");
         }
         if (!tx.vout.empty()) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vout-not-empty");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vout-not-empty");
         }
 
         size_t nStandardOutputs = 0, nDataOutputs = 0, nBlindOutputs = 0, nAnonOutputs = 0;
@@ -552,11 +553,11 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
                     nDataOutputs++;
                     break;
                 default:
-                    return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-unknown-output-version");
+                    return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-unknown-output-version");
             }
 
             if (!MoneyRange(nValueOut)) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-txouttotal-toolarge");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-txouttotal-toolarge");
             }
         }
 
@@ -565,14 +566,14 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
             max_data_outputs += nBlindOutputs + nAnonOutputs;
         }
         if (nDataOutputs > max_data_outputs) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "too-many-data-outputs");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "too-many-data-outputs");
         }
     } else {
         if (state.m_particl_mode) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txn-version");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txn-version");
         }
         if (tx.vout.empty()) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vout-empty");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vout-empty");
         }
 
         // Check for negative or overflow output values
@@ -580,12 +581,12 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
         for (const auto& txout : tx.vout)
         {
             if (txout.nValue < 0)
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vout-negative");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vout-negative");
             if (txout.nValue > MAX_MONEY)
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-vout-toolarge");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vout-toolarge");
             nValueOut += txout.nValue;
             if (!MoneyRange(nValueOut))
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-txouttotal-toolarge");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-txouttotal-toolarge");
         }
     }
 
@@ -599,20 +600,20 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
     {
         if (!txin.IsAnonInput()
             && !vInOutPoints.insert(txin.prevout).second) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-inputs-duplicate");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-inputs-duplicate");
         }
     }
 
     if (tx.IsCoinBase())
     {
         if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-cb-length");
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-cb-length");
     }
     else
     {
         for (const auto& txin : tx.vin) {
             if (!txin.IsAnonInput() && txin.prevout.IsNull()) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, "bad-txns-prevout-null");
+                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-prevout-null");
             }
         }
     }

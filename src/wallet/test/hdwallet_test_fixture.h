@@ -16,7 +16,7 @@ struct HDWalletTestingSetup: public TestingSetup {
     explicit HDWalletTestingSetup(const std::string& chainName = CBaseChainParams::MAIN);
     ~HDWalletTestingSetup();
 
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain();
+    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(m_node);
     std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, {});
     std::shared_ptr<CHDWallet> pwalletMain;
 };

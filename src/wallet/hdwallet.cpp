@@ -8445,7 +8445,7 @@ void CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::
 }
 
 
-bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx, CValidationState &state)
+bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx, TxValidationState &state)
 {
     {
         auto locked_chain = chain().lock();

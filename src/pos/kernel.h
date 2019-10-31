@@ -32,7 +32,7 @@ bool GetKernelInfo(const CBlockIndex *blockindex, const CTransaction &tx, uint25
  * Check kernel hash target and coinstake signature
  * Sets hashProofOfStake on success return
  */
-bool CheckProofOfStake(CValidationState &state, const CBlockIndex *pindexPrev, const CTransaction &tx, int64_t nTime, unsigned int nBits, uint256 &hashProofOfStake, uint256 &targetProofOfStake) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+bool CheckProofOfStake(BlockValidationState &state, const CBlockIndex *pindexPrev, const CTransaction &tx, int64_t nTime, unsigned int nBits, uint256 &hashProofOfStake, uint256 &targetProofOfStake) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Check whether the coinstake timestamp meets protocol

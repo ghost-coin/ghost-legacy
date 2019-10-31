@@ -4609,8 +4609,8 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     EnsureWalletIsUnlocked(pwallet);
 
-    if (pwallet->GetBroadcastTransactions() && !g_connman) {
-        throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
+    if (!pwallet->GetBroadcastTransactions()) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error: Wallet transaction broadcasting is disabled with -walletbroadcast");
     }
 
     if (typeOut == OUTPUT_RINGCT && GetTime() < Params().GetConsensus().rct_time) {
@@ -4921,7 +4921,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         wtx.mapValue[sKey] = r.sNarration;
     }
 
-    CValidationState state;
+    TxValidationState state;
     if (typeIn == OUTPUT_STANDARD && typeOut == OUTPUT_STANDARD) {
         pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm);
     } else {
@@ -7921,7 +7921,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
 
     if (check_values) {
-        CValidationState state;
+        TxValidationState state;
         CAmount nFee = 0;
         if (!Consensus::CheckTxInputs(txConst, state, view, nSpendHeight, nFee)) {
             result.pushKV("inputs_valid", false);
@@ -8077,7 +8077,6 @@ static UniValue rewindchain(const JSONRPCRequest &request)
     CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
     view.fForceDisconnect = true;
     CBlockIndex* pindexState = ::ChainActive().Tip();
-    CValidationState state;
 
     int nBlocks = 0;
 

@@ -28,6 +28,7 @@ class UniValue;
 typedef struct secp256k1_scratch_space_struct secp256k1_scratch_space;
 
 struct CBlockTemplate;
+class TxValidationState;
 
 class CStoredTransaction
 {
@@ -346,7 +347,7 @@ public:
     bool CreateTransaction(interfaces::Chain::Lock& locked_chain, std::vector<CTempRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet, int& nChangePosInOut,
                            std::string& strFailReason, const CCoinControl& coin_control, bool sign = true);
     void CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm) override;
-    bool CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx, CValidationState &state);
+    bool CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx, TxValidationState &state);
 
     bool DummySignInput(CTxIn &tx_in, const CTxOut &txout, bool use_max_sig = false) const override;
 

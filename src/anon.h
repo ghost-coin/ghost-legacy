@@ -13,7 +13,7 @@
 extern RecursiveMutex cs_main;
 
 class CTxMemPool;
-class CValidationState;
+class TxValidationState;
 
 const size_t MIN_RINGSIZE = 3;
 const size_t MAX_RINGSIZE = 32;
@@ -26,12 +26,12 @@ const size_t DEFAULT_RING_SIZE = 5;
 const size_t DEFAULT_INPUTS_PER_SIG = 1;
 
 
-bool VerifyMLSAG(const CTransaction &tx, CValidationState &state) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 bool AddKeyImagesToMempool(const CTransaction &tx, CTxMemPool &pool);
 bool RemoveKeyImagesFromMempool(const uint256 &hash, const CTxIn &txin, CTxMemPool &pool);
 
-bool AllAnonOutputsUnknown(const CTransaction &tx, CValidationState &state);
+bool AllAnonOutputsUnknown(const CTransaction &tx, TxValidationState &state);
 
 bool RollBackRCTIndex(int64_t nLastValidRCTOutput, int64_t nExpectErase, std::set<CCmpPubKey> &setKi);
 

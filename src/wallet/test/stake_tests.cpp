@@ -55,7 +55,7 @@ struct StakeTestingSetup: public TestingSetup {
         ECC_Stop_Blinding();
     }
 
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain();
+    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(m_node);
     std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, {});
     std::shared_ptr<CHDWallet> pwalletMain;
 };
@@ -132,7 +132,7 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
 
 static void DisconnectTip(CBlock &block, CBlockIndex *pindexDelete, CCoinsViewCache &view, const CChainParams &chainparams)
 {
-    CValidationState state;
+    BlockValidationState state;
     BOOST_REQUIRE(DISCONNECT_OK == DisconnectBlock(block, pindexDelete, view));
     BOOST_REQUIRE(FlushView(&view, state, true));
     BOOST_REQUIRE(::ChainstateActive().FlushStateToDisk(chainparams, state, FlushStateMode::IF_NEEDED));
@@ -221,7 +221,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     // Reconnect block
     {
-        CValidationState state;
+        BlockValidationState state;
         std::shared_ptr<const CBlock> pblock = std::make_shared<const CBlock>(block);
         BOOST_REQUIRE(ActivateBestChain(state, chainparams, pblock));
 
@@ -256,7 +256,6 @@ BOOST_AUTO_TEST_CASE(stake_test)
         BOOST_CHECK(pwallet->CreateTransaction(*locked_chain, vecSend, tx_new, nFeeRequired, nChangePosRet, strError, coinControl));
     }
     {
-        CValidationState state;
         pwallet->SetBroadcastTransactions(true);
         mapValue_t mapValue;
         pwallet->CommitTransaction(tx_new, std::move(mapValue), {} /* orderForm */);
@@ -298,7 +297,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
             RegtestParams().SetCoinYearReward(1 * CENT);
             BOOST_CHECK(Params().GetCoinYearReward(0) == 1 * CENT);
 
-            CValidationState state;
+            BlockValidationState state;
             CCoinsViewCache view(&::ChainstateActive().CoinsTip());
             BOOST_REQUIRE(false == ConnectBlock(block, state, pindexDelete, view, chainparams, false));
 
@@ -311,7 +310,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
             BOOST_CHECK(Params().GetCoinYearReward(0) == 2 * CENT);
 
             // block should connect now
-            CValidationState clearstate;
+            BlockValidationState clearstate;
             CCoinsViewCache &clearview = ::ChainstateActive().CoinsTip();
             BOOST_REQUIRE(ConnectBlock(block, clearstate, pindexDelete, clearview, chainparams, false));
 
@@ -345,6 +344,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CCoinControl coinControl;
         BOOST_CHECK(30 * COIN == pwallet->GetAvailableAnonBalance(&coinControl));
 
+        printf("[rm] ::ChainActive().Tip()->nAnonOutputs %d\n", ::ChainActive().Tip()->nAnonOutputs);
         BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 4);
 
         for (size_t i = 0; i < 2; ++i) {
