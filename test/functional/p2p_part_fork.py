@@ -47,6 +47,7 @@ class ForkTest(ParticlTestFramework):
         nodes[3].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
         assert(nodes[3].getwalletinfo()['total_balance'] == 100000)
 
+        n0_wi_before = nodes[0].getwalletinfo()
 
         # start staking
         nBlocksShorterChain = 2
@@ -121,9 +122,22 @@ class ForkTest(ParticlTestFramework):
 
         ro = nodes[0].getblockchaininfo()
         assert(ro['blocks'] == 5)
-
         ro = nodes[3].getblockchaininfo()
         assert(ro['blocks'] == 5)
+
+        n0_wi_after = nodes[0].getwalletinfo()
+
+        assert(n0_wi_after['total_balance'] == n0_wi_before['total_balance'])
+        assert(n0_wi_before['txcount'] == 1)
+        assert(n0_wi_after['txcount'] == 3)
+
+        n0_ft = nodes[0].filtertransactions()
+        assert(len(n0_ft) == 3)
+        assert(n0_ft[0]['category'] == 'orphaned_stake')
+        assert(n0_ft[1]['category'] == 'orphaned_stake')
+        n0_lt = nodes[0].listtransactions()
+        assert(n0_lt[-1]['category'] == 'orphaned_stake')
+        assert(n0_lt[-2]['category'] == 'orphaned_stake')
 
 
 if __name__ == '__main__':
