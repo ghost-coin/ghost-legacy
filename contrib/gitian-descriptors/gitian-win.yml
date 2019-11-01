@@ -101,9 +101,6 @@ script: |
 
   cd particl-core
   BASEPREFIX=`pwd`/depends
-
-  create_per-host_linker_wrapper "2000-01-01 12:00:00"
-
   # Build dependencies for each host
   for i in $HOSTS; do
     make ${MAKEOPTS} -C ${BASEPREFIX} HOST="${i}"
@@ -152,7 +149,7 @@ script: |
     make ${MAKEOPTS} -C src check-security
     make deploy
     make install DESTDIR=${INSTALLPATH}
-    cp -f --target-directory="${OUTDIR}" ./bitcoin-*-setup-unsigned.exe
+    cp -f --target-directory="${OUTDIR}" ./particl-*-setup-unsigned.exe
     cd installed
     mv ${DISTNAME}/bin/*.dll ${DISTNAME}/lib/
     find . -name "lib*.la" -delete
