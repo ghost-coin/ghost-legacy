@@ -96,6 +96,12 @@ struct TestingSetup : public BasicTestingSetup {
     ~TestingSetup();
 };
 
+/** Identical to TestingSetup, but chain set to regtest */
+struct RegTestingSetup : public TestingSetup {
+    RegTestingSetup()
+        : TestingSetup{CBaseChainParams::REGTEST} {}
+};
+
 class CBlock;
 struct CMutableTransaction;
 class CScript;
@@ -104,7 +110,7 @@ class CScript;
 // Testing fixture that pre-creates a
 // 100-block REGTEST-mode block chain
 //
-struct TestChain100Setup : public TestingSetup {
+struct TestChain100Setup : public RegTestingSetup {
     TestChain100Setup();
 
     // Create a new block with just given transactions, coinbase paying to
