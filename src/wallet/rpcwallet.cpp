@@ -142,7 +142,7 @@ void WalletTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_ch
         entry.pushKV("blockindex", wtx.m_confirm.nIndex);
         int64_t block_time;
         bool found_block = chain.findBlock(wtx.m_confirm.hashBlock, nullptr /* block */, &block_time);
-        assert(found_block);
+        CHECK_NONFATAL(found_block);
         PushTime(entry, "blocktime", block_time);
     } else {
         entry.pushKV("trusted", wtx.IsTrusted(locked_chain));
@@ -3767,7 +3767,7 @@ static UniValue listunspent(const JSONRPCRequest& request)
                     CTxDestination witness_destination;
                     if (redeemScript.IsPayToWitnessScriptHash()) {
                         bool extracted = ExtractDestination(redeemScript, witness_destination);
-                        assert(extracted);
+                        CHECK_NONFATAL(extracted);
                         // Also return the witness script
                         const WitnessV0ScriptHash& whash = boost::get<WitnessV0ScriptHash>(witness_destination);
                         CScriptID id;
@@ -4747,26 +4747,24 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
         ret.pushKV("label", pwallet->mapAddressBook[dest].name);
     }
     ret.pushKV("ischange", pwallet->IsChange(scriptPubKey));
-    const CKeyMetadata* meta = nullptr;
-    CKeyID key_id = GetKeyForDestination(*provider, dest);
-    if (!key_id.IsNull()) {
-        auto it = pwallet->mapKeyMetadata.find(key_id);
-        if (it != pwallet->mapKeyMetadata.end()) {
-            meta = &it->second;
+
+    ScriptPubKeyMan* spk_man = pwallet->GetScriptPubKeyMan();
+    if (spk_man) {
+        CKeyID key_id = GetKeyForDestination(*provider, dest);
+        const CKeyMetadata* meta = nullptr;
+        if (!key_id.IsNull()) {
+            meta = spk_man->GetMetadata(key_id);
         }
-    }
-    if (!meta) {
-        auto it = pwallet->m_script_metadata.find(CScriptID(scriptPubKey));
-        if (it != pwallet->m_script_metadata.end()) {
-            meta = &it->second;
+        if (!meta) {
+            meta = spk_man->GetMetadata(CScriptID(scriptPubKey));
         }
-    }
-    if (meta) {
-        ret.pushKV("timestamp", meta->nCreateTime);
-        if (meta->has_key_origin) {
-            ret.pushKV("hdkeypath", WriteHDKeypath(meta->key_origin.path));
-            ret.pushKV("hdseedid", meta->hd_seed_id.GetHex());
-            ret.pushKV("hdmasterfingerprint", HexStr(meta->key_origin.fingerprint, meta->key_origin.fingerprint + 4));
+        if (meta) {
+            ret.pushKV("timestamp", meta->nCreateTime);
+            if (meta->has_key_origin) {
+                ret.pushKV("hdkeypath", WriteHDKeypath(meta->key_origin.path));
+                ret.pushKV("hdseedid", meta->hd_seed_id.GetHex());
+                ret.pushKV("hdmasterfingerprint", HexStr(meta->key_origin.fingerprint, meta->key_origin.fingerprint + 4));
+            }
         }
     }
 
@@ -4824,7 +4822,7 @@ static UniValue getaddressesbylabel(const JSONRPCRequest& request)
             // address strings, but build a separate set as a precaution just in
             // case it does.
             bool unique = addresses.emplace(address).second;
-            assert(unique);
+            CHECK_NONFATAL(unique);
             // UniValue::pushKV checks if the key exists in O(N)
             // and since duplicate addresses are unexpected (checked with
             // std::set in O(log(N))), UniValue::__pushKV is used instead,

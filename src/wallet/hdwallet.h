@@ -448,6 +448,8 @@ public:
     bool SetSetting(const std::string &setting, const UniValue &json);
     bool EraseSetting(const std::string &setting);
 
+    int64_t GetTimeFirstKey();
+
     /* Return a prevout if it exists in the wallet. */
     bool GetPrevout(const COutPoint &prevout, CTxOutBaseRef &txout) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 

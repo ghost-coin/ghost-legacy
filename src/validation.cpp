@@ -2721,8 +2721,6 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             view.nLastRCTOutput = pindex->pprev ? pindex->pprev->nAnonOutputs : 0;
         }
 
-        LogPrintf("[rm] tx_state.fHasAnonOutput %d\n", tx_state.fHasAnonOutput);
-        LogPrintf("[rm] tx_state.fHasAnonInput %d\n", tx_state.fHasAnonInput);
         // Index rct outputs and keyimages
         if (tx_state.fHasAnonOutput || tx_state.fHasAnonInput) {
             COutPoint op(txhash, 0);

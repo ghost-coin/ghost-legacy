@@ -237,9 +237,9 @@ bool CHDWallet::Initialise()
 
         // No need to read and scan block if block was created before
         // our wallet birthday (as adjusted for block time variability)
-        if (nTimeFirstKey) {
-
-            if (Optional<int> first_block = locked_chain->findFirstBlockWithTimeAndHeight(nTimeFirstKey - TIMESTAMP_WINDOW, rescan_height, nullptr)) {
+        int64_t time_first_key = GetTimeFirstKey();
+        if (time_first_key) {
+            if (Optional<int> first_block = locked_chain->findFirstBlockWithTimeAndHeight(time_first_key - TIMESTAMP_WINDOW, rescan_height, nullptr)) {
                 rescan_height = *first_block;
             }
         }
@@ -6691,8 +6691,9 @@ int CHDWallet::ExtKeyLoadMaster()
     int64_t nCreatedAt = 0;
     GetCompressedInt64(pEKMaster->mapValue[EKVT_CREATED_AT], (uint64_t&)nCreatedAt);
 
-    if (!nTimeFirstKey || (nCreatedAt && nCreatedAt < nTimeFirstKey)) {
-        nTimeFirstKey = nCreatedAt;
+    if (auto spk_man = m_spk_man.get()) {
+        // TODO: Split CHDWallet into a new ScriptPubKeyMan
+        spk_man->UpdateTimeFirstKey(nCreatedAt);
     }
 
     return 0;
@@ -6797,8 +6798,9 @@ int CHDWallet::ExtKeyLoadAccounts()
         int64_t nCreatedAt;
         GetCompressedInt64(sea->mapValue[EKVT_CREATED_AT], (uint64_t&)nCreatedAt);
 
-        if (!nTimeFirstKey || (nCreatedAt && nCreatedAt < nTimeFirstKey)) {
-            nTimeFirstKey = nCreatedAt;
+        if (auto spk_man = m_spk_man.get()) {
+            // TODO: Split CHDWallet into a new ScriptPubKeyMan
+            spk_man->UpdateTimeFirstKey(nCreatedAt);
         }
 
         ExtKeyLoadAccountKeys(&wdb, sea);
@@ -12092,6 +12094,16 @@ bool CHDWallet::EraseSetting(const std::string &setting)
     }
 
     return true;
+};
+
+int64_t CHDWallet::GetTimeFirstKey()
+{
+    int64_t time_first_key = 0;
+    if (auto spk_man = m_spk_man.get()) {
+        int64_t time = spk_man->GetTimeFirstKey();
+        if (!time_first_key || time < time_first_key) time_first_key = time;
+    }
+    return time_first_key;
 };
 
 bool CHDWallet::GetPrevout(const COutPoint &prevout, CTxOutBaseRef &txout)
