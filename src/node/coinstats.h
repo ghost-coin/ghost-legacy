@@ -25,6 +25,9 @@ struct CCoinsStats
     CAmount nTotalAmount;
     uint64_t nBlindTransactionOutputs;
 
+    //! The number of coins contained.
+    uint64_t coins_count{0};
+
     CCoinsStats() : nHeight(0), nTransactions(0), nTransactionOutputs(0), nBogoSize(0), nDiskSize(0), nTotalAmount(0), nBlindTransactionOutputs(0) {}
 };
 
