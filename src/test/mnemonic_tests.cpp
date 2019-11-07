@@ -7,7 +7,7 @@
 #include <test/data/bip39_vectors_english.json.h>
 #include <test/data/bip39_vectors_japanese.json.h>
 
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 
 #include <key/extkey.h>
 #include <key_io.h>

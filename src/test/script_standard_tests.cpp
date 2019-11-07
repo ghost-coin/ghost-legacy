@@ -6,8 +6,8 @@
 #include <script/script.h>
 #include <script/signingprovider.h>
 #include <script/standard.h>
+#include <test/util/setup_common.h>
 #include <util/strencodings.h>
-#include <test/setup_common.h>
 
 #include <key/extkey.h>
 #include <key/stealth.h>

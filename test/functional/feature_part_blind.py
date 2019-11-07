@@ -134,7 +134,6 @@ class BlindTest(ParticlTestFramework):
         assert(ro['prefix_num_bits'] == 4)
         assert(ro['prefix_bitfield'] == '0x000a')
 
-
         txnHash5 = nodes[0].sendparttoblind(sxAddrTo2_3, 0.5, '', '', False, 'node0 -> node2 p->b')
 
         assert(self.wait_for_mempool(nodes[2], txnHash5))
@@ -142,21 +141,22 @@ class BlindTest(ParticlTestFramework):
         ro = nodes[2].listtransactions()
         assert(ro[-1]['txid'] == txnHash5)
 
-
         ro = nodes[0].getwalletinfo()
         # Some of the balance will have staked
         assert(isclose(ro['balance'] + ro['staked_balance'], 99996.09874074))
         availableBalance = ro['balance']
 
-
-        # Check node0 can spend remaining coin
+        self.log.info('Check node0 can spend remaining coin')
+        self.stakeBlocks(1)  # IsTrusted checks that parent txns are also trusted
+        nodes[0].syncwithvalidationinterfacequeue()
+        availableBalance = nodes[0].getwalletinfo()['balance']
         addrTo0_2 = nodes[0].getnewaddress()
         txnHash2 = nodes[0].sendtoaddress(addrTo0_2, availableBalance, '', '', True, 'node0 spend remaining')
         txnHashes.append(txnHash2)
 
 
         nodes[0].syncwithvalidationinterfacequeue()
-        assert(isclose(nodes[0].getwalletinfo()['total_balance'], 99996.09670674))
+        assert(isclose(nodes[0].getwalletinfo()['total_balance'], 99996.10316311))
         assert(isclose(nodes[1].getwalletinfo()['blind_balance'], 2.69580200))
 
         unspent = nodes[2].listunspentblind(minconf=0)
@@ -203,7 +203,7 @@ class BlindTest(ParticlTestFramework):
         nodes[0].sendtypeto('blind', 'blind', outputs)
 
         self.sync_all()
-        self.stakeBlocks(1,nStakeNode=3)
+        self.stakeBlocks(1, nStakeNode=3)
 
         self.log.info('Test sending all blind to part')
         bal1 = nodes[1].getwalletinfo()
@@ -216,11 +216,11 @@ class BlindTest(ParticlTestFramework):
         assert(isclose(bal1['blind_balance'], 0.00000001))
 
         ro = nodes[2].getblockstats(nodes[2].getblockchaininfo()['blocks'])
-        assert(ro['height'] == 3)
+        assert(ro['height'] == 4)
 
         self.log.info('Test gettxoutsetinfobyscript')
         ro = nodes[0].gettxoutsetinfobyscript()
-        assert(ro['height'] == 3)
+        assert(ro['height'] == 4)
         assert(ro['paytopubkeyhash']['num_blinded'] > 5)
 
 

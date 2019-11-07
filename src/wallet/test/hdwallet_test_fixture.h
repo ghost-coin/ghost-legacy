@@ -5,7 +5,7 @@
 #ifndef PARTICL_WALLET_TEST_HDWALLET_TEST_FIXTURE_H
 #define PARTICL_WALLET_TEST_HDWALLET_TEST_FIXTURE_H
 
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 #include <interfaces/chain.h>
 
 class CHDWallet;

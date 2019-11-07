@@ -4,7 +4,7 @@
 
 #include <key_io.h>
 #include <bech32.h>
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 #include <test/util/str.h>
 
 #include <boost/test/unit_test.hpp>

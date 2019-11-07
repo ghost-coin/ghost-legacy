@@ -344,7 +344,6 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CCoinControl coinControl;
         BOOST_CHECK(30 * COIN == pwallet->GetAvailableAnonBalance(&coinControl));
 
-        printf("[rm] ::ChainActive().Tip()->nAnonOutputs %d\n", ::ChainActive().Tip()->nAnonOutputs);
         BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 4);
 
         for (size_t i = 0; i < 2; ++i) {

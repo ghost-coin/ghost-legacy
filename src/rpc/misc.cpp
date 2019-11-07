@@ -405,10 +405,11 @@ static UniValue setmocktime(const JSONRPCRequest& request)
 
     RPCTypeCheck(request.params, {UniValue::VNUM, UniValue::VBOOL}, true);
 
-    if (isOffset)
+    if (isOffset) {
         SetMockTimeOffset(request.params[0].get_int64());
-    else
+    } else {
         SetMockTime(request.params[0].get_int64());
+    }
 
     return NullUniValue;
 }

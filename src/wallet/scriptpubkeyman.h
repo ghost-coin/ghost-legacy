@@ -195,7 +195,8 @@ public:
 
     virtual int64_t GetTimeFirstKey() const { return 0; }
 
-    virtual const CKeyMetadata* GetMetadata(uint160 id) const { return nullptr; }
+    //! Return address metadata
+    virtual const CKeyMetadata* GetMetadata(const CTxDestination& dest) const { return nullptr; }
 };
 
 class LegacyScriptPubKeyMan : public ScriptPubKeyMan, public FillableSigningProvider
@@ -311,7 +312,7 @@ public:
 
     int64_t GetTimeFirstKey() const override;
 
-    const CKeyMetadata* GetMetadata(uint160 id) const override;
+    const CKeyMetadata* GetMetadata(const CTxDestination& dest) const override;
 
     bool CanGetAddresses(bool internal = false) override;
 
@@ -364,7 +365,6 @@ public:
 
     //! Load a keypool entry
     void LoadKeyPool(int64_t nIndex, const CKeyPool &keypool) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    bool TopUpKeyPool(unsigned int kpSize = 0);
     bool NewKeyPool();
     void MarkPreSplitKeys() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 

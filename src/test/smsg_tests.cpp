@@ -4,7 +4,7 @@
 
 #include <smsg/smessage.h>
 
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 #include <net.h>
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>

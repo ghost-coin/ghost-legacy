@@ -17,10 +17,10 @@
 #include <util/time.h>
 #include <validation.h>
 
+#include <test/util/setup_common.h>
+
 #include <key/extkey.h>
 #include <key/stealth.h>
-
-#include <test/setup_common.h>
 
 #include <stdint.h>
 

@@ -8,7 +8,7 @@
 #include <pubkey.h>
 #include <key_io.h>
 #include <script/signingprovider.h>
-#include <test/setup_common.h>
+#include <test/util/setup_common.h>
 #include <util/strencodings.h>
 
 #include <serialize.h>

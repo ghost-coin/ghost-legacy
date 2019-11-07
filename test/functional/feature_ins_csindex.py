@@ -56,8 +56,8 @@ class TxIndexTest(ParticlTestFramework):
         addrStake2 = nodes[2].getnewaddress('addrStake2')
         addrSpend2 = nodes[2].getnewaddress('addrSpend2', 'false', 'false', 'true')
 
-        for i in range(len(nodes)):
-            nodes[i].setmocktime(1530566486, True)  # Clamp for more consistent runtime
+        #for i in range(len(nodes)):
+        #   nodes[i].setmocktime(1530566486, True)  # Clamp for more consistent runtime
 
         self.stakeBlocks(1)
 
