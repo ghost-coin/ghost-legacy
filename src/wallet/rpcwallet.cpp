@@ -141,7 +141,7 @@ LegacyScriptPubKeyMan& EnsureLegacyScriptPubKeyMan(CWallet& wallet)
 
 void WalletTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_chain, const CWalletTx& wtx, UniValue& entry, bool fFilterMode=false)
 {
-    int confirms = wtx.GetDepthInMainChain(locked_chain);
+    int confirms = wtx.GetDepthInMainChain();
     entry.pushKV("confirmations", confirms);
     if (wtx.IsCoinBase())
         entry.pushKV("generated", true);
@@ -185,7 +185,7 @@ void WalletTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_ch
 
 void RecordTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, const uint256 &hash, const CTransactionRecord& rtx, UniValue &entry)
 {
-    int confirms = phdw->GetDepthInMainChain(locked_chain, rtx.blockHash, rtx.nIndex);
+    int confirms = phdw->GetDepthInMainChain(rtx);
     entry.pushKV("confirmations", confirms);
 
     if (rtx.IsCoinStake()) {
@@ -200,7 +200,7 @@ void RecordTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_ch
         entry.pushKV("blockindex", rtx.nIndex);
         PushTime(entry, "blocktime", rtx.nBlockTime);
     } else {
-        entry.pushKV("trusted", phdw->IsTrusted(locked_chain, hash, rtx.blockHash));
+        entry.pushKV("trusted", phdw->IsTrusted(locked_chain, hash, rtx));
     }
 
     entry.pushKV("txid", hash.GetHex());
@@ -847,7 +847,7 @@ static UniValue getreceivedbyaddress(const JSONRPCRequest& request)
             for (auto &txout : wtx.tx->vpout) {
                 if (txout->IsStandardOutput()
                     && *txout->GetPScriptPubKey() == scriptPubKey) {
-                    if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth) {
+                    if (wtx.GetDepthInMainChain() >= nMinDepth) {
                         nAmount += txout->GetValue();
                     }
                 }
@@ -855,7 +855,7 @@ static UniValue getreceivedbyaddress(const JSONRPCRequest& request)
         } else
         for (const CTxOut& txout : wtx.tx->vout)
             if (txout.scriptPubKey == scriptPubKey)
-                if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth)
+                if (wtx.GetDepthInMainChain() >= nMinDepth)
                     nAmount += txout.nValue;
     }
 
@@ -922,7 +922,7 @@ static UniValue getreceivedbylabel(const JSONRPCRequest& request)
                 CTxDestination address;
                 if (txout->IsStandardOutput()
                     && ExtractDestination(*txout->GetPScriptPubKey(), address) && pwallet->IsMine(address) && setAddress.count(address)) {
-                    if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth) {
+                    if (wtx.GetDepthInMainChain() >= nMinDepth) {
                         nAmount += txout->GetValue();
                     }
                 }
@@ -932,7 +932,7 @@ static UniValue getreceivedbylabel(const JSONRPCRequest& request)
         {
             CTxDestination address;
             if (ExtractDestination(txout.scriptPubKey, address) && pwallet->IsMine(address) && setAddress.count(address)) {
-                if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth)
+                if (wtx.GetDepthInMainChain() >= nMinDepth)
                     nAmount += txout.nValue;
             }
         }
@@ -1368,7 +1368,7 @@ static UniValue ListReceived(interfaces::Chain::Lock& locked_chain, CWallet * co
             continue;
         }
 
-        int nDepth = wtx.GetDepthInMainChain(locked_chain);
+        int nDepth = wtx.GetDepthInMainChain();
         if (nDepth < nMinDepth)
             continue;
 
@@ -1658,8 +1658,9 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
     }
 
     // Received
-    if (listReceived.size() > 0 && wtx.GetDepthInMainChain(locked_chain) >= nMinDepth) {
-        for (const COutputEntry &r : listReceived) {
+    if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth) {
+        for (const COutputEntry& r : listReceived)
+        {
             std::string label;
             if (pwallet->mapAddressBook.count(r.destination)) {
                 label = pwallet->mapAddressBook[r.destination].name;
@@ -1686,10 +1687,10 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
                 entry.pushKV("coldstake_address", EncodeDestination(r.destStake));
             }
             if (wtx.IsCoinBase()) {
-                if (wtx.GetDepthInMainChain(locked_chain) < 1) {
+                if (wtx.GetDepthInMainChain() < 1) {
                     entry.pushKV("category", "orphan");
                 } else
-                if (wtx.IsImmatureCoinBase(locked_chain)) {
+                if (wtx.IsImmatureCoinBase()) {
                     entry.pushKV("category", "immature");
                 } else {
                     entry.pushKV("category", (fParticlMode ? "coinbase" : "generate"));
@@ -1717,7 +1718,7 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
     }
 
     // Staked
-    if (listStaked.size() > 0 && wtx.GetDepthInMainChain(locked_chain) >= nMinDepth) {
+    if (listStaked.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth) {
         for (const auto &s : listStaked) {
             UniValue entry(UniValue::VOBJ);
             if (involvesWatchonly || (s.ismine & ISMINE_WATCH_ONLY)) {
@@ -1727,7 +1728,7 @@ static void ListTransactions(interfaces::Chain::Lock& locked_chain, CWallet* con
             if (s.destStake.type() != typeid(CNoDestination)) {
                 entry.pushKV("coldstake_address", EncodeDestination(s.destStake));
             }
-            entry.pushKV("category", wtx.GetDepthInMainChain(locked_chain) < 1 ? "orphaned_stake" : "stake");
+            entry.pushKV("category", wtx.GetDepthInMainChain() < 1 ? "orphaned_stake" : "stake");
 
             entry.pushKV("amount", ValueFromAmount(s.amount));
             if (pwallet->mapAddressBook.count(s.destination)) {
@@ -1842,14 +1843,14 @@ static void ListRecord(interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, c
 
         entry.pushKV("vout", r.n);
 
-        int confirms = phdw->GetDepthInMainChain(locked_chain, rtx.blockHash);
+        int confirms = phdw->GetDepthInMainChain(rtx);
         entry.pushKV("confirmations", confirms);
         if (confirms > 0) {
             entry.pushKV("blockhash", rtx.blockHash.GetHex());
             entry.pushKV("blockindex", rtx.nIndex);
             PushTime(entry, "blocktime", rtx.nBlockTime);
         } else {
-            entry.pushKV("trusted", phdw->IsTrusted(locked_chain, hash, rtx.blockHash));
+            entry.pushKV("trusted", phdw->IsTrusted(locked_chain, hash, rtx));
         }
 
         entry.pushKV("txid", hash.ToString());
@@ -2146,7 +2147,7 @@ static UniValue listsinceblock(const JSONRPCRequest& request)
     for (const std::pair<const uint256, CWalletTx>& pairWtx : pwallet->mapWallet) {
         CWalletTx tx = pairWtx.second;
 
-        if (depth == -1 || abs(tx.GetDepthInMainChain(*locked_chain)) < depth) {
+        if (depth == -1 || abs(tx.GetDepthInMainChain()) < depth) {
             ListTransactions(*locked_chain, pwallet, tx, 0, true, transactions, filter, nullptr /* filter_label */);
         }
     }
@@ -2157,7 +2158,7 @@ static UniValue listsinceblock(const JSONRPCRequest& request)
         for (const auto &ri : phdw->mapRecords) {
             const uint256 &txhash = ri.first;
             const CTransactionRecord &rtx = ri.second;
-            if (depth == -1 || phdw->GetDepthInMainChain(*locked_chain, rtx.blockHash, rtx.nIndex) < depth) {
+            if (depth == -1 || phdw->GetDepthInMainChain(rtx) < depth) {
                 ListRecord(*locked_chain, phdw, txhash, rtx, "*", 0, true, transactions, filter);
             }
         }
@@ -2308,7 +2309,7 @@ UniValue gettransaction(const JSONRPCRequest& request)
     }
     const CWalletTx& wtx = it->second;
 
-    CAmount nCredit = wtx.GetCredit(*locked_chain, filter);
+    CAmount nCredit = wtx.GetCredit(filter);
     CAmount nDebit = wtx.GetDebit(filter);
     CAmount nNet = nCredit - nDebit;
     CAmount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : 0);
@@ -2374,7 +2375,7 @@ static UniValue abandontransaction(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid or non-wallet transaction id");
         }
     }
-    if (!pwallet->AbandonTransaction(*locked_chain, hash)) {
+    if (!pwallet->AbandonTransaction(hash)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction not eligible for abandonment");
     }
 
@@ -2846,7 +2847,7 @@ static UniValue lockunspent(const JSONRPCRequest& request)
         }
         }
 
-        if (pwallet->IsSpent(*locked_chain, outpt.hash, outpt.n)) {
+        if (pwallet->IsSpent(outpt.hash, outpt.n)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected unspent output");
         }
 
@@ -3552,12 +3553,12 @@ static UniValue resendwallettransactions(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: Wallet transaction broadcasting is disabled with -walletbroadcast");
     }
 
-    std::vector<uint256> txids = pwallet->ResendWalletTransactionsBefore(*locked_chain, GetTime());
+    std::vector<uint256> txids = pwallet->ResendWalletTransactionsBefore(GetTime());
     UniValue result(UniValue::VARR);
     if (IsParticlWallet(pwallet)) {
         CHDWallet *phdw = GetParticlWallet(pwallet);
         std::vector<uint256> txidsRec;
-        txidsRec = phdw->ResendRecordTransactionsBefore(*locked_chain, GetTime());
+        txidsRec = phdw->ResendRecordTransactionsBefore(GetTime());
 
         for (auto &txid : txidsRec) {
             result.push_back(txid.ToString());

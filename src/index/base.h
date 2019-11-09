@@ -67,7 +67,7 @@ protected:
     void BlockConnected(const std::shared_ptr<const CBlock>& block, const CBlockIndex* pindex,
                         const std::vector<CTransactionRef>& txn_conflicted) override;
 
-    void BlockDisconnected(const std::shared_ptr<const CBlock> &pblock) override;
+    void BlockDisconnected(const std::shared_ptr<const CBlock> &pblock, const CBlockIndex* pindex) override;
 
     void ChainStateFlushed(const CBlockLocator& locator) override;
 

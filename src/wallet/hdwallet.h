@@ -190,9 +190,9 @@ public:
     CAmount GetOutputValue(const COutPoint &op, bool fAllowTXIndex) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     CAmount GetOwnedOutputValue(const COutPoint &op, isminefilter filter) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
-    int GetDepthInMainChain(interfaces::Chain::Lock& locked_chain, const uint256 &blockhash, int nIndex = 0) const;
+    int GetDepthInMainChain(const CTransactionRecord &rtx) const;
     bool InMempool(const uint256 &hash) const;
-    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &hash, const uint256 &blockhash, int nIndex = 0, int *depth_out = nullptr) const;
+    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &txhash, const CTransactionRecord &rtx, int *depth_out = nullptr) const;
 
     CAmount GetSpendableBalance() const; // Includes watch_only_cs balance
     CAmount GetBlindBalance();
@@ -250,7 +250,7 @@ public:
 
     void ClearCachedBalances() override;
     void LoadToWallet(CWalletTx& wtxIn) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    void LoadToWallet(const uint256 &hash, const CTransactionRecord &rtx) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void LoadToWallet(const uint256 &hash, CTransactionRecord &rtx) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /** Remove txn from mapwallet and TxSpends */
     void RemoveFromTxSpends(const uint256 &hash, const CTransactionRef pt) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
@@ -379,13 +379,14 @@ public:
 
     using CWallet::AddToSpends;
     void AddToSpends(const uint256& wtxid) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    bool AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::Status status, const uint256& block_hash, int posInBlock, bool fUpdate) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::Confirmation confirm, bool fUpdate) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     CWalletTx *GetTempWalletTx(const uint256& hash);
 
     const CWalletTx *GetWalletTx(const uint256& hash) const override;
     CWalletTx *GetWalletTx(const uint256& hash);
 
+    void SetTempTxnStatus(CWalletTx &wtx, const CTransactionRecord *rtx) const;
     int InsertTempTxn(const uint256 &txid, const CTransactionRecord *rtx) const;
     const CWalletTx *GetWalletOrTempTx(const uint256& hash, const CTransactionRecord *rtx) const;
 
@@ -398,11 +399,10 @@ public:
     bool AddTxinToSpends(const CTxIn &txin, const uint256 &txhash);
 
     bool ProcessPlaceholder(CHDWalletDB *pwdb, const CTransaction &tx, CTransactionRecord &rtx);
-    bool AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
-        const uint256& block_hash, int posInBlock, bool fFlushOnClose=true);
+    bool AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, CWalletTx::Confirmation confirm, bool fFlushOnClose=true);
 
     ScanResult ScanForWalletTransactions(const uint256& first_block, const uint256& last_block, const WalletRescanReserver& reserver, bool fUpdate) override;
-    std::vector<uint256> ResendRecordTransactionsBefore(interfaces::Chain::Lock& locked_chain, int64_t nTime);
+    std::vector<uint256> ResendRecordTransactionsBefore(int64_t nTime);
     void ResendWalletTransactions() override;
 
     /**
@@ -426,22 +426,23 @@ public:
 
     bool SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligibilityFilter& eligibility_filter, std::vector<COutputR> vCoins, std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &setCoinsRet, CAmount &nValueRet) const;
 
-    bool IsSpent(interfaces::Chain::Lock& locked_chain, const uint256& hash, unsigned int n) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool IsSpent(const uint256& hash, unsigned int n) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     // Whether this or any UTXO with the same CTxDestination has been spent.
     using CWallet::IsUsedDestination;
     bool IsUsedDestination(const CScript *pscript) const;
     bool IsUsedDestination(const uint256& hash, unsigned int n) const override;
     void SetUsedDestinationState(const CScript *pscript, bool used);
-    void SetUsedDestinationState(const uint256& hash, unsigned int n, bool used) override;
+    void SetUsedDestinationState(const uint256& hash, unsigned int n, bool used);
+    void SetUsedDestinationState(WalletBatch& batch, const uint256& hash, unsigned int n, bool used) override;
 
 
     std::set<uint256> GetConflicts(const uint256 &txid) const;
 
     /* Mark a transaction (and it in-wallet descendants) as abandoned so its inputs may be respent. */
-    bool AbandonTransaction(interfaces::Chain::Lock& locked_chain, const uint256 &hashTx) override;
+    bool AbandonTransaction(const uint256 &hashTx) override;
 
-    void MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx) override;
+    void MarkConflicted(const uint256 &hashBlock, int conflicting_height, const uint256 &hashTx) override;
     void SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator>) override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool GetSetting(const std::string &setting, UniValue &json);

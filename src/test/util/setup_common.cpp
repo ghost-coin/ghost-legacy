@@ -34,6 +34,27 @@
 const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
 
 FastRandomContext g_insecure_rand_ctx;
+/** Random context to get unique temp data dirs. Separate from g_insecure_rand_ctx, which can be seeded from a const env var */
+static FastRandomContext g_insecure_rand_ctx_temp_path;
+
+/** Return the unsigned from the environment var if available, otherwise 0 */
+static uint256 GetUintFromEnv(const std::string& env_name)
+{
+    const char* num = std::getenv(env_name.c_str());
+    if (!num) return {};
+    return uint256S(num);
+}
+
+void Seed(FastRandomContext& ctx)
+{
+    // Should be enough to get the seed once for the process
+    static uint256 seed{};
+    static const std::string RANDOM_CTX_SEED{"RANDOM_CTX_SEED"};
+    if (seed.IsNull()) seed = GetUintFromEnv(RANDOM_CTX_SEED);
+    if (seed.IsNull()) seed = GetRandHash();
+    LogPrintf("%s: Setting random seed for current tests to %s=%s\n", __func__, RANDOM_CTX_SEED, seed.GetHex());
+    ctx = FastRandomContext(seed);
+}
 
 extern bool fParticlMode;
 
@@ -44,7 +65,7 @@ std::ostream& operator<<(std::ostream& os, const uint256& num)
 }
 
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticlModeIn)
-    : m_path_root(fs::temp_directory_path() / "test_common_" PACKAGE_NAME / strprintf("%lu_%i", (unsigned long)GetTime(), (int)(InsecureRandRange(1 << 30))))
+    : m_path_root{fs::temp_directory_path() / "test_common_" PACKAGE_NAME / std::to_string(g_insecure_rand_ctx_temp_path.rand32())}
 {
     fParticlMode = fParticlModeIn;
 
@@ -53,6 +74,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticl
     ClearDatadirCache();
     SelectParams(chainName);
     ResetParams(chainName, fParticlMode);
+    SeedInsecureRand();
     gArgs.ForceSetArg("-printtoconsole", "0");
     InitLogging();
     LogInstance().StartLogging();
@@ -108,9 +130,12 @@ TestingSetup::TestingSetup(const std::string& chainName, bool fParticlModeIn) : 
         throw std::runtime_error(strprintf("ActivateBestChain failed. (%s)", FormatStateMessage(state)));
     }
 
-    nScriptCheckThreads = 3;
-    for (int i = 0; i < nScriptCheckThreads - 1; i++)
+    // Start script-checking threads. Set g_parallel_script_checks to true so they are used.
+    constexpr int script_check_threads = 2;
+    for (int i = 0; i < script_check_threads; ++i) {
         threadGroup.create_thread([i]() { return ThreadScriptCheck(i); });
+    }
+    g_parallel_script_checks = true;
 
     m_node.banman = MakeUnique<BanMan>(GetDataDir() / "banlist.dat", nullptr, DEFAULT_MISBEHAVING_BANTIME);
     m_node.connman = MakeUnique<CConnman>(0x1337, 0x1337); // Deterministic randomness for tests.

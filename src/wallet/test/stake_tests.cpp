@@ -104,6 +104,7 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
 {
     {
     auto locked_chain = pwallet->chain().lock();
+    LOCK(pwallet->cs_wallet);
     LockAssertion lock(::cs_main);
 
     BOOST_REQUIRE(address.IsValid());
@@ -125,7 +126,7 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
 
     wtx.BindWallet(pwallet);
     std::string err_string;
-    BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain));
+    BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(err_string, true));
     } // cs_main
     SyncWithValidationInterfaceQueue();
 }
@@ -144,6 +145,10 @@ BOOST_AUTO_TEST_CASE(stake_test)
 {
     SeedInsecureRand();
     CHDWallet *pwallet = pwalletMain.get();
+    {
+        LOCK(pwallet->cs_wallet);
+        pwallet->SetLastBlockProcessed(::ChainActive().Height(), ::ChainActive().Tip()->GetBlockHash());
+    }
     UniValue rv;
 
     std::unique_ptr<CChainParams> regtestChainParams = CreateChainParams(CBaseChainParams::REGTEST);

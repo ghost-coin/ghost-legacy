@@ -974,7 +974,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
         pwallet->MarkDirty();
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
-        pwallet->ReacceptWalletTransactions(*locked_chain);
+        pwallet->ReacceptWalletTransactions();
     }
 
     std::string sPath;

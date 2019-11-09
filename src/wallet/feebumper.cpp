@@ -18,7 +18,7 @@
 
 //! Check whether transaction has descendant in wallet or mempool, or has been
 //! mined, or conflicts with a mined transaction. Return a feebumper::Result.
-static feebumper::Result PreconditionChecks(interfaces::Chain::Lock& locked_chain, const CWallet& wallet, const CWalletTx& wtx, std::vector<std::string>& errors) EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet)
+static feebumper::Result PreconditionChecks(const CWallet& wallet, const CWalletTx& wtx, std::vector<std::string>& errors) EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet)
 {
     if (wallet.HasWalletSpend(wtx.GetHash())) {
         errors.push_back("Transaction has descendants in the wallet");
@@ -32,7 +32,7 @@ static feebumper::Result PreconditionChecks(interfaces::Chain::Lock& locked_chai
         }
     }
 
-    if (wtx.GetDepthInMainChain(locked_chain) != 0) {
+    if (wtx.GetDepthInMainChain() != 0) {
         errors.push_back("Transaction has been mined, or is conflicted with a mined transaction");
         return feebumper::Result::WALLET_ERROR;
     }
@@ -57,7 +57,7 @@ static feebumper::Result PreconditionChecks(interfaces::Chain::Lock& locked_chai
     return feebumper::Result::OK;
 }
 
-static feebumper::Result PreconditionChecks(interfaces::Chain::Lock& locked_chain, const CHDWallet* wallet, const uint256 hash, const CTransactionRecord &rtx, std::vector<std::string>& errors) EXCLUSIVE_LOCKS_REQUIRED(wallet->cs_wallet)
+static feebumper::Result PreconditionChecks(const CHDWallet* wallet, const uint256 hash, const CTransactionRecord &rtx, std::vector<std::string>& errors) EXCLUSIVE_LOCKS_REQUIRED(wallet->cs_wallet)
 {
     if (wallet->HasWalletSpend(hash)) {
         errors.push_back("Transaction has descendants in the wallet");
@@ -71,7 +71,7 @@ static feebumper::Result PreconditionChecks(interfaces::Chain::Lock& locked_chai
         }
     }
 
-    if (wallet->GetDepthInMainChain(locked_chain, rtx.blockHash, rtx.nIndex) != 0) {
+    if (wallet->GetDepthInMainChain(rtx) != 0) {
         errors.push_back("Transaction has been mined, or is conflicted with a mined transaction");
         return feebumper::Result::WALLET_ERROR;
     }
@@ -195,12 +195,12 @@ bool TransactionCanBeBumped(const CWallet& wallet, const uint256& txid)
         std::vector<std::string> errors_dummy;
         const CWalletTx* wtx = wallet.GetWalletTx(txid);
         if (wtx != nullptr) {
-            feebumper::Result res = PreconditionChecks(*locked_chain, wallet, *wtx, errors_dummy);
+            feebumper::Result res = PreconditionChecks(wallet, *wtx, errors_dummy);
             return res == feebumper::Result::OK;
         }
         auto mir = pw->mapRecords.find(txid);
         if (mir != pw->mapRecords.end()) {
-            feebumper::Result res = PreconditionChecks(*locked_chain, pw, mir->first, mir->second, errors_dummy);
+            feebumper::Result res = PreconditionChecks(pw, mir->first, mir->second, errors_dummy);
             return res == feebumper::Result::OK;
         }
 
@@ -211,7 +211,7 @@ bool TransactionCanBeBumped(const CWallet& wallet, const uint256& txid)
     if (wtx == nullptr) return false;
 
     std::vector<std::string> errors_dummy;
-    feebumper::Result res = PreconditionChecks(*locked_chain, wallet, *wtx, errors_dummy);
+    feebumper::Result res = PreconditionChecks(wallet, *wtx, errors_dummy);
     return res == feebumper::Result::OK;
 }
 
@@ -229,7 +229,7 @@ Result CreateTotalBumpTransaction(const CWallet* wallet, const uint256& txid, co
         auto it = wallet->mapWallet.find(txid);
         if (it != wallet->mapWallet.end()) {
             const CWalletTx& wtx = it->second;
-            Result result = PreconditionChecks(*locked_chain, *wallet, wtx, errors);
+            Result result = PreconditionChecks(*wallet, wtx, errors);
             if (result != Result::OK) {
                 return result;
             }
@@ -365,7 +365,7 @@ Result CreateTotalBumpTransaction(const CWallet* wallet, const uint256& txid, co
     }
     const CWalletTx& wtx = it->second;
 
-    Result result = PreconditionChecks(*locked_chain, *wallet, wtx, errors);
+    Result result = PreconditionChecks(*wallet, wtx, errors);
     if (result != Result::OK) {
         return result;
     }
@@ -491,7 +491,7 @@ Result CreateRateBumpTransaction(CWallet& wallet, const uint256& txid, const CCo
     }
     const CWalletTx& wtx = it->second;
 
-    Result result = PreconditionChecks(*locked_chain, wallet, wtx, errors);
+    Result result = PreconditionChecks(wallet, wtx, errors);
     if (result != Result::OK) {
         return result;
     }
@@ -585,7 +585,7 @@ Result CommitTransaction(CWallet& wallet, const uint256& txid, CMutableTransacti
     CWalletTx& oldWtx = it->second;
 
     // make sure the transaction still has no descendants and hasn't been mined in the meantime
-    Result result = PreconditionChecks(*locked_chain, wallet, oldWtx, errors);
+    Result result = PreconditionChecks(wallet, oldWtx, errors);
     if (result != Result::OK) {
         return result;
     }

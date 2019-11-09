@@ -231,7 +231,7 @@ void BaseIndex::BlockConnected(const std::shared_ptr<const CBlock>& block, const
     }
 }
 
-void BaseIndex::BlockDisconnected(const std::shared_ptr<const CBlock> &pblock)
+void BaseIndex::BlockDisconnected(const std::shared_ptr<const CBlock> &pblock, const CBlockIndex* pindex)
 {
     if (!m_synced) {
         return;

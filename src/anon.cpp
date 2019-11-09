@@ -372,7 +372,7 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
 
         ::ChainActive().SetTip(pindex->pprev);
         UpdateTip(pindex->pprev, chainparams);
-        GetMainSignals().BlockDisconnected(pblock);
+        GetMainSignals().BlockDisconnected(pblock, pindex);
     }
     nLastRCTOutput = ::ChainActive().Tip()->nAnonOutputs;
 

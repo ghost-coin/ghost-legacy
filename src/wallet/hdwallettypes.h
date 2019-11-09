@@ -112,6 +112,7 @@ class CTransactionRecord
 public:
     // Conflicted state is marked by set blockHash and nIndex -1
     uint256 blockHash;
+    int block_height = 0;
     int16_t nFlags = 0;
     int16_t nIndex = 0;
 
@@ -137,6 +138,7 @@ public:
     }
 
     bool IsAbandoned() const { return (blockHash == ABANDON_HASH); }
+    bool isConflicted() const { return (nIndex == -1); }
     bool HashUnset() const { return (blockHash.IsNull() || blockHash == ABANDON_HASH); }
 
     void SetAbandoned()

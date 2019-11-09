@@ -4233,7 +4233,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
 
         wtx.BindWallet(pactive_wallet.get());
         std::string err_string;
-        if (!wtx.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain, m_absurd_smsg_fee)) {
+        if (!wtx.SubmitMemoryPoolAndRelay(err_string, true, m_absurd_smsg_fee)) {
             return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Transaction cannot be broadcast immediately: %s.", err_string);
         }
         pactive_wallet->AddToWallet(wtx);
