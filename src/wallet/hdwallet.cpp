@@ -3392,7 +3392,7 @@ static bool HaveAnonOutputs(std::vector<CTempRecipient> &vecSend)
     return false;
 }
 
-bool CheckOutputValue(const CTempRecipient &r, const CTxOutBase *txbout, CAmount nFeeRet, std::string sError)
+bool CheckOutputValue(const CTempRecipient &r, const CTxOutBase *txbout, CAmount nFeeRet, std::string &sError)
 {
     if ((r.nType == OUTPUT_STANDARD
             && IsDust(txbout, dustRelayFee))

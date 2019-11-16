@@ -1,4 +1,9 @@
 
+0.18.1.x
+==============
+- wallet: Fix missing low amount error string.
+
+
 0.18.1.6
 ==============
 - Fixed crash when rescanning a watchonly account.

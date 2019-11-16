@@ -119,7 +119,7 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     vecSend.push_back(r);
 
     CTransactionRef tx_new;
-    CWalletTx wtx(pwallet, std::move(tx_new));
+    CWalletTx wtx(pwallet, tx_new);
     CTransactionRecord rtx;
     CAmount nFee;
     CCoinControl coinControl;
