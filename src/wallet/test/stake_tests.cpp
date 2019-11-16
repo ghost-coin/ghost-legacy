@@ -117,15 +117,14 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     vecSend.push_back(r);
 
     CTransactionRef tx_new;
-    CWalletTx wtx(pwallet, std::move(tx_new));
+    CWalletTx wtx(pwallet, tx_new);
     CTransactionRecord rtx;
     CAmount nFee;
     CCoinControl coinControl;
     BOOST_CHECK(0 == pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, true, nFee, &coinControl, sError));
 
     wtx.BindWallet(pwallet);
-    std::string err_string;
-    BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(err_string, true, *locked_chain));
+    BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(sError, true, *locked_chain));
     } // cs_main
     SyncWithValidationInterfaceQueue();
 }
