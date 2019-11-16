@@ -98,6 +98,7 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
     BOOST_REQUIRE(k < nTries);
+    SyncWithValidationInterfaceQueue();
 };
 
 static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amount)
