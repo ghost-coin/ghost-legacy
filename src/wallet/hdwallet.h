@@ -190,9 +190,9 @@ public:
     CAmount GetOutputValue(const COutPoint &op, bool fAllowTXIndex) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     CAmount GetOwnedOutputValue(const COutPoint &op, isminefilter filter) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
-    int GetDepthInMainChain(const CTransactionRecord &rtx) const;
+    int GetDepthInMainChain(const CTransactionRecord &rtx) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool InMempool(const uint256 &hash) const;
-    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &txhash, const CTransactionRecord &rtx, int *depth_out = nullptr) const;
+    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &txhash, const CTransactionRecord &rtx, int *depth_out = nullptr) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     CAmount GetSpendableBalance() const; // Includes watch_only_cs balance
     CAmount GetBlindBalance();

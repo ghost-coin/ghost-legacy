@@ -1433,6 +1433,7 @@ bool CHDWallet::ImportStealthAddress(const CStealthAddress &sxAddr, const CKey &
         }
 
         CPubKey pk = skSpend.GetPubKey();
+        LockAssertion lock(m_spk_man->cs_wallet);
         if (!m_spk_man->AddKeyPubKey(skSpend, pk)) {
             stealthAddresses.erase(sxAddr);
             return werror("%s: AddKeyPubKey failed.", __func__);
@@ -6696,6 +6697,7 @@ int CHDWallet::ExtKeyLoadMaster()
     GetCompressedInt64(pEKMaster->mapValue[EKVT_CREATED_AT], (uint64_t&)nCreatedAt);
 
     if (auto spk_man = m_spk_man.get()) {
+        LockAssertion lock(spk_man->cs_wallet);
         // TODO: Split CHDWallet into a new ScriptPubKeyMan
         spk_man->UpdateTimeFirstKey(nCreatedAt);
     }
@@ -6803,6 +6805,7 @@ int CHDWallet::ExtKeyLoadAccounts()
         GetCompressedInt64(sea->mapValue[EKVT_CREATED_AT], (uint64_t&)nCreatedAt);
 
         if (auto spk_man = m_spk_man.get()) {
+            LockAssertion lock(spk_man->cs_wallet);
             // TODO: Split CHDWallet into a new ScriptPubKeyMan
             spk_man->UpdateTimeFirstKey(nCreatedAt);
         }
@@ -8844,6 +8847,7 @@ bool CHDWallet::ProcessLockedStealthOutputs()
 
 
         encrypted_batch = &wdb; // HACK: use wdb in CWallet::AddCryptedKey
+        LockAssertion lock(m_spk_man->cs_wallet);
         if (!m_spk_man->AddKeyPubKey(sSpendR, pk)) {
             WalletLogPrintf("%s: Error: AddKeyPubKey failed.\n", __func__);
             encrypted_batch = nullptr;
@@ -9190,6 +9194,7 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
 
         if (!HaveKey(it->spend_secret_id)) {
             const auto script = GetScriptForDestination(address);
+            LockAssertion lock(m_spk_man->cs_wallet);
             m_spk_man->AddWatchOnly(script, 0 /* nCreateTime */);
             nFoundStealth++;
             return true;
@@ -9245,6 +9250,7 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
             WalletLogPrintf("%s: Adding key %s.\n", __func__, EncodeDestination(PKHash(keyID)));
         }
 
+        LockAssertion lock(m_spk_man->cs_wallet);
         if (!m_spk_man->AddKeyPubKey(sSpendR, pkT)) {
             WalletLogPrintf("%s: AddKeyPubKey failed.\n", __func__);
             continue;

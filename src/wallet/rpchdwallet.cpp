@@ -1991,6 +1991,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
             if (!pwallet->HaveKey(sid) && skSpend.IsValid()) {
                 LOCK(pwallet->cs_wallet);
                 CPubKey pk = skSpend.GetPubKey();
+                LockAssertion lock(pwallet->m_spk_man->cs_wallet);
                 if (!pwallet->m_spk_man->AddKeyPubKey(skSpend, pk)) {
                     throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - AddKeyPubKey failed.");
                 }

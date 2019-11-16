@@ -184,7 +184,7 @@ void WalletTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_ch
         }
 }
 
-void RecordTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, const uint256 &hash, const CTransactionRecord& rtx, UniValue &entry)
+void RecordTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, const uint256 &hash, const CTransactionRecord& rtx, UniValue &entry) EXCLUSIVE_LOCKS_REQUIRED(phdw->cs_wallet)
 {
     int confirms = phdw->GetDepthInMainChain(rtx);
     entry.pushKV("confirmations", confirms);

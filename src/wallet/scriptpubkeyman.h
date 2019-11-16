@@ -426,8 +426,8 @@ public:
     bool& fDecryptionThoroughlyChecked;
 
 
-    isminetype IsMineP2SH(const CScript &script);
-    isminetype IsMine(const CKeyID &address);
+    isminetype IsMineP2SH(const CScript &script) const;
+    isminetype IsMine(const CKeyID &address) const override;
     isminetype IsMine(const CScript& script, bool &is_invalid) const;
     bool GetKey_(const CKeyID &address, CKey& keyOut) const;
     bool GetPubKey_(const CKeyID &address, CPubKey& vchPubKeyOut) const;

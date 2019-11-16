@@ -127,10 +127,8 @@ WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, const C
     return result;
 }
 
-WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, CHDWallet &wallet, const uint256 &hash, const CTransactionRecord &rtx)
+WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, CHDWallet &wallet, const uint256 &hash, const CTransactionRecord &rtx) EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet)
 {
-    LockAssertion lock(::cs_main); // Temporary, for CheckFinalTx below. Removed in upcoming commit.
-
     WalletTxStatus result;
     result.block_height = locked_chain.getBlockHeight(rtx.blockHash).get_value_or(std::numeric_limits<int>::max());
     result.blocks_to_maturity = 0;

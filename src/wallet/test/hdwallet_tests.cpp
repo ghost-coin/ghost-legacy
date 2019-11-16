@@ -41,7 +41,7 @@ std::vector<Test1> vTestVector1 = {
 
 static void AddKey(CWallet& wallet, const CKey& key)
 {
-    LOCK(wallet.cs_wallet);
+    LOCK(wallet.m_spk_man->cs_wallet);
     wallet.m_spk_man->AddKeyPubKey(key, key.GetPubKey());
 }
 

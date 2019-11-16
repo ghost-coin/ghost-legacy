@@ -250,7 +250,6 @@ WalletCreationStatus CreateWallet(interfaces::Chain& chain, const SecureString& 
     return WalletCreationStatus::SUCCESS;
 }
 
-const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 const uint256 ABANDON_HASH(uint256S("0000000000000000000000000000000000000000000000000000000000000001"));
 
 /** @defgroup mapWallet
@@ -1155,8 +1154,9 @@ void CWallet::BlockUntilSyncedToCurrentChain() {
 isminetype CWallet::IsMine(const CKeyID &address) const
 {
     LOCK(cs_KeyStore);
+    LockAssertion lock(m_spk_man->cs_KeyStore);
     if (!IsCrypted()) {
-        return static_cast<const FillableSigningProvider*>(m_spk_man.get())->IsMine(address);
+        return m_spk_man->FillableSigningProvider::IsMine(address);
     }
     if (m_spk_man->mapCryptedKeys.count(address) > 0) {
         return ISMINE_SPENDABLE;
@@ -3134,6 +3134,7 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
         // Set tip_height for LoadToWallet->unloadspent
         const Optional<int> tip_height = locked_chain->getHeight();
         if (tip_height) {
+            LOCK(cs_wallet);
             m_last_block_processed = locked_chain->getBlockHash(*tip_height);
             m_last_block_processed_height = *tip_height;
         }
@@ -4184,6 +4185,7 @@ int CWalletTx::GetBlocksToMaturity() const
     int chain_depth = GetDepthInMainChain();
     assert(chain_depth >= 0); // coinbase tx should not be conflicted
 
+    LockAssertion lock(pwallet->cs_wallet); // Remove when NO_THREAD_SAFETY_ANALYSIS resolved for GetDepthInMainChain()
     if (fParticlMode && pwallet->m_last_block_processed_height < COINBASE_MATURITY * 2 && m_confirm.status == CWalletTx::Status::CONFIRMED) {
         int nRequiredDepth = m_confirm.block_height / 2;
         return std::max(0, (nRequiredDepth+1) - chain_depth);

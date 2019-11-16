@@ -1509,13 +1509,13 @@ void LegacyScriptPubKeyMan::NotifyCanGetAddressesChanged() const { return m_wall
 template<typename... Params> void LegacyScriptPubKeyMan::WalletLogPrintf(const std::string& fmt, const Params&... parameters) const { return m_wallet.WalletLogPrintf(fmt, parameters...); }
 
 
-isminetype LegacyScriptPubKeyMan::IsMineP2SH(const CScript &script)
+isminetype LegacyScriptPubKeyMan::IsMineP2SH(const CScript &script) const
 {
     bool isInvalid = false;
     return IsMineInner(*this, script, isInvalid, IsMineSigVersion::P2SH);
 }
 
-isminetype LegacyScriptPubKeyMan::IsMine(const CKeyID &address)
+isminetype LegacyScriptPubKeyMan::IsMine(const CKeyID &address) const
 {
     return m_storage.IsMine(address);
 }
