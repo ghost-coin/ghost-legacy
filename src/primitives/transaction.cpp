@@ -155,8 +155,8 @@ std::string CTxOutBase::ToString() const
             }
         case OUTPUT_DATA:
             {
-            CTxOutData *dout = (CTxOutData*)this;
-            return strprintf("CTxOutData(data=%s)", HexStr(dout->vData).substr(0, 30));
+            CTxOutData *data_output = (CTxOutData*)this;
+            return strprintf("CTxOutData(data=%s)", HexStr(data_output->vData).substr(0, 30));
             }
         case OUTPUT_CT:
             {

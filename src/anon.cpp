@@ -32,7 +32,7 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
     CAmount nPlainValueOut = tx.GetPlainValueOut(nStandard, nCt, nRingCT);
     CAmount nTxFee = 0;
     if (!tx.GetCTFee(nTxFee)) {
-        LogPrintf("ERROR: %s: bad-fee-output", __func__);
+        LogPrintf("ERROR: %s: bad-fee-output\n", __func__);
         return state.Invalid(TxValidationResult::TX_CONSENSUS, "txn-already-known");
     }
 
@@ -177,13 +177,13 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
         if (0 != (rv = secp256k1_prepare_mlsag(&vM[0], nullptr,
             vpOutCommits.size(), vpOutCommits.size(), nCols, nRows,
             &vpInCommits[0], &vpOutCommits[0], nullptr))) {
-            LogPrintf("ERROR: %s: prepare-mlsag-failed %d", __func__, rv);
+            LogPrintf("ERROR: %s: prepare-mlsag-failed %d\n", __func__, rv);
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "prepare-mlsag-failed");
         }
         if (0 != (rv = secp256k1_verify_mlsag(secp256k1_ctx_blind,
             txhash.begin(), nCols, nRows,
             &vM[0], &vKeyImages[0], &vDL[0], &vDL[32]))) {
-            LogPrintf("ERROR: %s: verify-mlsag-failed %d", __func__, rv);
+            LogPrintf("ERROR: %s: verify-mlsag-failed %d\n", __func__, rv);
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "verify-mlsag-failed");
         }
     }
@@ -203,7 +203,7 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
         if (1 != (rv = secp256k1_pedersen_verify_tally(secp256k1_ctx_blind,
             (const secp256k1_pedersen_commitment* const*)vpInputSplitCommits.data(), vpInputSplitCommits.size(),
             (const secp256k1_pedersen_commitment* const*)vpOutCommits.data(), vpOutCommits.size()))) {
-            LogPrintf("ERROR: %s: verify-commit-tally-failed %d", __func__, rv);
+            LogPrintf("ERROR: %s: verify-commit-tally-failed %d\n", __func__, rv);
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "verify-commit-tally-failed");
         }
     }
@@ -277,7 +277,7 @@ bool AllAnonOutputsUnknown(const CTransaction &tx, TxValidationState &state)
             COutPoint op(tx.GetHash(), k);
             CAnonOutput ao;
             if (!pblocktree->ReadRCTOutput(nTestExists, ao) || ao.outpoint != op) {
-                LogPrintf("ERROR: %s: Duplicate anon-output %s, index %d - existing: %s,%d.",
+                LogPrintf("ERROR: %s: Duplicate anon-output %s, index %d - existing: %s,%d.\n",
                           __func__, HexStr(txout->pk.begin(), txout->pk.end()), nTestExists, ao.outpoint.hash.ToString(), ao.outpoint.n);
                 return state.Invalid(TxValidationResult::TX_CONSENSUS, "duplicate-anon-output");
             } else {

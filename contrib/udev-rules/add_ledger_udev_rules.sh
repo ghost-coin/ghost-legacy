@@ -1,10 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # https://raw.githubusercontent.com/LedgerHQ/udev-rules/master/add_udev_rules.sh
 
 # Create group (if it doesn't exist) with:
 # $ sudo groupadd plugdev
 # Add current user to the plugdev group
 # $ sudo gpasswd -a $USER plugdev
+
+export LC_ALL=C
 
 cat <<EOF > /etc/udev/rules.d/20-hw1.rules
 # HW.1 / Nano

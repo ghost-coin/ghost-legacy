@@ -179,7 +179,7 @@ struct CExtKey {
 class CExtKeyPair
 {
 public:
-    //uint8_t nFlags; ? crypted
+    //uint8_t nFlags; ? encrypted
     uint8_t nDepth;
     uint8_t vchFingerprint[4];
     uint32_t nChild;

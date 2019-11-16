@@ -280,7 +280,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
             // Tally transaction fees
             if (nCt > 0 || nRingCT > 0) {
                 if (!tx.GetCTFee(txfee)) {
-                    LogPrintf("%s: bad-fee-output", __func__);
+                    LogPrintf("%s: bad-fee-output\n", __func__);
                     return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-fee-output");
                 }
             } else {
@@ -320,7 +320,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
             // Return stake reward in txfee
             txfee = nPlainValueOut - nValueIn;
             if (nCt > 0 || nRingCT > 0) { // Counters track both outputs and inputs
-                LogPrintf("%s: non-standard elements in coinstake", __func__);
+                LogPrintf("%s: non-standard elements in coinstake\n", __func__);
                 return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-coinstake-output");
             }
         }

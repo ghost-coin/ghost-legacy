@@ -1089,7 +1089,7 @@ bool MemPoolAccept::Finalize(ATMPArgs& args, Workspace& ws)
     }
 
     if (!AddKeyImagesToMempool(tx, m_pool)) {
-        LogPrintf("ERROR: %s: AddKeyImagesToMempool failed.", __func__);
+        LogPrintf("ERROR: %s: AddKeyImagesToMempool failed.\n", __func__);
         return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anonin-keyimages");
     }
 
@@ -2830,7 +2830,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     && pindex->pprev->nTime >= consensus.smsg_fee_time) {
                     if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)
                         || !txPrevCoinstake->GetSmsgFeeRate(smsg_fee_prev)) {
-                        LogPrintf("ERROR: %s: Failed to get previous smsg fee.", __func__);
+                        LogPrintf("ERROR: %s: Failed to get previous smsg fee.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-fee-prev");
                     }
                 } else {
@@ -2838,17 +2838,17 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 }
 
                 if (!txCoinstake->GetSmsgFeeRate(smsg_fee_new)) {
-                    LogPrintf("ERROR: %s: Failed to get smsg fee.", __func__);
+                    LogPrintf("ERROR: %s: Failed to get smsg fee.\n", __func__);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-fee");
                 }
                 if (smsg_fee_new < 1) {
-                    LogPrintf("ERROR: %s: Smsg fee < 1.", __func__);
+                    LogPrintf("ERROR: %s: Smsg fee < 1.\n", __func__);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-fee");
                 }
                 int64_t delta = std::abs(smsg_fee_new - smsg_fee_prev);
                 int64_t max_delta = chainparams.GetMaxSmsgFeeRateDelta(smsg_fee_prev);
                 if (delta > max_delta) {
-                    LogPrintf("ERROR: %s: Bad smsg-fee (delta=%d, max_delta=%d)", __func__, delta, max_delta);
+                    LogPrintf("ERROR: %s: Bad smsg-fee (delta=%d, max_delta=%d)\n", __func__, delta, max_delta);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-fee");
                 }
             }
@@ -2859,7 +2859,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     && pindex->pprev->nTime >= consensus.smsg_difficulty_time) {
                     if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)
                         || !txPrevCoinstake->GetSmsgDifficulty(smsg_difficulty_prev)) {
-                        LogPrintf("ERROR: %s: Failed to get previous smsg difficulty.", __func__);
+                        LogPrintf("ERROR: %s: Failed to get previous smsg difficulty.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-diff-prev");
                     }
                 } else {
@@ -2867,24 +2867,24 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 }
 
                 if (!txCoinstake->GetSmsgDifficulty(smsg_difficulty_new)) {
-                    LogPrintf("ERROR: %s: Failed to get smsg difficulty.", __func__);
+                    LogPrintf("ERROR: %s: Failed to get smsg difficulty.\n", __func__);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-diff");
                 }
                 if (smsg_difficulty_new < 1 || smsg_difficulty_new > consensus.smsg_min_difficulty) {
 
-                    LogPrintf("ERROR: %s: Smsg difficulty out of range.", __func__);
+                    LogPrintf("ERROR: %s: Smsg difficulty out of range.\n", __func__);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-diff");
                 }
                 int delta = int(smsg_difficulty_prev) - int(smsg_difficulty_new);
                 if (abs(delta) > int(consensus.smsg_difficulty_max_delta)) {
-                    LogPrintf("ERROR: %s: Smsg difficulty change out of range.", __func__);
+                    LogPrintf("ERROR: %s: Smsg difficulty change out of range.\n", __func__);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-diff");
                 }
             }
 
             if (!pDevFundSettings || pDevFundSettings->nMinDevStakePercent <= 0) {
                 if (nStakeReward < 0 || nStakeReward > nCalculatedStakeReward) {
-                    LogPrintf("ERROR: %s: Coinstake pays too much(actual=%d vs calculated=%d)", __func__, nStakeReward, nCalculatedStakeReward);
+                    LogPrintf("ERROR: %s: Coinstake pays too much(actual=%d vs calculated=%d)\n", __func__, nStakeReward, nCalculatedStakeReward);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount");
                 }
             } else {
@@ -2894,14 +2894,14 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 CAmount nMinDevPart = (nCalculatedStakeReward * pDevFundSettings->nMinDevStakePercent) / 100;
                 CAmount nMaxHolderPart = nCalculatedStakeReward - nMinDevPart;
                 if (nMinDevPart < 0 || nMaxHolderPart < 0) {
-                    LogPrintf("ERROR: %s: Bad coinstake split amount (foundation=%d vs reward=%d)", __func__, nMinDevPart, nMaxHolderPart);
+                    LogPrintf("ERROR: %s: Bad coinstake split amount (foundation=%d vs reward=%d)\n", __func__, nMinDevPart, nMaxHolderPart);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount");
                 }
 
                 if (pindex->pprev->nHeight > 0) { // Genesis block is pow
                     if (!txPrevCoinstake
                         && !coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)) {
-                        LogPrintf("ERROR: %s: Failed to get previous coinstake.", __func__);
+                        LogPrintf("ERROR: %s: Failed to get previous coinstake.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-prev");
                     }
 
@@ -2916,7 +2916,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     // nStakeReward must == nDevBfwd + nCalculatedStakeReward
 
                     if (nStakeReward != nDevBfwd + nCalculatedStakeReward) {
-                        LogPrintf("ERROR: %s: Bad stake-reward (actual=%d vs expected=%d)", __func__, nStakeReward, nDevBfwd + nCalculatedStakeReward);
+                        LogPrintf("ERROR: %s: Bad stake-reward (actual=%d vs expected=%d)\n", __func__, nStakeReward, nDevBfwd + nCalculatedStakeReward);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount");
                     }
 
@@ -2929,19 +2929,19 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     // Output 1 must be to the dev fund
                     const CTxOutStandard *outputDF = txCoinstake->vpout[1]->GetStandardOutput();
                     if (!outputDF) {
-                        LogPrintf("ERROR: %s: Bad foundation fund output.", __func__);
+                        LogPrintf("ERROR: %s: Bad foundation fund output.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs");
                     }
                     if (outputDF->scriptPubKey != devFundScriptPubKey) {
-                        LogPrintf("ERROR: %s: Bad foundation fund output script.", __func__);
+                        LogPrintf("ERROR: %s: Bad foundation fund output script.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs");
                     }
                     if (outputDF->nValue < nDevBfwd + nMinDevPart) { // Max value is clamped already
-                        LogPrintf("ERROR: %s: Bad foundation-reward (actual=%d vs minfundpart=%d)", __func__, nStakeReward, nDevBfwd + nMinDevPart);
+                        LogPrintf("ERROR: %s: Bad foundation-reward (actual=%d vs minfundpart=%d)\n", __func__, nStakeReward, nDevBfwd + nMinDevPart);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-fund-amount");
                     }
                     if (txCoinstake->GetDevFundCfwd(nDevCfwdCheck)) {
-                        LogPrintf("ERROR: %s: Coinstake foundation cfwd must be unset.", __func__);
+                        LogPrintf("ERROR: %s: Coinstake foundation cfwd must be unset.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-cfwd");
                     }
                 } else {
@@ -2949,13 +2949,13 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     // cfwd must == nDevBfwd + (nCalculatedStakeReward - nStakeReward) // Allowing users to set a higher split
 
                     if (nStakeReward < 0 || nStakeReward > nMaxHolderPart) {
-                        LogPrintf("ERROR: %s: Bad stake-reward (actual=%d vs maxholderpart=%d)", __func__, nStakeReward, nMaxHolderPart);
+                        LogPrintf("ERROR: %s: Bad stake-reward (actual=%d vs maxholderpart=%d)\n", __func__, nStakeReward, nMaxHolderPart);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount");
                     }
                     CAmount nDevCfwd = nDevBfwd + nCalculatedStakeReward - nStakeReward;
                     if (!txCoinstake->GetDevFundCfwd(nDevCfwdCheck)
                         || nDevCfwdCheck != nDevCfwd) {
-                        LogPrintf("ERROR: %s: Coinstake foundation fund carried forward mismatch (actual=%d vs expected=%d)", __func__, nDevCfwdCheck, nDevCfwd);
+                        LogPrintf("ERROR: %s: Coinstake foundation fund carried forward mismatch (actual=%d vs expected=%d)\n", __func__, nDevCfwdCheck, nDevCfwd);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-cfwd");
                     }
                 }
@@ -2964,7 +2964,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             }
         } else {
             if (block.GetHash() != chainparams.GenesisBlock().GetHash()) {
-                LogPrintf("ERROR: %s: Block isn't coinstake or genesis.", __func__);
+                LogPrintf("ERROR: %s: Block isn't coinstake or genesis.\n", __func__);
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs");
             }
         }
@@ -5138,7 +5138,7 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, BlockValidationS
         bool force_accept = true;
         if (fParticlMode && !::ChainstateActive().IsInitialBlockDownload() && state.nodeId >= 0) {
             if (!AddNodeHeader(state.nodeId, hash)) {
-                LogPrintf("ERROR: %s: DoS limits", __func__);
+                LogPrintf("ERROR: %s: DoS limits\n", __func__);
                 return state.Invalid(BlockValidationResult::DOS_20, "dos-limits");
             }
             force_accept = false;

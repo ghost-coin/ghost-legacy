@@ -4176,7 +4176,6 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
 
     UniValue results(UniValue::VARR);
     std::vector<COutputR> vecOutputs;
-    assert(pwallet != nullptr);
 
     {
         CCoinControl cctl;
@@ -4390,7 +4389,6 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
 
     UniValue results(UniValue::VARR);
     std::vector<COutputR> vecOutputs;
-    assert(pwallet != nullptr);
 
     {
         CCoinControl cctl;
@@ -7888,7 +7886,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "\"amount_commitment\" must be 33 bytes and hex encoded.");
                 }
                 std::vector<uint8_t> vchCommitment = ParseHex(s);
-                assert(vchCommitment.size() == 33);
+                CHECK_NONFATAL(vchCommitment.size() == 33);
                 memcpy(newcoin.commitment.data, vchCommitment.data(), 33);
                 newcoin.nType = OUTPUT_CT;
             } else {
