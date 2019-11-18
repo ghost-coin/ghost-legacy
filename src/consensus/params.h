@@ -70,8 +70,6 @@ struct Params {
     bool fAllowOpIsCoinstakeWithP2PKH;
     /** Time at which Paid SMSG becomes active */
     uint32_t nPaidSmsgTime;
-    /** Time at which csp2sh becomes active */
-    uint32_t csp2shTime;
     /** Time at which variable SMSG fee become active */
     uint32_t smsg_fee_time;
     /** Time at which bulletproofs become active */

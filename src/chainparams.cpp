@@ -431,7 +431,6 @@ public:
         consensus.OpIsCoinstakeTime = 0x5A04EC00;       // 2017-11-10 00:00:00 UTC
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
         consensus.nPaidSmsgTime = 0x5C791EC0;           // 2019-03-01 12:00:00
-        consensus.csp2shTime = 0x5C791EC0;              // 2019-03-01 12:00:00
         consensus.smsg_fee_time = 0x5D2DBC40;           // 2019-07-16 12:00:00
         consensus.bulletproof_time = 0x5D2DBC40;        // 2019-07-16 12:00:00
         consensus.rct_time = 0x5D2DBC40;                // 2019-07-16 12:00:00
@@ -618,7 +617,6 @@ public:
         consensus.OpIsCoinstakeTime = 0;
         consensus.fAllowOpIsCoinstakeWithP2PKH = true; // TODO: clear for next testnet
         consensus.nPaidSmsgTime = 0;
-        consensus.csp2shTime = 0x5C67FB40;              // 2019-02-16 12:00:00
         consensus.smsg_fee_time = 0x5C67FB40;           // 2019-02-16 12:00:00
         consensus.bulletproof_time = 0x5C67FB40;        // 2019-02-16 12:00:00
         consensus.rct_time = 0;
@@ -761,7 +759,6 @@ public:
         consensus.OpIsCoinstakeTime = 0;
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
         consensus.nPaidSmsgTime = 0;
-        consensus.csp2shTime = 0;
         consensus.smsg_fee_time = 0;
         consensus.bulletproof_time = 0;
         consensus.rct_time = 0;

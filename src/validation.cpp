@@ -2341,10 +2341,6 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
         flags |= SCRIPT_VERIFY_WITNESS;
         flags |= SCRIPT_VERIFY_NULLDUMMY;
-
-        if (pindex->nTime < consensusparams.csp2shTime) {
-            flags |= SCRIPT_VERIFY_NO_CSP2SH;
-        }
         return flags;
     }
 
