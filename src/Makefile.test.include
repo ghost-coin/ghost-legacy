@@ -23,6 +23,7 @@ FUZZ_TARGETS = \
   test/fuzz/messageheader_deserialize \
   test/fuzz/netaddr_deserialize \
   test/fuzz/parse_iso8601 \
+  test/fuzz/psbt \
   test/fuzz/script \
   test/fuzz/script_flags \
   test/fuzz/service_deserialize \
@@ -92,7 +93,6 @@ FUZZ_SUITE_LD_COMMON = \
  $(LIBMEMENV) \
  $(LIBSECP256K1) \
  $(EVENT_LIBS) \
- $(CRYPTO_LIBS) \
  $(EVENT_PTHREADS_LIBS)
 
 # test_bitcoin binary #
@@ -223,7 +223,7 @@ test_test_particl_LDADD += $(LIBPARTICL_SERVER) $(LIBPARTICL_CLI) $(LIBPARTICL_C
   $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(LIBSECP256K1) $(EVENT_LIBS) $(EVENT_PTHREADS_LIBS)
 test_test_particl_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
-test_test_particl_LDADD += $(BDB_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(RAPIDCHECK_LIBS)
+test_test_particl_LDADD += $(BDB_LIBS) $(MINIUPNPC_LIBS) $(RAPIDCHECK_LIBS)
 test_test_particl_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 
 if ENABLE_ZMQ
@@ -312,6 +312,12 @@ test_fuzz_parse_iso8601_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 test_fuzz_parse_iso8601_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 test_fuzz_parse_iso8601_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 test_fuzz_parse_iso8601_LDADD = $(FUZZ_SUITE_LD_COMMON)
+
+test_fuzz_psbt_SOURCES = $(FUZZ_SUITE) test/fuzz/psbt.cpp
+test_fuzz_psbt_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+test_fuzz_psbt_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+test_fuzz_psbt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+test_fuzz_psbt_LDADD = $(FUZZ_SUITE_LD_COMMON)
 
 test_fuzz_script_SOURCES = $(FUZZ_SUITE) test/fuzz/script.cpp
 test_fuzz_script_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
@@ -433,7 +439,7 @@ endif
 if TARGET_WINDOWS
 else
 if ENABLE_BENCH
-	@echo "Running bench/bench_bitcoin -evals=1 -scaling=0..."
+	@echo "Running bench/bench_particl -evals=1 -scaling=0..."
 	$(BENCH_BINARY) -evals=1 -scaling=0 > /dev/null
 endif
 endif
