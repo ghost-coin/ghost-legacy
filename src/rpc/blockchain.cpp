@@ -180,11 +180,12 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
         uint256 kernelhash, kernelblockhash;
         CAmount kernelvalue;
         CScript kernelscript;
-        GetKernelInfo(blockindex, *block.vtx[0], kernelhash, kernelvalue, kernelscript, kernelblockhash);
-        result.pushKV("hashproofofstake", kernelhash.GetHex());
-        result.pushKV("stakekernelvalue", ValueFromAmount(kernelvalue));
-        result.pushKV("stakekernelscript", HexStr(kernelscript.begin(), kernelscript.end()));
-        result.pushKV("stakekernelblockhash", kernelblockhash.GetHex());
+        if (GetKernelInfo(blockindex, *block.vtx[0], kernelhash, kernelvalue, kernelscript, kernelblockhash)) {
+            result.pushKV("hashproofofstake", kernelhash.GetHex());
+            result.pushKV("stakekernelvalue", ValueFromAmount(kernelvalue));
+            result.pushKV("stakekernelscript", HexStr(kernelscript.begin(), kernelscript.end()));
+            result.pushKV("stakekernelblockhash", kernelblockhash.GetHex());
+        }
     }
     return result;
 }
