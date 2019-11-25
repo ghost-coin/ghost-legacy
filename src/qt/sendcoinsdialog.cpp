@@ -29,7 +29,6 @@
 #include <wallet/psbtwallet.h>
 
 
-
 #include <QFontMetrics>
 #include <QScrollBar>
 #include <QSettings>
