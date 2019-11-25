@@ -277,7 +277,7 @@ bool CHDWallet::Initialise()
             */
         }
     }
-    if (idDefaultAccount.IsNull()) {
+    if (!IsWalletFlagSet(WALLET_FLAG_BLANK_WALLET) && idDefaultAccount.IsNull()) {
         std::string sWarning = "Warning: Wallet " + GetName() + " has no active account, please view the readme.";
         #ifndef ENABLE_QT
         tfm::format(std::cout, "%s\n", sWarning.c_str());
