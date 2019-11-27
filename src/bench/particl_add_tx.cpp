@@ -206,11 +206,13 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
     CTransactionRef tx = CreateTxn(pwallet_a.get(), owned ? addr_b : addr_a, 1000, from_tx_type, to_tx_type);
 
     CWalletTx::Confirmation confirm;
+    {
     LOCK(cs_main);
     LOCK(pwallet_b.get()->cs_wallet);
 
     while (state.KeepRunning()) {
         pwallet_b.get()->AddToWalletIfInvolvingMe(tx, confirm, true);
+    }
     }
 
     RemoveWallet(pwallet_a);
