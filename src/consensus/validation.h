@@ -154,7 +154,7 @@ inline ValidationState::~ValidationState() {};
 
 class TxValidationState : public ValidationState {
 private:
-    TxValidationResult m_result;
+    TxValidationResult m_result = TxValidationResult::TX_RESULT_UNSET;
 public:
     bool Invalid(TxValidationResult result,
                  const std::string &reject_reason="",
@@ -169,7 +169,7 @@ public:
 
 class BlockValidationState : public ValidationState {
 private:
-    BlockValidationResult m_result;
+    BlockValidationResult m_result = BlockValidationResult::BLOCK_RESULT_UNSET;
 public:
     bool Invalid(BlockValidationResult result,
                  const std::string &reject_reason="",
