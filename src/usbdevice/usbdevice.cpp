@@ -25,10 +25,11 @@
 namespace usb_device {
 
 const DeviceType usbDeviceTypes[] = {
-    DeviceType(0xffff, 0x0001, "Debug", "Device", USBDEVICE_DEBUG),
-    DeviceType(0x2c97, 0x0000, "Ledger", "Blue", USBDEVICE_LEDGER_BLUE),
-    DeviceType(0x2c97, 0x0001, "Ledger", "Nano S", USBDEVICE_LEDGER_NANO_S),
-    DeviceType(0x2c97, 0x0004, "Ledger", "Nano X", USBDEVICE_LEDGER_NANO_X),
+    DeviceType(0xffff, 0x0001, "Debug",     "Device",       USBDEVICE_DEBUG),
+    DeviceType(0x2c97, 0x0000, "Ledger",    "Blue",         USBDEVICE_LEDGER_BLUE),
+    DeviceType(0x2c97, 0x0001, "Ledger",    "Nano S",       USBDEVICE_LEDGER_NANO_S),
+    DeviceType(0x2c97, 0x1015, "Ledger",    "Nano S 1.6",   USBDEVICE_LEDGER_NANO_S),
+    DeviceType(0x2c97, 0x0004, "Ledger",    "Nano X",       USBDEVICE_LEDGER_NANO_X),
     //DeviceType(0x534c, 0x0001, "Trezor", "One", USBDEVICE_TREZOR_ONE),
 };
 
