@@ -101,6 +101,9 @@ public:
     /* Returns true if HD is enabled, and default account set */
     bool IsHDEnabled() const override;
 
+    /* Returns true if the wallet can give out new addresses. This means it has keys in the keypool or can generate new keys */
+    bool CanGetAddresses(bool internal = false) override;
+
     /* Returns true if the wallet's default account requires a hardware device to sign */
     bool IsHardwareLinkedWallet() const;
 

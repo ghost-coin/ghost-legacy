@@ -453,6 +453,17 @@ bool CHDWallet::IsHDEnabled() const
     return mapExtAccounts.find(idDefaultAccount) != mapExtAccounts.end();
 }
 
+bool CHDWallet::CanGetAddresses(bool internal)
+{
+    if (CWallet::CanGetAddresses(internal)) {
+        return true;
+    }
+    if (IsHardwareLinkedWallet()) {
+        return true;
+    }
+    return false;
+}
+
 bool CHDWallet::IsHardwareLinkedWallet() const
 {
     LOCK(cs_wallet);

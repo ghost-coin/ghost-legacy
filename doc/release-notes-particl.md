@@ -11,9 +11,10 @@ Next Major Version
 - rpc: Add coinstakeinfo option to getblock.
 
 
-0.18.1.x
+0.18.1.7
 ==============
 - wallet: Fix missing low amount error string.
+- hardware devices: Add ID for Ledger Nano S firmware 1.6
 
 
 0.18.1.6
