@@ -5,13 +5,17 @@
 #ifndef PARTICL_ANON_H
 #define PARTICL_ANON_H
 
-#include <primitives/transaction.h>
 #include <sync.h>
+#include <pubkey.h>
+#include <amount.h>
+#include <set>
 
-#include <stdint.h>
 
 extern RecursiveMutex cs_main;
 
+class uint256;
+class CTxIn;
+class CTransaction;
 class CTxMemPool;
 class TxValidationState;
 

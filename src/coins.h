@@ -92,8 +92,9 @@ public:
         ::Serialize(s, CTxOutCompressor(REF(out)));
         if (!fParticlMode) return;
         ::Serialize(s, nType);
-        if (nType == OUTPUT_CT)
+        if (nType == OUTPUT_CT) {
             s.write((char*)&commitment.data[0], 33);
+        }
     }
 
     template<typename Stream>
@@ -105,8 +106,9 @@ public:
         ::Unserialize(s, CTxOutCompressor(out));
         if (!fParticlMode) return;
         ::Unserialize(s, nType);
-        if (nType == OUTPUT_CT)
+        if (nType == OUTPUT_CT) {
             s.read((char*)&commitment.data[0], 33);
+        }
     }
 
     bool IsSpent() const {
@@ -115,6 +117,26 @@ public:
 
     size_t DynamicMemoryUsage() const {
         return memusage::DynamicUsage(out.scriptPubKey);
+    }
+};
+
+class SpentCoin
+{
+public:
+    SpentCoin(const Coin &coin_, int spent_at) : coin(coin_), spent_height(spent_at) {}
+    SpentCoin() {}
+    Coin coin;
+    uint32_t spent_height = 0;
+
+    template<typename Stream>
+    void Serialize(Stream &s) const {
+        ::Serialize(s, coin);
+        ::Serialize(s, VARINT(spent_height));
+    }
+    template<typename Stream>
+    void Unserialize(Stream &s) {
+        ::Unserialize(s, coin);
+        ::Unserialize(s, VARINT(spent_height));
     }
 };
 
@@ -263,11 +285,12 @@ public:
     mutable std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > addressUnspentIndex;
     mutable std::vector<std::pair<CSpentIndexKey, CSpentIndexValue> > spentIndex;
 
-    mutable bool fForceDisconnect = false; // disconnect even if rct mismatch
+    mutable bool fForceDisconnect = false; // Disconnect even if rct mismatch
     mutable int64_t nLastRCTOutput = 0;
     mutable std::vector<std::pair<int64_t, CAnonOutput> > anonOutputs;
     mutable std::map<CCmpPubKey, int64_t> anonOutputLinks;
     mutable std::vector<std::pair<CCmpPubKey, uint256> > keyImages;
+    mutable std::vector<std::pair<COutPoint, SpentCoin> > spent_cache;
 
     bool ReadRCTOutputLink(CCmpPubKey &pk, int64_t &index)
     {

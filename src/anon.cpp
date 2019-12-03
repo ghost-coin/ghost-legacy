@@ -13,6 +13,7 @@
 #include <rctindex.h>
 #include <txdb.h>
 #include <util/system.h>
+#include <primitives/transaction.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <consensus/validation.h>

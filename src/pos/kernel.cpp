@@ -180,66 +180,10 @@ static bool CheckAge(const CBlockIndex *pindexTip, const uint256 &hashKernelBloc
     return true;
 }
 
-static bool SpendTooDeep(const COutPoint &prevout) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
-{
-    LogPrint(BCLog::POS, "%s: SpendTooDeep %s.\n", __func__, prevout.ToString());
-    CBlockIndex *pindexTip = ::ChainActive().Tip();
-
-    if (fSpentIndex) {
-        CSpentIndexKey key(prevout.hash, prevout.n);
-        CSpentIndexValue value;
-        if (GetSpentIndex(key, value)) {
-            if (value.blockHeight < 0 || pindexTip->nHeight - value.blockHeight <= MAX_REORG_DEPTH) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Check for spend in mempool
-    {
-        LOCK(::mempool.cs);
-        auto iters = ::mempool.GetSortedDepthAndScore();
-        for (auto it : iters) {
-            for (const CTxIn &txin : it->GetSharedTx()->vin) {
-                if (txin.IsAnonInput()) {
-                    continue;
-                }
-                if (txin.prevout == prevout) {
-                    return false;
-                }
-            }
-        }
-    }
-
-    // Check for spend in blocks
-    CBlockIndex *pindex = pindexTip;
-    CBlock block;
-    while (pindex && pindexTip->nHeight - pindex->nHeight < MAX_REORG_DEPTH) {
-        if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), Params().GetConsensus())) {
-            LogPrintf("%s: Error reading block %s.\n", __func__, pindex->GetBlockHash().ToString());
-            return true;
-        }
-        for (const auto &tx : block.vtx) {
-            for (const CTxIn &txin : tx->vin) {
-                if (txin.IsAnonInput()) {
-                    continue;
-                }
-                if (txin.prevout == prevout) {
-                    return false;
-                }
-            }
-        }
-        pindex = pindex->pprev;
-    }
-
-    return true;
-}
-
 // Check kernel hash target and coinstake signature
 bool CheckProofOfStake(BlockValidationState &state, const CBlockIndex *pindexPrev, const CTransaction &tx, int64_t nTime, unsigned int nBits, uint256 &hashProofOfStake, uint256 &targetProofOfStake)
 {
-    // pindexPrev is the current tip, the block the new block will connect on
+    // pindexPrev is the current tip, the block the new block will connect on to
     // nTime is the time of the new/next block
 
     if (!tx.IsCoinStake()
@@ -261,66 +205,40 @@ bool CheckProofOfStake(BlockValidationState &state, const CBlockIndex *pindexPre
 
     Coin coin;
     if (!::ChainstateActive().CoinsTip().GetCoin(txin.prevout, coin) || coin.IsSpent()) {
-        // Find the prevout in the txdb / blocks
-
-        CBlock blockKernel; // block containing stake kernel, GetTransaction should only fill the header.
-        if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), blockKernel)
-            || txin.prevout.n >= txPrev->vpout.size()) {
-            LogPrintf("ERROR: %s: prevout-not-in-chain\n", __func__);
-            return state.Invalid(BlockValidationResult::DOS_20, "prevout-not-in-chain");
+        // Read from spent cache
+        SpentCoin spent_coin;
+        if (!pblocktree->ReadSpentCache(txin.prevout, spent_coin)) {
+            LogPrintf("ERROR: %s: prevout-not-found\n", __func__);
+            return state.Invalid(BlockValidationResult::DOS_20, "prevout-not-found");
         }
-
-        const CTxOutBase *outPrev = txPrev->vpout[txin.prevout.n].get();
-        if (!outPrev->IsStandardOutput()) {
-            LogPrintf("ERROR: %s: invalid-prevout\n", __func__);
+        if (pindexPrev->nHeight - spent_coin.spent_height > MAX_REORG_DEPTH) {
+            LogPrintf("ERROR: %s: Tried to stake kernel spent at height %d\n", __func__, spent_coin.spent_height);
             return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
         }
-
-        hashBlock = blockKernel.GetHash();
-        BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
-        if (mi == ::BlockIndex().end() || !::ChainActive().Contains(mi->second)) {
-            LogPrintf("ERROR: %s: prevout-not-in-chain\n", __func__);
-            return state.Invalid(BlockValidationResult::DOS_20, "prevout-not-in-chain");
-        }
-
-        int nDepth;
-        if (!CheckAge(pindexPrev, hashBlock, nDepth)) {
-            LogPrintf("ERROR: %s: Tried to stake at depth %d\n", __func__, nDepth + 1);
-            return state.Invalid(BlockValidationResult::DOS_100, "invalid-stake-depth");
-        }
-
-        if (SpendTooDeep(txin.prevout)) {
-            LogPrintf("ERROR: %s: Tried to stake spent kernel\n", __func__);
-            return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
-        }
-
-        kernelPubKey = *outPrev->GetPScriptPubKey();
-        amount = outPrev->GetValue();
-        nBlockFromTime = blockKernel.nTime;
+        coin = spent_coin.coin;
         state.nFlags |= BLOCK_STAKE_KERNEL_SPENT;
-    } else {
-        if (coin.nType != OUTPUT_STANDARD) {
-            LogPrintf("ERROR: %s: invalid-prevout\n", __func__);
-            return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
-        }
-
-        CBlockIndex *pindex = ::ChainActive()[coin.nHeight];
-        if (!pindex) {
-            LogPrintf("ERROR: %s: invalid-prevout\n", __func__);
-            return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
-        }
-
-        nDepth = pindexPrev->nHeight - coin.nHeight;
-        int nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(pindexPrev->nHeight / 2));
-        if (nRequiredDepth > nDepth) {
-            LogPrintf("ERROR: %s: Tried to stake at depth %d\n", __func__, nDepth + 1);
-            return state.Invalid(BlockValidationResult::DOS_100, "invalid-stake-depth");
-        }
-
-        kernelPubKey = coin.out.scriptPubKey;
-        amount = coin.out.nValue;
-        nBlockFromTime = pindex->GetBlockTime();
     }
+    if (coin.nType != OUTPUT_STANDARD) {
+        LogPrintf("ERROR: %s: invalid-prevout\n", __func__);
+        return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
+    }
+
+    CBlockIndex *pindex = ::ChainActive()[coin.nHeight];
+    if (!pindex) {
+        LogPrintf("ERROR: %s: invalid-prevout\n", __func__);
+        return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
+    }
+
+    nDepth = pindexPrev->nHeight - coin.nHeight;
+    int nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(pindexPrev->nHeight / 2));
+    if (nRequiredDepth > nDepth) {
+        LogPrintf("ERROR: %s: Tried to stake at depth %d\n", __func__, nDepth + 1);
+        return state.Invalid(BlockValidationResult::DOS_100, "invalid-stake-depth");
+    }
+
+    kernelPubKey = coin.out.scriptPubKey;
+    amount = coin.out.nValue;
+    nBlockFromTime = pindex->GetBlockTime();
 
     const CScript &scriptSig = txin.scriptSig;
     const CScriptWitness *witness = &txin.scriptWitness;
@@ -349,35 +267,23 @@ bool CheckProofOfStake(BlockValidationState &state, const CBlockIndex *pindexPre
             const CTxIn &txin = tx.vin[k];
             Coin coin;
             if (!::ChainstateActive().CoinsTip().GetCoin(txin.prevout, coin) || coin.IsSpent()) {
-                if (!GetTransaction(txin.prevout.hash, txPrev, Params().GetConsensus(), hashBlock)
-                    || txin.prevout.n >= txPrev->vpout.size()) {
-                    LogPrintf("ERROR: %s: prevout-not-in-chain %d\n", __func__, k);
-                    return state.Invalid(BlockValidationResult::DOS_1, "prevout-not-in-chain");
+                SpentCoin spent_coin;
+                if (!pblocktree->ReadSpentCache(txin.prevout, spent_coin)) {
+                    LogPrintf("ERROR: %s: prevout-not-found\n", __func__);
+                    return state.Invalid(BlockValidationResult::DOS_20, "prevout-not-in-chain");
                 }
-
-                const CTxOutBase *outPrev = txPrev->vpout[txin.prevout.n].get();
-                if (!outPrev->IsStandardOutput()) {
-                    LogPrintf("ERROR: %s: invalid-prevout %d\n", __func__, k);
-                    return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
-                }
-                if (kernelPubKey != *outPrev->GetPScriptPubKey()) {
-                    LogPrintf("ERROR: %s: mixed-prevout-scripts %d\n", __func__, k);
-                    return state.Invalid(BlockValidationResult::DOS_100, "mixed-prevout-scripts");
-                }
-                amount += outPrev->GetValue();
-
+                coin = spent_coin.coin;
                 LogPrint(BCLog::POS, "%s: Input %d of coinstake %s is spent.\n", __func__, k, tx.GetHash().ToString());
-            } else {
-                if (coin.nType != OUTPUT_STANDARD) {
-                    LogPrintf("ERROR: %s: invalid-prevout %d\n", __func__, k);
-                    return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
-                }
-                if (kernelPubKey != coin.out.scriptPubKey) {
-                    LogPrintf("ERROR: %s: mixed-prevout-scripts %d\n", __func__, k);
-                    return state.Invalid(BlockValidationResult::DOS_100, "mixed-prevout-scripts");
-                }
-                amount += coin.out.nValue;
             }
+            if (coin.nType != OUTPUT_STANDARD) {
+                LogPrintf("ERROR: %s: invalid-prevout %d\n", __func__, k);
+                return state.Invalid(BlockValidationResult::DOS_100, "invalid-prevout");
+            }
+            if (kernelPubKey != coin.out.scriptPubKey) {
+                LogPrintf("ERROR: %s: mixed-prevout-scripts %d\n", __func__, k);
+                return state.Invalid(BlockValidationResult::DOS_100, "mixed-prevout-scripts");
+            }
+            amount += coin.out.nValue;
         }
 
         CAmount nVerify = 0;

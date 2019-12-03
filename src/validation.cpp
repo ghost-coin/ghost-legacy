@@ -135,6 +135,8 @@ bool fCheckBlockIndex = false;
 bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 size_t nCoinCacheUsage = 5000 * 300;
 uint64_t nPruneTarget = 0;
+unsigned int MIN_BLOCKS_TO_KEEP = 288;
+unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 static bool fVerifyingDB = false;
 
@@ -2048,6 +2050,9 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
 
                     view.keyImages.push_back(std::make_pair(ki, hash));
                 }
+            } else {
+                Coin coin;
+                view.spent_cache.emplace_back(txin.prevout, SpentCoin());
             }
         }
 
@@ -2182,8 +2187,7 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
                     }
                 }
             }
-        } else
-        {
+        } else {
             // Check that all outputs are available and match the outputs in the block itself
             // exactly.
             for (size_t o = 0; o < tx.vout.size(); o++) {
@@ -2633,9 +2637,8 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-txns-nonfinal");
             }
 
-            if (tx.IsParticlVersion()
-                && (fAddressIndex || fSpentIndex)) {
-                // Update spent inputs for insight
+            if (tx.IsParticlVersion()) {
+                // Update spent inputs
                 for (size_t j = 0; j < tx.vin.size(); j++) {
                     const CTxIn input = tx.vin[j];
                     if (input.IsAnonInput()) {
@@ -2644,8 +2647,15 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     }
 
                     const Coin &coin = view.AccessCoin(input.prevout);
-                    const CScript *pScript = &coin.out.scriptPubKey;
 
+                    if (coin.nType != OUTPUT_CT) {
+                        view.spent_cache.emplace_back(input.prevout, SpentCoin(coin, pindex->nHeight));
+                    }
+                    if (!fAddressIndex && !fSpentIndex) {
+                        continue;
+                    }
+
+                    const CScript *pScript = &coin.out.scriptPubKey;
                     CAmount nValue = coin.nType == OUTPUT_CT ? 0 : coin.out.nValue;
                     std::vector<uint8_t> hashBytes;
                     int scriptType = 0;
@@ -2656,16 +2666,15 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     }
 
                     uint256 hashAddress;
-                    if (scriptType > 0)
+                    if (scriptType > 0) {
                         hashAddress = uint256(hashBytes.data(), hashBytes.size());
-
+                    }
                     if (fAddressIndex && scriptType > 0) {
                         // record spending activity
                         view.addressIndex.push_back(std::make_pair(CAddressIndexKey(scriptType, hashAddress, pindex->nHeight, i, txhash, j, true), nValue * -1));
                         // remove address from unspent index
                         view.addressUnspentIndex.push_back(std::make_pair(CAddressUnspentKey(scriptType, hashAddress, input.prevout.hash, input.prevout.n), CAddressUnspentValue()));
                     }
-
                     if (fSpentIndex) {
                         CAmount nValue = coin.nType == OUTPUT_CT ? -1 : coin.out.nValue;
                         // add the spent index to determine the txid and input that spent an output
@@ -3191,6 +3200,27 @@ static void DoWarning(const std::string& strWarning)
     }
 }
 
+static void ClearSpentCache(CDBBatch &batch, int height)
+{
+    CBlockIndex* pblockindex = ::ChainActive()[height];
+    if (!pblockindex) {
+        return;
+    }
+    CBlock block;
+    if (!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) {
+        LogPrintf("%s: failed read block from disk (%d, %s)\n", __func__, height, pblockindex->GetBlockHash().ToString());
+        return;
+    }
+    for (int i = block.vtx.size() - 1; i >= 0; i--) {
+        const CTransaction &tx = *(block.vtx[i]);
+        for (const auto &txin : tx.vin) {
+            if (!txin.IsAnonInput()) {
+                batch.Erase(std::make_pair(DB_SPENTCACHE, txin.prevout));
+            }
+        }
+    }
+}
+
 bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconnecting)
 {
     if (!view->Flush())
@@ -3206,7 +3236,6 @@ bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconn
                 return AbortNode(state, "Failed to write address index");
             }
         }
-
         if (!pblocktree->UpdateAddressUnspentIndex(view->addressUnspentIndex)) {
             return AbortNode(state, "Failed to write address unspent index");
         }
@@ -3223,37 +3252,44 @@ bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconn
     view->spentIndex.clear();
 
     if (fDisconnecting) {
-        for (auto &it : view->keyImages) {
+        for (const auto &it : view->keyImages) {
             if (!pblocktree->EraseRCTKeyImage(it.first)) {
                 return error("%s: EraseRCTKeyImage failed, txn %s.", __func__, it.second.ToString());
             }
         }
-
-        if (view->anonOutputLinks.size() > 0) {
-            for (auto &it : view->anonOutputLinks) {
-                if (!pblocktree->EraseRCTOutput(it.second)) {
-                    return error("%s: EraseRCTOutput failed.", __func__);
-                }
-
-                if (!pblocktree->EraseRCTOutputLink(it.first)) {
-                    return error("%s: EraseRCTOutput failed.", __func__);
-                }
+        for (const auto &it : view->anonOutputLinks) {
+            if (!pblocktree->EraseRCTOutput(it.second)) {
+                return error("%s: EraseRCTOutput failed.", __func__);
+            }
+            if (!pblocktree->EraseRCTOutputLink(it.first)) {
+                return error("%s: EraseRCTOutputLink failed.", __func__);
+            }
+        }
+        for (const auto &it : view->spent_cache) {
+            if (!pblocktree->EraseSpentCache(it.first)) {
+                return error("%s: EraseSpentCache failed.", __func__);
             }
         }
     } else {
         CDBBatch batch(*pblocktree);
 
-        for (auto &it : view->keyImages) {
+        for (const auto &it : view->keyImages) {
             batch.Write(std::make_pair(DB_RCTKEYIMAGE, it.first), it.second);
         }
-        for (auto &it : view->anonOutputs) {
+        for (const auto &it : view->anonOutputs) {
             batch.Write(std::make_pair(DB_RCTOUTPUT, it.first), it.second);
         }
-        for (auto &it : view->anonOutputLinks) {
+        for (const auto &it : view->anonOutputLinks) {
             batch.Write(std::make_pair(DB_RCTOUTPUT_LINK, it.first), it.second);
         }
+        for (const auto &it : view->spent_cache) {
+            batch.Write(std::make_pair(DB_SPENTCACHE, it.first), it.second);
+        }
+        if (state.m_spend_height > MIN_BLOCKS_TO_KEEP) {
+            ClearSpentCache(batch, state.m_spend_height - (MIN_BLOCKS_TO_KEEP+1));
+        }
         if (!pblocktree->WriteBatch(batch)) {
-            return error("%s: Write RCT outputs failed.", __func__);
+            return error("%s: Write index data failed.", __func__);
         }
     }
 
@@ -3261,6 +3297,7 @@ bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconn
     view->anonOutputs.clear();
     view->anonOutputLinks.clear();
     view->keyImages.clear();
+    view->spent_cache.clear();
 
     return true;
 };

@@ -44,6 +44,7 @@ static const char DB_LAST_BLOCK = 'l';
 static const char DB_RCTOUTPUT = 'A';
 static const char DB_RCTOUTPUT_LINK = 'L';
 static const char DB_RCTKEYIMAGE = 'K';
+static const char DB_SPENTCACHE = 'S';
 */
 
 namespace {
@@ -287,7 +288,7 @@ bool CBlockTreeDB::ReadAddressUnspentIndex(uint256 addressHash, int type,
 
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
-        std::pair<char,CAddressUnspentKey> key;
+        std::pair<char, CAddressUnspentKey> key;
         if (pcursor->GetKey(key) && key.first == DB_ADDRESSUNSPENTINDEX && key.second.hashBytes == addressHash) {
             CAddressUnspentValue nValue;
             if (pcursor->GetValue(nValue)) {
@@ -331,7 +332,7 @@ bool CBlockTreeDB::ReadAddressIndex(uint256 addressHash, int type,
 
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
-        std::pair<char,CAddressIndexKey> key;
+        std::pair<char, CAddressIndexKey> key;
         if (pcursor->GetKey(key) && key.first == DB_ADDRESSINDEX && key.second.hashBytes == addressHash) {
             if (end > 0 && key.second.blockHeight > end) {
                 break;
@@ -544,6 +545,18 @@ bool CBlockTreeDB::EraseRCTKeyImage(const CCmpPubKey &ki)
 {
     CDBBatch batch(*this);
     batch.Erase(std::make_pair(DB_RCTKEYIMAGE, ki));
+    return WriteBatch(batch);
+};
+
+bool CBlockTreeDB::ReadSpentCache(const COutPoint &outpoint, SpentCoin &coin)
+{
+    return Read(std::make_pair(DB_SPENTCACHE, outpoint), coin);
+};
+
+bool CBlockTreeDB::EraseSpentCache(const COutPoint &outpoint)
+{
+    CDBBatch batch(*this);
+    batch.Erase(std::make_pair(DB_SPENTCACHE, outpoint));
     return WriteBatch(batch);
 };
 

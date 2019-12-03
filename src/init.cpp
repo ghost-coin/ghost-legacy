@@ -59,6 +59,7 @@
 #include <smsg/rpcsmessage.h>
 #include <insight/rpc.h>
 #include <pos/miner.h>
+#include <pos/kernel.h>
 #include <core_io.h>
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
@@ -1064,6 +1065,10 @@ bool AppInitParameterInteraction()
         if (gArgs.GetChainName() == CBaseChainParams::REGTEST) {
             ResetParams(CBaseChainParams::REGTEST, fParticlMode);
         }
+    } else {
+        MIN_BLOCKS_TO_KEEP = 1024;
+        NODE_NETWORK_LIMITED_MIN_BLOCKS = MIN_BLOCKS_TO_KEEP;
+        assert(MAX_REORG_DEPTH <= MIN_BLOCKS_TO_KEEP);
     }
 
     const CChainParams& chainparams = Params();
