@@ -45,20 +45,17 @@ void test_mlsag(void)
     secp256k1_rand256(preimage);
 
     total_value = 0;
-    for (i = 0; i < n_outputs; i++)
-    {
+    for (i = 0; i < n_outputs; i++) {
         value[n_inputs + i] = secp256k1_rands64(0, (INT64_MAX/n_outputs));
         total_value += value[n_inputs + i];
     }
-    for (i = 0; i < n_inputs - 1; i++)
-    {
+    for (i = 0; i < n_inputs - 1; i++) {
         value[i] = secp256k1_rands64(0, total_value);
         total_value -= value[i];
     }
     value[i] = total_value;
 
-    for (k = 0; k < n_blinded; ++k)
-    {
+    for (k = 0; k < n_blinded; ++k) {
         random_scalar_order(&s);
         secp256k1_scalar_get_b32(&blinds_out[k * 32], &s);
         pblinds[n_inputs + k] = &blinds_out[k * 32];
@@ -68,18 +65,15 @@ void test_mlsag(void)
     }
 
     memset(tmp32, 0, 32); /* use tmp32 for zero here */
-    for (k = n_blinded; k < n_outputs; ++k)
-    {
+    for (k = n_blinded; k < n_outputs; ++k) {
         /* NOTE: fails if value <= 0 */
         CHECK(secp256k1_pedersen_commit(ctx, &cm_out[k], tmp32, value[n_inputs + k], &secp256k1_generator_const_h, &secp256k1_generator_const_g));
         pcm_out[k] = cm_out[k].data;
     }
 
     for (k = 0; k < n_inputs; ++k) /* rows */
-    for (i = 0; i < n_columns; ++i) /* cols */
-    {
-        if (i == n_real_col)
-        {
+    for (i = 0; i < n_columns; ++i) { /* cols */
+        if (i == n_real_col) {
             random_scalar_order(&s);
             secp256k1_scalar_get_b32(&keys_in[k * 32], &s);
             pkeys[k] = &keys_in[k * 32];

@@ -24,8 +24,7 @@ static void pedersen_commitment_save(uint8_t *commit, secp256k1_ge *ge) {
 
 static int load_ge(secp256k1_ge *ge, const uint8_t *data, size_t len)
 {
-    if (len == 33 && (data[0] == 0x08 || data[0] == 0x09))
-    {
+    if (len == 33 && (data[0] == 0x08 || data[0] == 0x09)) {
         pedersen_commitment_load(ge, data);
         return 1;
     }
@@ -63,72 +62,69 @@ int secp256k1_prepare_mlsag(uint8_t *m, uint8_t *sk,
     if (!m
         || nRows < 2
         || nCols < 1
-        || nOuts < 1)
+        || nOuts < 1) {
         return 1;
+    }
 
     /* sum output commitments */
     secp256k1_gej_set_infinity(&accj);
-    for (k = 0; k < nOuts; ++k)
-    {
-        if (!load_ge(&c, pcm_out[k], 33))
+    for (k = 0; k < nOuts; ++k) {
+        if (!load_ge(&c, pcm_out[k], 33)) {
             return 2;
-
+        }
         secp256k1_gej_add_ge_var(&accj, &accj, &c, NULL);
-    };
+    }
 
     secp256k1_gej_neg(&accj, &accj);
     secp256k1_ge_set_gej(&cno, &accj);
 
-    for (k = 0; k < nCols; ++k)
-    {
+    for (k = 0; k < nCols; ++k) {
         /* sum column input commitments */
         secp256k1_gej_set_infinity(&accj);
-        for (i = 0; i < nIns; ++i)
-        {
-            if (!load_ge(&c, pcm_in[k+nCols*i], 33))
+        for (i = 0; i < nIns; ++i) {
+            if (!load_ge(&c, pcm_in[k+nCols*i], 33)) {
                 return 3;
-
+            }
             secp256k1_gej_add_ge_var(&accj, &accj, &c, NULL);
-        };
+        }
 
         /* subtract output commitments */
         secp256k1_gej_add_ge_var(&accj, &accj, &cno, NULL);
 
         /* store in last row, nRows -1 */
-        if (secp256k1_gej_is_infinity(&accj))
-        { /* With no blinds set, sum input commitments == sum output commitments */
+        if (secp256k1_gej_is_infinity(&accj)) {
+            /* With no blinds set, sum input commitments == sum output commitments */
             memset(&m[(k+nCols*nIns)*33], 0, 33); /* consistent infinity point */
             continue;
-        };
+        }
         secp256k1_ge_set_gej(&c, &accj);
         secp256k1_eckey_pubkey_serialize(&c, &m[(k+nCols*nIns)*33], &s, 1);
         /* pedersen_commitment_save(&m[(k+nCols*nIns)*33], &c); */
-    };
+    }
 
-    if (!sk || !blinds)
+    if (!sk || !blinds) {
         return 0;
+    }
 
     /* sum input blinds */
     secp256k1_scalar_clear(&accis);
-    for (k = 0; k < nIns; ++k)
-    {
+    for (k = 0; k < nIns; ++k) {
         secp256k1_scalar_set_b32(&ts, blinds[k], &overflow);
-        if (overflow)
+        if (overflow) {
             return 5;
-
+        }
         secp256k1_scalar_add(&accis, &accis, &ts);
-    };
+    }
 
     /* sum output blinds */
     secp256k1_scalar_clear(&accos);
-    for (k = 0; k < nBlinded; ++k)
-    {
+    for (k = 0; k < nBlinded; ++k) {
         secp256k1_scalar_set_b32(&ts, blinds[nIns+k], &overflow);
-        if (overflow)
+        if (overflow) {
             return 5;
-
+        }
         secp256k1_scalar_add(&accos, &accos, &ts);
-    };
+    }
 
     secp256k1_scalar_negate(&accos, &accos);
 
@@ -151,21 +147,21 @@ static int hash_to_curve(secp256k1_ge *ge, const uint8_t *pd, size_t len)
     secp256k1_sha256_write(&sha256_m, pd, len);
     secp256k1_sha256_finalize(&sha256_m, hash);
 
-    for (k = 0; k < safety; ++k)
-    {
+    for (k = 0; k < safety; ++k) {
         if (secp256k1_fe_set_b32(&x, hash)
             && secp256k1_ge_set_xo_var(ge, &x, 0)
-            && secp256k1_ge_is_valid_var(ge)) /* Is secp256k1_ge_is_valid_var necessary? */
+            && secp256k1_ge_is_valid_var(ge)) { /* Is secp256k1_ge_is_valid_var necessary? */
             break;
+        }
 
         secp256k1_sha256_initialize(&sha256_m);
         secp256k1_sha256_write(&sha256_m, hash, 32);
         secp256k1_sha256_finalize(&sha256_m, hash);
-    };
+    }
 
-    if (k == safety)
+    if (k == safety) {
         return 1; /* failed */
-
+    }
     return 0;
 }
 
@@ -179,12 +175,14 @@ int secp256k1_get_keyimage(const secp256k1_context *ctx, uint8_t *ki, const uint
 
     secp256k1_scalar_set_int(&zero, 0);
 
-    if (0 != hash_to_curve(&ge1, pk, 33)) /* H(pk) */
+    if (0 != hash_to_curve(&ge1, pk, 33)) { /* H(pk) */
         return 1;
+    }
 
     secp256k1_scalar_set_b32(&s, sk, &overflow);
-    if (overflow || secp256k1_scalar_is_zero(&s))
+    if (overflow || secp256k1_scalar_is_zero(&s)) {
         return 2;
+    }
 
     secp256k1_gej_set_ge(&gej1, &ge1);
     secp256k1_ecmult(&ctx->ecmult_ctx, &gej2, &gej1, &s, &zero);  /* gej2 = H(pk) * sk */
@@ -219,8 +217,9 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
     if (!pk
         || nRows < 2
         || nCols < 1
-        || nRows > MLSAG_MAX_ROWS)
+        || nRows > MLSAG_MAX_ROWS) {
         return 1;
+    }
 
     secp256k1_scalar_set_int(&zero, 0);
 
@@ -234,25 +233,27 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
     secp256k1_sha256_write(&sha256_m, preimage, 32);
     sha256_pre = sha256_m;
 
-    for (k = 0; k < dsRows; ++k)
-    {
+    for (k = 0; k < dsRows; ++k) {
         do {
             secp256k1_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
             secp256k1_scalar_set_b32(&alpha[k], tmp, &overflow);
         } while (overflow || secp256k1_scalar_is_zero(&alpha[k]));
 
-        if (!secp256k1_ec_pubkey_create(ctx, &pubkey, tmp))  /* G * alpha[col] */
+        if (!secp256k1_ec_pubkey_create(ctx, &pubkey, tmp)) { /* G * alpha[col] */
             return 1;
+        }
         clen = 33; /* must be set */
         if (!secp256k1_ec_pubkey_serialize(ctx, tmp, &clen, &pubkey, SECP256K1_EC_COMPRESSED)
-            || clen != 33)
+            || clen != 33) {
             return 1;
+        }
 
         secp256k1_sha256_write(&sha256_m, &pk[(index + k*nCols)*33], 33); /* pk_ind[col] */
         secp256k1_sha256_write(&sha256_m, tmp, 33); /* G * alpha[col] */
 
-        if (0 != hash_to_curve(&ge1, &pk[(index + k*nCols)*33], 33)) /* H(pk_ind[col]) */
+        if (0 != hash_to_curve(&ge1, &pk[(index + k*nCols)*33], 33)) { /* H(pk_ind[col]) */
             return 1;
+        }
 
         secp256k1_gej_set_ge(&gej1, &ge1);
         secp256k1_ecmult(&ctx->ecmult_ctx, &gej2, &gej1, &alpha[k], &zero);  /* gej2 = H(pk_ind[col]) * alpha[col] */
@@ -262,47 +263,48 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
         secp256k1_sha256_write(&sha256_m, tmp, 33); /* H(pk_ind[col]) * alpha[col] */
 
         secp256k1_scalar_set_b32(&s, sk[k], &overflow);
-        if (overflow || secp256k1_scalar_is_zero(&s))
+        if (overflow || secp256k1_scalar_is_zero(&s)) {
             return 1;
+        }
         secp256k1_ecmult(&ctx->ecmult_ctx, &gej2, &gej1, &s, &zero);  /* gej2 = H(pk_ind[col]) * sk_ind[col] */
         secp256k1_ge_set_gej(&ge1, &gej2);
         secp256k1_eckey_pubkey_serialize(&ge1, &ki[k * 33], &clen, 1);
-    };
+    }
 
-    for (k = dsRows; k < nRows; ++k)
-    {
+    for (k = dsRows; k < nRows; ++k) {
         do {
             secp256k1_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
             secp256k1_scalar_set_b32(&alpha[k], tmp, &overflow);
         } while (overflow || secp256k1_scalar_is_zero(&alpha[k]));
 
-        if (!secp256k1_ec_pubkey_create(ctx, &pubkey, tmp))  /* G * alpha[col] */
+        if (!secp256k1_ec_pubkey_create(ctx, &pubkey, tmp)) { /* G * alpha[col] */
             return 1;
+        }
         clen = 33; /* must be set */
         if (!secp256k1_ec_pubkey_serialize(ctx, tmp, &clen, &pubkey, SECP256K1_EC_COMPRESSED)
-            || clen != 33)
+            || clen != 33) {
             return 1;
-
+        }
         secp256k1_sha256_write(&sha256_m, &pk[(index + k*nCols)*33], 33); /* pk_ind[col] */
         secp256k1_sha256_write(&sha256_m, tmp, 33); /* G * alpha[col] */
-    };
+    }
 
     secp256k1_sha256_finalize(&sha256_m, tmp);
     secp256k1_scalar_set_b32(&clast, tmp, &overflow);
-    if (overflow || secp256k1_scalar_is_zero(&clast))
+    if (overflow || secp256k1_scalar_is_zero(&clast)) {
         return 1;
+    }
 
     i = (index + 1) % nCols;
 
-    if (i == 0)
+    if (i == 0) {
         memcpy(pc, tmp, 32); /* *pc = clast */
+    }
 
-    while (i != index)
-    {
+    while (i != index) {
         sha256_m = sha256_pre; /* set to after preimage hashed */
 
-        for (k = 0; k < dsRows; ++k)
-        {
+        for (k = 0; k < dsRows; ++k) {
             do {
                 secp256k1_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
                 secp256k1_scalar_set_b32(&ss, tmp, &overflow);
@@ -310,20 +312,23 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
 
             memcpy(&ps[(i + k*nCols)*32], tmp, 32);
 
-            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33))
+            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33)) {
                 return 1;
+            }
             secp256k1_gej_set_ge(&gej1, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &L, &gej1, &clast, &ss); /* L = G * ss + pk[k][i] * clast */
 
 
             /* R = H(pk[k][i]) * ss + ki[k] * clast */
-            if (0 != hash_to_curve(&ge1, &pk[(i + k*nCols)*33], 33)) /* H(pk[k][i]) */
+            if (0 != hash_to_curve(&ge1, &pk[(i + k*nCols)*33], 33)) { /* H(pk[k][i]) */
                 return 1;
+            }
             secp256k1_gej_set_ge(&gej1, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &gej1, &gej1, &ss, &zero); /* gej1 = H(pk[k][i]) * ss */
 
-            if (!secp256k1_eckey_pubkey_parse(&ge1, &ki[k * 33], 33))
+            if (!secp256k1_eckey_pubkey_parse(&ge1, &ki[k * 33], 33)) {
                 return 1;
+            }
             secp256k1_gej_set_ge(&gej2, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &gej2, &gej2, &clast, &zero); /* gej2 = ki[k] * clast */
 
@@ -336,10 +341,9 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
             secp256k1_ge_set_gej(&ge1, &R);
             secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
             secp256k1_sha256_write(&sha256_m, tmp, 33); /* R */
-        };
+        }
 
-        for (k = dsRows; k < nRows; ++k)
-        {
+        for (k = dsRows; k < nRows; ++k) {
             do {
                 secp256k1_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
                 secp256k1_scalar_set_b32(&ss, tmp, &overflow);
@@ -348,8 +352,9 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
             memcpy(&ps[(i + k*nCols)*32], tmp, 32);
 
             /* L = G * ss + pk[k][i] * clast */
-            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33))
+            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33)) {
                 return 1;
+            }
             secp256k1_gej_set_ge(&gej1, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &L, &gej1, &clast, &ss);
 
@@ -357,36 +362,35 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
             secp256k1_ge_set_gej(&ge1, &L);
             secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
             secp256k1_sha256_write(&sha256_m, tmp, 33); /* L */
-        };
+        }
 
         secp256k1_sha256_finalize(&sha256_m, tmp);
         secp256k1_scalar_set_b32(&clast, tmp, &overflow);
-        if (overflow || secp256k1_scalar_is_zero(&clast))
+        if (overflow || secp256k1_scalar_is_zero(&clast)) {
             return 1;
-
+        }
         i = (i + 1) % nCols;
 
-        if (i == 0)
+        if (i == 0) {
             memcpy(pc, tmp, 32); /* *pc = clast */
-    };
+        }
+    }
 
 
-    for (k = 0; k < nRows; ++k)
-    {
+    for (k = 0; k < nRows; ++k) {
         /* ss[k][index] = alpha[k] - clast * sk[k] */
 
         secp256k1_scalar_set_b32(&ss, sk[k], &overflow);
-        if (overflow || secp256k1_scalar_is_zero(&ss))
+        if (overflow || secp256k1_scalar_is_zero(&ss)) {
             return 1;
-
+        }
         secp256k1_scalar_mul(&s, &clast, &ss);
 
         secp256k1_scalar_negate(&s, &s);
         secp256k1_scalar_add(&ss, &alpha[k], &s);
 
         secp256k1_scalar_get_b32(&ps[(index + k*nCols)*32], &ss);
-    };
-
+    }
 
     secp256k1_rfc6979_hmac_sha256_finalize(&rng);
 
@@ -409,8 +413,9 @@ int secp256k1_verify_mlsag(const secp256k1_context *ctx,
     secp256k1_scalar_set_int(&zero, 0);
 
     secp256k1_scalar_set_b32(&clast, pc, &overflow);
-    if (overflow || secp256k1_scalar_is_zero(&clast))
+    if (overflow || secp256k1_scalar_is_zero(&clast)) {
         return 1;
+    }
 
     cSig = clast;
 
@@ -418,29 +423,31 @@ int secp256k1_verify_mlsag(const secp256k1_context *ctx,
     secp256k1_sha256_write(&sha256_m, preimage, 32);
     sha256_pre = sha256_m;
 
-    for (i = 0; i < nCols; ++i)
-    {
+    for (i = 0; i < nCols; ++i) {
         sha256_m = sha256_pre; /* set to after preimage hashed */
 
-        for (k = 0; k < dsRows; ++k)
-        {
+        for (k = 0; k < dsRows; ++k) {
             /* L = G * ss + pk[k][i] * clast */
             secp256k1_scalar_set_b32(&ss, &ps[(i + k*nCols)*32], &overflow);
-            if (overflow || secp256k1_scalar_is_zero(&ss))
+            if (overflow || secp256k1_scalar_is_zero(&ss)) {
                 return 1;
-            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33))
+            }
+            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33)) {
                 return 1;
+            }
             secp256k1_gej_set_ge(&gej1, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &L, &gej1, &clast, &ss);
 
             /* R = H(pk[k][i]) * ss + ki[k] * clast */
-            if (0 != hash_to_curve(&ge1, &pk[(i + k*nCols)*33], 33)) /* H(pk[k][i]) */
+            if (0 != hash_to_curve(&ge1, &pk[(i + k*nCols)*33], 33)) { /* H(pk[k][i]) */
                 return 1;
+            }
             secp256k1_gej_set_ge(&gej1, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &gej1, &gej1, &ss, &zero); /* gej1 = H(pk[k][i]) * ss */
 
-            if (!secp256k1_eckey_pubkey_parse(&ge1, &ki[k * 33], 33))
+            if (!secp256k1_eckey_pubkey_parse(&ge1, &ki[k * 33], 33)) {
                 return 1;
+            }
             secp256k1_gej_set_ge(&gej2, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &gej2, &gej2, &clast, &zero); /* gej2 = ki[k] * clast */
 
@@ -453,17 +460,17 @@ int secp256k1_verify_mlsag(const secp256k1_context *ctx,
             secp256k1_ge_set_gej(&ge1, &R);
             secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
             secp256k1_sha256_write(&sha256_m, tmp, 33); /* R */
-        };
+        }
 
-        for (k = dsRows; k < nRows; ++k)
-        {
+        for (k = dsRows; k < nRows; ++k) {
             /* L = G * ss + pk[k][i] * clast */
             secp256k1_scalar_set_b32(&ss, &ps[(i + k*nCols)*32], &overflow);
-            if (overflow || secp256k1_scalar_is_zero(&ss))
+            if (overflow || secp256k1_scalar_is_zero(&ss)) {
                 return 1;
-
-            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33))
+            }
+            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33)) {
                 return 1;
+            }
 
             secp256k1_gej_set_ge(&gej1, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &L, &gej1, &clast, &ss);
@@ -476,9 +483,10 @@ int secp256k1_verify_mlsag(const secp256k1_context *ctx,
 
         secp256k1_sha256_finalize(&sha256_m, tmp);
         secp256k1_scalar_set_b32(&clast, tmp, &overflow);
-        if (overflow || secp256k1_scalar_is_zero(&clast))
+        if (overflow || secp256k1_scalar_is_zero(&clast)) {
             return 1;
-    };
+        }
+    }
 
     secp256k1_scalar_negate(&cSig, &cSig);
     secp256k1_scalar_add(&zero, &clast, &cSig);
