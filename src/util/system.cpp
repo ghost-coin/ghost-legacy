@@ -1303,11 +1303,12 @@ void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length) {
         fcntl(fileno(file), F_PREALLOCATE, &fst);
     }
     ftruncate(fileno(file), fst.fst_length);
-#elif defined(__linux__)
+#else
+    #if defined(__linux__)
     // Version using posix_fallocate
     off_t nEndPos = (off_t)offset + length;
-    posix_fallocate(fileno(file), 0, nEndPos);
-#else
+    if (0 == posix_fallocate(fileno(file), 0, nEndPos)) return;
+    #endif
     // Fallback version
     // TODO: just write one byte per block
     static const char buf[65536] = {};
@@ -1426,14 +1427,12 @@ std::string CopyrightHolders(const std::string& strPrefix)
     const int BTC_START_YEAR = 2009;
     const int PART_START_YEAR = 2017;
 
-    std::string sRange = PART_START_YEAR == COPYRIGHT_YEAR
-        ? strprintf(" %i ", COPYRIGHT_YEAR)
-        : strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
+    std::string sRange = strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
+    const auto copyright_devs = strprintf(_(COPYRIGHT_HOLDERS), COPYRIGHT_HOLDERS_SUBSTITUTION);
+    std::string strCopyrightHolders = strPrefix + sRange + copyright_devs;
 
-    std::string strCopyrightHolders = strPrefix + sRange + strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION));
-
-    // Check for untranslated substitution to make sure Bitcoin Core copyright is not removed by accident
-    if (strprintf(COPYRIGHT_HOLDERS, COPYRIGHT_HOLDERS_SUBSTITUTION).find("Bitcoin Core") == std::string::npos) {
+    // Make sure Bitcoin Core copyright is not removed by accident
+    if (copyright_devs.find("Bitcoin Core") == std::string::npos) {
         sRange = strprintf(" %i-%i ", BTC_START_YEAR, COPYRIGHT_YEAR);
         strCopyrightHolders += "\n" + strPrefix + sRange + "The Bitcoin Core developers";
     }
