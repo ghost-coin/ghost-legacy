@@ -467,6 +467,9 @@ public:
     std::vector<uint8_t> GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload);
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);
 
+    int StoreFundingTx(const CTransaction &tx);
+    int CheckFundingTx(const Consensus::Params &consensus_params, const SecureMessage *psmsg, const uint8_t *pPayload);
+
     int Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
     int SetHash (uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);
 

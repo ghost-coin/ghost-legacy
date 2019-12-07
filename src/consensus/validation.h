@@ -121,12 +121,10 @@ public:
     std::string GetRejectReason() const { return m_reject_reason; }
     std::string GetDebugMessage() const { return m_debug_message; }
 
-    bool fEnforceSmsgFees = false; // per block
-    bool fBulletproofsActive = false; // per block
-    bool rct_active = false; // per block
-    bool fHasAnonOutput = false; // per tx
-    bool fHasAnonInput = false; // per tx
-    bool fIncDataOutputs = false; // per block
+    bool fEnforceSmsgFees = false;
+    bool fBulletproofsActive = false;
+    bool rct_active = false;
+    bool fIncDataOutputs = false;
     int m_spend_height = 0;
     bool m_particl_mode = false;
     bool m_skip_rangeproof = false;
@@ -165,6 +163,10 @@ public:
         return false;
     }
     TxValidationResult GetResult() const { return m_result; }
+
+    bool m_funds_smsg = false;
+    bool m_has_anon_output = false;
+    bool m_has_anon_input = false;
 };
 
 class BlockValidationState : public ValidationState {

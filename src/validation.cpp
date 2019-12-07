@@ -548,7 +548,7 @@ private:
     bool CheckFeeRate(size_t package_size, CAmount package_fee, TxValidationState& state)
     {
         CAmount mempoolRejectFee = m_pool.GetMinFee(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000).GetFee(package_size);
-        if (state.fHasAnonOutput) {
+        if (state.m_has_anon_output) {
             mempoolRejectFee *= ANON_FEE_MULTIPLIER;
         }
         if (mempoolRejectFee > 0 && package_fee < mempoolRejectFee) {
@@ -680,12 +680,12 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     LockPoints lp;
     m_view.SetBackend(m_viewmempool);
 
-    state.fHasAnonInput = false;
+    state.m_has_anon_input = false;
     CCoinsViewCache& coins_cache = ::ChainstateActive().CoinsTip();
     // do all inputs exist?
     for (const CTxIn& txin : tx.vin) {
         if (txin.IsAnonInput()) {
-            state.fHasAnonInput = true;
+            state.m_has_anon_input = true;
             continue;
         }
         if (!coins_cache.HaveCoinInCache(txin.prevout)) {
@@ -708,14 +708,14 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
         }
     }
 
-    if (state.fHasAnonInput
+    if (state.m_has_anon_input
          && (::ChainActive().Height() < GetNumBlocksOfPeers()-1)) {
         LogPrintf("%s: Ignoring anon transaction while chain syncs height %d - peers %d.\n",
             __func__, ::ChainActive().Height(), GetNumBlocksOfPeers());
         return false;
     }
 
-    if (!AllAnonOutputsUnknown(tx, state)) { // Also sets state.fHasAnonOutput
+    if (!AllAnonOutputsUnknown(tx, state)) { // Also sets state.m_has_anon_output
         // Already in the blockchain, containing block could have been received before loose tx
         return state.Invalid(TxValidationResult::TX_CONFLICT, "txn-already-in-mempool");
     }
@@ -1783,7 +1783,7 @@ bool CheckInputs(const CTransaction& tx, TxValidationState &state, const CCoinsV
         pvChecks->reserve(tx.vin.size());
     }
 
-    bool fHasAnonInput = false;
+    bool m_has_anon_input = false;
     // First check if script executions have been cached with the same
     // flags. Note that this assumes that the inputs provided are
     // correct (ie that the transaction hash which is in tx's prevouts
@@ -1802,7 +1802,7 @@ bool CheckInputs(const CTransaction& tx, TxValidationState &state, const CCoinsV
 
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         if (tx.vin[i].IsAnonInput()) {
-            fHasAnonInput = true;
+            m_has_anon_input = true;
             continue;
         }
 
@@ -1862,7 +1862,7 @@ bool CheckInputs(const CTransaction& tx, TxValidationState &state, const CCoinsV
         }
     }
 
-    if (fHasAnonInput && fAnonChecks
+    if (m_has_anon_input && fAnonChecks
         && !VerifyMLSAG(tx, state)) {
             return false;
     }
@@ -2682,6 +2682,10 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                         view.spentIndex.push_back(std::make_pair(CSpentIndexKey(input.prevout.hash, input.prevout.n), CSpentIndexValue(txhash, j, pindex->nHeight, nValue, scriptType, hashAddress)));
                     }
                 }
+
+                if (smsg::fSecMsgEnabled && tx_state.m_funds_smsg) {
+                    smsgModule.StoreFundingTx(tx);
+                }
             }
         }
 
@@ -2727,7 +2731,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
         }
 
         // Index rct outputs and keyimages
-        if (tx_state.fHasAnonOutput || tx_state.fHasAnonInput) {
+        if (tx_state.m_has_anon_output || tx_state.m_has_anon_input) {
             COutPoint op(txhash, 0);
             for (const auto &txin : tx.vin) {
                 if (txin.IsAnonInput()) {

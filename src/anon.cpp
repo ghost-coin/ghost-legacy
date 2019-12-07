@@ -264,12 +264,12 @@ bool RemoveKeyImagesFromMempool(const uint256 &hash, const CTxIn &txin, CTxMemPo
 
 bool AllAnonOutputsUnknown(const CTransaction &tx, TxValidationState &state)
 {
-    state.fHasAnonOutput = false;
+    state.m_has_anon_output = false;
     for (unsigned int k = 0; k < tx.vpout.size(); k++) {
         if (!tx.vpout[k]->IsType(OUTPUT_RINGCT)) {
             continue;
         }
-        state.fHasAnonOutput = true;
+        state.m_has_anon_output = true;
 
         CTxOutRingCT *txout = (CTxOutRingCT*)tx.vpout[k].get();
 
