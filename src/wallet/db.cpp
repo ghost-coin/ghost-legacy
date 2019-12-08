@@ -388,16 +388,16 @@ bool BerkeleyBatch::Recover(const fs::path& file_path, void *callbackDataIn, boo
             if (!(*recoverKVcallback)(callbackDataIn, ssKey, ssValue))
                 continue;
 
-            if (fParticlMode)
-            {
+            if (fParticlMode) {
                 Dbt datKey(&row.first[0], row.first.size());
                 Dbt datValue(ssValue.data(), ssValue.size());
                 int ret2 = pdbCopy->put(ptxn, &datKey, &datValue, DB_NOOVERWRITE);
-                if (ret2 > 0)
+                if (ret2 > 0) {
                     fSuccess = false;
+                }
                 continue;
-            };
-        };
+            }
+        }
 
         Dbt datKey(&row.first[0], row.first.size());
         Dbt datValue(&row.second[0], row.second.size());

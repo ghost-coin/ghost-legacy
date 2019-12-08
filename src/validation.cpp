@@ -2684,7 +2684,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 }
 
                 if (smsg::fSecMsgEnabled && tx_state.m_funds_smsg) {
-                    smsgModule.StoreFundingTx(tx);
+                    smsgModule.StoreFundingTx(tx, pindex->GetBlockHash(), pindex->nHeight);
                 }
             }
         }

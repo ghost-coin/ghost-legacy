@@ -50,51 +50,51 @@ bool CHDWalletDB::EraseStealthKeyMeta(const CKeyID &keyId)
 
 bool CHDWalletDB::WriteStealthAddress(const CStealthAddress &sxAddr)
 {
-    return WriteIC(std::make_pair(std::string("sxad"), sxAddr.scan_pubkey), sxAddr, true);
+    return WriteIC(std::make_pair(DBKeys::PART_SXADDR, sxAddr.scan_pubkey), sxAddr, true);
 };
 
 bool CHDWalletDB::ReadStealthAddress(CStealthAddress& sxAddr)
 {
     // Set scan_pubkey before reading
-    return m_batch.Read(std::make_pair(std::string("sxad"), sxAddr.scan_pubkey), sxAddr);
+    return m_batch.Read(std::make_pair(DBKeys::PART_SXADDR, sxAddr.scan_pubkey), sxAddr);
 };
 
 bool CHDWalletDB::EraseStealthAddress(const CStealthAddress& sxAddr)
 {
-    return EraseIC(std::make_pair(std::string("sxad"), sxAddr.scan_pubkey));
+    return EraseIC(std::make_pair(DBKeys::PART_SXADDR, sxAddr.scan_pubkey));
 };
 
 
 bool CHDWalletDB::ReadNamedExtKeyId(const std::string &name, CKeyID &identifier, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("eknm"), name), identifier, nFlags);
+    return m_batch.Read(std::make_pair(DBKeys::PART_EXTKEYNAMED, name), identifier, nFlags);
 };
 
 bool CHDWalletDB::WriteNamedExtKeyId(const std::string &name, const CKeyID &identifier)
 {
-    return WriteIC(std::make_pair(std::string("eknm"), name), identifier, true);
+    return WriteIC(std::make_pair(DBKeys::PART_EXTKEYNAMED, name), identifier, true);
 };
 
 
 bool CHDWalletDB::ReadExtKey(const CKeyID &identifier, CStoredExtKey &ek32, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("ek32"), identifier), ek32, nFlags);
+    return m_batch.Read(std::make_pair(DBKeys::PART_EXTKEY, identifier), ek32, nFlags);
 };
 
 bool CHDWalletDB::WriteExtKey(const CKeyID &identifier, const CStoredExtKey &ek32)
 {
-    return WriteIC(std::make_pair(std::string("ek32"), identifier), ek32, true);
+    return WriteIC(std::make_pair(DBKeys::PART_EXTKEY, identifier), ek32, true);
 };
 
 
 bool CHDWalletDB::ReadExtAccount(const CKeyID &identifier, CExtKeyAccount &ekAcc, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("eacc"), identifier), ekAcc, nFlags);
+    return m_batch.Read(std::make_pair(DBKeys::PART_EXTACC, identifier), ekAcc, nFlags);
 };
 
 bool CHDWalletDB::WriteExtAccount(const CKeyID &identifier, const CExtKeyAccount &ekAcc)
 {
-    return WriteIC(std::make_pair(std::string("eacc"), identifier), ekAcc, true);
+    return WriteIC(std::make_pair(DBKeys::PART_EXTACC, identifier), ekAcc, true);
 };
 
 
@@ -111,12 +111,12 @@ bool CHDWalletDB::WriteExtKeyPack(const CKeyID &identifier, const uint32_t nPack
 
 bool CHDWalletDB::ReadExtStealthKeyPack(const CKeyID &identifier, const uint32_t nPack, std::vector<CEKAStealthKeyPack> &aksPak, uint32_t nFlags)
 {
-    return m_batch.Read(PackKey("espk", identifier, nPack), aksPak, nFlags);
+    return m_batch.Read(PackKey(DBKeys::PART_SXADDRKEYPACK, identifier, nPack), aksPak, nFlags);
 };
 
 bool CHDWalletDB::WriteExtStealthKeyPack(const CKeyID &identifier, const uint32_t nPack, const std::vector<CEKAStealthKeyPack> &aksPak)
 {
-    return WriteIC(PackKey("espk", identifier, nPack), aksPak, true);
+    return WriteIC(PackKey(DBKeys::PART_SXADDRKEYPACK, identifier, nPack), aksPak, true);
 };
 
 
@@ -133,12 +133,12 @@ bool CHDWalletDB::WriteExtStealthKeyChildPack(const CKeyID &identifier, const ui
 
 bool CHDWalletDB::ReadFlag(const std::string &name, int32_t &nValue, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("flag"), name), nValue, nFlags);
+    return m_batch.Read(std::make_pair(DBKeys::PART_FLAG, name), nValue, nFlags);
 };
 
 bool CHDWalletDB::WriteFlag(const std::string &name, int32_t nValue)
 {
-    return WriteIC(std::make_pair(std::string("flag"), name), nValue, true);
+    return WriteIC(std::make_pair(DBKeys::PART_FLAG, name), nValue, true);
 };
 
 bool CHDWalletDB::WriteWalletFlags(const uint64_t flags)
@@ -275,16 +275,16 @@ bool CHDWalletDB::EraseLockedAnonOut(const COutPoint &op)
 
 bool CHDWalletDB::ReadWalletSetting(const std::string &setting, std::string &json, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("wset"), setting), json, nFlags);
+    return m_batch.Read(std::make_pair(DBKeys::PART_WALLETSETTING, setting), json, nFlags);
 };
 
 bool CHDWalletDB::WriteWalletSetting(const std::string &setting, const std::string &json)
 {
-    return WriteIC(std::make_pair(std::string("wset"), setting), json, true);
+    return WriteIC(std::make_pair(DBKeys::PART_WALLETSETTING, setting), json, true);
 };
 
 bool CHDWalletDB::EraseWalletSetting(const std::string &setting)
 {
-    return EraseIC(std::make_pair(std::string("wset"), setting));
+    return EraseIC(std::make_pair(DBKeys::PART_WALLETSETTING, setting));
 };
 

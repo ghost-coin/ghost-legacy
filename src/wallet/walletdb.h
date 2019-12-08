@@ -80,9 +80,11 @@ extern const std::string WATCHS;
 extern const std::string PART_EXTACC;
 extern const std::string PART_EXTKEY;
 extern const std::string PART_EXTKEYNAMED;
-extern const std::string PART_SXADDR;
 extern const std::string PART_SXADDRKEYPACK;
+extern const std::string PART_FLAG;
 extern const std::string PART_LOCKEDUTXO;
+extern const std::string PART_SXADDR;
+extern const std::string PART_WALLETSETTING;
 } // namespace DBKeys
 
 /* simple HD chain data model */

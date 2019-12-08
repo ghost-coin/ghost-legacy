@@ -49,9 +49,11 @@ const std::string WATCHS{"watchs"};
 const std::string PART_EXTACC{"eacc"};
 const std::string PART_EXTKEY{"ek32"};
 const std::string PART_EXTKEYNAMED{"eknm"};
-const std::string PART_SXADDR{"sxad"};
 const std::string PART_SXADDRKEYPACK{"espk"};
+const std::string PART_FLAG{"flag"};
 const std::string PART_LOCKEDUTXO{"luo"};
+const std::string PART_SXADDR{"sxad"};
+const std::string PART_WALLETSETTING{"wset"};
 } // namespace DBKeys
 
 //
@@ -835,12 +837,12 @@ bool WalletBatch::TxnAbort()
 bool WalletBatch::WriteLockedUnspentOutput(const COutPoint &o)
 {
     bool tmp = true;
-    return WriteIC(std::make_pair(std::string("luo"), o), tmp);
+    return WriteIC(std::make_pair(DBKeys::PART_LOCKEDUTXO, o), tmp);
 };
 
 bool WalletBatch::EraseLockedUnspentOutput(const COutPoint &o)
 {
-    return EraseIC(std::make_pair(std::string("luo"), o));
+    return EraseIC(std::make_pair(DBKeys::PART_LOCKEDUTXO, o));
 };
 
 bool WalletBatch::EraseAllByPrefix(std::string sPrefix)
