@@ -173,7 +173,8 @@ void ThreadSecureMsg()
 {
     // Bucket management thread
 
-    static uint32_t nLoop = 0;
+    int64_t nLastPrunedFundingTxns = 0;
+    uint32_t nLoop = 0;
     std::vector<std::pair<int64_t, NodeId> > vTimedOutLocks;
     while (fSecMsgEnabled) {
         nLoop++;
@@ -294,6 +295,11 @@ void ThreadSecureMsg()
                     break;
                 }
             } // g_connman->cs_vNodes
+        }
+
+        if (now - PRUNE_FUNDING_TX_DATA > nLastPrunedFundingTxns) {
+            smsgModule.PruneFundingTxData();
+            nLastPrunedFundingTxns = now;
         }
 
         MilliSleep(SMSG_THREAD_DELAY * 1000); //  // check every SMSG_THREAD_DELAY seconds
@@ -3407,10 +3413,15 @@ int CSMSG::AdjustDifficulty(int64_t time)
     return rv;
 };
 
-int CSMSG::StoreFundingTx(const CTransaction &tx, const uint256 &block_hash, int block_height)
+int CSMSG::StoreFundingTx(const CTransaction &tx, const CBlockIndex *pindex)
 {
+    const uint256 &block_hash = pindex->GetBlockHash();
     if (LogAcceptCategory(BCLog::SMSG)) {
-        LogPrintf("%s Tx: %s, block: %s, height %d.\n", __func__, tx.GetHash().ToString(), block_hash.ToString(), block_height);
+        LogPrintf("%s Tx: %s, block: %s, height %d, time %d.\n", __func__, tx.GetHash().ToString(), block_hash.ToString(), pindex->nHeight, pindex->nTime);
+    }
+    if (pindex->nTime < GetAdjustedTime() - KEEP_FUNDING_TX_DATA) {
+        // Skip old txns
+        return SMSG_NO_ERROR;
     }
     if (tx.IsCoinStake()) {
         return errorN(SMSG_GENERAL_ERROR, "%s Tx: %s is a coinstake.\n", __func__, tx.GetHash().ToString());
@@ -3438,7 +3449,7 @@ int CSMSG::StoreFundingTx(const CTransaction &tx, const uint256 &block_hash, int
         db_data.insert(db_data.end(), output_data.begin()+1, output_data.begin()+1+n*24);
     }
 
-    if (!db.WriteFundingData(tx.GetHash(), block_height, db_data)) {
+    if (!db.WriteFundingData(tx.GetHash(), pindex->nHeight, db_data)) {
         return errorN(SMSG_GENERAL_ERROR, "%s - WriteFundingData failed.", __func__);
     }
 
@@ -3482,7 +3493,7 @@ int CSMSG::CheckFundingTx(const Consensus::Params &consensusParams, const Secure
         }
     }
 
-    if (blockDepth < 1) {
+    if (blockDepth < ACCEPT_FUNDING_TX_DEPTH) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s for message %s, low depth %d.\n", __func__, txid.ToString(), msgId.ToString(), blockDepth);
     }
 
@@ -3519,6 +3530,47 @@ int CSMSG::CheckFundingTx(const Consensus::Params &consensusParams, const Secure
 
     return errorN(SMSG_FUND_FAILED, "%s: Transaction %s does not fund message %s.\n", __func__, txid.ToString(), msgId.ToString());
 }
+
+int CSMSG::PruneFundingTxData()
+{
+    int64_t now = GetAdjustedTime();
+    LogPrint(BCLog::SMSG, "%s Now: %d\n", __func__, now);
+
+    int min_height_to_keep = 0;
+    const CBlockIndex *pindex = nullptr;
+    {
+        LOCK(cs_main);
+        pindex = ::ChainActive().Tip();
+        while (pindex && pindex->nTime >= now - KEEP_FUNDING_TX_DATA) {
+            min_height_to_keep = pindex->nHeight;
+            pindex = ::ChainActive()[pindex->nHeight-1];
+        }
+    }
+
+    size_t num_removed = 0;
+    {
+        LOCK(cs_smsgDB);
+        SecMsgDB db;
+        if (!db.Open("r")) {
+            return SMSG_GENERAL_ERROR;
+        }
+
+        int height;
+        uint256 key;
+        leveldb::Iterator *it = db.pdb->NewIterator(leveldb::ReadOptions());
+        while (db.NextFundingDataLink(it, height, key)) {
+            if (height >= min_height_to_keep) {
+                break;
+            }
+            db.EraseFundingData(height, key);
+            num_removed++;
+        }
+        delete it;
+    }
+    LogPrint(BCLog::SMSG, "%s Removed: %d\n", __func__, num_removed);
+
+    return 0;
+};
 
 int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload)
 {

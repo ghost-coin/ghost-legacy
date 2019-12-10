@@ -2684,7 +2684,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 }
 
                 if (smsg::fSecMsgEnabled && tx_state.m_funds_smsg) {
-                    smsgModule.StoreFundingTx(tx, pindex->GetBlockHash(), pindex->nHeight);
+                    smsgModule.StoreFundingTx(tx, pindex);
                 }
             }
         }
@@ -6207,6 +6207,11 @@ bool TryAutoReindex()
         LogPrintf("%s: v1 Marker not detected, attempting reindex.\n", __func__);
         return true;
     }
+    bool nV2 = false;
+    if (!pblocktree->ReadFlag("v2", nV2) || !nV2) {
+        LogPrintf("%s: v2 Marker not detected, attempting reindex.\n", __func__);
+        return true;
+    }
     return false;
 };
 
@@ -6230,6 +6235,7 @@ bool LoadBlockIndex(const CChainParams& chainparams)
 
         LogPrintf("Initializing databases...\n");
         pblocktree->WriteFlag("v1", true);
+        pblocktree->WriteFlag("v2", true);
 
         // Use the provided setting for -addressindex in the new database
         fAddressIndex = gArgs.GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX);

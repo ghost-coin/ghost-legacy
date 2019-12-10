@@ -8146,7 +8146,6 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
             files.push_back(obj);
             nFile++;
         }
-
     }
     if (!test_only) {
         // Force reindex on next startup

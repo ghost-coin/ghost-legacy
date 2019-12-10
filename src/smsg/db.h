@@ -79,8 +79,8 @@ public:
 
     bool ReadFundingData(const uint256 &key, std::vector<uint8_t> &data);
     bool WriteFundingData(const uint256 &key, int height, const std::vector<uint8_t> &data);
-    bool EraseFundingData(const uint256 &key);
-    bool NextFundingData(leveldb::Iterator *it, const std::string &prefix, uint256 &key, std::vector<uint8_t> &data);
+    bool EraseFundingData(int height, const uint256 &key);
+    bool NextFundingDataLink(leveldb::Iterator *it, int &height, uint256 &key);
 
     leveldb::DB *pdb; // points to the global instance
     leveldb::WriteBatch *activeBatch;

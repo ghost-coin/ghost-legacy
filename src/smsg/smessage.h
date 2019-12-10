@@ -90,6 +90,10 @@ const uint32_t SMSG_MAX_MSG_BYTES_PAID = 512 * 1024;    // the user input part (
 const uint32_t SMSG_MAX_MSG_WORST = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES+SMSG_PL_HDR_LEN);
 const uint32_t SMSG_MAX_MSG_WORST_PAID = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES_PAID+SMSG_PL_HDR_LEN);
 
+const int32_t ACCEPT_FUNDING_TX_DEPTH = 1;
+const int64_t KEEP_FUNDING_TX_DATA = 86400 * 31;
+const int64_t PRUNE_FUNDING_TX_DATA = 3600;
+
 static const int MIN_SMSG_PROTO_VERSION = 90010;
 
 extern const std::string STORE_DIR;
@@ -221,7 +225,7 @@ public:
     int64_t timestamp;
     uint8_t sample[8];      // first 8 bytes of payload
     int64_t offset;         // offset in file
-    int m_changed = 0;          // time changed relative to timestamp
+    int m_changed = 0;      // time changed relative to timestamp
     mutable uint32_t ttl;   // seconds
 };
 
@@ -467,8 +471,9 @@ public:
     std::vector<uint8_t> GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload);
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);
 
-    int StoreFundingTx(const CTransaction &tx, const uint256 &block_hash, int block_height);
+    int StoreFundingTx(const CTransaction &tx, const CBlockIndex *pindex);
     int CheckFundingTx(const Consensus::Params &consensus_params, const SecureMessage *psmsg, const uint8_t *pPayload);
+    int PruneFundingTxData();
 
     int Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
     int SetHash (uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);

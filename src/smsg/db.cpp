@@ -673,8 +673,8 @@ bool SecMsgDB::WriteFundingData(const uint256 &key, int height, const std::vecto
     CDataStream ssKeyI(SER_DISK, CLIENT_VERSION);
     ssKeyI.write((const char*)DBK_FUNDING_TX_LINK.data(), DBK_FUNDING_TX_LINK.size());
     ssKeyI.write((const char*)&be_height, 4);
+    ssKeyI.write((const char*)key.begin(), 32);
     CDataStream ssValueI(SER_DISK, CLIENT_VERSION);
-    ssValue << key;
 
     if (activeBatch) {
         activeBatch->Put(ssKey.str(), ssValue.str());
@@ -696,13 +696,57 @@ bool SecMsgDB::WriteFundingData(const uint256 &key, int height, const std::vecto
     return true;
 };
 
-bool SecMsgDB::EraseFundingData(const uint256 &key)
+bool SecMsgDB::EraseFundingData(int height, const uint256 &key)
 {
-    return true;
+    CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+    ssKey.write((const char*)DBK_FUNDING_TX_DATA.data(), DBK_FUNDING_TX_DATA.size());
+    ssKey.write((const char*)key.begin(), 32);
+
+    uint32_t be_height = htobe32((uint32_t)height);
+    CDataStream ssKeyI(SER_DISK, CLIENT_VERSION);
+    ssKeyI.write((const char*)DBK_FUNDING_TX_LINK.data(), DBK_FUNDING_TX_LINK.size());
+    ssKeyI.write((const char*)&be_height, 4);
+    ssKeyI.write((const char*)key.begin(), 32);
+
+    if (activeBatch) {
+        activeBatch->Delete(ssKey.str());
+        activeBatch->Delete(ssKeyI.str());
+        return true;
+    }
+
+    leveldb::WriteOptions writeOptions;
+    writeOptions.sync = true;
+    leveldb::Status s = pdb->Delete(writeOptions, ssKey.str());
+    leveldb::Status s1 = pdb->Delete(writeOptions, ssKeyI.str());
+    if ((s.ok() || s.IsNotFound()) && (s1.ok() || s1.IsNotFound())) {
+        return true;
+    }
+    return error("SecMsgDB erase failed: %s, %s\n", s.ToString(), s1.ToString());
 };
 
-bool SecMsgDB::NextFundingData(leveldb::Iterator *it, const std::string &prefix, uint256 &key, std::vector<uint8_t> &data)
+bool SecMsgDB::NextFundingDataLink(leveldb::Iterator *it, int &height, uint256 &key)
 {
+    if (!pdb) {
+        return false;
+    }
+
+    if (!it->Valid()) { // First run
+        it->Seek(DBK_FUNDING_TX_LINK);
+    } else {
+        it->Next();
+    }
+
+    if (!(it->Valid()
+        && it->key().size() == DBK_FUNDING_TX_LINK.size() + 4 + 32
+        && memcmp(it->key().data(), DBK_FUNDING_TX_LINK.data(), DBK_FUNDING_TX_LINK.size()) == 0)) {
+        return false;
+    }
+
+    uint32_t be_height;
+    memcpy(&be_height, it->key().data() + DBK_FUNDING_TX_LINK.size(), 4);
+    height = (int) be32toh(be_height);
+    memcpy(key.begin(), it->key().data() + DBK_FUNDING_TX_LINK.size() + 4, 32);
+
     return true;
 };
 
