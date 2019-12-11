@@ -111,9 +111,8 @@ static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
 
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
-static const bool DEFAULT_TXINDEX_ = true; // required for paid smsg
+static const bool DEFAULT_TXINDEX = false;
 static const char* const DEFAULT_BLOCKFILTERINDEX = "0";
-#define DEFAULT_TXINDEX (gArgs.GetBoolArg("-btcmode", false) ? false : DEFAULT_TXINDEX_)
 static const bool DEFAULT_CSINDEX = false;
 static const bool DEFAULT_ADDRESSINDEX = false;
 static const bool DEFAULT_TIMESTAMPINDEX = false;
@@ -258,7 +257,9 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, FlatFi
 /** Ensures we have a genesis block in the block tree, possibly writing one to disk. */
 bool LoadGenesisBlock(const CChainParams& chainparams);
 /** Returns true if the block index needs to be reindexed. */
-bool TryAutoReindex();
+bool ShouldAutoReindex() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+/** Returns true if the block index was rewound to rebuild the temporary indices. */
+bool RebuildRollingIndices();
 /** Load the block tree and coins database from disk,
  * initializing state if we're running with -reindex. */
 bool LoadBlockIndex(const CChainParams& chainparams) EXCLUSIVE_LOCKS_REQUIRED(cs_main);

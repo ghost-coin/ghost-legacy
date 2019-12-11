@@ -136,11 +136,6 @@ Intro::Intro(QWidget *parent, uint64_t blockchain_size, uint64_t chain_state_siz
         ui->prune->setEnabled(false);
     }
 
-    if (fParticlMode) {
-        ui->prune->setChecked(false);
-        ui->prune->setEnabled(false);
-    }
-
     ui->prune->setText(tr("Discard blocks after verification, except most recent %1 GB (prune)").arg(pruneTarget ? pruneTarget / 1000 : 2));
     requiredSpace = m_blockchain_size;
     QString storageRequiresMsg = tr("At least %1 GB of data will be stored in this directory, and it will grow over time.");

@@ -1238,12 +1238,6 @@ bool AppInitParameterInteraction()
         fPruneMode = true;
     }
 
-    // TODO: Check pruning
-    if (fPruneMode && fParticlMode) {
-        LogPrintf("Block pruning disabled.  Todo.\n");
-        fPruneMode = false;
-    }
-
     nConnectTimeout = gArgs.GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
     if (nConnectTimeout <= 0) {
         nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
@@ -1688,7 +1682,7 @@ bool AppInitMain(NodeContext& node)
                 pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
 
                 // Automatically start reindexing if necessary
-                if (!fReset && TryAutoReindex()) {
+                if (!fReset && ShouldAutoReindex()) {
                     fReindex = true;
                     fReset = true;
                     pblocktree.reset();
@@ -1799,6 +1793,12 @@ bool AppInitMain(NodeContext& node)
             } catch (const std::exception& e) {
                 LogPrintf("%s\n", e.what());
                 strLoadError = _("Error opening block database").translated;
+                break;
+            }
+
+            // Initialise temporary indices if required
+            if (!RebuildRollingIndices()) {
+                strLoadError = _("Failed to rebuild rolling indices by rewinding the chain, a reindex is required.").translated;
                 break;
             }
 

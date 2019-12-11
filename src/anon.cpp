@@ -337,9 +337,9 @@ bool RollBackRCTIndex(int64_t nLastValidRCTOutput, int64_t nExpectErase, std::se
     return true;
 };
 
-bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError)
+bool RewindToHeight(int nToHeight, int &nBlocks, std::string &sError)
 {
-    LogPrintf("%s: At height %d\n", __func__, nCheckPointHeight);
+    LogPrintf("%s: height %d\n", __func__, nToHeight);
     nBlocks = 0;
     int64_t nLastRCTOutput = 0;
 
@@ -349,7 +349,7 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
     BlockValidationState state;
 
     for (CBlockIndex *pindex = ::ChainActive().Tip(); pindex && pindex->pprev; pindex = pindex->pprev) {
-        if (pindex->nHeight <= nCheckPointHeight) {
+        if (pindex->nHeight <= nToHeight) {
             break;
         }
 

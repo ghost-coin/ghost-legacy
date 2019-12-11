@@ -50,75 +50,24 @@
 #include <boost/algorithm/string/replace.hpp>
 
 
-int CTransactionRecord::InsertOutput(COutputRecord &r)
+static uint8_t GetOutputType(const COutPoint &prevout)
 {
-    for (size_t i = 0; i < vout.size(); ++i) {
-        if (vout[i].n == r.n) {
-            return 0; // duplicate
-        }
-
-        if (vout[i].n < r.n) {
-            continue;
-        }
-
-        vout.insert(vout.begin() + i, r);
-        return 1;
+    LOCK(cs_main);
+    Coin coin;
+    if (::ChainstateActive().CoinsTip().GetCoin(prevout, coin)) {
+        return coin.nType;
     }
-    vout.push_back(r);
-    return 1;
-};
 
-bool CTransactionRecord::EraseOutput(uint16_t n)
-{
-    for (size_t i = 0; i < vout.size(); ++i) {
-        if (vout[i].n != n) {
-            continue;
-        }
-
-        vout.erase(vout.begin() + i);
-        return true;
-    }
-    return false;
-};
-
-COutputRecord *CTransactionRecord::GetOutput(int n)
-{
-    // vout is always in order by asc n
-    for (auto &r : vout) {
-        if (r.n > n) {
-            return nullptr;
-        }
-        if (r.n == n) {
-            return &r;
+    uint256 hashBlock;
+    CTransactionRef tx;
+    if (GetTransaction(prevout.hash, tx, Params().GetConsensus(), hashBlock)) {
+        if (tx->vpout.size() > prevout.n) {
+            return tx->vpout[prevout.n]->GetType();
         }
     }
-    return nullptr;
-};
 
-const COutputRecord *CTransactionRecord::GetOutput(int n) const
-{
-    // vout is always in order by asc n
-    for (const auto &r : vout) {
-        if (r.n > n) {
-            return nullptr;
-        }
-        if (r.n == n) {
-            return &r;
-        }
-    }
-    return nullptr;
-};
-
-const COutputRecord *CTransactionRecord::GetChangeOutput() const
-{
-    for (const auto &r : vout) {
-        if (r.nFlags & ORF_CHANGE) {
-            return &r;
-        }
-    }
-    return nullptr;
-};
-
+    return 0;
+}
 
 int CHDWallet::Finalise()
 {
@@ -9889,12 +9838,6 @@ int CHDWallet::InsertTempTxn(const uint256 &txid, const CTransactionRecord *rtx)
     CWalletTx wtx(this, std::move(tx_new));
     CStoredTransaction stx;
 
-    /*
-    uint256 hashBlock;
-    CTransactionRef txRef;
-    if (!GetTransaction(txid, txRef, Params().GetConsensus(), hashBlock, false))
-        return errorN(1, "%s: GetTransaction failed, %s.\n", __func__, txid.ToString());
-    */
     if (!CHDWalletDB(*database).ReadStoredTx(txid, stx)) {
         return werrorN(1, "%s: ReadStoredTx failed for %s.\n", __func__, txid.ToString().c_str());
     }
@@ -10404,16 +10347,8 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
             }
 
             // Lookup 1st input to set type
-            Coin coin;
-            const auto &prevout0 = tx.vin[0].prevout;
-            uint256 hashBlock;
-            CTransactionRef txPrev;
-            // ::ChainstateActive().CoinsTip().GetCoin(prevout0, coin) requires cs_main
-            if (GetTransaction(prevout0.hash, txPrev, Params().GetConsensus(), hashBlock)) {
-                if (txPrev->vpout.size() > prevout0.n
-                    && txPrev->vpout[prevout0.n]->IsType(OUTPUT_CT)) {
-                    rtx.nFlags |= ORF_BLIND_IN;
-                }
+            if (GetOutputType(tx.vin[0].prevout) == OUTPUT_CT) {
+                rtx.nFlags |= ORF_BLIND_IN;
             }
         }
     }

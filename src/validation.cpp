@@ -6199,21 +6199,67 @@ void UnloadBlockIndex()
     ::ChainstateActive().UnloadBlockIndex();
 }
 
-bool TryAutoReindex()
+bool ShouldAutoReindex()
 {
     // Force reindex to update version
     bool nV1 = false;
     if (!pblocktree->ReadFlag("v1", nV1) || !nV1) {
-        LogPrintf("%s: v1 Marker not detected, attempting reindex.\n", __func__);
-        return true;
-    }
-    bool nV2 = false;
-    if (!pblocktree->ReadFlag("v2", nV2) || !nV2) {
-        LogPrintf("%s: v2 Marker not detected, attempting reindex.\n", __func__);
+        LogPrintf("%s: v1 marker not detected, attempting reindex.\n", __func__);
         return true;
     }
     return false;
 };
+
+bool RebuildRollingIndices()
+{
+    bool nV2 = false;
+    if (pblocktree->ReadFlag("v2", nV2) && nV2) {
+        return true;
+    }
+    LogPrintf("%s: v2 marker not detected, attempting to rewind chain.\n", __func__);
+    uiInterface.InitMessage(_("Rebuilding rolling indices...").translated);
+
+    int64_t now = GetAdjustedTime();
+    int rewound_tip_height, max_height_to_keep = 0;
+
+    {
+        LOCK(cs_main);
+        CBlockIndex *pindex_tip = ::ChainActive().Tip();
+        CBlockIndex *pindex = pindex_tip;
+        while (pindex && pindex->nTime >= now - smsg::KEEP_FUNDING_TX_DATA) {
+            max_height_to_keep = pindex->nHeight;
+            pindex = ::ChainActive()[pindex->nHeight-1];
+        }
+
+        LogPrintf("%s: Rewinding to block %d.\n", __func__, max_height_to_keep);
+        int num_disconnected = 0;
+
+        std::string str_error;
+        if (!RewindToHeight(max_height_to_keep, num_disconnected, str_error)) {
+            LogPrintf("%s: RewindToHeight failed %s.\n", __func__, str_error);
+            return false;
+        }
+        rewound_tip_height = ::ChainActive().Tip()->nHeight;
+    }
+
+    const CChainParams& chainparams = Params();
+    BlockValidationState state;
+    if (!ActivateBestChain(state, chainparams)) {
+        LogPrintf("%s: ActivateBestChain failed %s.\n", __func__, FormatStateMessage(state));
+        return false;
+    }
+
+    {
+        LOCK(cs_main);
+        LogPrintf("%s: Reprocessed chain from block %d to %d.\n", __func__, rewound_tip_height, ::ChainActive().Tip()->nHeight);
+
+        if (!pblocktree->WriteFlag("v2", true)) {
+            LogPrintf("%s: WriteFlag failed.\n", __func__);
+            return false;
+        }
+    }
+    return true;
+}
 
 bool LoadBlockIndex(const CChainParams& chainparams)
 {

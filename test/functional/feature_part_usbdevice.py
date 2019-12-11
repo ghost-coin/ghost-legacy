@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2018 The Particl Core developers
+# Copyright (c) 2018-2019 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -22,7 +22,7 @@ class USBDeviceTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [ ['-debug','-noacceptnonstdtxn','-reservebalance=10000000'] for i in range(self.num_nodes)]
+        self.extra_args = [ ['-debug','-noacceptnonstdtxn','-reservebalance=10000000', '-txindex'] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

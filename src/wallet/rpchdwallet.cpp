@@ -8081,7 +8081,7 @@ static UniValue rewindchain(const JSONRPCRequest &request)
     result.pushKV("to_height", nToHeight);
 
     std::string sError;
-    if (!RewindToCheckpoint(nToHeight, nBlocks, sError)) {
+    if (!RewindToHeight(nToHeight, nBlocks, sError)) {
         result.pushKV("error", sError);
     }
 
