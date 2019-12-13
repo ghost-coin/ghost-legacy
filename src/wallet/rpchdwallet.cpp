@@ -4856,16 +4856,19 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     LockAssertion lock(::cs_main);
     switch (typeIn) {
         case OUTPUT_STANDARD:
-            if (0 != pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError))
+            if (0 != pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddStandardInputs failed: %s.", sError));
+            }
             break;
         case OUTPUT_CT:
-            if (0 != pwallet->AddBlindedInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError))
+            if (0 != pwallet->AddBlindedInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddBlindedInputs failed: %s.", sError));
+            }
             break;
         case OUTPUT_RINGCT:
-            if (0 != pwallet->AddAnonInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nRingSize, nInputsPerSig, nFeeRet, &coincontrol, sError))
+            if (0 != pwallet->AddAnonInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nRingSize, nInputsPerSig, nFeeRet, &coincontrol, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddAnonInputs failed: %s.", sError));
+            }
             break;
         default:
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unknown input type: %d.", typeIn));
