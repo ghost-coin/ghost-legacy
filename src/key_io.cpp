@@ -105,7 +105,7 @@ static CTxDestination DecodeDestination(const std::string& str, const CChainPara
 
     std::vector<unsigned char> data;
     uint160 hash;
-    if (DecodeBase58Check(str, data)) {
+    if (DecodeBase58Check(str, data, 21)) {
         // base58-encoded Bitcoin addresses.
         // Public-key-hash-addresses have version 0 (or 111 testnet).
         // The data vector contains RIPEMD160(SHA256(pubkey)), where pubkey is the serialized public key.
@@ -173,7 +173,7 @@ CKey DecodeSecret(const std::string& str)
 {
     CKey key;
     std::vector<unsigned char> data;
-    if (DecodeBase58Check(str, data)) {
+    if (DecodeBase58Check(str, data, 34)) {
         const std::vector<unsigned char>& privkey_prefix = Params().Base58Prefix(CChainParams::SECRET_KEY);
         if ((data.size() == 32 + privkey_prefix.size() || (data.size() == 33 + privkey_prefix.size() && data.back() == 1)) &&
             std::equal(privkey_prefix.begin(), privkey_prefix.end(), data.begin())) {
@@ -204,7 +204,7 @@ CExtPubKey DecodeExtPubKey(const std::string& str)
 {
     CExtPubKey key;
     std::vector<unsigned char> data;
-    if (DecodeBase58Check(str, data)) {
+    if (DecodeBase58Check(str, data, 78)) {
         const std::vector<unsigned char>& prefix = Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY);
         if (data.size() == BIP32_EXTKEY_SIZE + prefix.size() && std::equal(prefix.begin(), prefix.end(), data.begin())) {
             key.Decode(data.data() + prefix.size());
@@ -227,7 +227,7 @@ CExtKey DecodeExtKey(const std::string& str)
 {
     CExtKey key;
     std::vector<unsigned char> data;
-    if (DecodeBase58Check(str, data)) {
+    if (DecodeBase58Check(str, data, 78)) {
         const std::vector<unsigned char>& prefix = Params().Base58Prefix(CChainParams::EXT_SECRET_KEY);
         if (data.size() == BIP32_EXTKEY_SIZE + prefix.size() && std::equal(prefix.begin(), prefix.end(), data.begin())) {
             key.Decode(data.data() + prefix.size());
@@ -309,7 +309,7 @@ bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes)
     }
 
     std::vector<unsigned char> vchTemp;
-    bool rc58 = DecodeBase58Check(psz, vchTemp);
+    bool rc58 = DecodeBase58Check(psz, vchTemp, MAX_STEALTH_RAW_SIZE);
 
     if (rc58
         && nVersionBytes != 4
@@ -771,53 +771,53 @@ bool CBitcoinSecret::SetString(const std::string& strSecret)
 int CExtKey58::Set58(const char *base58)
 {
     std::vector<uint8_t> vchBytes;
-    if (!DecodeBase58(base58, vchBytes))
+    if (!DecodeBase58(base58, vchBytes, MAX_STEALTH_RAW_SIZE)) {
         return 1;
-
-    if (vchBytes.size() != BIP32_KEY_LEN)
+    }
+    if (vchBytes.size() != BIP32_KEY_LEN) {
         return 2;
-
-    if (!VerifyChecksum(vchBytes))
+    }
+    if (!VerifyChecksum(vchBytes)) {
         return 3;
-
+    }
     const CChainParams *pparams = &Params();
     CChainParams::Base58Type type;
-    if (0 == memcmp(&vchBytes[0], &pparams->Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4))
+    if (0 == memcmp(&vchBytes[0], &pparams->Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4)) {
         type = CChainParams::EXT_SECRET_KEY;
-    else
-    if (0 == memcmp(&vchBytes[0], &pparams->Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4))
+    } else
+    if (0 == memcmp(&vchBytes[0], &pparams->Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4)) {
         type = CChainParams::EXT_PUBLIC_KEY;
-    else
-    if (0 == memcmp(&vchBytes[0], &pparams->Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4))
+    } else
+    if (0 == memcmp(&vchBytes[0], &pparams->Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4)) {
         type = CChainParams::EXT_SECRET_KEY_BTC;
-    else
-    if (0 == memcmp(&vchBytes[0], &pparams->Base58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4))
+    } else
+    if (0 == memcmp(&vchBytes[0], &pparams->Base58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4)) {
         type = CChainParams::EXT_PUBLIC_KEY_BTC;
-    else
+    } else {
         return 4;
-
+    }
     SetData(pparams->Base58Prefix(type), &vchBytes[4], &vchBytes[4]+74);
     return 0;
 };
 
 int CExtKey58::Set58(const char *base58, CChainParams::Base58Type type, const CChainParams *pparams)
 {
-    if (!pparams)
+    if (!pparams) {
         return 16;
-
+    }
     std::vector<uint8_t> vchBytes;
-    if (!DecodeBase58(base58, vchBytes))
+    if (!DecodeBase58(base58, vchBytes, MAX_STEALTH_RAW_SIZE)) {
         return 1;
-
-    if (vchBytes.size() != BIP32_KEY_LEN)
+    }
+    if (vchBytes.size() != BIP32_KEY_LEN) {
         return 2;
-
-    if (!VerifyChecksum(vchBytes))
+    }
+    if (!VerifyChecksum(vchBytes)) {
         return 3;
-
-    if (0 != memcmp(&vchBytes[0], &pparams->Base58Prefix(type)[0], 4))
+    }
+    if (0 != memcmp(&vchBytes[0], &pparams->Base58Prefix(type)[0], 4)) {
         return 4;
-
+    }
     SetData(pparams->Base58Prefix(type), &vchBytes[4], &vchBytes[4]+74);
     return 0;
 };

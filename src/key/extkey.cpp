@@ -1126,7 +1126,7 @@ int PathToString(const std::vector<uint32_t> &vPath, std::string &sPath, char cH
 bool IsBIP32(const char *base58)
 {
     std::vector<uint8_t> vchBytes;
-    if (!DecodeBase58(base58, vchBytes)) {
+    if (!DecodeBase58(base58, vchBytes, BIP32_KEY_LEN)) {
         return false;
     }
 

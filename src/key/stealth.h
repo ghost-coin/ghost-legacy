@@ -19,7 +19,9 @@ class CScript;
 
 const uint32_t MAX_STEALTH_NARRATION_SIZE = 48;
 const uint32_t MIN_STEALTH_RAW_SIZE = 1 + 33 + 1 + 33 + 1 + 1; // without checksum (4bytes) or version (1byte)
-
+const size_t MAX_STEALTH_PREFIX_BYTES = 4;
+const size_t MAX_STEALTH_SPEND_KEYS = 255;
+const size_t MAX_STEALTH_RAW_SIZE = MIN_STEALTH_RAW_SIZE + EC_COMPRESSED_SIZE * (MAX_STEALTH_SPEND_KEYS-1) + MAX_STEALTH_PREFIX_BYTES;
 
 typedef uint32_t stealth_bitfield;
 
@@ -68,12 +70,12 @@ public:
     bool operator <(const CStealthAddress &y) const
     {
         return memcmp(&scan_pubkey[0], &y.scan_pubkey[0], EC_COMPRESSED_SIZE) < 0;
-    };
+    }
 
     bool operator ==(const CStealthAddress &y) const
     {
         return memcmp(&scan_pubkey[0], &y.scan_pubkey[0], EC_COMPRESSED_SIZE) == 0;
-    };
+    }
 
     template<typename Stream>
     void Serialize(Stream &s) const

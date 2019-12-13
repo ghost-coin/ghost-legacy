@@ -831,7 +831,7 @@ static UniValue extkey(const JSONRPCRequest &request)
         UniValue keyInfo(UniValue::VOBJ);
         std::vector<uint8_t> vchOut;
 
-        if (!DecodeBase58(sInKey.c_str(), vchOut)) {
+        if (!DecodeBase58(sInKey.c_str(), vchOut, BIP32_KEY_LEN)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "DecodeBase58 failed.");
         }
         if (!VerifyChecksum(vchOut)) {
@@ -1904,7 +1904,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     if (wifScanSecret.SetString(sScanSecret)) {
         skScan = wifScanSecret.GetKey();
     } else {
-        if (!DecodeBase58(sScanSecret, vchScanSecret)) {
+        if (!DecodeBase58(sScanSecret, vchScanSecret, MAX_STEALTH_RAW_SIZE)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Could not decode scan secret as WIF, hex or base58.");
         }
     }
@@ -1921,7 +1921,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     if (wifSpendSecret.SetString(sSpendSecret)) {
         skSpend = wifSpendSecret.GetKey();
     } else {
-        if (!DecodeBase58(sSpendSecret, vchSpendSecret)) {
+        if (!DecodeBase58(sSpendSecret, vchSpendSecret, MAX_STEALTH_RAW_SIZE)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Could not decode spend secret as hex or base58.");
         }
     }

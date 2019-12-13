@@ -643,14 +643,6 @@ friend class CWalletTx;
 private:
     CKeyingMaterial vMasterKey GUARDED_BY(cs_KeyStore);
 
-    //! if fUseCrypto is true, mapKeys must be empty
-    //! if fUseCrypto is false, vMasterKey must be empty
-    std::atomic<bool> fUseCrypto;
-
-    //! keeps track of whether Unlock has run a thorough check before
-    bool fDecryptionThoroughlyChecked;
-
-    bool SetCrypted();
     virtual bool Unlock(const CKeyingMaterial& vMasterKeyIn, bool accept_no_keys = false);
 
     std::atomic<bool> fAbortRescan{false};
@@ -781,9 +773,7 @@ public:
 
     /** Construct wallet with specified name and database implementation. */
     CWallet(interfaces::Chain* chain, const WalletLocation& location, std::unique_ptr<WalletDatabase> database)
-        : fUseCrypto(false),
-          fDecryptionThoroughlyChecked(false),
-          m_chain(chain),
+        : m_chain(chain),
           m_location(location),
           database(std::move(database))
     {
@@ -797,11 +787,9 @@ public:
     {
         // Should not have slots connected at this point.
         assert(NotifyUnload.empty());
-        delete encrypted_batch;
-        encrypted_batch = nullptr;
     }
 
-    virtual bool IsCrypted() const { return fUseCrypto; }
+    virtual bool IsCrypted() const;
     virtual bool IsLocked() const override;
     virtual bool Lock();
 
@@ -1198,6 +1186,9 @@ public:
 
     LegacyScriptPubKeyMan* GetLegacyScriptPubKeyMan() const;
 
+    const CKeyingMaterial& GetEncryptionKey() const override;
+    bool HasEncryptionKeys() const override;
+
     // Temporary LegacyScriptPubKeyMan accessors and aliases.
     friend class LegacyScriptPubKeyMan;
     std::unique_ptr<LegacyScriptPubKeyMan> m_spk_man = MakeUnique<LegacyScriptPubKeyMan>(*this);
@@ -1207,8 +1198,6 @@ public:
     LegacyScriptPubKeyMan::CryptedKeyMap& mapCryptedKeys GUARDED_BY(cs_KeyStore) = m_spk_man->mapCryptedKeys;
     LegacyScriptPubKeyMan::WatchOnlySet& setWatchOnly GUARDED_BY(cs_KeyStore) = m_spk_man->setWatchOnly;
     LegacyScriptPubKeyMan::WatchKeyMap& mapWatchKeys GUARDED_BY(cs_KeyStore) = m_spk_man->mapWatchKeys;
-    WalletBatch*& encrypted_batch GUARDED_BY(cs_wallet) = m_spk_man->encrypted_batch;
-    using CryptedKeyMap = LegacyScriptPubKeyMan::CryptedKeyMap;
 
     /** Get last block processed height */
     int GetLastBlockHeight() const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet)

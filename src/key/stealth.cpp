@@ -1,5 +1,5 @@
 // Copyright (c) 2014 The ShadowCoin developers
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2019 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
@@ -24,7 +24,7 @@ bool CStealthAddress::SetEncoded(const std::string &encodedAddress)
 {
     std::vector<uint8_t> raw;
 
-    if (!DecodeBase58(encodedAddress, raw)) {
+    if (!DecodeBase58(encodedAddress, raw, MAX_STEALTH_RAW_SIZE)) {
         LogPrint(BCLog::HDWALLET, "%s: DecodeBase58 failed.\n", __func__);
         return false;
     }
@@ -74,7 +74,8 @@ int CStealthAddress::FromRaw(const uint8_t *p, size_t nSize)
     prefix.bitfield = 0;
     size_t nPrefixBytes = std::ceil((float)prefix.number_bits / 8.0);
 
-    if (nSize < MIN_STEALTH_RAW_SIZE + EC_COMPRESSED_SIZE * (spend_pubkeys-1) + nPrefixBytes) {
+    if (nPrefixBytes > MAX_STEALTH_PREFIX_BYTES ||
+        nSize < MIN_STEALTH_RAW_SIZE + EC_COMPRESSED_SIZE * (spend_pubkeys-1) + nPrefixBytes) {
         return 1;
     }
 
@@ -95,8 +96,8 @@ int CStealthAddress::ToRaw(std::vector<uint8_t> &raw) const
     if (scan_pubkey.size() != EC_COMPRESSED_SIZE
         || spend_pubkey.size() < EC_COMPRESSED_SIZE
         || spend_pubkey.size() % EC_COMPRESSED_SIZE != 0
-        || nPkSpend > 255
-        || nPrefixBytes > 4) {
+        || nPkSpend > MAX_STEALTH_SPEND_KEYS
+        || nPrefixBytes > MAX_STEALTH_PREFIX_BYTES) {
         LogPrintf("%s: sanity checks failed.\n", __func__);
         return 1;
     }
@@ -315,7 +316,7 @@ bool IsStealthAddress(const std::string &encodedAddress)
 {
     std::vector<uint8_t> raw;
 
-    if (!DecodeBase58(encodedAddress, raw)) {
+    if (!DecodeBase58(encodedAddress, raw, MAX_STEALTH_RAW_SIZE)) {
         //LogPrintf("IsStealthAddress DecodeBase58 failed.\n");
         return false;
     }

@@ -554,8 +554,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
     {
         LOCK(cs_wallet);
         mapMasterKeys[++nMasterKeyMaxID] = kMasterKey;
-        assert(!encrypted_batch);
-        encrypted_batch = new WalletBatch(*database);
+        WalletBatch* encrypted_batch = new WalletBatch(*database);
         if (!encrypted_batch->TxnBegin()) {
             delete encrypted_batch;
             encrypted_batch = nullptr;
@@ -564,7 +563,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
         encrypted_batch->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
 
         if (auto spk_man = m_spk_man.get()) {
-            if (!spk_man->EncryptKeys(_vMasterKey)) {
+            if (!spk_man->Encrypt(_vMasterKey, encrypted_batch)) {
                 encrypted_batch->TxnAbort();
                 delete encrypted_batch;
                 encrypted_batch = nullptr;
@@ -4246,15 +4245,9 @@ std::vector<OutputGroup> CWallet::GroupOutputs(const std::vector<COutput>& outpu
     return groups;
 }
 
-bool CWallet::SetCrypted()
+bool CWallet::IsCrypted() const
 {
-    LOCK(cs_KeyStore);
-    if (fUseCrypto)
-        return true;
-    if (!mapKeys.empty())
-        return false;
-    fUseCrypto = true;
-    return true;
+    return HasEncryptionKeys();
 }
 
 bool CWallet::IsLocked() const
@@ -4268,7 +4261,7 @@ bool CWallet::IsLocked() const
 
 bool CWallet::Lock()
 {
-    if (!SetCrypted())
+    if (!IsCrypted())
         return false;
 
     {
@@ -4276,6 +4269,21 @@ bool CWallet::Lock()
         vMasterKey.clear();
     }
 
+    NotifyStatusChanged(this);
+    return true;
+}
+
+bool CWallet::Unlock(const CKeyingMaterial& vMasterKeyIn, bool accept_no_keys)
+{
+    {
+        LOCK(cs_KeyStore);
+        if (m_spk_man) {
+            if (!m_spk_man->CheckDecryptionKey(vMasterKeyIn, accept_no_keys)) {
+                return false;
+            }
+        }
+        vMasterKey = vMasterKeyIn;
+    }
     NotifyStatusChanged(this);
     return true;
 }
@@ -4300,4 +4308,15 @@ LegacyScriptPubKeyMan* CWallet::GetLegacyScriptPubKeyMan() const
     return m_spk_man.get();
 }
 
+const CKeyingMaterial& CWallet::GetEncryptionKey() const
+{
+    return vMasterKey;
+}
+
+bool CWallet::HasEncryptionKeys() const
+{
+    return !mapMasterKeys.empty();
+}
+
 boost::signals2::signal<void (const std::shared_ptr<CWallet>& wallet)> NotifyWalletAdded;
+

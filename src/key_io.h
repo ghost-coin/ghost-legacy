@@ -148,18 +148,18 @@ public:
     int Set58(const char *base58)
     {
         std::vector<uint8_t> vchBytes;
-        if (!DecodeBase58(base58, vchBytes))
+        if (!DecodeBase58(base58, vchBytes, BIP32_KEY_LEN)) {
             return 1;
-
-        if (vchBytes.size() != BIP32_KEY_LEN)
+        }
+        if (vchBytes.size() != BIP32_KEY_LEN) {
             return 2;
-
-        if (!VerifyChecksum(vchBytes))
+        }
+        if (!VerifyChecksum(vchBytes)) {
             return 3;
-
-        if (0 != memcmp(&vchBytes[0], &Params().Base58Prefix(Type)[0], 4))
+        }
+        if (0 != memcmp(&vchBytes[0], &Params().Base58Prefix(Type)[0], 4)) {
             return 4;
-
+        }
         SetData(Params().Base58Prefix(Type), &vchBytes[4], &vchBytes[4]+Size);
         return 0;
     }

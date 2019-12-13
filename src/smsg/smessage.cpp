@@ -2721,7 +2721,7 @@ int CSMSG::AddAddress(std::string &address, std::string &publicKey)
     if (IsHex(publicKey)) {
        vchTest = ParseHex(publicKey);
     } else {
-        if (!DecodeBase58(publicKey, vchTest)) {
+        if (!DecodeBase58(publicKey, vchTest, 64)) {
             return errorN(SMSG_INVALID_PUBKEY, "%s - Invalid PubKey.", __func__);
         }
     }

@@ -1004,22 +1004,16 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
     {
         LOCK(cs_wallet);
         mapMasterKeys[++nMasterKeyMaxID] = kMasterKey;
-
-        //if (fFileBacked)
-        {
-            assert(!encrypted_batch);
-            encrypted_batch = new CHDWalletDB(*database);
-            if (!encrypted_batch->TxnBegin())
-            {
-                delete encrypted_batch;
-                encrypted_batch = nullptr;
-                return false;
-            };
-            encrypted_batch->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
+        WalletBatch* encrypted_batch = new CHDWalletDB(*database);
+        if (!encrypted_batch->TxnBegin()) {
+            delete encrypted_batch;
+            encrypted_batch = nullptr;
+            return false;
         }
+        encrypted_batch->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
 
         if (auto spk_man = m_spk_man.get()) {
-            if (!spk_man->EncryptKeys(vMasterKey)) {
+            if (!spk_man->Encrypt(vMasterKey, encrypted_batch)) {
                 encrypted_batch->TxnAbort();
                 delete encrypted_batch;
                 encrypted_batch = nullptr;
@@ -1505,12 +1499,6 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
     ProcessWalletSettings(sError);
 
     LoadMasterKeys();
-
-    if (mapMasterKeys.size() > 0
-        && !SetCrypted()) {
-        WalletLogPrintf("SetCrypted failed.\n");
-        return DBErrors::LOAD_FAIL;
-    }
 
     {
         // Prepare extended keys
@@ -8856,14 +8844,12 @@ bool CHDWallet::ProcessLockedStealthOutputs()
         }
 
 
-        encrypted_batch = &wdb; // HACK: use wdb in CWallet::AddCryptedKey
+        WalletBatch *batch = &wdb;
         LockAssertion lock(m_spk_man->cs_wallet);
-        if (!m_spk_man->AddKeyPubKey(sSpendR, pk)) {
+        if (!m_spk_man->AddKeyPubKeyWithDB(*batch, sSpendR, pk)) {
             WalletLogPrintf("%s: Error: AddKeyPubKey failed.\n", __func__);
-            encrypted_batch = nullptr;
             continue;
         }
-        encrypted_batch = nullptr;
 
         nExpanded++;
 
@@ -8871,7 +8857,7 @@ bool CHDWallet::ProcessLockedStealthOutputs()
         if (rv != 0) {
             WalletLogPrintf("%s: Error: EraseStealthKeyMeta failed for %s, %d\n", __func__, EncodeDestination(PKHash(idk)), rv);
         }
-    };
+    }
 
     pcursor->close();
 
