@@ -297,7 +297,7 @@ void ThreadSecureMsg()
             } // g_connman->cs_vNodes
         }
 
-        if (now - PRUNE_FUNDING_TX_DATA > nLastPrunedFundingTxns) {
+        if (now > nLastPrunedFundingTxns + PRUNE_FUNDING_TX_DATA) {
             smsgModule.PruneFundingTxData();
             nLastPrunedFundingTxns = now;
         }
@@ -1210,6 +1210,32 @@ void CSMSG::ClearBanned()
         pnode->smsgData.ignoreUntil = 0;
         pnode->smsgData.misbehaving = 0;
     }
+};
+
+void CSMSG::ShowFundingTxns(UniValue &result)
+{
+    LOCK(cs_smsgDB);
+    UniValue txns(UniValue::VARR);
+
+    SecMsgDB db;
+    if (!db.Open("r")) {
+        result.pushKV("error", "Could not open db");
+        LogPrintf("%s: ERROR Could not open db.\n", __func__);
+        return;
+    }
+
+    int height = 0;
+    uint256 key;
+    leveldb::Iterator *it = db.pdb->NewIterator(leveldb::ReadOptions());
+    while (db.NextFundingDataLink(it, height, key)) {
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("height", height);
+        obj.pushKV("hash", key.ToString());
+        txns.push_back(obj);
+    }
+    delete it;
+
+    result.pushKV("txns", txns);
 };
 
 int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv)
@@ -3536,7 +3562,7 @@ int CSMSG::PruneFundingTxData()
     int64_t now = GetAdjustedTime();
     LogPrint(BCLog::SMSG, "%s Now: %d\n", __func__, now);
 
-    int min_height_to_keep = 0;
+    int min_height_to_keep = std::numeric_limits<int>::max();
     const CBlockIndex *pindex = nullptr;
     {
         LOCK(cs_main);
@@ -3555,7 +3581,7 @@ int CSMSG::PruneFundingTxData()
             return SMSG_GENERAL_ERROR;
         }
 
-        int height;
+        int height = 0;
         uint256 key;
         leveldb::Iterator *it = db.pdb->NewIterator(leveldb::ReadOptions());
         while (db.NextFundingDataLink(it, height, key)) {

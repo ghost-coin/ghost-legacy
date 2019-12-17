@@ -412,6 +412,7 @@ public:
 
     void GetNodesStats(int node_id, UniValue &result);
     void ClearBanned();
+    void ShowFundingTxns(UniValue &result);
 
     int ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv);
     bool SendData(CNode *pto, bool fSendTrickle);

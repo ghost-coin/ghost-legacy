@@ -2238,7 +2238,7 @@ static UniValue smsgdebug(const JSONRPCRequest &request)
     RPCHelpMan{"smsgdebug",
         "\nCommands useful for debugging.\n",
         {
-            {"command", RPCArg::Type::STR, /* default */ "", "\"clearbanned\",\"dumpids\"."},
+            {"command", RPCArg::Type::STR, /* default */ "", "\"clearbanned\",\"dumpids\",\"dumpfundingtxids\"."},
             {"arg1", RPCArg::Type::STR, /* default */ "", ""},
         },
         RPCResult{
@@ -2302,7 +2302,10 @@ static UniValue smsgdebug(const JSONRPCRequest &request)
 
         file.close();
         result.pushKV("messages", num_messages);
-    } else{
+    } else
+    if (mode == "dumpfundingtxids") {
+        smsgModule.ShowFundingTxns(result);
+    } else {
         result.pushKV("error", "Unknown command");
     }
 
