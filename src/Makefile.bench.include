@@ -41,9 +41,7 @@ bench_bench_particl_SOURCES = \
   bench/poly1305.cpp \
   bench/prevector.cpp \
   bench/blind.cpp \
-  bench/mlsag.cpp \
-  test/util.h \
-  test/util.cpp
+  bench/mlsag.cpp
 
 nodist_bench_bench_particl_SOURCES = $(GENERATED_BENCH_FILES)
 
