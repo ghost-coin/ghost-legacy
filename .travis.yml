@@ -101,6 +101,7 @@ jobs:
     #  arch: s390x
     #  env: >-
     #    FILE_ENV="./ci/test/00_setup_env_s390x.sh"
+    #    QEMU_USER_CMD=""  # Can run the tests natively without qemu
     #  after_success:
     #    - echo "Skipped upload"
 
@@ -120,7 +121,7 @@ jobs:
         FILE_ENV="./ci/test/00_setup_env_native_centos.sh"
 
     - stage: test
-      name: 'x86_64 Linux  [GOAL: install]  [bionic]  [uses qt5 dev package instead of depends Qt to speed up build and avoid timeout] [unsigned char]'
+      name: 'x86_64 Linux  [GOAL: install]  [bionic]  [uses qt5 dev package and some depends packages] [unsigned char]'
       env: >-
         FILE_ENV="./ci/test/00_setup_env_native_qt5.sh"
 
@@ -134,6 +135,13 @@ jobs:
       name: 'x86_64 Linux  [GOAL: install]  [bionic]  [no depends, only system libs, sanitizers: address/leak (ASan + LSan) + undefined (UBSan) + integer]'
       env: >-
         FILE_ENV="./ci/test/00_setup_env_native_asan.sh"
+      after_success:
+        - echo "Skipped upload"
+
+    - stage: test
+      name: 'x86_64 Linux  [GOAL: install]  [bionic]  [no depends, only system libs, valgrind]'
+      env: >-
+        FILE_ENV="./ci/test/00_setup_env_native_valgrind.sh"
       after_success:
         - echo "Skipped upload"
 
