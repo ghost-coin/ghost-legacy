@@ -5,14 +5,13 @@
 
 import time
 
-from test_framework.test_particl import(
+from test_framework.test_particl import (
     ParticlTestFramework,
     connect_nodes_bi,
     isclose
 )
-from test_framework.authproxy import JSONRPCException
 
-KEEP_FUNDING_TX_DATA = 86400 * 31;
+KEEP_FUNDING_TX_DATA = 86400 * 31
 
 class SmsgRollingCacheTest(ParticlTestFramework):
     def set_test_params(self):

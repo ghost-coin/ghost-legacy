@@ -6213,10 +6213,14 @@ bool ShouldAutoReindex()
 bool RebuildRollingIndices()
 {
     bool nV2 = false;
+    if (gArgs.GetBoolArg("-rebuildrollingindices", false)) {
+        LogPrintf("%s: Manual override, attempting to rewind chain.\n", __func__);
+    } else
     if (pblocktree->ReadFlag("v2", nV2) && nV2) {
         return true;
+    } else {
+        LogPrintf("%s: v2 marker not detected, attempting to rewind chain.\n", __func__);
     }
-    LogPrintf("%s: v2 marker not detected, attempting to rewind chain.\n", __func__);
     uiInterface.InitMessage(_("Rebuilding rolling indices...").translated);
 
     int64_t now = GetAdjustedTime();

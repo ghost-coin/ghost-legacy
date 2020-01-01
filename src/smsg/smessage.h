@@ -1,11 +1,12 @@
 // Copyright (c) 2014-2016 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef PARTICL_SMSG_SMESSAGE_H
 #define PARTICL_SMSG_SMESSAGE_H
 
+#include <sync.h>
 #include <key_io.h>
 #include <serialize.h>
 #include <ui_interface.h>
@@ -21,6 +22,8 @@ class CWallet;
 class CCoinControl;
 class CNode;
 typedef int64_t NodeId;
+
+extern CCriticalSection cs_main;
 
 namespace smsg {
 
@@ -472,7 +475,7 @@ public:
     std::vector<uint8_t> GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload);
     std::vector<uint8_t> GetMsgID(const SecureMessage &smsg);
 
-    int StoreFundingTx(const CTransaction &tx, const CBlockIndex *pindex);
+    int StoreFundingTx(const CTransaction &tx, const CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     int CheckFundingTx(const Consensus::Params &consensus_params, const SecureMessage *psmsg, const uint8_t *pPayload);
     int PruneFundingTxData();
 

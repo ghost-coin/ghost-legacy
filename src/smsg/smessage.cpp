@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2016 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -36,7 +36,6 @@ Notes:
 #include <validationinterface.h>
 #include <smsg/crypter.h>
 #include <smsg/db.h>
-#include <sync.h>
 #include <random.h>
 #include <chain.h>
 #include <netmessagemaker.h>
@@ -69,7 +68,6 @@ Notes:
 extern NodeContext* g_rpc_node;
 
 extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
-extern CCriticalSection cs_main;
 
 smsg::CSMSG smsgModule;
 
@@ -3475,6 +3473,8 @@ int CSMSG::StoreFundingTx(const CTransaction &tx, const CBlockIndex *pindex)
         db_data.insert(db_data.end(), output_data.begin()+1, output_data.begin()+1+n*24);
     }
 
+    // TODO: Get current fee-rate, GetSmsgFeeRate
+
     if (!db.WriteFundingData(tx.GetHash(), pindex->nHeight, db_data)) {
         return errorN(SMSG_GENERAL_ERROR, "%s - WriteFundingData failed.", __func__);
     }
@@ -3509,13 +3509,16 @@ int CSMSG::CheckFundingTx(const Consensus::Params &consensusParams, const Secure
 
     int blockDepth = -1;
     const CBlockIndex *pindex = nullptr;
-    BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
     int64_t nMsgFeePerKPerDay = 0;
-    if (mi != ::BlockIndex().end()) {
-        pindex = mi->second;
-        if (pindex && ::ChainActive().Contains(pindex)) {
-            blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;
-            nMsgFeePerKPerDay = GetSmsgFeeRate(pindex);
+    {
+        LOCK(cs_main);
+        BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
+        if (mi != ::BlockIndex().end()) {
+            pindex = mi->second;
+            if (pindex && ::ChainActive().Contains(pindex)) {
+                blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;
+                nMsgFeePerKPerDay = GetSmsgFeeRate(pindex);
+            }
         }
     }
 
@@ -3534,6 +3537,7 @@ int CSMSG::CheckFundingTx(const Consensus::Params &consensusParams, const Secure
             memcpy(&nAmount, &db_data[32 + k * 24 + 20], 4);
 
             if (nAmount < nExpectFee) {
+                LOCK(cs_main);
                 // Grace period after fee period transition where prev fee is still allowed
                 bool matched_last_fee = false;
                 if (pindex->nHeight % consensusParams.smsg_fee_period < 10) {
