@@ -1337,9 +1337,9 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
             for (it = smsgModule.buckets.begin(); it != smsgModule.buckets.end(); ++it) {
                 const std::set<smsg::SecMsgToken> &tokenSet = it->second.setTokens;
 
-                std::string sBucket = std::to_string(it->first);
+                std::string sBucket = i64tostr(it->first);
                 std::string sFile = sBucket + "_01.dat";
-                std::string sHash = std::to_string(it->second.hash);
+                std::string sHash = i64tostr((int64_t)it->second.hash);
 
                 size_t nActiveMessages = it->second.CountActive();
 
@@ -1396,7 +1396,7 @@ static UniValue smsgbuckets(const JSONRPCRequest &request)
             LOCK(smsgModule.cs_smsg);
             std::map<int64_t, smsg::SecMsgBucket>::iterator it;
             for (it = smsgModule.buckets.begin(); it != smsgModule.buckets.end(); ++it) {
-                std::string sFile = std::to_string(it->first) + "_01.dat";
+                std::string sFile = i64tostr(it->first) + "_01.dat";
 
                 try {
                     fs::path fullPath = GetDataDir() / smsg::STORE_DIR / sFile;
