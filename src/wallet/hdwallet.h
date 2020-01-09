@@ -432,7 +432,6 @@ public:
     bool IsSpent(const uint256& hash, unsigned int n) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     // Whether this or any UTXO with the same CTxDestination has been spent.
-    using CWallet::IsUsedDestination;
     bool IsUsedDestination(const CScript *pscript) const;
     bool IsUsedDestination(const uint256& hash, unsigned int n) const override;
     void SetUsedDestinationState(const CScript *pscript, bool used);

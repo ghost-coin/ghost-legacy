@@ -98,7 +98,7 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
         }
 
         CScript coinbaseScript;
-        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript, false));
+        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(mempool, Params()).CreateNewBlock(coinbaseScript, false));
         assert(pblocktemplate.get());
 
         if (pwallet->SignBlock(pblocktemplate.get(), nBestHeight+1, nSearchTime)) {

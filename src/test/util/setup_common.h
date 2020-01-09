@@ -21,6 +21,9 @@
 #include <key/extkey.h>
 #include <key/stealth.h>
 
+/** This is connected to the logger. Can be used to redirect logs to any other log */
+extern const std::function<void(const std::string&)> G_TEST_LOG_FUN;
+
 // Enable BOOST_CHECK_EQUAL for enum class types
 template <typename T>
 std::ostream& operator<<(typename std::enable_if<std::is_enum<T>::value, std::ostream>::type& stream, const T& e)

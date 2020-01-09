@@ -65,6 +65,7 @@
 #endif
 
 #include <thread>
+#include <typeinfo>
 #include <univalue.h>
 
 // Application startup time (used for uptime calculation)
