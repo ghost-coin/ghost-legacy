@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2015 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -287,7 +287,8 @@ void CExtPubKey::Decode(const unsigned char code[74])
 
 bool CExtPubKey::Derive(CExtPubKey &out, unsigned int nChild) const
 {
-    out.nDepth = nDepth + 1;
+    // Depth wraps around
+    out.nDepth = (uint8_t) (nDepth + 1) & 0xFF;
     CKeyID id = pubkey.GetID();
 
     memcpy(&out.vchFingerprint[0], &id, 4);
@@ -299,7 +300,8 @@ bool CExtPubKey::Derive(CExtPubKey &out, unsigned int nChild) const
 
 bool CExtKey::Derive(CExtKey &out, unsigned int nChild) const
 {
-    out.nDepth = nDepth + 1;
+    // Depth wraps around
+    out.nDepth = (uint8_t) (nDepth + 1) & 0xFF;
     CKeyID id = key.GetPubKey().GetID();
     memcpy(&out.vchFingerprint[0], &id, 4);
     out.nChild = nChild;

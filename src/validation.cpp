@@ -2027,7 +2027,7 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
         }
     }
 
-    int nVtxundo = blockUndo.vtxundo.size()-1;
+    int nVtxundo = (int)blockUndo.vtxundo.size()-1;
     // undo transactions in reverse order
     for (int i = block.vtx.size() - 1; i >= 0; i--)
     {

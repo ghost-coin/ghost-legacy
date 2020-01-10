@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2015 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -68,12 +68,6 @@ enum AccountFlagTypes
 };
 
 enum {HK_NO = 0, HK_YES, HK_LOOKAHEAD, HK_LOOKAHEAD_DO_UPDATE};
-
-inline bool IsHardened(uint32_t n)              { return (n & (1 << 31)); };
-inline uint32_t &SetHardenedBit(uint32_t &n)    { return (n |= (1 << 31)); };
-inline uint32_t &ClearHardenedBit(uint32_t &n)  { return (n &= ~(1 << 31)); };
-inline uint32_t WithHardenedBit(uint32_t n)     { return (n |= (1 << 31)); };
-inline uint32_t WithoutHardenedBit(uint32_t n)  { return (n &= ~(1 << 31)); };
 
 struct CExtPubKey {
     unsigned char nDepth;
@@ -333,7 +327,7 @@ public:
                 return errorN(1, "No more %skeys can be derived from master.", fHardened ? "hardened " : "");
             }
 
-            uint32_t nNum = fHardened ? nChildIn | 1 << 31 : nChildIn;
+            uint32_t nNum = fHardened ? nChildIn | (uint32_t)1 << 31 : nChildIn;
 
             if (kp.Derive(keyOut, nNum)) {
                 nChildOut = nNum; // nChildOut has bit 31 set for harnened keys

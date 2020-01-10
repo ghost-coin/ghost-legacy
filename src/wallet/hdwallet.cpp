@@ -5896,11 +5896,11 @@ int CHDWallet::ExtKeyImportLoose(CHDWalletDB *pwdb, CStoredExtKey &sekIn, CKeyID
 
         CExtKey evDerivedKey, evPurposeKey;
         sek.kp.Derive(evPurposeKey, BIP44_PURPOSE);
-        evPurposeKey.Derive(evDerivedKey, Params().BIP44ID());
+        evPurposeKey.Derive(evDerivedKey, (uint32_t)Params().BIP44ID());
 
         v.resize(0);
         PushUInt32(v, BIP44_PURPOSE);
-        PushUInt32(v, Params().BIP44ID());
+        PushUInt32(v, (uint32_t)Params().BIP44ID());
 
         CStoredExtKey sekDerived;
         sekDerived.nFlags |= EAF_ACTIVE;
@@ -10353,7 +10353,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
     // Anon input spend info depends on keys in wallet
     for (const auto &txin : tx.vin) {
         if (txin.IsAnonInput()) {
-            rtx.nFlags |= ORF_ANON_IN;
+            rtx.nFlags |= (int16_t)ORF_ANON_IN;
             AddTxinToSpends(txin, txhash);
         }
     }

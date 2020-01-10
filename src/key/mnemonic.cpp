@@ -425,12 +425,12 @@ int MnemonicDecode(int &nLanguage, const std::string &sWordListIn, std::vector<u
 
         if (s < (int)el-1) {
             if (r > 5) {
-                vEntropy[s+1] |= ((o >> (r-5))) & 0x7FF;
+                vEntropy[s+1] |= (uint8_t) ((o >> (r-5))) & 0x7FF;
                 if (s < (int)el-2) {
-                    vEntropy[s+2] |= (o << (8-(r-5))) & 0x7FF;
+                    vEntropy[s+2] |= (uint8_t) (o << (8-(r-5))) & 0x7FF;
                 }
             } else {
-                vEntropy[s+1] |= (o << (5-r)) & 0x7FF;
+                vEntropy[s+1] |= (uint8_t) (o << (5-r)) & 0x7FF;
             }
         }
         i += 11;

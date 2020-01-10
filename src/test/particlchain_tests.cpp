@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -158,14 +158,14 @@ BOOST_AUTO_TEST_CASE(varints)
     // decode
     size_t nB = 0, o = 0;
     for (int i = 0; i < 100000; i++) {
-        uint64_t j = -1;
+        uint64_t j = (uint64_t)-1;
         BOOST_CHECK(0 == GetVarInt(v, o, j, nB));
         BOOST_CHECK_MESSAGE(i == (int)j, "decoded:" << j << " expected:" << i);
         o += nB;
     }
 
     for (uint64_t i = 0;  i < 100000000000ULL; i += 999999937) {
-        uint64_t j = -1;
+        uint64_t j = (uint64_t)-1;
         BOOST_CHECK(0 == GetVarInt(v, o, j, nB));
         BOOST_CHECK_MESSAGE(i == j, "decoded:" << j << " expected:" << i);
         o += nB;

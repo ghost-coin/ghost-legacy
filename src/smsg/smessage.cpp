@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2016 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -2564,7 +2564,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
         HashMsg(*psmsg, pPayload, nPayload-(psmsg->IsPaidVersion() ? 32 : 0), hash);
 
         uint8_t chKey[30];
-        int64_t timestamp_be = bswap_64(psmsg->timestamp);
+        int64_t timestamp_be = (int64_t)bswap_64(psmsg->timestamp);
         memcpy(&chKey[0], DBK_INBOX.data(), 2);
         memcpy(&chKey[2], &timestamp_be, 8);
         memcpy(&chKey[10], hash.begin(), 20);
@@ -3355,7 +3355,7 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
     int64_t now = GetTime();
     int64_t msgtime;
     memcpy(&msgtime, vMsgId.data(), 8);
-    msgtime = bswap_64(msgtime);
+    msgtime = (int64_t)bswap_64((uint64_t)msgtime);
     SecMsgPurged purged(msgtime, now);
 
     uint8_t chKey[30];
@@ -3981,7 +3981,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     if (submit_msg) {
         // Place message in send queue, proof of work will happen in a thread.
         uint8_t chKey[30];
-        int64_t timestamp_be = bswap_64(smsg.timestamp);
+        int64_t timestamp_be = (int64_t)bswap_64(smsg.timestamp);
         memcpy(&chKey[0], DBK_QUEUED.data(), 2);
         memcpy(&chKey[2], &timestamp_be, 8);
         memcpy(&chKey[10], msgId.begin(), 20);
@@ -4065,7 +4065,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
             // Save sent message to db
             uint8_t chKey[30];
-            int64_t timestamp_be = bswap_64(smsgForOutbox.timestamp);
+            int64_t timestamp_be = (int64_t)bswap_64(smsgForOutbox.timestamp);
             memcpy(&chKey[0], DBK_OUTBOX.data(), 2);
             memcpy(&chKey[2], &timestamp_be, 8);
             memcpy(&chKey[10], msgId.begin(), 20);
@@ -4245,7 +4245,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
 std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload)
 {
     std::vector<uint8_t> rv(28);
-    int64_t timestamp_be = bswap_64(psmsg->timestamp);
+    int64_t timestamp_be = (int64_t)bswap_64(psmsg->timestamp);
     memcpy(rv.data(), &timestamp_be, 8);
 
     HashMsg(*psmsg, pPayload, psmsg->nPayload-(psmsg->IsPaidVersion() ? 32 : 0), *((uint160*)&rv[8]));
@@ -4256,7 +4256,7 @@ std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage *psmsg, const uint8_t *
 std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage &smsg)
 {
     std::vector<uint8_t> rv(28);
-    int64_t timestamp_be = bswap_64(smsg.timestamp);
+    int64_t timestamp_be = (int64_t)bswap_64(smsg.timestamp);
     memcpy(rv.data(), &timestamp_be, 8);
 
     HashMsg(smsg, smsg.pPayload, smsg.nPayload-(smsg.IsPaidVersion() ? 32 : 0), *((uint160*)&rv[8]));

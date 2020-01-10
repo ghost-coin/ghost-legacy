@@ -413,7 +413,7 @@ bool TxIndex::IndexCSOutputs(const CBlock& block, const CBlockIndex* pindex)
             if (in.IsAnonInput()) {
                 continue;
             }
-            ColdStakeIndexOutputKey ok(in.prevout.hash, in.prevout.n);
+            ColdStakeIndexOutputKey ok(in.prevout.hash, (int)in.prevout.n);
             ColdStakeIndexOutputValue ov;
 
             auto it = newCSOuts.find(ok);

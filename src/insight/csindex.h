@@ -28,12 +28,12 @@ public:
     template<typename Stream>
     void Serialize(Stream& s) const {
         m_txnid.Serialize(s);
-        ser_writedata32be(s, m_n);
+        ser_writedata32be(s, (uint32_t)m_n);
     }
     template<typename Stream>
     void Unserialize(Stream& s) {
         m_txnid.Unserialize(s);
-        m_n = ser_readdata32be(s);
+        m_n = (int)ser_readdata32be(s);
     }
 
     friend bool operator<(const ColdStakeIndexOutputKey& a, const ColdStakeIndexOutputKey& b) {

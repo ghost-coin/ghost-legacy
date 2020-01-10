@@ -205,6 +205,7 @@ utf8::buffer_decoder utf8::decoder(const char* str, size_t len) {
   return buffer_decoder(str, len);
 }
 
+__attribute__((no_sanitize("integer")))
 void utf8::append(char*& str, char32_t chr) {
   if (chr < 0x80) *str++ = chr;
   else if (chr < 0x800) { *str++ = 0xC0 + (chr >> 6); *str++ = 0x80 + (chr & 0x3F); }
@@ -213,6 +214,7 @@ void utf8::append(char*& str, char32_t chr) {
   else *str++ = REPLACEMENT_CHAR;
 }
 
+__attribute__((no_sanitize("integer")))
 void utf8::append(std::string& str, char32_t chr) {
   if (chr < 0x80) str += chr;
   else if (chr < 0x800) { str += 0xC0 + (chr >> 6); str += 0x80 + (chr & 0x3F); }

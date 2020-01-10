@@ -454,7 +454,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nStatus                  = diskindex.nStatus;
                 pindexNew->nTx                      = diskindex.nTx;
 
-                pindexNew->nFlags                   = diskindex.nFlags & ~BLOCK_DELAYED;
+                pindexNew->nFlags                   = diskindex.nFlags & (uint32_t)~BLOCK_DELAYED;
                 pindexNew->bnStakeModifier          = diskindex.bnStakeModifier;
                 pindexNew->prevoutStake             = diskindex.prevoutStake;
                 //pindexNew->hashProof                = diskindex.hashProof;

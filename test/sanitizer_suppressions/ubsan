@@ -43,6 +43,7 @@ unsigned-integer-overflow:txmempool.cpp
 unsigned-integer-overflow:util/strencodings.cpp
 unsigned-integer-overflow:validation.cpp
 
+
 implicit-integer-sign-change:*/include/c++/*/bits/*.h
 implicit-integer-sign-change:*/new_allocator.h
 implicit-integer-sign-change:/usr/include/boost/date_time/format_date_parser.hpp
@@ -84,3 +85,9 @@ implicit-signed-integer-truncation:test/skiplist_tests.cpp
 implicit-signed-integer-truncation:torcontrol.cpp
 implicit-unsigned-integer-truncation:crypto/*
 implicit-unsigned-integer-truncation:leveldb/*
+
+
+unsigned-integer-overflow:xxhash/xxhash.c
+implicit-signed-integer-truncation:unilib/*
+implicit-integer-sign-change:unilib/*
+

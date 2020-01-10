@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -67,19 +67,17 @@ void RunPathTest()
 {
     int rv;
 
-    std::vector<uint32_t> vPath;
-    std::vector<uint32_t> vExpect;
+    std::vector<uint32_t> vPath, vExpect;
     std::string sTest;
 
     // Tests expected to fail:
     int al = sizeof(failTests)/sizeof(FailTest);
 
-    for (int i = 0; i < al; ++i)
-    {
+    for (int i = 0; i < al; ++i) {
         FailTest &ft = failTests[i];
         rv = ExtractExtKeyPath(ft.sTest, vPath);
         BOOST_CHECK(rv == ft.rv);
-    };
+    }
 
     char tooMuchData[513];
     memset(tooMuchData, '/', 512);
@@ -92,30 +90,29 @@ void RunPathTest()
     al = sizeof(passTests)/sizeof(PassTest);
 
     std::stringstream ss, ssE;
-    for (int i = 0; i < al; ++i)
-    {
+    for (int i = 0; i < al; ++i) {
         PassTest &pt = passTests[i];
         rv = ExtractExtKeyPath(pt.sTest, vPath);
 
         ss.str("");
-        for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it)
-        {
+        for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it) {
             ss << *it;
-            if (it != vPath.end()-1)
+            if (it != vPath.end()-1) {
                 ss << ", ";
-        };
+            }
+        }
 
         ssE.str("");
-        for (std::vector<uint32_t>::iterator it = pt.vExpect.begin(); it != pt.vExpect.end(); ++it)
-        {
+        for (std::vector<uint32_t>::iterator it = pt.vExpect.begin(); it != pt.vExpect.end(); ++it) {
             ssE << *it;
-            if (it != pt.vExpect.end()-1)
+            if (it != pt.vExpect.end()-1) {
                 ssE << ", ";
-        };
+            }
+        }
 
         BOOST_CHECK(rv == pt.rv);
         BOOST_CHECK(vPath == pt.vExpect);
-    };
+    }
 }
 
 class DeriveTestData
@@ -135,12 +132,10 @@ void RunDeriveTest(std::vector<DeriveTestData> &vData)
     CExtKey evkeyM;
     CExtPubKey epkeyM;
 
-    for (uint32_t k = 0; k < vData.size(); ++k)
-    {
+    for (uint32_t k = 0; k < vData.size(); ++k) {
         DeriveTestData &dt = vData[k];
 
-        if (dt.nDerives == 0)
-        {
+        if (dt.nDerives == 0) {
             // Set master
 
             BOOST_CHECK(0 == (rv = extKey58.Set58(dt.vKey58.c_str())));
@@ -154,21 +149,19 @@ void RunDeriveTest(std::vector<DeriveTestData> &vData)
 
             BOOST_CHECK(CBitcoinExtPubKey(epkeyM).ToString().c_str());
 
-            if (rv != 0)
-            {
+            if (rv != 0) {
                 BOOST_MESSAGE("Set master failed, aborting test.");
                 break;
             }
             continue;
-        };
+        }
 
 
         CExtKey evkey[2], evkeyOut;
         CExtPubKey epkeyOut;
         evkey[0] = evkeyM;
         rv = 0;
-        for (uint32_t d = 0; d < dt.nDerives; ++d)
-        {
+        for (uint32_t d = 0; d < dt.nDerives; ++d) {
             rv += evkey[d % 2].Derive(evkey[(d+1) % 2], 1);
         }
         BOOST_CHECK(dt.nDerives == (uint32_t)rv);
@@ -182,7 +175,7 @@ void RunDeriveTest(std::vector<DeriveTestData> &vData)
 
         epkeyOut = evkeyOut.Neutered();
         BOOST_CHECK(0 == strcmp(CBitcoinExtPubKey(epkeyOut).ToString().c_str(), dt.pKey58.c_str()));
-    };
+    }
 
     return;
 };
@@ -263,7 +256,7 @@ void RunSerialiseTests()
     BOOST_CHECK(4 == GetNumBytesReqForInt(nTest4));
     BOOST_CHECK(4 == GetNumBytesReqForInt(nTest4_1)); // expect 4, no sign bit
     BOOST_CHECK(5 == GetNumBytesReqForInt(nTest5));
-    BOOST_CHECK(8 == GetNumBytesReqForInt(nTest8));
+    BOOST_CHECK(8 == GetNumBytesReqForInt((uint64_t)nTest8));
 
     std::vector<uint8_t> v;
     SetCompressedInt64(v, nTest0);
@@ -274,7 +267,7 @@ void RunSerialiseTests()
     GetCompressedInt64(v, (uint64_t&)nTest);
     BOOST_CHECK(nTest5 == nTest);
 
-    SetCompressedInt64(v, nTest8);
+    SetCompressedInt64(v, (uint64_t)nTest8);
     GetCompressedInt64(v, (uint64_t&)nTest);
     BOOST_CHECK(nTest8 == nTest);
 
@@ -288,7 +281,7 @@ void RunSerialiseTests()
     sk.sLabel = "sk label";
     sk.nGenerated = 5;
     sk.nHGenerated = 6;
-    sk.mapValue[EKVT_CREATED_AT] = SetCompressedInt64(v, nTest8);
+    sk.mapValue[EKVT_CREATED_AT] = SetCompressedInt64(v, (uint64_t)nTest8);
 
     eKey58.SetKey(sk.kp, CChainParams::EXT_PUBLIC_KEY);
     BOOST_CHECK(eKey58.ToString() == "PPARTKMMf4AUDYzRSBcXSJZALbUXgWKHi6qdpy95yBmABuznU3keHFyNHfjaMT33ehuYwjx3RXort1j8d9AYnqyhAvdN168J4GBsM2ZHuTb91rsj");
