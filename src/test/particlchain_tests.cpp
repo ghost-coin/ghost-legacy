@@ -133,13 +133,15 @@ BOOST_AUTO_TEST_CASE(particlchain_test)
 
 BOOST_AUTO_TEST_CASE(varints)
 {
-    // encode
+    SeedInsecureRand();
 
+    int start = InsecureRandRange(100);
+    size_t size = 0;
     uint8_t c[128];
     std::vector<uint8_t> v;
 
-    size_t size = 0;
-    for (int i = 0; i < 100000; i++) {
+    // Encode
+    for (int i = start; i < 10000; i+=100) {
         size_t sz = GetSizeOfVarInt<VarIntMode::NONNEGATIVE_SIGNED>(i);
         BOOST_CHECK(sz = PutVarInt(c, i));
         BOOST_CHECK(0 == PutVarInt(v, i));
@@ -147,23 +149,20 @@ BOOST_AUTO_TEST_CASE(varints)
         size += sz;
         BOOST_CHECK(size == v.size());
     }
-
     for (uint64_t i = 0;  i < 100000000000ULL; i += 999999937) {
         BOOST_CHECK(0 == PutVarInt(v, i));
         size += GetSizeOfVarInt<VarIntMode::DEFAULT>(i);
         BOOST_CHECK(size == v.size());
     }
 
-
-    // decode
+    // Decode
     size_t nB = 0, o = 0;
-    for (int i = 0; i < 100000; i++) {
+    for (int i = start; i < 10000; i+=100) {
         uint64_t j = (uint64_t)-1;
         BOOST_CHECK(0 == GetVarInt(v, o, j, nB));
         BOOST_CHECK_MESSAGE(i == (int)j, "decoded:" << j << " expected:" << i);
         o += nB;
     }
-
     for (uint64_t i = 0;  i < 100000000000ULL; i += 999999937) {
         uint64_t j = (uint64_t)-1;
         BOOST_CHECK(0 == GetVarInt(v, o, j, nB));
@@ -198,8 +197,7 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
 
     uint256 prevHash = txnPrev_c.GetHash();
 
-    std::vector<std::pair<std::vector<int>, bool> > tests =
-    {
+    std::vector<std::pair<std::vector<int>, bool> > tests = {
         std::make_pair( (std::vector<int>) {0 }, true),
         std::make_pair( (std::vector<int>) {0, 1}, true),
         std::make_pair( (std::vector<int>) {0, 2}, false),
