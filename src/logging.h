@@ -54,6 +54,7 @@ namespace BCLog {
         COINDB      = (1 << 18),
         QT          = (1 << 19),
         LEVELDB     = (1 << 20),
+        VALIDATION  = (1 << 21),
 
         SMSG        = (1 << 27),
         RINGCT      = (1 << 28),
