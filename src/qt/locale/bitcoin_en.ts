@@ -337,12 +337,12 @@
         <translation>Sign &amp;message...</translation>
     </message>
     <message>
-        <location line="+681"/>
+        <location line="+683"/>
         <source>Synchronizing with network...</source>
         <translation>Synchronizing with network...</translation>
     </message>
     <message>
-        <location line="-759"/>
+        <location line="-761"/>
         <source>&amp;Overview</source>
         <translation>&amp;Overview</translation>
     </message>
@@ -427,7 +427,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Create a new wallet</source>
         <translation type="unfinished"></translation>
     </message>
@@ -437,7 +437,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+382"/>
+        <location line="+383"/>
         <source>Click to disable network activity.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -477,7 +477,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1129"/>
+        <location line="-1131"/>
         <source>Send coins to a Particl address</source>
         <translation>Send coins to a Particl address</translation>
     </message>
@@ -542,7 +542,7 @@
         <translation>Verify messages to ensure they were signed with specified Particl addresses</translation>
     </message>
     <message>
-        <location line="+117"/>
+        <location line="+118"/>
         <source>&amp;File</source>
         <translation>&amp;File</translation>
     </message>
@@ -562,7 +562,7 @@
         <translation>Tabs toolbar</translation>
     </message>
     <message>
-        <location line="-266"/>
+        <location line="-267"/>
         <source>Request payments (generates QR codes and particl: URIs)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -582,12 +582,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>&amp;Command-line options</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="+580"/>
+        <location line="+581"/>
         <source>%n active connection(s) to Particl network</source>
         <translation>
             <numerusform>%n active connection to Particl network</numerusform>
@@ -648,7 +648,7 @@
         <translation>Up to date</translation>
     </message>
     <message>
-        <location line="-700"/>
+        <location line="-702"/>
         <source>&amp;Sending addresses</source>
         <translation type="unfinished"></translation>
     </message>
@@ -678,7 +678,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
         <translation type="unfinished"></translation>
     </message>
@@ -723,7 +723,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+243"/>
+        <location line="+244"/>
         <source>%1 client</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2525,7 +2525,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bitcoin.cpp" line="+115"/>
+        <location filename="../bitcoin.cpp" line="+118"/>
         <source>Error: Specified data directory &quot;%1&quot; does not exist.</source>
         <translation type="unfinished"></translation>
     </message>

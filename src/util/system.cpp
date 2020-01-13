@@ -65,6 +65,7 @@
 #endif
 
 #include <thread>
+#include <typeinfo>
 
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();

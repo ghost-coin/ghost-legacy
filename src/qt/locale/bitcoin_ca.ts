@@ -334,6 +334,34 @@
         <translation>Encripta les claus privades pertanyents de la cartera</translation>
     </message>
     <message>
+        <source>&amp;File</source>
+        <translation>&amp;Fitxer</translation>
+    </message>
+    <message>
+        <source>Tabs toolbar</source>
+        <translation>Barra d'eines de les pestanyes</translation>
+    </message>
+    <message>
+        <source>&amp;Command-line options</source>
+        <translation>Opcions de la &amp;línia d'ordres</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Error</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>Avís</translation>
+    </message>
+    <message>
+        <source>Information</source>
+        <translation>Informació</translation>
+    </message>
+    <message>
+        <source>Up to date</source>
+        <translation>Actualitzat</translation>
+    </message>
+    <message>
         <source>&amp;Sending addresses</source>
         <translation>Adreces d'&amp;enviament</translation>
     </message>
@@ -496,12 +524,16 @@
         <source>The wallet will also be stored in this directory.</source>
         <translation>La cartera també serà emmagatzemat en aquest directori.</translation>
     </message>
+    <message>
+        <source>Error</source>
+        <translation>Error</translation>
+    </message>
     </context>
 <context>
     <name>ModalOverlay</name>
     <message>
-        <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the bitcoin network, as detailed below.</source>
-        <translation>És possible que les transaccions recents encara no siguin visibles i, per tant, el saldo de la vostra cartera podria ser incorrecte. Aquesta informació serà correcta una vegada que la cartera hagi finalitzat la sincronització amb la xarxa bitcoin, tal com es detalla més avall.</translation>
+        <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the particl network, as detailed below.</source>
+        <translation>És possible que les transaccions recents encara no siguin visibles i, per tant, el saldo de la vostra cartera podria ser incorrecte. Aquesta informació serà correcta una vegada que la cartera hagi finalitzat la sincronització amb la xarxa particl, tal com es detalla més avall.</translation>
     </message>
     <message>
         <source>Last block time</source>
@@ -533,15 +565,23 @@
 <context>
     <name>OptionsDialog</name>
     <message>
+        <source>Minimize instead of exit the application when the window is closed. When this option is enabled, the application will be closed only after selecting Exit in the menu.</source>
+        <translation>Minimitza en comptes de sortir de l'aplicació quan la finestra es tanca. Quan s'habilita aquesta opció l'aplicació es tancarà només quan se selecciona Surt del menú. </translation>
+    </message>
+    <message>
         <source>MiB</source>
         <translation>MiB</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Error</translation>
     </message>
     </context>
 <context>
     <name>OverviewPage</name>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Bitcoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>La informació mostrada pot no estar al dia. El vostra cartera se sincronitza automàticament amb la xarxa Bitcoin un cop s'ha establert connexió, però aquest proces encara no ha finalitzat.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
+        <translation>La informació mostrada pot no estar al dia. El vostra cartera se sincronitza automàticament amb la xarxa Particl un cop s'ha establert connexió, però aquest proces encara no ha finalitzat.</translation>
     </message>
     </context>
 <context>
@@ -1294,6 +1334,10 @@
         <source>(no label)</source>
         <translation>(sense etiqueta)</translation>
     </message>
+    <message>
+        <source>Date and time that the transaction was received.</source>
+        <translation>Data i hora en què la transacció va ser rebuda.</translation>
+    </message>
     </context>
 <context>
     <name>TransactionView</name>
@@ -1408,6 +1452,10 @@
         <translation>S'ha produït un error en carregar %s: la cartera requereix una versió més nova de %s</translation>
     </message>
     <message>
+        <source>Importing...</source>
+        <translation>S'està important...</translation>
+    </message>
+    <message>
         <source>Unable to generate keys</source>
         <translation>No s'han pogut generar les claus</translation>
     </message>
@@ -1418,6 +1466,18 @@
     <message>
         <source>Section [%s] is not recognized.</source>
         <translation>No es reconeix la secció [%s]</translation>
+    </message>
+    <message>
+        <source>This is experimental software.</source>
+        <translation>Aquest és programari experimental.</translation>
+    </message>
+    <message>
+        <source>Transaction amount too small</source>
+        <translation>La transacció és massa petita</translation>
+    </message>
+    <message>
+        <source>Transaction too large</source>
+        <translation>La transacció és massa gran</translation>
     </message>
     <message>
         <source>Unable to generate initial keys</source>

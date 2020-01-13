@@ -70,8 +70,8 @@
         <translation>Hauek dira zuk dirua jaso dezaketen Particl helbideak. Egiaztatu beti diru-kopurua eta dirua jasoko duen helbidea zuzen egon daitezen, txanponak bidali baino lehen.</translation>
     </message>
     <message>
-        <source>These are your Bitcoin addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Hauek dira ordainketak jasotzeko zure Bitcoin helbideak. Jaso taulako 'Jasotzeko helbide berri bat sortu' botoia erabili helbide berri bat sortzeko.</translation>
+        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
+        <translation>Hauek dira ordainketak jasotzeko zure Particl helbideak. Jaso taulako 'Jasotzeko helbide berri bat sortu' botoia erabili helbide berri bat sortzeko.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -188,8 +188,8 @@
         <translation>Diruzorroaren pasahitz zahar zein berria sartu.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your bitcoins from being stolen by malware infecting your computer.</source>
-        <translation>Gogoan izan diruzorroaren enkripzioak ezin dituela zure bitcoinak zure ordenagailuan izan dezakezun malware batengandik lapurtuak izatetik guztiz babestu .</translation>
+        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation>Gogoan izan diruzorroaren enkripzioak ezin dituela zure particlak zure ordenagailuan izan dezakezun malware batengandik lapurtuak izatetik guztiz babestu .</translation>
     </message>
     <message>
         <source>Wallet to be encrypted</source>
@@ -235,7 +235,11 @@
         <source>Wallet passphrase was successfully changed.</source>
         <translation>Diruzorroaren pasahitza arrakastaz aldatu da.</translation>
     </message>
-    </context>
+    <message>
+        <source>Warning: The Caps Lock key is on!</source>
+        <translation>Abisua: Mayuskulak blokeatuak dituzu!</translation>
+    </message>
+</context>
 <context>
     <name>BanTableModel</name>
     <message>
@@ -310,8 +314,16 @@
         <translation>Diruzorroa &amp;enkriptatu...</translation>
     </message>
     <message>
+        <source>&amp;Backup Wallet...</source>
+        <translation>Diruzorroaren kopia bat gorde</translation>
+    </message>
+    <message>
         <source>&amp;Change Passphrase...</source>
         <translation>Pasahitza &amp;aldatu...</translation>
+    </message>
+    <message>
+        <source>Open &amp;URI...</source>
+        <translation>&amp;URLa zabaldu</translation>
     </message>
     <message>
         <source>Create Wallet...</source>
@@ -324,6 +336,26 @@
     <message>
         <source>Wallet:</source>
         <translation>Diruzorroa:</translation>
+    </message>
+    <message>
+        <source>Click to disable network activity.</source>
+        <translation>Sarea desaktibatzeko sakatu</translation>
+    </message>
+    <message>
+        <source>Network activity disabled.</source>
+        <translation>Sarea desaktibatua</translation>
+    </message>
+    <message>
+        <source>Click to enable network activity again.</source>
+        <translation>Sarea berriro aktibatzeko sakatu</translation>
+    </message>
+    <message>
+        <source>Syncing Headers (%1%)...</source>
+        <translation>Burukoak sinkronizatzen (%1)...</translation>
+    </message>
+    <message>
+        <source>Reindexing blocks on disk...</source>
+        <translation>Blokeak diskoan berriro zerrendatzen...</translation>
     </message>
     <message>
         <source>Change the passphrase used for wallet encryption</source>
