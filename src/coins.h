@@ -44,7 +44,10 @@ public:
     //! at which height this containing transaction was included in the active block chain
     uint32_t nHeight : 31;
 
+    //! type of output (Particl)
     uint8_t nType = OUTPUT_STANDARD;
+
+    //! commitment used for CT outputs (Particl)
     secp256k1_pedersen_commitment commitment;
 
     //! construct a Coin from a CTxOut and height/coinbase information.
@@ -105,8 +108,9 @@ public:
         ::Unserialize(s, CTxOutCompressor(out));
         if (!fParticlMode) return;
         ::Unserialize(s, nType);
-        if (nType == OUTPUT_CT)
+        if (nType == OUTPUT_CT) {
             s.read((char*)&commitment.data[0], 33);
+        }
     }
 
     bool IsSpent() const {

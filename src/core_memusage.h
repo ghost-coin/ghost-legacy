@@ -29,13 +29,27 @@ static inline size_t RecursiveDynamicUsage(const CTxOut& out) {
     return RecursiveDynamicUsage(out.scriptPubKey);
 }
 
+static inline size_t RecursiveDynamicUsage(const CTxOutBase *out) {
+    switch (out->GetType()) {
+        case OUTPUT_CT:
+        case OUTPUT_STANDARD:
+            return RecursiveDynamicUsage(*out->GetPScriptPubKey());
+        default:
+            break;
+    }
+    return 0;
+}
+
 static inline size_t RecursiveDynamicUsage(const CTransaction& tx) {
     size_t mem = memusage::DynamicUsage(tx.vin) + memusage::DynamicUsage(tx.vout);
     for (std::vector<CTxIn>::const_iterator it = tx.vin.begin(); it != tx.vin.end(); it++) {
         mem += RecursiveDynamicUsage(*it);
     }
     for (std::vector<CTxOut>::const_iterator it = tx.vout.begin(); it != tx.vout.end(); it++) {
-        mem += RecursiveDynamicUsage(*it);
+        mem += RecursiveDynamicUsage(*it) + 34;
+    }
+    for (const auto &txout : tx.vpout) {
+        mem += RecursiveDynamicUsage(txout.get()) + 34;
     }
     return mem;
 }
@@ -47,6 +61,9 @@ static inline size_t RecursiveDynamicUsage(const CMutableTransaction& tx) {
     }
     for (std::vector<CTxOut>::const_iterator it = tx.vout.begin(); it != tx.vout.end(); it++) {
         mem += RecursiveDynamicUsage(*it);
+    }
+    for (const auto &txout : tx.vpout) {
+        mem += RecursiveDynamicUsage(txout.get());
     }
     return mem;
 }

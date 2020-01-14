@@ -29,9 +29,6 @@ const char DB_RCTOUTPUT_LINK = 'L';
 const char DB_RCTKEYIMAGE = 'K';
 
 
-//! No need to periodic flush if at least this much space still available.
-static constexpr int MAX_BLOCK_COINSDB_USAGE = 10;
-
 //! -dbcache default (MiB)
 static const int64_t nDefaultDbCache = 450;
 //! -dbbatchsize default (bytes)

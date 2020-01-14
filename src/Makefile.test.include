@@ -187,6 +187,7 @@ BITCOIN_TESTS =\
   test/uint256_tests.cpp \
   test/util_tests.cpp \
   test/validation_block_tests.cpp \
+  test/validation_flush_tests.cpp \
   test/versionbits_tests.cpp \
   test/smsg_tests.cpp \
   test/mnemonic_tests.cpp \
