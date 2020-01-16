@@ -111,9 +111,8 @@ static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
 
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
-static const bool DEFAULT_TXINDEX_ = true; // required for staking
+static const bool DEFAULT_TXINDEX = false;
 static const char* const DEFAULT_BLOCKFILTERINDEX = "0";
-#define DEFAULT_TXINDEX (gArgs.GetBoolArg("-btcmode", false) ? false : DEFAULT_TXINDEX_)
 static const bool DEFAULT_CSINDEX = false;
 static const bool DEFAULT_ADDRESSINDEX = false;
 static const bool DEFAULT_TIMESTAMPINDEX = false;
@@ -195,9 +194,11 @@ extern bool fPruneMode;
 /** Number of MiB of block files that we're trying to stay below. */
 extern uint64_t nPruneTarget;
 /** Block files containing a block-height within MIN_BLOCKS_TO_KEEP of ::ChainActive().Tip() will not be pruned. */
-static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
+//static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
 /** Minimum blocks required to signal NODE_NETWORK_LIMITED */
-static const unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
+//static const unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
+extern unsigned int MIN_BLOCKS_TO_KEEP;
+extern unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS;
 
 static const signed int DEFAULT_CHECKBLOCKS = 6;
 static const unsigned int DEFAULT_CHECKLEVEL = 3;
@@ -256,7 +257,9 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, FlatFi
 /** Ensures we have a genesis block in the block tree, possibly writing one to disk. */
 bool LoadGenesisBlock(const CChainParams& chainparams);
 /** Returns true if the block index needs to be reindexed. */
-bool TryAutoReindex();
+bool ShouldAutoReindex() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+/** Returns true if the block index was rewound to rebuild the temporary indices. */
+bool RebuildRollingIndices();
 /** Load the block tree and coins database from disk,
  * initializing state if we're running with -reindex. */
 bool LoadBlockIndex(const CChainParams& chainparams) EXCLUSIVE_LOCKS_REQUIRED(cs_main);

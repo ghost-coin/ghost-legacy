@@ -36,7 +36,6 @@ Notes:
 #include <validationinterface.h>
 #include <smsg/crypter.h>
 #include <smsg/db.h>
-#include <sync.h>
 #include <random.h>
 #include <chain.h>
 #include <netmessagemaker.h>
@@ -69,7 +68,6 @@ Notes:
 extern NodeContext* g_rpc_node;
 
 extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
-extern CCriticalSection cs_main;
 
 smsg::CSMSG smsgModule;
 
@@ -173,7 +171,8 @@ void ThreadSecureMsg()
 {
     // Bucket management thread
 
-    static uint32_t nLoop = 0;
+    int64_t nLastPrunedFundingTxns = 0;
+    uint32_t nLoop = 0;
     std::vector<std::pair<int64_t, NodeId> > vTimedOutLocks;
     while (fSecMsgEnabled) {
         nLoop++;
@@ -296,6 +295,11 @@ void ThreadSecureMsg()
             } // g_connman->cs_vNodes
         }
 
+        if (now > nLastPrunedFundingTxns + PRUNE_FUNDING_TX_DATA) {
+            smsgModule.PruneFundingTxData();
+            nLastPrunedFundingTxns = now;
+        }
+
         MilliSleep(SMSG_THREAD_DELAY * 1000); //  // check every SMSG_THREAD_DELAY seconds
     }
     return;
@@ -311,6 +315,7 @@ void ThreadSecureMsgPow()
 
     uint8_t chKey[30];
 
+    const Consensus::Params &consensus_params = Params().GetConsensus();
     while (fSecMsgEnabled) {
         // Sleep at end, then fSecMsgEnabled is tested on wake
 
@@ -345,41 +350,11 @@ void ThreadSecureMsgPow()
             const int64_t FUND_TXN_TIMEOUT = 3600 * 48;
             int64_t now = GetTime();
 
-            if (psmsg->version[0] == 3) {
-                uint256 txid;
-                uint160 msgId;
-                if (0 != smsgModule.HashMsg(*psmsg, pPayload, psmsg->nPayload-32, msgId)
-                    || !GetFundingTxid(pPayload, psmsg->nPayload, txid)) {
-                    LogPrintf("%s: Get msgID or Txn Hash failed.\n", __func__);
-                    LOCK(cs_smsgDB);
-                    dbOutbox.EraseSmesg(chKey);
-                    continue;
-                }
-
-                CTransactionRef txOut;
-                uint256 hashBlock;
-                int blockDepth = -1;
-                {
-                    LOCK(cs_main);
-                    if (!GetTransaction(txid, txOut, Params().GetConsensus(), hashBlock)) {
-                        // drop through
-                    }
-
-                    if (!hashBlock.IsNull()) {
-                        BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
-                        if (mi != ::BlockIndex().end()) {
-                            CBlockIndex *pindex = mi->second;
-                            if (pindex && ::ChainActive().Contains(pindex)) {
-                                blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;
-                            }
-                        }
-                    }
-                }
-                if (blockDepth > 0) {
-                    LogPrintf("Found txn %s at depth %d\n", txid.ToString(), blockDepth);
-                } else {
-                    // Failure
+            if (psmsg->IsPaidVersion()) {
+                if (smsgModule.CheckFundingTx(consensus_params, psmsg, pPayload) != SMSG_NO_ERROR) {
                     if (psmsg->timestamp > now + FUND_TXN_TIMEOUT) {
+                        uint160 msgId;
+                        smsgModule.HashMsg(*psmsg, pPayload, psmsg->nPayload-32, msgId);
                         LogPrintf("%s: Funding txn timeout, dropping message %s\n", __func__, msgId.ToString());
                         LOCK(cs_smsgDB);
                         dbOutbox.EraseSmesg(chKey);
@@ -390,7 +365,7 @@ void ThreadSecureMsgPow()
                 // Do proof of work
                 rv = smsgModule.SetHash(pHeader, pPayload, psmsg->nPayload);
                 if (rv == SMSG_SHUTDOWN_DETECTED) {
-                    break; // leave message in db, if terminated due to shutdown
+                    break; // Leave message in db when terminated due to shutdown
                 }
                 if (rv != 0) {
                     LogPrintf("SecMsgPow: Could not get proof of work hash, message removed.\n");
@@ -1233,6 +1208,32 @@ void CSMSG::ClearBanned()
         pnode->smsgData.ignoreUntil = 0;
         pnode->smsgData.misbehaving = 0;
     }
+};
+
+void CSMSG::ShowFundingTxns(UniValue &result)
+{
+    LOCK(cs_smsgDB);
+    UniValue txns(UniValue::VARR);
+
+    SecMsgDB db;
+    if (!db.Open("r")) {
+        result.pushKV("error", "Could not open db");
+        LogPrintf("%s: ERROR Could not open db.\n", __func__);
+        return;
+    }
+
+    int height = 0;
+    uint256 key;
+    leveldb::Iterator *it = db.pdb->NewIterator(leveldb::ReadOptions());
+    while (db.NextFundingDataLink(it, height, key)) {
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("height", height);
+        obj.pushKV("hash", key.ToString());
+        txns.push_back(obj);
+    }
+    delete it;
+
+    result.pushKV("txns", txns);
 };
 
 int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv)
@@ -3436,6 +3437,171 @@ int CSMSG::AdjustDifficulty(int64_t time)
     return rv;
 };
 
+int CSMSG::StoreFundingTx(const CTransaction &tx, const CBlockIndex *pindex)
+{
+    const uint256 &block_hash = pindex->GetBlockHash();
+    if (LogAcceptCategory(BCLog::SMSG)) {
+        LogPrintf("%s Tx: %s, block: %s, height %d, time %d.\n", __func__, tx.GetHash().ToString(), block_hash.ToString(), pindex->nHeight, pindex->nTime);
+    }
+    if (pindex->nTime < GetAdjustedTime() - KEEP_FUNDING_TX_DATA) {
+        // Skip old txns
+        return SMSG_NO_ERROR;
+    }
+    if (tx.IsCoinStake()) {
+        return errorN(SMSG_GENERAL_ERROR, "%s Tx: %s is a coinstake.\n", __func__, tx.GetHash().ToString());
+    }
+    LOCK(cs_smsgDB);
+    SecMsgDB db;
+    if (!db.Open("r")) {
+        return SMSG_GENERAL_ERROR;
+    }
+
+    std::vector<uint8_t> db_data;
+    db_data.insert(db_data.end(), block_hash.begin(), block_hash.end());
+
+    // Find all msg pairs
+    // Message funding is enforced in tx_verify.cpp
+    for (const auto &v : tx.vpout) {
+        if (!v->IsType(OUTPUT_DATA)) {
+            continue;
+        }
+        const std::vector<uint8_t> &output_data = *v->GetPData();
+        if (output_data.size() < 25 || output_data[0] != DO_FUND_MSG) {
+            continue;
+        }
+        size_t n = (output_data.size()-1) / 24;
+        db_data.insert(db_data.end(), output_data.begin()+1, output_data.begin()+1+n*24);
+    }
+
+    // TODO: Get current fee-rate, GetSmsgFeeRate
+
+    if (!db.WriteFundingData(tx.GetHash(), pindex->nHeight, db_data)) {
+        return errorN(SMSG_GENERAL_ERROR, "%s - WriteFundingData failed.", __func__);
+    }
+
+    return SMSG_NO_ERROR;
+}
+
+int CSMSG::CheckFundingTx(const Consensus::Params &consensusParams, const SecureMessage *psmsg, const uint8_t *pPayload)
+{
+    const size_t nDaysRetention = psmsg->m_ttl / SMSG_SECONDS_IN_DAY;
+    const size_t nMsgBytes = SMSG_HDR_LEN + psmsg->nPayload;
+    uint256 txid;
+    uint160 msgId;
+    if (0 != HashMsg(*psmsg, pPayload, psmsg->nPayload-32, msgId)
+        || !GetFundingTxid(pPayload, psmsg->nPayload, txid)) {
+        LogPrintf("%s: Get msgID or Txn Hash failed.\n", __func__);
+        return SMSG_GENERAL_ERROR;
+    }
+
+    std::vector<uint8_t> db_data;
+    {
+        LOCK(cs_smsgDB);
+        SecMsgDB db;
+        if (!db.Open("r")) {
+            return SMSG_GENERAL_ERROR;
+        }
+        if (!db.ReadFundingData(txid, db_data)) {
+            return errorN(SMSG_GENERAL_ERROR, "%s - ReadFundingData failed.", __func__);
+        }
+    }
+    const uint256 &hashBlock = *((const uint256*) db_data.data());
+
+    int blockDepth = -1;
+    const CBlockIndex *pindex = nullptr;
+    int64_t nMsgFeePerKPerDay = 0;
+    {
+        LOCK(cs_main);
+        BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
+        if (mi != ::BlockIndex().end()) {
+            pindex = mi->second;
+            if (pindex && ::ChainActive().Contains(pindex)) {
+                blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;
+                nMsgFeePerKPerDay = GetSmsgFeeRate(pindex);
+            }
+        }
+    }
+
+    if (blockDepth < ACCEPT_FUNDING_TX_DEPTH) {
+        return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s for message %s, low depth %d.\n", __func__, txid.ToString(), msgId.ToString(), blockDepth);
+    }
+
+    // blockDepth >= 1 -> nMsgFeePerKPerDay must have been set
+    int64_t nExpectFee = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
+
+    size_t n = (db_data.size() - 32) / 24;
+    for (size_t k = 0; k < n; ++k) {
+        const uint8_t *pMsgIdTxStart = &db_data[32 + k * 24];
+        if (memcmp(pMsgIdTxStart, msgId.begin(), 20) == 0) {
+            uint32_t nAmount;
+            memcpy(&nAmount, &db_data[32 + k * 24 + 20], 4);
+
+            if (nAmount < nExpectFee) {
+                LOCK(cs_main);
+                // Grace period after fee period transition where prev fee is still allowed
+                bool matched_last_fee = false;
+                if (pindex->nHeight % consensusParams.smsg_fee_period < 10) {
+                    int64_t nMsgFeePerKPerDayLast = GetSmsgFeeRate(pindex, true);
+                    int64_t nExpectFeeLast = ((nMsgFeePerKPerDayLast * nMsgBytes) / 1000) * nDaysRetention;
+
+                    if (nAmount >= nExpectFeeLast) {
+                        matched_last_fee = true;
+                    }
+                }
+
+                if (!matched_last_fee) {
+                    LogPrintf("%s: Transaction %s underfunded message %s, expected %d paid %d.\n", __func__, txid.ToString(), msgId.ToString(), nExpectFee, nAmount);
+                    return SMSG_FUND_FAILED;
+                }
+            }
+            return SMSG_NO_ERROR;
+        }
+    }
+
+    return errorN(SMSG_FUND_FAILED, "%s: Transaction %s does not fund message %s.\n", __func__, txid.ToString(), msgId.ToString());
+}
+
+int CSMSG::PruneFundingTxData()
+{
+    int64_t now = GetAdjustedTime();
+    LogPrint(BCLog::SMSG, "%s Now: %d\n", __func__, now);
+
+    int min_height_to_keep = std::numeric_limits<int>::max();
+    const CBlockIndex *pindex = nullptr;
+    {
+        LOCK(cs_main);
+        pindex = ::ChainActive().Tip();
+        while (pindex && pindex->nTime >= now - KEEP_FUNDING_TX_DATA) {
+            min_height_to_keep = pindex->nHeight;
+            pindex = ::ChainActive()[pindex->nHeight-1];
+        }
+    }
+
+    size_t num_removed = 0;
+    {
+        LOCK(cs_smsgDB);
+        SecMsgDB db;
+        if (!db.Open("r")) {
+            return SMSG_GENERAL_ERROR;
+        }
+
+        int height = 0;
+        uint256 key;
+        leveldb::Iterator *it = db.pdb->NewIterator(leveldb::ReadOptions());
+        while (db.NextFundingDataLink(it, height, key)) {
+            if (height >= min_height_to_keep) {
+                break;
+            }
+            db.EraseFundingData(height, key);
+            num_removed++;
+        }
+        delete it;
+    }
+    LogPrint(BCLog::SMSG, "%s Removed: %d\n", __func__, num_removed);
+
+    return 0;
+};
+
 int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload)
 {
     // return SecureMessageCodes
@@ -3477,89 +3643,9 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
             return SMSG_GENERAL_ERROR;
         }
 
-        size_t nMsgBytes = SMSG_HDR_LEN + psmsg->nPayload;
-        uint256 txid;
-        uint160 msgId;
-        if (0 != HashMsg(*psmsg, pPayload, psmsg->nPayload-32, msgId)
-            || !GetFundingTxid(pPayload, psmsg->nPayload, txid)) {
-            LogPrintf("%s: Get msgID or Txn Hash failed.\n", __func__);
-            return SMSG_GENERAL_ERROR;
-        }
-
-        CTransactionRef txOut;
-        uint256 hashBlock;
-        {
-            LOCK(cs_main);
-            if (!GetTransaction(txid, txOut, consensusParams, hashBlock) || hashBlock.IsNull()) {
-                return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s not found for message %s.\n", __func__, txid.ToString(), msgId.ToString());
-            }
-            if (txOut->IsCoinStake()) {
-                return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s for message %s, is coinstake.\n", __func__, txid.ToString(), msgId.ToString());
-            }
-
-            int blockDepth = -1;
-            const CBlockIndex *pindex = nullptr;
-            BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
-            int64_t nMsgFeePerKPerDay = 0;
-            if (mi != ::BlockIndex().end()) {
-                pindex = mi->second;
-                if (pindex && ::ChainActive().Contains(pindex)) {
-                    blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;
-                    nMsgFeePerKPerDay = GetSmsgFeeRate(pindex);
-                }
-            }
-
-            if (blockDepth < 1) {
-                return errorN(SMSG_GENERAL_ERROR, "%s: Transaction %s for message %s, low depth %d.\n", __func__, txid.ToString(), msgId.ToString(), blockDepth);
-            }
-
-            // blockDepth >= 1 -> nMsgFeePerKPerDay must have been set
-            int64_t nExpectFee = ((nMsgFeePerKPerDay * nMsgBytes) / 1000) * nDaysRetention;
-
-            bool fFound = false;
-            // Find all msg pairs
-            // Message funding is enforced in tx_verify.cpp
-            for (const auto &v : txOut->vpout) {
-                if (!v->IsType(OUTPUT_DATA)) {
-                    continue;
-                }
-                const std::vector<uint8_t> &vData = *v->GetPData();
-                if (vData.size() < 25 || vData[0] != DO_FUND_MSG) {
-                    continue;
-                }
-
-                size_t n = (vData.size()-1) / 24;
-                for (size_t k = 0; k < n; ++k) {
-                    const uint8_t *pMsgIdTxStart = &vData[1+k*24];
-                    if (memcmp(pMsgIdTxStart, msgId.begin(), 20) == 0) {
-                        uint32_t nAmount;
-                        memcpy(&nAmount, &vData[1+k*24+20], 4);
-
-                        if (nAmount < nExpectFee) {
-                            // Grace period after fee period transition where prev fee is still allowed
-                            bool matched_last_fee = false;
-                            if (pindex->nHeight % consensusParams.smsg_fee_period < 10) {
-                                int64_t nMsgFeePerKPerDayLast = GetSmsgFeeRate(pindex, true);
-                                int64_t nExpectFeeLast = ((nMsgFeePerKPerDayLast * nMsgBytes) / 1000) * nDaysRetention;
-
-                                if (nAmount >= nExpectFeeLast) {
-                                    matched_last_fee = true;
-                                }
-                            }
-
-                            if (!matched_last_fee) {
-                                LogPrintf("%s: Transaction %s underfunded message %s, expected %d paid %d.\n", __func__, txid.ToString(), msgId.ToString(), nExpectFee, nAmount);
-                                return SMSG_FUND_FAILED;
-                            }
-                        }
-                        fFound = true;
-                    }
-                }
-            }
-
-            if (!fFound) {
-                return errorN(SMSG_FUND_FAILED, "%s: Transaction %s does not fund message %s.\n", __func__, txid.ToString(), msgId.ToString());
-            }
+        int rv_funded = CheckFundingTx(consensusParams, psmsg, pPayload);
+        if (rv_funded != SMSG_NO_ERROR) {
+            return rv_funded;
         }
 
         return SMSG_NO_ERROR; // smsg is valid and funded
@@ -3822,7 +3908,7 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
         return errorN(SMSG_ENCRYPT_FAILED, "%s: Encrypt failed.", __func__);
     }
 
-    bool fPaid = smsg.version[0] == 3;
+    bool fPaid = smsg.IsPaidVersion();
     try { smsg.pPayload = new uint8_t[vchCiphertext.size() + (fPaid ? 32 : 0)]; } catch (std::exception &e) {
         return errorN(SMSG_ALLOCATE_FAILED, "%s: Could not allocate pPayload, exception: %s.", __func__, e.what());
     }
@@ -4285,7 +4371,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     }
 
     SecureMessage *psmsg = (SecureMessage*) pHeader;
-    if (psmsg->version[0] == 3) {
+    if (psmsg->IsPaidVersion()) {
         nPayload -= 32; // Exclude funding txid
     } else
     if (psmsg->version[0] != 2) {

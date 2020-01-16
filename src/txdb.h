@@ -27,6 +27,7 @@ class uint256;
 const char DB_RCTOUTPUT = 'A';
 const char DB_RCTOUTPUT_LINK = 'L';
 const char DB_RCTKEYIMAGE = 'K';
+const char DB_SPENTCACHE = 'S';
 
 
 //! -dbcache default (MiB)
@@ -136,6 +137,9 @@ public:
     bool ReadRCTKeyImage(const CCmpPubKey &ki, uint256 &txhash);
     bool WriteRCTKeyImage(const CCmpPubKey &ki, const uint256 &txhash);
     bool EraseRCTKeyImage(const CCmpPubKey &ki);
+
+    bool ReadSpentCache(const COutPoint &outpoint, SpentCoin &coin);
+    bool EraseSpentCache(const COutPoint &outpoint);
 
     //bool WriteRCTOutputBatch(std::vector<std::pair<int64_t, CAnonOutput> > &vao);
 };

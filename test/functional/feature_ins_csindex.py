@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import json
+import re
 
 from test_framework.test_particl import ParticlTestFramework, connect_nodes_bi
 from test_framework.authproxy import JSONRPCException
@@ -15,8 +16,8 @@ class TxIndexTest(ParticlTestFramework):
         self.num_nodes = 3
         self.extra_args = [
             ['-debug', ],
-            ['-debug', '-csindex'],
-            ['-debug', '-csindex'], ]
+            ['-debug', '-txindex', '-csindex'],
+            ['-debug', '-txindex', '-csindex'], ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -93,7 +94,7 @@ class TxIndexTest(ParticlTestFramework):
             ro = nodes[0].listcoldstakeunspent(addrStake)
             assert(False), 'listcoldstakeunspent without -csindex.'
         except JSONRPCException as e:
-            assert('Requires -csindex enabled' in e.error['message'])
+            assert(re.search('Requires -(?:cs|tx)index enabled', e.error['message']))
 
         self.stakeBlocks(1)
         ro = nodes[2].listcoldstakeunspent(addrStake)

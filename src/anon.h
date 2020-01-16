@@ -5,13 +5,17 @@
 #ifndef PARTICL_ANON_H
 #define PARTICL_ANON_H
 
-#include <primitives/transaction.h>
 #include <sync.h>
+#include <pubkey.h>
+#include <amount.h>
+#include <set>
 
-#include <stdint.h>
 
 extern RecursiveMutex cs_main;
 
+class uint256;
+class CTxIn;
+class CTransaction;
 class CTxMemPool;
 class TxValidationState;
 
@@ -35,7 +39,7 @@ bool AllAnonOutputsUnknown(const CTransaction &tx, TxValidationState &state);
 
 bool RollBackRCTIndex(int64_t nLastValidRCTOutput, int64_t nExpectErase, std::set<CCmpPubKey> &setKi);
 
-bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+bool RewindToHeight(int nToHeight, int &nBlocks, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 bool RewindRangeProof(const std::vector<uint8_t> &rangeproof, const std::vector<uint8_t> &commitment, const uint256 &nonce,
                       std::vector<uint8_t> &blind_out, CAmount &value_out);

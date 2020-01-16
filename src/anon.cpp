@@ -13,6 +13,7 @@
 #include <rctindex.h>
 #include <txdb.h>
 #include <util/system.h>
+#include <primitives/transaction.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <consensus/validation.h>
@@ -263,12 +264,12 @@ bool RemoveKeyImagesFromMempool(const uint256 &hash, const CTxIn &txin, CTxMemPo
 
 bool AllAnonOutputsUnknown(const CTransaction &tx, TxValidationState &state)
 {
-    state.fHasAnonOutput = false;
+    state.m_has_anon_output = false;
     for (unsigned int k = 0; k < tx.vpout.size(); k++) {
         if (!tx.vpout[k]->IsType(OUTPUT_RINGCT)) {
             continue;
         }
-        state.fHasAnonOutput = true;
+        state.m_has_anon_output = true;
 
         CTxOutRingCT *txout = (CTxOutRingCT*)tx.vpout[k].get();
 
@@ -336,9 +337,9 @@ bool RollBackRCTIndex(int64_t nLastValidRCTOutput, int64_t nExpectErase, std::se
     return true;
 };
 
-bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError)
+bool RewindToHeight(int nToHeight, int &nBlocks, std::string &sError)
 {
-    LogPrintf("%s: At height %d\n", __func__, nCheckPointHeight);
+    LogPrintf("%s: height %d\n", __func__, nToHeight);
     nBlocks = 0;
     int64_t nLastRCTOutput = 0;
 
@@ -348,7 +349,7 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
     BlockValidationState state;
 
     for (CBlockIndex *pindex = ::ChainActive().Tip(); pindex && pindex->pprev; pindex = pindex->pprev) {
-        if (pindex->nHeight <= nCheckPointHeight) {
+        if (pindex->nHeight <= nToHeight) {
             break;
         }
 
@@ -365,7 +366,6 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
         if (!FlushView(&view, state, true)) {
             return errorN(false, sError, __func__, "FlushView failed.");
         }
-
         if (!::ChainstateActive().FlushStateToDisk(Params(), state, FlushStateMode::IF_NEEDED)) {
             return errorN(false, sError, __func__, "FlushStateToDisk failed.");
         }

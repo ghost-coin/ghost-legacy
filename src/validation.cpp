@@ -135,6 +135,8 @@ bool fCheckBlockIndex = false;
 bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 size_t nCoinCacheUsage = 5000 * 300;
 uint64_t nPruneTarget = 0;
+unsigned int MIN_BLOCKS_TO_KEEP = 288;
+unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 static bool fVerifyingDB = false;
 
@@ -546,7 +548,7 @@ private:
     bool CheckFeeRate(size_t package_size, CAmount package_fee, TxValidationState& state)
     {
         CAmount mempoolRejectFee = m_pool.GetMinFee(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000).GetFee(package_size);
-        if (state.fHasAnonOutput) {
+        if (state.m_has_anon_output) {
             mempoolRejectFee *= ANON_FEE_MULTIPLIER;
         }
         if (mempoolRejectFee > 0 && package_fee < mempoolRejectFee) {
@@ -678,12 +680,12 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     LockPoints lp;
     m_view.SetBackend(m_viewmempool);
 
-    state.fHasAnonInput = false;
+    state.m_has_anon_input = false;
     CCoinsViewCache& coins_cache = ::ChainstateActive().CoinsTip();
     // do all inputs exist?
     for (const CTxIn& txin : tx.vin) {
         if (txin.IsAnonInput()) {
-            state.fHasAnonInput = true;
+            state.m_has_anon_input = true;
             continue;
         }
         if (!coins_cache.HaveCoinInCache(txin.prevout)) {
@@ -706,14 +708,14 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
         }
     }
 
-    if (state.fHasAnonInput
+    if (state.m_has_anon_input
          && (::ChainActive().Height() < GetNumBlocksOfPeers()-1)) {
         LogPrintf("%s: Ignoring anon transaction while chain syncs height %d - peers %d.\n",
             __func__, ::ChainActive().Height(), GetNumBlocksOfPeers());
         return false;
     }
 
-    if (!AllAnonOutputsUnknown(tx, state)) { // Also sets state.fHasAnonOutput
+    if (!AllAnonOutputsUnknown(tx, state)) { // Also sets state.m_has_anon_output
         // Already in the blockchain, containing block could have been received before loose tx
         return state.Invalid(TxValidationResult::TX_CONFLICT, "txn-already-in-mempool");
     }
@@ -1783,7 +1785,7 @@ bool CheckInputScripts(const CTransaction& tx, TxValidationState &state, const C
         pvChecks->reserve(tx.vin.size());
     }
 
-    bool fHasAnonInput = false;
+    bool m_has_anon_input = false;
     // First check if script executions have been cached with the same
     // flags. Note that this assumes that the inputs provided are
     // correct (ie that the transaction hash which is in tx's prevouts
@@ -1802,7 +1804,7 @@ bool CheckInputScripts(const CTransaction& tx, TxValidationState &state, const C
 
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         if (tx.vin[i].IsAnonInput()) {
-            fHasAnonInput = true;
+            m_has_anon_input = true;
             continue;
         }
 
@@ -1862,7 +1864,7 @@ bool CheckInputScripts(const CTransaction& tx, TxValidationState &state, const C
         }
     }
 
-    if (fHasAnonInput && fAnonChecks
+    if (m_has_anon_input && fAnonChecks
         && !VerifyMLSAG(tx, state)) {
         return false;
     }
@@ -2050,6 +2052,9 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
 
                     view.keyImages.push_back(std::make_pair(ki, hash));
                 }
+            } else {
+                Coin coin;
+                view.spent_cache.emplace_back(txin.prevout, SpentCoin());
             }
         }
 
@@ -2184,8 +2189,7 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
                     }
                 }
             }
-        } else
-        {
+        } else {
             // Check that all outputs are available and match the outputs in the block itself
             // exactly.
             for (size_t o = 0; o < tx.vout.size(); o++) {
@@ -2635,9 +2639,8 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-txns-nonfinal");
             }
 
-            if (tx.IsParticlVersion()
-                && (fAddressIndex || fSpentIndex)) {
-                // Update spent inputs for insight
+            if (tx.IsParticlVersion()) {
+                // Update spent inputs
                 for (size_t j = 0; j < tx.vin.size(); j++) {
                     const CTxIn input = tx.vin[j];
                     if (input.IsAnonInput()) {
@@ -2646,8 +2649,15 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     }
 
                     const Coin &coin = view.AccessCoin(input.prevout);
-                    const CScript *pScript = &coin.out.scriptPubKey;
 
+                    if (coin.nType != OUTPUT_CT) {
+                        view.spent_cache.emplace_back(input.prevout, SpentCoin(coin, pindex->nHeight));
+                    }
+                    if (!fAddressIndex && !fSpentIndex) {
+                        continue;
+                    }
+
+                    const CScript *pScript = &coin.out.scriptPubKey;
                     CAmount nValue = coin.nType == OUTPUT_CT ? 0 : coin.out.nValue;
                     std::vector<uint8_t> hashBytes;
                     int scriptType = 0;
@@ -2658,22 +2668,25 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     }
 
                     uint256 hashAddress;
-                    if (scriptType > 0)
+                    if (scriptType > 0) {
                         hashAddress = uint256(hashBytes.data(), hashBytes.size());
-
+                    }
                     if (fAddressIndex && scriptType > 0) {
                         // record spending activity
                         view.addressIndex.push_back(std::make_pair(CAddressIndexKey(scriptType, hashAddress, pindex->nHeight, i, txhash, j, true), nValue * -1));
                         // remove address from unspent index
                         view.addressUnspentIndex.push_back(std::make_pair(CAddressUnspentKey(scriptType, hashAddress, input.prevout.hash, input.prevout.n), CAddressUnspentValue()));
                     }
-
                     if (fSpentIndex) {
                         CAmount nValue = coin.nType == OUTPUT_CT ? -1 : coin.out.nValue;
                         // add the spent index to determine the txid and input that spent an output
                         // and to find the amount and address from an input
                         view.spentIndex.push_back(std::make_pair(CSpentIndexKey(input.prevout.hash, input.prevout.n), CSpentIndexValue(txhash, j, pindex->nHeight, nValue, scriptType, hashAddress)));
                     }
+                }
+
+                if (smsg::fSecMsgEnabled && tx_state.m_funds_smsg) {
+                    smsgModule.StoreFundingTx(tx, pindex);
                 }
             }
         }
@@ -2720,7 +2733,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
         }
 
         // Index rct outputs and keyimages
-        if (tx_state.fHasAnonOutput || tx_state.fHasAnonInput) {
+        if (tx_state.m_has_anon_output || tx_state.m_has_anon_input) {
             COutPoint op(txhash, 0);
             for (const auto &txin : tx.vin) {
                 if (txin.IsAnonInput()) {
@@ -3222,6 +3235,27 @@ static void DoWarning(const std::string& strWarning)
     }
 }
 
+static void ClearSpentCache(CDBBatch &batch, int height)
+{
+    CBlockIndex* pblockindex = ::ChainActive()[height];
+    if (!pblockindex) {
+        return;
+    }
+    CBlock block;
+    if (!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) {
+        LogPrintf("%s: failed read block from disk (%d, %s)\n", __func__, height, pblockindex->GetBlockHash().ToString());
+        return;
+    }
+    for (int i = block.vtx.size() - 1; i >= 0; i--) {
+        const CTransaction &tx = *(block.vtx[i]);
+        for (const auto &txin : tx.vin) {
+            if (!txin.IsAnonInput()) {
+                batch.Erase(std::make_pair(DB_SPENTCACHE, txin.prevout));
+            }
+        }
+    }
+}
+
 bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconnecting)
 {
     if (!view->Flush())
@@ -3237,7 +3271,6 @@ bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconn
                 return AbortNode(state, "Failed to write address index");
             }
         }
-
         if (!pblocktree->UpdateAddressUnspentIndex(view->addressUnspentIndex)) {
             return AbortNode(state, "Failed to write address unspent index");
         }
@@ -3254,37 +3287,44 @@ bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconn
     view->spentIndex.clear();
 
     if (fDisconnecting) {
-        for (auto &it : view->keyImages) {
+        for (const auto &it : view->keyImages) {
             if (!pblocktree->EraseRCTKeyImage(it.first)) {
                 return error("%s: EraseRCTKeyImage failed, txn %s.", __func__, it.second.ToString());
             }
         }
-
-        if (view->anonOutputLinks.size() > 0) {
-            for (auto &it : view->anonOutputLinks) {
-                if (!pblocktree->EraseRCTOutput(it.second)) {
-                    return error("%s: EraseRCTOutput failed.", __func__);
-                }
-
-                if (!pblocktree->EraseRCTOutputLink(it.first)) {
-                    return error("%s: EraseRCTOutput failed.", __func__);
-                }
+        for (const auto &it : view->anonOutputLinks) {
+            if (!pblocktree->EraseRCTOutput(it.second)) {
+                return error("%s: EraseRCTOutput failed.", __func__);
+            }
+            if (!pblocktree->EraseRCTOutputLink(it.first)) {
+                return error("%s: EraseRCTOutputLink failed.", __func__);
+            }
+        }
+        for (const auto &it : view->spent_cache) {
+            if (!pblocktree->EraseSpentCache(it.first)) {
+                return error("%s: EraseSpentCache failed.", __func__);
             }
         }
     } else {
         CDBBatch batch(*pblocktree);
 
-        for (auto &it : view->keyImages) {
+        for (const auto &it : view->keyImages) {
             batch.Write(std::make_pair(DB_RCTKEYIMAGE, it.first), it.second);
         }
-        for (auto &it : view->anonOutputs) {
+        for (const auto &it : view->anonOutputs) {
             batch.Write(std::make_pair(DB_RCTOUTPUT, it.first), it.second);
         }
-        for (auto &it : view->anonOutputLinks) {
+        for (const auto &it : view->anonOutputLinks) {
             batch.Write(std::make_pair(DB_RCTOUTPUT_LINK, it.first), it.second);
         }
+        for (const auto &it : view->spent_cache) {
+            batch.Write(std::make_pair(DB_SPENTCACHE, it.first), it.second);
+        }
+        if (state.m_spend_height > MIN_BLOCKS_TO_KEEP) {
+            ClearSpentCache(batch, state.m_spend_height - (MIN_BLOCKS_TO_KEEP+1));
+        }
         if (!pblocktree->WriteBatch(batch)) {
-            return error("%s: Write RCT outputs failed.", __func__);
+            return error("%s: Write index data failed.", __func__);
         }
     }
 
@@ -3292,6 +3332,7 @@ bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconn
     view->anonOutputs.clear();
     view->anonOutputLinks.clear();
     view->keyImages.clear();
+    view->spent_cache.clear();
 
     return true;
 };
@@ -6189,16 +6230,71 @@ void UnloadBlockIndex()
     ::ChainstateActive().UnloadBlockIndex();
 }
 
-bool TryAutoReindex()
+bool ShouldAutoReindex()
 {
     // Force reindex to update version
     bool nV1 = false;
     if (!pblocktree->ReadFlag("v1", nV1) || !nV1) {
-        LogPrintf("%s: v1 Marker not detected, attempting reindex.\n", __func__);
+        LogPrintf("%s: v1 marker not detected, attempting reindex.\n", __func__);
         return true;
     }
     return false;
 };
+
+bool RebuildRollingIndices()
+{
+    bool nV2 = false;
+    if (gArgs.GetBoolArg("-rebuildrollingindices", false)) {
+        LogPrintf("%s: Manual override, attempting to rewind chain.\n", __func__);
+    } else
+    if (pblocktree->ReadFlag("v2", nV2) && nV2) {
+        return true;
+    } else {
+        LogPrintf("%s: v2 marker not detected, attempting to rewind chain.\n", __func__);
+    }
+    uiInterface.InitMessage(_("Rebuilding rolling indices...").translated);
+
+    int64_t now = GetAdjustedTime();
+    int rewound_tip_height, max_height_to_keep = 0;
+
+    {
+        LOCK(cs_main);
+        CBlockIndex *pindex_tip = ::ChainActive().Tip();
+        CBlockIndex *pindex = pindex_tip;
+        while (pindex && pindex->nTime >= now - smsg::KEEP_FUNDING_TX_DATA) {
+            max_height_to_keep = pindex->nHeight;
+            pindex = ::ChainActive()[pindex->nHeight-1];
+        }
+
+        LogPrintf("%s: Rewinding to block %d.\n", __func__, max_height_to_keep);
+        int num_disconnected = 0;
+
+        std::string str_error;
+        if (!RewindToHeight(max_height_to_keep, num_disconnected, str_error)) {
+            LogPrintf("%s: RewindToHeight failed %s.\n", __func__, str_error);
+            return false;
+        }
+        rewound_tip_height = ::ChainActive().Tip()->nHeight;
+    }
+
+    const CChainParams& chainparams = Params();
+    BlockValidationState state;
+    if (!ActivateBestChain(state, chainparams)) {
+        LogPrintf("%s: ActivateBestChain failed %s.\n", __func__, FormatStateMessage(state));
+        return false;
+    }
+
+    {
+        LOCK(cs_main);
+        LogPrintf("%s: Reprocessed chain from block %d to %d.\n", __func__, rewound_tip_height, ::ChainActive().Tip()->nHeight);
+
+        if (!pblocktree->WriteFlag("v2", true)) {
+            LogPrintf("%s: WriteFlag failed.\n", __func__);
+            return false;
+        }
+    }
+    return true;
+}
 
 bool LoadBlockIndex(const CChainParams& chainparams)
 {
@@ -6220,6 +6316,7 @@ bool LoadBlockIndex(const CChainParams& chainparams)
 
         LogPrintf("Initializing databases...\n");
         pblocktree->WriteFlag("v1", true);
+        pblocktree->WriteFlag("v2", true);
 
         // Use the provided setting for -addressindex in the new database
         fAddressIndex = gArgs.GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX);

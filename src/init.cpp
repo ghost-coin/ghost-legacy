@@ -59,6 +59,7 @@
 #include <smsg/rpcsmessage.h>
 #include <insight/rpc.h>
 #include <pos/miner.h>
+#include <pos/kernel.h>
 #include <core_io.h>
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
@@ -682,6 +683,7 @@ void SetupServerArgs()
 
     gArgs.AddArg("-displaylocaltime", "Display human readable time strings in local timezone (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-displayutctime", "Display human readable time strings in UTC (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-rebuildrollingindices", "Force rebuild of rolling indices (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
 #if HAVE_DECL_DAEMON
     gArgs.AddArg("-daemon", "Run in the background as a daemon and accept commands", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
@@ -1067,6 +1069,10 @@ bool AppInitParameterInteraction()
         if (gArgs.GetChainName() == CBaseChainParams::REGTEST) {
             ResetParams(CBaseChainParams::REGTEST, fParticlMode);
         }
+    } else {
+        MIN_BLOCKS_TO_KEEP = 1024;
+        NODE_NETWORK_LIMITED_MIN_BLOCKS = MIN_BLOCKS_TO_KEEP;
+        assert(MAX_REORG_DEPTH <= MIN_BLOCKS_TO_KEEP);
     }
 
     const CChainParams& chainparams = Params();
@@ -1233,12 +1239,6 @@ bool AppInitParameterInteraction()
         }
         LogPrintf("Prune configured to target %u MiB on disk for block and undo files.\n", nPruneTarget / 1024 / 1024);
         fPruneMode = true;
-    }
-
-    // TODO: Check pruning
-    if (fPruneMode && fParticlMode) {
-        LogPrintf("Block pruning disabled.  Todo.\n");
-        fPruneMode = false;
     }
 
     nConnectTimeout = gArgs.GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
@@ -1685,7 +1685,7 @@ bool AppInitMain(NodeContext& node)
                 pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
 
                 // Automatically start reindexing if necessary
-                if (!fReset && TryAutoReindex()) {
+                if (!fReset && ShouldAutoReindex()) {
                     fReindex = true;
                     fReset = true;
                     pblocktree.reset();
@@ -1796,6 +1796,12 @@ bool AppInitMain(NodeContext& node)
             } catch (const std::exception& e) {
                 LogPrintf("%s\n", e.what());
                 strLoadError = _("Error opening block database").translated;
+                break;
+            }
+
+            // Initialise temporary indices if required
+            if (!RebuildRollingIndices()) {
+                strLoadError = _("Failed to rebuild rolling indices by rewinding the chain, a reindex is required.").translated;
                 break;
             }
 

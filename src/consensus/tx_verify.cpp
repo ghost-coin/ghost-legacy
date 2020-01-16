@@ -188,8 +188,8 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
 {
     // reset per tx
-    state.fHasAnonOutput = false;
-    state.fHasAnonInput = false;
+    state.m_has_anon_output = false;
+    state.m_has_anon_input = false;
 
     if (!state.m_consensus_params) {
         state.m_consensus_params = &::Params().GetConsensus();
@@ -214,7 +214,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
     for (unsigned int i = 0; i < tx.vin.size(); i++)
     {
         if (tx.vin[i].IsAnonInput()) {
-            state.fHasAnonInput = true;
+            state.m_has_anon_input = true;
             nRingCT++;
             continue;
         }
@@ -272,7 +272,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
     size_t nRingCTInputs = nRingCT;
     // GetPlainValueOut adds to nStandard, nCt, nRingCT
     CAmount nPlainValueOut = tx.GetPlainValueOut(nStandard, nCt, nRingCT);
-    state.fHasAnonOutput = nRingCT > nRingCTInputs;
+    state.m_has_anon_output = nRingCT > nRingCTInputs;
 
     txfee = 0;
     if (is_particl_tx) {
@@ -303,6 +303,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
             // Enforce smsg fees
             CAmount nTotalMsgFees = tx.GetTotalSMSGFees();
             if (nTotalMsgFees > 0) {
+                state.m_funds_smsg = true;
                 size_t nTxBytes = GetVirtualTransactionSize(tx);
                 CFeeRate fundingTxnFeeRate = CFeeRate(state.m_consensus_params->smsg_fee_funding_tx_per_k);
                 CAmount nTotalExpectedFees = nTotalMsgFees + fundingTxnFeeRate.GetFee(nTxBytes);

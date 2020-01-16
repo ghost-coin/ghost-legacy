@@ -3,6 +3,10 @@ Next Major Version
 
 - Added Czech bip39 wordlist.
 - No default account wallet warning is silenced if wallet was intentionally created empty.
+- Enable blockchain pruning.
+    Requires a rolling index for chain reorgs and paid smsg validation.
+    On the first run the rolling indices will be initialised.
+    If you later run an older release use the -rebuildrollingindices flag to manually rebuild the indices again.
 
 
 0.19.0.1

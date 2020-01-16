@@ -7,18 +7,21 @@
 #include <smsg/keystore.h>
 #include <streams.h>
 #include <clientversion.h>
+#include <compat/endian.h>
 
 #include <leveldb/db.h>
 #include <string.h>
 
 namespace smsg {
 
-const std::string DBK_PUBLICKEY     = "pk";
-const std::string DBK_SECRETKEY     = "sk";
-const std::string DBK_INBOX         = "IM";
-const std::string DBK_OUTBOX        = "SM";
-const std::string DBK_QUEUED        = "QM";
-const std::string DBK_PURGED_TOKEN  = "pm";
+const std::string DBK_PUBLICKEY         = "pk";
+const std::string DBK_SECRETKEY         = "sk";
+const std::string DBK_INBOX             = "IM";
+const std::string DBK_OUTBOX            = "SM";
+const std::string DBK_QUEUED            = "QM";
+const std::string DBK_PURGED_TOKEN      = "pm";
+const std::string DBK_FUNDING_TX_DATA   = "fd";
+const std::string DBK_FUNDING_TX_LINK   = "fl";
 
 CCriticalSection cs_smsgDB;
 leveldb::DB *smsgDB = nullptr;
@@ -182,12 +185,12 @@ bool SecMsgDB::ReadPK(const CKeyID &addr, CPubKey &pubkey)
     } catch (std::exception &e) {
         LogPrintf("%s unserialize threw: %s.\n", __func__, e.what());
         return false;
-    };
+    }
 
     return true;
 };
 
-bool SecMsgDB::WritePK(const CKeyID &addr, CPubKey &pubkey)
+bool SecMsgDB::WritePK(const CKeyID &addr, const CPubKey &pubkey)
 {
     if (!pdb) {
         return false;
@@ -342,7 +345,7 @@ bool SecMsgDB::NextSmesg(leveldb::Iterator *it, const std::string &prefix, uint8
     } catch (std::exception &e) {
         LogPrintf("%s unserialize threw: %s.\n", __func__, e.what());
         return false;
-    };
+    }
 
     return true;
 };
@@ -406,12 +409,12 @@ bool SecMsgDB::ReadSmesg(const uint8_t *chKey, SecMsgStored &smsgStored)
     } catch (std::exception &e) {
         LogPrintf("%s unserialize threw: %s.\n", __func__, e.what());
         return false;
-    };
+    }
 
     return true;
 };
 
-bool SecMsgDB::WriteSmesg(const uint8_t *chKey, SecMsgStored &smsgStored)
+bool SecMsgDB::WriteSmesg(const uint8_t *chKey, const SecMsgStored &smsgStored)
 {
     if (!pdb) {
         return false;
@@ -456,7 +459,6 @@ bool SecMsgDB::ExistsSmesg(const uint8_t *chKey)
 
     leveldb::Status s = pdb->Get(leveldb::ReadOptions(), ssKey.str(), &unused);
     return s.IsNotFound() == false;
-    return true;
 };
 
 bool SecMsgDB::EraseSmesg(const uint8_t *chKey)
@@ -514,12 +516,12 @@ bool SecMsgDB::ReadPurged(const uint8_t *chKey, SecMsgPurged &smsgPurged)
     } catch (std::exception &e) {
         LogPrintf("%s unserialize threw: %s.\n", __func__, e.what());
         return false;
-    };
+    }
 
     return true;
 };
 
-bool SecMsgDB::WritePurged(const uint8_t *chKey, SecMsgPurged &smsgPurged)
+bool SecMsgDB::WritePurged(const uint8_t *chKey, const SecMsgPurged &smsgPurged)
 {
     if (!pdb) {
         return false;
@@ -612,5 +614,141 @@ bool SecMsgDB::NextPrivKey(leveldb::Iterator *it, const std::string &prefix, CKe
 
     return true;
 };
+
+bool SecMsgDB::ReadFundingData(const uint256 &key, std::vector<uint8_t> &data)
+{
+    if (!pdb) {
+        return false;
+    }
+
+    CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+    ssKey.write((const char*)DBK_FUNDING_TX_DATA.data(), DBK_FUNDING_TX_DATA.size());
+    ssKey.write((const char*)key.begin(), 32);
+    std::string strValue;
+
+    bool readFromDb = true;
+    if (activeBatch) {
+        // Check activeBatch first
+        bool deleted = false;
+        readFromDb = ScanBatch(ssKey, &strValue, &deleted) == false;
+        if (deleted) {
+            return false;
+        }
+    }
+
+    if (readFromDb) {
+        leveldb::Status s = pdb->Get(leveldb::ReadOptions(), ssKey.str(), &strValue);
+        if (!s.ok()) {
+            if (s.IsNotFound()) {
+                return false;
+            }
+            return error("LevelDB read failure: %s\n", s.ToString());
+        }
+    }
+
+    try {
+        CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, CLIENT_VERSION);
+        ssValue >> data;
+    } catch (std::exception &e) {
+        LogPrintf("%s unserialize threw: %s.\n", __func__, e.what());
+        return false;
+    }
+
+    return true;
+};
+
+bool SecMsgDB::WriteFundingData(const uint256 &key, int height, const std::vector<uint8_t> &data)
+{
+    if (!pdb) {
+        return false;
+    }
+
+    CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+    ssKey.write((const char*)DBK_FUNDING_TX_DATA.data(), DBK_FUNDING_TX_DATA.size());
+    ssKey.write((const char*)key.begin(), 32);
+    CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+    ssValue << data;
+
+    uint32_t be_height = htobe32((uint32_t)height);
+    CDataStream ssKeyI(SER_DISK, CLIENT_VERSION);
+    ssKeyI.write((const char*)DBK_FUNDING_TX_LINK.data(), DBK_FUNDING_TX_LINK.size());
+    ssKeyI.write((const char*)&be_height, 4);
+    ssKeyI.write((const char*)key.begin(), 32);
+    CDataStream ssValueI(SER_DISK, CLIENT_VERSION);
+
+    if (activeBatch) {
+        activeBatch->Put(ssKey.str(), ssValue.str());
+        activeBatch->Put(ssKeyI.str(), ssValueI.str());
+        return true;
+    }
+
+    leveldb::WriteOptions writeOptions;
+    writeOptions.sync = true;
+    leveldb::Status s = pdb->Put(writeOptions, ssKey.str(), ssValue.str());
+    if (!s.ok()) {
+        return error("SecMsgDB write failed: %s\n", s.ToString());
+    }
+    s = pdb->Put(writeOptions, ssKeyI.str(), ssValueI.str());
+    if (!s.ok()) {
+        return error("SecMsgDB write failed: %s\n", s.ToString());
+    }
+
+    return true;
+};
+
+bool SecMsgDB::EraseFundingData(int height, const uint256 &key)
+{
+    CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+    ssKey.write((const char*)DBK_FUNDING_TX_DATA.data(), DBK_FUNDING_TX_DATA.size());
+    ssKey.write((const char*)key.begin(), 32);
+
+    uint32_t be_height = htobe32((uint32_t)height);
+    CDataStream ssKeyI(SER_DISK, CLIENT_VERSION);
+    ssKeyI.write((const char*)DBK_FUNDING_TX_LINK.data(), DBK_FUNDING_TX_LINK.size());
+    ssKeyI.write((const char*)&be_height, 4);
+    ssKeyI.write((const char*)key.begin(), 32);
+
+    if (activeBatch) {
+        activeBatch->Delete(ssKey.str());
+        activeBatch->Delete(ssKeyI.str());
+        return true;
+    }
+
+    leveldb::WriteOptions writeOptions;
+    writeOptions.sync = true;
+    leveldb::Status s = pdb->Delete(writeOptions, ssKey.str());
+    leveldb::Status s1 = pdb->Delete(writeOptions, ssKeyI.str());
+    if ((s.ok() || s.IsNotFound()) && (s1.ok() || s1.IsNotFound())) {
+        return true;
+    }
+    return error("SecMsgDB erase failed: %s, %s\n", s.ToString(), s1.ToString());
+};
+
+bool SecMsgDB::NextFundingDataLink(leveldb::Iterator *it, int &height, uint256 &key)
+{
+    if (!pdb) {
+        return false;
+    }
+
+    if (!it->Valid()) { // First run
+        it->Seek(DBK_FUNDING_TX_LINK);
+    } else {
+        it->Next();
+    }
+
+    if (!(it->Valid()
+        && it->key().size() == DBK_FUNDING_TX_LINK.size() + 4 + 32
+        && memcmp(it->key().data(), DBK_FUNDING_TX_LINK.data(), DBK_FUNDING_TX_LINK.size()) == 0)) {
+        return false;
+    }
+
+    uint32_t be_height;
+    memcpy(&be_height, it->key().data() + DBK_FUNDING_TX_LINK.size(), 4);
+    height = (int) be32toh(be_height);
+    memcpy(key.begin(), it->key().data() + DBK_FUNDING_TX_LINK.size() + 4, 32);
+
+    return true;
+};
+
 
 } // namespace smsg
