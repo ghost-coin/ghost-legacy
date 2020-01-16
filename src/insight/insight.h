@@ -15,7 +15,7 @@
 #include <string>
 #include <utility>
 
-extern CCriticalSection cs_main;
+extern RecursiveMutex cs_main;
 
 extern bool fAddressIndex;
 extern bool fSpentIndex;

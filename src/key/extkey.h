@@ -42,7 +42,7 @@ enum EKAddonValueTypes
     EKVT_STEALTH_SPEND_CHAIN    = 12,
 };
 
-extern CCriticalSection cs_extKey;
+extern RecursiveMutex cs_extKey;
 
 enum MainExtKeyTypes
 {
@@ -841,7 +841,7 @@ public:
     // store a separate child key used only to derive secret keys
     // Stealth addresses must only ever be generated as hardened keys
 
-    mutable CCriticalSection cs_account;
+    mutable RecursiveMutex cs_account;
 
     // 0th key is always the account key
     std::vector<CStoredExtKey*> vExtKeys;

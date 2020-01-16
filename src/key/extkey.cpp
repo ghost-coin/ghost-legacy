@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-CCriticalSection cs_extKey;
+RecursiveMutex cs_extKey;
 
 const char *ExtKeyGetString(int ind)
 {

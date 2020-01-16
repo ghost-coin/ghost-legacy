@@ -20,7 +20,7 @@ class SecMsgKey;
 class SecMsgStored;
 class SecMsgPurged;
 
-extern CCriticalSection cs_smsgDB;
+extern RecursiveMutex cs_smsgDB;
 extern leveldb::DB *smsgDB;
 
 extern const std::string DBK_PUBLICKEY;

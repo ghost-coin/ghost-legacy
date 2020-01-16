@@ -45,7 +45,7 @@ public:
 class SecMsgKeyStore
 {
 protected:
-    mutable CCriticalSection cs_KeyStore;
+    mutable RecursiveMutex cs_KeyStore;
 
 public:
     std::map<CKeyID, SecMsgKey> mapKeys;

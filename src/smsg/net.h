@@ -32,7 +32,7 @@ public:
 class SecMsgNode
 {
 public:
-    CCriticalSection cs_smsg_net;
+    RecursiveMutex cs_smsg_net;
     int64_t lastSeen = 0;
     int64_t lastMatched = 0;
     int64_t ignoreUntil = 0;

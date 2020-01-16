@@ -11710,7 +11710,7 @@ void CHDWallet::SetUsedDestinationState(const CScript *pscript, bool used)
     }
 }
 
-void CHDWallet::SetUsedDestinationState(WalletBatch& batch, const uint256& hash, unsigned int n, bool used)
+void CHDWallet::SetUsedDestinationState(WalletBatch& batch, const uint256& hash, unsigned int n, bool used, std::set<CTxDestination>& tx_destinations)
 {
     const CWalletTx* srctx = GetWalletTx(hash);
     if (srctx) {
@@ -11721,7 +11721,9 @@ void CHDWallet::SetUsedDestinationState(WalletBatch& batch, const uint256& hash,
             if (IsMine(dst)) {
                 LOCK(cs_wallet);
                 if (used && !GetDestData(dst, "used", nullptr)) {
-                    AddDestData(batch, dst, "used", "p"); // p for "present", opposite of absent (null)
+                    if (AddDestData(batch, dst, "used", "p")) { // p for "present", opposite of absent (null)
+                        tx_destinations.insert(dst);
+                    }
                 } else if (!used && GetDestData(dst, "used", nullptr)) {
                     EraseDestData(batch, dst, "used");
                 }

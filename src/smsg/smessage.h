@@ -23,7 +23,7 @@ class CCoinControl;
 class CNode;
 typedef int64_t NodeId;
 
-extern CCriticalSection cs_main;
+extern RecursiveMutex cs_main;
 
 namespace smsg {
 
@@ -490,7 +490,7 @@ public:
     int Decrypt(bool fTestOnly, const CKeyID &address, const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, MessageData &msg);
     int Decrypt(bool fTestOnly, const CKeyID &address, const SecureMessage &smsg, MessageData &msg);
 
-    CCriticalSection cs_smsg; // all except inbox and outbox
+    RecursiveMutex cs_smsg; // all except inbox and outbox
 
     SecMsgKeyStore keyStore;
     std::map<int64_t, SecMsgBucket> buckets;

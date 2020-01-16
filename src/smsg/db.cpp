@@ -23,7 +23,7 @@ const std::string DBK_PURGED_TOKEN      = "pm";
 const std::string DBK_FUNDING_TX_DATA   = "fd";
 const std::string DBK_FUNDING_TX_LINK   = "fl";
 
-CCriticalSection cs_smsgDB;
+RecursiveMutex cs_smsgDB;
 leveldb::DB *smsgDB = nullptr;
 
 bool SecMsgDB::Open(const char *pszMode)
