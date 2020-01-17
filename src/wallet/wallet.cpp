@@ -766,7 +766,7 @@ bool CWallet::IsUsedDestination(const uint256& hash, unsigned int n) const
             if (GetDestData(wpkh_dest, "used", nullptr)) {
                 return true;
             }
-            ScriptHash sh_wpkh_dest(wpkh_dest);
+            ScriptHash sh_wpkh_dest(GetScriptForDestination(wpkh_dest));
             if (GetDestData(sh_wpkh_dest, "used", nullptr)) {
                 return true;
             }
@@ -1956,6 +1956,7 @@ CAmount CWalletTx::GetCachableAmount(AmountType type, const isminefilter& filter
     auto& amount = m_amounts[type];
     if (recalculate || !amount.m_cached[filter]) {
         amount.Set(filter, type == DEBIT ? pwallet->GetDebit(*tx, filter) : pwallet->GetCredit(*tx, filter));
+        m_is_cache_empty = false;
     }
     return amount.m_value[filter];
 }
@@ -2033,6 +2034,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache, const isminefilter& filter
 
     if (allow_cache) {
         m_amounts[AVAILABLE_CREDIT].Set(filter, nCredit);
+        m_is_cache_empty = false;
     }
 
     return nCredit;
@@ -3390,10 +3392,9 @@ int64_t CWallet::GetOldestKeyPoolTime()
 void CWallet::MarkDestinationsDirty(const std::set<CTxDestination>& destinations) {
     for (auto& entry : mapWallet) {
         CWalletTx& wtx = entry.second;
-
+        if (wtx.m_is_cache_empty) continue;
         for (unsigned int i = 0; i < wtx.tx->vout.size(); i++) {
             CTxDestination dst;
-
             if (ExtractDestination(wtx.tx->vout[i].scriptPubKey, dst) && destinations.count(dst)) {
                 wtx.MarkDirty();
                 break;
