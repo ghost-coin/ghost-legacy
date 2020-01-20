@@ -516,14 +516,14 @@ public:
         }
 
         size_t nb;
-        return (0 == GetVarInt(vData, 1, (uint64_t&)nFee, nb));
+        return (0 == part::GetVarInt(vData, 1, (uint64_t&)nFee, nb));
     };
 
     bool SetCTFee(CAmount &nFee) override
     {
         vData.clear();
         vData.push_back(DO_FEE);
-        return (0 == PutVarInt(vData, nFee));
+        return (0 == part::PutVarInt(vData, nFee));
     }
 
     bool GetDevFundCfwd(CAmount &nCfwd) const override

@@ -24,7 +24,7 @@ bool ExtractCoinStakeInt64(const std::vector<uint8_t> &vData, DataOutputTypes ge
         } else
         if (current_type == DO_DEV_FUND_CFWD || current_type == DO_SMSG_FEE) {
             ofs++;
-            if  (0 != GetVarInt(vData, ofs, nv, nb)) {
+            if  (0 != part::GetVarInt(vData, ofs, nv, nb)) {
                 return false;
             }
             if (get_type == current_type) {
@@ -61,7 +61,7 @@ bool ExtractCoinStakeUint32(const std::vector<uint8_t> &vData, DataOutputTypes g
         } else
         if (current_type == DO_DEV_FUND_CFWD || current_type == DO_SMSG_FEE) {
             ofs++;
-            if  (0 != GetVarInt(vData, ofs, nv, nb)) {
+            if  (0 != part::GetVarInt(vData, ofs, nv, nb)) {
                 return false;
             }
             ofs += nb;

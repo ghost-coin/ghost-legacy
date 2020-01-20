@@ -3960,7 +3960,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
         if (!fOnlyStandardOutputs) {
             std::vector<uint8_t> &vData = *txNew.vpout[0]->GetPData();
             vData.resize(1);
-            if (0 != PutVarInt(vData, nFeeRet)) {
+            if (0 != part::PutVarInt(vData, nFeeRet)) {
                 return werrorN(1, "%s: PutVarInt %d failed\n", __func__, nFeeRet);
             }
         }
@@ -4571,7 +4571,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
 
         std::vector<uint8_t> &vData = *txNew.vpout[0]->GetPData();
         vData.resize(1);
-        if (0 != PutVarInt(vData, nFeeRet)) {
+        if (0 != part::PutVarInt(vData, nFeeRet)) {
             return werrorN(1, "%s: PutVarInt %d failed\n", __func__, nFeeRet);
         }
 
@@ -5121,7 +5121,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 
                 for (size_t k = 0; k < nSigInputs; ++k)
                 for (size_t i = 0; i < nSigRingSize; ++i) {
-                    PutVarInt(vPubkeyMatrixIndices, vMI[l][k][i]);
+                    part::PutVarInt(vPubkeyMatrixIndices, vMI[l][k][i]);
                 }
 
                 std::vector<uint8_t> vKeyImages(33 * nSigInputs);
@@ -5251,7 +5251,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 
         std::vector<uint8_t> &vData = *txNew.vpout[0]->GetPData();
         vData.resize(1);
-        if (0 != PutVarInt(vData, nFeeRet)) {
+        if (0 != part::PutVarInt(vData, nFeeRet)) {
             return werrorN(1, "%s: PutVarInt %d failed\n", __func__, nFeeRet);
         }
         if (coinControl->m_extra_data0.size() > 0) {
@@ -12691,7 +12691,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             // Add to carried forward
             std::vector<uint8_t> vCfwd(1), &vData = *txNew.vpout[0]->GetPData();
             vCfwd[0] = DO_DEV_FUND_CFWD;
-            if (0 != PutVarInt(vCfwd, nDevCfwd)) {
+            if (0 != part::PutVarInt(vCfwd, nDevCfwd)) {
                 return werror("%s: PutVarInt failed: %d.", __func__, nDevCfwd);
             }
             vData.insert(vData.end(), vCfwd.begin(), vCfwd.end());
@@ -12729,7 +12729,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         }
         std::vector<uint8_t> vSmsgFeeRate(1), &vData = *txNew.vpout[0]->GetPData();
         vSmsgFeeRate[0] = DO_SMSG_FEE;
-        if (0 != PutVarInt(vSmsgFeeRate, smsg_fee_rate)) {
+        if (0 != part::PutVarInt(vSmsgFeeRate, smsg_fee_rate)) {
             return werror("%s: PutVarInt failed: %d.", __func__, smsg_fee_rate);
         }
         vData.insert(vData.end(), vSmsgFeeRate.begin(), vSmsgFeeRate.end());

@@ -465,7 +465,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
     in[apduSize++] = 0x00;
     in[apduSize++] = 0x00;
     in[apduSize++] = 0x00;
-    apduSize += PutVarInt(&in[apduSize], tx.vin.size());
+    apduSize += part::PutVarInt(&in[apduSize], tx.vin.size());
 
     result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
     if (sw != SW_OK) {
@@ -504,9 +504,9 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
         apduSize += vchAmount.size();
 
         if (i == 0) {
-            apduSize += PutVarInt(&in[apduSize], scriptCode.size());
+            apduSize += part::PutVarInt(&in[apduSize], scriptCode.size());
         } else {
-            apduSize += PutVarInt(&in[apduSize], 0); // empty scriptCode
+            apduSize += part::PutVarInt(&in[apduSize], 0); // empty scriptCode
             memcpy(&in[apduSize], &txin.nSequence, 4);
             apduSize += 4;
         }
@@ -553,7 +553,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
     // finalizeInputFull
 
     std::vector<uint8_t> vOutputData;
-    PutVarInt(vOutputData, tx.vpout.size());
+    part::PutVarInt(vOutputData, tx.vpout.size());
     for (const auto &txout : tx.vpout) {
         std::vector<uint8_t> vchAmount(8);
         if (txout->IsType(OUTPUT_DATA)) {
@@ -561,7 +561,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
             vOutputData.insert(vOutputData.end(), vchAmount.begin(), vchAmount.end());
 
             std::vector<uint8_t> &vData = ((CTxOutData*)txout.get())->vData;
-            PutVarInt(vOutputData, vData.size());
+            part::PutVarInt(vOutputData, vData.size());
             vOutputData.insert(vOutputData.end(), vData.begin(), vData.end());
             continue;
         }
@@ -574,7 +574,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
         vOutputData.insert(vOutputData.end(), vchAmount.begin(), vchAmount.end());
 
         const CScript *pScript = txout->GetPScriptPubKey();
-        PutVarInt(vOutputData, pScript->size());
+        part::PutVarInt(vOutputData, pScript->size());
         vOutputData.insert(vOutputData.end(), pScript->begin(), pScript->end());
     }
 
@@ -638,7 +638,7 @@ int CLedgerDevice::SignTransaction(const std::vector<uint32_t> &vPath, const std
     in[apduSize++] = 0x00;
     in[apduSize++] = 0x00;
     in[apduSize++] = 0x00;
-    apduSize += PutVarInt(&in[apduSize], 1);
+    apduSize += part::PutVarInt(&in[apduSize], 1);
 
     result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
     if (sw != SW_OK) {
@@ -664,7 +664,7 @@ int CLedgerDevice::SignTransaction(const std::vector<uint32_t> &vPath, const std
     memcpy(&in[apduSize], amount.data(), amount.size());
     apduSize += amount.size();
 
-    apduSize += PutVarInt(&in[apduSize], scriptCode.size());
+    apduSize += part::PutVarInt(&in[apduSize], scriptCode.size());
 
     in[ofslen] = apduSize - (ofslen+1);
 

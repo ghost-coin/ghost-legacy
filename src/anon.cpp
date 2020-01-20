@@ -120,7 +120,7 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
         for (size_t i = 0; i < nCols; ++i) {
             int64_t nIndex;
 
-            if (0 != GetVarInt(vMI, ofs, (uint64_t&)nIndex, nB)) {
+            if (0 != part::GetVarInt(vMI, ofs, (uint64_t&)nIndex, nB)) {
                 return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anonin-extract-i");
             }
             ofs += nB;

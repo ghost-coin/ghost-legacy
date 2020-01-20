@@ -143,14 +143,14 @@ BOOST_AUTO_TEST_CASE(varints)
     // Encode
     for (int i = start; i < 10000; i+=100) {
         size_t sz = GetSizeOfVarInt<VarIntMode::NONNEGATIVE_SIGNED>(i);
-        BOOST_CHECK(sz = PutVarInt(c, i));
-        BOOST_CHECK(0 == PutVarInt(v, i));
+        BOOST_CHECK(sz = part::PutVarInt(c, i));
+        BOOST_CHECK(0 == part::PutVarInt(v, i));
         BOOST_CHECK(0 == memcmp(c, &v[size], sz));
         size += sz;
         BOOST_CHECK(size == v.size());
     }
     for (uint64_t i = 0;  i < 100000000000ULL; i += 999999937) {
-        BOOST_CHECK(0 == PutVarInt(v, i));
+        BOOST_CHECK(0 == part::PutVarInt(v, i));
         size += GetSizeOfVarInt<VarIntMode::DEFAULT>(i);
         BOOST_CHECK(size == v.size());
     }
@@ -159,13 +159,13 @@ BOOST_AUTO_TEST_CASE(varints)
     size_t nB = 0, o = 0;
     for (int i = start; i < 10000; i+=100) {
         uint64_t j = (uint64_t)-1;
-        BOOST_CHECK(0 == GetVarInt(v, o, j, nB));
+        BOOST_CHECK(0 == part::GetVarInt(v, o, j, nB));
         BOOST_CHECK_MESSAGE(i == (int)j, "decoded:" << j << " expected:" << i);
         o += nB;
     }
     for (uint64_t i = 0;  i < 100000000000ULL; i += 999999937) {
         uint64_t j = (uint64_t)-1;
-        BOOST_CHECK(0 == GetVarInt(v, o, j, nB));
+        BOOST_CHECK(0 == part::GetVarInt(v, o, j, nB));
         BOOST_CHECK_MESSAGE(i == j, "decoded:" << j << " expected:" << i);
         o += nB;
     }

@@ -442,69 +442,48 @@ I ReadVarInt(Stream& is)
     }
 }
 
-inline int PutVarInt(std::vector<uint8_t> &v, uint64_t i)
+/** Simple wrapper class to serialize objects using a formatter; used by Using(). */
+template<typename Formatter, typename T>
+class Wrapper
 {
-    uint8_t b = i & 0x7F;
-    while ((i = i >> 7) > 0) {
-        v.push_back(b | 0x80);
-        b = i & 0x7F;
-    }
-    v.push_back(b);
-    return i; // 0 == success
+    static_assert(std::is_lvalue_reference<T>::value, "Wrapper needs an lvalue reference type T");
+protected:
+    T m_object;
+public:
+    explicit Wrapper(T obj) : m_object(obj) {}
+    template<typename Stream> void Serialize(Stream &s) const { Formatter().Ser(s, m_object); }
+    template<typename Stream> void Unserialize(Stream &s) { Formatter().Unser(s, m_object); }
 };
 
-inline int PutVarInt(uint8_t *p, uint64_t i)
-{
-    int nBytes = 0;
-    uint8_t b = i & 0x7F;
-    while ((i = i >> 7) > 0) {
-        *p++ = b | 0x80;
-        b = i & 0x7F;
-        nBytes++;
-    }
-    *p++ = b;
-    nBytes++;
-    return nBytes;
-};
+/** Cause serialization/deserialization of an object to be done using a specified formatter class.
+ *
+ * To use this, you need a class Formatter that has public functions Ser(stream, const object&) for
+ * serialization, and Unser(stream, object&) for deserialization. Serialization routines (inside
+ * READWRITE, or directly with << and >> operators), can then use Using<Formatter>(object).
+ *
+ * This works by constructing a Wrapper<Formatter, T>-wrapped version of object, where T is
+ * const during serialization, and non-const during deserialization, which maintains const
+ * correctness.
+ */
+template<typename Formatter, typename T>
+static inline Wrapper<Formatter, T&> Using(T&& t) { return Wrapper<Formatter, T&>(t); }
 
-inline int GetVarInt(const std::vector<uint8_t> &v, size_t ofs, uint64_t &i, size_t &nB)
-{
-    size_t ml = v.size() - ofs;
-    if (ml <= 0) {
-        return 0;
-    }
-    const uint8_t *p = &v[ofs];
-    nB = 0;
-    i = p[nB++] & 0x7F;
-    while (p[nB-1] & 0x80) {
-        if (nB >= ml)
-            return 1;
-        i += ((uint64_t(p[nB]& 0x7F)) << (7*nB));
-        nB++;
-    }
-    return 0; // 0 == success
-};
-
-#define VARINT(obj, ...) WrapVarInt<__VA_ARGS__>(REF(obj))
+#define VARINT(obj, ...) Using<VarIntFormatter<__VA_ARGS__>>(obj)
 #define COMPACTSIZE(obj) CCompactSize(REF(obj))
 #define LIMITED_STRING(obj,n) LimitedString< n >(REF(obj))
 
-template<VarIntMode Mode, typename I>
-class CVarInt
+/** Serialization wrapper class for integers in VarInt format. */
+template<VarIntMode Mode=VarIntMode::DEFAULT>
+struct VarIntFormatter
 {
-protected:
-    I &n;
-public:
-    explicit CVarInt(I& nIn) : n(nIn) { }
-
-    template<typename Stream>
-    void Serialize(Stream &s) const {
-        WriteVarInt<Stream,Mode,I>(s, n);
+    template<typename Stream, typename I> void Ser(Stream &s, I v)
+    {
+        WriteVarInt<Stream,Mode,typename std::remove_cv<I>::type>(s, v);
     }
 
-    template<typename Stream>
-    void Unserialize(Stream& s) {
-        n = ReadVarInt<Stream,Mode,I>(s);
+    template<typename Stream, typename I> void Unser(Stream& s, I& v)
+    {
+        v = ReadVarInt<Stream,Mode,typename std::remove_cv<I>::type>(s);
     }
 };
 
@@ -588,9 +567,6 @@ public:
             s.write((char*)string.data(), string.size());
     }
 };
-
-template<VarIntMode Mode=VarIntMode::DEFAULT, typename I>
-CVarInt<Mode, I> WrapVarInt(I& n) { return CVarInt<Mode, I>{n}; }
 
 template<typename I>
 BigEndian<I> WrapBigEndian(I& n) { return BigEndian<I>(n); }
@@ -1083,5 +1059,51 @@ size_t GetSerializeSizeMany(int nVersion, const T&... t)
     SerializeMany(sc, t...);
     return sc.size();
 }
+
+
+namespace part {
+inline int PutVarInt(std::vector<uint8_t> &v, uint64_t i)
+{
+    uint8_t b = i & 0x7F;
+    while ((i = i >> 7) > 0) {
+        v.push_back(b | 0x80);
+        b = i & 0x7F;
+    }
+    v.push_back(b);
+    return i; // 0 == success
+};
+
+inline int PutVarInt(uint8_t *p, uint64_t i)
+{
+    int nBytes = 0;
+    uint8_t b = i & 0x7F;
+    while ((i = i >> 7) > 0) {
+        *p++ = b | 0x80;
+        b = i & 0x7F;
+        nBytes++;
+    }
+    *p++ = b;
+    nBytes++;
+    return nBytes;
+};
+
+inline int GetVarInt(const std::vector<uint8_t> &v, size_t ofs, uint64_t &i, size_t &nB)
+{
+    size_t ml = v.size() - ofs;
+    if (ml <= 0) {
+        return 0;
+    }
+    const uint8_t *p = &v[ofs];
+    nB = 0;
+    i = p[nB++] & 0x7F;
+    while (p[nB-1] & 0x80) {
+        if (nB >= ml)
+            return 1;
+        i += ((uint64_t(p[nB]& 0x7F)) << (7*nB));
+        nB++;
+    }
+    return 0; // 0 == success
+};
+} // namespace part
 
 #endif // BITCOIN_SERIALIZE_H

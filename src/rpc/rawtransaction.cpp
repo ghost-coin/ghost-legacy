@@ -76,7 +76,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                     std::string row_out;
                     for (size_t i = 0; i < nSigRingSize; ++i) {
                         int64_t anon_index;
-                        if (0 != GetVarInt(vMI, ofs, (uint64_t&)anon_index, nb)) {
+                        if (0 != part::GetVarInt(vMI, ofs, (uint64_t&)anon_index, nb)) {
                             throw JSONRPCError(RPC_MISC_ERROR, "Decode anon index failed.");
                         }
                         ofs += nb;
