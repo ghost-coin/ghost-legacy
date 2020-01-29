@@ -11651,8 +11651,9 @@ bool CHDWallet::IsSpent(interfaces::Chain::Lock& locked_chain, const uint256& ha
 
 bool CHDWallet::IsUsedDestination(const CScript *pscript) const
 {
+    LOCK(cs_wallet);
     CTxDestination dst;
-    return pscript && ExtractDestination(*pscript, dst) && IsUsedDestination(dst);
+    return pscript && ExtractDestination(*pscript, dst) && ::IsMine(*this, dst) && GetDestData(dst, "used", nullptr);
 }
 
 bool CHDWallet::IsUsedDestination(const uint256& hash, unsigned int n) const
