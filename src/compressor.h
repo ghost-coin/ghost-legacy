@@ -11,11 +11,6 @@
 #include <serialize.h>
 #include <span.h>
 
-
-class CKeyID;
-class CPubKey;
-class CScriptID;
-
 bool CompressScript(const CScript& script, std::vector<unsigned char> &out);
 unsigned int GetSpecialScriptSize(unsigned int nSize);
 bool DecompressScript(CScript& script, unsigned int nSize, const std::vector<unsigned char> &out);
@@ -107,96 +102,6 @@ public:
         }
         CScriptCompressor cscript(REF(txout.scriptPubKey));
         READWRITE(cscript);
-    }
-};
-
-/** wrapper for CTxOutBase that provides a more compact serialization */
-class CTxOutBaseCompressor
-{
-private:
-    CTxOutBaseRef &txout;
-
-public:
-    explicit CTxOutBaseCompressor(CTxOutBaseRef &txoutIn) : txout(txoutIn) { }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        if (!ser_action.ForRead()) {
-            if (txout == nullptr) {
-                uint8_t bv = OUTPUT_NULL;
-                READWRITE(bv);
-                return;
-            }
-
-            uint8_t bv = txout->nVersion & 0xFF;
-            READWRITE(bv);
-
-            switch (bv) {
-                case OUTPUT_STANDARD:
-                    {
-                    CTxOutStandard *p = (CTxOutStandard*)txout.get();
-
-                    uint64_t nVal = CompressAmount(p->nValue);
-                    READWRITE(VARINT(nVal));
-
-                    CScriptCompressor cscript(REF(p->scriptPubKey));
-                    READWRITE(cscript);
-                    }
-                    break;
-                case OUTPUT_CT:
-                    {
-                    CTxOutCT *p = (CTxOutCT*)txout.get();
-
-                    // TODO: need all fields?
-                    CScriptCompressor cscript(REF(p->scriptPubKey));
-                    READWRITE(cscript);
-
-                    s.write((char*)&p->commitment.data[0], 33);
-                    }
-                    break;
-                default:
-                    assert(false);
-            }
-        } else {
-            uint8_t bv;
-            READWRITE(bv);
-
-            switch (bv) {
-                case OUTPUT_NULL:
-                    // do nothing
-                    return;
-                case OUTPUT_STANDARD:
-                    {
-                    txout = MAKE_OUTPUT<CTxOutStandard>();
-                    CTxOutStandard *p = (CTxOutStandard*)txout.get();
-
-                    uint64_t nVal = 0;
-                    READWRITE(VARINT(nVal));
-                    p->nValue = DecompressAmount(nVal);
-
-                    CScriptCompressor cscript(REF(p->scriptPubKey));
-                    READWRITE(cscript);
-                    }
-                    break;
-                case OUTPUT_CT:
-                    {
-                    txout = MAKE_OUTPUT<CTxOutCT>();
-                    CTxOutCT *p = (CTxOutCT*)txout.get();
-
-                    // TODO: need all fields?
-                    CScriptCompressor cscript(REF(p->scriptPubKey));
-                    READWRITE(cscript);
-
-                    s.read((char*)&p->commitment.data[0], 33);
-                    }
-                    break;
-                default:
-                    assert(false);
-            }
-            txout->nVersion = bv;
-        }
     }
 };
 

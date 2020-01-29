@@ -975,11 +975,6 @@ public:
         this->nSize += _nSize;
     }
 
-    void read(const char *psz, size_t _nSize)
-    {
-        // do nothing, needed by CTxOutBaseCompressor
-    }
-
     /** Pretend _nSize bytes are written, without specifying them. */
     void seek(size_t _nSize)
     {
