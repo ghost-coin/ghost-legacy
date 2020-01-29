@@ -11,11 +11,6 @@
 #include <serialize.h>
 #include <span.h>
 
-
-class CKeyID;
-class CPubKey;
-class CScriptID;
-
 bool CompressScript(const CScript& script, std::vector<unsigned char> &out);
 unsigned int GetSpecialScriptSize(unsigned int nSize);
 bool DecompressScript(CScript& script, unsigned int nSize, const std::vector<unsigned char> &out);
@@ -34,9 +29,8 @@ uint64_t DecompressAmount(uint64_t nAmount);
  *  Other scripts up to 121 bytes require 1 byte + script length. Above
  *  that, scripts up to 16505 bytes require 2 bytes + script length.
  */
-class CScriptCompressor
+struct ScriptCompression
 {
-private:
     /**
      * make this static for now (there are only 6 special scripts defined)
      * this can potentially be extended together with a new nVersion for
@@ -45,12 +39,8 @@ private:
      */
     static const unsigned int nSpecialScripts = 6;
 
-    CScript &script;
-public:
-    explicit CScriptCompressor(CScript &scriptIn) : script(scriptIn) { }
-
     template<typename Stream>
-    void Serialize(Stream &s) const {
+    void Ser(Stream &s, const CScript& script) {
         std::vector<unsigned char> compr;
         if (CompressScript(script, compr)) {
             s << MakeSpan(compr);
@@ -62,7 +52,7 @@ public:
     }
 
     template<typename Stream>
-    void Unserialize(Stream &s) {
+    void Unser(Stream &s, CScript& script) {
         unsigned int nSize = 0;
         s >> VARINT(nSize);
         if (nSize < nSpecialScripts) {
@@ -83,121 +73,24 @@ public:
     }
 };
 
-
-/** wrapper for CTxOut that provides a more compact serialization */
-class CTxOutCompressor
+struct AmountCompression
 {
-private:
-    CTxOut &txout;
-
-public:
-    explicit CTxOutCompressor(CTxOut &txoutIn) : txout(txoutIn) { }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        if (!ser_action.ForRead()) {
-            uint64_t nVal = CompressAmount(txout.nValue);
-            READWRITE(VARINT(nVal));
-        } else {
-            uint64_t nVal = 0;
-            READWRITE(VARINT(nVal));
-            txout.nValue = DecompressAmount(nVal);
-        }
-        CScriptCompressor cscript(REF(txout.scriptPubKey));
-        READWRITE(cscript);
+    template<typename Stream, typename I> void Ser(Stream& s, I val)
+    {
+        s << VARINT(CompressAmount(val));
+    }
+    template<typename Stream, typename I> void Unser(Stream& s, I& val)
+    {
+        uint64_t v;
+        s >> VARINT(v);
+        val = DecompressAmount(v);
     }
 };
 
-/** wrapper for CTxOutBase that provides a more compact serialization */
-class CTxOutBaseCompressor
+/** wrapper for CTxOut that provides a more compact serialization */
+struct TxOutCompression
 {
-private:
-    CTxOutBaseRef &txout;
-
-public:
-    explicit CTxOutBaseCompressor(CTxOutBaseRef &txoutIn) : txout(txoutIn) { }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        if (!ser_action.ForRead()) {
-            if (txout == nullptr) {
-                uint8_t bv = OUTPUT_NULL;
-                READWRITE(bv);
-                return;
-            }
-
-            uint8_t bv = txout->nVersion & 0xFF;
-            READWRITE(bv);
-
-            switch (bv) {
-                case OUTPUT_STANDARD:
-                    {
-                    CTxOutStandard *p = (CTxOutStandard*)txout.get();
-
-                    uint64_t nVal = CompressAmount(p->nValue);
-                    READWRITE(VARINT(nVal));
-
-                    CScriptCompressor cscript(REF(p->scriptPubKey));
-                    READWRITE(cscript);
-                    }
-                    break;
-                case OUTPUT_CT:
-                    {
-                    CTxOutCT *p = (CTxOutCT*)txout.get();
-
-                    // TODO: need all fields?
-                    CScriptCompressor cscript(REF(p->scriptPubKey));
-                    READWRITE(cscript);
-
-                    s.write((char*)&p->commitment.data[0], 33);
-                    }
-                    break;
-                default:
-                    assert(false);
-            }
-        } else {
-            uint8_t bv;
-            READWRITE(bv);
-
-            switch (bv) {
-                case OUTPUT_NULL:
-                    // do nothing
-                    return;
-                case OUTPUT_STANDARD:
-                    {
-                    txout = MAKE_OUTPUT<CTxOutStandard>();
-                    CTxOutStandard *p = (CTxOutStandard*)txout.get();
-
-                    uint64_t nVal = 0;
-                    READWRITE(VARINT(nVal));
-                    p->nValue = DecompressAmount(nVal);
-
-                    CScriptCompressor cscript(REF(p->scriptPubKey));
-                    READWRITE(cscript);
-                    }
-                    break;
-                case OUTPUT_CT:
-                    {
-                    txout = MAKE_OUTPUT<CTxOutCT>();
-                    CTxOutCT *p = (CTxOutCT*)txout.get();
-
-                    // TODO: need all fields?
-                    CScriptCompressor cscript(REF(p->scriptPubKey));
-                    READWRITE(cscript);
-
-                    s.read((char*)&p->commitment.data[0], 33);
-                    }
-                    break;
-                default:
-                    assert(false);
-            }
-            txout->nVersion = bv;
-        }
-    }
+    FORMATTER_METHODS(CTxOut, obj) { READWRITE(Using<AmountCompression>(obj.nValue), Using<ScriptCompression>(obj.scriptPubKey)); }
 };
 
 #endif // BITCOIN_COMPRESSOR_H

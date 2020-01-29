@@ -92,7 +92,7 @@ public:
         assert(!IsSpent());
         uint32_t code = nHeight * 2 + fCoinBase;
         ::Serialize(s, VARINT(code));
-        ::Serialize(s, CTxOutCompressor(REF(out)));
+        ::Serialize(s, Using<TxOutCompression>(REF(out)));
         if (!fParticlMode) return;
         ::Serialize(s, nType);
         if (nType == OUTPUT_CT) {
@@ -106,7 +106,7 @@ public:
         ::Unserialize(s, VARINT(code));
         nHeight = code >> 1;
         fCoinBase = code & 1;
-        ::Unserialize(s, CTxOutCompressor(out));
+        ::Unserialize(s, Using<TxOutCompression>(out));
         if (!fParticlMode) return;
         ::Unserialize(s, nType);
         if (nType == OUTPUT_CT) {
