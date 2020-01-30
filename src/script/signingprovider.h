@@ -90,6 +90,8 @@ public:
     virtual std::set<CScriptID> GetCScripts() const;
     virtual bool GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const override;
 
+    virtual size_t CountKeys() const { LOCK(cs_KeyStore); return mapKeys.size(); };
+
     virtual isminetype IsMine(const CKeyID &address) const;
 };
 

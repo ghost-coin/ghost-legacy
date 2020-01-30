@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -126,6 +126,8 @@ void CHDWallet::AddOptions()
 bool CHDWallet::Initialise()
 {
     // Continue from CHDWallet::LoadWallet
+    auto spk_man = GetOrCreateLegacyScriptPubKeyMan();
+    assert(spk_man);
 
     m_blind_scratch = secp256k1_scratch_space_create(secp256k1_ctx_blind, 1024 * 1024);
     assert(m_blind_scratch);
@@ -961,8 +963,8 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
         }
         encrypted_batch->WriteMasterKey(nMasterKeyMaxID, kMasterKey);
 
-        if (auto spk_man = m_spk_man.get()) {
-            if (!spk_man->Encrypt(vMasterKey, encrypted_batch)) {
+        for (const auto& spk_man_pair : m_spk_managers) {
+            if (!spk_man_pair.second->Encrypt(vMasterKey, encrypted_batch)) {
                 encrypted_batch->TxnAbort();
                 delete encrypted_batch;
                 encrypted_batch = nullptr;
@@ -1046,8 +1048,8 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase, bool accept_no_k
     if (!IsLocked()) {
         LogPrint(BCLog::HDWALLET, "%s %s: Wallet is already unlocked.\n", GetDisplayName(), __func__);
         // Possibly unlocked for staking
+        LOCK(cs_wallet);
         fWasUnlocked = true;
-        LOCK(cs_KeyStore);
         vMasterKeyOld = vMasterKey;
     }
 
@@ -1098,10 +1100,11 @@ bool CHDWallet::Unlock(const SecureString &strWalletPassphrase, bool accept_no_k
 
 size_t CHDWallet::CountKeys() const
 {
-    LOCK(cs_KeyStore);
-    if (!IsCrypted())
-        return mapKeys.size();
-    return mapCryptedKeys.size();
+    auto spk_man = GetLegacyScriptPubKeyMan();
+    if (!spk_man) {
+        return 0;
+    }
+    return spk_man->CountKeys();
 };
 
 isminetype CHDWallet::HaveAddress(const CTxDestination &dest)
@@ -1237,7 +1240,13 @@ int CHDWallet::GetKey(const CKeyID &address, CKey &keyOut, CExtKeyAccount *&pa, 
     }
 
     pa = nullptr;
-    return m_spk_man->GetKey_(address, keyOut);
+    auto spk_man = GetLegacyScriptPubKeyMan();
+    if (spk_man) {
+        if (spk_man->GetKey_(address, keyOut)) {
+            return true;
+        }
+    }
+    return false;
 };
 
 bool CHDWallet::GetKey(const CKeyID &address, CKey &keyOut) const
@@ -1251,7 +1260,13 @@ bool CHDWallet::GetKey(const CKeyID &address, CKey &keyOut) const
         }
     }
 
-    return m_spk_man->GetKey_(address, keyOut);
+    auto spk_man = GetLegacyScriptPubKeyMan();
+    if (spk_man) {
+        if (spk_man->GetKey_(address, keyOut)) {
+            return true;
+        }
+    }
+    return false;
 };
 
 bool CHDWallet::GetPubKey(const CKeyID &address, CPubKey& pkOut) const
@@ -1264,7 +1279,13 @@ bool CHDWallet::GetPubKey(const CKeyID &address, CPubKey& pkOut) const
         }
     }
 
-    return m_spk_man->GetPubKey_(address, pkOut);
+    auto spk_man = GetLegacyScriptPubKeyMan();
+    if (spk_man) {
+        if (spk_man->GetPubKey_(address, pkOut)) {
+            return true;
+        }
+    }
+    return false;
 };
 
 bool CHDWallet::GetKeyFromPool(CPubKey &key, bool internal)
@@ -1314,6 +1335,16 @@ isminetype CHDWallet::IsMine(const CStealthAddress &sxAddr, const CExtKeyAccount
 
     return ISMINE_NO;
 };
+
+isminetype CHDWallet::IsMineP2SH(const CScript& script) const
+{
+    isminetype result = ISMINE_NO;
+    auto spk_man = GetLegacyScriptPubKeyMan();
+    if (spk_man) {
+        result = std::max(result, spk_man->IsMineP2SH(script));
+    }
+    return result;
+}
 
 bool CHDWallet::GetStealthAddressScanKey(CStealthAddress &sxAddr) const
 {
@@ -1387,10 +1418,12 @@ bool CHDWallet::ImportStealthAddress(const CStealthAddress &sxAddr, const CKey &
         }
 
         CPubKey pk = skSpend.GetPubKey();
-        LockAssertion lock(m_spk_man->cs_wallet);
-        if (!m_spk_man->AddKeyPubKey(skSpend, pk)) {
-            stealthAddresses.erase(sxAddr);
-            return werror("%s: AddKeyPubKey failed.", __func__);
+        auto spk_man = GetLegacyScriptPubKeyMan();
+        if (spk_man) {
+            if (!spk_man->AddKeyPubKey(skSpend, pk)) {
+                stealthAddresses.erase(sxAddr);
+                return werror("%s: AddKeyPubKey failed.", __func__);
+            }
         }
     }
 
@@ -1948,11 +1981,14 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         else
             return ISMINE_NO;
         CScript subscript;
-        const SigningProvider* provider = GetSigningProvider(subscript);
-        if (provider->GetCScript(scriptID, subscript)) {
-            isminetype ret = m_spk_man->IsMine(subscript, isInvalid);
-            if (ret == ISMINE_SPENDABLE || ret == ISMINE_WATCH_ONLY_ || (ret == ISMINE_NO && isInvalid))
-                return ret;
+        std::unique_ptr<SigningProvider> provider = GetSigningProvider(subscript);
+        if (provider && provider->GetCScript(scriptID, subscript)) {
+            auto spk_man = GetLegacyScriptPubKeyMan();
+            if (spk_man) {
+                isminetype ret = spk_man->IsMine(subscript, isInvalid);
+                if (ret == ISMINE_SPENDABLE || ret == ISMINE_WATCH_ONLY_ || (ret == ISMINE_NO && isInvalid))
+                    return ret;
+            }
         }
         break;
     }
@@ -1986,8 +2022,11 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         return ISMINE_NO;
     };
 
-    if (m_spk_man->HaveWatchOnly(scriptPubKey)) {
-        return ISMINE_WATCH_ONLY_;
+    auto spk_man = GetLegacyScriptPubKeyMan();
+    if (spk_man) {
+        if (spk_man->HaveWatchOnly(scriptPubKey)) {
+            return ISMINE_WATCH_ONLY_;
+        }
     }
     return ISMINE_NO;
 };
@@ -3842,8 +3881,6 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
 
             // Fill in dummy signatures for fee calculation.
             int nIn = 0;
-            CScript script;
-            const SigningProvider *provider = GetSigningProvider(script);
             for (const auto &coin : setCoins) {
                 const CScript& scriptPubKey = coin.txout.scriptPubKey;
                 SignatureData sigdata;
@@ -3851,9 +3888,14 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                 std::map<COutPoint, CInputData>::const_iterator it = coinControl->m_inputData.find(coin.outpoint);
                 if (it != coinControl->m_inputData.end()) {
                     sigdata.scriptWitness = it->second.scriptWitness;
-                } else
-                if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
-                    return wserrorN(1, sError, __func__, "Dummy signature failed.");
+                } else {
+                    std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+                    if (!provider) {
+                        return wserrorN(1, sError, __func__, "GetSigningProvider failed.");
+                    }
+                    if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
+                        return wserrorN(1, sError, __func__, "Dummy signature failed.");
+                    }
                 }
                 UpdateInput(txNew.vin[nIn], sigdata);
                 nIn++;
@@ -3966,8 +4008,6 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
         }
 
         if (sign) {
-            CScript script;
-            const SigningProvider *provider = GetSigningProvider(script);
             int nIn = 0;
             for (const auto &coin : setCoins) {
                 const CScript& scriptPubKey = coin.txout.scriptPubKey;
@@ -3982,6 +4022,10 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                 memcpy(vchAmount.data(), &coin.txout.nValue, 8);
 
                 SignatureData sigdata;
+                std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+                if (!provider) {
+                    return wserrorN(1, sError, __func__, _("GetSigningProvider failed").translated);
+                }
                 if (!ProduceSignature(*provider, MutableTransactionSignatureCreator(&txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata)) {
                     return wserrorN(1, sError, __func__, _("Signing transaction failed").translated);
                 }
@@ -3991,6 +4035,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
             }
 
 #if ENABLE_USBDEVICE
+
             if (coinControl->fNeedHardwareKey) {
                 CCoinsView viewDummy;
                 CCoinsViewCache view(&viewDummy);
@@ -4009,7 +4054,13 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
 
                 uiInterface.NotifyWaitingForDevice(false);
 
-                pDevice->PrepareTransaction(txNew, view, *m_spk_man.get(), SIGHASH_ALL);
+                auto spk_man = GetLegacyScriptPubKeyMan();
+                if (!spk_man) {
+                    pDevice->Close();
+                    uiInterface.NotifyWaitingForDevice(true);
+                    return wserrorN(1, sError, __func__, _("GetLegacyScriptPubKeyMan failed.").translated);
+                }
+                pDevice->PrepareTransaction(txNew, view, *spk_man, SIGHASH_ALL);
                 if (!pDevice->sError.empty()) {
                     pDevice->Close();
                     uiInterface.NotifyWaitingForDevice(true);
@@ -4030,7 +4081,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
 
                     pDevice->sError.clear();
                     SignatureData sigdata;
-                    ProduceSignature(*provider, usb_device::DeviceSignatureCreator(pDevice, &txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata);
+                    ProduceSignature(*spk_man, usb_device::DeviceSignatureCreator(pDevice, &txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata);
 
                     if (!pDevice->sError.empty()) {
                         pDevice->Close();
@@ -4362,8 +4413,6 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
             }
 
             // Fill in dummy signatures for fee calculation.
-            CScript script;
-            const SigningProvider *provider = GetSigningProvider(script);
             int nIn = 0;
             for (const auto &coin : setCoins) {
                 const uint256 &txhash = coin.first->first;
@@ -4376,9 +4425,14 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                 std::map<COutPoint, CInputData>::const_iterator it = coinControl->m_inputData.find(prevout);
                 if (it != coinControl->m_inputData.end()) {
                     sigdata.scriptWitness = it->second.scriptWitness;
-                } else
-                if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
-                    return wserrorN(1, sError, __func__, "Dummy signature failed.");
+                } else {
+                    std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+                    if (!provider) {
+                        return wserrorN(1, sError, __func__, "GetSigningProvider failed.");
+                    }
+                    if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
+                        return wserrorN(1, sError, __func__, "Dummy signature failed.");
+                    }
                 }
                 UpdateInput(txNew.vin[nIn], sigdata);
                 nIn++;
@@ -4576,8 +4630,6 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
         }
 
         if (sign) {
-            CScript script;
-            const SigningProvider *provider = GetSigningProvider(script);
             int nIn = 0;
             for (const auto &coin : setCoins) {
                 const uint256 &txhash = coin.first->first;
@@ -4596,7 +4648,10 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                 stx.tx->vpout[coin.second]->PutValue(vchAmount);
 
                 SignatureData sigdata;
-
+                std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+                if (!provider) {
+                    return wserrorN(1, sError, __func__, _("GetSigningProvider failed").translated);
+                }
                 if (!ProduceSignature(*provider, MutableTransactionSignatureCreator(&txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata)) {
                     return wserrorN(1, sError, __func__, _("Signing transaction failed").translated);
                 }
@@ -6646,8 +6701,9 @@ int CHDWallet::ExtKeyLoadMaster()
     int64_t nCreatedAt = 0;
     GetCompressedInt64(pEKMaster->mapValue[EKVT_CREATED_AT], (uint64_t&)nCreatedAt);
 
-    if (auto spk_man = m_spk_man.get()) {
-        LockAssertion lock(spk_man->cs_wallet);
+    auto spk_man = GetLegacyScriptPubKeyMan();
+    if (spk_man) {
+        LOCK(spk_man->cs_KeyStore);
         // TODO: Split CHDWallet into a new ScriptPubKeyMan
         spk_man->UpdateTimeFirstKey(nCreatedAt);
     }
@@ -6754,8 +6810,9 @@ int CHDWallet::ExtKeyLoadAccounts()
         int64_t nCreatedAt;
         GetCompressedInt64(sea->mapValue[EKVT_CREATED_AT], (uint64_t&)nCreatedAt);
 
-        if (auto spk_man = m_spk_man.get()) {
-            LockAssertion lock(spk_man->cs_wallet);
+        auto spk_man = GetLegacyScriptPubKeyMan();
+        if (spk_man) {
+            LOCK(spk_man->cs_KeyStore);
             // TODO: Split CHDWallet into a new ScriptPubKeyMan
             spk_man->UpdateTimeFirstKey(nCreatedAt);
         }
@@ -8243,8 +8300,6 @@ bool CHDWallet::SignTransaction(CMutableTransaction &tx)
     AssertLockHeld(cs_wallet); // mapWallet
 
     // sign the new tx
-    CScript script;
-    const SigningProvider *provider = GetSigningProvider(script);
     int nIn = 0;
     for (auto& input : tx.vin) {
         CScript scriptPubKey;
@@ -8287,6 +8342,10 @@ bool CHDWallet::SignTransaction(CMutableTransaction &tx)
 
         std::vector<uint8_t> vchAmount(8);
         memcpy(&vchAmount[0], &amount, 8);
+        std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+        if (!provider) {
+            return false;
+        }
         if (!ProduceSignature(*provider, MutableTransactionSignatureCreator(&tx, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata)) {
             return false;
         }
@@ -8430,7 +8489,7 @@ bool CHDWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout, bool use_max_s
 {
     // Fill in dummy signatures for fee calculation.
     const CScript &scriptPubKey = txout.scriptPubKey;
-    const SigningProvider *provider = GetSigningProvider(scriptPubKey);
+    std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
     SignatureData sigdata;
 
     if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
@@ -8448,7 +8507,7 @@ bool CHDWallet::DummySignInput(CTxIn &tx_in, const CTxOutBaseRef &txout) const
         return werror("%s: Bad output type\n", __func__);
     }
     const CScript &scriptPubKey = *txout->GetPScriptPubKey();
-    const SigningProvider *provider = GetSigningProvider(scriptPubKey);
+    std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
     SignatureData sigdata;
 
     if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
@@ -8794,9 +8853,15 @@ bool CHDWallet::ProcessLockedStealthOutputs()
 
 
         WalletBatch *batch = &wdb;
-        LockAssertion lock(m_spk_man->cs_wallet);
-        if (!m_spk_man->AddKeyPubKeyWithDB(*batch, sSpendR, pk)) {
-            WalletLogPrintf("%s: Error: AddKeyPubKey failed.\n", __func__);
+        auto spk_man = GetLegacyScriptPubKeyMan();
+        if (spk_man) {
+            LOCK(spk_man->cs_KeyStore);
+            if (!spk_man->AddKeyPubKeyWithDB(*batch, sSpendR, pk)) {
+                WalletLogPrintf("%s: Error: AddKeyPubKey failed.\n", __func__);
+                continue;
+            }
+        } else {
+            WalletLogPrintf("%s: Error: GetLegacyScriptPubKeyMan failed.\n", __func__);
             continue;
         }
 
@@ -9139,8 +9204,11 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
 
         if (!HaveKey(it->spend_secret_id)) {
             const auto script = GetScriptForDestination(address);
-            LockAssertion lock(m_spk_man->cs_wallet);
-            m_spk_man->AddWatchOnly(script, 0 /* nCreateTime */);
+            auto spk_man = GetLegacyScriptPubKeyMan();
+            if (spk_man) {
+                LOCK(spk_man->cs_KeyStore);
+                spk_man->AddWatchOnly(script, 0 /* nCreateTime */);
+            }
             nFoundStealth++;
             return true;
         }
@@ -9152,7 +9220,10 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
 
             // Add key without secret
             std::vector<uint8_t> vchEmpty;
-            m_spk_man->AddCryptedKey(pkE, vchEmpty);
+            auto spk_man = GetLegacyScriptPubKeyMan();
+            if (spk_man) {
+                spk_man->AddCryptedKey(pkE, vchEmpty);
+            }
 
             CPubKey cpkEphem(vchEphemPK);
             CPubKey cpkScan(it->scan_pubkey);
@@ -9195,10 +9266,15 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
             WalletLogPrintf("%s: Adding key %s.\n", __func__, EncodeDestination(PKHash(keyID)));
         }
 
-        LockAssertion lock(m_spk_man->cs_wallet);
-        if (!m_spk_man->AddKeyPubKey(sSpendR, pkT)) {
-            WalletLogPrintf("%s: AddKeyPubKey failed.\n", __func__);
-            continue;
+        auto spk_man = GetLegacyScriptPubKeyMan();
+        if (spk_man) {
+            LOCK(spk_man->cs_KeyStore);
+            if (!spk_man->AddKeyPubKey(sSpendR, pkT)) {
+                WalletLogPrintf("%s: AddKeyPubKey failed.\n", __func__);
+                continue;
+            }
+        } else {
+            WalletLogPrintf("%s: GetLegacyScriptPubKeyMan failed.\n", __func__);
         }
 
         nFoundStealth++;
@@ -10759,9 +10835,10 @@ void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vecto
                 continue;
             }
 
+            std::unique_ptr<SigningProvider> provider = GetSigningProvider(txout->scriptPubKey);
             bool fSpendableIn = ((mine & ISMINE_SPENDABLE) != ISMINE_NO) || (coinControl && coinControl->fAllowWatchOnly && (mine & ISMINE_WATCH_ONLY_) != ISMINE_NO);
             //bool fSolvableIn = (mine & (ISMINE_SPENDABLE | ISMINE_WATCH_SOLVABLE)) != ISMINE_NO;
-            bool fSolvableIn = IsSolvable(*m_spk_man.get(), txout->scriptPubKey);
+            bool fSolvableIn = provider ? IsSolvable(*provider, txout->scriptPubKey) : false;
             bool fNeedHardwareKey = (mine & ISMINE_HARDWARE_DEVICE);
 
             vCoins.emplace_back(&wtx, i, nDepth, fSpendableIn, fSolvableIn, safeTx, (coinControl && coinControl->fAllowWatchOnly), fMature, fNeedHardwareKey);
@@ -12071,8 +12148,8 @@ bool CHDWallet::EraseSetting(const std::string &setting)
 int64_t CHDWallet::GetTimeFirstKey()
 {
     int64_t time_first_key = 0;
-    if (auto spk_man = m_spk_man.get()) {
-        int64_t time = spk_man->GetTimeFirstKey();
+    for (const auto& spk_man_pair : m_spk_managers) {
+        int64_t time = spk_man_pair.second->GetTimeFirstKey();
         if (!time_first_key || time < time_first_key) time_first_key = time;
     }
     return time_first_key;
@@ -12833,7 +12910,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
         CTxOutStandard *prevOut = (CTxOutStandard*)pcoin->tx->vpout[nPrev].get();
         CScript &scriptPubKeyOut = prevOut->scriptPubKey;
-        const SigningProvider *provider = GetSigningProvider(scriptPubKeyOut);
+        std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKeyOut);
         std::vector<uint8_t> vchAmount;
         prevOut->PutValue(vchAmount);
 

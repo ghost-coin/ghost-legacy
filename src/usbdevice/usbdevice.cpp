@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019 The Particl Core developers
+// Copyright (c) 2018-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -206,7 +206,7 @@ bool DeviceSignatureCreator::CreateSig(const SigningProvider &provider, std::vec
     const LegacyScriptPubKeyMan *pkm = dynamic_cast<const LegacyScriptPubKeyMan*>(&provider);
     if (pkm) {
         //uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, sigversion);
-        const CHDWallet *pw = dynamic_cast<const CHDWallet*>(pkm->m_particl);
+        const CHDWallet *pw = dynamic_cast<const CHDWallet*>(&pkm->m_storage);
         if (pw) {
             const CEKAKey *pak = nullptr;
             const CEKASCKey *pasc = nullptr;

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -1991,9 +1991,14 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
             if (!pwallet->HaveKey(sid) && skSpend.IsValid()) {
                 LOCK(pwallet->cs_wallet);
                 CPubKey pk = skSpend.GetPubKey();
-                LockAssertion lock(pwallet->m_spk_man->cs_wallet);
-                if (!pwallet->m_spk_man->AddKeyPubKey(skSpend, pk)) {
-                    throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - AddKeyPubKey failed.");
+                auto spk_man = pwallet->GetLegacyScriptPubKeyMan();
+                if (spk_man) {
+                    LOCK(spk_man->cs_KeyStore);
+                    if (!spk_man->AddKeyPubKey(skSpend, pk)) {
+                        throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - AddKeyPubKey failed.");
+                    }
+                } else {
+                    throw JSONRPCError(RPC_WALLET_ERROR, "Import failed - GetLegacyScriptPubKeyMan failed.");
                 }
                 fFound = true; // update stealth address with secret
                 break;
@@ -4448,7 +4453,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 }
             }
 
-            const SigningProvider *provider = pwallet->GetSigningProvider(*scriptPubKey);
+            std::unique_ptr<SigningProvider> provider = pwallet->GetSigningProvider(*scriptPubKey);
             if (scriptPubKey->IsPayToScriptHash()) {
                 const CScriptID& hash = CScriptID(boost::get<ScriptHash>(address));
                 CScript redeemScript;
@@ -5299,7 +5304,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
     {
         if (pwallet) {
             CTxDestination redeemDest;
-            const SigningProvider *provider = pwallet->GetSigningProvider(scriptPubKey);
+            std::unique_ptr<SigningProvider> provider = pwallet->GetSigningProvider(scriptPubKey);
             if (ExtractDestination(scriptPubKey, redeemDest)) {
                 if (redeemDest.type() == typeid(ScriptHash)) {
                     const CScriptID& scriptID = CScriptID(boost::get<ScriptHash>(redeemDest));
@@ -8247,8 +8252,8 @@ static UniValue rehashblock(const JSONRPCRequest &request)
         if (!IsValidDestination(dest)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
         }
-        CScript script;
-        const SigningProvider *provider = pwallet->GetSigningProvider(script);
+        CScript script = GetScriptForDestination(dest);
+        std::unique_ptr<SigningProvider> provider = pwallet->GetSigningProvider(script);
         auto keyid = GetKeyForDestination(*provider, dest);
         if (keyid.IsNull()) {
             throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");

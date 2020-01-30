@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -98,8 +98,6 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet)
 
     BOOST_CHECK_THROW(rv = CallRPC("getnewstealthaddress mustfail 33"), runtime_error);
     BOOST_CHECK_THROW(rv = CallRPC("getnewstealthaddress mustfail 5 wrong"), runtime_error);
-
-
 
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress"));

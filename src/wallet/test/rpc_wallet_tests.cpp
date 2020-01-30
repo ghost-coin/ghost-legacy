@@ -77,7 +77,10 @@ BOOST_AUTO_TEST_CASE(rpc_wallet)
         LOCK(m_wallet.cs_wallet);
 
         WalletBatch walletdb(m_wallet.GetDBHandle());
-        demoPubkey = m_wallet.m_spk_man->GenerateNewKey(walletdb, false);
+        auto spk_man = m_wallet.GetLegacyScriptPubKeyMan();
+        assert(spk_man);
+        LOCK(spk_man->cs_KeyStore);
+        demoPubkey = spk_man->GenerateNewKey(walletdb, false);
         demoAddress = CBitcoinAddress(CTxDestination(PKHash(demoPubkey)));
         string strPurpose = "receive";
         BOOST_CHECK_NO_THROW({ /*Initialize Wallet with an account */

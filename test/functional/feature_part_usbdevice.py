@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2018-2019 The Particl Core developers
+# Copyright (c) 2018-2020 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -151,11 +151,10 @@ class USBDeviceTest(ParticlTestFramework):
         ro = nodes[1].listunspent()
         assert(ro[0]['ondevice'] == True)
 
-
         txnid2 = nodes[1].sendtoaddress(addr0_0, 0.1)
 
         self.sync_all()
-
+        nodes[0].syncwithvalidationinterfacequeue()
         assert(nodes[0].filtertransactions()[0]['txid'] == txnid2)
 
         hwsxaddr = nodes[1].devicegetnewstealthaddress()

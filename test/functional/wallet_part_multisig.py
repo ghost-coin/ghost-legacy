@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2020 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -120,7 +120,11 @@ class MultiSigTest(ParticlTestFramework):
         assert(msAddr256 == "tpj1vtll9wnsd7dxzygrjp2j5jr5tgrjsjmj3vwjf7vf60f9p50g5ddqmasmut")
 
         ro = nodes[0].getaddressinfo(msAddr256)
+        assert(ro['ismine'] == False)
+        assert(ro['solvable'] == True)
         assert(ro['isscript'] == True)
+        assert(ro['sigsrequired'] == 2)
+
         scriptPubKey = ro['scriptPubKey']
         redeemScript = ro['hex']
 

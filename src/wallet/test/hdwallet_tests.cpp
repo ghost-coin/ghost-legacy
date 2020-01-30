@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -41,8 +41,10 @@ std::vector<Test1> vTestVector1 = {
 
 static void AddKey(CWallet& wallet, const CKey& key)
 {
-    LOCK(wallet.m_spk_man->cs_wallet);
-    wallet.m_spk_man->AddKeyPubKey(key, key.GetPubKey());
+    auto spk_man = wallet.GetOrCreateLegacyScriptPubKeyMan();
+    assert(spk_man);
+    LOCK(spk_man->cs_KeyStore);
+    spk_man->AddKeyPubKey(key, key.GetPubKey());
 }
 
 BOOST_AUTO_TEST_CASE(new_ext_key)
@@ -431,7 +433,8 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         BOOST_CHECK_EQUAL(solutions.size(), 4U);
         CTxDestination addr;
         BOOST_CHECK(!ExtractDestination(s, addr));
-        BOOST_CHECK(keystore.m_spk_man->IsMineP2SH(s));
+
+        BOOST_CHECK(keystore.IsMineP2SH(s));
         BOOST_CHECK(!emptykeystore.IsMine(s));
         BOOST_CHECK(!partialkeystore.IsMine(s));
     }
@@ -448,7 +451,7 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         BOOST_CHECK(addrs[0] == keyaddr[0]);
         BOOST_CHECK(addrs[1] == keyaddr[1]);
         BOOST_CHECK(nRequired == 1);
-        BOOST_CHECK(keystore.m_spk_man->IsMineP2SH(s));
+        BOOST_CHECK(keystore.IsMineP2SH(s));
         BOOST_CHECK(!emptykeystore.IsMine(s));
         BOOST_CHECK(!partialkeystore.IsMine(s));
     }

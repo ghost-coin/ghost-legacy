@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2020 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -256,6 +256,7 @@ class WalletParticlTest(ParticlTestFramework):
         roImport1 = nodes[1].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
         assert(roImport1['master_id'] == 'xHRmcdjD2kssaM5ZY8Cyzj8XWJsBweydyP')
         assert(roImport1['account_id'] == 'aaaZf2qnNr5T7PWRmqgmusuu5ACnBcX2ev')
+        assert(nodes[1].getwalletinfo()['total_balance'] == 100000)
 
         ro = nodes[1].extkey('list', 'true')
         assert(len(ro) == 2)
@@ -296,13 +297,14 @@ class WalletParticlTest(ParticlTestFramework):
         except JSONRPCException as e:
             assert('passphrase entered was incorrect' in e.error['message'])
 
-
         nodes[1].walletpassphrasechange('qwerty234', 'changedPass')
+        assert(nodes[1].getwalletinfo()['total_balance'] == 100000)
 
         # Restart node
         self.stop_node(1)
         self.start_node(1, self.extra_args[1])
 
+        assert(nodes[1].getwalletinfo()['total_balance'] == 100000)
         try:
             nodes[1].walletpassphrase('qwerty234', 300)
             raise AssertionError('Unlocked with incorrect passphrase.')

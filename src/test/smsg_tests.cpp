@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -67,15 +67,19 @@ BOOST_AUTO_TEST_CASE(smsg_test)
     std::vector<CKey> keyOwn(nKeys);
     for (int i = 0; i < nKeys; i++) {
         InsecureNewKey(keyOwn[i], true);
-        LOCK(wallet->cs_wallet);
-        wallet->m_spk_man->AddKey(keyOwn[i]);
+        auto spk_man = wallet->GetOrCreateLegacyScriptPubKeyMan();
+        assert(spk_man);
+        LOCK(spk_man->cs_KeyStore);
+        spk_man->AddKey(keyOwn[i]);
     }
 
     std::vector<CKey> keyRemote(nKeys);
     for (int i = 0; i < nKeys; i++) {
         InsecureNewKey(keyRemote[i], true);
-        LOCK(wallet->cs_wallet);
-        wallet->m_spk_man->AddKey(keyRemote[i]); // need pubkey
+        auto spk_man = wallet->GetOrCreateLegacyScriptPubKeyMan();
+        assert(spk_man);
+        LOCK(spk_man->cs_KeyStore);
+        spk_man->AddKey(keyRemote[i]); // Need pubkey
     }
 
     std::vector<std::shared_ptr<CWallet>> temp_vpwallets;
