@@ -167,10 +167,10 @@ size_t SecMsgBucket::CountActive() const
     return nMessages;
 };
 
+/** Bucket management thread
+  */
 void ThreadSecureMsg()
 {
-    // Bucket management thread
-
     int64_t nLastPrunedFundingTxns = 0;
     uint32_t nLoop = 0;
     std::vector<std::pair<int64_t, NodeId> > vTimedOutLocks;
@@ -305,10 +305,10 @@ void ThreadSecureMsg()
     return;
 };
 
+/** Proof of work thread
+  */
 void ThreadSecureMsgPow()
 {
-    // Proof of work thread
-
     int rv;
     std::vector<uint8_t> vchKey;
     SecMsgStored smsgStored;
@@ -472,13 +472,11 @@ static void ListenWalletAdded(CSMSG *ps, const std::shared_ptr<CWallet>& wallet)
 #endif
 };
 
+/* Build the bucket set by scanning the files in the smsgstore dir.
+ * buckets should be empty
+ */
 int CSMSG::BuildBucketSet()
 {
-    /*
-        Build the bucket set by scanning the files in the smsgstore dir.
-        buckets should be empty
-    */
-
     LogPrint(BCLog::SMSG, "%s\n", __func__);
 
     int64_t  now            = GetAdjustedTime();
@@ -985,9 +983,10 @@ bool CSMSG::Shutdown()
     return true;
 };
 
+/** Start secure messaging at runtime
+  */
 bool CSMSG::Enable(std::shared_ptr<CWallet> pactive_wallet, std::vector<std::shared_ptr<CWallet>> &vpwallets)
 {
-    // Start secure messaging at runtime
     if (fSecMsgEnabled) {
         LogPrintf("SecureMsgEnable: secure messaging is already enabled.\n");
         return false;
@@ -1022,9 +1021,10 @@ bool CSMSG::Enable(std::shared_ptr<CWallet> pactive_wallet, std::vector<std::sha
     return true;
 };
 
+/** Stop secure messaging at runtime
+  */
 bool CSMSG::Disable()
 {
-    // Stop secure messaging at runtime
     if (!fSecMsgEnabled) {
         return error("%s: Secure messaging is already disabled.", __func__);
     }
@@ -1236,16 +1236,12 @@ void CSMSG::ShowFundingTxns(UniValue &result)
     result.pushKV("txns", txns);
 };
 
+/** Called from ProcessMessage
+  * Runs in ThreadMessageHandler2
+  */
 int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv)
 {
     /*
-        Called from ProcessMessage
-        Runs in ThreadMessageHandler2
-    */
-
-    /*
-        returns SecureMessageCodes
-
         TODO:
         Explain better and make use of better terminology such as
         Node A <-> Node B <-> Node C
@@ -1738,13 +1734,11 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     return SMSG_NO_ERROR;
 };
 
+/** Called from ProcessMessage
+  * Runs in ThreadMessageHandler2
+  */
 bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
 {
-    /*
-        Called from ProcessMessage
-        Runs in ThreadMessageHandler2
-    */
-
     if (::ChainstateActive().IsInitialBlockDownload()) { // Wait until chain synced
         return true;
     }
@@ -1901,18 +1895,11 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
     return true;
 };
 
-static int InsertAddress(CKeyID &hashKey, CPubKey &pubKey, SecMsgDB &addrpkdb)
+/** Insert key hash and public key to addressdb.
+  * Called when receiving a message. adds the public key of the sender to our database so we can reply.
+  */
+static int InsertAddress(CKeyID &hashKey, CPubKey &pubKey, SecMsgDB &addrpkdb) EXCLUSIVE_LOCKS_REQUIRED(cs_smsgDB)
 {
-    /*
-    Insert key hash and public key to addressdb.
-
-    (+) Called when receiving a message, it will automatically add the public key of the sender to our database so we can reply.
-
-    Should have LOCK(cs_smsg) where db is opened
-
-    returns SecureMessageCodes
-    */
-
     if (addrpkdb.ExistsPK(hashKey)) {
         //LogPrintf("DB already contains public key for address.\n");
         CPubKey cpkCheck;
@@ -1999,11 +1986,10 @@ static bool ScanBlock(CSMSG &smsg, const CBlock &block, SecMsgDB &addrpkdb,
     return true;
 };
 
-
+/** Scan block for public key addresses
+  */
 bool CSMSG::ScanBlock(const CBlock &block)
 {
-    // - scan block for public key addresses
-
     if (!options.fScanIncoming) {
         return true;
     }
@@ -2281,12 +2267,13 @@ int CSMSG::ManageLocalKey(CKeyID &keyId, ChangeType mode)
     return SMSG_NO_ERROR;
 };
 
+/** Wallet was unlocked
+  * Scan messages received while wallet was locked.
+  */
 int CSMSG::WalletUnlocked(CWallet *pwallet)
 {
 #ifdef ENABLE_WALLET
-    /*
-    When the wallet is unlocked, scan messages received while wallet was locked.
-    */
+
     if (!fSecMsgEnabled || m_vpwallets.size() < 1) {
         return SMSG_WALLET_UNSET;
     }
@@ -2422,17 +2409,14 @@ int CSMSG::WalletUnlocked(CWallet *pwallet)
     return SMSG_NO_ERROR;
 };
 
+/** When a key changes in the wallet, this function should be called to update the addresses vector.
+  *
+  * mode:
+  *  CT_NEW : a new key was added
+  *  CT_DELETED : delete an existing key from vector.
+  */
 int CSMSG::WalletKeyChanged(CKeyID &keyId, const std::string &sLabel, ChangeType mode)
 {
-    /*
-    SecureMsgWalletKeyChanged():
-    When a key changes in the wallet, this function should be called to update the addresses vector.
-
-    mode:
-        CT_NEW : a new key was added
-        CT_DELETED : delete an existing key from vector.
-    */
-
     if (!fSecMsgEnabled) {
         return SMSG_DISABLED;
     }
@@ -2447,18 +2431,15 @@ int CSMSG::WalletKeyChanged(CKeyID &keyId, const std::string &sLabel, ChangeType
     return ManageLocalKey(keyId, mode);
 };
 
+/** Check if message belongs to this node.
+  * If so add to inbox db.
+  *
+  * if !reportToGui don't fire NotifySecMsgInboxChanged
+  *  - loads messages received when wallet locked in bulk.
+  */
 int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool reportToGui, bool &fOwnMessage, bool unlocking)
 {
     LogPrint(BCLog::SMSG, "%s\n", __func__);
-    /*
-    Check if message belongs to this node.
-    If so add to inbox db.
-
-    if !reportToGui don't fire NotifySecMsgInboxChanged
-     - loads messages received when wallet locked in bulk.
-
-    returns SecureMessageCodes
-    */
 
     fOwnMessage = false;
     MessageData msg; // placeholder
@@ -2657,8 +2638,6 @@ int CSMSG::GetLocalKey(const CKeyID &key_id, CKey &key_out)
 
 int CSMSG::GetLocalPublicKey(const std::string &strAddress, std::string &strPublicKey)
 {
-    // returns SecureMessageCodes
-
     CBitcoinAddress address;
     CKeyID keyID;
     if (!address.SetString(strAddress) || !address.GetKeyID(keyID)) {
@@ -2677,8 +2656,6 @@ int CSMSG::GetLocalPublicKey(const std::string &strAddress, std::string &strPubl
 
 int CSMSG::GetStoredKey(const CKeyID &ckid, CPubKey &cpkOut)
 {
-    /* returns SecureMessageCodes
-    */
     LogPrint(BCLog::SMSG, "%s\n", __func__);
 
     {
@@ -2698,15 +2675,11 @@ int CSMSG::GetStoredKey(const CKeyID &ckid, CPubKey &cpkOut)
     return SMSG_NO_ERROR;
 };
 
+/** Add address and matching public key to the database
+  * Address and publicKey are in base58
+  */
 int CSMSG::AddAddress(std::string &address, std::string &publicKey)
 {
-    /*
-    Add address and matching public key to the database
-    address and publicKey are in base58
-
-    returns SecureMessageCodes
-    */
-
     CBitcoinAddress coinAddress(address);
     if (!coinAddress.IsValid()) {
         return errorN(SMSG_INVALID_ADDRESS, "%s - Address is not valid: %s.", __func__, address);
@@ -3038,7 +3011,7 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
     memcpy(&bktTime, &vchData[4], 8);
 
     // Check bktTime ()
-    //  Bucket may not exist yet - will be created when messages are added
+    // Bucket may not exist yet - will be created when messages are added
     int64_t now = GetAdjustedTime();
     if (bktTime % SMSG_BUCKET_LEN) {
         LogPrint(BCLog::SMSG, "Not a valid bucket time %d.\n", bktTime);
@@ -3190,12 +3163,11 @@ int CSMSG::CheckPurged(const SecureMessage *psmsg, const uint8_t *pPayload)
     return SMSG_NO_ERROR;
 };
 
+/** When the wallet is locked a copy of each received message is stored
+  * to be scanned later when wallet is unlocked
+  */
 int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload)
 {
-    /*
-    When the wallet is locked a copy of each received message is stored to be scanned later if wallet is unlocked
-    */
-
     LogPrint(BCLog::SMSG, "%s\n", __func__);
 
     if (!pHeader
@@ -3604,7 +3576,6 @@ int CSMSG::PruneFundingTxData()
 
 int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload)
 {
-    // return SecureMessageCodes
     const SecureMessage *psmsg = (SecureMessage*) pHeader;
 
     if (psmsg->IsPaidVersion()) {
@@ -3685,15 +3656,11 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
     return rv;
 };
 
+/** Proof of work and checksum
+  * May run in a thread, if shutdown detected, return.
+  */
 int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 {
-    /*  proof of work and checksum
-
-        May run in a thread, if shutdown detected, return.
-
-        returns SecureMessageCodes
-    */
-
     SecureMessage *psmsg = (SecureMessage*) pHeader;
 
     int64_t nStart = GetTimeMillis();
@@ -3757,22 +3724,17 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
     return SMSG_NO_ERROR;
 };
 
+/** Create a secure message
+  *
+  * Using a similar method to bitmessage.
+  * If bitmessage is secure this should be too.
+  * https://bitmessage.org/wiki/Encryption
+  *
+  * Some differences:
+  * bitmessage uses curve sect283r1 this uses secp256k1
+  */
 int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID &addressTo, const std::string &message)
 {
-    /* Create a secure message
-
-    Using similar method to bitmessage.
-    If bitmessage is secure this should be too.
-    https://bitmessage.org/wiki/Encryption
-
-    Some differences:
-    bitmessage seems to use curve sect283r1
-    *coin addresses use secp256k1
-
-    returns SecureMessageCodes
-
-    */
-
     bool fSendAnonymous = addressFrom.IsNull();
 
     if (LogAcceptCategory(BCLog::SMSG)) {
@@ -3975,15 +3937,14 @@ int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread, bool 
     return SMSG_NO_ERROR;
 };
 
+/** Encrypt secure message, and place it on the network
+  * Make a copy of the message to sender's first address and place in send queue db
+  * proof of work thread will pick up messages from  send queue db
+  */
 int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     SecureMessage &smsg, std::string &sError, bool fPaid,
     size_t nRetention, bool fTestFee, CAmount *nFee, size_t *nTxBytes, bool fFromFile, bool submit_msg, bool add_to_outbox, bool fund_from_rct, size_t nRingSize, CCoinControl *coin_control)
 {
-    /* Encrypt secure message, and place it on the network
-        Make a copy of the message to sender's first address and place in send queue db
-        proof of work thread will pick up messages from  send queue db
-    */
-
     bool fSendAnonymous = (addressFrom.IsNull());
 
     if (LogAcceptCategory(BCLog::SMSG)) {
@@ -4350,17 +4311,12 @@ std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage &smsg)
     return rv;
 };
 
+/** Decrypt secure message
+  * address is the owned address to decrypt with.
+  * validate first in SecureMsgValidate
+  */
 int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, MessageData &msg)
 {
-    /* Decrypt secure message
-
-        address is the owned address to decrypt with.
-
-        validate first in SecureMsgValidate
-
-        returns SecureMessageErrors
-    */
-
     if (LogAcceptCategory(BCLog::SMSG)) {
         LogPrintf("%s: using %s, testonly %d.\n", __func__, EncodeDestination(PKHash(address)), fTestOnly);
     }

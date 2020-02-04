@@ -195,7 +195,7 @@ public:
     int64_t               timestamp;
     std::string           sToAddress;
     std::string           sFromAddress;
-    std::vector<uint8_t>  vchMessage;         // null terminated plaintext
+    std::vector<uint8_t>  vchMessage; // null terminated plaintext
 };
 
 class SecMsgToken
@@ -490,7 +490,7 @@ public:
     int Decrypt(bool fTestOnly, const CKeyID &address, const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, MessageData &msg);
     int Decrypt(bool fTestOnly, const CKeyID &address, const SecureMessage &smsg, MessageData &msg);
 
-    RecursiveMutex cs_smsg; // all except inbox and outbox
+    RecursiveMutex cs_smsg; // All except inbox and outbox
 
     SecMsgKeyStore keyStore;
     std::map<int64_t, SecMsgBucket> buckets;
