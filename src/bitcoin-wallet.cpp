@@ -67,7 +67,7 @@ static bool WalletAppInit(int argc, char* argv[])
     SelectParams(gArgs.GetChainName());
     if (!fParticlMode) {
         WITNESS_SCALE_FACTOR = WITNESS_SCALE_FACTOR_BTC;
-        if (gArgs.GetBoolArg("-regtest", false)) {
+        if (gArgs.GetChainName() == CBaseChainParams::REGTEST) {
             ResetParams(CBaseChainParams::REGTEST, fParticlMode);
         }
     }
