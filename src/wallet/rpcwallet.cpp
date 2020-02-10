@@ -1268,6 +1268,7 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
             "{\n"
             "  \"address\":\"multisigaddress\",    (string) The value of the new multisig address.\n"
             "  \"redeemScript\":\"script\"         (string) The string value of the hex-encoded redemption script.\n"
+            "  \"descriptor\":\"descriptor\"     (string) The descriptor for this multisig\n"
             "}\n"
                 },
                 RPCExamples{
@@ -1312,6 +1313,9 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
     CScript inner;
     CTxDestination dest = AddAndGetMultisigDestination(required, pubkeys, output_type, spk_man, inner);
 
+    // Make the descriptor
+    std::unique_ptr<Descriptor> descriptor = InferDescriptor(GetScriptForDestination(dest), spk_man);
+
     UniValue result(UniValue::VOBJ);
     bool fbech32 = fParticlMode && request.params.size() > 3 ? request.params[3].get_bool() : false;
     bool f256Hash = fParticlMode && request.params.size() > 4 ? request.params[4].get_bool() : false;
@@ -1327,6 +1331,7 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
     }
 
     result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
+    result.pushKV("descriptor", descriptor->ToString());
     return result;
 }
 
