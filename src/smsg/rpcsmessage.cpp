@@ -108,9 +108,8 @@ static UniValue smsgdisable(const JSONRPCRequest &request)
                 },
                 RPCResults{},
                 RPCExamples{
-            HelpExampleCli("smsgdisable", "") +
-            "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("smsgdisable", "")
+                    HelpExampleCli("smsgdisable", "")
+                    + HelpExampleRpc("smsgdisable", "")
                 },
             }.Check(request);
 
@@ -135,9 +134,8 @@ static UniValue smsgsetwallet(const JSONRPCRequest &request)
                 },
                 RPCResults{},
                 RPCExamples{
-            HelpExampleCli("smsgsetwallet", "\"wallet_name\"") +
-            "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("smsgsetwallet", "\"wallet_name\"")
+                    HelpExampleCli("smsgsetwallet", "\"wallet_name\"")
+                    + HelpExampleRpc("smsgsetwallet", "\"wallet_name\"")
                 },
             }.Check(request);
 
@@ -192,6 +190,7 @@ static UniValue smsgoptions(const JSONRPCRequest &request)
                 RPCExamples{
             "\nList possible options with descriptions.\n"
             + HelpExampleCli("smsgoptions", "list 1")
+            + HelpExampleRpc("smsgoptions", "\"list\", 1")
                 },
             }.Check(request);
 
@@ -274,14 +273,18 @@ static UniValue smsgoptions(const JSONRPCRequest &request)
 static UniValue smsglocalkeys(const JSONRPCRequest &request)
 {
             RPCHelpMan{"smsglocalkeys",
-                "\nList and manage keys.\n",
+                "\nList and manage keys messages can be received with.\n",
                 {
                     {"whitelist|all|wallet|recv +/- \"address\"|anon +/- \"address\"", RPCArg::Type::STR, /* default */ "whitelist", "Command input."},
                     {"optype", RPCArg::Type::STR, /* default */ "", "Add or remove +/-."},
                     {"address", RPCArg::Type::STR, /* default */ "", "Address to affect."},
                 },
                 RPCResults{},
-                RPCExamples{""},
+                RPCExamples{
+                    "\nList local keys.\n"
+                    + HelpExampleCli("smsglocalkeys", "")
+                    + HelpExampleRpc("smsglocalkeys", "")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
@@ -481,7 +484,10 @@ static UniValue smsgscanchain(const JSONRPCRequest &request)
                 "\nLook for public keys in the block chain.\n",
                 {},
                 RPCResults{},
-                RPCExamples{""},
+                RPCExamples{
+                    HelpExampleCli("smsgscanchain", "")
+                    + HelpExampleRpc("smsgscanchain", "")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
@@ -509,7 +515,10 @@ static UniValue smsgscanbuckets(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResults{},
-                RPCExamples{""},
+                RPCExamples{
+                    HelpExampleCli("smsgscanbuckets", "")
+                    + HelpExampleRpc("smsgscanbuckets", "")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
@@ -545,7 +554,10 @@ static UniValue smsgaddaddress(const JSONRPCRequest &request)
                     {"pubkey", RPCArg::Type::STR, RPCArg::Optional::NO, "Public key for \"address\"."},
                 },
                 RPCResults{},
-                RPCExamples{""},
+                RPCExamples{
+                    HelpExampleCli("smsgaddaddress", "\"address\" \"public_key\"")
+                    + HelpExampleRpc("smsgaddaddress", "\"address\", \"public_key\"")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
@@ -574,7 +586,10 @@ static UniValue smsgaddlocaladdress(const JSONRPCRequest &request)
                     {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "Address to add."},
                 },
                 RPCResults{},
-                RPCExamples{""},
+                RPCExamples{
+                    HelpExampleCli("smsgaddlocaladdress", "\"address\"")
+                    + HelpExampleRpc("smsgaddlocaladdress", "\"address\"")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
@@ -1012,7 +1027,13 @@ static UniValue smsginbox(const JSONRPCRequest &request)
             "  \"text\": \"str\"                     (string) Message text\n"
             "}\n"
                 },
-                RPCExamples{""},
+                RPCExamples{
+                    "Display unread received messages:"
+                    + HelpExampleCli("smsginbox", "") +
+                    "Display all received messages that match \"address\":"
+                    + HelpExampleCli("smsginbox", "\"all\" \"address\"")
+                    + HelpExampleRpc("smsginbox", "")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
@@ -1178,7 +1199,10 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
             "  \"text\": \"str\"                     (string) Message text\n"
             "}\n"
                 },
-                RPCExamples{""},
+                RPCExamples{
+                    HelpExampleCli("smsgoutbox", "")
+                    + HelpExampleRpc("smsgoutbox", "")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
@@ -1307,12 +1331,15 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
 static UniValue smsgbuckets(const JSONRPCRequest &request)
 {
             RPCHelpMan{"smsgbuckets",
-                "\nDisplay some statistics.\n",
+                "\nDisplay message bucket information.\n",
                 {
                     {"mode", RPCArg::Type::STR, /* default */ "stats", "stats|total|dump. \"dump\" will remove all buckets."},
                 },
                 RPCResults{},
-                RPCExamples{""},
+                RPCExamples{
+                    HelpExampleCli("smsgbuckets", "")
+                    + HelpExampleRpc("smsgbuckets", "")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
@@ -1439,13 +1466,16 @@ static UniValue smsgview(const JSONRPCRequest &request)
                 "Full date/time format for from and to is yyyy-mm-ddThh:mm:ss\n"
                 "From and to will accept incomplete inputs like: -from 2016\n",
                 {
-                    {"address/label", RPCArg::Type::STR, /* default */ "", ""},
-                    {"asc/desc", RPCArg::Type::STR, /* default */ "", ""},
+                    {"address/label", RPCArg::Type::STR, /* default */ "*", ""},
+                    {"asc/desc", RPCArg::Type::STR, /* default */ "asc", ""},
                     {"-from yyyy-mm-dd", RPCArg::Type::STR, /* default */ "", ""},
                     {"-to yyyy-mm-dd", RPCArg::Type::STR, /* default */ "", ""},
                 },
                 RPCResults{},
-                RPCExamples{""},
+                RPCExamples{
+                    HelpExampleCli("smsgview", "")
+                    + HelpExampleRpc("smsgview", "")
+                },
             }.Check(request);
 
     EnsureSMSGIsEnabled();
