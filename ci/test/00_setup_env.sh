@@ -35,6 +35,7 @@ export RUN_UNIT_TESTS=${RUN_UNIT_TESTS:-true}
 export RUN_FUNCTIONAL_TESTS=${RUN_FUNCTIONAL_TESTS:-true}
 export TEST_RUNNER_BITCOIN=${TEST_RUNNER_BITCOIN:---bitcoin}
 export RUN_FUZZ_TESTS=${RUN_FUZZ_TESTS:-false}
+export CONTAINER_NAME=${CONTAINER_NAME:-ci_unnamed}
 export DOCKER_NAME_TAG=${DOCKER_NAME_TAG:-ubuntu:18.04}
 # Randomize test order.
 # See https://www.boost.org/doc/libs/1_71_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference/random.html

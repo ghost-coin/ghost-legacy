@@ -26,7 +26,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter& ss, const uint256& hash,
 
         switch (output.second.nType) {
             case OUTPUT_STANDARD:
-                ss << VARINT(output.second.out.nValue, VarIntMode::NONNEGATIVE_SIGNED);
+                ss << VARINT_MODE(output.second.out.nValue, VarIntMode::NONNEGATIVE_SIGNED);
                 stats.nTransactionOutputs++;
                 stats.nTotalAmount += output.second.out.nValue;
                 break;

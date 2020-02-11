@@ -85,9 +85,9 @@ implicit-signed-integer-truncation:test/skiplist_tests.cpp
 implicit-signed-integer-truncation:torcontrol.cpp
 implicit-unsigned-integer-truncation:crypto/*
 implicit-unsigned-integer-truncation:leveldb/*
+implicit-integer-sign-change:crc32c/*
 
-
+# Particl specific
 unsigned-integer-overflow:xxhash/xxhash.c
 implicit-signed-integer-truncation:unilib/*
 implicit-integer-sign-change:unilib/*
-

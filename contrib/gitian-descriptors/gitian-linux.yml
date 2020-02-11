@@ -48,9 +48,9 @@ script: |
   set -e -o pipefail
 
   WRAP_DIR=$HOME/wrapped
-  HOSTS="i686-pc-linux-gnu x86_64-linux-gnu arm-linux-gnueabihf aarch64-linux-gnu riscv64-linux-gnu"
+  HOSTS="x86_64-linux-gnu arm-linux-gnueabihf aarch64-linux-gnu riscv64-linux-gnu"
   CONFIGFLAGS="--enable-glibc-back-compat --enable-reduce-exports --disable-bench --disable-gui-tests --enable-usbdevice"
-  HOSTS_NOUSB="i686-pc-linux-gnu x86_64-linux-gnu"
+  HOSTS_NOUSB="x86_64-linux-gnu"
   CONFIGFLAGS_NOUSB="--enable-glibc-back-compat --enable-reduce-exports --disable-bench --disable-gui-tests --disable-usbdevice"
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="date ar ranlib nm"

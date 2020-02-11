@@ -34,6 +34,7 @@ EXCLUDE_DIRS = [
     "src/leveldb/",
     "src/secp256k1/",
     "src/univalue/",
+    "src/crc32c/",
 
     "src/unilib/",
     "src/lz4/",
