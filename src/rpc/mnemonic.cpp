@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -19,6 +19,7 @@
 
 //typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char> > SecureString;
 
+<<<<<<< HEAD
 int GetLanguageOffset(std::string sIn)
 {
     int nLanguage = -1;
@@ -39,7 +40,7 @@ int GetLanguageOffset(std::string sIn)
     return nLanguage;
 };
 
-UniValue mnemonic(const JSONRPCRequest &request)
+UniValue mnemonicrpc(const JSONRPCRequest &request)
 {
     std::string help = ""
         "mnemonic new|decode|addchecksum|dumpwords|listlanguages\n"
@@ -87,22 +88,20 @@ UniValue mnemonic(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
 
     if (mode == "new") {
-        int nLanguage = WLL_ENGLISH;
+        int nLanguage = mnemonic::WLL_ENGLISH;
         int nBytesEntropy = 32;
-        std::string sPassword, sError;
+        std::string sMnemonic, sPassword, sError;
+        CExtKey ekMaster;
 
         if (request.params.size() > 1) {
             sPassword = request.params[1].get_str();
         }
         if (request.params.size() > 2) {
-            nLanguage = GetLanguageOffset(request.params[2].get_str());
+            nLanguage = mnemonic::GetLanguageOffset(request.params[2].get_str());
         }
 
         if (request.params.size() > 3) {
-            std::stringstream sstr(request.params[3].get_str());
-
-            sstr >> nBytesEntropy;
-            if (!sstr) {
+            if (!ParseInt32(request.params[3].get_str(), &nBytesEntropy)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid num bytes entropy");
             }
             if (nBytesEntropy < 16 || nBytesEntropy > 64) {
@@ -116,20 +115,15 @@ UniValue mnemonic(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
         }
 
-        std::vector<uint8_t> vEntropy, vSeed;
-        vEntropy.resize(nBytesEntropy);
-
-        std::string sMnemonic;
-        CExtKey ekMaster;
-
+        std::vector<uint8_t> vEntropy(nBytesEntropy), vSeed;
         for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i) {
             GetStrongRandBytes2(&vEntropy[0], nBytesEntropy);
 
-            if (0 != MnemonicEncode(nLanguage, vEntropy, sMnemonic, sError)) {
-                throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("MnemonicEncode failed %s.", sError.c_str()).c_str());
+            if (0 != mnemonic::Encode(nLanguage, vEntropy, sMnemonic, sError)) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("mnemonic::Encode failed %s.", sError.c_str()).c_str());
             }
-            if (0 != MnemonicToSeed(sMnemonic, sPassword, vSeed)) {
-                throw JSONRPCError(RPC_INTERNAL_ERROR, "MnemonicToSeed failed.");
+            if (0 != mnemonic::ToSeed(sMnemonic, sPassword, vSeed)) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR, "mnemonic::ToSeed failed.");
             }
 
             ekMaster.SetSeed(&vSeed[0], vSeed.size());
@@ -181,17 +175,17 @@ UniValue mnemonic(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
         }
         if (sMnemonic.empty()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Mnemonic can't be blank.");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "mnemonic:: can't be blank.");
         }
 
         // Decode to determine validity of mnemonic
         std::vector<uint8_t> vEntropy, vSeed;
         int nLanguage = -1;
-        if (0 != MnemonicDecode(nLanguage, sMnemonic, vEntropy, sError)) {
-            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("MnemonicDecode failed %s.", sError.c_str()).c_str());
+        if (0 != mnemonic::Decode(nLanguage, sMnemonic, vEntropy, sError)) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("mnemonic::Decode failed %s.", sError.c_str()).c_str());
         }
-        if (0 != MnemonicToSeed(sMnemonic, sPassword, vSeed)) {
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "MnemonicToSeed failed.");
+        if (0 != mnemonic::ToSeed(sMnemonic, sPassword, vSeed)) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "mnemonic::ToSeed failed.");
         }
 
         CExtKey ekMaster;
@@ -218,7 +212,7 @@ UniValue mnemonic(const JSONRPCRequest &request)
             result.pushKV("master", eKey58.ToString());
         }
 
-        result.pushKV("language", MnemonicGetLanguage(nLanguage));
+        result.pushKV("language", mnemonic::GetLanguage(nLanguage));
 
         if (sMnemonic.size() > 0) {
             memory_cleanse(&sMnemonic[0], sMnemonic.size());
@@ -235,23 +229,23 @@ UniValue mnemonic(const JSONRPCRequest &request)
 
         sMnemonicIn = request.params[1].get_str();
 
-        if (0 != MnemonicAddChecksum(-1, sMnemonicIn, sMnemonicOut, sError)) {
-            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("MnemonicAddChecksum failed %s", sError.c_str()).c_str());
+        if (0 != mnemonic::AddChecksum(-1, sMnemonicIn, sMnemonicOut, sError)) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("mnemonic::AddChecksum failed %s", sError.c_str()).c_str());
         }
         result.pushKV("result", sMnemonicOut);
     } else
     if (mode == "dumpwords") {
-        int nLanguage = WLL_ENGLISH;
+        int nLanguage = mnemonic::WLL_ENGLISH;
 
         if (request.params.size() > 1) {
-            nLanguage = GetLanguageOffset(request.params[1].get_str());
+            nLanguage = mnemonic::GetLanguageOffset(request.params[1].get_str());
         }
 
         int nWords = 0;
         UniValue arrayWords(UniValue::VARR);
 
         std::string sWord, sError;
-        while (0 == MnemonicGetWord(nLanguage, nWords, sWord, sError)) {
+        while (0 == mnemonic::GetWord(nLanguage, nWords, sWord, sError)) {
             arrayWords.push_back(sWord);
             nWords++;
         }
@@ -260,9 +254,9 @@ UniValue mnemonic(const JSONRPCRequest &request)
         result.pushKV("num_words", nWords);
     } else
     if (mode == "listlanguages") {
-        for (size_t k = 1; k < WLL_MAX; ++k) {
-            std::string sName(mnLanguagesTag[k]);
-            std::string sDesc(mnLanguagesDesc[k]);
+        for (size_t k = 1; k < mnemonic::WLL_MAX; ++k) {
+            std::string sName(mnemonic::mnLanguagesTag[k]);
+            std::string sDesc(mnemonic::mnLanguagesDesc[k]);
             result.pushKV(sName, sDesc);
         }
     } else {
@@ -275,7 +269,7 @@ UniValue mnemonic(const JSONRPCRequest &request)
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
-    { "mnemonic",           "mnemonic",               &mnemonic,               {} },
+    { "mnemonic",           "mnemonic",               &mnemonicrpc,            {} },
 };
 
 void RegisterMnemonicRPCCommands(CRPCTable &tableRPC)

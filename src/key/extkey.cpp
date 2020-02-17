@@ -95,7 +95,7 @@ std::vector<uint8_t> &PushUInt32(std::vector<uint8_t> &v, const uint32_t i)
     return v;
 };
 
-#define _UINT32_MAX  (0xffffffff)
+#define _UINT32_MAX (0xffffffff)
 static uint32_t strtou32max(const char *nptr, int base)
 {
     const char *s;
