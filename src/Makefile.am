@@ -34,6 +34,7 @@ LIBPARTICL_CRYPTO_BASE=crypto/libparticl_crypto_base.a
 LIBPARTICLQT=qt/libparticlqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 LIBPARTICL_SMSG=libparticl_smsg.a
+LIBPARTICL_MNEMONIC=libparticl_mnemonic.a
 
 if ENABLE_ZMQ
 LIBPARTICL_ZMQ=libparticl_zmq.a
@@ -79,6 +80,7 @@ EXTRA_LIBRARIES += \
   $(LIBPARTICL_WALLET_TOOL) \
   $(LIBPARTICL_USBDEVICE) \
   $(LIBPARTICL_SMSG) \
+  $(LIBPARTICL_MNEMONIC) \
   $(LIBPARTICL_ZMQ)
 
 lib_LTLIBRARIES = $(LIBPARTICLCONSENSUS)
@@ -156,20 +158,8 @@ BITCOIN_CORE_H = \
   key.h \
   key/stealth.h \
   key/extkey.h \
-  key/mnemonic.h \
-  unilib/uninorms.h \
-  unilib/utf8.h \
   key/types.h \
   key/keyutil.h \
-  key/wordlists/chinese_simplified.h \
-  key/wordlists/chinese_traditional.h \
-  key/wordlists/english.h \
-  key/wordlists/french.h \
-  key/wordlists/japanese.h \
-  key/wordlists/spanish.h \
-  key/wordlists/italian.h \
-  key/wordlists/korean.h \
-  key/wordlists/czech.h \
   key_io.h \
   dbwrapper.h \
   limitedmap.h \
@@ -352,7 +342,6 @@ libparticl_server_a_SOURCES = \
   pos/kernel.cpp \
   rest.cpp \
   rpc/anon.cpp \
-  rpc/mnemonic.cpp \
   rpc/blockchain.cpp \
   rpc/mining.cpp \
   rpc/misc.cpp \
@@ -573,9 +562,6 @@ libparticl_common_a_SOURCES = \
   key/extkey.cpp \
   key/stealth.cpp \
   smsg/crypter.cpp \
-  key/mnemonic.cpp \
-  unilib/uninorms.cpp \
-  unilib/utf8.cpp \
   key_io.cpp \
   merkleblock.cpp \
   netaddress.cpp \
@@ -655,6 +641,27 @@ libparticl_smsg_a_SOURCES = \
   smsg/rpcsmessage.cpp
 
 
+libparticl_mnemonic_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libparticl_mnemonic_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libparticl_mnemonic_a_CFLAGS = $(AM_CFLAGS) $(PIE_FLAGS)
+libparticl_mnemonic_a_SOURCES = \
+  unilib/uninorms.h \
+  unilib/utf8.h \
+  unilib/uninorms.cpp \
+  unilib/utf8.cpp \
+  key/wordlists/chinese_simplified.h \
+  key/wordlists/chinese_traditional.h \
+  key/wordlists/english.h \
+  key/wordlists/french.h \
+  key/wordlists/japanese.h \
+  key/wordlists/spanish.h \
+  key/wordlists/italian.h \
+  key/wordlists/korean.h \
+  key/wordlists/czech.h \
+  key/mnemonic.h \
+  key/mnemonic.cpp \
+  rpc/mnemonic.cpp
+
 if GLIBC_BACK_COMPAT
 libparticl_util_a_SOURCES += compat/glibc_compat.cpp
 AM_LDFLAGS += $(COMPAT_LDFLAGS)
@@ -699,6 +706,7 @@ particld_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
   $(LIBPARTICL_SMSG) \
+  $(LIBPARTICL_MNEMONIC) \
   $(LIBPARTICL_USBDEVICE)
 
 particld_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
@@ -767,6 +775,7 @@ particl_wallet_LDADD = \
   $(LIBPARTICL_UTIL) \
   $(LIBPARTICL_CRYPTO) \
   $(LIBPARTICL_SMSG) \
+  $(LIBPARTICL_MNEMONIC) \
   $(LIBPARTICL_USBDEVICE) \
   $(LIBPARTICL_ZMQ) \
   $(LIBLEVELDB) \
