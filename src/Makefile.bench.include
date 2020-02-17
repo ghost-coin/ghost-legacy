@@ -65,7 +65,8 @@ bench_bench_particl_LDADD = \
   $(LIBUNIVALUE) \
   $(EVENT_PTHREADS_LIBS) \
   $(EVENT_LIBS) \
-  $(LIBPARTICL_SMSG)
+  $(LIBPARTICL_SMSG) \
+  $(LIBPARTICL_MNEMONIC)
 
 if ENABLE_ZMQ
 bench_bench_particl_LDADD += $(LIBPARTICL_ZMQ) $(ZMQ_LIBS)
