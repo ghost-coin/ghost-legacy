@@ -13,6 +13,8 @@
 #include <util/translation.h>
 #include <wallet/wallettool.h>
 
+#include <key/mnemonic.h>
+
 #include <functional>
 
 const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
@@ -29,6 +31,7 @@ static void SetupWalletToolArgs()
 
     gArgs.AddArg("info", "Get wallet info", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
     gArgs.AddArg("create", "Create new wallet file", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
+    gArgs.AddArg("generatemnemonic", "Generate a new mnemonic: <language> <bytes_entropy>", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
 
     gArgs.AddArg("-btcmode", "", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
 }
@@ -83,6 +86,48 @@ int main(int argc, char* argv[])
 #endif
     SetupEnvironment();
     RandomInit();
+
+
+    for (int i = 1; i < argc; ++i) {
+        if (IsSwitchChar(argv[i][0])) {
+            continue;
+        }
+        if (strcmp(argv[i], "generatemnemonic") == 0) {
+            int nLanguage = mnemonic::WLL_ENGLISH;
+            int nBytesEntropy = 32;
+
+            if (argc > i + 1) {
+                nLanguage = mnemonic::GetLanguageOffset(argv[i+1]);
+            }
+            if (argc > i + 2) {
+                if (!ParseInt32(argv[i+2], &nBytesEntropy)) {
+                    tfm::format(std::cerr, "Error: Invalid num bytes entropy.\n");
+                    return EXIT_FAILURE;
+                }
+                if (nBytesEntropy < 16 || nBytesEntropy > 64) {
+                    tfm::format(std::cerr, "Error: Num bytes entropy out of range [16,64].\n");
+                    return EXIT_FAILURE;
+                }
+            }
+            std::string sMnemonic, sError;
+            std::vector<uint8_t> vEntropy(nBytesEntropy);
+
+            for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i) {
+                GetStrongRandBytes2(&vEntropy[0], nBytesEntropy);
+
+                if (0 != mnemonic::Encode(nLanguage, vEntropy, sMnemonic, sError)) {
+                    tfm::format(std::cerr, "Error: MnemonicEncode failed %s.\n", sError);
+                    return EXIT_FAILURE;
+                }
+                break;
+            }
+
+            tfm::format(std::cout, "%s\n", sMnemonic);
+            return EXIT_SUCCESS;
+        }
+    }
+
+
     try {
         if (!WalletAppInit(argc, argv)) return EXIT_FAILURE;
     } catch (const std::exception& e) {

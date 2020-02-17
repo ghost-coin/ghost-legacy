@@ -1455,11 +1455,10 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
 
         // First check the mnemonic is valid
         int nLanguage = -1;
-        if (0 != MnemonicDecode(nLanguage, sMnemonic, vEntropy, sError)) {
+        if (0 != mnemonic::Decode(nLanguage, sMnemonic, vEntropy, sError)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("MnemonicDecode failed: %s", sError.c_str()));
         }
-
-        if (0 != MnemonicToSeed(sMnemonic, sPassphrase, vSeed)) {
+        if (0 != mnemonic::ToSeed(sMnemonic, sPassphrase, vSeed)) {
             throw JSONRPCError(RPC_MISC_ERROR, "MnemonicToSeed failed.");
         }
 

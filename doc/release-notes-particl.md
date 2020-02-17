@@ -13,6 +13,7 @@ Next Major Version
 ==============
 
 - rpc: Add coinstakeinfo option to getblock.
+- Added generatemnemonic command to particl-wallet.
 
 
 0.18.1.7

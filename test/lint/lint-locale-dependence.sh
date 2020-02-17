@@ -62,6 +62,7 @@ KNOWN_VIOLATIONS=(
     "src/test/sighash_tests.cpp:.*strtoul"
     "src/rpc/rpcutil.cpp:.*trim"
     "src/key/extkey.cpp:.*tolower"
+    "src/key/mnemonic.cpp:.*tolower"
     "src/rpc/mnemonic.cpp:.*tolower"
     "src/smsg/rpcsmessage.cpp:.*tolower"
     "src/wallet/rpchdwallet.cpp:.*tolower"

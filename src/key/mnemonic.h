@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2015 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -8,6 +8,8 @@
 
 #include <string>
 #include <vector>
+
+namespace mnemonic {
 
 enum WordListLanguages
 {
@@ -30,15 +32,17 @@ extern const char *mnLanguagesTag[WLL_MAX];
 int GetWord(int o, const char *pwl, int max, std::string &sWord);
 int GetWordOffset(const char *p, const char *pwl, int max, int &o);
 
-int MnemonicDetectLanguage(const std::string &sWordList);
-int MnemonicEncode(int nLanguage, const std::vector<uint8_t> &vEntropy, std::string &sWordList, std::string &sError);
-int MnemonicDecode(int &nLanguage, const std::string &sWordListIn, std::vector<uint8_t> &vEntropy, std::string &sError, bool fIgnoreChecksum=false);
-int MnemonicToSeed(const std::string &sMnemonic, const std::string &sPasswordIn, std::vector<uint8_t> &vSeed);
-int MnemonicAddChecksum(int nLanguageIn, const std::string &sWordListIn, std::string &sWordListOut, std::string &sError);
-int MnemonicGetWord(int nLanguage, int nWord, std::string &sWord, std::string &sError);
-std::string MnemonicGetLanguage(int nLanguage);
-bool MnemonicHaveLanguage(int nLanguage);
+int GetLanguageOffset(std::string sIn);
+int DetectLanguage(const std::string &sWordList);
+int Encode(int nLanguage, const std::vector<uint8_t> &vEntropy, std::string &sWordList, std::string &sError);
+int Decode(int &nLanguage, const std::string &sWordListIn, std::vector<uint8_t> &vEntropy, std::string &sError, bool fIgnoreChecksum=false);
+int ToSeed(const std::string &sMnemonic, const std::string &sPasswordIn, std::vector<uint8_t> &vSeed);
+int AddChecksum(int nLanguageIn, const std::string &sWordListIn, std::string &sWordListOut, std::string &sError);
+int GetWord(int nLanguage, int nWord, std::string &sWord, std::string &sError);
+std::string GetLanguage(int nLanguage);
+bool HaveLanguage(int nLanguage);
 
+}
 
 #endif // PARTICL_KEY_MNEMONIC_H
 
