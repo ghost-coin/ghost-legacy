@@ -10408,9 +10408,10 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
         }
 
         if (IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)) {
+            std::set<CTxDestination> tx_destinations;
             const CScript *pscript = txout->GetPScriptPubKey();
             if (pscript) {
-                SetUsedDestinationState(pscript, true);
+                SetUsedDestinationState(pscript, true, tx_destinations);
             }
         }
     }
@@ -11667,14 +11668,16 @@ bool CHDWallet::IsUsedDestination(const uint256& hash, unsigned int n) const
     return false;
 }
 
-void CHDWallet::SetUsedDestinationState(const CScript *pscript, bool used)
+void CHDWallet::SetUsedDestinationState(const CScript *pscript, bool used, std::set<CTxDestination>& tx_destinations)
 {
     CTxDestination dst;
     if (pscript && ExtractDestination(*pscript, dst)) {
         if (::IsMine(*this, dst)) {
             LOCK(cs_wallet);
             if (used && !GetDestData(dst, "used", nullptr)) {
-                AddDestData(dst, "used", "p"); // p for "present", opposite of absent (null)
+                if (AddDestData(dst, "used", "p")) { // p for "present", opposite of absent (null)
+                    tx_destinations.insert(dst);
+                }
             } else if (!used && GetDestData(dst, "used", nullptr)) {
                 EraseDestData(dst, "used");
             }
@@ -11682,13 +11685,13 @@ void CHDWallet::SetUsedDestinationState(const CScript *pscript, bool used)
     }
 }
 
-void CHDWallet::SetUsedDestinationState(const uint256& hash, unsigned int n, bool used)
+void CHDWallet::SetUsedDestinationState(const uint256& hash, unsigned int n, bool used, std::set<CTxDestination>& tx_destinations)
 {
     const CWalletTx* srctx = GetWalletTx(hash);
     if (srctx) {
         const auto &txout = srctx->tx->vpout[n];
         const CScript *pscript = txout->GetPScriptPubKey();
-        return SetUsedDestinationState(pscript, used);
+        return SetUsedDestinationState(pscript, used, tx_destinations);
     }
 }
 

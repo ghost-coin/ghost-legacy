@@ -110,6 +110,7 @@ class MnemonicTest(ParticlTestFramework):
             ro = node.mnemonic('decode', 'abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb', '')
             assert(False), 'Decoded empty word string.'
         except JSONRPCException as e:
+            print(e.error['message'])
             assert("Mnemonic can't be blank" in e.error['message'])
 
         # Normalise 'alléger'
