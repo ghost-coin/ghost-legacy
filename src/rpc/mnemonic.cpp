@@ -154,7 +154,7 @@ UniValue mnemonicrpc(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
         }
         if (sMnemonic.empty()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "mnemonic:: can't be blank.");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Mnemonic can't be blank.");
         }
 
         // Decode to determine validity of mnemonic

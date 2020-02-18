@@ -97,8 +97,13 @@ src/qt/particl-qt.includes
 *.qm
 Makefile
 !depends/Makefile
+<<<<<<< HEAD
 particl-qt
 Particl-Qt.app
+=======
+src/qt/bitcoin-qt
+Bitcoin-Qt.app
+>>>>>>> bitcoin
 background.tiff*
 
 # Qt Creator
