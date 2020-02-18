@@ -624,6 +624,21 @@ std::string GetLanguage(int nLanguage)
     return mnLanguagesDesc[nLanguage];
 };
 
+std::string ListEnabledLanguages(std::string separator)
+{
+    std::string enabled_languages;
+    for (size_t k = 1; k < WLL_MAX; ++k) {
+        if (!HaveLanguage(k)) {
+            continue;
+        }
+        if (enabled_languages.size()) {
+            enabled_languages += separator;
+        }
+        enabled_languages += mnLanguagesTag[k];
+    }
+    return enabled_languages;
+};
+
 bool HaveLanguage(int nLanguage){
     return mnLanguages[nLanguage];
 }

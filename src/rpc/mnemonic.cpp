@@ -21,23 +21,12 @@
 
 UniValue mnemonicrpc(const JSONRPCRequest &request)
 {
-    std::string enabled_languages;
-    for (size_t k = 1; k < mnemonic::WLL_MAX; ++k) {
-        if (!mnemonic::HaveLanguage(k)) {
-            continue;
-        }
-        if (enabled_languages.size()) {
-            enabled_languages += "|";
-        }
-        enabled_languages += mnemonic::mnLanguagesTag[k];
-    }
-
     std::string help = ""
         "mnemonic new|decode|addchecksum|dumpwords|listlanguages\n"
         "mnemonic new ( \"password\" language nBytesEntropy bip44 )\n"
         "    Generate a new extended key and mnemonic\n"
         "    password, can be blank "", default blank\n"
-        "    language, " + enabled_languages + ", default english\n"
+        "    language, " + mnemonic::ListEnabledLanguages("|") + ", default english\n"
         "    nBytesEntropy, 16 -> 64, default 32\n"
         "    bip44, true|false, default true\n"
         "mnemonic decode \"password\" \"mnemonic\" ( bip44 )\n"

@@ -40,6 +40,7 @@ int ToSeed(const std::string &sMnemonic, const std::string &sPasswordIn, std::ve
 int AddChecksum(int nLanguageIn, const std::string &sWordListIn, std::string &sWordListOut, std::string &sError);
 int GetWord(int nLanguage, int nWord, std::string &sWord, std::string &sError);
 std::string GetLanguage(int nLanguage);
+std::string ListEnabledLanguages(std::string separator);
 bool HaveLanguage(int nLanguage);
 
 }
