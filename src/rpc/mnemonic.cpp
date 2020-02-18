@@ -19,27 +19,6 @@
 
 //typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char> > SecureString;
 
-<<<<<<< HEAD
-int GetLanguageOffset(std::string sIn)
-{
-    int nLanguage = -1;
-    std::transform(sIn.begin(), sIn.end(), sIn.begin(), ::tolower);
-
-    for (size_t k = 1; k < WLL_MAX; ++k) {
-        if (sIn != mnLanguagesTag[k]) {
-            continue;
-        }
-        nLanguage = k;
-        break;
-    }
-
-    if (nLanguage < 1 || nLanguage >= WLL_MAX) {
-        throw std::runtime_error("Unknown language.");
-    }
-
-    return nLanguage;
-};
-
 UniValue mnemonicrpc(const JSONRPCRequest &request)
 {
     std::string help = ""

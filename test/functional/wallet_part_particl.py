@@ -737,6 +737,28 @@ class WalletParticlTest(ParticlTestFramework):
         assert(nodes[1].debugwallet()['m_is_only_instance'] == False)
 
 
+        self.log.info('Test wallet-tool generatemnemonic')
+        p = self.particl_wallet_process('-h', 'generatemnemonic')
+        stdout, stderr = p.communicate()
+        assert_equal(p.poll(), 0)
+        assert_equal(stderr, '')
+        assert('1. language' in stdout)
+        p = self.particl_wallet_process('generatemnemonic')
+        stdout, stderr = p.communicate()
+        assert_equal(p.poll(), 0)
+        assert_equal(stderr, '')
+        assert(len(stdout.split(' ')) == 24)
+
+        p = self.particl_wallet_process('generatemnemonic', 'spanish', '16')
+        stdout, stderr = p.communicate()
+        assert_equal(p.poll(), 0)
+        assert_equal(stderr, '')
+        assert(len(stdout.split(' ')) == 12)
+        ro = nodes[0].mnemonic('decode', '', stdout.strip())
+        assert(ro['language'] == 'Spanish')
+
+
+
 if __name__ == '__main__':
     WalletParticlTest().main()
 

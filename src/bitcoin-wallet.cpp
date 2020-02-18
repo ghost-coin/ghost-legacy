@@ -90,11 +90,26 @@ int main(int argc, char* argv[])
     RandomInit();
 
 
+    bool show_help = false;
     for (int i = 1; i < argc; ++i) {
         if (IsSwitchChar(argv[i][0])) {
+            char *p = argv[i];
+            while (*p == '-') p++;
+            if (strcmp(p, "?") == 0 || strcmp(p, "h") == 0 || strcmp(p, "help") == 0) {
+                show_help = true;
+            }
             continue;
         }
         if (strcmp(argv[i], "generatemnemonic") == 0) {
+            if (show_help) {
+                std::string usage = "generatemnemonic <language> <bytes_entropy>\n"
+                    "\nArguments:\n"
+                    "1. language        (string, optional, default=english) Which wordlist to use (" + mnemonic::ListEnabledLanguages(", ") + ").\n"
+                    "2. bytes_entropy   (numeric, optional, default=32) Affects length of mnemonic, [16, 64].\n";
+                tfm::format(std::cout, "%s\n", usage);
+                return EXIT_SUCCESS;
+            }
+
             int nLanguage = mnemonic::WLL_ENGLISH;
             int nBytesEntropy = 32;
 

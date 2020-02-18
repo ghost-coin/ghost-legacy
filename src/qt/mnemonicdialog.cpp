@@ -65,7 +65,7 @@ MnemonicDialog::MnemonicDialog(QWidget *parent, WalletModel *wm) :
 
     ui->cbxLanguage->clear();
     for (int l = 1; l < mnemonic::WLL_MAX; ++l) {
-        ui->cbxLanguage->addItem(mnemonic::mnLanguagesDesc[l], QString(mnLanguagesTag[l]));
+        ui->cbxLanguage->addItem(mnemonic::mnLanguagesDesc[l], QString(mnemonic::mnLanguagesTag[l]));
     }
 
     return;

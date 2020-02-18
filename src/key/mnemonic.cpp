@@ -162,7 +162,7 @@ int GetLanguageOffset(std::string sIn)
         break;
     }
 
-    if (nLanguage < 1 || nLanguage >= WLL_MAX || !HaveLanguage(nLanguage)) {
+    if (nLanguage < 1 || nLanguage >= WLL_MAX) {
         throw std::runtime_error("Unknown language.");
     }
 
@@ -559,3 +559,17 @@ std::string GetLanguage(int nLanguage)
 
     return mnLanguagesDesc[nLanguage];
 };
+
+std::string ListEnabledLanguages(std::string separator)
+{
+    std::string enabled_languages;
+    for (size_t k = 1; k < WLL_MAX; ++k) {
+        if (enabled_languages.size()) {
+            enabled_languages += separator;
+        }
+        enabled_languages += mnLanguagesTag[k];
+    }
+    return enabled_languages;
+};
+
+}
