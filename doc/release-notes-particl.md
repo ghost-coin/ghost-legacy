@@ -1,5 +1,10 @@
-Next Major Version
+
+
+0.19.1.1
 ==============
+
+ - Merged Bitcoin 0.19.1 backports.
+ - Added generatemnemonic command to particl-wallet.
 
 
 0.19.0.1
@@ -10,12 +15,14 @@ Next Major Version
 
 0.18.1.7
 ==============
+
 - wallet: Fix missing low amount error string.
 - hardware devices: Add ID for Ledger Nano S firmware 1.6
 
 
 0.18.1.6
 ==============
+
 - Fixed crash when rescanning a watchonly account.
 - Fixed errors when calling the mnemonic rpc function concurrently.
 - Fixed crash when initaccountfromdevice is called before setting udev rules.
