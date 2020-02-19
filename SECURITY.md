@@ -12,7 +12,7 @@ Versions of Particl Core that are currently supported with security updates:
 
 ## Reporting a Vulnerability
 
-To report security issues send an email to core@particl.io
+To report security issues send an email to core@particl.io \
 Please note this email address is not for support and is only for issues directly affecting Particl Core.
 
 

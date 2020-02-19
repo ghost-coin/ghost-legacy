@@ -4,26 +4,34 @@ Next Major Version
 - Added Czech bip39 wordlist.
 - No default account wallet warning is silenced if wallet was intentionally created empty.
 - Enable blockchain pruning.
-    Requires a rolling index for chain reorgs and paid smsg validation.
-    On the first run the rolling indices will be initialised.
-    If you later run an older release use the -rebuildrollingindices flag to manually rebuild the indices again.
+   - Requires a rolling index for chain reorgs and paid smsg validation.
+   - On the first run the rolling indices will be initialised.
+   - If you later run an older release use the -rebuildrollingindices flag to manually rebuild the indices again.
+
+
+0.19.1.1
+==============
+
+ - Merged Bitcoin 0.19.1 backports.
+ - Added generatemnemonic command to particl-wallet.
 
 
 0.19.0.1
 ==============
 
 - rpc: Add coinstakeinfo option to getblock.
-- Added generatemnemonic command to particl-wallet.
 
 
 0.18.1.7
 ==============
+
 - wallet: Fix missing low amount error string.
 - hardware devices: Add ID for Ledger Nano S firmware 1.6
 
 
 0.18.1.6
 ==============
+
 - Fixed crash when rescanning a watchonly account.
 - Fixed errors when calling the mnemonic rpc function concurrently.
 - Fixed crash when initaccountfromdevice is called before setting udev rules.
@@ -201,7 +209,6 @@ For Testnet.
 - Enables variable smsg fee after fork.
 - Enables bullet proof range proofs after fork.
 - Enables p2sh in coldstake spend script after fork.
-
 
 
 0.17.1.4
