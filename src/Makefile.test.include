@@ -218,6 +218,7 @@ BITCOIN_TESTS += \
   wallet/test/coinselector_tests.cpp \
   wallet/test/init_tests.cpp \
   wallet/test/ismine_tests.cpp \
+  wallet/test/scriptpubkeyman_tests.cpp \
   wallet/test/rpc_wallet_tests.cpp \
   wallet/test/hdwallet_tests.cpp \
   wallet/test/rpc_hdwallet_tests.cpp \

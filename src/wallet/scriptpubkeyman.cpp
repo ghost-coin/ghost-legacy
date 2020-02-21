@@ -70,7 +70,15 @@ bool PermitsUncompressed(IsMineSigVersion sigversion)
     return sigversion == IsMineSigVersion::TOP || sigversion == IsMineSigVersion::P2SH;
 }
 
-isminetype IsMineInner(const LegacyScriptPubKeyMan& keystore, const CScript& scriptPubKey, bool& isInvalid, IsMineSigVersion sigversion)
+//! Recursively solve script and return spendable/watchonly/invalid status.
+//!
+//! @param keystore            legacy key and script store
+//! @param script              script to solve
+//! @param sigversion          script type (top-level / redeemscript / witnessscript)
+//! @param recurse_scripthash  whether to recurse into nested p2sh and p2wsh
+//!                            scripts or simply treat any script that has been
+//!                            stored in the keystore as spendable
+isminetype IsMineInner(const LegacyScriptPubKeyMan& keystore, const CScript& scriptPubKey, bool& isInvalid, IsMineSigVersion sigversion, bool recurse_scripthash=true)
 {
     if (HasIsCoinstakeOp(scriptPubKey)) {
         CScript scriptA, scriptB;
@@ -93,8 +101,6 @@ isminetype IsMineInner(const LegacyScriptPubKeyMan& keystore, const CScript& scr
 
         return (isminetype)((int)typeA | (int)typeB);
     }
-
-    isInvalid = false;
 
     std::vector<valtype> vSolutions;
     txnouttype whichType = Solver(scriptPubKey, vSolutions);
@@ -178,7 +184,7 @@ isminetype IsMineInner(const LegacyScriptPubKeyMan& keystore, const CScript& scr
             return ISMINE_NO;
         CScript subscript;
         if (keystore.GetCScript(scriptID, subscript)) {
-            isminetype ret = IsMineInner(keystore, subscript, isInvalid, IsMineSigVersion::P2SH);
+            isminetype ret = recurse_scripthash ? IsMineInner(keystore, subscript, isInvalid, IsMineSigVersion::P2SH) : ISMINE_SPENDABLE;
             if (ret == ISMINE_SPENDABLE || ret == ISMINE_WATCH_ONLY_ || (ret == ISMINE_NO && isInvalid))
                 return ret;
         }
@@ -199,7 +205,7 @@ isminetype IsMineInner(const LegacyScriptPubKeyMan& keystore, const CScript& scr
         CScriptID scriptID = CScriptID(hash);
         CScript subscript;
         if (keystore.GetCScript(scriptID, subscript)) {
-            isminetype ret = IsMineInner(keystore, subscript, isInvalid, IsMineSigVersion::WITNESS_V0);
+            isminetype ret = recurse_scripthash ? IsMineInner(keystore, subscript, isInvalid, IsMineSigVersion::WITNESS_V0) : ISMINE_SPENDABLE;
             if (ret == ISMINE_SPENDABLE || ret == ISMINE_WATCH_ONLY_ || (ret == ISMINE_NO && isInvalid))
                 return ret;
         }
@@ -535,11 +541,12 @@ std::unique_ptr<SigningProvider> LegacyScriptPubKeyMan::GetSigningProvider(const
 
 bool LegacyScriptPubKeyMan::CanProvide(const CScript& script, SignatureData& sigdata)
 {
-    if (IsMine(script) != ISMINE_NO) {
-        // If it IsMine, we can always provide in some way
-        return true;
-    } else if (HaveCScript(CScriptID(script))) {
-        // We can still provide some stuff if we have the script, but IsMine failed because we don't have keys
+    bool isInvalid;
+    isminetype ismine = IsMineInner(*this, script, isInvalid, IsMineSigVersion::TOP, /* recurse_scripthash= */ false);
+    if (ismine & ISMINE_ALL) {
+        // If ismine, it means we recognize keys or script ids in the script, or
+        // are watching the script itself, and we can at least provide metadata
+        // or solving information, even if not able to sign fully.
         return true;
     } else {
         if (script.IsPayToScriptHash256()) {
