@@ -128,8 +128,7 @@ BOOST_AUTO_TEST_CASE(tx_valid)
             bool fValid = true;
             for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
                 const UniValue& input = inputs[inpIdx];
-                if (!input.isArray())
-                {
+                if (!input.isArray()) {
                     fValid = false;
                     break;
                 }
@@ -215,10 +214,9 @@ BOOST_AUTO_TEST_CASE(tx_invalid)
             std::map<COutPoint, int64_t> mapprevOutValues;
             UniValue inputs = test[0].get_array();
             bool fValid = true;
-        for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
-            const UniValue& input = inputs[inpIdx];
-                if (!input.isArray())
-                {
+            for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
+                const UniValue& input = inputs[inpIdx];
+                if (!input.isArray()) {
                     fValid = false;
                     break;
                 }

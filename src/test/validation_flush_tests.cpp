@@ -2,10 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 //
-#include <txmempool.h>
-#include <validation.h>
 #include <sync.h>
 #include <test/util/setup_common.h>
+#include <txmempool.h>
+#include <validation.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -101,17 +101,14 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
             CoinsCacheSizeState::OK);
     }
 
-    // Adding an additional coin will push us over the edge to CRITICAL.
-    add_coin(view);
-    print_view_mem_usage(view);
-
-    auto size_state = chainstate.GetCoinsCacheSizeState(
-        tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0);
-
-    if (!is_64_bit && size_state == CoinsCacheSizeState::LARGE) {
-        // On 32 bit hosts, we may hit LARGE before CRITICAL.
+    // Adding some additional coins will push us over the edge to CRITICAL.
+    for (int i{0}; i < 4; ++i) {
         add_coin(view);
         print_view_mem_usage(view);
+        if (chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0) ==
+            CoinsCacheSizeState::CRITICAL) {
+            break;
+        }
     }
 
     BOOST_CHECK_EQUAL(
