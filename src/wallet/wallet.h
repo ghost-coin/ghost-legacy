@@ -190,7 +190,7 @@ public:
     std::string purpose = "unknown";
     bool fBech32 = false;
 
-    std::vector<uint32_t> vPath; // index to m is stored in first entry
+    std::vector<uint32_t> vPath; // Index to m is stored in first entry
 
     mutable uint8_t nOwned = 0; // 0 unknown, 1 yes, 2 no
 
@@ -288,7 +288,7 @@ private:
     //static const uint256 ABANDON_HASH;
 
 public:
-    std::vector<uint32_t> vPath; // index to m is stored in first entry
+    std::vector<uint32_t> vPath; // Index to m is stored in first entry
     /**
      * Key/value map with information about the transaction.
      *
@@ -1107,7 +1107,7 @@ public:
      */
     boost::signals2::signal<void (CWallet *wallet, const CTxDestination
             &address, const std::string &label, bool isMine,
-            const std::string &purpose,
+            const std::string &purpose, const std::string &path,
             ChangeType status)> NotifyAddressBookChanged;
 
     /**

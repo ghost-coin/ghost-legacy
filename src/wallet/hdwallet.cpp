@@ -1455,7 +1455,11 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
         tIsMine = this->IsMine(address);
     }
 
-    NotifyAddressBookChanged(this, address, entry.name, tIsMine != ISMINE_NO, entry.purpose, nMode);
+    std::string str_path;
+    if (entry.vPath.size() > 1) {
+        PathToString(entry.vPath, str_path, '\'', 1);
+    }
+    NotifyAddressBookChanged(this, address, entry.name, tIsMine != ISMINE_NO, entry.purpose, str_path, nMode);
 
     if (tIsMine == ISMINE_SPENDABLE
         && address.type() == typeid(PKHash)) {
@@ -1540,7 +1544,11 @@ bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address,
 
     if (fNotifyChanged) {
         // Must run without cs_wallet locked
-        NotifyAddressBookChanged(this, address, strName, tIsMine != ISMINE_NO, strPurpose, nMode);
+        std::string str_path;
+        if (vPath.size() > 1) {
+            PathToString(vPath, str_path, '\'', 1);
+        }
+        NotifyAddressBookChanged(this, address, strName, tIsMine != ISMINE_NO, strPurpose, str_path, nMode);
 
         if (tIsMine == ISMINE_SPENDABLE
             && address.type() == typeid(PKHash)) {
@@ -1582,8 +1590,9 @@ bool CHDWallet::SetAddressBook(const CTxDestination &address, const std::string 
         smsgModule.WalletKeyChanged(id, strName, nMode);
     }
 
+    std::string str_path;
     NotifyAddressBookChanged(this, address, strName, IsMine(address) != ISMINE_NO,
-                             strPurpose, nMode);
+                             strPurpose, str_path, nMode);
 
     return CHDWalletDB(*database).WriteAddressBookEntry(EncodeDestination(address), *entry);
 };
@@ -7485,7 +7494,7 @@ int CHDWallet::NewKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, CPu
     if (plabel) {
         bool requireUpdateDB;
         if (0 == ExtKeyGetIndex(pwdb, sea, idIndex, requireUpdateDB)) {
-            vPath.push_back(idIndex); // first entry is the index to the account / master key
+            vPath.push_back(idIndex); // First entry is the index to the account / master key
         }
         fUpdateAcc = requireUpdateDB ? true : fUpdateAcc;
     }

@@ -157,6 +157,7 @@ void AddressBookPage::setModel(AddressTableModel *_model)
 
     ui->tableView->setModel(proxyModel);
     ui->tableView->sortByColumn(0, Qt::AscendingOrder);
+    ui->tableView->setColumnHidden(2, tab == ReceivingTab ? false : true);
 
     // Set column widths
     ui->tableView->horizontalHeader()->setSectionResizeMode(AddressTableModel::Label, QHeaderView::Stretch);
@@ -304,6 +305,10 @@ void AddressBookPage::on_exportButton_clicked()
     writer.setModel(proxyModel);
     writer.addColumn("Label", AddressTableModel::Label, Qt::EditRole);
     writer.addColumn("Address", AddressTableModel::Address, Qt::EditRole);
+
+    if (tab == ReceivingTab) {
+        writer.addColumn("Path", AddressTableModel::Path, Qt::EditRole);
+    }
 
     if(!writer.write()) {
         QMessageBox::critical(this, tr("Exporting Failed"),

@@ -14,6 +14,7 @@ Next Major Version
 
  - Merged Bitcoin 0.19.1 backports.
  - Added generatemnemonic command to particl-wallet.
+ - Qt receiving addresses table displays relative paths.
 
 
 0.19.0.1
