@@ -283,6 +283,7 @@ public:
         const std::string& label,
         bool is_mine,
         const std::string& purpose,
+        const std::string& path,
         ChangeType status)>;
     virtual std::unique_ptr<Handler> handleAddressBookChanged(AddressBookChangedFn fn) = 0;
 
@@ -325,10 +326,11 @@ struct WalletAddress
     isminetype is_mine;
     std::string name;
     std::string purpose;
+    std::string path;
     bool fBech32;
 
-    WalletAddress(CTxDestination dest, isminetype is_mine, std::string name, std::string purpose, bool fBech32)
-        : dest(std::move(dest)), is_mine(is_mine), name(std::move(name)), purpose(std::move(purpose)), fBech32(fBech32)
+    WalletAddress(CTxDestination dest, isminetype is_mine, std::string name, std::string purpose, bool fBech32, std::string path)
+        : dest(std::move(dest)), is_mine(is_mine), name(std::move(name)), purpose(std::move(purpose)), fBech32(fBech32), path(path)
     {
     }
 };

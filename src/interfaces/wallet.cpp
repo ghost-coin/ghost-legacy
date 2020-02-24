@@ -26,6 +26,7 @@
 #include <wallet/walletutil.h>
 #include <wallet/hdwallet.h>
 #include <wallet/rpchdwallet.h>
+#include <key/extkey.h>
 #include <smsg/smessage.h>
 
 #include <memory>
@@ -255,8 +256,14 @@ public:
     {
         LOCK(m_wallet->cs_wallet);
         std::vector<WalletAddress> result;
+
         for (const auto& item : m_wallet->mapAddressBook) {
-            result.emplace_back(item.first, IsMine(*m_wallet, item.first), item.second.name, item.second.purpose, item.second.fBech32);
+            std::string str_path;
+            if (item.second.vPath.size() > 1 &&
+                PathToString(item.second.vPath, str_path, '\'', 1)) {
+                str_path = "";
+            }
+            result.emplace_back(item.first, IsMine(*m_wallet, item.first), item.second.name, item.second.purpose, item.second.fBech32, str_path);
         }
         return result;
     }
@@ -663,7 +670,7 @@ public:
     {
         return MakeHandler(m_wallet->NotifyAddressBookChanged.connect(
             [fn](CWallet*, const CTxDestination& address, const std::string& label, bool is_mine,
-                const std::string& purpose, ChangeType status) { fn(address, label, is_mine, purpose, status); }));
+                const std::string& purpose, const std::string& path, ChangeType status) { fn(address, label, is_mine, purpose, path, status); }));
     }
     std::unique_ptr<Handler> handleTransactionChanged(TransactionChangedFn fn) override
     {

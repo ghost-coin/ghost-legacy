@@ -131,10 +131,10 @@ void WalletModel::updateTransaction()
 }
 
 void WalletModel::updateAddressBook(const QString &address, const QString &label,
-        bool isMine, const QString &purpose, int status)
+        bool isMine, const QString &purpose, const QString &path, int status)
 {
     if(addressTableModel)
-        addressTableModel->updateEntry(address, label, isMine, purpose, status);
+        addressTableModel->updateEntry(address, label, isMine, purpose, path, status);
 }
 
 void WalletModel::updateWatchOnlyFlag(bool fHaveWatchonly)
@@ -443,11 +443,12 @@ static void NotifyKeyStoreStatusChanged(WalletModel *walletmodel)
 
 static void NotifyAddressBookChanged(WalletModel *walletmodel,
         const CTxDestination &address, const std::string &label, bool isMine,
-        const std::string &purpose, ChangeType status)
+        const std::string &purpose, const std::string &path, ChangeType status)
 {
     QString strAddress = QString::fromStdString(EncodeDestination(address));
     QString strLabel = QString::fromStdString(label);
     QString strPurpose = QString::fromStdString(purpose);
+    QString strPath = QString::fromStdString(path);
 
     qDebug() << "NotifyAddressBookChanged: " + strAddress + " " + strLabel + " isMine=" + QString::number(isMine) + " purpose=" + strPurpose + " status=" + QString::number(status);
     bool invoked = QMetaObject::invokeMethod(walletmodel, "updateAddressBook", Qt::QueuedConnection,
@@ -455,6 +456,7 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel,
                               Q_ARG(QString, strLabel),
                               Q_ARG(bool, isMine),
                               Q_ARG(QString, strPurpose),
+                              Q_ARG(QString, strPath),
                               Q_ARG(int, status));
     assert(invoked);
 }
@@ -501,7 +503,7 @@ void WalletModel::subscribeToCoreSignals()
     // Connect signals to wallet
     m_handler_unload = m_wallet->handleUnload(std::bind(&NotifyUnload, this));
     m_handler_status_changed = m_wallet->handleStatusChanged(std::bind(&NotifyKeyStoreStatusChanged, this));
-    m_handler_address_book_changed = m_wallet->handleAddressBookChanged(std::bind(NotifyAddressBookChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+    m_handler_address_book_changed = m_wallet->handleAddressBookChanged(std::bind(NotifyAddressBookChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
     m_handler_transaction_changed = m_wallet->handleTransactionChanged(std::bind(NotifyTransactionChanged, this, std::placeholders::_1, std::placeholders::_2));
     m_handler_show_progress = m_wallet->handleShowProgress(std::bind(ShowProgress, this, std::placeholders::_1, std::placeholders::_2));
     m_handler_watch_only_changed = m_wallet->handleWatchOnlyChanged(std::bind(NotifyWatchonlyChanged, this, std::placeholders::_1));

@@ -5,6 +5,7 @@
 
  - Merged Bitcoin 0.19.1 backports.
  - Added generatemnemonic command to particl-wallet.
+ - Qt receiving addresses table displays relative paths.
 
 
 0.19.0.1
@@ -200,7 +201,6 @@ For Testnet.
 - Enables variable smsg fee after fork.
 - Enables bullet proof range proofs after fork.
 - Enables p2sh in coldstake spend script after fork.
-
 
 
 0.17.1.4
