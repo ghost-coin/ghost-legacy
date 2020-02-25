@@ -445,7 +445,8 @@ int CLedgerDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::st
     return 0;
 };
 
-int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewCache &view, const FillableSigningProvider &keystore, int nHashType)
+int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewCache &view, const FillableSigningProvider &keystore, int nHashType,
+                                      int change_pos, const std::vector<uint32_t> &change_path)
 {
     if (0 != Open()) {
         return errorN(1, sError, __func__, "Device not open.");

@@ -4422,7 +4422,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
         CTxDestination address;
         const CScript *scriptPubKey = &pout->scriptPubKey;
         bool fValidAddress = ExtractDestination(*scriptPubKey, address);
-        bool reused = avoid_reuse && pwallet->IsUsedDestination(out.txhash, out.i);
+        bool reused = avoid_reuse && pwallet->IsSpentKey(out.txhash, out.i);
         if (setAddress.size() && (!fValidAddress || !setAddress.count(CBitcoinAddress(address))))
             continue;
 

@@ -10,6 +10,8 @@
 #include <hash.h>
 #include <util/validation.h>
 
+extern const std::string MESSAGE_MAGIC;
+
 namespace usb_device {
 
 const char *seed = "debug key";
@@ -91,7 +93,7 @@ int CDebugDevice::SignMessage(const std::vector<uint32_t> &vPath, const std::str
     }
 
     CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
+    ss << MESSAGE_MAGIC;
     ss << sMessage;
 
     if (!vkOut.key.SignCompact(ss.GetHash(), vchSig)) {

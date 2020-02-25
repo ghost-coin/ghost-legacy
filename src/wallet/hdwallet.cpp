@@ -50,6 +50,8 @@
 #include <boost/algorithm/string/replace.hpp>
 
 
+extern const std::string MESSAGE_MAGIC;
+
 static uint8_t GetOutputType(const COutPoint &prevout)
 {
     LOCK(cs_main);
@@ -2545,7 +2547,7 @@ CWallet::Balance CHDWallet::GetBalance(const int min_depth, bool avoid_reuse) co
         for (const auto &r : rtx.vout) {
             if (r.nType != OUTPUT_STANDARD
                 || IsSpent(txhash, r.n)
-                || (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey))) {
+                || (!allow_used_addresses && IsSpentKey(&r.scriptPubKey))) {
                 continue;
             }
             if (is_trusted && tx_depth >= min_depth) {
@@ -2655,7 +2657,7 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse)
                     if (!(r.nFlags & ORF_OWNED)) {
                         continue;
                     }
-                    if (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey)) {
+                    if (!allow_used_addresses && IsSpentKey(&r.scriptPubKey)) {
                         continue;
                     }
                     if (fTrusted) {
@@ -2667,7 +2669,7 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse)
                     break;
                 case OUTPUT_STANDARD:
                     if (r.nFlags & ORF_OWNED) {
-                        if (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey)) {
+                        if (!allow_used_addresses && IsSpentKey(&r.scriptPubKey)) {
                             continue;
                         }
                         if (fTrusted) {
@@ -4069,7 +4071,14 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                     uiInterface.NotifyWaitingForDevice(true);
                     return wserrorN(1, sError, __func__, _("GetLegacyScriptPubKeyMan failed.").translated);
                 }
-                pDevice->PrepareTransaction(txNew, view, *spk_man, SIGHASH_ALL);
+
+                int hw_change_pos = -1;
+                std::vector<uint32_t> hw_change_path;
+                if (nChangePosInOut > -1) {
+                    LogPrintf("[rm] address %s\n", r.address);
+                }
+
+                pDevice->PrepareTransaction(txNew, view, *spk_man, SIGHASH_ALL, hw_change_pos, hw_change_path);
                 if (!pDevice->sError.empty()) {
                     pDevice->Close();
                     uiInterface.NotifyWaitingForDevice(true);
@@ -7685,7 +7694,7 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
     std::vector<uint8_t> vData, vchSig;
 
     CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
+    ss << MESSAGE_MAGIC;
     ss << msg;
     if (!vkAcc0_0.key.SignCompact(ss.GetHash(), vchSig)) {
         return werrorN(1, "%s: Sign failed.", __func__);
@@ -10523,7 +10532,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
         if (IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)) {
             const CScript *pscript = txout->GetPScriptPubKey();
             if (pscript) {
-                SetUsedDestinationState(pscript, true);
+                SetSpentKeyState(pscript, true);
             }
         }
     }
@@ -10840,7 +10849,7 @@ void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vecto
                 continue;
             }
 
-            if (!allow_used_addresses && IsUsedDestination(wtxid, i)) {
+            if (!allow_used_addresses && IsSpentKey(wtxid, i)) {
                 continue;
             }
 
@@ -10930,7 +10939,7 @@ void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vecto
                 continue;
             }
 
-            if (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey)) {
+            if (!allow_used_addresses && IsSpentKey(&r.scriptPubKey)) {
                 continue;
             }
 
@@ -11155,7 +11164,7 @@ void CHDWallet::AvailableBlindedCoins(interfaces::Chain::Lock& locked_chain, std
                 continue;
             }
 
-            if (!allow_used_addresses && IsUsedDestination(&r.scriptPubKey)) {
+            if (!allow_used_addresses && IsSpentKey(&r.scriptPubKey)) {
                 continue;
             }
 
@@ -11762,25 +11771,25 @@ bool CHDWallet::IsSpent(const uint256& hash, unsigned int n) const
     return false;
 };
 
-bool CHDWallet::IsUsedDestination(const CScript *pscript) const
+bool CHDWallet::IsSpentKey(const CScript *pscript) const
 {
     LOCK(cs_wallet);
     CTxDestination dst;
     return pscript && ExtractDestination(*pscript, dst) && IsMine(dst) && GetDestData(dst, "used", nullptr);
 }
 
-bool CHDWallet::IsUsedDestination(const uint256& hash, unsigned int n) const
+bool CHDWallet::IsSpentKey(const uint256& hash, unsigned int n) const
 {
     const CWalletTx* srctx = GetWalletTx(hash);
     if (srctx) {
         const auto &txout = srctx->tx->vpout[n];
         const CScript *pscript = txout->GetPScriptPubKey();
-        return IsUsedDestination(pscript);
+        return IsSpentKey(pscript);
     }
     return false;
 }
 
-void CHDWallet::SetUsedDestinationState(const CScript *pscript, bool used)
+void CHDWallet::SetSpentKeyState(const CScript *pscript, bool used)
 {
     WalletBatch batch(*database);
     CTxDestination dst;
@@ -11796,7 +11805,7 @@ void CHDWallet::SetUsedDestinationState(const CScript *pscript, bool used)
     }
 }
 
-void CHDWallet::SetUsedDestinationState(WalletBatch& batch, const uint256& hash, unsigned int n, bool used, std::set<CTxDestination>& tx_destinations)
+void CHDWallet::SetSpentKeyState(WalletBatch& batch, const uint256& hash, unsigned int n, bool used, std::set<CTxDestination>& tx_destinations)
 {
     const CWalletTx* srctx = GetWalletTx(hash);
     if (srctx) {
@@ -11818,13 +11827,13 @@ void CHDWallet::SetUsedDestinationState(WalletBatch& batch, const uint256& hash,
     }
 }
 
-void CHDWallet::SetUsedDestinationState(const uint256& hash, unsigned int n, bool used)
+void CHDWallet::SetSpentKeyState(const uint256& hash, unsigned int n, bool used)
 {
     const CWalletTx* srctx = GetWalletTx(hash);
     if (srctx) {
         const auto &txout = srctx->tx->vpout[n];
         const CScript *pscript = txout->GetPScriptPubKey();
-        return SetUsedDestinationState(pscript, used);
+        return SetSpentKeyState(pscript, used);
     }
 }
 

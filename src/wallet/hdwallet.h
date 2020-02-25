@@ -433,11 +433,11 @@ public:
     bool IsSpent(const uint256& hash, unsigned int n) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     // Whether this or any UTXO with the same CTxDestination has been spent.
-    bool IsUsedDestination(const CScript *pscript) const;
-    bool IsUsedDestination(const uint256& hash, unsigned int n) const override;
-    void SetUsedDestinationState(const CScript *pscript, bool used);
-    void SetUsedDestinationState(const uint256& hash, unsigned int n, bool used);
-    void SetUsedDestinationState(WalletBatch& batch, const uint256& hash, unsigned int n, bool used, std::set<CTxDestination>& tx_destinations) override;
+    bool IsSpentKey(const CScript *pscript) const;
+    bool IsSpentKey(const uint256& hash, unsigned int n) const override;
+    void SetSpentKeyState(const CScript *pscript, bool used);
+    void SetSpentKeyState(const uint256& hash, unsigned int n, bool used);
+    void SetSpentKeyState(WalletBatch& batch, const uint256& hash, unsigned int n, bool used, std::set<CTxDestination>& tx_destinations) override;
 
 
     std::set<uint256> GetConflicts(const uint256 &txid) const;
