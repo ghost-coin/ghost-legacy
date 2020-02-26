@@ -93,6 +93,7 @@ public:
 
     OutputType GetDefaultAddressType() const;
     void verifyOnHardwareDevice(QString address);
+    bool isHardwareLinked();
 
 private:
     WalletModel* const walletModel;

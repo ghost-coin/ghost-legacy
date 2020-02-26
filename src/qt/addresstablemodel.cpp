@@ -481,7 +481,7 @@ void AddressTableModel::emitDataChanged(int idx)
 
 void AddressTableModel::verifyOnHardwareDevice(QString path)
 {
-    if (walletModel->isHardwareLinkedWallet()) {
+    if (isHardwareLinked()) {
         // Clean up the path, remove the m/ in front of it.
         path.remove(0, 2);
 
@@ -491,6 +491,10 @@ void AddressTableModel::verifyOnHardwareDevice(QString path)
         if (!walletModel->tryCallRpc(sCommandDisplay, rv)) {
             return;
         }
-
     }
 }
+
+bool AddressTableModel::isHardwareLinked()
+{
+    return walletModel && walletModel->isHardwareLinkedWallet();
+};
