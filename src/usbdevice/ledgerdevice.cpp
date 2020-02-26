@@ -550,7 +550,32 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
         }
     }
 
-    // finalizeInputFull
+
+    // finalizeInputFull change path
+
+    if (change_pos > -1) {
+        if (change_path.size() > MAX_BIP32_PATH) {
+            return errorN(1, sError, __func__, "Change path too long %d.", change_path.size());
+        }
+        apduSize = 0;
+        in[apduSize++] = BTCHIP_CLA;
+        in[apduSize++] = BTCHIP_INS_HASH_INPUT_FINALIZE_FULL;
+        in[apduSize++] = 0xFF;
+        in[apduSize++] = 0x00;
+        in[apduSize++] = 1 + 4 * change_path.size(); // num bytes to follow
+        in[apduSize++] = change_path.size();
+        for (size_t k = 0; k < change_path.size(); k++, apduSize+=4) {
+            WriteBE32(&in[apduSize], change_path[k]);
+        }
+
+        result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
+        if (sw != SW_OK || result < 0) {
+            return errorN(1, sError, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
+        }
+    }
+
+
+    // finalizeInputFull outputs
 
     std::vector<uint8_t> vOutputData;
     PutVarInt(vOutputData, tx.vpout.size());
