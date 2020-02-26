@@ -212,6 +212,8 @@ public:
 
     bool IsChange(const CTxOutBase *txout) const override;
 
+    bool GetChangePath(const CScript &script_pubkey, std::vector<uint32_t> &change_path) const;
+
     int GetChangeAddress(CPubKey &pk);
 
     void AddOutputRecordMetaData(CTransactionRecord &rtx, std::vector<CTempRecipient> &vecSend);

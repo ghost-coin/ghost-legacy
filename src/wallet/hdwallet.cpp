@@ -2758,36 +2758,62 @@ CAmount CHDWallet::GetAvailableBlindBalance(const CCoinControl* coinControl) con
 bool CHDWallet::IsChange(const CTxOutBase *txout) const
 {
     const CScript *ps = txout->GetPScriptPubKey();
-    if (ps) {
-        const CScript &scriptPubKey = *ps;
-
-        CKeyID idk;
-        const CEKAKey *pak = nullptr;
-        const CEKASCKey *pasc = nullptr;
-        CExtKeyAccount *pa = nullptr;
-        bool isInvalid;
-        isminetype mine = IsMine(scriptPubKey, idk, pak, pasc, pa, isInvalid);
-        if (!mine) {
-            return false;
-        }
-
-        // Change is sent to the internal change
-        if (pa && pak && pa->nActiveInternal == pak->nParent) { // TODO: check EKVT_KEY_TYPE
-            return true;
-        }
-        /*
-        CTxDestination address;
-        if (!ExtractDestination(scriptPubKey, address))
-            return true;
-
-        LOCK(cs_wallet);
-        if (!mapAddressBook.count(address))
-            return true;
-        */
+    if (!ps) {
+        return false;
     }
+    const CScript &scriptPubKey = *ps;
+
+    CKeyID idk;
+    const CEKAKey *pak = nullptr;
+    const CEKASCKey *pasc = nullptr;
+    CExtKeyAccount *pa = nullptr;
+    bool isInvalid;
+    isminetype mine = IsMine(scriptPubKey, idk, pak, pasc, pa, isInvalid);
+    if (!mine) {
+        return false;
+    }
+
+    // Change is sent to the internal change
+    if (pa && pak && pa->nActiveInternal == pak->nParent) { // TODO: check EKVT_KEY_TYPE
+        return true;
+    }
+    /*
+    CTxDestination address;
+    if (!ExtractDestination(scriptPubKey, address))
+        return true;
+
+    LOCK(cs_wallet);
+    if (!mapAddressBook.count(address))
+        return true;
+    */
 
     return false;
 };
+
+bool CHDWallet::GetChangePath(const CScript &script_pubkey, std::vector<uint32_t> &change_path) const
+{
+    CKeyID idk;
+    const CEKAKey *pak = nullptr;
+    const CEKASCKey *pasc = nullptr;
+    CExtKeyAccount *pa = nullptr;
+    bool isInvalid;
+    isminetype mine = IsMine(script_pubkey, idk, pak, pasc, pa, isInvalid);
+    if (!mine) {
+        return false;
+    }
+
+    // Change is sent to the internal change
+    if (pa && pak && pa->nActiveInternal == pak->nParent) { // TODO: check EKVT_KEY_TYPE
+        CStoredExtKey *sekAccount = pa->ChainAccount();
+        CStoredExtKey *sek = pa->GetChain(pak->nParent);
+        AppendPath(sekAccount, change_path);
+        AppendChainPath(sek, change_path);
+        change_path.push_back(pak->nKey);
+        return true;
+    }
+
+    return false;
+}
 
 int CHDWallet::GetChangeAddress(CPubKey &pk)
 {
@@ -4075,7 +4101,10 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                 int hw_change_pos = -1;
                 std::vector<uint32_t> hw_change_path;
                 if (nChangePosInOut > -1) {
-                    LogPrintf("[rm] address %s\n", r.address);
+                    auto &r = vecSend[nChangePosInOut];
+                    if (GetChangePath(r.scriptPubKey, hw_change_path)) {
+                        hw_change_pos = nChangePosInOut;
+                    }
                 }
 
                 pDevice->PrepareTransaction(txNew, view, *spk_man, SIGHASH_ALL, hw_change_pos, hw_change_path);
