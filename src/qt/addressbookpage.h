@@ -56,6 +56,7 @@ private:
     AddressBookSortFilterProxyModel *proxyModel;
     QMenu *contextMenu;
     QAction *deleteAction; // to be able to explicitly disable it
+    QAction *hwVerifyAction; // to be able to explicitly disable it
     QString newAddressToSelect;
 
 private Q_SLOTS:

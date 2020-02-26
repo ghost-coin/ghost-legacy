@@ -116,7 +116,7 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     QAction *copyAddressAction = new QAction(tr("&Copy Address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy &Label"), this);
     QAction *editAction = new QAction(tr("&Edit"), this);
-    QAction *verifyAddressOnHWAction = new QAction(tr("&Verify Address On Hardware Wallet"), this);
+    hwVerifyAction = new QAction(tr("&Verify Address On Hardware Wallet"), this);
     deleteAction = new QAction(ui->deleteAddress->text(), this);
 
     // Build context menu
@@ -124,17 +124,17 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(editAction);
-    if(tab == SendingTab) 
+    if(tab == SendingTab)
         contextMenu->addAction(deleteAction);
     else if(tab == ReceivingTab)
-        contextMenu->addAction(verifyAddressOnHWAction);
+        contextMenu->addAction(hwVerifyAction);
     contextMenu->addSeparator();
 
     // Connect signals for context menu actions
     connect(copyAddressAction, &QAction::triggered, this, &AddressBookPage::on_copyAddress_clicked);
     connect(copyLabelAction, &QAction::triggered, this, &AddressBookPage::onCopyLabelAction);
     connect(editAction, &QAction::triggered, this, &AddressBookPage::onEditAction);
-    connect(verifyAddressOnHWAction, &QAction::triggered, this, &AddressBookPage::onVerifyAddressOnHWAction);
+    connect(hwVerifyAction, &QAction::triggered, this, &AddressBookPage::onVerifyAddressOnHWAction);
     connect(deleteAction, &QAction::triggered, this, &AddressBookPage::on_deleteAddress_clicked);
 
     connect(ui->tableView, &QWidget::customContextMenuRequested, this, &AddressBookPage::contextualMenu);
@@ -284,6 +284,12 @@ void AddressBookPage::selectionChanged()
     {
         ui->deleteAddress->setEnabled(false);
         ui->copyAddress->setEnabled(false);
+    }
+
+    if (model && model->isHardwareLinked()) {
+        hwVerifyAction->setEnabled(true);
+    } else {
+        hwVerifyAction->setEnabled(false);
     }
 }
 
