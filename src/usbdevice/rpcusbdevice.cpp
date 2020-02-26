@@ -662,7 +662,9 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     const CTransaction txConst(mtx);
 
     // Prepare transaction
-    int prep = pDevice->PrepareTransaction(mtx, view, keystore, nHashType);
+    int change_pos = -1;
+    std::vector<uint32_t> change_path;
+    int prep = pDevice->PrepareTransaction(mtx, view, keystore, nHashType, change_pos, change_path);
     if (0 != prep) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("PrepareTransaction failed with code %d.", prep));
     }
