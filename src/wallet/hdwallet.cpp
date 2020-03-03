@@ -33,7 +33,6 @@
 #include <rpc/util.h>
 #include <util/fees.h>
 #include <util/rbf.h>
-#include <util/validation.h>
 #include <wallet/fees.h>
 
 #if ENABLE_USBDEVICE
@@ -1474,7 +1473,7 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
 
 DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
 {
-    if (!ParseMoney(gArgs.GetArg("-reservebalance", ""), nReserveBalance)) {
+    if (!ParseMoney(gArgs.GetArg("-reservebalance", "0"), nReserveBalance)) {
         InitError(_("Invalid amount for -reservebalance=<amount>").translated);
         return DBErrors::LOAD_FAIL;
     }

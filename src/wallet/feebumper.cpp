@@ -12,7 +12,6 @@
 #include <util/moneystr.h>
 #include <util/rbf.h>
 #include <util/system.h>
-#include <util/validation.h>
 
 #include <wallet/hdwallet.h>
 

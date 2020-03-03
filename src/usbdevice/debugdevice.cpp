@@ -8,7 +8,6 @@
 #include <univalue.h>
 #include <validation.h>
 #include <hash.h>
-#include <util/validation.h>
 
 extern const std::string MESSAGE_MAGIC;
 

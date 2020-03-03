@@ -23,7 +23,6 @@
 #include <blind.h>
 #include <anon.h>
 #include <util/moneystr.h>
-#include <util/validation.h>
 #include <util/translation.h>
 #include <util/fees.h>
 #include <util/rbf.h>
@@ -4930,7 +4929,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm);
     } else {
         if (!pwallet->CommitTransaction(wtx, rtx, state)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
+            throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", state.ToString()));
         }
     }
 
@@ -4940,7 +4939,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     {
         // This can happen if the mempool rejected the transaction.  Report
         // what happened in the "errors" response.
-        vErrors.push_back(strprintf("Error: The transaction was rejected: %s", FormatStateMessage(state)));
+        vErrors.push_back(strprintf("Error: The transaction was rejected: %s", state.ToString()));
 
         UniValue result(UniValue::VOBJ);
         result.pushKV("txid", wtx.GetHash().GetHex());
