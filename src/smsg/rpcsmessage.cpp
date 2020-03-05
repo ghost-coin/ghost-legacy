@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2016 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -657,7 +657,7 @@ static UniValue smsgdumpprivkey(const JSONRPCRequest &request)
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The particl address for the private key"},
         },
         RPCResult{
-    "\"key\"                (string) The private key\n"
+            RPCResult::Type::STR, "key", "The private key"
         },
         RPCExamples{
             HelpExampleCli("dumpprivkey", "\"myaddress\"")
@@ -694,10 +694,10 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
                     {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "Return the pubkey matching \"address\"."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"address\": \"...\"             (string) address of public key\n"
-            "  \"publickey\": \"...\"           (string) public key of address\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR, "address", "address of public key"},
+                        {RPCResult::Type::STR_HEX, "publickey", "public key of address"},
+                    },
                 },
                 RPCExamples{
             HelpExampleCli("smsggetpubkey", "\"myaddress\"") +
@@ -804,13 +804,12 @@ static UniValue smsgsend(const JSONRPCRequest &request)
                     },
                 },
                 RPCResult{
-            "{\n"
-            "  \"result\": \"Sent\"/\"Not Sent\"       (string) address of public key\n"
-            "  \"msgid\": \"...\"                    (string) if sent, a message identifier\n"
-            "  \"txid\": \"...\"                     (string) if paid_msg the txnid of the funding txn\n"
-            "  \"fee\": n                          (amount) if paid_msg the fee paid\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR, "result", "\"Sent\"/\"Not Sent\""},
+                        {RPCResult::Type::STR_HEX, "msgid", "Message id, if sent"},
+                        {RPCResult::Type::STR_HEX, "txid", "txnid of the funding txn, if paid msg"},
+                        {RPCResult::Type::STR_AMOUNT, "fee", "fee paid, if paid msg"},
+                }},
                 RPCExamples{
              HelpExampleCli("smsgsend", "\"myaddress\" \"toaddress\" \"message\"") +
             "\nAs a JSON-RPC call\n"
@@ -1015,18 +1014,17 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResult{
-            "{\n"
-            "  \"msgid\": \"str\"                    (string) The message identifier\n"
-            "  \"version\": \"str\"                  (string) The message version\n"
-            "  \"received\": \"time\"                (string) Time the message was received\n"
-            "  \"sent\": \"time\"                    (string) Time the message was sent\n"
-            "  \"daysretention\": int              (int) DEPRECATED Number of days message will stay in the network for\n"
-            "  \"ttl\": int                        (int) Seconds message will stay in the network for\n"
-            "  \"from\": \"str\"                     (string) Address the message was sent from\n"
-            "  \"to\": \"str\"                       (string) Address the message was sent to\n"
-            "  \"text\": \"str\"                     (string) Message text\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "msgid", "Message id"},
+                        {RPCResult::Type::STR, "version", "The message version"},
+                        {RPCResult::Type::STR, "received", "Time the message was received"},
+                        {RPCResult::Type::STR, "sent", "Time the message was sent"},
+                        {RPCResult::Type::NUM, "daysretention", "DEPRECATED Number of days message will stay in the network for"},
+                        {RPCResult::Type::NUM, "ttl", "Seconds message will stay in the network for"},
+                        {RPCResult::Type::STR, "from", "Address the message was sent from"},
+                        {RPCResult::Type::STR, "to", "Address the message was sent to"},
+                        {RPCResult::Type::STR, "text", "Message text"},
+                }},
                 RPCExamples{
                     "Display unread received messages:"
                     + HelpExampleCli("smsginbox", "") +
@@ -1190,15 +1188,14 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResult{
-            "{\n"
-            "  \"msgid\": \"str\"                    (string) The message identifier\n"
-            "  \"version\": \"str\"                  (string) The message version\n"
-            "  \"sent\": \"time\"                    (string) Time the message was sent\n"
-            "  \"from\": \"str\"                     (string) Address the message was sent from\n"
-            "  \"to\": \"str\"                       (string) Address the message was sent to\n"
-            "  \"text\": \"str\"                     (string) Message text\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "msgid", "Message id"},
+                        {RPCResult::Type::STR, "version", "The message version"},
+                        {RPCResult::Type::STR, "sent", "Time the message was sent"},
+                        {RPCResult::Type::STR, "from", "Address the message was sent from"},
+                        {RPCResult::Type::STR, "to", "Address the message was sent to"},
+                        {RPCResult::Type::STR, "text", "Message text"},
+                }},
                 RPCExamples{
                     HelpExampleCli("smsgoutbox", "")
                     + HelpExampleRpc("smsgoutbox", "")
@@ -1746,22 +1743,20 @@ static UniValue smsgone(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResult{
-            "{\n"
-            "  \"msgid\": \"...\"                    (string) The message identifier\n"
-            "  \"version\": \"str\"                  (string) The message version\n"
-            "  \"location\": \"str\"                 (string) inbox|outbox|sending\n"
-            "  \"received\": int                     (int) Time the message was received\n"
-            "  \"to\": \"str\"                       (string) Address the message was sent to\n"
-            "  \"read\": bool                        (bool) Read status\n"
-            "  \"sent\": int                         (int) Time the message was created\n"
-            "  \"paid\": bool                        (bool) Paid or free message\n"
-            "  \"daysretention\": int                (int) DEPRECATED Number of days message will stay in the network for\n"
-            "  \"ttl\": int                          (int) Seconds message will stay in the network for\n"
-            "  \"expiration\": int                   (int) Time the message will be dropped from the network\n"
-            "  \"payloadsize\": int                  (int) Size of user message\n"
-            "  \"from\": \"str\"                     (string) Address the message was sent from\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "msgid", "Message id"},
+                        {RPCResult::Type::STR, "version", "The message version"},
+                        {RPCResult::Type::STR, "location", "inbox|outbox|sending"},
+                        {RPCResult::Type::STR, "received", "Time the message was received"},
+                        {RPCResult::Type::BOOL, "read", "Read status"},
+                        {RPCResult::Type::STR, "sent", "Time the message was created"},
+                        {RPCResult::Type::BOOL, "paid", "Paid or free message"},
+                        {RPCResult::Type::NUM, "daysretention", "DEPRECATED Number of days message will stay in the network for"},
+                        {RPCResult::Type::NUM, "ttl", "Seconds message will stay in the network for"},
+                        {RPCResult::Type::NUM_TIME, "expiration", "Time the message will be dropped from the network"},
+                        {RPCResult::Type::NUM, "payloadsize", "Size of user message"},
+                        {RPCResult::Type::STR, "from", "Address the message was sent from"},
+                }},
                 RPCExamples{
             HelpExampleCli("smsg", "\"msgid\"") +
             "\nAs a JSON-RPC call\n"
@@ -1915,10 +1910,9 @@ static UniValue smsgimport(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResult{
-            "{\n"
-            "  \"msgid\": \"...\"                    (string) The message identifier\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "msgid", "The message identifier"},
+                }},
                 RPCExamples{
             HelpExampleCli("smsgimport", "\"msg\"") +
             "\nAs a JSON-RPC call\n"
@@ -2012,7 +2006,7 @@ static UniValue smsggetfeerate(const JSONRPCRequest &request)
                     {"height", RPCArg::Type::NUM, /* default */ "", "Chain height to get fee rate for, pass a negative number for more detailed output."},
                 },
                 RPCResult{
-            "Fee rate in satoshis."
+                    RPCResult::Type::NUM, "fee_rate", "Fee rate in satoshis"
                 },
                 RPCExamples{
             HelpExampleCli("smsggetfeerate", "1000") +
@@ -2070,7 +2064,7 @@ static UniValue smsggetdifficulty(const JSONRPCRequest &request)
                     {"time", RPCArg::Type::NUM, /* default */ "", "Chain time to get smsg difficulty for."},
                 },
                 RPCResult{
-            "Difficulty."
+                    RPCResult::Type::STR, "difficulty", "Current smsg difficulty"
                 },
                 RPCExamples{
             HelpExampleCli("smsggetdifficulty", "1552688834") +
@@ -2100,10 +2094,10 @@ static UniValue smsggetinfo(const JSONRPCRequest &request)
                 {
                 },
                 RPCResult{
-            "{\n"
-            "  \"enabled\": true|false,         (boolean) if SMSG is enabled or not\n"
-            "  \"wallet\": \"...\"              (string) name of the currently active wallet or \"None set\"\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::BOOL, "enabled", "True if SMSG is enabled"},
+                        {RPCResult::Type::STR, "wallet", "name of the currently active wallet or \"None set\""},
+                    },
                 },
                 RPCExamples{
             HelpExampleCli("smsggetinfo", "") +
@@ -2137,18 +2131,19 @@ static UniValue smsgpeers(const JSONRPCRequest &request)
             {"index", RPCArg::Type::NUM, /* default */ "", "Peer index, omit for list."},
         },
         RPCResult{
-            "[\n"
-            "  {\n"
-            "    \"id\": n,                   (numeric) Peer index\n"
-            "    \"version\": n,              (numeric) Peer version\n"
-            "    \"ignoreuntil\": n,          (numeric) Peer ignored until time\n"
-            "    \"misbehaving\": n,          (numeric) Misbehaviour counter\n"
-            "    \"numwantsent\": n,          (numeric) Number of smsges requested from peer\n"
-            "    \"receivecounter\": n,       (numeric) Messages received from peer in window\n"
-            "    \"ignoredcounter\": n,       (numeric) Number of times peer has been ignored\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"
+            RPCResult::Type::ARR, "", "",
+            {
+                {RPCResult::Type::OBJ, "", "",
+                {
+                    {RPCResult::Type::NUM, "id", "Peer index"},
+                    {RPCResult::Type::NUM, "version", "Peer version"},
+                    {RPCResult::Type::NUM, "ignoreuntil", "Peer ignored until time"},
+                    {RPCResult::Type::NUM, "misbehaving", "Misbehaviour counter"},
+                    {RPCResult::Type::NUM, "numwantsent", "Number of smsges requested from peer"},
+                    {RPCResult::Type::NUM, "receivecounter", "Messages received from peer in window"},
+                    {RPCResult::Type::NUM, "ignoredcounter", "Number of times peer has been ignored"},
+                }},
+            }
         },
         RPCExamples{
     HelpExampleCli("smsgpeers", "") +
@@ -2182,10 +2177,9 @@ static UniValue smsgzmqpush(const JSONRPCRequest &request)
                     "options"},
             },
             RPCResult{
-        "{\n"
-        "  \"numsent\": n,          (numeric) Number of notifications sent\n"
-        "}\n"
-            },
+                RPCResult::Type::OBJ, "", "", {
+                    {RPCResult::Type::NUM, "numsent", "Number of notifications sent"},
+            }},
             RPCExamples{
         HelpExampleCli("smsgzmqpush", "'{ \"unreadonly\": false }'") +
         "\nAs a JSON-RPC call\n"
@@ -2271,9 +2265,7 @@ static UniValue smsgdebug(const JSONRPCRequest &request)
             {"command", RPCArg::Type::STR, /* default */ "", "\"clearbanned\",\"dumpids\",\"dumpfundingtxids\"."},
             {"arg1", RPCArg::Type::STR, /* default */ "", ""},
         },
-        RPCResult{
-            "{\n"
-            "}\n"
+        RPCResults{
         },
         RPCExamples{
     HelpExampleCli("smsgdebug", "") +

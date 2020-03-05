@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -23,14 +23,13 @@ UniValue anonoutput(const JSONRPCRequest &request)
                     {"output", RPCArg::Type::STR, /* default */ "", "Output to view, specified by index or hex of publickey."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"index\" : num,                 (numeric) Position in chain of anon output.\n"
-            "  \"publickey\" : \"hex\",           (string)\n"
-            "  \"txnhash\" : \"hex\",             (string)\n"
-            "  \"n\" : num,                     (numeric)\n"
-            "  \"blockheight\" : num,           (numeric)\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::NUM, "index", "Position in chain of anon output"},
+                        {RPCResult::Type::STR_HEX, "publickey", "Public key of anon out"},
+                        {RPCResult::Type::STR_HEX, "txnhash", "Hash of transaction found in"},
+                        {RPCResult::Type::NUM, "n", "Offset in transaction found in"},
+                        {RPCResult::Type::NUM, "blockheight", "Height of block found in"},
+                }},
                 RPCExamples{
             HelpExampleCli("anonoutput", "\"1\"")
             + HelpExampleRpc("anonoutput", "\"2\"")

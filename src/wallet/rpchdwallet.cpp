@@ -1693,7 +1693,7 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
                     {"hardened", RPCArg::Type::BOOL, /* default */ "false", "Derive a hardened key."},
                 },
                 RPCResult{
-            "\"address\"              (string) The new particl extended address\n"
+                    RPCResult::Type::STR, "address", "The new extended address"
                 },
                 RPCExamples{
             HelpExampleCli("getnewextaddress", "") +
@@ -1763,7 +1763,7 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
                     {"makeV2", RPCArg::Type::BOOL, /* default */ "false", "Generate an address from the same scheme used for hardware wallets."},
                 },
                 RPCResult{
-            "\"address\"              (string) The new particl stealth address\n"
+                    RPCResult::Type::STR, "address", "The new stealth address"
                 },
                 RPCExamples{
             HelpExampleCli("getnewstealthaddress", "\"lblTestSxAddrPrefix\" 3 \"0b101\"") +
@@ -1844,7 +1844,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
                     {"bech32", RPCArg::Type::BOOL, /* default */ "false", "Use Bech32 encoding."},
                 },
                 RPCResult{
-            "\"address\"              (string) The new particl stealth address\n"
+                    RPCResult::Type::STR, "address", "The imported stealth address"
                 },
                 RPCExamples{
             HelpExampleCli("importstealthaddress", "scan_secret spend_secret \"label\" 3 \"0b101\"") +
@@ -2102,22 +2102,20 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResult{
-            "[\n"
-            "  {\n"
-            "    \"Account\": \"str\",          (string) Account name.\n"
-            "    \"Stealth Addresses\": [\n"
-            "      {\n"
-            "        \"Label\": \"str\",          (string) Stealth address label.\n"
-            "        \"Address\": \"str\",        (string) Stealth address.\n"
-            "        \"Scan Secret\": \"str\",    (string) Scan secret, if show_secrets=1.\n"
-            "        \"Spend Secret\": \"str\",   (string) Spend secret, if show_secrets=1.\n"
-            "        \"scan_public_key\": \"str\",    (string) Hex encoded scan public key, if show_secrets=1.\n"
-            "        \"spend_public_key\": \"str\",   (string) Hex encoded spend public key, if show_secrets=1.\n"
-            "      }\n"
-            "    ]\n"
-            "  }...\n"
-            "]\n"
-            "\"address\"              (string) The new particl stealth address\n"
+                    RPCResult::Type::ARR, "", "",
+                    {
+                        {RPCResult::Type::OBJ, "", "", {
+                            {RPCResult::Type::STR, "Account", "Account name"},
+                            {RPCResult::Type::ARR, "Stealth Addresses", "", {
+                                {RPCResult::Type::STR, "Label", "Stealth address label"},
+                                {RPCResult::Type::STR, "Address", "Stealth address"},
+                                {RPCResult::Type::STR, "Scan Secret", "Scan secret, if show_secrets=1"},
+                                {RPCResult::Type::STR, "Spend Secret", "Spend secret, if show_secrets=1"},
+                                {RPCResult::Type::STR_HEX, "scan_public_key", "Scan public key, if show_secrets=1"},
+                                {RPCResult::Type::STR_HEX, "spend_public_key", "Spend public key, if show_secrets=1"},
+                            }
+                        }}},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("liststealthaddresses", "") +
@@ -2290,7 +2288,10 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
                     {"256bithash", RPCArg::Type::BOOL, /* default */ "false", "Display addresses from sha256 hash of public keys."},
                 },
                 RPCResult{
-            "\"addresses\"            (json) Array of derived addresses\n"
+                    RPCResult::Type::ARR, "addresses", "Array of derived addresses",
+                    {
+                        {RPCResult::Type::STR, "", "address"}
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("deriverangekeys", "0 1") +
@@ -3806,26 +3807,27 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
                 {
                 },
                 RPCResult{
-            "{\n"
-            "  \"enabled\": true|false,         (boolean) if staking is enabled or not on this wallet\n"
-            "  \"staking\": true|false,         (boolean) if this wallet is staking or not\n"
-            "  \"errors\": \"...\"              (string) any error messages\n"
-            "  \"percentyearreward\": xxxxxxx,  (numeric) current stake reward percentage\n"
-            "  \"moneysupply\": xxxxxxx,        (numeric) the total amount of particl in the network\n"
-            "  \"reserve\": xxxxxxx,            (numeric) the reserve balance of the wallet in " + CURRENCY_UNIT + "\n"
-            "  \"walletfoundationdonationpercent\": xxxxxxx,\n    (numeric) user set percentage of the block reward ceded to the foundation\n"
-            "  \"foundationdonationpercent\": xxxxxxx,\n    (numeric) network enforced percentage of the block reward ceded to the foundation\n"
-            "  \"currentblocksize\": nnn,       (numeric) the last approximate block size in bytes\n"
-            "  \"currentblockweight\": nnn,     (numeric) the last block weight\n"
-            "  \"currentblocktx\": nnn,         (numeric) the number of transactions in the last block\n"
-            "  \"pooledtx\": n                  (numeric) the number of transactions in the mempool\n"
-            "  \"difficulty\": xxx.xxxxx        (numeric) the current difficulty\n"
-            "  \"lastsearchtime\": xxxxxxx      (numeric) the last time this wallet searched for a coinstake\n"
-            "  \"weight\": xxxxxxx              (numeric) the current stake weight of this wallet\n"
-            "  \"netstakeweight\": xxxxxxx      (numeric) the current stake weight of the network\n"
-            "  \"expectedtime\": xxxxxxx        (numeric) estimated time for next stake\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::BOOL, "enabled", "If staking is enabled on this wallet"},
+                        {RPCResult::Type::BOOL, "staking", "If this wallet is currently staking"},
+                        {RPCResult::Type::ARR, "errors", "any error messages", {
+                            {RPCResult::Type::STR, "", ""},
+                        }},
+                        {RPCResult::Type::STR_AMOUNT, "percentyearreward", "Current stake reward percentage"},
+                        {RPCResult::Type::STR_AMOUNT, "moneysupply", "The total amount of particl in the network"},
+                        {RPCResult::Type::STR_AMOUNT, "reserve", "The reserve balance of the wallet in " + CURRENCY_UNIT},
+                        {RPCResult::Type::STR_AMOUNT, "walletfoundationdonationpercent", "User set percentage of the block reward ceded to the foundation"},
+                        {RPCResult::Type::STR_AMOUNT, "foundationdonationpercent", "Network enforced percentage of the block reward ceded to the foundation"},
+                        {RPCResult::Type::NUM, "currentblocksize", "The last approximate block size in bytes"},
+                        {RPCResult::Type::NUM, "currentblockweight", "The last block weight"},
+                        {RPCResult::Type::NUM, "currentblocktx", "The number of transactions in the last block"},
+                        {RPCResult::Type::NUM, "pooledtx", "The number of transactions in the mempool"},
+                        {RPCResult::Type::NUM, "difficulty", "The current difficulty"},
+                        {RPCResult::Type::NUM, "lastsearchtime", "The last time this wallet searched for a coinstake"},
+                        {RPCResult::Type::NUM, "weight", "The current stake weight of this wallet"},
+                        {RPCResult::Type::NUM, "netstakeweight", "The current stake weight of the network"},
+                        {RPCResult::Type::NUM, "expectedtime", "Estimated time for next stake"},
+                }},
                 RPCExamples{
             HelpExampleCli("getstakinginfo", "") +
             "\nAs a JSON-RPC call\n"
@@ -3924,15 +3926,14 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
                 {
                 },
                 RPCResult{
-            "{\n"
-            "  \"enabled\": true|false,             (boolean) If a valid coldstakingaddress is loaded or not on this wallet.\n"
-            "  \"coldstaking_extkey_id\"            (string) The id of the current coldstakingaddress.\n"
-            "  \"coin_in_stakeable_script\"         (numeric) Current amount of coin in scripts stakeable by this wallet.\n"
-            "  \"coin_in_coldstakeable_script\"     (numeric) Current amount of coin in scripts stakeable by the wallet with the coldstakingaddress.\n"
-            "  \"percent_in_coldstakeable_script\"  (numeric) Percentage of coin in coldstakeable scripts.\n"
-            "  \"currently_staking\"                (numeric) Amount of coin estimated to be currently staking by this wallet.\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::BOOL, "enabled", "If a valid coldstakingaddress is loaded or not on this wallet"},
+                        {RPCResult::Type::STR, "coldstaking_extkey_id", "The id of the current coldstakingaddress"},
+                        {RPCResult::Type::STR_AMOUNT, "coin_in_stakeable_script", "Current amount of coin in scripts stakeable by this wallet"},
+                        {RPCResult::Type::STR_AMOUNT, "coin_in_coldstakeable_script", "Current amount of coin in scripts stakeable by the wallet with the coldstakingaddress"},
+                        {RPCResult::Type::STR_AMOUNT, "percent_in_coldstakeable_script", "Percentage of coin in coldstakeable scripts"},
+                        {RPCResult::Type::STR_AMOUNT, "currently_staking", "Amount of coin estimated to be currently staking by this wallet"},
+                }},
                 RPCExamples{
             HelpExampleCli("getcoldstakinginfo", "") +
             "\nAs a JSON-RPC call\n"
@@ -4081,21 +4082,17 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
                         "query_options"},
                 },
                 RPCResult{
-            "[                   (array of json object)\n"
-            "  {\n"
-            "    \"txid\" : \"txid\",          (string) the transaction id \n"
-            "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"address\" : \"address\",    (string) the particl address\n"
-            "    \"label\" : \"label\",        (string) The associated label, or \"\" for the default label\n"
-            //"    \"scriptPubKey\" : \"key\",   (string) the script key\n"
-            "    \"amount\" : x.xxx,         (numeric) the transaction output amount in " + CURRENCY_UNIT + "\n"
-            "    \"confirmations\" : n,      (numeric) The number of confirmations\n"
-            //"    \"redeemScript\" : n        (string) The redeemScript if scriptPubKey is P2SH\n"
-            //"    \"spendable\" : xxx,        (bool) Whether we have the private keys to spend this output\n"
-            //"    \"solvable\" : xxx          (bool) Whether we know how to spend this output, ignoring the lack of keys\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"
+                    RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::OBJ, "", "",
+                        {
+                            {RPCResult::Type::STR_HEX, "txid", "the transaction id"},
+                            {RPCResult::Type::NUM, "vout", "the vout value"},
+                            {RPCResult::Type::STR, "address", "the particl address"},
+                            {RPCResult::Type::STR, "label", "The associated label, or \"\" for the default label"},
+                            {RPCResult::Type::STR_AMOUNT, "amount", "the transaction output amount in " + CURRENCY_UNIT},
+                            {RPCResult::Type::NUM, "confirmations", "The number of confirmations"},
+                        }},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("listunspentanon", "")
@@ -4292,28 +4289,26 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                         "query_options"},
                 },
                 RPCResult{
-            "[                   (array of json object)\n"
-            "  {\n"
-            "    \"txid\" : \"txid\",          (string) the transaction id \n"
-            "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"address\" : \"address\",    (string) the particl address\n"
-            "    \"label\" : \"label\",        (string) The associated label, or \"\" for the default label\n"
-            "    \"scriptPubKey\" : \"key\",   (string) the script key\n"
-            "    \"amount\" : x.xxx,         (numeric) the transaction output amount in " + CURRENCY_UNIT + "\n"
-            "    \"confirmations\" : n,      (numeric) The number of confirmations\n"
-            "    \"redeemScript\" : n        (string) The redeemScript if scriptPubKey is P2SH\n"
-            "    \"spendable\" : xxx,        (bool) Whether we have the private keys to spend this output\n"
-            "    \"solvable\" : xxx          (bool) Whether we know how to spend this output, ignoring the lack of keys\n"
-            + (avoid_reuse ?
-            "    \"reused\" : xxx,           (bool) Whether this output is reused/dirty (sent to an address that was previously spent from)\n" :
-            "    \"desc\" : xxx,             (string, only when solvable) A descriptor for spending this output\n"
-            "    \"safe\" : xxx              (bool) Whether this output is considered safe to spend. Unconfirmed transactions\n"
+                    RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::OBJ, "", "",
+                        {
+                            {RPCResult::Type::STR_HEX, "txid", "the transaction id"},
+                            {RPCResult::Type::NUM, "vout", "the vout value"},
+                            {RPCResult::Type::STR, "address", "the particl address"},
+                            {RPCResult::Type::STR, "label", "The associated label, or \"\" for the default label"},
+                            {RPCResult::Type::STR, "scriptPubKey", "the script key"},
+                            {RPCResult::Type::STR_AMOUNT, "amount", "the transaction output amount in " + CURRENCY_UNIT},
+                            {RPCResult::Type::NUM, "confirmations", "The number of confirmations"},
+                            {RPCResult::Type::STR_HEX, "redeemScript", "The redeemScript if scriptPubKey is P2SH"},
+                            {RPCResult::Type::BOOL, "spendable", "Whether we have the private keys to spend this output"},
+                            {RPCResult::Type::BOOL, "solvable", "Whether we know how to spend this output, ignoring the lack of keys"},
+                            {RPCResult::Type::BOOL, "reused", "(only present if avoid_reuse is set) Whether this output is reused/dirty (sent to an address that was previously spent from)"},
+                            {RPCResult::Type::STR, "desc", "(only when solvable) A descriptor for spending this output"},
+                            {RPCResult::Type::BOOL, "safe", "Whether this output is considered safe to spend. Unconfirmed transactions"
             "                              from outside keys and unconfirmed replacement transactions are considered unsafe\n"
-            "                              and are not eligible for spending by fundrawtransaction and sendtoaddress.\n"
-            "") +
-            "  }\n"
-            "  ,...\n"
-            "]\n"
+                                "and are not eligible for spending by fundrawtransaction and sendtoaddress."},
+                        }},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("listunspentblind", "")
@@ -5189,7 +5184,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                     },
                 },
                 RPCResult{
-            "\"txid\"              (string) The transaction id.\n"
+                    RPCResult::Type::STR_HEX, "", "The transaction id",
                 },
                 RPCExamples{
             HelpExampleCli("sendtypeto", "anon part \"[{\\\"address\\\":\\\"PbpVcjgYatnkKgveaeqhkeQBFwjqR7jKBR\\\",\\\"amount\\\":0.1}]\"")
@@ -5439,7 +5434,7 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResult{
-            "The hex encoded signature.\n"
+                    RPCResult::Type::STR_HEX, "", "The hex encoded signature",
                 },
                 RPCExamples{
             HelpExampleCli("createsignaturewithwallet", "\"myhex\" \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\" \"myaddress\"") +
@@ -5486,7 +5481,7 @@ static UniValue createsignaturewithkey(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResult{
-            "The hex encoded signature.\n"
+                    RPCResult::Type::STR_HEX, "", "The hex encoded signature",
                 },
                 RPCExamples{
             HelpExampleCli("createsignaturewithkey", "\"myhex\" \"{\\\"txid\\\":\\\"hex\\\",\\\"vout\\\":n}\" \"myprivkey\"") +
@@ -6067,10 +6062,9 @@ static UniValue transactionblinds(const JSONRPCRequest &request)
                     {"txnid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id."},
                 },
                 RPCResult{
-            "   {\n"
-            "     \"n\":\"hex\",                   (string) The blinding factor for output n, hex encoded\n"
-            "   }\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "hex", "The blinding factor for output n"},
+                }},
                 RPCExamples{
             HelpExampleCli("transactionblinds", "\"txnid\"") +
             "\nAs a JSON-RPC call\n"
@@ -6120,13 +6114,12 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
                     "   If an ephemeral public key is provided the spending private key will be derived, wallet must be unlocked\n"},
                 },
                 RPCResult{
-            "   {\n"
-            "     \"address\":\"base58\",            (string) The derived address\n"
-            "     \"pubkey\":\"hex\",                (string) The derived public key\n"
-            "     \"ephemeral\":\"hex\",             (string) The ephemeral public key\n"
-            "     \"privatekey\":\"WIF\",            (string) The derived privatekey, if \"ephempubkey\" is provided\n"
-            "   }\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR, "address", "The derived address"},
+                        {RPCResult::Type::STR_HEX, "pubkey", "The derived public key"},
+                        {RPCResult::Type::STR_HEX, "ephemeral", "The ephemeral public key"},
+                        {RPCResult::Type::STR, "privatekey", "The derived privatekey, if \"ephempubkey\" is provided"},
+                }},
                 RPCExamples{
             HelpExampleCli("derivefromstealthaddress", "\"stealthaddress\"") +
             "\nAs a JSON-RPC call\n"
@@ -6315,15 +6308,14 @@ static UniValue votehistory(const JSONRPCRequest &request)
                     {"current_only", RPCArg::Type::BOOL, /* default */ "false", "how only the currently active vote."},
                 },
                 RPCResult{
-            "[                   (array of json object)\n"
-            "  {\n"
-            "    \"proposal\" : n,      (numeric) the proposal id \n"
-            "    \"option\" : n,        (numeric) the option marked\n"
-            "    \"from_height\" : n,   (numeric) the starting chain height\n"
-            "    \"to_height\" : n,     (numeric) the ending chain height\n"
-            "  }\n"
-            "  ,...\n"
-            "]\n"
+                    RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::OBJ, "", "", {
+                            {RPCResult::Type::NUM, "proposal", "The proposal id"},
+                            {RPCResult::Type::NUM, "option", "The option marked"},
+                            {RPCResult::Type::NUM, "from_height", "The starting chain height"},
+                            {RPCResult::Type::NUM, "to_height", "The ending chain height"},
+                        }},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("votehistory", "true") +
@@ -6397,15 +6389,14 @@ static UniValue tallyvotes(const JSONRPCRequest &request)
                     {"height_end", RPCArg::Type::NUM, RPCArg::Optional::NO, "The chain ending height."},
                 },
                 RPCResult{
-            " {\n"
-            "   \"proposal\" : n,      (numeric) The proposal id \n"
-            "   \"option\" : n,        (numeric) The option marked\n"
-            "   \"height_start\" : n,  (numeric) The starting chain height\n"
-            "   \"height_end\" : n,    (numeric) The ending chain height\n"
-            "   \"blocks_counted\" : n,(numeric) The ending chain height\n"
-            "   \"Option x\": total, %,(string) The number of votes cast for option x.\n"
-            " }\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::NUM, "proposal", "The proposal id"},
+                        {RPCResult::Type::NUM, "option", "The option marked"},
+                        {RPCResult::Type::NUM, "height_start", "The starting chain height"},
+                        {RPCResult::Type::NUM, "height_end", "The ending chain height"},
+                        {RPCResult::Type::NUM, "blocks_counted", "Number of blocks inspected"},
+                        {RPCResult::Type::NUM, "Option n", "The number of votes cast for option n"},
+                }},
                 RPCExamples{
             HelpExampleCli("tallyvotes", "1 2000 30000") +
             "\nAs a JSON-RPC call\n"
@@ -6498,11 +6489,10 @@ static UniValue buildscript(const JSONRPCRequest &request)
                     },
                 },
                 RPCResult{
-            " {\n"
-            "   \"hex\" : n,        (string) Script as hex\n"
-            "   \"asm\" : n,        (string) Script as asm\n"
-            " }\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "hex", "Script as hex"},
+                        {RPCResult::Type::STR, "asm", "Script as asm"},
+                }},
                 RPCExamples{
             HelpExampleCli("buildscript", "\"{\\\"recipe\\\":\\\"ifcoinstake\\\", \\\"addrstake\\\":\\\"addrA\\\", \\\"addrspend\\\":\\\"addrB\\\"}\"") +
             "\nAs a JSON-RPC call\n"
@@ -6671,11 +6661,18 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
                 },
             //"5. \"fundfrombalance\"       (string, optional, default=none) Fund transaction from standard, blinded or anon balance.\n"
                 RPCResult{
-            "{\n"
-            "  \"transaction\"      (string) hex string of the transaction\n"
-            "  \"amounts\"          (json) Coin values of outputs with blinding factors of blinded outputs.\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "transaction", "hex string of the transaction"},
+                        {RPCResult::Type::NUM, "fee", "Fee in " + CURRENCY_UNIT + " the resulting transaction pays"},
+                        {RPCResult::Type::NUM, "changepos", "The position of the added change output, or -1"},
+                        {RPCResult::Type::OBJ, "amounts", "Coin values of outputs with blinding factors of blinded outputs", {
+                            {RPCResult::Type::OBJ, "n", "", {
+                                {RPCResult::Type::STR_AMOUNT, "value", "The amount of the output in " + CURRENCY_UNIT},
+                                {RPCResult::Type::STR_HEX, "blind", "Blinding factor"},
+                                {RPCResult::Type::STR_HEX, "nonce", "Nonce"},
+                            }}
+                        }},
+                }},
                 RPCExamples{
             HelpExampleCli("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"address\\\":0.01}\"")
             + HelpExampleCli("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"data\\\":\\\"00010203\\\"}\"") +
@@ -7040,13 +7037,17 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                     "options"},
                 },
                 RPCResult{
-            "{\n"
-            "  \"hex\":       \"value\", (string)  The resulting raw transaction (hex-encoded string)\n"
-            "  \"fee\":       n,       (numeric) Fee in " + CURRENCY_UNIT + " the resulting transaction pays\n"
-            "  \"changepos\": n        (numeric) The position of the added change output, or -1\n"
-            "  \"output_amounts\": obj (json) Output values and blinding factors\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "hex", "The resulting raw transaction"},
+                        {RPCResult::Type::NUM, "fee", "Fee in " + CURRENCY_UNIT + " the resulting transaction pays"},
+                        {RPCResult::Type::NUM, "changepos", "The position of the added change output, or -1"},
+                        {RPCResult::Type::OBJ, "output_amounts", "Output values and blinding factors", {
+                            {RPCResult::Type::OBJ, "n", "", {
+                                {RPCResult::Type::STR_AMOUNT, "value", "The amount of the output in " + CURRENCY_UNIT},
+                                {RPCResult::Type::STR_HEX, "blind", "Blinding factor"},
+                            }}
+                        }},
+                }},
                 RPCExamples{
             "\nCreate a transaction with no inputs\n"
             + HelpExampleCli("createrawctransaction", "\"[]\" \"{\\\"myaddress\\\":0.01}\"") +
@@ -7493,10 +7494,9 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
                     {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "The amount committed to."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"result\": true,                   (boolean) If valid commitment, else throw error.\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::BOOL, "result", "If valid commitment, else throw error"},
+                }},
                 RPCExamples{
             HelpExampleCli("verifycommitment", "\"commitment\" \"blind\" 1.1") +
             "\nAs a JSON-RPC call\n"
@@ -7554,11 +7554,10 @@ static UniValue rewindrangeproof(const JSONRPCRequest &request)
                     {"ephemeral_key", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "33byte ephemeral_key hex string."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"blind\": hex,                   (string) 32byte blinding factor hex string.\n"
-            "  \"amount\": xxxxxx,               (numeric) The amount committed to.\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "blind", "32byte blinding factor"},
+                        {RPCResult::Type::STR_AMOUNT, "amount", "The amount committed to"},
+                }},
                 RPCExamples{
             HelpExampleCli("rewindrangeproof", "\"rangeproof\" \"commitment\" \"nonce_key\" \"ephemeral_key\"") +
             "\nAs a JSON-RPC call\n"
@@ -7647,10 +7646,9 @@ static UniValue generatematchingblindfactor(const JSONRPCRequest &request)
                     },
                 },
                 RPCResult{
-            "{\n"
-            "  \"blind\": true,                (string) 32byte blind factor.\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "blind", "32byte blind factor"},
+                }},
                 RPCExamples{
             HelpExampleCli("generatematchingblindfactor", "[\"blindfactor_input\",\"blindfactor_input2\"] [\"blindfactor_output\"]") +
             "\nAs a JSON-RPC call\n"
@@ -7770,21 +7768,24 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
                         "options"},
                 },
                 RPCResult{
-            "{\n"
-            "  \"inputs_valid\" : true|false,      (boolean) If the transaction passed input verification\n"
-            "  \"complete\" : true|false,          (boolean) If the transaction has a complete set of signatures\n"
-            "  \"validscripts\" : n,               (numeric) The number of scripts which passed verification\n"
-            "  \"errors\" : [                      (json array of objects) Script verification errors (if there are any)\n"
-            "    {\n"
-            "      \"txid\" : \"hash\",              (string) The hash of the referenced, previous transaction\n"
-            "      \"vout\" : n,                   (numeric) The index of the output to spent and used as input\n"
-            "      \"scriptSig\" : \"hex\",          (string) The hex-encoded signature script\n"
-            "      \"sequence\" : n,               (numeric) Script sequence number\n"
-            "      \"error\" : \"text\"              (string) Verification or signing error related to the input\n"
-            "    }\n"
-            "    ,...\n"
-            "  ]\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "",
+                    {
+                        {RPCResult::Type::BOOL, "inputs_valid", "If the transaction passed input verification"},
+                        {RPCResult::Type::BOOL, "complete", "If the transaction has a complete set of signatures"},
+                        {RPCResult::Type::NUM, "validscripts", "The number of scripts which passed verification"},
+                        {RPCResult::Type::STR, "label", "The label of the receiving address. The default label is \"\""},
+                        {RPCResult::Type::ARR, "errors", "Script verification errors (if there are any)",
+                        {
+                            {RPCResult::Type::OBJ, "", "",
+                            {
+                                {RPCResult::Type::STR_HEX, "txid", "The hash of the referenced, previous transaction"},
+                                {RPCResult::Type::NUM, "vout", "The index of the output to spent and used as input"},
+                                {RPCResult::Type::STR_HEX, "scriptSig", "The hex-encoded signature script"},
+                                {RPCResult::Type::NUM, "sequence", "Script sequence number"},
+                                {RPCResult::Type::STR, "error", "Verification or signing error related to the input"},
+                            }},
+                        }},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("verifyrawtransaction", "\"myhex\"") +
@@ -8105,10 +8106,7 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
                 {
                     {"testonly", RPCArg::Type::BOOL, /* default */ "true", "Apply changes if false."},
                 },
-                RPCResult{
-            "{\n"
-            "}\n"
-                },
+                RPCResults{},
                 RPCExamples{
             HelpExampleCli("pruneorphanedblocks", "\"myhex\"") +
             "\nAs a JSON-RPC call\n"
@@ -8191,7 +8189,7 @@ static UniValue rehashblock(const JSONRPCRequest &request)
                     },
                 },
                 RPCResult{
-            "Output block hex\n"
+                    RPCResult::Type::STR_HEX, "", "Output block hex"
                 },
                 RPCExamples{
             HelpExampleCli("rehashblock", "\"myhex\"") +

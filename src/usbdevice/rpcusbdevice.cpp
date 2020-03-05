@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019 The Particl Core developers
+// Copyright (c) 2018-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -153,11 +153,11 @@ static UniValue listdevices(const JSONRPCRequest &request)
                 {
                 },
                 RPCResult{
-            "{\n"
-            "  \"vendor\"           (string) USB vendor string.\n"
-            "  \"product\"          (string) USB product string.\n"
-            "  \"firmwareversion\"  (string) Detected firmware version of device, if possible.\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "",  {
+                        {RPCResult::Type::STR, "vendor", "USB vendor string"},
+                        {RPCResult::Type::STR, "product", "USB product string"},
+                        {RPCResult::Type::STR, "firmwareversion", "Detected firmware version of device, if possible"},
+                    },
                 },
                 RPCExamples{
             HelpExampleCli("listdevices", "") +
@@ -203,10 +203,9 @@ static UniValue promptunlockdevice(const JSONRPCRequest &request)
                 {
                 },
                 RPCResult{
-            "{\n"
-            "  \"sent\"           (boolean) whether prompting the unlock was successful.\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::BOOL, "sent", "Whether prompting the unlock was successful"},
+                }},
                 RPCExamples{
             HelpExampleCli("promptunlockdevice", "") +
             "\nAs a JSON-RPC call\n"
@@ -237,10 +236,9 @@ static UniValue unlockdevice(const JSONRPCRequest &request)
                     {"pin", RPCArg::Type::NUM, /* default */ "", "PIN to unlock the device."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"unlocked\"           (boolean) will be true when unlocked else error is thrown.\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::BOOL, "unlocked", "True when unlocked else error is thrown"},
+                }},
                 RPCExamples{
             HelpExampleCli("unlockdevice", "\"mysecretpassword\" 1687") +
             "\nAs a JSON-RPC call\n"
@@ -287,9 +285,7 @@ static UniValue getdeviceinfo(const JSONRPCRequest &request)
                 "\nGet information from connected hardware device.\n",
                 {
                 },
-                RPCResult{
-            "{\n"
-            "}\n"
+                RPCResults{
                 },
                 RPCExamples{
             HelpExampleCli("getdeviceinfo", "") +
@@ -320,12 +316,11 @@ static UniValue getdevicepublickey(const JSONRPCRequest &request)
                     {"accountpath", RPCArg::Type::STR, /* default */ GetDefaultAccountPath(), "Account path, set to empty string to ignore."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"publickey\"        (string) The derived public key at \"path\".\n"
-            "  \"address\"          (string) The address of \"publickey\".\n"
-            "  \"path\"             (string) The full path of \"publickey\".\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR, "publickey", "The derived public key at \"path\""},
+                        {RPCResult::Type::STR, "address", "The address of \"publickey\""},
+                        {RPCResult::Type::STR, "path", "The full path of \"publickey\""},
+                }},
                 RPCExamples{
             "Get the first public key of external chain:\n"
             + HelpExampleCli("getdevicepublickey", "\"0/0\"")
@@ -371,7 +366,7 @@ static UniValue getdevicexpub(const JSONRPCRequest &request)
                     {"accountpath", RPCArg::Type::STR, /* default */ GetDefaultAccountPath(), "Account path, set to empty string to ignore."},
                 },
                 RPCResult{
-            "\"address\"              (string) The particl extended public key\n"
+                    RPCResult::Type::STR, "address", "The particl extended public key"
                 },
                 RPCExamples{
             HelpExampleCli("getdevicexpub", "\"0\"") +
@@ -406,7 +401,7 @@ static UniValue devicesignmessage(const JSONRPCRequest &request)
                     {"accountpath", RPCArg::Type::STR, /* default */ GetDefaultAccountPath(), "Account path, set to empty string to ignore."},
                 },
                 RPCResult{
-            "\"signature\"          (string) The signature of the message encoded in base 64\n"
+                    RPCResult::Type::STR, "signature", "The signature of the message encoded in base 64"
                 },
                 RPCExamples{
             "Sign with the first key of external chain:\n"
@@ -481,20 +476,21 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
                     {"accountpath", RPCArg::Type::STR, /* default */ GetDefaultAccountPath(), "Account path, set to empty string to ignore."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"hex\" : \"value\",           (string) The hex-encoded raw transaction with signature(s)\n"
-            "  \"complete\" : true|false,   (boolean) If the transaction has a complete set of signatures\n"
-            "  \"errors\" : [                 (json array of objects) Script verification errors (if there are any)\n"
-            "    {\n"
-            "      \"txid\" : \"hash\",           (string) The hash of the referenced, previous transaction\n"
-            "      \"vout\" : n,                (numeric) The index of the output to spent and used as input\n"
-            "      \"scriptSig\" : \"hex\",       (string) The hex-encoded signature script\n"
-            "      \"sequence\" : n,            (numeric) Script sequence number\n"
-            "      \"error\" : \"text\"           (string) Verification or signing error related to the input\n"
-            "    }\n"
-            "    ,...\n"
-            "  ]\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "hex", "The hex-encoded raw transaction with signature(s)"},
+                        {RPCResult::Type::BOOL, "complete", "If the transaction has a complete set of signatures"},
+                        {RPCResult::Type::ARR, "errors", "Script verification errors (if there are any)",
+                        {
+                            {RPCResult::Type::OBJ, "", "",
+                            {
+                                {RPCResult::Type::STR_HEX, "txid", "The hash of the referenced, previous transaction"},
+                                {RPCResult::Type::NUM, "vout", "The index of the output to spent and used as input"},
+                                {RPCResult::Type::STR_HEX, "scriptSig", "The hex-encoded signature script"},
+                                {RPCResult::Type::NUM, "sequence", "Script sequence number"},
+                                {RPCResult::Type::STR, "error", "Verification or signing error related to the input"},
+                            }},
+                        }},
+                    },
                 },
                 RPCExamples{
             HelpExampleCli("devicesignrawtransaction", "\"myhex\"") +
@@ -761,11 +757,10 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
             "                           The hardware device will need to sign a fake transaction to use as the seed for the scan chain."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"extkey\"           (string) The derived extended public key at \"path\".\n"
-            "  \"path\"             (string) The full path used to derive the account.\n"
-            "}\n"
-                },
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR, "extkey", "The derived extended public key at \"path\""},
+                        {RPCResult::Type::STR, "path", "The full path used to derive the account"},
+                }},
                 RPCExamples{
             HelpExampleCli("initaccountfromdevice", "\"new_acc\" \"44h/1h/0h\" false") +
             "\nAs a JSON-RPC call\n"
@@ -1015,7 +1010,7 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
                     {"bech32", RPCArg::Type::BOOL, /* default */ "true", "Use Bech32 encoding."},
                 },
                 RPCResult{
-            "\"address\"              (string) The new particl stealth address\n"
+                    RPCResult::Type::STR, "address", "The generated particl stealth address"
                 },
                 RPCExamples{
              HelpExampleCli("devicegetnewstealthaddress", "\"lblTestSxAddrPrefix\" 3 \"0b101\"") +

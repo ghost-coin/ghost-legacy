@@ -12,6 +12,7 @@ keyserver
 homogenous
 setban
 hist
+<<<<<<< HEAD
 aks
 nd
 uncrypted
@@ -21,3 +22,7 @@ rade
 tim
 endianess
 te
+=======
+ser
+unselect
+>>>>>>> bitcoin

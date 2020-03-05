@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019 The Particl Core developers
+// Copyright (c) 2018-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -119,17 +119,17 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
                     },
                 },
                 RPCResult{
-            "[\n"
-            "  {\n"
-            "    \"address\"  (string) The base58check encoded address\n"
-            "    \"txid\"  (string) The related txid\n"
-            "    \"index\"  (number) The related input or output index\n"
-            "    \"satoshis\"  (number) The difference of satoshis\n"
-            "    \"timestamp\"  (number) The time the transaction entered the mempool (seconds)\n"
-            "    \"prevtxid\"  (string) The previous txid (if spending)\n"
-            "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
-            "  }\n"
-            "]\n"
+                    RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::OBJ, "", "", {
+                            {RPCResult::Type::STR, "address", "The base58check encoded address"},
+                            {RPCResult::Type::STR_HEX, "txid", "The related txids"},
+                            {RPCResult::Type::STR_HEX, "index", "The related input or output index"},
+                            {RPCResult::Type::NUM, "satoshis", "The difference of satoshis"},
+                            {RPCResult::Type::NUM_TIME, "timestamp", "The time the transaction entered the mempool (seconds)"},
+                            {RPCResult::Type::STR_HEX, "prevtxid", "The previous txid (if spending)"},
+                            {RPCResult::Type::NUM, "prevout", "The previous transaction output index (if spending)"},
+                        }}
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("getaddressmempool", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
@@ -193,16 +193,16 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
                     {"chainInfo", RPCArg::Type::BOOL, /* default */ "false", "Include chain info in results, only applies if start and end specified."},
                 },
                 RPCResult{
-            "[\n"
-            "  {\n"
-            "    \"address\"  (string) The address base58check encoded\n"
-            "    \"txid\"  (string) The output txid\n"
-            "    \"height\"  (number) The block height\n"
-            "    \"outputIndex\"  (number) The output index\n"
-            "    \"script\"  (strin) The script hex encoded\n"
-            "    \"satoshis\"  (number) The number of satoshis of the output\n"
-            "  }\n"
-            "]\n"
+                    RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::OBJ, "", "", {
+                            {RPCResult::Type::STR, "address", "The base58check encoded address"},
+                            {RPCResult::Type::STR_HEX, "txid", "The output txid"},
+                            {RPCResult::Type::NUM, "height", "The block height"},
+                            {RPCResult::Type::NUM, "outputIndex", "The output index"},
+                            {RPCResult::Type::STR_HEX, "script", "The script hex encoded"},
+                            {RPCResult::Type::NUM, "satoshis", "The number of satoshis of the output"},
+                        }}
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("getaddressutxos", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
@@ -283,15 +283,14 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
                     {"chainInfo", RPCArg::Type::BOOL, /* default */ "false", "Include chain info in results, only applies if start and end specified."},
                 },
                 RPCResult{
-            "[\n"
-            "  {\n"
-            "    \"satoshis\"  (number) The difference of satoshis\n"
-            "    \"txid\"  (string) The related txid\n"
-            "    \"index\"  (number) The related input or output index\n"
-            "    \"height\"  (number) The block height\n"
-            "    \"address\"  (string) The base58check encoded address\n"
-            "  }\n"
-            "]\n"
+                    RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::OBJ, "", "", {
+                            {RPCResult::Type::NUM, "satoshis", "The difference of satoshis"},
+                            {RPCResult::Type::STR_HEX, "txid", "The related txid"},
+                            {RPCResult::Type::NUM, "index", "The block height"},
+                            {RPCResult::Type::STR, "address", "The base58check encoded address"},
+                        }}
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("getaddressdeltas", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
@@ -408,10 +407,10 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
                     },
                 },
                 RPCResult{
-            "{\n"
-            "  \"balance\"  (string) The current balance in satoshis\n"
-            "  \"received\"  (string) The total number of satoshis received (including change)\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_AMOUNT, "balance", "The current balance in satoshis"},
+                        {RPCResult::Type::STR_AMOUNT, "received", "The total number of satoshis received (including change)"},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("getaddressbalance", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
@@ -469,10 +468,9 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
                     {"end", RPCArg::Type::NUM, /* default */ "0", "The end block height."},
                 },
                 RPCResult{
-            "[\n"
-            "  \"transactionid\"  (string) The transaction id\n"
-            "  ,...\n"
-            "]\n"
+                    RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::STR_HEX, "transactionid", "The transaction txid"},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("getaddresstxids", "'{\"addresses\": [\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\"]}'") +
@@ -554,11 +552,11 @@ UniValue getspentinfo(const JSONRPCRequest& request)
                     },
                 },
                 RPCResult{
-            "{\n"
-            "  \"txid\"   (string) The transaction id\n"
-            "  \"index\"  (number) The spending input index\n"
-            "  \"height\" (number) The height of the block containing the spending tx\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "txid", "The transaction id"},
+                        {RPCResult::Type::NUM, "index", "The spending input index"},
+                        {RPCResult::Type::NUM, "height", "The height of the block containing the spending tx"},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("getspentinfo", "'{\"txid\": \"0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9\", \"index\": 0}'") +
@@ -787,16 +785,17 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
                         },
                         "options"},
                 },
-                RPCResult{
-            "[\n"
-            "  \"hash\"         (string) The block hash\n"
-            "]\n"
-            "[\n"
-            "  {\n"
-            "    \"blockhash\": (string) The block hash\n"
-            "    \"logicalts\": (numeric) The logical timestamp\n"
-            "  }\n"
-            "]\n"
+                RPCResults{
+                    {RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::STR_HEX, "hash", "The block hash"},
+                    }},
+                    {RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::OBJ, "", "", {
+                            {RPCResult::Type::STR_HEX, "blockhash", "The block hash"},
+                            {RPCResult::Type::NUM, "logicalts", "The logical timestamp"},
+                            {RPCResult::Type::NUM, "height", "The height of the block containing the spending tx"},
+                        }}
+                    }}
                 },
                 RPCExamples{
             HelpExampleCli("getblockhashes", "1231614698 1231024505 '{\"noOrphans\":false, \"logicalTimes\":true}'") +
@@ -818,7 +817,6 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
             if (noOrphans.isBool()) {
                 fActiveOnly = noOrphans.get_bool();
             }
-
             if (returnLogical.isBool()) {
                 fLogicalTS = returnLogical.get_bool();
             }
@@ -859,10 +857,10 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
                 {
                 },
                 RPCResult{
-            "{\n"
-            "  \"height\":n,     (numeric) The current block height (index)\n"
-            "  \"bestblock\": \"hex\",   (string) the best block hash hex\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::NUM, "height", "The current block height (index)"},
+                        {RPCResult::Type::STR_HEX, "bestblock", "The best block hash hex"},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("gettxoutsetinfobyscript", "") +
@@ -984,29 +982,27 @@ UniValue getblockreward(const JSONRPCRequest& request)
                     {"height", RPCArg::Type::NUM, RPCArg::Optional::NO, "The chain height of the block."},
                 },
                 RPCResult{
-            "{\n"
-            "  \"blockhash\" : \"id\",     (id) The hash of the block.\n"
-            "  \"coinstake\" : \"id\",     (id) The hash of the coinstake transaction.\n"
-            "  \"blocktime\" : n,          (id) The time of the block.\n"
-            "  \"stakereward\" : n,      (numeric) The stake reward portion, newly minted coin.\n"
-            "  \"blockreward\" : n,      (numeric) The block reward, value paid to staker, including fees.\n"
-            "  \"foundationreward\" : n, (numeric) The accumulated foundation reward payout, if any.\n"
-            "  \"kernelscript\" :\n"
-            "  {\n"
-            "    \"hex\" : \"str\",          (str) The script from the kernel output.\n"
-            "    \"stakeaddr\" : \"str\",    (str) The stake address, if output script is coldstake.\n"
-            "    \"spendaddr\" : \"str\",    (str) The spend address.\n"
-            "  }\n"
-            "  \"outputs\" :\n"
-            "  [\n"
-            "    \"script\" : {\n"
-            "      \"hex\" : \"str\",          (str) The script from the kernel output.\n"
-            "      \"stakeaddr\" : \"str\",    (str) The stake address, if output script is coldstake.\n"
-            "      \"spendaddr\" : \"str\",    (str) The spend address.\n"
-            "    }\n"
-            "    \"value\" : n,          (numeric) The value of the output.\n"
-            "  ]\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::STR_HEX, "blockhash", "The hash of the block"},
+                        {RPCResult::Type::STR_HEX, "coinstake", "The hash of the coinstake transaction"},
+                        {RPCResult::Type::NUM_TIME, "blocktime", "The block time expressed in " + UNIX_EPOCH_TIME},
+                        {RPCResult::Type::STR_AMOUNT, "stakereward", "The stake reward portion, newly minted coin"},
+                        {RPCResult::Type::STR_AMOUNT, "blockreward", "The block reward, value paid to staker, including fees"},
+                        {RPCResult::Type::STR_AMOUNT, "foundationreward", "The accumulated foundation reward payout, if any"},
+                        {RPCResult::Type::OBJ, "kernelscript", "", {
+                            {RPCResult::Type::STR_HEX, "hex", "The script from the kernel output"},
+                            {RPCResult::Type::STR, "stakeaddr", "The stake address, if output script is coldstake"},
+                            {RPCResult::Type::STR, "spendaddr", "The spend address"},
+                        }},
+                        {RPCResult::Type::ARR, "", "", {
+                            {RPCResult::Type::OBJ, "script", "", {
+                                {RPCResult::Type::STR_HEX, "hex", "The script from the kernel output"},
+                                {RPCResult::Type::STR, "stakeaddr", "The stake address, if output script is coldstake"},
+                                {RPCResult::Type::STR, "spendaddr", "The spend address"},
+                            }},
+                            {RPCResult::Type::STR_AMOUNT, "value", "The value of the output"},
+                        }}
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("getblockreward", "1000") +
@@ -1132,13 +1128,13 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
                         "options"},
                 },
                 RPCResult{
-            "[\n"
-            " {\n"
-            "  \"height\" : n,           (numeric) The height the output was staked into the chain.\n"
-            "  \"value\" : n,            (numeric) The value of the output.\n"
-            "  \"addrspend\" : \"addr\",   (string) The spending address of the output\n"
-            " } ...\n"
-            "]\n"
+                    RPCResult::Type::ARR, "", "", {
+                        {RPCResult::Type::OBJ, "", "", {
+                            {RPCResult::Type::NUM, "height", "The height the output was staked into the chain"},
+                            {RPCResult::Type::STR_AMOUNT, "value", "The value of the output"},
+                            {RPCResult::Type::STR, "addrspend", "The spending address of the output"},
+                        }}
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("listcoldstakeunspent", "\"Pb7FLL3DyaAVP2eGfRiEkj4U8ZJ3RHLY9g\" 1000") +
@@ -1282,13 +1278,13 @@ UniValue getindexinfo(const JSONRPCRequest& request)
                 {
                 },
                 RPCResult{
-            "{\n"
-            "  \"txindex\": xxx             (bool) Is the txindex enabled.\n"
-            "  \"addressindex\": xxx        (bool) Is the addressindex enabled.\n"
-            "  \"spentindex\":  xxx         (bool) Is the spentindex enabled.\n"
-            "  \"timestampindex\":  xxx     (bool) Is the timestampindex enabled.\n"
-            "  \"coldstakeindex\":  xxx     (bool) Is the coldstakeindex enabled.\n"
-            "}\n"
+                    RPCResult::Type::OBJ, "", "", {
+                        {RPCResult::Type::BOOL, "txindex", "True if txindex is enabled"},
+                        {RPCResult::Type::BOOL, "addressindex", "True if addressindex is enabled"},
+                        {RPCResult::Type::BOOL, "spentindex", "True if spentindex is enabled"},
+                        {RPCResult::Type::BOOL, "timestampindex", "True if timestampindex is enabled"},
+                        {RPCResult::Type::BOOL, "coldstakeindex", "True if coldstakeindex is enabled"},
+                    }
                 },
                 RPCExamples{
             HelpExampleCli("getindexinfo", "") +
