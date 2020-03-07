@@ -101,7 +101,7 @@ public:
     bool IsHDEnabled() const override;
 
     /* Returns true if the wallet can give out new addresses. This means it has keys in the keypool or can generate new keys */
-    bool CanGetAddresses(bool internal = false) override;
+    bool CanGetAddresses(bool internal = false) const override;
 
     /* Returns true if the wallet's default account requires a hardware device to sign */
     bool IsHardwareLinkedWallet() const;
@@ -157,11 +157,11 @@ public:
     bool DelAddressBook(const CTxDestination &address) override;
 
 
-    int64_t GetOldestActiveAccountTime();
-    int64_t CountActiveAccountKeys();
+    int64_t GetOldestActiveAccountTime() const;
+    int64_t CountActiveAccountKeys() const;
 
-    std::set< std::set<CTxDestination> > GetAddressGroupings() override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    std::map<CTxDestination, CAmount> GetAddressBalances(interfaces::Chain::Lock& locked_chain) override;
+    std::set< std::set<CTxDestination> > GetAddressGroupings() const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    std::map<CTxDestination, CAmount> GetAddressBalances(interfaces::Chain::Lock& locked_chain) const override;
 
     using CWallet::IsMine;
     isminetype IsMine(const CTxIn& txin) const override;

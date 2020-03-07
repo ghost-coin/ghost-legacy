@@ -146,6 +146,7 @@ TestingSetup::TestingSetup(const std::string& chainName, bool fParticlModeIn) : 
 
 TestingSetup::~TestingSetup()
 {
+    if (m_node.scheduler) m_node.scheduler->stop();
     threadGroup.interrupt_all();
     threadGroup.join_all();
     GetMainSignals().FlushBackgroundCallbacks();

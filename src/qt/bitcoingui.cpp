@@ -1163,7 +1163,7 @@ void BitcoinGUI::waitingForDevice(bool fCompleted)
         mbDevice.show();
         mbDevice.raise();
         mbDevice.activateWindow();
-        MilliSleep(100);
+        UninterruptibleSleep(std::chrono::milliseconds{100});
         qApp->processEvents();
     } else {
         if (mbDevice.isVisible())

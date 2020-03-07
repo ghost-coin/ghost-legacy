@@ -186,7 +186,7 @@ bool CZMQNotificationInterface::Initialize()
         {
             if (zapActive)
                 break;
-            MilliSleep(100);
+            UninterruptibleSleep(std::chrono::milliseconds{100});
         };
         if (!zapActive)
         {

@@ -394,7 +394,7 @@ static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bo
 static int AccountInfo(CHDWallet *pwallet, CKeyID &keyId, int nShowKeys, bool fAllChains, UniValue &obj, std::string &sError)
 {
     // TODO: inactive keys can be in db and not in memory - search db for keyId
-    ExtKeyAccountMap::iterator mi = pwallet->mapExtAccounts.find(keyId);
+    ExtKeyAccountMap::const_iterator mi = pwallet->mapExtAccounts.find(keyId);
     if (mi == pwallet->mapExtAccounts.end()) {
         sError = "Unknown account.";
         return 1;
@@ -2032,7 +2032,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
     return result;
 }
 
-int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo, bool show_pubkeys=false, bool bech32=false) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
+int ListLooseStealthAddresses(UniValue &arr, const CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo, bool show_pubkeys=false, bool bech32=false) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     std::set<CStealthAddress>::iterator it;
     for (it = pwallet->stealthAddresses.begin(); it != pwallet->stealthAddresses.end(); ++it) {

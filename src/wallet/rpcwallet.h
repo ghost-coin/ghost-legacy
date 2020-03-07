@@ -48,5 +48,5 @@ LegacyScriptPubKeyMan& EnsureLegacyScriptPubKeyMan(CWallet& wallet, bool also_cr
 UniValue getaddressinfo(const JSONRPCRequest& request);
 UniValue signrawtransactionwithwallet(const JSONRPCRequest& request);
 
-bool GetAvoidReuseFlag(CWallet * const pwallet, const UniValue& param);
+bool GetAvoidReuseFlag(const CWallet* const pwallet, const UniValue& param);
 #endif //BITCOIN_WALLET_RPCWALLET_H

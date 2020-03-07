@@ -405,7 +405,7 @@ bool CHDWallet::IsHDEnabled() const
     return mapExtAccounts.find(idDefaultAccount) != mapExtAccounts.end();
 }
 
-bool CHDWallet::CanGetAddresses(bool internal)
+bool CHDWallet::CanGetAddresses(bool internal) const
 {
     if (CWallet::CanGetAddresses(internal)) {
         return true;
@@ -447,7 +447,7 @@ bool CHDWallet::UnsetWalletFlagRV(CHDWalletDB *pwdb, uint64_t flag)
     return pwdb->WriteWalletFlags(m_wallet_flags);
 }
 
-static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &derivedKeys) EXCLUSIVE_LOCKS_REQUIRED(pw->cs_wallet)
+static void AppendKey(const CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &derivedKeys) EXCLUSIVE_LOCKS_REQUIRED(pw->cs_wallet)
 {
     UniValue keyobj(UniValue::VOBJ);
 
@@ -480,7 +480,7 @@ static void AppendKey(CHDWallet *pw, CKey &key, uint32_t nChild, UniValue &deriv
 
 extern int ListLooseExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &nKeys);
 extern int ListAccountExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &nKeys);
-extern int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo, bool show_pubkeys=false, bool bech32=false);
+extern int ListLooseStealthAddresses(UniValue &arr, const CHDWallet *pwallet, bool fShowSecrets, bool fAddressBookInfo, bool show_pubkeys=false, bool bech32=false);
 bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
 {
     WalletLogPrintf("Dumping wallet to JSON.\n");
@@ -1644,7 +1644,7 @@ bool CHDWallet::DelAddressBook(const CTxDestination &address)
     return fErased;
 };
 
-int64_t CHDWallet::GetOldestActiveAccountTime()
+int64_t CHDWallet::GetOldestActiveAccountTime() const
 {
     LOCK(cs_wallet);
 
@@ -1664,7 +1664,7 @@ int64_t CHDWallet::GetOldestActiveAccountTime()
     return nTime;
 };
 
-int64_t CHDWallet::CountActiveAccountKeys()
+int64_t CHDWallet::CountActiveAccountKeys() const
 {
     LOCK(cs_wallet);
     int64_t nKeys = 0;
@@ -1679,7 +1679,7 @@ int64_t CHDWallet::CountActiveAccountKeys()
     return nKeys;
 };
 
-std::map<CTxDestination, CAmount> CHDWallet::GetAddressBalances(interfaces::Chain::Lock& locked_chain)
+std::map<CTxDestination, CAmount> CHDWallet::GetAddressBalances(interfaces::Chain::Lock& locked_chain) const
 {
     std::map<CTxDestination, CAmount> balances;
 
@@ -1762,7 +1762,7 @@ std::map<CTxDestination, CAmount> CHDWallet::GetAddressBalances(interfaces::Chai
     return balances;
 }
 
-std::set< std::set<CTxDestination> > CHDWallet::GetAddressGroupings()
+std::set< std::set<CTxDestination> > CHDWallet::GetAddressGroupings() const
 {
     AssertLockHeld(cs_wallet); // mapWallet
     std::set< std::set<CTxDestination> > groupings;

@@ -300,7 +300,8 @@ void ThreadSecureMsg()
             nLastPrunedFundingTxns = now;
         }
 
-        MilliSleep(SMSG_THREAD_DELAY * 1000); //  // check every SMSG_THREAD_DELAY seconds
+        // Check every SMSG_THREAD_DELAY seconds
+        std::this_thread::sleep_for(std::chrono::milliseconds(SMSG_THREAD_DELAY * 1000));
     }
     return;
 };
@@ -400,8 +401,8 @@ void ThreadSecureMsgPow()
 
         delete it;
 
-        // Shutdown thread waits 5 seconds, this should be less
-        MilliSleep(2000);
+        // Shutdown thread waits 2 seconds
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
     return;
 };
