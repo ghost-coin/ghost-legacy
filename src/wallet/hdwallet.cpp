@@ -1991,7 +1991,7 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         else
             return ISMINE_NO;
         CScript subscript;
-        std::unique_ptr<SigningProvider> provider = GetSigningProvider(subscript);
+        std::unique_ptr<SigningProvider> provider = GetSolvingProvider(subscript);
         if (provider && provider->GetCScript(scriptID, subscript)) {
             auto spk_man = GetLegacyScriptPubKeyMan();
             if (spk_man) {
@@ -3925,9 +3925,9 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                 if (it != coinControl->m_inputData.end()) {
                     sigdata.scriptWitness = it->second.scriptWitness;
                 } else {
-                    std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+                    auto provider = GetLegacyScriptPubKeyMan();
                     if (!provider) {
-                        return wserrorN(1, sError, __func__, "GetSigningProvider failed.");
+                        return wserrorN(1, sError, __func__, "GetLegacyScriptPubKeyMan failed.");
                     }
                     if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
                         return wserrorN(1, sError, __func__, "Dummy signature failed.");
@@ -4058,9 +4058,9 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                 memcpy(vchAmount.data(), &coin.txout.nValue, 8);
 
                 SignatureData sigdata;
-                std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+                auto provider = GetLegacyScriptPubKeyMan();
                 if (!provider) {
-                    return wserrorN(1, sError, __func__, _("GetSigningProvider failed").translated);
+                    return wserrorN(1, sError, __func__, _("GetLegacyScriptPubKeyMan failed").translated);
                 }
                 if (!ProduceSignature(*provider, MutableTransactionSignatureCreator(&txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata)) {
                     return wserrorN(1, sError, __func__, _("Signing transaction failed").translated);
@@ -4472,9 +4472,9 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                 if (it != coinControl->m_inputData.end()) {
                     sigdata.scriptWitness = it->second.scriptWitness;
                 } else {
-                    std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+                    std::unique_ptr<SigningProvider> provider = GetSolvingProvider(scriptPubKey);
                     if (!provider) {
-                        return wserrorN(1, sError, __func__, "GetSigningProvider failed.");
+                        return wserrorN(1, sError, __func__, "GetSolvingProvider failed.");
                     }
                     if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
                         return wserrorN(1, sError, __func__, "Dummy signature failed.");
@@ -4694,9 +4694,9 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                 stx.tx->vpout[coin.second]->PutValue(vchAmount);
 
                 SignatureData sigdata;
-                std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+                auto provider = GetLegacyScriptPubKeyMan();
                 if (!provider) {
-                    return wserrorN(1, sError, __func__, _("GetSigningProvider failed").translated);
+                    return wserrorN(1, sError, __func__, _("GetLegacyScriptPubKeyMan failed").translated);
                 }
                 if (!ProduceSignature(*provider, MutableTransactionSignatureCreator(&txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata)) {
                     return wserrorN(1, sError, __func__, _("Signing transaction failed").translated);
@@ -8341,7 +8341,7 @@ bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& 
     return true;
 };
 
-bool CHDWallet::SignTransaction(CMutableTransaction &tx)
+bool CHDWallet::SignTransaction(CMutableTransaction &tx) const
 {
     AssertLockHeld(cs_wallet); // mapWallet
 
@@ -8388,7 +8388,7 @@ bool CHDWallet::SignTransaction(CMutableTransaction &tx)
 
         std::vector<uint8_t> vchAmount(8);
         memcpy(&vchAmount[0], &amount, 8);
-        std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+        auto provider = GetLegacyScriptPubKeyMan();
         if (!provider) {
             return false;
         }
@@ -8535,7 +8535,7 @@ bool CHDWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout, bool use_max_s
 {
     // Fill in dummy signatures for fee calculation.
     const CScript &scriptPubKey = txout.scriptPubKey;
-    std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+    std::unique_ptr<SigningProvider> provider = GetSolvingProvider(scriptPubKey);
     SignatureData sigdata;
 
     if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
@@ -8553,7 +8553,7 @@ bool CHDWallet::DummySignInput(CTxIn &tx_in, const CTxOutBaseRef &txout) const
         return werror("%s: Bad output type\n", __func__);
     }
     const CScript &scriptPubKey = *txout->GetPScriptPubKey();
-    std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKey);
+    std::unique_ptr<SigningProvider> provider = GetSolvingProvider(scriptPubKey);
     SignatureData sigdata;
 
     if (!ProduceSignature(*provider, DUMMY_SIGNATURE_CREATOR_PARTICL, scriptPubKey, sigdata)) {
@@ -10881,7 +10881,7 @@ void CHDWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vecto
                 continue;
             }
 
-            std::unique_ptr<SigningProvider> provider = GetSigningProvider(txout->scriptPubKey);
+            auto provider = GetLegacyScriptPubKeyMan();
             bool fSpendableIn = ((mine & ISMINE_SPENDABLE) != ISMINE_NO) || (coinControl && coinControl->fAllowWatchOnly && (mine & ISMINE_WATCH_ONLY_) != ISMINE_NO);
             //bool fSolvableIn = (mine & (ISMINE_SPENDABLE | ISMINE_WATCH_SOLVABLE)) != ISMINE_NO;
             bool fSolvableIn = provider ? IsSolvable(*provider, txout->scriptPubKey) : false;
@@ -12956,7 +12956,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
         CTxOutStandard *prevOut = (CTxOutStandard*)pcoin->tx->vpout[nPrev].get();
         CScript &scriptPubKeyOut = prevOut->scriptPubKey;
-        std::unique_ptr<SigningProvider> provider = GetSigningProvider(scriptPubKeyOut);
+        auto provider = GetLegacyScriptPubKeyMan();
         std::vector<uint8_t> vchAmount;
         prevOut->PutValue(vchAmount);
 

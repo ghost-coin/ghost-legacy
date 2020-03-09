@@ -4446,7 +4446,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 }
             }
 
-            std::unique_ptr<SigningProvider> provider = pwallet->GetSigningProvider(*scriptPubKey);
+            std::unique_ptr<SigningProvider> provider = pwallet->GetSolvingProvider(*scriptPubKey);
             if (scriptPubKey->IsPayToScriptHash()) {
                 const CScriptID& hash = CScriptID(boost::get<ScriptHash>(address));
                 CScript redeemScript;
@@ -5297,7 +5297,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
     {
         if (pwallet) {
             CTxDestination redeemDest;
-            std::unique_ptr<SigningProvider> provider = pwallet->GetSigningProvider(scriptPubKey);
+            std::unique_ptr<SigningProvider> provider = pwallet->GetSolvingProvider(scriptPubKey);
             if (ExtractDestination(scriptPubKey, redeemDest)) {
                 if (redeemDest.type() == typeid(ScriptHash)) {
                     const CScriptID& scriptID = CScriptID(boost::get<ScriptHash>(redeemDest));
@@ -8249,7 +8249,7 @@ static UniValue rehashblock(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
         }
         CScript script = GetScriptForDestination(dest);
-        std::unique_ptr<SigningProvider> provider = pwallet->GetSigningProvider(script);
+        std::unique_ptr<SigningProvider> provider = pwallet->GetSolvingProvider(script);
         auto keyid = GetKeyForDestination(*provider, dest);
         if (keyid.IsNull()) {
             throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
