@@ -13,6 +13,7 @@
 #include <init.h>
 #include <miner.h>
 #include <net.h>
+#include <net_processing.h>
 #include <noui.h>
 #include <pow.h>
 #include <rpc/blockchain.h>
@@ -64,7 +65,7 @@ std::ostream& operator<<(std::ostream& os, const uint256& num)
 }
 
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticlModeIn)
-    : m_path_root{fs::temp_directory_path() / "test_common_" PACKAGE_NAME / std::to_string(g_insecure_rand_ctx_temp_path.rand32())}
+    : m_path_root{fs::temp_directory_path() / "test_common_" PACKAGE_NAME / g_insecure_rand_ctx_temp_path.rand256().ToString()}
 {
     fParticlMode = fParticlModeIn;
 
@@ -142,6 +143,7 @@ TestingSetup::TestingSetup(const std::string& chainName, bool fParticlModeIn) : 
     m_node.mempool->setSanityCheck(1.0);
     m_node.banman = MakeUnique<BanMan>(GetDataDir() / "banlist.dat", nullptr, DEFAULT_MISBEHAVING_BANTIME);
     m_node.connman = MakeUnique<CConnman>(0x1337, 0x1337); // Deterministic randomness for tests.
+    m_node.peer_logic = MakeUnique<PeerLogicValidation>(m_node.connman.get(), m_node.banman.get(), *m_node.scheduler);
 }
 
 TestingSetup::~TestingSetup()
