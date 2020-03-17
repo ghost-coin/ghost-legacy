@@ -364,7 +364,7 @@ static UniValue syncwithvalidationinterfacequeue(const JSONRPCRequest& request)
             RPCHelpMan{"syncwithvalidationinterfacequeue",
                 "\nWaits for the validation interface queue to catch up on everything that was there when we entered this function.\n",
                 {},
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("syncwithvalidationinterfacequeue","")
             + HelpExampleRpc("syncwithvalidationinterfacequeue","")
@@ -1235,7 +1235,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
                                     {RPCResult::Type::NUM_TIME, "start_time", "the minimum median time past of a block at which the bit gains its meaning"},
                                     {RPCResult::Type::NUM_TIME, "timeout", "the median time past of a block at which the deployment is considered failed if not yet locked in"},
                                     {RPCResult::Type::NUM, "since", "height of the first block to which the status applies"},
-                                    {RPCResult::Type::OBJ, "statistics", "numeric statistics about BIP9 signalling for a softfork",
+                                    {RPCResult::Type::OBJ, "statistics", "numeric statistics about BIP9 signalling for a softfork (only for \"started\" status)",
                                     {
                                         {RPCResult::Type::NUM, "period", "the length in blocks of the BIP9 signalling period"},
                                         {RPCResult::Type::NUM, "threshold", "the number of blocks with the version bit set required to activate the feature"},
@@ -1472,7 +1472,7 @@ static UniValue preciousblock(const JSONRPCRequest& request)
                 {
                     {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "the hash of the block to mark as precious"},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("preciousblock", "\"blockhash\"")
             + HelpExampleRpc("preciousblock", "\"blockhash\"")
@@ -1507,7 +1507,7 @@ static UniValue invalidateblock(const JSONRPCRequest& request)
                 {
                     {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "the hash of the block to mark as invalid"},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("invalidateblock", "\"blockhash\"")
             + HelpExampleRpc("invalidateblock", "\"blockhash\"")
@@ -1546,7 +1546,7 @@ static UniValue reconsiderblock(const JSONRPCRequest& request)
                 {
                     {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "the hash of the block to reconsider"},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("reconsiderblock", "\"blockhash\"")
             + HelpExampleRpc("reconsiderblock", "\"blockhash\"")
@@ -1982,7 +1982,7 @@ static UniValue savemempool(const JSONRPCRequest& request)
             RPCHelpMan{"savemempool",
                 "\nDumps the mempool to disk. It will fail until the previous dump is fully loaded.\n",
                 {},
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("savemempool", "")
             + HelpExampleRpc("savemempool", "")

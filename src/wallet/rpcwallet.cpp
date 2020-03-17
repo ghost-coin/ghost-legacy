@@ -431,7 +431,7 @@ static UniValue setlabel(const JSONRPCRequest& request)
                     {"address", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "The particl address to be associated with a label."},
                     {"label", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "The label to assign to the address."},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("setlabel", "\"" + EXAMPLE_ADDRESS[0] + "\" \"tabby\"")
             + HelpExampleRpc("setlabel", "\"" + EXAMPLE_ADDRESS[0] + "\", \"tabby\"")
@@ -1006,7 +1006,7 @@ static UniValue getunconfirmedbalance(const JSONRPCRequest &request)
             RPCHelpMan{"getunconfirmedbalance",
                 "DEPRECATED\nIdentical to getbalances().mine.untrusted_pending\n",
                 {},
-                RPCResults{},
+                RPCResult{RPCResult::Type::NUM, "", "The balance"},
                 RPCExamples{""},
             }.Check(request);
 
@@ -2374,7 +2374,7 @@ static UniValue abandontransaction(const JSONRPCRequest& request)
                 {
                     {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id"},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("abandontransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
             + HelpExampleRpc("abandontransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
@@ -2417,7 +2417,7 @@ static UniValue backupwallet(const JSONRPCRequest& request)
                 {
                     {"destination", RPCArg::Type::STR, RPCArg::Optional::NO, "The destination directory or file"},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("backupwallet", "\"backup.dat\"")
             + HelpExampleRpc("backupwallet", "\"backup.dat\"")
@@ -2455,7 +2455,7 @@ static UniValue keypoolrefill(const JSONRPCRequest& request)
                 {
                     {"newsize", RPCArg::Type::NUM, /* default */ "100", "The new keypool size"},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("keypoolrefill", "")
             + HelpExampleRpc("keypoolrefill", "")
@@ -2508,7 +2508,7 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
                     {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "The time to keep the decryption key in seconds; capped at 100000000 (~3 years)."},
                     {"stakingonly", RPCArg::Type::NUM, /* default */ "false", "If true, sending functions are disabled."},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
             "\nUnlock the wallet for 60 seconds\n"
             + HelpExampleCli("walletpassphrase", "\"my pass phrase\" 60") +
@@ -2606,7 +2606,7 @@ static UniValue walletpassphrasechange(const JSONRPCRequest& request)
                     {"oldpassphrase", RPCArg::Type::STR, RPCArg::Optional::NO, "The current passphrase"},
                     {"newpassphrase", RPCArg::Type::STR, RPCArg::Optional::NO, "The new passphrase"},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("walletpassphrasechange", "\"old one\" \"new one\"")
             + HelpExampleRpc("walletpassphrasechange", "\"old one\", \"new one\"")
@@ -2656,7 +2656,7 @@ static UniValue walletlock(const JSONRPCRequest& request)
                 "After calling this method, you will need to call walletpassphrase again\n"
                 "before being able to call any methods which require the wallet to be unlocked.\n",
                 {},
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
             "\nSet the passphrase for 2 minutes to perform a transaction\n"
             + HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
@@ -2701,7 +2701,7 @@ static UniValue encryptwallet(const JSONRPCRequest& request)
                 {
                     {"passphrase", RPCArg::Type::STR, RPCArg::Optional::NO, "The pass phrase to encrypt the wallet with. It must be at least 1 character, but should be long."},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::STR, "", "A string with further instructions"},
                 RPCExamples{
             "\nEncrypt your wallet\n"
             + HelpExampleCli("encryptwallet", "\"my pass phrase\"") +
@@ -3520,7 +3520,7 @@ static UniValue unloadwallet(const JSONRPCRequest& request)
                 {
                     {"wallet_name", RPCArg::Type::STR, /* default */ "the wallet name from the RPC request", "The name of the wallet to unload."},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("unloadwallet", "wallet_name")
             + HelpExampleRpc("unloadwallet", "wallet_name")
@@ -3660,9 +3660,9 @@ static UniValue listunspent(const JSONRPCRequest& request)
                             {RPCResult::Type::BOOL, "stakeable", "Whether we have the private keys to stake this output"},
                             {RPCResult::Type::BOOL, "reused", "(only present if avoid_reuse is set) Whether this output is reused/dirty (sent to an address that was previously spent from)"},
                             {RPCResult::Type::STR, "desc", "(only when solvable) A descriptor for spending this output"},
-                            {RPCResult::Type::BOOL, "safe", "Whether this output is considered safe to spend. Unconfirmed transactions"
-            "                              from outside keys and unconfirmed replacement transactions are considered unsafe\n"
-                                "and are not eligible for spending by fundrawtransaction and sendtoaddress."},
+                            {RPCResult::Type::BOOL, "safe", "Whether this output is considered safe to spend. Unconfirmed transactions\n"
+                                                            "from outside keys and unconfirmed replacement transactions are considered unsafe\n"
+                                                            "and are not eligible for spending by fundrawtransaction and sendtoaddress."},
                         }},
                     }
                 },
@@ -4242,7 +4242,7 @@ static UniValue bumpfee(const JSONRPCRequest& request)
             "                         the dust threshold."},
                             {"fee_rate", RPCArg::Type::NUM, /* default */ "fallback to 'confTarget'", "FeeRate (NOT total fee) to pay, in " + CURRENCY_UNIT + " per kB\n"
             "                         Specify a fee rate instead of relying on the built-in fee estimator.\n"
-            "                         Must be at least 0.0001 BTC per kB higher than the current transaction fee rate.\n"},
+                                     "Must be at least 0.0001 " + CURRENCY_UNIT + " per kB higher than the current transaction fee rate.\n"},
                             {"replaceable", RPCArg::Type::BOOL, /* default */ "true", "Whether the new transaction should still be\n"
             "                         marked bip-125 replaceable. If true, the sequence numbers in the transaction will\n"
             "                         be left unchanged from the original. If false, any input sequence numbers in the\n"
@@ -5015,7 +5015,7 @@ UniValue sethdseed(const JSONRPCRequest& request)
                     {"seed", RPCArg::Type::STR, /* default */ "random seed", "The WIF private key to use as the new HD seed.\n"
             "                             The seed value can be retrieved using the dumpwallet command. It is the private key marked hdseed=1"},
                 },
-                RPCResults{},
+                RPCResult{RPCResult::Type::NONE, "", ""},
                 RPCExamples{
                     HelpExampleCli("sethdseed", "")
             + HelpExampleCli("sethdseed", "false")

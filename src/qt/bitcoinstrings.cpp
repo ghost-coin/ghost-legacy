@@ -34,6 +34,9 @@ QT_TRANSLATE_NOOP("bitcoin-core", ""
 QT_TRANSLATE_NOOP("bitcoin-core", ""
 "Error: Listening for incoming connections failed (listen returned error %s)"),
 QT_TRANSLATE_NOOP("bitcoin-core", ""
+"Failed to rebuild rolling indices by rewinding the chain, a reindex is "
+"required."),
+QT_TRANSLATE_NOOP("bitcoin-core", ""
 "Fee estimation failed. Fallbackfee is disabled. Wait a few blocks or enable -"
 "fallbackfee."),
 QT_TRANSLATE_NOOP("bitcoin-core", ""
@@ -51,9 +54,6 @@ QT_TRANSLATE_NOOP("bitcoin-core", ""
 "Prune: last wallet synchronisation goes beyond pruned data. You need to -"
 "reindex (download the whole blockchain again in case of pruned node)"),
 QT_TRANSLATE_NOOP("bitcoin-core", ""
-"Rescans are not possible in pruned mode. You will need to use -reindex which "
-"will download the whole blockchain again."),
-QT_TRANSLATE_NOOP("bitcoin-core", ""
 "The block database contains a block which appears to be from the future. "
 "This may be due to your computer's date and time being set incorrectly. Only "
 "rebuild the block database if you are sure that your computer's date and "
@@ -68,10 +68,6 @@ QT_TRANSLATE_NOOP("bitcoin-core", ""
 "at this level"),
 QT_TRANSLATE_NOOP("bitcoin-core", ""
 "This is the transaction fee you may pay when fee estimates are not available."),
-QT_TRANSLATE_NOOP("bitcoin-core", ""
-"This product includes software developed by the OpenSSL Project for use in "
-"the OpenSSL Toolkit %s and cryptographic software written by Eric Young and "
-"UPnP software written by Thomas Bernard."),
 QT_TRANSLATE_NOOP("bitcoin-core", ""
 "Total length of network version string (%i) exceeds maximum length (%i). "
 "Reduce the number or size of uacomments."),
@@ -110,8 +106,10 @@ QT_TRANSLATE_NOOP("bitcoin-core", "Cannot resolve -%s address: '%s'"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Cannot write to data directory '%s'; check permissions."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Change index out of range"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Config setting for %s only applied on %s network when in [%s] section."),
-QT_TRANSLATE_NOOP("bitcoin-core", "Copyright (C) %i-%i"),
+QT_TRANSLATE_NOOP("bitcoin-core", "Copyright (C)"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Corrupted block database detected"),
+QT_TRANSLATE_NOOP("bitcoin-core", "Could not find asmap file %s"),
+QT_TRANSLATE_NOOP("bitcoin-core", "Could not parse asmap file %s"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Do you want to rebuild the block database now?"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Done loading"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Duplicate index found, %d"),
@@ -131,6 +129,8 @@ QT_TRANSLATE_NOOP("bitcoin-core", "Error: Disk space is low for %s"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Error: Disk space is too low!"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Failed to listen on any port. Use -listen=0 if you want this."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Failed to rescan the wallet during initialization"),
+QT_TRANSLATE_NOOP("bitcoin-core", "GetLegacyScriptPubKeyMan failed"),
+QT_TRANSLATE_NOOP("bitcoin-core", "GetLegacyScriptPubKeyMan failed."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Hit nMaxTries limit, %d, %d, have %d, lastindex %d"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Importing..."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Incorrect or no genesis block found. Wrong datadir for network?"),
@@ -160,9 +160,11 @@ QT_TRANSLATE_NOOP("bitcoin-core", "Output isn't standard."),
 QT_TRANSLATE_NOOP("bitcoin-core", "PrepareTransaction for device failed: %s"),
 QT_TRANSLATE_NOOP("bitcoin-core", "ProduceSignature from device failed: %s"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Prune cannot be configured with a negative value."),
+QT_TRANSLATE_NOOP("bitcoin-core", "Prune mode is incompatible with "),
 QT_TRANSLATE_NOOP("bitcoin-core", "Prune mode is incompatible with -blockfilterindex."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Prune mode is incompatible with -txindex."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Pruning blockstore..."),
+QT_TRANSLATE_NOOP("bitcoin-core", "Rebuilding rolling indices..."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Reducing -maxconnections from %d to %d, because of system limitations."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Replaying blocks..."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Rescanning..."),
@@ -191,7 +193,6 @@ QT_TRANSLATE_NOOP("bitcoin-core", "Transaction fee and change calculation failed
 QT_TRANSLATE_NOOP("bitcoin-core", "Transaction has too long of a mempool chain"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Transaction must have at least one recipient"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Transaction must have at least one recipient."),
-QT_TRANSLATE_NOOP("bitcoin-core", "Transaction too large for fee policy."),
 QT_TRANSLATE_NOOP("bitcoin-core", "Transaction too large"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Unable to bind to %s on this computer (bind returned error %s)"),
 QT_TRANSLATE_NOOP("bitcoin-core", "Unable to bind to %s on this computer. %s is probably already running."),
