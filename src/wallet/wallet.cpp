@@ -1137,9 +1137,10 @@ void CWallet::TransactionRemovedFromMempool(const CTransactionRef &ptx) {
     if (it != mapWallet.end()) {
         it->second.fInMempool = false;
     }
+    ClearCachedBalances();
 }
 
-void CWallet::BlockConnected(const CBlock& block, const std::vector<CTransactionRef>& vtxConflicted, int height)
+void CWallet::BlockConnected(const CBlock& block, int height)
 {
     const uint256& block_hash = block.GetHash();
     auto locked_chain = chain().lock();
@@ -1152,10 +1153,6 @@ void CWallet::BlockConnected(const CBlock& block, const std::vector<CTransaction
         SyncTransaction(block.vtx[index], confirm);
         TransactionRemovedFromMempool(block.vtx[index]);
     }
-    for (const CTransactionRef& ptx : vtxConflicted) {
-        TransactionRemovedFromMempool(ptx);
-    }
-
     ClearCachedBalances();
 }
 
