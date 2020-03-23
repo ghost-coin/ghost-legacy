@@ -219,7 +219,7 @@ public:
     void AddOutputRecordMetaData(CTransactionRecord &rtx, std::vector<CTempRecipient> &vecSend);
     int ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStoredExtKey *pc, std::string &sError);
 
-    int AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    int AddCTData(const CCoinControl *coinControl, CTxOutBase *txout, CTempRecipient &r, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r, std::string &sError);
 
@@ -367,6 +367,7 @@ public:
     bool UpdateStealthAddressIndex(const CKeyID &idK, const CStealthAddressIndexed &sxi, uint32_t &id); // Get stealth index or create new index if none found
     bool GetStealthByIndex(uint32_t sxId, CStealthAddress &sx) const;
     bool GetStealthLinked(const CKeyID &idK, CStealthAddress &sx) const;
+    bool GetStealthSecret(const CStealthAddress &sx, CKey &key_out) const;
     bool ProcessLockedStealthOutputs();
     bool ProcessLockedBlindedOutputs();
     bool CountRecords(std::string sPrefix, int64_t rv);

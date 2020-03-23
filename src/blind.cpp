@@ -21,8 +21,9 @@ static int CountLeadingZeros(uint64_t nValueIn)
     int nZeros = 0;
 
     for (size_t i = 0; i < 64; ++i, nValueIn >>= 1) {
-        if ((nValueIn & 1))
+        if ((nValueIn & 1)) {
             break;
+        }
         nZeros++;
     }
 
@@ -35,8 +36,9 @@ static int CountTrailingZeros(uint64_t nValueIn)
 
     uint64_t mask = ((uint64_t)1) << 63;
     for (size_t i = 0; i < 64; ++i, nValueIn <<= 1) {
-        if ((nValueIn & mask))
+        if ((nValueIn & mask)) {
             break;
+        }
         nZeros++;
     }
 
@@ -47,8 +49,9 @@ static int64_t ipow(int64_t base, int exp)
 {
     int64_t result = 1;
     while (exp) {
-        if (exp & 1)
+        if (exp & 1) {
             result *= base;
+        }
         exp >>= 1;
         base *= base;
     }
@@ -70,8 +73,9 @@ int SelectRangeProofParameters(uint64_t nValueIn, uint64_t &minValue, int &expon
 
     if (nValueIn == 0) {
         exponent = GetRandInt(5);
-        if (GetRandInt(10) == 0) // sometimes raise the exponent
+        if (GetRandInt(10) == 0) { // sometimes raise the exponent
             nBits += GetRandInt(5);
+        }
         return 0;
     }
 

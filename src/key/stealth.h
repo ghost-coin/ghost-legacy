@@ -1,5 +1,5 @@
 // Copyright (c) 2014 The ShadowCoin developers
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
@@ -65,6 +65,7 @@ public:
 
     int SetScanPubKey(CPubKey pk);
 
+    CKeyID GetScanKeyID() const;
     CKeyID GetSpendKeyID() const;
 
     bool operator <(const CStealthAddress &y) const

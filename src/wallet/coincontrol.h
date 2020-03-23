@@ -80,6 +80,8 @@ public:
     mutable int nChangePos = -1;
     bool m_addChangeOutput = true;
     bool m_include_immature = false;
+    //! Allows amounts of blinded outputs sent to stealth addresses to be seen with the scan_secret
+    bool m_blind_watchonly_visible = false;
     //! Appended to ct fee data output
     std::vector<uint8_t> m_extra_data0;
 

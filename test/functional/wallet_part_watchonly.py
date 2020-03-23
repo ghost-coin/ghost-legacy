@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2020 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -38,6 +38,7 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
         assert(isclose(nodes[1].getwalletinfo()['watchonly_balance'], 10000.0))
         assert(len(nodes[1].filtertransactions({'include_watchonly': True})) == 1)
 
+        self.log.info('Import watchonly account')
         ro = nodes[2].extkey('importaccount', nodes[0].extkey('account', 'default', 'true')['epkey'])
         nodes[2].extkey('setdefaultaccount', ro['account_id'])
 
@@ -68,6 +69,20 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
 
         assert(w0['total_balance'] == w2['watchonly_total_balance'])
         assert(w0['txcount'] == w2['txcount'])
+
+
+        self.log.info('Test sending blind output to watchonly')
+        coincontrol = {'blind_watchonly_visible': True}
+        outputs = [{'address': sxaddr0, 'amount': 10},]
+        txid = nodes[0].sendtypeto('part', 'blind', outputs, 'comment', 'comment-to', 4, 64, False, coincontrol)
+        self.stakeBlocks(1)
+        w0 = nodes[0].getbalances()
+        w2 = nodes[2].getbalances()
+        assert(isclose(w0['mine']['blind_trusted'], 10.0))
+        assert('watchonly' not in w0)
+        assert(isclose(w2['mine']['blind_trusted'], 0.0))
+        assert(isclose(w2['watchonly']['blind_trusted'], 10.0))
+
 
         nodes[2].importstealthaddress(scan_vk, spend_vk)
         ro = nodes[2].getaddressinfo(sxaddr0)

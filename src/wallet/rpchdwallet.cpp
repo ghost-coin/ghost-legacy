@@ -4845,6 +4845,9 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         if (uvCoinControl["show_fee"].isBool() && uvCoinControl["show_fee"].get_bool() == true) {
             fShowFee = true;
         }
+        if (uvCoinControl["blind_watchonly_visible"].isBool() && uvCoinControl["blind_watchonly_visible"].get_bool() == true) {
+            coincontrol.m_blind_watchonly_visible = true;
+        }
     }
     coincontrol.m_avoid_partial_spends |= coincontrol.m_avoid_address_reuse;
 
@@ -5180,6 +5183,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                             {"avoid_reuse", RPCArg::Type::BOOL, /* default */ "true", "(only available if avoid_reuse wallet flag is set) Avoid spending from dirty addresses; addresses are considered\n"
                             "                             dirty if they have previously been used in a transaction."},
                             {"feeRate", RPCArg::Type::AMOUNT, /* default */ "not set: makes wallet determine the fee", "Set a specific fee rate in " + CURRENCY_UNIT + "/kB"},
+                            {"blind_watchonly_visible", RPCArg::Type::BOOL, /* default */ "false", "Reveal amounts of blinded outputs sent to stealth addresses to the scan_secret"},
                         },
                     },
                 },
@@ -6949,7 +6953,8 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             uint256 blind(r.vBlind.data(), 32);
             amount.pushKV("blind", blind.ToString());
 
-            if (0 != pwallet->AddCTData(txbout.get(), r, sError)) {
+            CCoinControl cctl;
+            if (0 != pwallet->AddCTData(&cctl, txbout.get(), r, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddCTData failed: %s.", sError));
             }
             amount.pushKV("nonce", r.nonce.ToString());

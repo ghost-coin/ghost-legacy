@@ -3077,12 +3077,15 @@ static UniValue getbalances(const JSONRPCRequest& request)
 
             balances.pushKV("mine", balances_mine);
         }
-        if (bal.nPartWatchOnly > 0 || bal.nPartWatchOnlyUnconf > 0 || bal.nPartWatchOnlyStaked > 0) {
+        if (bal.nPartWatchOnly > 0 || bal.nPartWatchOnlyUnconf > 0 || bal.nPartWatchOnlyStaked > 0 ||
+            bal.nBlindWatchOnly > 0 || bal.nBlindWatchOnlyUnconf > 0) {
             UniValue balances_watchonly{UniValue::VOBJ};
             balances_watchonly.pushKV("trusted", ValueFromAmount(bal.nPartWatchOnly));
             balances_watchonly.pushKV("untrusted_pending", ValueFromAmount(bal.nPartWatchOnlyUnconf));
             balances_watchonly.pushKV("immature", ValueFromAmount(bal.nPartWatchOnlyImmature)); // Always 0, would only be non zero during chain bootstrapping
             balances_watchonly.pushKV("staked", ValueFromAmount(bal.nPartWatchOnlyStaked));
+            balances_watchonly.pushKV("blind_trusted", ValueFromAmount(bal.nBlindWatchOnly));
+            balances_watchonly.pushKV("blind_untrusted_pending", ValueFromAmount(bal.nBlindWatchOnlyUnconf));
             balances.pushKV("watchonly", balances_watchonly);
         }
         return balances;

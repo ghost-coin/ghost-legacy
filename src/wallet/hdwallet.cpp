@@ -2653,17 +2653,25 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse)
                     }
                     break;
                 case OUTPUT_CT:
-                    if (!(r.nFlags & ORF_OWNED)) {
+                    if (!(r.nFlags & ORF_OWNED || r.nFlags & ORF_OWN_WATCH)) {
                         continue;
                     }
                     if (!allow_used_addresses && IsSpentKey(&r.scriptPubKey)) {
                         continue;
                     }
                     if (fTrusted) {
-                        bal.nBlind += r.nValue;
+                        if (r.nFlags & ORF_OWN_WATCH) {
+                            bal.nBlindWatchOnly += r.nValue;
+                        } else {
+                            bal.nBlind += r.nValue;
+                        }
                     } else
                     if (fInMempool) {
-                        bal.nBlindUnconf += r.nValue;
+                        if (r.nFlags & ORF_OWN_WATCH) {
+                            bal.nBlindWatchOnlyUnconf += r.nValue;
+                        } else {
+                            bal.nBlindUnconf += r.nValue;
+                        }
                     }
                     break;
                 case OUTPUT_STANDARD:
@@ -2692,7 +2700,6 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse)
             }
         }
     }
-
     //if (!MoneyRange(nBalance))
     //    throw std::runtime_error(std::string(__func__) + ": value out of range");
 
@@ -3221,7 +3228,7 @@ int CreateOutput(OUTPUT_PTR<CTxOutBase> &txbout, CTempRecipient &r, std::string 
     return 0;
 };
 
-int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sError)
+int CHDWallet::AddCTData(const CCoinControl *coinControl, CTxOutBase *txout, CTempRecipient &r, std::string &sError)
 {
     secp256k1_pedersen_commitment *pCommitment = txout->GetPCommitment();
     std::vector<uint8_t> *pvRangeproof = txout->GetPRangeproof();
@@ -3247,7 +3254,17 @@ int CHDWallet::AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sErr
         if (!r.pkTo.IsValid()) {
             return wserrorN(1, sError, __func__, "Invalid recipient pubkey.");
         }
-        nonce = r.sEphem.ECDH(r.pkTo);
+
+        if (coinControl->m_blind_watchonly_visible &&
+            r.address.type() == typeid(CStealthAddress)) {
+            CStealthAddress sx = boost::get<CStealthAddress>(r.address);
+            uint256 tweak(uint256S("0x444"));
+            CKey tweaked = r.sEphem.Add(tweak.begin());
+            nonce = tweaked.ECDH(CPubKey(sx.scan_pubkey));
+            CPubKey pk_tweaked = tweaked.GetPubKey();
+        } else {
+            nonce = r.sEphem.ECDH(r.pkTo);
+        }
         CSHA256().Write(nonce.begin(), 32).Finalize(nonce.begin());
         r.nonce = nonce;
     }
@@ -3909,7 +3926,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                     }
 
                     assert(r.n < (int)txNew.vpout.size());
-                    if (0 != AddCTData(txNew.vpout[r.n].get(), r, sError)) {
+                    if (0 != AddCTData(coinControl, txNew.vpout[r.n].get(), r, sError)) {
                         return 1; // sError will be set
                     }
                 }
@@ -4452,7 +4469,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
                         GetStrongRandBytes(&r.vBlind[0], 32);
                     } // else already prefilled
 
-                    if (0 != AddCTData(txbout.get(), r, sError)) {
+                    if (0 != AddCTData(coinControl, txbout.get(), r, sError)) {
                         return 1; // sError will be set
                     }
                 }
@@ -4615,12 +4632,9 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
         vBlindPlain.resize(32);
         memset(&vBlindPlain[0], 0, 32);
 
-        //secp256k1_pedersen_commitment plainCommitment;
         if (nValueOutPlain > 0) {
             vpBlinds.push_back(&vBlindPlain[0]);
-            //if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainCommitment, &vBlindPlain[0], (uint64_t) nValueOutPlain, &secp256k1_generator_const_h, &secp256k1_generator_const_g))
-            //    return errorN(1, sError, __func__, "secp256k1_pedersen_commit failed for plain out.");
-        };
+        }
 
         // Update the change output commitment if it exists, else last blinded
         int nLastBlinded = -1;
@@ -4663,7 +4677,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
             if (k == 32) {
                 return wserrorN(1, sError, __func__, "Zero blind sum.");
             }
-            if (0 != AddCTData(pout, r, sError)) {
+            if (0 != AddCTData(coinControl, pout, r, sError)) {
                 return 1; // sError will be set
             }
         }
@@ -5184,7 +5198,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                         GetStrongRandBytes(&r.vBlind[0], 32);
                     } // else prefilled already
 
-                    if (0 != AddCTData(txbout.get(), r, sError)) {
+                    if (0 != AddCTData(coinControl, txbout.get(), r, sError)) {
                         return 1; // sError will be set
                     }
                 }
@@ -5338,7 +5352,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                     GetStrongRandBytes(&r.vBlind[0], 32);
                 }
 
-                if (0 != AddCTData(txNew.vpout[r.n].get(), r, sError)) {
+                if (0 != AddCTData(coinControl, txNew.vpout[r.n].get(), r, sError)) {
                     return 1; // sError will be set
                 }
             }
@@ -8793,6 +8807,35 @@ bool CHDWallet::GetStealthLinked(const CKeyID &idK, CStealthAddress &sx) const
     return true;
 };
 
+bool CHDWallet::GetStealthSecret(const CStealthAddress &sx, CKey &key_out) const
+{
+    if (sx.scan_pubkey.size() != 33) {
+        return false;
+    }
+    ExtKeyAccountMap::const_iterator mi;
+    for (mi = mapExtAccounts.begin(); mi != mapExtAccounts.end(); ++mi) {
+        CExtKeyAccount *ea = mi->second;
+        AccStealthKeyMap::const_iterator it;
+        for (it = ea->mapStealthKeys.begin(); it != ea->mapStealthKeys.end(); ++it) {
+            const CEKAStealthKey &aks = it->second;
+            if (aks.pkScan.size() == 33 &&
+                memcmp(aks.pkScan.data(), sx.scan_pubkey.data(), 33) == 0) {
+                key_out = aks.skScan;
+                return true;
+            }
+        }
+    }
+    std::set<CStealthAddress>::const_iterator it;
+    for (it = stealthAddresses.begin(); it != stealthAddresses.end(); ++it) {
+        if (it->scan_pubkey.size() == 33 &&
+            memcmp(it->scan_pubkey.data(), sx.scan_pubkey.data(), 33) == 0) {
+            key_out = it->scan_secret;
+            return true;
+        }
+    }
+    return false;
+};
+
 bool CHDWallet::ProcessLockedStealthOutputs()
 {
     LOCK(cs_wallet);
@@ -10132,10 +10175,6 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
         return 1;
     }
 
-    CKey key;
-    if (!GetKey(idk, key)) {
-        return werrorN(0, "%s: GetKey failed.", __func__);
-    }
     if (pout->vData.size() < 33) {
         return werrorN(0, "%s: vData.size() < 33.", __func__);
     }
@@ -10143,9 +10182,13 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     CPubKey pkEphem;
     pkEphem.Set(pout->vData.begin(), pout->vData.begin() + 33);
 
+    CKey key;
     // Regenerate nonce
-    uint256 nonce = key.ECDH(pkEphem);
-    CSHA256().Write(nonce.begin(), 32).Finalize(nonce.begin());
+    uint256 nonce;
+    if (GetKey(idk, key)) {
+        nonce = key.ECDH(pkEphem);
+        CSHA256().Write(nonce.begin(), 32).Finalize(nonce.begin());
+    }
 
     uint64_t min_value, max_value;
     uint8_t blindOut[32];
@@ -10155,15 +10198,66 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     uint64_t amountOut;
 
     if (pout->vRangeproof.size() < 1000) {
-        if (1 != secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
-            &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
-            0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), nullptr, 0)) {
+        int rewind_rv = 0;
+        if (!nonce.IsNull()) {
+            rewind_rv = secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
+                &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
+                0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), nullptr, 0);
+        }
+
+        secp256k1_pedersen_commitment commitment;
+        if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
+                &commitment, blindOut,
+                amountOut, &secp256k1_generator_const_h, &secp256k1_generator_const_g) ||
+            memcmp(pout->commitment.data, commitment.data, 33)) {
+            rewind_rv = 0;
+        }
+
+        // Try again with the watch_only_nonce
+        if (rewind_rv < 1) {
+            CStealthAddress sx;
+            CKey scan_secret;
+
+            if (GetStealthLinked(idk, sx) &&
+                GetStealthSecret(sx, scan_secret)) {\
+
+                // pk_tweaked = pkEphem + G * tweak
+                uint256 watch_only_nonce, tweak(uint256S("0x444"));
+                secp256k1_pubkey R;
+                if (!secp256k1_ec_pubkey_parse(secp256k1_ctx_blind, &R, pkEphem.data(), EC_COMPRESSED_SIZE)) {
+                    return werrorN(0, "%s: secp256k1_ec_pubkey_parse R failed.", __func__);
+                }
+                if (!secp256k1_ec_pubkey_tweak_add(secp256k1_ctx_blind, &R, tweak.begin())) {
+                    return werrorN(0, "%s: secp256k1_ec_pubkey_tweak_add failed.", __func__);
+                }
+
+                CPubKey pk_tweaked;
+                unsigned char pub[33];
+                size_t publen = 33;
+                secp256k1_ec_pubkey_serialize(secp256k1_ctx_blind, pub, &publen, &R, SECP256K1_EC_COMPRESSED);
+                pk_tweaked.Set(pub, pub + publen);
+
+                watch_only_nonce = scan_secret.ECDH(pk_tweaked);
+                CSHA256().Write(watch_only_nonce.begin(), 32).Finalize(watch_only_nonce.begin());
+
+                rewind_rv = secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
+                    &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
+                    0, &pout->commitment, &secp256k1_generator_const_h, watch_only_nonce.begin(), nullptr, 0);
+                if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
+                        &commitment, blindOut,
+                        amountOut, &secp256k1_generator_const_h, &secp256k1_generator_const_g) ||
+                    memcmp(pout->commitment.data, commitment.data, 33)) {
+                    rewind_rv = 0;
+                }
+            }
+        }
+        if (rewind_rv != 1) {
             return werrorN(0, "%s: secp256k1_bulletproof_rangeproof_rewind failed.", __func__);
         }
 
         ExtractNarration(nonce, pout->vData, rout.sNarration);
     } else
-    if (1 != secp256k1_rangeproof_rewind(secp256k1_ctx_blind,
+    if (nonce.IsNull() || 1 != secp256k1_rangeproof_rewind(secp256k1_ctx_blind,
         blindOut, &amountOut, msg, &mlen, nonce.begin(),
         &min_value, &max_value,
         &pout->commitment, pout->vRangeproof.data(), pout->vRangeproof.size(),

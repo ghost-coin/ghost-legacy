@@ -13,6 +13,7 @@
 #include <primitives/transaction.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
+#include <wallet/coincontrol.h>
 #include <wallet/ismine.h>
 #include <policy/policy.h>
 
@@ -346,7 +347,8 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
 
     BOOST_MESSAGE("---------------- Make RingCT Output : AddCTData ---------------------\n");
     std::string strError;
-    BOOST_CHECK_MESSAGE(wallet->AddCTData(txout.get(), r, strError) == 0, "failed to add CT Data");
+    CCoinControl cctl;
+    BOOST_CHECK_MESSAGE(wallet->AddCTData(&cctl, txout.get(), r, strError) == 0, "failed to add CT Data");
 
     BOOST_MESSAGE("---------------- Checking RingCT Output---------------------\n");
     TxValidationState state;

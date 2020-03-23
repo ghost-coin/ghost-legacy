@@ -4,20 +4,24 @@ Next Major Version
 - Added Czech bip39 wordlist.
 - No default account wallet warning is silenced if wallet was intentionally created empty.
 - Enable blockchain pruning.
-   - Requires a rolling index for chain reorgs and paid smsg validation.
-   - On the first run the rolling indices will be initialised.
-   - If you later run an older release use the -rebuildrollingindices flag to manually rebuild the indices again.
+  - Requires a rolling index for chain reorgs and paid smsg validation.
+  - On the first run the rolling indices will be initialised.
+  - If you later run an older release use the -rebuildrollingindices flag to manually rebuild the indices again.
+- Added support for watchonly blinded outputs
+  - New 'blind_watchonly_visible' option for coincontrol on sendtypeto command.
+  - When 'blind_watchonly_visible' is set blinded outputs sent to stealth addresses can be uncovered with the scan secret only.
+    - Nonce is calculated as ECDH(ephem_secret + tweak, scan_public_key) and recovered with ECDH(scan_secret_key, ephem_public_key + G * tweak)
 
 
 0.19.1.1
 ==============
 
- - Merged Bitcoin 0.19.1 backports.
- - Added generatemnemonic command to particl-wallet.
- - Qt receiving addresses table displays relative paths.
- - Qt receiving addresses page can verify an address on a hardware device.
-    - Window -> Receiving addreses, right click on address -> Verify Address On Hardware Wallet
- - Path of change address is sent to ledger hardware devices.
+- Merged Bitcoin 0.19.1 backports.
+- Added generatemnemonic command to particl-wallet.
+- Qt receiving addresses table displays relative paths.
+- Qt receiving addresses page can verify an address on a hardware device.
+  - Window -> Receiving addreses, right click on address -> Verify Address On Hardware Wallet
+- Path of change address is sent to ledger hardware devices.
 
 
 0.19.0.1

@@ -289,6 +289,9 @@ public:
 
     CAmount nBlind = 0;
     CAmount nBlindUnconf = 0;
+    CAmount nBlindWatchOnly = 0;
+    CAmount nBlindWatchOnlyUnconf = 0;
+
 
     CAmount nAnon = 0;
     CAmount nAnonUnconf = 0;

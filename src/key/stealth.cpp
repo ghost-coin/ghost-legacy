@@ -1,5 +1,5 @@
 // Copyright (c) 2014 The ShadowCoin developers
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
@@ -133,6 +133,11 @@ int CStealthAddress::SetScanPubKey(CPubKey pk)
 CKeyID CStealthAddress::GetSpendKeyID() const
 {
     return CKeyID(Hash160(spend_pubkey.begin(), spend_pubkey.end()));
+};
+
+CKeyID CStealthAddress::GetScanKeyID() const
+{
+    return CKeyID(Hash160(scan_pubkey.begin(), scan_pubkey.end()));
 };
 
 int SecretToPublicKey(const CKey &secret, ec_point &out)
