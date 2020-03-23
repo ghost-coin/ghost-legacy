@@ -148,8 +148,6 @@ public:
     bool bumpFee(uint256 hash, uint256& new_hash);
 
     static bool isWalletEnabled();
-    bool privateKeysDisabled() const;
-    bool canGetAddresses() const;
 
     void lockWallet();
     interfaces::Node& node() const { return m_node; }

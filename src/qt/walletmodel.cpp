@@ -23,12 +23,12 @@
 #include <ui_interface.h>
 #include <util/system.h> // for GetBoolArg
 #include <wallet/coincontrol.h>
-#include <wallet/wallet.h>
+#include <wallet/wallet.h> // for CRecipient
+
 #include <wallet/hdwallet.h>
 #include <rpc/rpcutil.h>
 #include <util/system.h>
 #include <univalue.h>
-
 
 #include <stdint.h>
 
@@ -222,7 +222,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         std::string strFailReason;
 
         auto& newTx = transaction.getWtx();
-        newTx = m_wallet->createTransaction(vecSend, coinControl, !privateKeysDisabled() * sign *, nChangePosRet, nFeeRequired, strFailReason);
+        newTx = m_wallet->createTransaction(vecSend, coinControl, !wallet().privateKeysDisabled() / sign /, nChangePosRet, nFeeRequired, strFailReason);
         transaction.setTransactionFee(nFeeRequired);
         if (fSubtractFeeFromAmount && newTx)
             transaction.reassignAmounts(nChangePosRet);
@@ -607,7 +607,7 @@ bool WalletModel::bumpFee(uint256 hash, uint256& new_hash)
          return false;
     }
 
-    const bool create_psbt = privateKeysDisabled();
+    const bool create_psbt = m_wallet->privateKeysDisabled();
 
     // allow a user based fee verification
     QString questionString = create_psbt ? tr("Do you want to draft a transaction with fee increase?") : tr("Do you want to increase the fee?");
@@ -645,7 +645,7 @@ bool WalletModel::bumpFee(uint256 hash, uint256& new_hash)
     if (create_psbt) {
         PartiallySignedTransaction psbtx(mtx);
         bool complete = false;
-        const TransactionError err = wallet().fillPSBT(psbtx, complete, SIGHASH_ALL, false /* sign */, true /* bip32derivs */);
+        const TransactionError err = wallet().fillPSBT(SIGHASH_ALL, false /* sign */, true /* bip32derivs */, psbtx, complete);
         if (err != TransactionError::OK || complete) {
             QMessageBox::critical(nullptr, tr("Fee bump error"), tr("Can't draft transaction."));
             return false;
@@ -680,16 +680,6 @@ bool WalletModel::isWalletEnabled()
 void WalletModel::lockWallet()
 {
     m_wallet->lockWallet();
-}
-
-bool WalletModel::privateKeysDisabled() const
-{
-    return m_wallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
-}
-
-bool WalletModel::canGetAddresses() const
-{
-    return m_wallet->canGetAddresses();
 }
 
 QString WalletModel::getWalletName() const
