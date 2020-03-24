@@ -10205,21 +10205,13 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
                 0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), nullptr, 0);
         }
 
-        secp256k1_pedersen_commitment commitment;
-        if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
-                &commitment, blindOut,
-                amountOut, &secp256k1_generator_const_h, &secp256k1_generator_const_g) ||
-            memcmp(pout->commitment.data, commitment.data, 33)) {
-            rewind_rv = 0;
-        }
-
         // Try again with the watch_only_nonce
         if (rewind_rv < 1) {
             CStealthAddress sx;
             CKey scan_secret;
 
             if (GetStealthLinked(idk, sx) &&
-                GetStealthSecret(sx, scan_secret)) {\
+                GetStealthSecret(sx, scan_secret)) {
 
                 // pk_tweaked = pkEphem + G * tweak
                 uint256 watch_only_nonce, tweak(uint256S("0x444"));
@@ -10243,12 +10235,6 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
                 rewind_rv = secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
                     &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
                     0, &pout->commitment, &secp256k1_generator_const_h, watch_only_nonce.begin(), nullptr, 0);
-                if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
-                        &commitment, blindOut,
-                        amountOut, &secp256k1_generator_const_h, &secp256k1_generator_const_g) ||
-                    memcmp(pout->commitment.data, commitment.data, 33)) {
-                    rewind_rv = 0;
-                }
             }
         }
         if (rewind_rv != 1) {
