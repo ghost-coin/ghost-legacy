@@ -363,14 +363,13 @@ public:
     }
     bool createBumpTransaction(const uint256& txid,
         const CCoinControl& coin_control,
-        CAmount total_fee,
         std::vector<std::string>& errors,
         CAmount& old_fee,
         CAmount& new_fee,
         CMutableTransaction& mtx) override
     {
-        if (total_fee > 0 || ::IsParticlWallet(m_wallet.get())) {
-            return feebumper::CreateTotalBumpTransaction(m_wallet.get(), txid, coin_control, total_fee, errors, old_fee, new_fee, mtx) ==
+        if (::IsParticlWallet(m_wallet.get())) {
+            return feebumper::CreateTotalBumpTransaction(m_wallet.get(), txid, coin_control, errors, old_fee, new_fee, mtx) ==
                 feebumper::Result::OK;
         } else {
             return feebumper::CreateRateBumpTransaction(*m_wallet.get(), txid, coin_control, errors, old_fee, new_fee, mtx) ==
