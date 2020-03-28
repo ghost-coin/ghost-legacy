@@ -455,7 +455,7 @@ static void AppendKey(const CHDWallet *pw, CKey &key, uint32_t nChild, UniValue 
 
     bool fHardened = IsHardened(nChild);
     ClearHardenedBit(nChild);
-    keyobj.pushKV("path", i64tostr((int64_t)nChild) + (fHardened ? "'" : ""));
+    keyobj.pushKV("path", ToString((int64_t)nChild) + (fHardened ? "'" : ""));
     keyobj.pushKV("address", EncodeDestination(PKHash(idk)));
     keyobj.pushKV("privkey", CBitcoinSecret(key).ToString());
 
@@ -626,7 +626,7 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
 
                 uint32_t nScanKey = sxPacked.aks.nScanKey;
                 ClearHardenedBit(nScanKey);
-                sxAddr.pushKV("scan_key_offset", i64tostr((int64_t)nScanKey)+"'");
+                sxAddr.pushKV("scan_key_offset", ToString((int64_t)nScanKey)+"'");
 
                 std::map<CTxDestination, CAddressBookData>::const_iterator mi = mapAddressBook.find(sx);
                 if (mi != mapAddressBook.end()) {

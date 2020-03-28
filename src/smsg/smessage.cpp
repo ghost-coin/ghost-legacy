@@ -198,7 +198,7 @@ void ThreadSecureMsg()
                 if (fErase) {
                     LogPrint(BCLog::SMSG, "Removing bucket %d.\n", it->first);
 
-                    std::string fileName = i64tostr(it->first);
+                    std::string fileName = ToString(it->first);
 
                     fs::path fullPath = GetDataDir() / STORE_DIR / (fileName + "_01.dat");
                     if (fs::exists(fullPath)) {
@@ -1180,7 +1180,7 @@ void CSMSG::GetNodesStats(int node_id, UniValue &result)
             for (auto it = pnode->smsgData.m_buckets.begin(); it != pnode->smsgData.m_buckets.end(); ++it) {
                 UniValue bucket(UniValue::VOBJ);
                 obj.pushKV("active", (int) it->second.m_active);
-                obj.pushKV("hash", i64tostr((int64_t)it->second.m_hash));
+                obj.pushKV("hash", ToString((int64_t)it->second.m_hash));
                 pending_inv_buckets.push_back(bucket);
             }
             obj.pushKV("pending_inv_buckets", pending_inv_buckets);
@@ -2889,7 +2889,7 @@ int CSMSG::Retrieve(const SecMsgToken &token, std::vector<uint8_t> &vchData)
     fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
 
     int64_t bucket = token.timestamp - (token.timestamp % SMSG_BUCKET_LEN);
-    std::string fileName = i64tostr(bucket) + "_01.dat";
+    std::string fileName = ToString(bucket) + "_01.dat";
     fs::path fullpath = pathSmsgDir / fileName;
 
     FILE *fp;
@@ -2935,7 +2935,7 @@ int CSMSG::Remove(const SecMsgToken &token)
     fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
 
     int64_t bucket = token.timestamp - (token.timestamp % SMSG_BUCKET_LEN);
-    std::string fileName = i64tostr(bucket) + "_01.dat";
+    std::string fileName = ToString(bucket) + "_01.dat";
     fs::path fullpath = pathSmsgDir / fileName;
 
     FILE *fp;
@@ -3200,7 +3200,7 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
 
     int64_t bucket = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
 
-    std::string fileName = i64tostr(bucket) + "_01_wl.dat";
+    std::string fileName = ToString(bucket) + "_01_wl.dat";
     fs::path fullpath = pathSmsgDir / fileName;
 
     FILE *fp;
@@ -3268,7 +3268,7 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
         return SMSG_GENERAL_ERROR;
     }
 
-    std::string fileName = i64tostr(bucketTime) + "_01.dat";
+    std::string fileName = ToString(bucketTime) + "_01.dat";
     fs::path fullpath = pathSmsgDir / fileName;
 
     FILE *fp;

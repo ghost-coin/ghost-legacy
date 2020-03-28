@@ -2635,7 +2635,7 @@ static bool ParseOutput(
         output.pushKV("label", mi->second.name);
     }
     output.pushKV("vout", o.vout);
-    amounts.push_back(i64tostr(o.amount));
+    amounts.push_back(ToString(o.amount));
     return true;
 }
 
@@ -2972,7 +2972,7 @@ static void ParseRecords(
             amount *= -1;
         }
         totalAmount += amount;
-        amounts.push_back(i64tostr(amount));
+        amounts.push_back(ToString(amount));
         output.__pushKV("amount", ValueFromAmount(amount));
         output.__pushKV("vout", record.n);
         outputs.push_back(output);
@@ -3048,7 +3048,7 @@ static void ParseRecords(
     } else {
         entry.__pushKV("amount", ValueFromAmount(totalAmount));
     }
-    amounts.push_back(i64tostr(totalAmount));
+    amounts.push_back(ToString(totalAmount));
 
     if (search != "") {
         // search in addresses
