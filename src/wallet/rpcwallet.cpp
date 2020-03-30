@@ -3045,10 +3045,10 @@ static UniValue getbalances(const JSONRPCRequest& request)
     auto locked_chain = wallet.chain().lock();
     LOCK(wallet.cs_wallet);
 
-    CWallet* const pwallet = rpc_wallet.get();
-    if (IsParticlWallet(pwallet)) {
+    if (IsParticlWallet(&wallet)) {
+        const CHDWallet *pwhd = GetParticlWallet(&wallet);
         CHDWalletBalances bal;
-        ((CHDWallet*)pwallet)->GetBalances(bal);
+        pwhd->GetBalances(bal);
 
         UniValue balances{UniValue::VOBJ};
         {
@@ -3063,7 +3063,7 @@ static UniValue getbalances(const JSONRPCRequest& request)
                 // If the AVOID_REUSE flag is set, bal has been set to just the un-reused address balance. Get
                 // the total balance, and then subtract bal to get the reused address balance.
                 CHDWalletBalances full_bal;
-                ((CHDWallet*)pwallet)->GetBalances(full_bal, false);
+                pwhd->GetBalances(full_bal, false);
                 balances_mine.pushKV("used", ValueFromAmount(full_bal.nPart + full_bal.nPartUnconf - bal.nPart - bal.nPartUnconf));
                 balances_mine.pushKV("blind_used", ValueFromAmount(full_bal.nBlind + full_bal.nBlindUnconf - bal.nBlind - bal.nBlindUnconf));
             }

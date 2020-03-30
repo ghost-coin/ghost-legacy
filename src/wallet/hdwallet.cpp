@@ -2582,7 +2582,7 @@ CWallet::Balance CHDWallet::GetBalance(const int min_depth, bool avoid_reuse) co
     return ret;
 }
 
-bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse)
+bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse) const
 {
     bal = CHDWalletBalances();
 
