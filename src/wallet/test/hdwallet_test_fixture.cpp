@@ -23,7 +23,7 @@ HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
     AddWallet(pwalletMain);
     pwalletMain->LoadWallet(fFirstRun);
     pwalletMain->Initialise();
-    pwalletMain->m_chain_notifications_handler = m_chain->handleNotifications(*pwalletMain);
+    pwalletMain->m_chain_notifications_handler = m_chain->handleNotifications({ pwalletMain.get(), [](CHDWallet*) {} });
 
     m_chain_client->registerRpcs();
 }

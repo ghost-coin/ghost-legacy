@@ -832,9 +832,6 @@ public:
     /** Registered interfaces::Chain::Notifications handler. */
     std::unique_ptr<interfaces::Handler> m_chain_notifications_handler;
 
-    /** Register the wallet for chain notifications */
-    void handleNotifications();
-
     /** Interface for accessing chain state. */
     interfaces::Chain& chain() const { assert(m_chain); return *m_chain; }
 
