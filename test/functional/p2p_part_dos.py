@@ -199,7 +199,7 @@ class DoSTest(ParticlTestFramework):
 
         self.log.info('sending many duplicate headers\n\n')
 
-        self.nodes[0].add_p2p_connection(p2p_conns[0])
+        self.nodes[0].add_p2p_connection(p2p_conns[0], wait_for_verack=False)
         for i in range(dos_nodes):
             self.nodes[i].p2p.wait_for_verack()
 

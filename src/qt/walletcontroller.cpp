@@ -166,6 +166,7 @@ WalletControllerActivity::~WalletControllerActivity()
 
 void WalletControllerActivity::showProgressDialog(const QString& label_text)
 {
+    assert(!m_progress_dialog);
     m_progress_dialog = new QProgressDialog(m_parent_widget);
 
     m_progress_dialog->setLabelText(label_text);
@@ -173,6 +174,13 @@ void WalletControllerActivity::showProgressDialog(const QString& label_text)
     m_progress_dialog->setCancelButton(nullptr);
     m_progress_dialog->setWindowModality(Qt::ApplicationModal);
     GUIUtil::PolishProgressDialog(m_progress_dialog);
+}
+
+void WalletControllerActivity::destroyProgressDialog()
+{
+    assert(m_progress_dialog);
+    delete m_progress_dialog;
+    m_progress_dialog = nullptr;
 }
 
 CreateWalletActivity::CreateWalletActivity(WalletController* wallet_controller, QWidget* parent_widget)
@@ -231,9 +239,7 @@ void CreateWalletActivity::createWallet()
 
 void CreateWalletActivity::finish()
 {
-    if (m_progress_dialog) {
-        m_progress_dialog->hide();
-    }
+    destroyProgressDialog();
 
     if (!m_error_message.empty()) {
         QMessageBox::critical(m_parent_widget, tr("Create wallet failed"), QString::fromStdString(m_error_message));
@@ -274,7 +280,7 @@ OpenWalletActivity::OpenWalletActivity(WalletController* wallet_controller, QWid
 
 void OpenWalletActivity::finish()
 {
-    m_progress_dialog->hide();
+    destroyProgressDialog();
 
     if (!m_error_message.empty()) {
         QMessageBox::critical(m_parent_widget, tr("Open wallet failed"), QString::fromStdString(m_error_message));
