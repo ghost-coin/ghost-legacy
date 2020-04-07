@@ -11,7 +11,6 @@ SDK_PATH ?= $(BASEDIR)/SDKs
 NO_QT ?=
 PROTOBUF ?=
 NO_QR ?=
-RAPIDCHECK ?=
 NO_WALLET ?=
 NO_ZMQ ?=
 NO_UPNP ?=
@@ -116,7 +115,6 @@ ifeq ($(NO_USB),)
 endif
 
 protobuf_packages_$(PROTOBUF) = $(protobuf_packages)
-rapidcheck_packages_$(RAPIDCHECK) = $(rapidcheck_packages)
 
 packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_) $(usb_packages_)
 native_packages += $($(host_arch)_$(host_os)_native_packages) $($(host_os)_native_packages)
@@ -128,10 +126,6 @@ endif
 
 ifneq ($(zmq_packages_),)
 packages += $(zmq_packages)
-endif
-
-ifeq ($(rapidcheck_packages_),)
-packages += $(rapidcheck_packages)
 endif
 
 all_packages = $(packages) $(native_packages)

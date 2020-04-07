@@ -52,6 +52,7 @@ void EnsureWalletIsUnlocked(CHDWallet *pwallet)
 };
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
+static const std::string HELP_REQUIRING_PASSPHRASE{"\nRequires wallet passphrase to be set with walletpassphrase call if wallet is encrypted.\n"};
 
 static inline uint32_t reversePlace(const uint8_t *p)
 {
@@ -1577,7 +1578,7 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
 
             RPCHelpMan{"extkeyimportmaster",
                 "\nImport master key from bip44 mnemonic root key and derive default account." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"mnemonic/key", RPCArg::Type::STR, RPCArg::Optional::NO, "The mnemonic or root extended key.\n"
         "       Use '-stdin' to be prompted to enter a passphrase.\n"
@@ -1611,7 +1612,7 @@ static UniValue extkeygenesisimport(const JSONRPCRequest &request)
             RPCHelpMan{"extkeygenesisimport",
                 "\nImport master key from bip44 mnemonic root key and derive default account.\n"
                 "Derives an extra chain from path 444444 to receive imported coin." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"mnemonic/key", RPCArg::Type::STR, RPCArg::Optional::NO, "The mnemonic or root extended key.\n"
         "       Use '-stdin' to be prompted to enter a passphrase.\n"
@@ -1685,7 +1686,7 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
 
             RPCHelpMan{"getnewextaddress",
                 "\nReturns a new Particl ext address for receiving payments." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"label", RPCArg::Type::STR, /* default */ "", "If specified the key is added to the address book."},
                     {"childnum", RPCArg::Type::STR, /* default */ "", "If specified the account derive counter is not updated."},
@@ -1750,7 +1751,7 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
 
             RPCHelpMan{"getnewstealthaddress",
                 "\nReturns a new Particl stealth address for receiving payments." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"label", RPCArg::Type::STR, /* default */ "", "If specified the key is added to the address book."},
                     {"num_prefix_bits", RPCArg::Type::NUM, /* default */ "0", ""},
@@ -1830,7 +1831,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
 
             RPCHelpMan{"importstealthaddress",
                 "\nImport a stealth addresses." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"scan_secret", RPCArg::Type::STR, RPCArg::Optional::NO, "The hex or WIF encoded scan secret."},
                     {"spend_secret", RPCArg::Type::STR, RPCArg::Optional::NO, "The hex or WIF encoded spend secret or hex public key."},
@@ -2056,8 +2057,8 @@ int ListLooseStealthAddresses(UniValue &arr, const CHDWallet *pwallet, bool fSho
         }
 
         if (fAddressBookInfo) {
-            std::map<CTxDestination, CAddressBookData>::const_iterator mi = pwallet->mapAddressBook.find(*it);
-            if (mi != pwallet->mapAddressBook.end()) {
+            std::map<CTxDestination, CAddressBookData>::const_iterator mi = pwallet->m_address_book.find(*it);
+            if (mi != pwallet->m_address_book.end()) {
                 // TODO: confirm vPath?
 
                 if (mi->second.name != it->label) {
@@ -2229,7 +2230,7 @@ static UniValue reservebalance(const JSONRPCRequest &request)
                 "\nSet reserve amount not participating in network protection.\n"
                 "If no parameters provided current setting is printed.\n"
                 "Wallet must be unlocked to modify." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"reserve", RPCArg::Type::BOOL, /* default */ "false", "Turn balance reserve on or off, leave out to display current reserve."},
                     {"amount", RPCArg::Type::AMOUNT, /* default */ "", "Amount of coin to reserve."},
@@ -2487,7 +2488,7 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
                 "\nDelete transactions from the wallet.\n"
                 "By default removes only failed stakes.\n"
                 "Warning: Backup your wallet before using!" +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"remove_all", RPCArg::Type::BOOL, /* default */ "false", "Remove all transactions."},
                 },
@@ -2630,8 +2631,8 @@ static bool ParseOutput(
     if (o.destStake.type() != typeid(CNoDestination)) {
         output.pushKV("coldstake_address", EncodeDestination(o.destStake));
     }
-    auto mi = pwallet->mapAddressBook.find(o.destination);
-    if (mi != pwallet->mapAddressBook.end()) {
+    auto mi = pwallet->m_address_book.find(o.destination);
+    if (mi != pwallet->m_address_book.end()) {
         output.pushKV("label", mi->second.name);
     }
     output.pushKV("vout", o.vout);
@@ -2913,8 +2914,8 @@ static void ParseRecords(
         if (extracted && !record.scriptPubKey.IsUnspendable()) {
             addr.Set(dest);
             std::map<CTxDestination, CAddressBookData>::iterator mai;
-            mai = pwallet->mapAddressBook.find(dest);
-            if (mai != pwallet->mapAddressBook.end() && !mai->second.name.empty()) {
+            mai = pwallet->m_address_book.find(dest);
+            if (mai != pwallet->m_address_book.end() && !mai->second.name.empty()) {
                 output.__pushKV("account", mai->second.name);
             }
         }
@@ -3473,10 +3474,10 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
         // Count addresses
         UniValue result(UniValue::VOBJ);
 
-        result.pushKV("total", (int)pwallet->mapAddressBook.size());
+        result.pushKV("total", (int)pwallet->m_address_book.size());
 
         int nReceive = 0, nSend = 0;
-        for (it = pwallet->mapAddressBook.begin(); it != pwallet->mapAddressBook.end(); ++it) {
+        for (it = pwallet->m_address_book.begin(); it != pwallet->m_address_book.end(); ++it) {
             if (it->second.nOwned == 0)
                 it->second.nOwned = pwallet->HaveAddress(it->first) ? 1 : 2;
 
@@ -3544,13 +3545,13 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
 
         CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
 
-        if (nOffset >= (int)pwallet->mapAddressBook.size()) {
+        if (nOffset >= (int)pwallet->m_address_book.size()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("offset is beyond last address (%d).", nOffset));
         }
         std::vector<std::map<CTxDestination, CAddressBookData>::iterator> vitMapAddressBook;
-        vitMapAddressBook.reserve(pwallet->mapAddressBook.size());
+        vitMapAddressBook.reserve(pwallet->m_address_book.size());
 
-        for (it = pwallet->mapAddressBook.begin(); it != pwallet->mapAddressBook.end(); ++it) {
+        for (it = pwallet->m_address_book.begin(); it != pwallet->m_address_book.end(); ++it) {
             if (it->second.nOwned == 0) {
                 it->second.nOwned = pwallet->HaveAddress(it->first) ? 1 : 2;
             }
@@ -3674,14 +3675,14 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     LOCK(pwallet->cs_wallet);
 
     std::map<CTxDestination, CAddressBookData>::iterator mabi;
-    mabi = pwallet->mapAddressBook.find(dest);
+    mabi = pwallet->m_address_book.find(dest);
 
     std::vector<uint32_t> vPath;
 
     UniValue objDestData(UniValue::VOBJ);
 
     if (sAction == "add") {
-        if (mabi != pwallet->mapAddressBook.end()) {
+        if (mabi != pwallet->m_address_book.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is recorded in the address book.", sAddress));
         }
 
@@ -3693,7 +3694,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
         if (request.params.size() < 3) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Need a parameter to change.");
         }
-        if (mabi == pwallet->mapAddressBook.end()) {
+        if (mabi == pwallet->m_address_book.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is not in the address book.", sAddress));
         }
 
@@ -3710,7 +3711,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
         }
     } else
     if (sAction == "del") {
-        if (mabi == pwallet->mapAddressBook.end()) {
+        if (mabi == pwallet->m_address_book.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is not in the address book.", sAddress));
         }
         sLabel = mabi->second.name;
@@ -3721,7 +3722,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
         }
     } else
     if (sAction == "info") {
-        if (mabi == pwallet->mapAddressBook.end()) {
+        if (mabi == pwallet->m_address_book.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is not in the address book.", sAddress));
         }
 
@@ -3759,7 +3760,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     } else
     if (sAction == "newsend") {
         // Only update the purpose field if address does not yet exist
-        if (mabi != pwallet->mapAddressBook.end()) {
+        if (mabi != pwallet->m_address_book.end()) {
             sPurpose = ""; // "" means don't change purpose
         }
 
@@ -3767,7 +3768,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_WALLET_ERROR, "SetAddressBook failed.");
         }
 
-        if (mabi != pwallet->mapAddressBook.end()) {
+        if (mabi != pwallet->m_address_book.end()) {
             sPurpose = mabi->second.purpose;
         }
     } else {
@@ -4219,8 +4220,8 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
                 if (pwallet->GetStealthByIndex(sidx, sx)) {
                     entry.pushKV("address", sx.Encoded());
 
-                    auto i = pwallet->mapAddressBook.find(sx);
-                    if (i != pwallet->mapAddressBook.end()) {
+                    auto i = pwallet->m_address_book.find(sx);
+                    if (i != pwallet->m_address_book.end()) {
                         entry.pushKV("label", i->second.name);
                     }
                     if (setAddress.size() && !setAddress.count(CBitcoinAddress(CTxDestination(sx)))) {
@@ -4427,8 +4428,8 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
         if (fValidAddress) {
             entry.pushKV("address", CBitcoinAddress(address).ToString());
 
-            auto i = pwallet->mapAddressBook.find(address);
-            if (i != pwallet->mapAddressBook.end()) {
+            auto i = pwallet->m_address_book.find(address);
+            if (i != pwallet->m_address_book.end()) {
                 entry.pushKV("label", i->second.name);
             }
 
@@ -4438,8 +4439,8 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 if (pwallet->GetStealthLinked(idk, sx)) {
                     entry.pushKV("stealth_address", sx.Encoded());
                     if (!entry.exists("label")) {
-                        auto i = pwallet->mapAddressBook.find(sx);
-                        if (i != pwallet->mapAddressBook.end()) {
+                        auto i = pwallet->m_address_book.find(sx);
+                        if (i != pwallet->m_address_book.end()) {
                             entry.pushKV("label", i->second.name);
                         }
                     }
@@ -4999,7 +5000,7 @@ static std::string SendHelp(CHDWallet *pwallet, OutputTypes typeIn, OutputTypes 
     rv += std::string(" part in a") + (typeOut == OUTPUT_RINGCT || typeOut == OUTPUT_CT ? " blinded" : "") + " payment to a given address"
         + (typeOut == OUTPUT_CT ? " in anon part": "") + ".\n";
 
-    rv += HelpRequiringPassphrase(pwallet);
+    rv += HELP_REQUIRING_PASSPHRASE;
 
     rv +=   "\nArguments:\n"
             "1. \"address\"     (string, required) The particl address to send to.\n"
@@ -5134,7 +5135,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
         return NullUniValue;
             RPCHelpMan{"sendtypeto",
                 "\nSend part to multiple outputs." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"typein", RPCArg::Type::STR, RPCArg::Optional::NO, "part/blind/anon"},
                     {"typeout", RPCArg::Type::STR, RPCArg::Optional::NO, "part/blind/anon"},
@@ -5410,7 +5411,7 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
 
             RPCHelpMan{"createsignaturewithwallet",
                 "\nSign inputs for raw transaction (serialized, hex-encoded)." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"hexstring", RPCArg::Type::STR, RPCArg::Optional::NO, "The transaction hex string."},
                     {"prevtxn", RPCArg::Type::OBJ, RPCArg::Optional::NO, "The previous output to sign for",
@@ -5506,7 +5507,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
 
             RPCHelpMan{"debugwallet",
                 "\nDetect problems in wallet." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"attempt_repair", RPCArg::Type::BOOL, /* default */ "false", "Attempt to repair if possible."},
                     {"clear_stakes_seen", RPCArg::Type::BOOL, /* default */ "false", "Clear seen stakes - for use in regtest networks."},
@@ -5794,7 +5795,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "}\n"
                 "Omit the json object to print the settings group.\n"
                 "Pass an empty json object to clear the settings group.\n" +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"setting", RPCArg::Type::STR, RPCArg::Optional::NO, "Settings group to view or modify."},
                     {"value", RPCArg::Type::OBJ, /* default */ "", "",
@@ -6061,7 +6062,7 @@ static UniValue transactionblinds(const JSONRPCRequest &request)
 
             RPCHelpMan{"transactionblinds",
                 "\nShow known blinding factors for transaction." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"txnid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id."},
                 },
@@ -6111,7 +6112,7 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
 
             RPCHelpMan{"derivefromstealthaddress",
                 "\nDerive a pubkey from a stealth address and random value." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"stealthaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "The stealth address."},
                     {"ephemeralvalue", RPCArg::Type::STR, /* default */ "", "The ephemeral value, interpreted as private key if 32 bytes or public key if 33.\n"
@@ -6230,7 +6231,7 @@ static UniValue setvote(const JSONRPCRequest &request)
                 "Wallet will include this token in staked blocks from height_start to height_end.\n"
                 "Set proposal and/or option to 0 to stop voting.\n"
                 "The last added option valid for the current chain height will be applied." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"proposal", RPCArg::Type::NUM, RPCArg::Optional::NO, "The proposal to vote on."},
                     {"option", RPCArg::Type::NUM, RPCArg::Optional::NO, "The option to vote for."},
@@ -8063,7 +8064,7 @@ static UniValue rewindchain(const JSONRPCRequest &request)
 
             RPCHelpMan{"rewindchain",
                 "\nRemove blocks from chain until \"height\"." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"height", RPCArg::Type::NUM, /* default */ "1", "Chain height to rewind to."},
                     //{"removeheaders", RPCArg::Type::BOOL, /* default */ "false", "Remove block headers too."},
@@ -8177,7 +8178,7 @@ static UniValue rehashblock(const JSONRPCRequest &request)
 
             RPCHelpMan{"rehashblock",
                 "\nRecalculate merkle tree and block signature of submitted block.\n" +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"blockhex", RPCArg::Type::STR, RPCArg::Optional::NO, "Input block hex."},
                     {"signwith", RPCArg::Type::STR, /* default */ "", "Address of key to sign block with."},

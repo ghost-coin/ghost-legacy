@@ -188,10 +188,15 @@ public:
 /** Address book data */
 class CAddressBookData
 {
+private:
+    bool m_change{true};
+    std::string m_label;
 public:
-    std::string name;
-    std::string purpose = "unknown";
-    bool fBech32 = false;
+
+    const std::string &name;
+    std::string purpose;
+    bool fBech32;
+    CAddressBookData() : name(m_label), purpose("unknown"), fBech32(false) {}
 
     std::vector<uint32_t> vPath; // Index to m is stored in first entry
 
@@ -201,7 +206,7 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action)
     {
-        READWRITE(name);
+        READWRITE(m_label);
         READWRITE(purpose);
         READWRITE(vPath);
         READWRITE(destdata);
@@ -209,10 +214,40 @@ public:
         try { READWRITE(fBech32); } catch(std::exception &e) {
             // old format
         }
+        if (ser_action.ForRead()) {
+            if (!m_label.empty()) {
+                m_change = false;
+            }
+        }
     }
 
     typedef std::map<std::string, std::string> StringMap;
     StringMap destdata;
+
+    bool IsChange() const { return m_change; }
+    void SetLabel(const std::string& label) {
+        m_change = false;
+        m_label = label;
+    }
+    void SetLabel(const std::string& label, const std::string& strPurpose, const std::vector<uint32_t> &_vPath, bool _fBech32) {
+        m_change = false;
+        m_label = label;
+        if (!strPurpose.empty()) {
+            purpose = strPurpose;
+        }
+        vPath = _vPath;
+        fBech32 = _fBech32;
+    }
+    void Set(const CAddressBookData& data) {
+        m_label = data.name;
+        purpose = data.purpose;
+        if (m_label.empty() && data.purpose == "unknown") {
+            m_change = true;
+        }
+        vPath = data.vPath;
+        fBech32 = data.fBech32;
+        destdata = data.destdata;
+    }
 };
 
 struct CRecipient
@@ -825,7 +860,8 @@ public:
     int64_t nOrderPosNext GUARDED_BY(cs_wallet) = 0;
     uint64_t nAccountingEntryNumber = 0;
 
-    std::map<CTxDestination, CAddressBookData> mapAddressBook GUARDED_BY(cs_wallet);
+    std::map<CTxDestination, CAddressBookData> m_address_book GUARDED_BY(cs_wallet);
+    const CAddressBookData* FindAddressBookEntry(const CTxDestination&, bool allow_change = false) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     std::set<COutPoint> setLockedCoins GUARDED_BY(cs_wallet);
 
@@ -891,7 +927,10 @@ public:
 
     bool LoadMinVersion(int nVersion) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) { AssertLockHeld(cs_wallet); nWalletVersion = nVersion; nWalletMaxVersion = std::max(nWalletMaxVersion, nVersion); return true; }
 
-    //! Adds a destination data tuple to the store, and saves it to disk
+    /**
+     * Adds a destination data tuple to the store, and saves it to disk
+     * When adding new fields, take care to consider how DelAddressBook should handle it!
+     */
     bool AddDestData(WalletBatch& batch, const CTxDestination& dest, const std::string& key, const std::string& value) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     //! Erases a destination data tuple in the store and on disk
     bool EraseDestData(WalletBatch& batch, const CTxDestination& dest, const std::string& key) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

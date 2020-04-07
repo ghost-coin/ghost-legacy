@@ -24,11 +24,13 @@
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
 #include <wallet/rpcwallet.h>
+static const std::string HELP_REQUIRING_PASSPHRASE{"\nRequires wallet passphrase to be set with walletpassphrase call if wallet is encrypted.\n"};
 #endif
 
 #include <univalue.h>
 
 #include <memory>
+
 
 static std::vector<uint32_t> GetPath(std::vector<uint32_t> &vPath, const UniValue &path, const UniValue &defaultpath)
 {
@@ -747,7 +749,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 
             RPCHelpMan{"initaccountfromdevice",
                 "\nInitialise an extended key account from a hardware device." +
-                HelpRequiringPassphrase(pwallet) + "\n",
+                HELP_REQUIRING_PASSPHRASE,
                 {
                     {"label", RPCArg::Type::STR, /* default */ "", "A label for the account."},
                     {"path", RPCArg::Type::STR, /* default */ "", "The path to derive the key from (default=\""+GetDefaultAccountPath()+"\")."},
@@ -998,7 +1000,7 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
 
             RPCHelpMan{"devicegetnewstealthaddress",
                 "\nReturns a new Particl stealth address for receiving payments." +
-                    HelpRequiringPassphrase(pwallet) + "\n",
+                    HELP_REQUIRING_PASSPHRASE,
                 {
                     {"label", RPCArg::Type::STR, /* default */ "", "If \"label\" is specified the new address will be added to the address book."},
                     {"num_prefix_bits", RPCArg::Type::NUM, /* default */ "0", "If specified and > 0, the stealth address is created with a prefix."},

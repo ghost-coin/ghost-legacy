@@ -76,7 +76,7 @@ int CHDWallet::Finalise()
     LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     FreeExtKeyMaps();
-    mapAddressBook.clear();
+    m_address_book.clear();
 
     if (m_blind_scratch) {
         secp256k1_scratch_space_destroy(m_blind_scratch);
@@ -459,8 +459,8 @@ static void AppendKey(const CHDWallet *pw, CKey &key, uint32_t nChild, UniValue 
     keyobj.pushKV("address", EncodeDestination(PKHash(idk)));
     keyobj.pushKV("privkey", CBitcoinSecret(key).ToString());
 
-    std::map<CTxDestination, CAddressBookData>::const_iterator mi = pw->mapAddressBook.find(PKHash(idk));
-    if (mi != pw->mapAddressBook.end()) {
+    std::map<CTxDestination, CAddressBookData>::const_iterator mi = pw->m_address_book.find(PKHash(idk));
+    if (mi != pw->m_address_book.end()) {
         // TODO: confirm vPath?
         keyobj.pushKV("label", mi->second.name);
         if (!mi->second.purpose.empty()) {
@@ -628,8 +628,8 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
                 ClearHardenedBit(nScanKey);
                 sxAddr.pushKV("scan_key_offset", ToString((int64_t)nScanKey)+"'");
 
-                std::map<CTxDestination, CAddressBookData>::const_iterator mi = mapAddressBook.find(sx);
-                if (mi != mapAddressBook.end()) {
+                std::map<CTxDestination, CAddressBookData>::const_iterator mi = m_address_book.find(sx);
+                if (mi != m_address_book.end()) {
                     // TODO: confirm vPath?
 
                     if (mi->second.name != sxPacked.aks.sLabel) {
@@ -749,16 +749,14 @@ bool CHDWallet::LoadAddressBook(CHDWalletDB *pwdb)
         CAddressBookData data;
         ssValue >> data;
 
-        std::pair<std::map<CTxDestination, CAddressBookData>::iterator, bool> ret;
-        ret = mapAddressBook.insert(std::pair<CTxDestination, CAddressBookData>
-            (CBitcoinAddress(strAddress).Get(), data));
-        if (!ret.second) {
-            // update existing record
-            CAddressBookData &entry = ret.first->second;
-            entry.name = data.name;
-            entry.purpose = data.purpose;
-            entry.vPath = data.vPath;
-        } else {
+        // Can't use m_address_book.insert, loses &name
+        CTxDestination address = CBitcoinAddress(strAddress).Get();
+        std::map<CTxDestination, CAddressBookData>::iterator mi = m_address_book.find(address);
+        bool fUpdated = (mi != m_address_book.end() && !mi->second.IsChange());
+
+        m_address_book[address].Set(data);
+
+        if (!fUpdated) {
             nCount++;
         }
     }
@@ -1447,11 +1445,14 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
     {
         LOCK(cs_wallet);
 
-        std::map<CTxDestination, CAddressBookData>::const_iterator mi = mapAddressBook.find(address);
-        if (mi == mapAddressBook.end()) {
+        std::map<CTxDestination, CAddressBookData>::const_iterator mi = m_address_book.find(address);
+        if (mi == m_address_book.end()) {
             return false;
         }
-        entry = mi->second;
+
+        entry.SetLabel(mi->second.name);
+        entry.purpose = mi->second.purpose;
+        entry.vPath = mi->second.vPath;
 
         tIsMine = this->IsMine(address);
     }
@@ -1509,34 +1510,23 @@ bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address,
     ChangeType nMode;
     isminetype tIsMine;
 
-    CAddressBookData *entry;
     {
-        LOCK(cs_wallet); // mapAddressBook
+        LOCK(cs_wallet); // m_address_book
 
-        CAddressBookData emptyEntry;
-        std::pair<std::map<CTxDestination, CAddressBookData>::iterator, bool> ret;
-        ret = mapAddressBook.insert(std::pair<CTxDestination, CAddressBookData>(address, emptyEntry));
-        nMode = (ret.second) ? CT_NEW : CT_UPDATED;
-
-        entry = &ret.first->second;
-
-        entry->name = strName;
-        entry->vPath = vPath;
-        entry->fBech32 = fBech32;
-
+        std::map<CTxDestination, CAddressBookData>::iterator mi = m_address_book.find(address);
+        bool fUpdated = (mi != m_address_book.end() && !mi->second.IsChange());
+        nMode = fUpdated ? CT_UPDATED : CT_NEW;
+        m_address_book[address].SetLabel(strName, strPurpose, vPath, fBech32);
         tIsMine = IsMine(address);
-        if (!strPurpose.empty()) { /* update purpose only if requested */
-            entry->purpose = strPurpose;
-        }
 
         //if (fFileBacked)
         {
             if (pwdb) {
-                if (!pwdb->WriteAddressBookEntry(EncodeDestination(address), *entry)) {
+                if (!pwdb->WriteAddressBookEntry(EncodeDestination(address), m_address_book[address])) {
                     return false;
                 }
             } else {
-                if (!CHDWalletDB(*database).WriteAddressBookEntry(EncodeDestination(address), *entry)) {
+                if (!CHDWalletDB(*database).WriteAddressBookEntry(EncodeDestination(address), m_address_book[address])) {
                     return false;
                 }
             }
@@ -1566,23 +1556,21 @@ bool CHDWallet::SetAddressBook(const CTxDestination &address, const std::string 
     bool fOwned;
     ChangeType nMode;
 
-    CAddressBookData *entry;
     {
-        LOCK(cs_wallet); // mapAddressBook
+        LOCK(cs_wallet); // m_address_book
 
-        CAddressBookData emptyEntry;
-        std::pair<std::map<CTxDestination, CAddressBookData>::iterator, bool> ret;
-        ret = mapAddressBook.insert(std::pair<CTxDestination, CAddressBookData>(address, emptyEntry));
-        nMode = (ret.second) ? CT_NEW : CT_UPDATED;
-        entry = &ret.first->second;
+        // Can't use m_address_book.insert, loses &name
+        std::map<CTxDestination, CAddressBookData>::iterator mi = m_address_book.find(address);
+        bool fUpdated = (mi != m_address_book.end() && !mi->second.IsChange());
+        nMode = fUpdated ? CT_UPDATED : CT_NEW;
+        std::vector<uint32_t> vPath;
+        m_address_book[address].SetLabel(strName, strPurpose, vPath, fBech32);
 
         fOwned = IsMine(address) == ISMINE_SPENDABLE;
 
-        entry->name = strName;
-        if (!strPurpose.empty()) {
-            entry->purpose = strPurpose;
+        if (!CHDWalletDB(*database).WriteAddressBookEntry(EncodeDestination(address), m_address_book[address])) {
+            return false;
         }
-        entry->fBech32 = fBech32;
     }
 
     if (fOwned
@@ -1595,7 +1583,7 @@ bool CHDWallet::SetAddressBook(const CTxDestination &address, const std::string 
     NotifyAddressBookChanged(this, address, strName, IsMine(address) != ISMINE_NO,
                              strPurpose, str_path, nMode);
 
-    return CHDWalletDB(*database).WriteAddressBookEntry(EncodeDestination(address), *entry);
+    return true;
 };
 
 
@@ -7489,7 +7477,7 @@ int CHDWallet::ExtKeyGetIndex(CExtKeyAccount *sea, uint32_t &index)
 int CHDWallet::NewKeyFromAccount(CHDWalletDB *pwdb, const CKeyID &idAccount, CPubKey &pkOut,
     bool fInternal, bool fHardened, bool f256bit, bool fBech32, const char *plabel)
 {
-    // If plabel is not null, add to mapAddressBook
+    // If plabel is not null, add to m_address_book
 
     if (LogAcceptCategory(BCLog::HDWALLET)) {
         WalletLogPrintf("%s %s.\n", __func__, HDAccIDToString(idAccount));
@@ -8230,7 +8218,7 @@ int CHDWallet::ExtKeyUpdateLooseKey(const CExtKeyPair &ek, uint32_t nKey, bool f
     }
 
     if (fAddToAddressBook
-        && !mapAddressBook.count(CTxDestination(ek))) {
+        && !m_address_book.count(CTxDestination(ek))) {
         SetAddressBook(ek, "", "");
     }
     return 0;

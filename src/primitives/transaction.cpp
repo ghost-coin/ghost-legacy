@@ -8,6 +8,7 @@
 #include <hash.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
+#include <assert.h>
 
 bool ExtractCoinStakeInt64(const std::vector<uint8_t> &vData, DataOutputTypes get_type, CAmount &out)
 {
@@ -71,7 +72,6 @@ bool ExtractCoinStakeUint32(const std::vector<uint8_t> &vData, DataOutputTypes g
     }
     return false;
 }
-
 
 std::string COutPoint::ToString() const
 {
@@ -248,10 +248,11 @@ CAmount CTransaction::GetValueOut() const
 {
     CAmount nValueOut = 0;
     for (const auto& tx_out : vout) {
-        nValueOut += tx_out.nValue;
-        if (!MoneyRange(tx_out.nValue) || !MoneyRange(nValueOut)) {
+        if (!MoneyRange(tx_out.nValue) || !MoneyRange(nValueOut + tx_out.nValue)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
         }
+        nValueOut += tx_out.nValue;
+
     }
 
     for (auto &txout : vpout) {
@@ -260,12 +261,12 @@ CAmount CTransaction::GetValueOut() const
         }
 
         CAmount nValue = txout->GetValue();
-        nValueOut += txout->GetValue();
-        if (!MoneyRange(nValue) || !MoneyRange(nValueOut)) {
+        if (!MoneyRange(nValue) || !MoneyRange(nValueOut + nValue)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
         }
+        nValueOut += nValue;
     }
-
+    assert(MoneyRange(nValueOut));
     return nValueOut;
 }
 
@@ -288,12 +289,12 @@ CAmount CTransaction::GetPlainValueOut(size_t &nStandard, size_t &nCT, size_t &n
 
         nStandard++;
         CAmount nValue = txout->GetValue();
-        nValueOut += nValue;
-        if (!MoneyRange(nValue) || !MoneyRange(nValueOut)) {
+        if (!MoneyRange(nValue) || !MoneyRange(nValueOut + nValue)) {
             throw std::runtime_error(std::string(__func__) + ": value out of range");
         }
+        nValueOut += nValue;
     }
-
+    assert(MoneyRange(nValueOut));
     return nValueOut;
 }
 

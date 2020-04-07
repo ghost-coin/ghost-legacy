@@ -427,7 +427,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
         for (const auto &pw : smsgModule.m_vpwallets) {
             LOCK(pw->cs_wallet);
 
-            for (const auto &entry : pw->mapAddressBook) {
+            for (const auto &entry : pw->m_address_book) {
                 if (!pw->IsMine(entry.first)) {
                     continue;
                 }
@@ -1522,7 +1522,7 @@ static UniValue smsgview(const JSONRPCRequest &request)
 
                 for (const auto &pw : smsgModule.m_vpwallets) {
                     LOCK(pw->cs_wallet);
-                    for (itl = pw->mapAddressBook.begin(); itl != pw->mapAddressBook.end(); ++itl) {
+                    for (itl = pw->m_address_book.begin(); itl != pw->m_address_book.end(); ++itl) {
                         if (part::stringsMatchI(itl->second.name, sTemp, matchType)) {
                             CBitcoinAddress checkValid(itl->first);
                             if (checkValid.IsValid()) {

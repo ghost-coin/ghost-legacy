@@ -93,7 +93,6 @@ The following can be set when running make: make FOO=bar
     NO_UPNP: Don't download/build/cache packages needed for enabling upnp
     NO_USB: Don't download/build/cache libs needed to enable usb devices
     DEBUG: disable some optimizations and enable more runtime checking
-    RAPIDCHECK: build rapidcheck (experimental, requires cmake)
     HOST_ID_SALT: Optional salt to use when generating host package ids
     BUILD_ID_SALT: Optional salt to use when generating build package ids
     PROTOBUF: build protobuf (used for usb device support)

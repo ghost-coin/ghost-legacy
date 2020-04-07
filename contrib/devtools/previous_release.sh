@@ -144,7 +144,10 @@ pushd "$TARGET" || exit 1
         #rm "bitcoin-${tag:1}-$PLATFORM.tar.gz"
         URL="https://github.com/particl/particl-core/releases/download/${tag}/particl-${tag:1}-$PLATFORM.tar.gz"
         echo "Fetching: $URL"
-        curl -LO $URL
+        if ! curl -O -f $URL; then
+            echo "Download failed."
+            exit 1
+        fi
         tar -zxf "particl-${tag:1}-$PLATFORM.tar.gz" -C "$tag" --strip-components=1 "particl-${tag:1}"
         rm "particl-${tag:1}-$PLATFORM.tar.gz"
       fi

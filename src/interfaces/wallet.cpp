@@ -255,8 +255,8 @@ public:
         std::string* purpose) override
     {
         LOCK(m_wallet->cs_wallet);
-        auto it = m_wallet->mapAddressBook.find(dest);
-        if (it == m_wallet->mapAddressBook.end()) {
+        auto it = m_wallet->m_address_book.find(dest);
+        if (it == m_wallet->m_address_book.end() || it->second.IsChange()) {
             return false;
         }
         if (name) {
@@ -275,7 +275,8 @@ public:
         LOCK(m_wallet->cs_wallet);
         std::vector<WalletAddress> result;
 
-        for (const auto& item : m_wallet->mapAddressBook) {
+        for (const auto& item : m_wallet->m_address_book) {
+            if (item.second.IsChange()) continue;
             std::string str_path;
             if (item.second.vPath.size() > 1 &&
                 PathToString(item.second.vPath, str_path, '\'', 1)) {
