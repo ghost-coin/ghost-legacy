@@ -2061,8 +2061,8 @@ int ListLooseStealthAddresses(UniValue &arr, const CHDWallet *pwallet, bool fSho
             if (mi != pwallet->m_address_book.end()) {
                 // TODO: confirm vPath?
 
-                if (mi->second.name != it->label) {
-                    obj.pushKV("addr_book_label", mi->second.name);
+                if (mi->second.GetLabel() != it->label) {
+                    obj.pushKV("addr_book_label", mi->second.GetLabel());
                 }
                 if (!mi->second.purpose.empty()) {
                     obj.pushKV("purpose", mi->second.purpose);
@@ -2633,7 +2633,7 @@ static bool ParseOutput(
     }
     auto mi = pwallet->m_address_book.find(o.destination);
     if (mi != pwallet->m_address_book.end()) {
-        output.pushKV("label", mi->second.name);
+        output.pushKV("label", mi->second.GetLabel());
     }
     output.pushKV("vout", o.vout);
     amounts.push_back(ToString(o.amount));
@@ -2915,8 +2915,8 @@ static void ParseRecords(
             addr.Set(dest);
             std::map<CTxDestination, CAddressBookData>::iterator mai;
             mai = pwallet->m_address_book.find(dest);
-            if (mai != pwallet->m_address_book.end() && !mai->second.name.empty()) {
-                output.__pushKV("account", mai->second.name);
+            if (mai != pwallet->m_address_book.end() && !mai->second.GetLabel().empty()) {
+                output.__pushKV("account", mai->second.GetLabel());
             }
         }
 
@@ -3427,12 +3427,12 @@ public:
         switch (nSortCode)
         {
             case SRT_LABEL_DESC:
-                return b->second.name.compare(a->second.name) < 0;
+                return b->second.GetLabel().compare(a->second.GetLabel()) < 0;
             default:
                 break;
         };
         //default: case SRT_LABEL_ASC:
-        return a->second.name.compare(b->second.name) < 0;
+        return a->second.GetLabel().compare(b->second.GetLabel()) < 0;
     }
 };
 
@@ -3559,7 +3559,7 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
                 continue;
             }
             if (nMatchMode) {
-                if (!part::stringsMatchI(it->second.name, sMatch, nMatchMode-1)) {
+                if (!part::stringsMatchI(it->second.GetLabel(), sMatch, nMatchMode-1)) {
                     continue;
                 }
             }
@@ -3579,7 +3579,7 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
 
             CBitcoinAddress address(item->first, item->second.fBech32);
             entry.pushKV("address", address.ToString());
-            entry.pushKV("label", item->second.name);
+            entry.pushKV("label", item->second.GetLabel());
             entry.pushKV("owned", item->second.nOwned == 1 ? "true" : "false");
 
             if (nShowPath > 0) {
@@ -3703,7 +3703,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_WALLET_ERROR, "SetAddressBook failed.");
         }
 
-        sLabel = mabi->second.name;
+        sLabel = mabi->second.GetLabel();
         sPurpose = mabi->second.purpose;
 
         for (const auto &pair : mabi->second.destdata) {
@@ -3714,7 +3714,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
         if (mabi == pwallet->m_address_book.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Address '%s' is not in the address book.", sAddress));
         }
-        sLabel = mabi->second.name;
+        sLabel = mabi->second.GetLabel();
         sPurpose = mabi->second.purpose;
 
         if (!pwallet->DelAddressBook(dest)) {
@@ -3731,7 +3731,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
         result.pushKV("action", sAction);
         result.pushKV("address", sAddress);
 
-        result.pushKV("label", mabi->second.name);
+        result.pushKV("label", mabi->second.GetLabel());
         result.pushKV("purpose", mabi->second.purpose);
 
         if (mabi->second.nOwned == 0) {
@@ -4222,7 +4222,7 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
 
                     auto i = pwallet->m_address_book.find(sx);
                     if (i != pwallet->m_address_book.end()) {
-                        entry.pushKV("label", i->second.name);
+                        entry.pushKV("label", i->second.GetLabel());
                     }
                     if (setAddress.size() && !setAddress.count(CBitcoinAddress(CTxDestination(sx)))) {
                         continue;
@@ -4430,7 +4430,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
 
             auto i = pwallet->m_address_book.find(address);
             if (i != pwallet->m_address_book.end()) {
-                entry.pushKV("label", i->second.name);
+                entry.pushKV("label", i->second.GetLabel());
             }
 
             if (address.type() == typeid(PKHash)) {
@@ -4441,7 +4441,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                     if (!entry.exists("label")) {
                         auto i = pwallet->m_address_book.find(sx);
                         if (i != pwallet->m_address_book.end()) {
-                            entry.pushKV("label", i->second.name);
+                            entry.pushKV("label", i->second.GetLabel());
                         }
                     }
                 }

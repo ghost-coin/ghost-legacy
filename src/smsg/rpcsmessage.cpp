@@ -459,7 +459,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
 
                 objM.pushKV("key", address);
                 objM.pushKV("publickey", sPublicKey);
-                objM.pushKV("label", entry.second.name);
+                objM.pushKV("label", entry.second.GetLabel());
 
                 keys.push_back(objM);
                 nKeys++;
@@ -1523,7 +1523,7 @@ static UniValue smsgview(const JSONRPCRequest &request)
                 for (const auto &pw : smsgModule.m_vpwallets) {
                     LOCK(pw->cs_wallet);
                     for (itl = pw->m_address_book.begin(); itl != pw->m_address_book.end(); ++itl) {
-                        if (part::stringsMatchI(itl->second.name, sTemp, matchType)) {
+                        if (part::stringsMatchI(itl->second.GetLabel(), sTemp, matchType)) {
                             CBitcoinAddress checkValid(itl->first);
                             if (checkValid.IsValid()) {
                                 CKeyID ki;

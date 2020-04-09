@@ -192,11 +192,9 @@ private:
     bool m_change{true};
     std::string m_label;
 public:
-
-    const std::string &name;
     std::string purpose;
     bool fBech32;
-    CAddressBookData() : name(m_label), purpose("unknown"), fBech32(false) {}
+    CAddressBookData() : purpose("unknown"), fBech32(false) {}
 
     std::vector<uint32_t> vPath; // Index to m is stored in first entry
 
@@ -225,6 +223,7 @@ public:
     StringMap destdata;
 
     bool IsChange() const { return m_change; }
+    const std::string& GetLabel() const { return m_label; }
     void SetLabel(const std::string& label) {
         m_change = false;
         m_label = label;
@@ -239,7 +238,7 @@ public:
         fBech32 = _fBech32;
     }
     void Set(const CAddressBookData& data) {
-        m_label = data.name;
+        m_label = data.GetLabel();
         purpose = data.purpose;
         if (m_label.empty() && data.purpose == "unknown") {
             m_change = true;

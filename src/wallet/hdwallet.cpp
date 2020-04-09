@@ -462,7 +462,7 @@ static void AppendKey(const CHDWallet *pw, CKey &key, uint32_t nChild, UniValue 
     std::map<CTxDestination, CAddressBookData>::const_iterator mi = pw->m_address_book.find(PKHash(idk));
     if (mi != pw->m_address_book.end()) {
         // TODO: confirm vPath?
-        keyobj.pushKV("label", mi->second.name);
+        keyobj.pushKV("label", mi->second.GetLabel());
         if (!mi->second.purpose.empty()) {
             keyobj.pushKV("purpose", mi->second.purpose);
         }
@@ -632,8 +632,8 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
                 if (mi != m_address_book.end()) {
                     // TODO: confirm vPath?
 
-                    if (mi->second.name != sxPacked.aks.sLabel) {
-                        sxAddr.pushKV("addr_book_label", mi->second.name);
+                    if (mi->second.GetLabel() != sxPacked.aks.sLabel) {
+                        sxAddr.pushKV("addr_book_label", mi->second.GetLabel());
                     }
                     if (!mi->second.purpose.empty()) {
                         sxAddr.pushKV("purpose", mi->second.purpose);
@@ -1450,7 +1450,7 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
             return false;
         }
 
-        entry.SetLabel(mi->second.name);
+        entry.SetLabel(mi->second.GetLabel());
         entry.purpose = mi->second.purpose;
         entry.vPath = mi->second.vPath;
 
@@ -1461,12 +1461,12 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
     if (entry.vPath.size() > 1) {
         PathToString(entry.vPath, str_path, '\'', 1);
     }
-    NotifyAddressBookChanged(this, address, entry.name, tIsMine != ISMINE_NO, entry.purpose, str_path, nMode);
+    NotifyAddressBookChanged(this, address, entry.GetLabel(), tIsMine != ISMINE_NO, entry.purpose, str_path, nMode);
 
     if (tIsMine == ISMINE_SPENDABLE
         && address.type() == typeid(PKHash)) {
         CKeyID id = CKeyID(boost::get<PKHash>(address));
-        smsgModule.WalletKeyChanged(id, entry.name, nMode);
+        smsgModule.WalletKeyChanged(id, entry.GetLabel(), nMode);
     }
 
     return true;

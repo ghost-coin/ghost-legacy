@@ -1146,7 +1146,7 @@ std::string CSMSG::LookupLabel(PKHash &hash)
         LOCK(pw->cs_wallet);
         auto mi(pw->m_address_book.find(hash));
         if (mi != pw->m_address_book.end()) {
-            return mi->second.name;
+            return mi->second.GetLabel();
         }
     }
 #endif

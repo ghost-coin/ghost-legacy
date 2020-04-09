@@ -260,7 +260,7 @@ public:
             return false;
         }
         if (name) {
-            *name = it->second.name;
+            *name = it->second.GetLabel();
         }
         if (is_mine) {
             *is_mine = m_wallet->IsMine(dest);
@@ -282,7 +282,7 @@ public:
                 PathToString(item.second.vPath, str_path, '\'', 1)) {
                 str_path = "";
             }
-            result.emplace_back(item.first, m_wallet->IsMine(item.first), item.second.name, item.second.purpose, item.second.fBech32, str_path);
+            result.emplace_back(item.first, m_wallet->IsMine(item.first), item.second.GetLabel(), item.second.purpose, item.second.fBech32, str_path);
         }
         return result;
     }
