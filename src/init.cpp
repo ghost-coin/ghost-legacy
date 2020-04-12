@@ -390,14 +390,6 @@ void Shutdown(NodeContext& node)
     usb_device::ShutdownHardwareIntegration();
 #endif
 
-    try {
-        if (!fs::remove(GetPidFile())) {
-            LogPrintf("%s: Unable to remove PID file: File does not exist\n", __func__);
-        }
-    } catch (const fs::filesystem_error& e) {
-        LogPrintf("%s: Unable to remove PID file: %s\n", __func__, fsbridge::get_filesystem_error_message(e));
-    }
-
 #ifdef WIN32
     CloseMessageWindow();
 #endif
@@ -411,6 +403,15 @@ void Shutdown(NodeContext& node)
     ECC_Stop_Blinding();
     if (node.mempool) node.mempool = nullptr;
     node.scheduler.reset();
+
+    try {
+        if (!fs::remove(GetPidFile())) {
+            LogPrintf("%s: Unable to remove PID file: File does not exist\n", __func__);
+        }
+    } catch (const fs::filesystem_error& e) {
+        LogPrintf("%s: Unable to remove PID file: %s\n", __func__, fsbridge::get_filesystem_error_message(e));
+    }
+
     LogPrintf("%s: done\n", __func__);
 }
 
