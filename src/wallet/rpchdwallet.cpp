@@ -6280,8 +6280,9 @@ static UniValue setvote(const JSONRPCRequest &request)
         CVoteToken v(voteToken, nStartHeight, nEndHeight, GetTime());
         vVoteTokens.push_back(v);
 
-        if (!wdb.WriteVoteTokens(vVoteTokens))
+        if (!wdb.WriteVoteTokens(vVoteTokens)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "WriteVoteTokens failed.");
+        }
 
         pwallet->LoadVoteTokens(&wdb);
     }

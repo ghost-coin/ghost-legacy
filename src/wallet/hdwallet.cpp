@@ -771,8 +771,6 @@ bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
 {
     LogPrint(BCLog::HDWALLET, "%s Loading vote tokens.\n", GetDisplayName());
 
-    LOCK(cs_wallet);
-
     vVoteTokens.clear();
 
     std::vector<CVoteToken> vVoteTokensRead;
@@ -781,7 +779,7 @@ bool CHDWallet::LoadVoteTokens(CHDWalletDB *pwdb)
         return false;
     }
 
-    int nBestHeight = ::ChainActive().Height();
+    int nBestHeight = GetLastBlockHeight();
 
     for (auto &v : vVoteTokensRead) {
         if (v.nEnd > nBestHeight - 1000) { // 1000 block buffer in case of reorg etc

@@ -44,12 +44,10 @@ UniValue CallRPC(std::string args, std::string wallet)
 
     bool fInQuotes = false;
     std::string s;
-    for (size_t i = 0; i < args.size(); ++i)
-    {
+    for (size_t i = 0; i < args.size(); ++i) {
         char c = args[i];
         if (!fInQuotes
-            && (c == ' ' || c == '\t'))
-        {
+            && (c == ' ' || c == '\t')) {
             if (s.empty()) continue; // trim whitespace
             vArgs.push_back(part::TrimQuotes(s));
             s.clear();
@@ -60,9 +58,10 @@ UniValue CallRPC(std::string args, std::string wallet)
             fInQuotes = !fInQuotes;
 
         s.push_back(c);
-    };
-    if (!s.empty())
+    }
+    if (!s.empty()) {
         vArgs.push_back(part::TrimQuotes(s));
+    }
 
 
     std::string strMethod = vArgs[0];

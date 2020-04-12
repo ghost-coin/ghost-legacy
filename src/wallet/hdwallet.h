@@ -114,7 +114,7 @@ public:
 
     bool LoadAddressBook(CHDWalletDB *pwdb);
 
-    bool LoadVoteTokens(CHDWalletDB *pwdb);
+    bool LoadVoteTokens(CHDWalletDB *pwdb) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool GetVote(int nHeight, uint32_t &token);
 
     bool LoadTxRecords(CHDWalletDB *pwdb);

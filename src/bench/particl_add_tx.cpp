@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -145,12 +145,16 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
     AddWallet(pwallet_b);
 
     {
-        LOCK(pwallet_a->cs_wallet);
-        pwallet_a->SetLastBlockProcessed(::ChainActive().Height(), ::ChainActive().Tip()->GetBlockHash());
-    }
-    {
-        LOCK(pwallet_b->cs_wallet);
-        pwallet_b->SetLastBlockProcessed(::ChainActive().Height(), ::ChainActive().Tip()->GetBlockHash());
+        int last_height = ::ChainActive().Height();
+        uint256 last_hash = ::ChainActive().Tip()->GetBlockHash();
+        {
+            LOCK(pwallet_a->cs_wallet);
+            pwallet_a->SetLastBlockProcessed(last_height, last_hash);
+        }
+        {
+            LOCK(pwallet_b->cs_wallet);
+            pwallet_b->SetLastBlockProcessed(last_height, last_hash);
+        }
     }
 
     std::string from_address_type, to_address_type;

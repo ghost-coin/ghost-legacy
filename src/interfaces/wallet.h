@@ -15,7 +15,6 @@
 #include <functional>
 #include <map>
 #include <memory>
-#include <psbt.h>
 #include <stdint.h>
 #include <string>
 #include <tuple>
@@ -32,10 +31,11 @@ class CKey;
 class CWallet;
 enum isminetype : uint8_t;
 enum class FeeReason;
-typedef uint8_t isminefilter;
-
 enum class OutputType;
+enum class TransactionError;
 struct CRecipient;
+struct PartiallySignedTransaction;
+typedef uint8_t isminefilter;
 
 class CHDWallet;
 

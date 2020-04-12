@@ -617,9 +617,11 @@ libparticl_util_a_SOURCES = \
   util/strencodings.cpp \
   util/string.cpp \
   util/time.cpp \
-  util/url.cpp \
   $(BITCOIN_CORE_H)
 
+if USE_LIBEVENT
+libparticl_util_a_SOURCES += util/url.cpp
+endif
 
 libparticl_smsg_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libparticl_smsg_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)

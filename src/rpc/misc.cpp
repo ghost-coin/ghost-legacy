@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <httpserver.h>
+#include <interfaces/chain.h>
 #include <key_io.h>
 #include <node/context.h>
 #include <outputtype.h>
@@ -400,14 +401,18 @@ static UniValue setmocktime(const JSONRPCRequest& request)
     // ensure all call sites of GetTime() are accessing this safely.
     LOCK(cs_main);
 
-    bool isOffset = request.params.size() > 1 ? GetBool(request.params[1]) : false;
-
     RPCTypeCheck(request.params, {UniValue::VNUM, UniValue::VBOOL}, true);
-
+    bool isOffset = request.params.size() > 1 ? GetBool(request.params[1]) : false;
+    int64_t time = request.params[0].get_int64();
     if (isOffset) {
         SetMockTimeOffset(request.params[0].get_int64());
     } else {
         SetMockTime(request.params[0].get_int64());
+    }
+    if (g_rpc_node) {
+        for (const auto& chain_client : g_rpc_node->chain_clients) {
+            chain_client->setMockTime(time);
+        }
     }
 
     return NullUniValue;

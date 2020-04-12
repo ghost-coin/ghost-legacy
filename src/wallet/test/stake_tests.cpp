@@ -147,8 +147,12 @@ BOOST_AUTO_TEST_CASE(stake_test)
     SeedInsecureRand();
     CHDWallet *pwallet = pwalletMain.get();
     {
-        LOCK(pwallet->cs_wallet);
-        pwallet->SetLastBlockProcessed(::ChainActive().Height(), ::ChainActive().Tip()->GetBlockHash());
+        int last_height = ::ChainActive().Height();
+        uint256 last_hash = ::ChainActive().Tip()->GetBlockHash();
+        {
+            LOCK(pwallet->cs_wallet);
+            pwallet->SetLastBlockProcessed(last_height, last_hash);
+        }
     }
     UniValue rv;
 
