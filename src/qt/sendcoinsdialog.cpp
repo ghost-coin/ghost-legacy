@@ -36,7 +36,6 @@
 
 
 #include <anon.h>
-#include <wallet/wallet.h>
 #include <wallet/hdwallet.h>
 #include <univalue.h>
 #include <util/fees.h>

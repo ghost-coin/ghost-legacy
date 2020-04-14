@@ -7,7 +7,6 @@
 
 #include <string>
 #include <map>
-#include <string>
 
 class FillableSigningProvider;
 class UniValue;
