@@ -48,6 +48,7 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+using interfaces::FoundBlock;
 
 extern const std::string MESSAGE_MAGIC;
 
@@ -190,20 +191,16 @@ bool CHDWallet::Initialise()
         // No need to read and scan block if block was created before
         // our wallet birthday (as adjusted for block time variability)
         int64_t time_first_key = GetTimeFirstKey();
-        if (time_first_key) {
-            if (Optional<int> first_block = locked_chain->findFirstBlockWithTimeAndHeight(time_first_key - TIMESTAMP_WINDOW, rescan_height, nullptr)) {
-                rescan_height = *first_block;
-            }
-        }
-
         int64_t nStart = GetTimeMillis();
         {
             WalletRescanReserver reserver(this);
-            if (!reserver.reserve() || (ScanResult::SUCCESS != ScanForWalletTransactions(locked_chain->getBlockHash(rescan_height), {} /* stop block */, reserver, true /* update */).status)) {
+            if (!reserver.reserve()) {
                 InitError(_("Failed to rescan the wallet during initialization").translated);
                 return false;
             }
+            RescanFromTime(time_first_key, reserver, true);
         }
+
         WalletLogPrintf("Rescan completed in %15dms\n", GetTimeMillis() - nStart);
         chainStateFlushed(locked_chain->getTipLocator());
         database->IncrementUpdateCounter();
@@ -10469,9 +10466,9 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
         rtx.block_height = confirm.block_height;
         rtx.nIndex = confirm.nIndex;
 
-        int64_t blocktime;
-        if (chain().findBlock(rtx.blockHash, nullptr /* block */, &blocktime)) {
-            rtx.nBlockTime = blocktime;
+        int64_t block_time;
+        if (chain().findBlock(rtx.blockHash, FoundBlock().time(block_time))) {
+            rtx.nBlockTime = block_time;
         }
 
         // Update any temporary entries
@@ -10676,7 +10673,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
     return true;
 };
 
-CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_block, const uint256& last_block, const WalletRescanReserver& reserver, bool fUpdate)
+CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& start_block, int start_height, Optional<int> max_height, const WalletRescanReserver& reserver, bool fUpdate)
 {
     CExtKeyAccount *sea = nullptr;
 
@@ -10738,7 +10735,7 @@ CWallet::ScanResult CHDWallet::ScanForWalletTransactions(const uint256& first_bl
                         IsLocked() ? "Wallet is locked" : sea ? "Default account has no private key" : "Default account not found");
     }
 
-    ScanResult rv = CWallet::ScanForWalletTransactions(first_block, last_block, reserver, fUpdate);
+    ScanResult rv = CWallet::ScanForWalletTransactions(start_block, start_height, max_height,reserver, fUpdate);
 
     // Remove lookahead keys
     if (sea) {
