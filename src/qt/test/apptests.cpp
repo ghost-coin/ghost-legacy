@@ -62,7 +62,7 @@ void AppTests::appTests()
     }
 #endif
 
-    BasicTestingSetup test{CBaseChainParams::REGTEST, true}; // Create a temp data directory to backup the gui settings to
+    BasicTestingSetup test{CBaseChainParams::REGTEST, {}, true}; // Create a temp data directory to backup the gui settings to
     ECC_Stop(); // Already started by the common test setup, so stop it to avoid interference
     LogInstance().DisconnectTestLogger();
 

@@ -115,7 +115,7 @@ void benchmark::BenchRunner::RunAll(Printer& printer, uint64_t num_evals, double
     printer.header();
 
     for (const auto& p : benchmarks()) {
-        TestingSetup test{CBaseChainParams::REGTEST, p.first.rfind("Particl", 0) == 0 ? true : false};
+        TestingSetup test{CBaseChainParams::REGTEST, {}, p.first.rfind("Particl", 0) == 0 ? true : false};
         assert(g_testing_setup == nullptr);
         g_testing_setup = &test;
         {

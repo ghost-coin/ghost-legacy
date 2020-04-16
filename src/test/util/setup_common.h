@@ -93,9 +93,11 @@ static inline void InsecureRandBytes(uint8_t *p, size_t n)
  */
 struct BasicTestingSetup {
     ECCVerifyHandle globalVerifyHandle;
+    NodeContext m_node;
 
-    explicit BasicTestingSetup(const std::string& chainName = CBaseChainParams::MAIN, bool fParticlModeIn = false);
+    explicit BasicTestingSetup(const std::string& chainName = CBaseChainParams::MAIN, const std::vector<const char*>& extra_args = {}, bool fParticlModeIn = false);
     ~BasicTestingSetup();
+
 private:
     const fs::path m_path_root;
 };
@@ -104,10 +106,9 @@ private:
  * Included are coins database, script check threads setup.
  */
 struct TestingSetup : public BasicTestingSetup {
-    NodeContext m_node;
     boost::thread_group threadGroup;
 
-    explicit TestingSetup(const std::string& chainName = CBaseChainParams::MAIN, bool fParticlModeIn = false);
+    explicit TestingSetup(const std::string& chainName = CBaseChainParams::MAIN, const std::vector<const char*>& extra_args = {}, bool fParticlModeIn = false);
     ~TestingSetup();
 };
 
@@ -172,7 +173,7 @@ CBlock getBlock13b8a();
 std::ostream& operator<<(std::ostream& os, const uint256& num);
 
 struct ParticlBasicTestingSetup : public BasicTestingSetup {
-    ParticlBasicTestingSetup() : BasicTestingSetup(CBaseChainParams::MAIN, true) {}
+    ParticlBasicTestingSetup() : BasicTestingSetup(CBaseChainParams::MAIN, {}, true) {}
 };
 
 #endif

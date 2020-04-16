@@ -768,7 +768,7 @@ bool CExtKeyAccount::SaveKey(const CKeyID &id, const CEKAKey &keyIn)
     LOCK(cs_account);
     AccKeyMap::const_iterator mi = mapKeys.find(id);
     if (mi != mapKeys.end()) {
-        return false; // already saved
+        return false; // Already saved
     }
 
     if (mapLookAhead.erase(id) != 1) {
@@ -834,7 +834,7 @@ bool CExtKeyAccount::SaveKey(const CKeyID &id, const CEKAKey &keyIn)
 
             LogPrintf("Key match verified.\n");
         } else {
-            return error("Unknown chain.");
+            LogPrintf("Warning: SaveKey %s Unknown chain for key verification.\n", GetIDString58());
         }
     }
 

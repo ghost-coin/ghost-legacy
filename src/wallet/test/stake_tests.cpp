@@ -27,7 +27,7 @@
 
 struct StakeTestingSetup: public TestingSetup {
     StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
-        TestingSetup(chainName, /* fParticlMode */ true)
+        TestingSetup(chainName, {}, /* fParticlMode */ true)
     {
         ECC_Start_Stealth();
         ECC_Start_Blinding();

@@ -14,7 +14,7 @@
 #include <boost/test/unit_test.hpp>
 
 struct SmsgTestingSetup : public TestingSetup {
-    SmsgTestingSetup() : TestingSetup(CBaseChainParams::MAIN, true) {}
+    SmsgTestingSetup() : TestingSetup(CBaseChainParams::MAIN, {}, true) {}
 };
 
 BOOST_FIXTURE_TEST_SUITE(smsg_tests, SmsgTestingSetup)
