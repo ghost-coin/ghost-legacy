@@ -1115,7 +1115,7 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef& ptx, ATMPArgs
     // scripts (ie, other policy checks pass). We perform the inexpensive
     // checks first and avoid hashing and signature verification unless those
     // checks pass, to mitigate CPU exhaustion denial-of-service attacks.
-    PrecomputedTransactionData txdata(*ptx);
+    PrecomputedTransactionData txdata;
 
     if (!PolicyScriptChecks(args, workspace, txdata)) return false;
 
@@ -1809,6 +1809,10 @@ bool CheckInputScripts(const CTransaction& tx, TxValidationState &state, const C
 
     if (scriptExecutionCache.contains(hashCacheEntry, !cacheFullScriptStore)) {
         return true;
+    }
+
+    if (!txdata.m_ready) {
+        txdata.Init(tx);
     }
 
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
@@ -2580,7 +2584,13 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
 
     CBlockUndo blockundo;
 
+    // Precomputed transaction data pointers must not be invalidated
+    // until after `control` has run the script checks (potentially
+    // in multiple threads). Preallocate the vector size so a new allocation
+    // doesn't invalidate pointers into the vector, and keep txsdata in scope
+    // for as long as `control`.
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && g_parallel_script_checks ? &scriptcheckqueue : nullptr);
+    std::vector<PrecomputedTransactionData> txsdata(block.vtx.size());
 
     std::vector<int> prevheights;
     CAmount nFees = 0;
@@ -2590,9 +2600,6 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
     int64_t nStakeReward = 0;
 
     blockundo.vtxundo.reserve(block.vtx.size() - (fParticlMode ? 0 : 1));
-
-    std::vector<PrecomputedTransactionData> txdata;
-    txdata.reserve(block.vtx.size()); // Required so that pointers to individual PrecomputedTransactionData don't get invalidated
 
     // NOTE: Be careful tracking coin created, block reward is based on nMoneySupply
     CAmount nMoneyCreated = 0;
@@ -2711,13 +2718,12 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-blk-sigops");
         }
 
-        txdata.emplace_back(tx);
-
         if (!tx.IsCoinBase())
         {
             std::vector<CScriptCheck> vChecks;
             bool fCacheResults = fJustCheck; /* Don't cache results if we're actually connecting blocks (still consult the cache, though) */
-            if (fScriptChecks && !CheckInputScripts(tx, tx_state, view, flags, fCacheResults, fCacheResults, txdata[i], g_parallel_script_checks ? &vChecks : nullptr)) {
+            //TxValidationState tx_state;
+            if (fScriptChecks && !CheckInputScripts(tx, tx_state, view, flags, fCacheResults, fCacheResults, txsdata[i], g_parallel_script_checks ? &vChecks : nullptr)) {
                 control.Wait();
                 // Any transaction validation failure in ConnectBlock is a block consensus failure
                 state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,

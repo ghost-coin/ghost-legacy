@@ -11132,13 +11132,16 @@ bool CHDWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const C
         }
     }
 
+    unsigned int limit_ancestor_count = 0;
+    unsigned int limit_descendant_count = 0;
+    chain().getPackageLimits(limit_ancestor_count, limit_descendant_count);
+    size_t max_ancestors = (size_t)std::max<int64_t>(1, limit_ancestor_count);
+    size_t max_descendants = (size_t)std::max<int64_t>(1, limit_descendant_count);
+    bool fRejectLongChains = gArgs.GetBoolArg("-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS);
+
     // form groups from remaining coins; note that preset coins will not
     // automatically have their associated (same address) coins included
-    std::vector<OutputGroup> groups = GroupOutputs(vCoins, !coin_control.m_avoid_partial_spends);
-
-    size_t max_ancestors = (size_t)std::max<int64_t>(1, gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT));
-    size_t max_descendants = (size_t)std::max<int64_t>(1, gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT));
-    bool fRejectLongChains = gArgs.GetBoolArg("-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS);
+    std::vector<OutputGroup> groups = GroupOutputs(vCoins, !coin_control.m_avoid_partial_spends, max_ancestors);
 
     bool res = nTargetValue <= nValueFromPresetInputs ||
         CWallet::SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(1, 6, 0), groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used) ||

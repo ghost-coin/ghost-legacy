@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Bitcoin Core developers
+# Copyright (c) 2017-2020 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test multiwallet.
 
 Verify that a bitcoind node can load multiple wallet files
 """
+from decimal import Decimal
 import os
 import shutil
 import time
@@ -193,9 +194,9 @@ class MultiWalletTest(BitcoinTestFramework):
         self.log.info('Check for per-wallet settxfee call')
         assert_equal(w1.getwalletinfo()['paytxfee'], 0)
         assert_equal(w2.getwalletinfo()['paytxfee'], 0)
-        w2.settxfee(4.0)
+        w2.settxfee(0.001)
         assert_equal(w1.getwalletinfo()['paytxfee'], 0)
-        assert_equal(w2.getwalletinfo()['paytxfee'], 4.0)
+        assert_equal(w2.getwalletinfo()['paytxfee'], Decimal('0.00100000'))
 
         self.log.info("Test dynamic wallet loading")
 
