@@ -158,7 +158,7 @@ int CTrezorDevice::OpenIfUnlocked(std::string& sError)
     // of any previous actions that were ungoing.
     hw::trezor::messages::management::Initialize msg_init;
     std::vector<uint8_t> vec_init;
-    vec_init.resize(msg_init.ByteSize());
+    vec_init.resize(msg_init.ByteSizeLong());
     if (!msg_init.SerializeToArray(vec_init.data(), vec_init.size())) {
         Close();
         return errorN(1, sError, __func__, "SerializeToArray for Initialize failed.");
@@ -218,7 +218,7 @@ int CTrezorDevice::GetFirmwareVersion(std::string& sFirmware, std::string& sErro
 
     std::vector<uint8_t> vec_in, vec_out;
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
 
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -257,7 +257,7 @@ int CTrezorDevice::GetInfo(UniValue& info, std::string& sError)
 
     std::vector<uint8_t> vec_in, vec_out;
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
 
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -306,7 +306,7 @@ int CTrezorDevice::GetPubKey(const std::vector<uint32_t>& vPath, CPubKey& pk, bo
 
     std::vector<uint8_t> vec_in, vec_out;
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
 
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -357,7 +357,7 @@ int CTrezorDevice::GetXPub(const std::vector<uint32_t>& vPath, CExtPubKey& ekp, 
     uint16_t msg_type_out;
     std::vector<uint8_t> vec_in, vec_out;
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
 
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -428,7 +428,7 @@ int CTrezorDevice::SignMessage(const std::vector<uint32_t>& vPath, const std::st
 
     std::vector<uint8_t> vec_in, vec_out;
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
 
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -451,7 +451,7 @@ int CTrezorDevice::SignMessage(const std::vector<uint32_t>& vPath, const std::st
     }
 
     hw::trezor::messages::common::ButtonAck msg_in1;
-    vec_in.resize(msg_in1.ByteSize());
+    vec_in.resize(msg_in1.ByteSizeLong());
 
     if (0 != WriteV1(hw::trezor::messages::MessageType_ButtonAck, vec_in)) {
         Close();
@@ -543,7 +543,7 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction* tx)
 
     std::vector<uint8_t> vec_in, vec_out, serialised_tx;
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
 
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -566,7 +566,7 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction* tx)
             return errorN(1, sError, __func__, "Dongle error %u %s.", msg_fail.code(), msg_fail.message());
         } else if (msg_type_out == hw::trezor::messages::MessageType_ButtonRequest) {
             hw::trezor::messages::common::ButtonAck msg;
-            vec_in.resize(msg.ByteSize());
+            vec_in.resize(msg.ByteSizeLong());
             if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
                 return errorN(1, sError, __func__, "SerializeToArray failed.");
             }
@@ -716,7 +716,7 @@ int CTrezorDevice::CompleteTransaction(CMutableTransaction* tx)
             break;
         }
 
-        vec_in.resize(msg.ByteSize());
+        vec_in.resize(msg.ByteSizeLong());
         if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
             return errorN(1, sError, __func__, "SerializeToArray failed.");
         }
@@ -745,7 +745,7 @@ int CTrezorDevice::LoadMnemonic(uint32_t wordcount, bool pinprotection, std::str
 
     std::vector<uint8_t> vec_in, vec_out;
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
 
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -780,7 +780,7 @@ int CTrezorDevice::LoadMnemonic(uint32_t wordcount, bool pinprotection, std::str
 
         if (msg_type_out == hw::trezor::messages::MessageType_ButtonRequest) {
             hw::trezor::messages::common::ButtonAck msg;
-            vec_in.resize(msg.ByteSize());
+            vec_in.resize(msg.ByteSizeLong());
             if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
                 Close();
                 return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -806,7 +806,7 @@ int CTrezorDevice::Backup(std::string& sError)
 
     std::vector<uint8_t> vec_in, vec_out;
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
 
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -840,7 +840,7 @@ int CTrezorDevice::Backup(std::string& sError)
 
         if (msg_type_out == hw::trezor::messages::MessageType_ButtonRequest) {
             hw::trezor::messages::common::ButtonAck msg;
-            vec_in.resize(msg.ByteSize());
+            vec_in.resize(msg.ByteSizeLong());
             if (!msg.SerializeToArray(vec_in.data(), vec_in.size())) {
                 Close();
                 return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -874,7 +874,7 @@ int CTrezorDevice::PromptUnlock(std::string& sError)
         return errorN(1, sError, __func__, "Failed to open device.");
     }
 
-    vec_in.resize(msg_in.ByteSize());
+    vec_in.resize(msg_in.ByteSizeLong());
     if (!msg_in.SerializeToArray(vec_in.data(), vec_in.size())) {
         Close();
         return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -910,7 +910,7 @@ int CTrezorDevice::Unlock(std::string pin, std::string passphraseword, std::stri
         msg_in.set_pin(pin);
 
         std::vector<uint8_t> vec_pin;
-        vec_pin.resize(msg_in.ByteSize());
+        vec_pin.resize(msg_in.ByteSizeLong());
 
         if (!msg_in.SerializeToArray(vec_pin.data(), vec_pin.size())) {
             return errorN(1, sError, __func__, "SerializeToArray failed.");
@@ -927,7 +927,7 @@ int CTrezorDevice::Unlock(std::string pin, std::string passphraseword, std::stri
         msg_in.set_passphrase(passphraseword);
 
         std::vector<uint8_t> vec_pass;
-        vec_pass.resize(msg_in.ByteSize());
+        vec_pass.resize(msg_in.ByteSizeLong());
 
         if (!msg_in.SerializeToArray(vec_pass.data(), vec_pass.size())) {
             return errorN(1, sError, __func__, "SerializeToArray failed.");
