@@ -193,7 +193,7 @@ bool CHDWallet::Initialise()
         int64_t time_first_key = GetTimeFirstKey();
         int64_t nStart = GetTimeMillis();
         {
-            WalletRescanReserver reserver(this);
+            WalletRescanReserver reserver(*this);
             if (!reserver.reserve()) {
                 InitError(_("Failed to rescan the wallet during initialization").translated);
                 return false;
@@ -9079,7 +9079,7 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
     // Only possible if outputs were spent from a different wallet.
     if (!m_is_only_instance
         && earliest_anon_out_time != std::numeric_limits<int64_t>::max()) {
-        WalletRescanReserver reserver(this);
+        WalletRescanReserver reserver(*this);
         if (!reserver.reserve()) {
             WalletLogPrintf("%s: Wallet is currently rescanning.\n", __func__);
         } else {

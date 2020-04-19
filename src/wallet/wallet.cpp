@@ -2984,20 +2984,14 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock& locked_chain, const std
                 //  rediscover unknown transactions that were written with keys of ours to recover
                 //  post-backup change.
 
-                // Reserve a new key pair from key pool
-                if (!CanGetAddresses(true)) {
-                    strFailReason = _("Can't generate a change-address key. No keys in the internal keypool and can't generate any keys.").translated;
-                    return false;
-                }
+                // Reserve a new key pair from key pool. If it fails, provide a dummy
+                // destination in case we don't need change.
                 CTxDestination dest;
-                bool ret = reservedest.GetReservedDestination(dest, true);
-                if (!ret)
-                {
-                    strFailReason = "Keypool ran out, please call keypoolrefill first";
-                    return false;
+                if (!reservedest.GetReservedDestination(dest, true)) {
+                    strFailReason = _("Transaction needs a change address, but we can't generate it. Please call keypoolrefill first.").translated;
                 }
-
                 scriptChange = GetScriptForDestination(dest);
+                assert(!dest.empty() || scriptChange.empty());
             }
             CTxOut change_prototype_txout(0, scriptChange);
             coin_selection_params.change_output_size = GetSerializeSize(change_prototype_txout);
@@ -3212,6 +3206,11 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock& locked_chain, const std
                 nFeeRet = nFeeNeeded;
                 coin_selection_params.use_bnb = false;
                 continue;
+            }
+
+            // Give up if change keypool ran out and we failed to find a solution without change:
+            if (scriptChange.empty() && nChangePosInOut != -1) {
+                return false;
             }
         }
 
@@ -3522,7 +3521,7 @@ bool CWallet::GetNewChangeDestination(const OutputType type, CTxDestination& des
 
     ReserveDestination reservedest(this, type);
     if (!reservedest.GetReservedDestination(dest, true)) {
-        error = "Error: Keypool ran out, please call keypoolrefill first";
+        error = _("Error: Keypool ran out, please call keypoolrefill first").translated;
         return false;
     }
 
@@ -4068,44 +4067,6 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
         }
     }
 
-    int prev_version = walletInstance->GetVersion();
-    if (gArgs.GetBoolArg("-upgradewallet", fFirstRun))
-    {
-        int nMaxVersion = gArgs.GetArg("-upgradewallet", 0);
-        if (nMaxVersion == 0) // the -upgradewallet without argument case
-        {
-            walletInstance->WalletLogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
-            nMaxVersion = FEATURE_LATEST;
-            walletInstance->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
-        }
-        else
-            walletInstance->WalletLogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
-        if (nMaxVersion < walletInstance->GetVersion())
-        {
-            error = _("Cannot downgrade wallet").translated;
-            return nullptr;
-        }
-        walletInstance->SetMaxVersion(nMaxVersion);
-    }
-
-    // Upgrade to HD if explicit upgrade
-    if (gArgs.GetBoolArg("-upgradewallet", false) && !fParticlMode) {
-        LOCK(walletInstance->cs_wallet);
-
-        // Do not upgrade versions to any version between HD_SPLIT and FEATURE_PRE_SPLIT_KEYPOOL unless already supporting HD_SPLIT
-        int max_version = walletInstance->GetVersion();
-        if (!walletInstance->CanSupportFeature(FEATURE_HD_SPLIT) && max_version >= FEATURE_HD_SPLIT && max_version < FEATURE_PRE_SPLIT_KEYPOOL) {
-            error = _("Cannot upgrade a non HD split wallet without upgrading to support pre split keypool. Please use -upgradewallet=169900 or -upgradewallet with no version specified.").translated;
-            return nullptr;
-        }
-
-        for (auto spk_man : walletInstance->GetActiveScriptPubKeyMans()) {
-            if (!spk_man->Upgrade(prev_version, error)) {
-                return nullptr;
-            }
-        }
-    }
-
     if (fFirstRun)
     {
         walletInstance->SetMinVersion(FEATURE_LATEST);
@@ -4303,7 +4264,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
         }
 
         {
-            WalletRescanReserver reserver(walletInstance.get());
+            WalletRescanReserver reserver(*walletInstance);
             if (!reserver.reserve() || (ScanResult::SUCCESS != walletInstance->ScanForWalletTransactions(locked_chain->getBlockHash(rescan_height), rescan_height, {} /* max height */, reserver, true /* update */).status)) {
                 error = _("Failed to rescan the wallet during initialization").translated;
                 return nullptr;
@@ -4366,6 +4327,42 @@ const CAddressBookData* CWallet::FindAddressBookEntry(const CTxDestination& dest
         return nullptr;
     }
     return &address_book_it->second;
+}
+
+bool CWallet::UpgradeWallet(int version, std::string& error, std::vector<std::string>& warnings)
+{
+    int prev_version = GetVersion();
+    int nMaxVersion = version;
+    if (nMaxVersion == 0) // the -upgradewallet without argument case
+    {
+        WalletLogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
+        nMaxVersion = FEATURE_LATEST;
+        SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
+    }
+    else
+        WalletLogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
+    if (nMaxVersion < GetVersion())
+    {
+        error = _("Cannot downgrade wallet").translated;
+        return false;
+    }
+    SetMaxVersion(nMaxVersion);
+
+    LOCK(cs_wallet);
+
+    // Do not upgrade versions to any version between HD_SPLIT and FEATURE_PRE_SPLIT_KEYPOOL unless already supporting HD_SPLIT
+    int max_version = GetVersion();
+    if (!CanSupportFeature(FEATURE_HD_SPLIT) && max_version >= FEATURE_HD_SPLIT && max_version < FEATURE_PRE_SPLIT_KEYPOOL) {
+        error = _("Cannot upgrade a non HD split wallet without upgrading to support pre split keypool. Please use version 169900 or no version specified.").translated;
+        return false;
+    }
+
+    for (auto spk_man : GetActiveScriptPubKeyMans()) {
+        if (!spk_man->Upgrade(prev_version, error)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void CWallet::postInitProcess()

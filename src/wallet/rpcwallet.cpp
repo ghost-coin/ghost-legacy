@@ -1914,8 +1914,8 @@ UniValue listtransactions(const JSONRPCRequest& request)
                 "\nIf a label name is provided, this will return only incoming transactions paying to addresses with the specified label.\n"
                 "\nReturns up to 'count' most recent transactions skipping the first 'from' transactions.\n",
                 {
-                    {"label", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "If set, should be a valid label name to return only incoming transactions\n"
-            "              with the specified label, or \"*\" to disable filtering and return all transactions."},
+                    {"label|dummy", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "If set, should be a valid label name to return only incoming transactions\n"
+                          "with the specified label, or \"*\" to disable filtering and return all transactions."},
                     {"count", RPCArg::Type::NUM, /* default */ "10", "The number of transactions to return"},
                     {"skip", RPCArg::Type::NUM, /* default */ "0", "The number of transactions to skip"},
                     {"include_watchonly", RPCArg::Type::BOOL, /* default */ "true for watch-only wallets, otherwise false", "Include transactions to watch-only addresses (see 'importaddress')"},
@@ -3364,7 +3364,7 @@ static UniValue loadwallet(const JSONRPCRequest& request)
             RPCHelpMan{"loadwallet",
                 "\nLoads a wallet from a wallet file or directory."
                 "\nNote that all wallet command-line options used when starting particld will be"
-                "\napplied to the new wallet (eg -zapwallettxes, upgradewallet, rescan, etc).\n",
+                "\napplied to the new wallet (eg -zapwallettxes, rescan, etc).\n",
                 {
                     {"filename", RPCArg::Type::STR, RPCArg::Optional::NO, "The wallet directory or .dat file."},
                 },
@@ -4446,7 +4446,7 @@ UniValue rescanblockchain(const JSONRPCRequest& request)
                 },
             }.Check(request);
 
-    WalletRescanReserver reserver(pwallet);
+    WalletRescanReserver reserver(*pwallet);
     if (!reserver.reserve()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet is currently rescanning. Abort existing rescan or wait.");
     }
@@ -5044,7 +5044,7 @@ UniValue sethdseed(const JSONRPCRequest& request)
 
     // Do not do anything to non-HD wallets
     if (!pwallet->CanSupportFeature(FEATURE_HD)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot set a HD seed on a non-HD wallet. Start with -upgradewallet in order to upgrade a non-HD wallet to HD");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot set a HD seed on a non-HD wallet. Use the upgradewallet RPC in order to upgrade a non-HD wallet to HD");
     }
 
     if (IsParticlWallet(pwallet))
@@ -5271,6 +5271,45 @@ UniValue walletcreatefundedpsbt(const JSONRPCRequest& request)
     return result;
 }
 
+static UniValue upgradewallet(const JSONRPCRequest& request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    RPCHelpMan{"upgradewallet",
+        "\nUpgrade the wallet. Upgrades to the latest version if no version number is specified\n"
+        "New keys may be generated and a new wallet backup will need to be made.",
+        {
+            {"version", RPCArg::Type::NUM, /* default */ strprintf("%d", FEATURE_LATEST), "The version number to upgrade to. Default is the latest wallet version"}
+        },
+        RPCResults{},
+        RPCExamples{
+            HelpExampleCli("upgradewallet", "169900")
+            + HelpExampleRpc("upgradewallet", "169900")
+        }
+    }.Check(request);
+
+    RPCTypeCheck(request.params, {UniValue::VNUM}, true);
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    int version = 0;
+    if (!request.params[0].isNull()) {
+        version = request.params[0].get_int();
+    }
+
+    std::string error;
+    std::vector<std::string> warnings;
+    if (!pwallet->UpgradeWallet(version, error, warnings)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, error);
+    }
+    return error;
+}
+
 UniValue abortrescan(const JSONRPCRequest& request); // in rpcdump.cpp
 UniValue dumpprivkey(const JSONRPCRequest& request); // in rpcdump.cpp
 UniValue importprivkey(const JSONRPCRequest& request);
@@ -5341,6 +5380,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "signmessage",                      &signmessage,                   {"address","message"} },
     { "wallet",             "signrawtransactionwithwallet",     &signrawtransactionwithwallet,  {"hexstring","prevtxs","sighashtype"} },
     { "wallet",             "unloadwallet",                     &unloadwallet,                  {"wallet_name"} },
+    { "wallet",             "upgradewallet",                    &upgradewallet,                 {"version"} },
     { "wallet",             "walletcreatefundedpsbt",           &walletcreatefundedpsbt,        {"inputs","outputs","locktime","options","bip32derivs"} },
     { "wallet",             "walletlock",                       &walletlock,                    {} },
     { "wallet",             "walletpassphrase",                 &walletpassphrase,              {"passphrase","timeout","stakingonly"} },

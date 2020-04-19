@@ -1262,6 +1262,9 @@ public:
         LogPrintf(("%s " + fmt).c_str(), GetDisplayName(), parameters...);
     };
 
+    /** Upgrade the wallet */
+    bool UpgradeWallet(int version, std::string& error, std::vector<std::string>& warnings);
+
     //! Returns all unique ScriptPubKeyMans in m_internal_spk_managers and m_external_spk_managers
     std::set<ScriptPubKeyMan*> GetActiveScriptPubKeyMans() const;
 
@@ -1334,35 +1337,35 @@ void MaybeResendWalletTxs();
 class WalletRescanReserver
 {
 private:
-    CWallet* m_wallet;
+    CWallet& m_wallet;
     bool m_could_reserve;
 public:
-    explicit WalletRescanReserver(CWallet* w) : m_wallet(w), m_could_reserve(false) {}
+    explicit WalletRescanReserver(CWallet& w) : m_wallet(w), m_could_reserve(false) {}
 
     bool reserve()
     {
         assert(!m_could_reserve);
-        std::lock_guard<std::mutex> lock(m_wallet->mutexScanning);
-        if (m_wallet->fScanningWallet) {
+        std::lock_guard<std::mutex> lock(m_wallet.mutexScanning);
+        if (m_wallet.fScanningWallet) {
             return false;
         }
-        m_wallet->m_scanning_start = GetTimeMillis();
-        m_wallet->m_scanning_progress = 0;
-        m_wallet->fScanningWallet = true;
+        m_wallet.m_scanning_start = GetTimeMillis();
+        m_wallet.m_scanning_progress = 0;
+        m_wallet.fScanningWallet = true;
         m_could_reserve = true;
         return true;
     }
 
     bool isReserved() const
     {
-        return (m_could_reserve && m_wallet->fScanningWallet);
+        return (m_could_reserve && m_wallet.fScanningWallet);
     }
 
     ~WalletRescanReserver()
     {
-        std::lock_guard<std::mutex> lock(m_wallet->mutexScanning);
+        std::lock_guard<std::mutex> lock(m_wallet.mutexScanning);
         if (m_could_reserve) {
-            m_wallet->fScanningWallet = false;
+            m_wallet.fScanningWallet = false;
         }
     }
 };

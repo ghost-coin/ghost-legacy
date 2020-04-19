@@ -802,7 +802,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
     int64_t nScanFrom = request.params[3].isNum() ? request.params[3].get_int64() : 0;
     bool fInitStealth = request.params[4].isBool() ? request.params[4].get_bool() : true;
 
-    WalletRescanReserver reserver(pwallet);
+    WalletRescanReserver reserver(*pwallet);
     if (!reserver.reserve()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet is currently rescanning. Abort existing rescan or wait.");
     }

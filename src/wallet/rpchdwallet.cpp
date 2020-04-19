@@ -1076,7 +1076,7 @@ static UniValue extkey(const JSONRPCRequest &request)
         }
 
         {
-            WalletRescanReserver reserver(pwallet);
+            WalletRescanReserver reserver(*pwallet);
             if (!reserver.reserve()) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Wallet is currently rescanning. Abort existing rescan or wait.");
             }
@@ -1435,7 +1435,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
 
     LogPrintf("Importing master key and account with labels '%s', '%s'.\n", sLblMaster.c_str(), sLblAccount.c_str());
 
-    WalletRescanReserver reserver(pwallet);
+    WalletRescanReserver reserver(*pwallet);
     if (!reserver.reserve()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Wallet is currently rescanning. Abort existing rescan or wait.");
     }
