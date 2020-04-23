@@ -6555,9 +6555,9 @@ static UniValue buildscript(const JSONRPCRequest &request)
         }
 
         scriptOut = CScript() << OP_ISCOINSTAKE << OP_IF;
-        scriptOut += scriptTrue;
+        scriptOut.append(scriptTrue);
         scriptOut << OP_ELSE;
-        scriptOut += scriptFalse;
+        scriptOut.append(scriptFalse);
         scriptOut << OP_ENDIF;
     } else
     if (sRecipe == "abslocktime") {
@@ -6578,7 +6578,7 @@ static UniValue buildscript(const JSONRPCRequest &request)
         }
 
         scriptOut = CScript() << params["time"].get_int64() << OP_CHECKLOCKTIMEVERIFY << OP_DROP;
-        scriptOut += scriptAddr;
+        scriptOut.append(scriptAddr);
     } else
     if (sRecipe == "rellocktime") {
         RPCTypeCheckObj(params,
@@ -6598,7 +6598,7 @@ static UniValue buildscript(const JSONRPCRequest &request)
         }
 
         scriptOut = CScript() << params["time"].get_int64() << OP_CHECKSEQUENCEVERIFY << OP_DROP;
-        scriptOut += scriptAddr;
+        scriptOut.append(scriptAddr);
     } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown recipe.");
     }

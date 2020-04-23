@@ -22,6 +22,8 @@
 static void CCoinsCaching(benchmark::State& state)
 {
     fParticlMode = false;
+    const ECCVerifyHandle verify_handle;
+    ECC_Start();
 
     FillableSigningProvider keystore;
     CCoinsView coinsDummy;
@@ -52,6 +54,7 @@ static void CCoinsCaching(benchmark::State& state)
         CAmount value = coins.GetValueIn(tx_1);
         assert(value == (50 + 21 + 22) * COIN);
     }
+    ECC_Stop();
 }
 
 BENCHMARK(CCoinsCaching, 170 * 1000);

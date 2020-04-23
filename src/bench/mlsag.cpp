@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,6 +6,7 @@
 
 #include <bench/bench.h>
 #include <util/time.h>
+#include <test/util/setup_common.h>
 
 #include <blind.h>
 #include <random.h>
@@ -17,6 +18,8 @@
 
 static void Mlsag(benchmark::State& state)
 {
+    TestingSetup test_setup{CBaseChainParams::REGTEST, {}, true};
+
     ECC_Start_Blinding();
 
     const size_t nInputs = 2;
@@ -29,9 +32,7 @@ static void Mlsag(benchmark::State& state)
 
     int64_t nValues[] = {1234 * COIN, 1234 * COIN, 2467 * COIN, 1 * COIN};
 
-    std::vector<CKey> vKeys(2);
-    std::vector<CKey> vBlindsOut(1);
-    std::vector<CKey> vBlindsIn(2);
+    std::vector<CKey> vKeys(2), vBlindsOut(1), vBlindsIn(2);
 
     const uint8_t *pkeys[nInputs+1];
     uint8_t m[nRows * nCols * 33];
@@ -102,7 +103,6 @@ static void Mlsag(benchmark::State& state)
     assert(0 == secp256k1_generate_mlsag(secp256k1_ctx_blind, ki, pc, ss,
         tmp32, preimage, nCols, nRows, nRealCol,
         pkeys, m));
-
 
 
     while (state.KeepRunning()) {

@@ -3612,9 +3612,9 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
 
             if (scriptStaking.IsPayToPublicKeyHash()) {
                 CScript script = CScript() << OP_ISCOINSTAKE << OP_IF;
-                script += scriptStaking;
+                script.append(scriptStaking);
                 script << OP_ELSE;
-                script += r.scriptPubKey;
+                script.append(r.scriptPubKey);
                 script << OP_ENDIF;
                 r.scriptPubKey = script;
             } else {
@@ -12721,9 +12721,9 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
                     if (scriptStaking.IsPayToPublicKeyHash()) {
                         CScript script = CScript() << OP_ISCOINSTAKE << OP_IF;
-                        script += scriptStaking;
+                        script.append(scriptStaking);
                         script << OP_ELSE;
-                        script += scriptPubKeyKernel;
+                        script.append(scriptPubKeyKernel);
                         script << OP_ENDIF;
 
                         scriptPubKeyKernel = script;

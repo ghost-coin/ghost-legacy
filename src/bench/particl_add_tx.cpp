@@ -120,6 +120,8 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
 
 static void AddTx(benchmark::State& state, const std::string from, const std::string to, const bool owned)
 {
+    TestingSetup test_setup{CBaseChainParams::REGTEST, {}, true};
+
     ECC_Start_Stealth();
     ECC_Start_Blinding();
 
