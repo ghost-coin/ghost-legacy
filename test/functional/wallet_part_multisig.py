@@ -58,7 +58,7 @@ class MultiSigTest(ParticlTestFramework):
 
 
         v = [addrs[0], addrs[1], pubkeys[2]]
-        msAddr = nodes[0].addmultisigaddress(2, v)['address']
+        msAddr = nodes[0].addmultisigaddress_part(2, v)['address']
 
         ro = nodes[0].getaddressinfo(msAddr)
         assert(ro['isscript'] == True)
@@ -112,11 +112,11 @@ class MultiSigTest(ParticlTestFramework):
         assert(txnid_spendMultisig in ro['tx'])
 
 
-        msAddr256 = nodes[0].addmultisigaddress(2, v, "", False, True)['address']
+        msAddr256 = nodes[0].addmultisigaddress_part(2, v, "", False, True)['address']
         ro = nodes[0].getaddressinfo(msAddr256)
         assert(ro['isscript'] == True)
 
-        msAddr256 = nodes[0].addmultisigaddress(2, v, "", True, True)['address']
+        msAddr256 = nodes[0].addmultisigaddress_part(2, v, "", True, True)['address']
         assert(msAddr256 == "tpj1vtll9wnsd7dxzygrjp2j5jr5tgrjsjmj3vwjf7vf60f9p50g5ddqmasmut")
 
         ro = nodes[0].getaddressinfo(msAddr256)

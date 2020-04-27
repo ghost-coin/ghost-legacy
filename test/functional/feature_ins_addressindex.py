@@ -61,7 +61,7 @@ class AddressIndexTest(ParticlTestFramework):
         addrs.append(nodes[1].getnewaddress())
         addrs.append(nodes[1].getnewaddress())
 
-        ms1 = nodes[1].addmultisigaddress(2, addrs)['address']
+        ms1 = nodes[1].addmultisigaddress_part(2, addrs)['address']
         assert(ms1 == 'r8L81gLiWg46j5EGfZSp2JHmA9hBgLbHuf') # rFHaEuXkYpNUYpMMY3kMkDdayQxpc7ozti
 
         addr1 = nodes[2].getnewaddress()
@@ -367,7 +367,7 @@ class AddressIndexTest(ParticlTestFramework):
         pk0 = nodes[2].getaddressinfo(nodes[2].getnewaddress())['pubkey']
         pk1 = nodes[2].getaddressinfo(nodes[2].getnewaddress())['pubkey']
 
-        ms_btcnative = nodes[2].addmultisigaddress(1, [pk0, pk1], 'ms_btcnative', False, False, 'bech32')
+        ms_btcnative = nodes[2].addmultisigaddress_part(1, [pk0, pk1], 'ms_btcnative', False, False, 'bech32')
         nodes[0].sendtoaddress(ms_btcnative['address'], 1.0)
 
         self.sync_all()

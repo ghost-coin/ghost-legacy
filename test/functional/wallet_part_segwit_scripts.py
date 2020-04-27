@@ -63,9 +63,9 @@ class SegwitScriptsTest(ParticlTestFramework):
 
         self.log.info('Test P2SH')
 
-        ms_standard = nodes[2].addmultisigaddress(2, [pk0, pk1])
-        ms_p2shsegwit = nodes[2].addmultisigaddress(2, [pk0, pk2], 'ms_p2shsegwit', False, False, 'p2sh-segwit')
-        ms_btcnative = nodes[2].addmultisigaddress(2, [pk1, pk2], 'ms_btcnative', False, False, 'bech32')
+        ms_standard = nodes[2].addmultisigaddress_part(2, [pk0, pk1])
+        ms_p2shsegwit = nodes[2].addmultisigaddress_part(2, [pk0, pk2], 'ms_p2shsegwit', False, False, 'p2sh-segwit')
+        ms_btcnative = nodes[2].addmultisigaddress_part(2, [pk1, pk2], 'ms_btcnative', False, False, 'bech32')
 
         ro = nodes[2].getaddressinfo(ms_standard['address'])
         assert(ro['iswitness'] == False)
