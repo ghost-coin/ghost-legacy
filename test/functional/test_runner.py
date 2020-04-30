@@ -97,6 +97,7 @@ BASE_SCRIPTS = [
     'p2p_segwit.py',
     'p2p_timeouts.py',
     'p2p_tx_download.py',
+    'mempool_updatefromblock.py',
     'wallet_dump.py',
     'wallet_listtransactions.py',
     # vv Tests less than 60s vv
@@ -194,6 +195,7 @@ BASE_SCRIPTS = [
     'wallet_import_rescan.py',
     'wallet_import_with_label.py',
     'wallet_importdescriptors.py',
+    'wallet_upgradewallet.py',
     'rpc_bind.py --ipv4',
     'rpc_bind.py --ipv6',
     'rpc_bind.py --nonloopback',
@@ -224,6 +226,7 @@ BASE_SCRIPTS = [
     'p2p_unrequested_blocks.py',
     'feature_includeconf.py',
     'feature_asmap.py',
+    'mempool_unbroadcast.py',
     'rpc_deriveaddresses.py',
     'rpc_deriveaddresses.py --usecli',
     'rpc_scantxoutset.py',
