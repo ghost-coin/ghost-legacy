@@ -1081,7 +1081,6 @@ static UniValue extkey(const JSONRPCRequest &request)
                 throw JSONRPCError(RPC_WALLET_ERROR, "Wallet is currently rescanning. Abort existing rescan or wait.");
             }
 
-            auto locked_chain = pwallet->chain().lock();
             LOCK(pwallet->cs_wallet);
             CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
             if (!wdb.TxnBegin()) {
@@ -1535,7 +1534,6 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     if (nScanFrom >= 0) {
         pwallet->RescanFromTime(nScanFrom, reserver, true);
         pwallet->MarkDirty();
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         pwallet->ReacceptWalletTransactions();
     }
@@ -2338,7 +2336,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
     UniValue result(UniValue::VARR);
 
     {
-        LOCK2(cs_main, pwallet->cs_wallet);
+        LOCK(pwallet->cs_wallet);
 
         CStoredExtKey *sek = nullptr;
         CExtKeyAccount *sea = nullptr;
@@ -2509,7 +2507,7 @@ static UniValue clearwallettransactions(const JSONRPCRequest &request)
     size_t nRecordsRemoved = 0;
 
     {
-        LOCK2(cs_main, pwallet->cs_wallet);
+        LOCK(pwallet->cs_wallet);
 
         pwallet->ClearCachedBalances(); // Clear stakeable coins cache
 
@@ -2640,10 +2638,9 @@ static bool ParseOutput(
     return true;
 }
 
-extern void WalletTxToJSON(interfaces::Chain& chain, interfaces::Chain::Lock& locked_chain, const CWalletTx& wtx, UniValue& entry, bool fFilterMode=false);
+extern void WalletTxToJSON(interfaces::Chain& chain, const CWalletTx& wtx, UniValue& entry, bool fFilterMode=false);
 
 static void ParseOutputs(
-    interfaces::Chain::Lock& locked_chain,
     UniValue            &entries,
     CWalletTx           &wtx,
     const CHDWallet     *pwallet,
@@ -2680,7 +2677,7 @@ static void ParseOutputs(
     std::vector<std::string> addresses, amounts;
 
     UniValue outputs(UniValue::VARR);
-    WalletTxToJSON(pwallet->chain(), locked_chain, wtx, entry, true);
+    WalletTxToJSON(pwallet->chain(), wtx, entry, true);
 
     if (!listStaked.empty() || !listSent.empty()) {
         entry.pushKV("abandoned", wtx.isAbandoned());
@@ -2844,7 +2841,6 @@ static void ParseOutputs(
 }
 
 static void ParseRecords(
-    interfaces::Chain::Lock    &locked_chain,
     UniValue                   &entries,
     const uint256              &hash,
     const CTransactionRecord   &rtx,
@@ -2870,7 +2866,7 @@ static void ParseRecords(
         entry.__pushKV("blockindex", rtx.nIndex);
         PushTime(entry, "blocktime", rtx.nBlockTime);
     } else {
-        entry.__pushKV("trusted", pwallet->IsTrusted(locked_chain, hash, rtx));
+        entry.__pushKV("trusted", pwallet->IsTrusted(hash, rtx));
     }
 
     entry.__pushKV("txid", hash.ToString());
@@ -3143,7 +3139,6 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
-    auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
     unsigned int count     = 10;
@@ -3304,7 +3299,6 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
         if (txTime < timeFrom) break;
         if (txTime <= timeTo)
             ParseOutputs(
-                *locked_chain,
                 transactions,
                 *pwtx,
                 pwallet,
@@ -3333,7 +3327,6 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
         if (txTime < timeFrom) break;
         if (txTime <= timeTo)
             ParseRecords(
-                *locked_chain,
                 transactions,
                 hash,
                 rtx,
@@ -3963,11 +3956,10 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
         cctl.m_min_depth = 0;
         cctl.m_max_depth = 0x7FFFFFFF;
         cctl.m_include_immature = true;
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         nHeight = ::ChainActive().Tip()->nHeight;
         nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(nHeight / 2));
-        pwallet->AvailableCoins(*locked_chain, vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
+        pwallet->AvailableCoins(vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
     }
 
     LOCK(pwallet->cs_wallet);
@@ -4184,10 +4176,9 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
         cctl.m_min_depth = nMinDepth;
         cctl.m_max_depth = nMaxDepth;
         cctl.m_include_immature = fIncludeImmature;
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         // TODO: filter on stealth address
-        pwallet->AvailableAnonCoins(*locked_chain, vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
+        pwallet->AvailableAnonCoins(vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
     }
 
     LOCK(pwallet->cs_wallet);
@@ -4394,9 +4385,8 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
         CCoinControl cctl;
         cctl.m_min_depth = nMinDepth;
         cctl.m_max_depth = nMaxDepth;
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
-        pwallet->AvailableBlindedCoins(*locked_chain, vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
+        pwallet->AvailableBlindedCoins(vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
     }
 
     LOCK(pwallet->cs_wallet);
@@ -4854,21 +4844,19 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     CAmount nFeeRet = 0;
     {
-    auto locked_chain = pwallet->chain().lock();
-    LockAssertion lock(::cs_main);
     switch (typeIn) {
         case OUTPUT_STANDARD:
-            if (0 != pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError)) {
+            if (0 != pwallet->AddStandardInputs(wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddStandardInputs failed: %s.", sError));
             }
             break;
         case OUTPUT_CT:
-            if (0 != pwallet->AddBlindedInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError)) {
+            if (0 != pwallet->AddBlindedInputs(wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddBlindedInputs failed: %s.", sError));
             }
             break;
         case OUTPUT_RINGCT:
-            if (0 != pwallet->AddAnonInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nRingSize, nInputsPerSig, nFeeRet, &coincontrol, sError)) {
+            if (0 != pwallet->AddAnonInputs(wtx, rtx, vecSend, !fCheckFeeOnly, nRingSize, nInputsPerSig, nFeeRet, &coincontrol, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddAnonInputs failed: %s.", sError));
             }
             break;
@@ -5450,7 +5438,7 @@ static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
 
     EnsureWalletIsUnlocked(pwallet);
 
-    LOCK2(cs_main, pwallet->cs_wallet);
+    LOCK(pwallet->cs_wallet);
 
     return createsignatureinner(request, pwallet);
 }
@@ -5544,7 +5532,6 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     size_t nAbandonedOrphans = 0;
 
     {
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
 
         result.pushKV("mapWallet_size", (int)pwallet->mapWallet.size());
@@ -5706,7 +5693,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 const uint256 &txhash = ri.first;
                 const CTransactionRecord &rtx = ri.second;
 
-                if (!pwallet->IsTrusted(*locked_chain, txhash, rtx)) {
+                if (!pwallet->IsTrusted(txhash, rtx)) {
                     continue;
                 }
 
@@ -6906,8 +6893,6 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
         vecSend.push_back(r);
     }
 
-    auto locked_chain = pwallet->chain().lock();
-    LockAssertion lock(::cs_main);
     LOCK(pwallet->cs_wallet);
 
     std::string sError;
@@ -7427,10 +7412,9 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
     CAmount nFee;
     std::string sError;
     {
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         if (sInputType == "standard") {
-            if (0 != pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, false, nFee, &coinControl, sError)) {
+            if (0 != pwallet->AddStandardInputs(wtx, rtx, vecSend, false, nFee, &coinControl, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddStandardInputs failed: %s.", sError));
             }
         } else
@@ -7440,7 +7424,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddAnonInputs failed: %s.", sError));
         } else
         if (sInputType == "blind") {
-            if (0 != pwallet->AddBlindedInputs(*locked_chain, wtx, rtx, vecSend, false, nFee, &coinControl, sError)) {
+            if (0 != pwallet->AddBlindedInputs(wtx, rtx, vecSend, false, nFee, &coinControl, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddBlindedInputs failed: %s.", sError));
             }
         } else {
@@ -7455,7 +7439,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
             tx.vin.push_back(txin);
         }
         if (lockUnspents) {
-            LOCK2(cs_main, pwallet->cs_wallet);
+            LOCK(pwallet->cs_wallet);
             pwallet->LockCoin(txin.prevout);
         }
     }
@@ -8081,7 +8065,7 @@ static UniValue rewindchain(const JSONRPCRequest &request)
     pwallet->BlockUntilSyncedToCurrentChain();
 
 
-    LOCK2(cs_main, pwallet->cs_wallet);
+    LOCK(pwallet->cs_wallet);
 
     UniValue result(UniValue::VOBJ);
 

@@ -19,9 +19,7 @@
 
 CTransactionRef CreateTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amount, int type_in, int type_out, int nRingSize = 5)
 {
-    auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
-    LockAssertion lock(::cs_main);
 
     assert(address.IsValid());
 
@@ -39,13 +37,13 @@ CTransactionRef CreateTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount 
     CAmount nFee;
     CCoinControl coinControl;
     if (type_in == OUTPUT_STANDARD) {
-        assert(0 == pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, true, nFee, &coinControl, sError));
+        assert(0 == pwallet->AddStandardInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
     } else
     if (type_in == OUTPUT_CT) {
-        assert(0 == pwallet->AddBlindedInputs(*locked_chain, wtx, rtx, vecSend, true, nFee, &coinControl, sError));
+        assert(0 == pwallet->AddBlindedInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
     } else {
         int nInputsPerSig = 1;
-        assert(0 == pwallet->AddAnonInputs(*locked_chain, wtx, rtx, vecSend, true, nRingSize, nInputsPerSig, nFee, &coinControl, sError));
+        assert(0 == pwallet->AddAnonInputs(wtx, rtx, vecSend, true, nRingSize, nInputsPerSig, nFee, &coinControl, sError));
     }
     return wtx.tx;
 }
@@ -53,9 +51,7 @@ CTransactionRef CreateTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount 
 static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amount, OutputTypes output_type)
 {
     {
-    auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
-    LockAssertion lock(::cs_main);
 
     assert(address.IsValid());
 
@@ -72,11 +68,11 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     CTransactionRecord rtx;
     CAmount nFee;
     CCoinControl coinControl;
-    assert(0 == pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, true, nFee, &coinControl, sError));
+    assert(0 == pwallet->AddStandardInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
 
     wtx.BindWallet(pwallet);
     assert(wtx.SubmitMemoryPoolAndRelay(sError, true));
-    } // cs_main
+    }
     SyncWithValidationInterfaceQueue();
 }
 
@@ -86,10 +82,7 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
     size_t nStaked = 0;
     size_t k, nTries = 10000;
     for (k = 0; k < nTries; ++k) {
-        {
-            LOCK(cs_main);
-            nBestHeight = ::ChainActive().Height();
-        }
+        nBestHeight = pwallet->chain().getHeightInt();
 
         int64_t nSearchTime = GetAdjustedTime() & ~Params().GetStakeTimestampMask(nBestHeight+1);
         if (nSearchTime <= pwallet->nLastCoinStakeSearchTime) {
@@ -213,7 +206,6 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
 
     CWalletTx::Confirmation confirm;
     {
-    LOCK(cs_main);
     LOCK(pwallet_b.get()->cs_wallet);
 
     while (state.KeepRunning()) {

@@ -502,9 +502,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
             }.Check(request);
 
 #ifdef ENABLE_WALLET
-    LOCK2(cs_main, pwallet ? &pwallet->cs_wallet : nullptr);
-#else
-    LOCK(cs_main);
+    LOCK(pwallet ? &pwallet->cs_wallet : nullptr);
 #endif
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR, UniValue::VARR, UniValue::VSTR, UniValue::VSTR}, true);
 
@@ -523,7 +521,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
     {
-        LOCK(mempool.cs);
+        LOCK2(cs_main, mempool.cs);
         CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
         CCoinsViewMemPool viewMempool(&viewChain, mempool);
         view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
@@ -971,7 +969,6 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
     if (nScanFrom >= 0) {
         pwallet->RescanFromTime(nScanFrom, reserver, true /* update */);
         pwallet->MarkDirty();
-        auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         pwallet->ReacceptWalletTransactions();
     }

@@ -2602,10 +2602,12 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
 
 int CSMSG::GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut)
 {
-    if (keyStore.GetPubKey(ckid, cpkOut)) {
-        return SMSG_NO_ERROR;
+    {
+        LOCK(cs_smsg);
+        if (keyStore.GetPubKey(ckid, cpkOut)) {
+            return SMSG_NO_ERROR;
+        }
     }
-
 #ifdef ENABLE_WALLET
     for (const auto &pw : m_vpwallets) {
         if (pw->GetPubKey(ckid, cpkOut) && cpkOut.IsValid()) {
@@ -2619,8 +2621,11 @@ int CSMSG::GetLocalKey(const CKeyID &ckid, CPubKey &cpkOut)
 
 int CSMSG::GetLocalKey(const CKeyID &key_id, CKey &key_out)
 {
-    if (keyStore.GetKey(key_id, key_out)) {
-        return SMSG_NO_ERROR;
+    {
+        LOCK(cs_smsg);
+        if (keyStore.GetKey(key_id, key_out)) {
+            return SMSG_NO_ERROR;
+        }
     }
 
 #ifdef ENABLE_WALLET
@@ -4212,13 +4217,12 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
     CAmount nFeeRet;
     OutputTypes fund_from = fund_from_rct ? OUTPUT_RINGCT : OUTPUT_STANDARD;
     {
-        auto locked_chain = pactive_wallet->chain().lock();
         LOCK(pactive_wallet->cs_wallet);
 
         const Consensus::Params &consensusParams = Params().GetConsensus();
         coin_control->m_feerate = CFeeRate(consensusParams.smsg_fee_funding_tx_per_k);
         coin_control->fOverrideFeeRate = true;
-        coin_control->m_extrafee = ((locked_chain->getSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
+        coin_control->m_extrafee = ((pactive_wallet->chain().getSmsgFeeRate(nullptr) * nMsgBytes) / 1000) * nDaysRetention;
         assert(coin_control->m_extrafee <= std::numeric_limits<uint32_t>::max());
         uint32_t msgFee = coin_control->m_extrafee;
 
@@ -4237,7 +4241,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         CWalletTx wtx(pactive_wallet.get(), tx_new);
 
         if (fund_from == OUTPUT_STANDARD) {
-            if (0 != pw->AddStandardInputs(*locked_chain, wtx, rtx, vec_send, !fTestFee, nFeeRet, coin_control, sError)) {
+            if (0 != pw->AddStandardInputs(wtx, rtx, vec_send, !fTestFee, nFeeRet, coin_control, sError)) {
                 return SMSG_FUND_FAILED;
             }
         } else
@@ -4252,7 +4256,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
                 vec_send.push_back(tr);
             }
             size_t nInputsPerSig = 1;
-            if (0 != pw->AddAnonInputs(*locked_chain, wtx, rtx, vec_send, !fTestFee, nRingSize, nInputsPerSig, nFeeRet, coin_control, sError)) {
+            if (0 != pw->AddAnonInputs(wtx, rtx, vec_send, !fTestFee, nRingSize, nInputsPerSig, nFeeRet, coin_control, sError)) {
                 return SMSG_FUND_FAILED;
             }
         } else {

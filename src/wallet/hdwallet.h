@@ -161,7 +161,7 @@ public:
     int64_t CountActiveAccountKeys() const;
 
     std::set< std::set<CTxDestination> > GetAddressGroupings() const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    std::map<CTxDestination, CAmount> GetAddressBalances(interfaces::Chain::Lock& locked_chain) const override;
+    std::map<CTxDestination, CAmount> GetAddressBalances() const override;
 
     using CWallet::IsMine;
     isminetype IsMine(const CTxIn& txin) const override;
@@ -196,7 +196,7 @@ public:
 
     int GetDepthInMainChain(const CTransactionRecord &rtx) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool InMempool(const uint256 &hash) const;
-    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &txhash, const CTransactionRecord &rtx, int *depth_out = nullptr) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool IsTrusted(const uint256 &txhash, const CTransactionRecord &rtx, int *depth_out = nullptr) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     CAmount GetSpendableBalance() const; // Includes watch_only_cs balance
     CAmount GetBlindBalance();
@@ -226,31 +226,31 @@ public:
     /** Update wallet after successful transaction */
     int PostProcessTempRecipients(std::vector<CTempRecipient> &vecSend);
 
-    int AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
+    int AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend,
         CExtKeyAccount *sea, CStoredExtKey *pc,
         bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
-    int AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
+    int AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
 
-    int AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
+    int AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend,
         CExtKeyAccount *sea, CStoredExtKey *pc,
         bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
-    int AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
+    int AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend, bool sign, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
 
 
     int PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t &nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
         const std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &vCoins, std::vector<uint8_t> &vInputBlinds, std::string &sError);
-    int PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vector<std::vector<int64_t> > &vMI, size_t nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
+    int PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI, size_t nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
         std::string &sError);
 
-    int AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
+    int AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend,
         CExtKeyAccount *sea, CStoredExtKey *pc,
         bool sign, size_t nRingSize, size_t nInputsPerSig, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
-    int AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
+    int AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend, bool sign, size_t nRingSize, size_t nInputsPerSig, CAmount &nFeeRet, const CCoinControl *coinControl, std::string &sError);
 
 
@@ -348,9 +348,9 @@ public:
     bool FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason, bool lockUnspents, const std::set<int>& setSubtractFeeFromOutputs, CCoinControl) override;
     bool SignTransaction(CMutableTransaction& tx) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
-    bool CreateTransaction(interfaces::Chain::Lock& locked_chain, const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet, int& nChangePosInOut,
+    bool CreateTransaction(const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet, int& nChangePosInOut,
                            std::string& strFailReason, const CCoinControl& coin_control, bool sign = true) override;
-    bool CreateTransaction(interfaces::Chain::Lock& locked_chain, std::vector<CTempRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet, int& nChangePosInOut,
+    bool CreateTransaction(std::vector<CTempRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet, int& nChangePosInOut,
                            std::string& strFailReason, const CCoinControl& coin_control, bool sign = true);
     void CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm) override;
     bool CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx, TxValidationState &state);
@@ -415,21 +415,21 @@ public:
     /**
      * populate vCoins with vector of available COutputs.
      */
-    void AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vector<COutput>& vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount& nMinimumAmount = 1, const CAmount& nMaximumAmount = MAX_MONEY, const CAmount& nMinimumSumAmount = MAX_MONEY, const uint64_t nMaximumCount = 0) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount& nMinimumAmount = 1, const CAmount& nMaximumAmount = MAX_MONEY, const CAmount& nMinimumSumAmount = MAX_MONEY, const uint64_t nMaximumCount = 0) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAmount& nTargetValue, std::set<CInputCoin>& setCoinsRet, CAmount& nValueRet,
         const CCoinControl& coin_control, CoinSelectionParams& coin_selection_params, bool& bnb_used) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
-    void AvailableBlindedCoins(interfaces::Chain::Lock& locked_chain, std::vector<COutputR>& vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount& nMinimumAmount = 1, const CAmount& nMaximumAmount = MAX_MONEY, const CAmount& nMinimumSumAmount = MAX_MONEY, const uint64_t& nMaximumCount = 0) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void AvailableBlindedCoins(std::vector<COutputR>& vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount& nMinimumAmount = 1, const CAmount& nMaximumAmount = MAX_MONEY, const CAmount& nMinimumSumAmount = MAX_MONEY, const uint64_t& nMaximumCount = 0) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     bool SelectBlindedCoins(const std::vector<COutputR>& vAvailableCoins, const CAmount& nTargetValue, std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &setCoinsRet, CAmount &nValueRet, const CCoinControl *coinControl = nullptr, bool random_selection = false) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
-    void AvailableAnonCoins(interfaces::Chain::Lock& locked_chain, std::vector<COutputR> &vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount& nMinimumAmount = 1, const CAmount& nMaximumAmount = MAX_MONEY, const CAmount& nMinimumSumAmount = MAX_MONEY, const uint64_t& nMaximumCount = 0) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void AvailableAnonCoins(std::vector<COutputR> &vCoins, bool fOnlySafe=true, const CCoinControl *coinControl = nullptr, const CAmount& nMinimumAmount = 1, const CAmount& nMaximumAmount = MAX_MONEY, const CAmount& nMinimumSumAmount = MAX_MONEY, const uint64_t& nMaximumCount = 0) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /**
      * Return list of available coins and locked coins grouped by non-change output address.
      */
     const CTxOutBase* FindNonChangeParentOutput(const CTransaction& tx, int output) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    std::map<CTxDestination, std::vector<COutput>> ListCoins(interfaces::Chain::Lock& locked_chain) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    std::map<CTxDestination, std::vector<COutputR>> ListCoins(interfaces::Chain::Lock& locked_chain, OutputTypes nType) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    std::map<CTxDestination, std::vector<COutput>> ListCoins() const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    std::map<CTxDestination, std::vector<COutputR>> ListCoins(OutputTypes nType) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligibilityFilter& eligibility_filter, std::vector<COutputR> vCoins, std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &setCoinsRet, CAmount &nValueRet) const;
 

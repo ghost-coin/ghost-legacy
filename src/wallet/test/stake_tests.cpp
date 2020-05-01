@@ -105,9 +105,7 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
 static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amount)
 {
     {
-    auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
-    LockAssertion lock(::cs_main);
 
     BOOST_REQUIRE(address.IsValid());
 
@@ -124,7 +122,7 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     CTransactionRecord rtx;
     CAmount nFee;
     CCoinControl coinControl;
-    BOOST_CHECK(0 == pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, true, nFee, &coinControl, sError));
+    BOOST_CHECK(0 == pwallet->AddStandardInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
 
     wtx.BindWallet(pwallet);
     BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(sError, true));
@@ -192,7 +190,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
     }
 
     {
-        LOCK2(cs_main, pwallet->cs_wallet);
+        LOCK(pwallet->cs_wallet);
         const auto bal = pwallet->GetBalance();
         BOOST_REQUIRE(bal.m_mine_trusted == 12500000000000);
     }
@@ -262,8 +260,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     CCoinControl coinControl;
     {
-        auto locked_chain = pwallet->chain().lock();
-        BOOST_CHECK(pwallet->CreateTransaction(*locked_chain, vecSend, tx_new, nFeeRequired, nChangePosRet, strError, coinControl));
+        BOOST_CHECK(pwallet->CreateTransaction(vecSend, tx_new, nFeeRequired, nChangePosRet, strError, coinControl));
     }
     {
         pwallet->SetBroadcastTransactions(true);

@@ -79,9 +79,6 @@ BOOST_AUTO_TEST_CASE(stealth)
     CAmount nValue = 1;
     std::string strError, sNarr;
 
-    auto locked_chain = pwallet->chain().lock();
-    LockAssertion lock(::cs_main);
-
     // No bitfield, no narration
     std::vector<CTempRecipient> vecSend;
     CTempRecipient r;
@@ -334,8 +331,6 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     BOOST_CHECK_MESSAGE(r.pkTo.IsValid(), "pubkeyto is not valid");
 
     {
-    auto locked_chain = wallet->chain().lock();
-    LockAssertion lock(::cs_main);
     LOCK(wallet->cs_wallet);
 
     BOOST_MESSAGE("---------------- Make RingCT Output : SetCTOutVData ---------------------\n");
