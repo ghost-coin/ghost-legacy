@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,6 +16,8 @@
 #include <validation.h>
 #include <blind.h>
 #include <rpc/rpcutil.h>
+#include <util/string.h>
+#include <util/translation.h>
 
 #include <consensus/validation.h>
 
@@ -23,7 +25,7 @@
 #include <thread>
 
 #include <boost/test/unit_test.hpp>
-#include <util/string.h>
+
 
 struct StakeTestingSetup: public TestingSetup {
     StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
@@ -252,7 +254,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     // Create and send the transaction
     CAmount nFeeRequired;
-    std::string strError;
+    bilingual_str bl_error;
     std::vector<CRecipient> vecSend;
     int nChangePosRet = -1;
     CRecipient recipient = {scriptPubKey, nAmount, fSubtractFeeFromAmount};
@@ -260,7 +262,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     CCoinControl coinControl;
     {
-        BOOST_CHECK(pwallet->CreateTransaction(vecSend, tx_new, nFeeRequired, nChangePosRet, strError, coinControl));
+        BOOST_CHECK(pwallet->CreateTransaction(vecSend, tx_new, nFeeRequired, nChangePosRet, bl_error, coinControl));
     }
     {
         pwallet->SetBroadcastTransactions(true);

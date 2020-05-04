@@ -140,6 +140,8 @@ AddressBookPage::AddressBookPage(const PlatformStyle *platformStyle, Mode _mode,
     connect(ui->tableView, &QWidget::customContextMenuRequested, this, &AddressBookPage::contextualMenu);
 
     connect(ui->closeButton, &QPushButton::clicked, this, &QDialog::accept);
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 AddressBookPage::~AddressBookPage()

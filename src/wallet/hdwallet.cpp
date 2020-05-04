@@ -8237,7 +8237,7 @@ bool CHDWallet::GetFullChainPath(const CExtKeyAccount *pa, size_t nChain, std::v
     return true;
 };
 
-bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason, bool lockUnspents, const std::set<int>& setSubtractFeeFromOutputs, CCoinControl coinControl)
+bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nChangePosInOut, bilingual_str& error, bool lockUnspents, const std::set<int>& setSubtractFeeFromOutputs, CCoinControl coinControl)
 {
     std::vector<CTempRecipient> vecSend;
 
@@ -8262,7 +8262,7 @@ bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& 
 
             vecSend.emplace_back(tr);
         } else {
-            strFailReason = _("Output isn't standard.").translated;
+            error = _("Output isn't standard.");
             return false;
         }
     }
@@ -8287,7 +8287,7 @@ bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& 
     LOCK(cs_wallet);
 
     CTransactionRef tx_new;
-    if (!CreateTransaction(vecSend, tx_new, nFeeRet, nChangePosInOut, strFailReason, coinControl, false)) {
+    if (!CreateTransaction(vecSend, tx_new, nFeeRet, nChangePosInOut, error, coinControl, false)) {
         return false;
     }
 
@@ -8314,7 +8314,7 @@ bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& 
     }
 
     if (nFeeRet > this->m_default_max_tx_fee) {
-        strFailReason = TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED);
+        error = Untranslated(TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED));
         return false;
     }
 
@@ -8382,7 +8382,7 @@ bool CHDWallet::SignTransaction(CMutableTransaction &tx) const
 }
 
 bool CHDWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet,
-                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
+                                int& nChangePosInOut, bilingual_str& error, const CCoinControl& coin_control, bool sign)
 {
     WalletLogPrintf("CHDWallet %s\n", __func__);
 
@@ -8402,17 +8402,21 @@ bool CHDWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTrans
         vecSendB.emplace_back(tr);
     }
 
-    return CreateTransaction(vecSendB, tx, nFeeRet, nChangePosInOut, strFailReason, coin_control, sign);
+    return CreateTransaction(vecSendB, tx, nFeeRet, nChangePosInOut, error, coin_control, sign);
 };
 
 bool CHDWallet::CreateTransaction(std::vector<CTempRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet,
-                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
+                                int& nChangePosInOut, bilingual_str& error, const CCoinControl& coin_control, bool sign)
 {
     WalletLogPrintf("CHDWallet %s\n", __func__);
 
     CTransactionRecord rtxTemp;
     CWalletTx wtxNew(this, tx);
-    if (0 != AddStandardInputs(wtxNew, rtxTemp, vecSend, sign, nFeeRet, &coin_control, strFailReason)) {
+    std::string str_error;
+    if (0 != AddStandardInputs(wtxNew, rtxTemp, vecSend, sign, nFeeRet, &coin_control, str_error)) {
+        if (!str_error.empty()) {
+            error = Untranslated(str_error);
+        }
         return false;
     }
 

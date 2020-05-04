@@ -138,11 +138,15 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle, QWidge
     if (settings.contains("nCoinControlSortColumn") && settings.contains("nCoinControlSortOrder"))
         sortView(settings.value("nCoinControlSortColumn").toInt(), (static_cast<Qt::SortOrder>(settings.value("nCoinControlSortOrder").toInt())));
 
-    if (coinControl()->nCoinType == OUTPUT_CT)
+
+    if (coinControl()->nCoinType == OUTPUT_CT) {
         ui->cbxType->setCurrentIndex(1);
-    else
-    if (coinControl()->nCoinType == OUTPUT_RINGCT)
+    } else
+    if (coinControl()->nCoinType == OUTPUT_RINGCT) {
         ui->cbxType->setCurrentIndex(2);
+    }
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 CoinControlDialog::~CoinControlDialog()

@@ -16,6 +16,7 @@
 #include <miner.h>
 #include <pos/miner.h>
 #include <util/string.h>
+#include <util/translation.h>
 
 CTransactionRef CreateTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amount, int type_in, int type_out, int nRingSize = 5)
 {
@@ -124,8 +125,8 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
 
     uint64_t wallet_creation_flags = WALLET_FLAG_BLANK_WALLET;
     SecureString passphrase;
-    std::string error;
-    std::vector<std::string> warnings;
+    bilingual_str error;
+    std::vector<bilingual_str> warnings;
 
     WalletLocation location_a("a");
     std::shared_ptr<CHDWallet> pwallet_a = std::static_pointer_cast<CHDWallet>(CWallet::CreateWalletFromFile(*m_chain.get(), location_a, error, warnings, wallet_creation_flags));
