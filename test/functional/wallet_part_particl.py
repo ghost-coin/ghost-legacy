@@ -438,6 +438,7 @@ class WalletParticlTest(ParticlTestFramework):
 
 
         nodes[1].walletpassphrase('changedPass', 100, True)
+        time.sleep(4)
         ro = nodes[1].getwalletinfo()
         assert(ro['encryptionstatus'] == 'Unlocked, staking only')
         assert(ro['unlocked_until'] != 0)
@@ -455,6 +456,7 @@ class WalletParticlTest(ParticlTestFramework):
             assert('The wallet passphrase entered was incorrect' in e.error['message'])
 
         nodes[1].walletpassphrase('changedPass', 0, True)
+        time.sleep(4)
         ro = nodes[1].getwalletinfo()
         assert(ro['encryptionstatus'] == 'Unlocked, staking only')
         assert(ro['unlocked_until'] == 0)
