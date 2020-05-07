@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
     // CCoinsCacheView, so it's sort of arbitrary - but it shouldn't change
     // unless we somehow change the way the cacheCoins map allocates memory.
     //
-    constexpr int COINS_UNTIL_CRITICAL = is_64_bit ? 3 : 4;
+    constexpr int COINS_UNTIL_CRITICAL = is_64_bit ? 3 : 3;
 
     for (int i{0}; i < COINS_UNTIL_CRITICAL; ++i) {
         COutPoint res = add_coin(view);
@@ -115,34 +115,41 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
         chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
         CoinsCacheSizeState::CRITICAL);
 
+    // COutpoint can take up to 288 bytes, to test the CoinsCacheSizeState::LARGE
+    // reliably, the interval between 90% and 100% must fit atleast one output.
+    // 0.1 * min_size >= 288 bytes results in a minimum size of 2880
+    constexpr size_t EXPAND_COINS_CACHE_BY_MEMPOOL = 2880 - MAX_COINS_CACHE_BYTES;
+
     // Passing non-zero max mempool usage should allow us more headroom.
     BOOST_CHECK_EQUAL(
-        chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 1 << 10),
+        chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ EXPAND_COINS_CACHE_BY_MEMPOOL),
         CoinsCacheSizeState::OK);
 
     for (int i{0}; i < 2; ++i) {
         add_coin(view);
         print_view_mem_usage(view);
         BOOST_CHECK_EQUAL(
-            chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 1 << 10),
+            chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ EXPAND_COINS_CACHE_BY_MEMPOOL),
             CoinsCacheSizeState::OK);
     }
 
-    // Adding another coin with the additional mempool room will put us >90%
-    // but not yet critical.
-    add_coin(view);
-    print_view_mem_usage(view);
-
-    // Only perform these checks on 64 bit hosts; I haven't done the math for 32.
-    if (is_64_bit) {
-        float usage_percentage = (float)view.DynamicMemoryUsage() / (MAX_COINS_CACHE_BYTES + (1 << 10));
-        BOOST_TEST_MESSAGE("CoinsTip usage percentage: " << usage_percentage);
-        BOOST_CHECK(usage_percentage >= 0.9);
-        BOOST_CHECK(usage_percentage < 2);
-        BOOST_CHECK_EQUAL(
-            chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, 1 << 10),
-            CoinsCacheSizeState::LARGE);
+    // Adding some additional coins will push us over the edge to LARGE.
+    for (int i{0}; i < 10; ++i) {
+        add_coin(view);
+        print_view_mem_usage(view);
+        if (chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ EXPAND_COINS_CACHE_BY_MEMPOOL) ==
+            CoinsCacheSizeState::LARGE) {
+            break;
+        }
     }
+
+    float usage_percentage = (float)view.DynamicMemoryUsage() / (MAX_COINS_CACHE_BYTES + EXPAND_COINS_CACHE_BY_MEMPOOL);
+    BOOST_TEST_MESSAGE("CoinsTip usage percentage: " << usage_percentage);
+    BOOST_CHECK(usage_percentage >= 0.9);
+    BOOST_CHECK(usage_percentage < 1);
+    BOOST_CHECK_EQUAL(
+        chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, EXPAND_COINS_CACHE_BY_MEMPOOL),
+        CoinsCacheSizeState::LARGE);
 
     // Using the default max_* values permits way more coins to be added.
     for (int i{0}; i < 1000; ++i) {
