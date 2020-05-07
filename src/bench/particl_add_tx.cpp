@@ -71,7 +71,6 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
     CCoinControl coinControl;
     assert(0 == pwallet->AddStandardInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
 
-    wtx.BindWallet(pwallet);
     assert(wtx.SubmitMemoryPoolAndRelay(sError, true));
     }
     SyncWithValidationInterfaceQueue();

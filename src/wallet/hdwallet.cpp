@@ -3689,7 +3689,6 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     }
 
     wtx.fTimeReceivedIsTxTime = true;
-    wtx.BindWallet(this);
     wtx.fFromMe = true;
     CMutableTransaction txNew;
     txNew.nVersion = PARTICL_TXN_VERSION;
@@ -4280,7 +4279,6 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     }
 
     wtx.fTimeReceivedIsTxTime = true;
-    wtx.BindWallet(this);
     wtx.fFromMe = true;
     CMutableTransaction txNew;
     txNew.nVersion = PARTICL_TXN_VERSION;
@@ -5026,7 +5024,6 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
     }
 
     wtx.fTimeReceivedIsTxTime = true;
-    wtx.BindWallet(this);
     wtx.fFromMe = true;
     CMutableTransaction txNew;
     txNew.nVersion = PARTICL_TXN_VERSION;
@@ -5599,24 +5596,28 @@ void CHDWallet::ClearCachedBalances()
     return;
 }
 
-void CHDWallet::LoadToWallet(CWalletTx& wtxIn)
+bool CHDWallet::LoadToWallet(const uint256& hash, const UpdateWalletTxFn& fill_wtx)
 {
-    CWallet::LoadToWallet(wtxIn);
+    CWallet::LoadToWallet(hash, fill_wtx);
 
-    int nBestHeight = ::ChainActive().Height();
-    if (wtxIn.IsCoinStake() && wtxIn.isAbandoned()) {
-        int csHeight;
-        if (wtxIn.tx->GetCoinStakeHeight(csHeight)
-            && csHeight > nBestHeight - (MAX_STAKE_SEEN_SIZE * 1.5)) {
-            // Add to MapStakeSeen to prevent node submitting a block that would be rejected.
-            LOCK(cs_main);
-            const COutPoint &kernel = wtxIn.tx->vin[0].prevout;
-            uint256 hash = wtxIn.GetHash();
-            AddToMapStakeSeen(kernel, hash);
+    auto mi = mapWallet.find(hash);
+    if (mi != mapWallet.end()) {
+        CWalletTx &wtxIn = mi->second;
+        int nBestHeight = ::ChainActive().Height();
+        if (wtxIn.IsCoinStake() && wtxIn.isAbandoned()) {
+            int csHeight;
+            if (wtxIn.tx->GetCoinStakeHeight(csHeight)
+                && csHeight > nBestHeight - (MAX_STAKE_SEEN_SIZE * 1.5)) {
+                // Add to MapStakeSeen to prevent node submitting a block that would be rejected.
+                LOCK(cs_main);
+                const COutPoint &kernel = wtxIn.tx->vin[0].prevout;
+                uint256 hash = wtxIn.GetHash();
+                AddToMapStakeSeen(kernel, hash);
+            }
         }
     }
 
-    return;
+    return true;
 };
 
 void CHDWallet::LoadToWallet(const uint256 &hash, CTransactionRecord &rtx)
@@ -8436,76 +8437,68 @@ bool CHDWallet::CreateTransaction(std::vector<CTempRecipient>& vecSend, CTransac
  */
 void CHDWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm)
 {
-    assert(tx.get());
-    {
-        LOCK(cs_wallet);
+    LOCK(cs_wallet);
+    WalletLogPrintf("CommitTransaction:\n%s", tx->ToString()); /* Continued */
 
-        mapValue_t mapNarr;
-        FindStealthTransactions(*tx, mapNarr);
+    mapValue_t mapNarr;
+    FindStealthTransactions(*tx, mapNarr);
 
-        if (!mapNarr.empty()) {
-            for (auto &item : mapNarr) {
-                mapValue[item.first] = item.second;
-            }
+    if (!mapNarr.empty()) {
+        for (auto &item : mapNarr) {
+            mapValue[item.first] = item.second;
         }
+    }
 
-        CWalletTx wtxNew(this, std::move(tx));
-        wtxNew.mapValue = std::move(mapValue);
-        wtxNew.vOrderForm = std::move(orderForm);
-        wtxNew.fTimeReceivedIsTxTime = true;
-        wtxNew.fFromMe = true;
+    // Add tx to wallet, because if it has change it's also ours,
+    // otherwise just for transaction history.
+    AddToWallet(tx, {}, [&](CWalletTx& wtx, bool new_tx) {
+        CHECK_NONFATAL(wtx.mapValue.empty());
+        CHECK_NONFATAL(wtx.vOrderForm.empty());
+        wtx.mapValue = std::move(mapValue);
+        wtx.vOrderForm = std::move(orderForm);
+        wtx.fTimeReceivedIsTxTime = true;
+        wtx.fFromMe = true;
+        return true;
+    });
 
-        WalletLogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
+    // Notify that old coins are spent
+    for (const auto &txin : tx->vin) {
+        const uint256 &txhash = txin.prevout.hash;
 
-        {
-            // Add tx to wallet, because if it has change it's also ours,
-            // otherwise just for transaction history.
+        NotifyTransactionChanged(this, txhash, CT_UPDATED);
+    }
 
-            AddToWallet(wtxNew);
+    // Get the inserted-CWalletTx from mapWallet so that the
+    // fInMempool flag is cached properly
+    CWalletTx& wtx = mapWallet.at(tx->GetHash());
 
-            // Notify that old coins are spent
-            for (const auto &txin : wtxNew.tx->vin) {
-                const uint256 &txhash = txin.prevout.hash;
-                MapWallet_t::iterator it = mapWallet.find(txhash);
-                if (it != mapWallet.end()) {
-                    it->second.BindWallet(this);
-                }
+    if (!fBroadcastTransactions) {
+        // Don't submit tx to the mempool
+        return;
+    }
 
-                NotifyTransactionChanged(this, txhash, CT_UPDATED);
-            }
-        }
-
-        if (fBroadcastTransactions) {
-            // Broadcast
-            wtxNew.BindWallet(this);
-            std::string err_string;
-            if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true)) {
-                WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", err_string);
-                // TODO: if we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
-            }
-        }
+    std::string err_string;
+    if (!wtx.SubmitMemoryPoolAndRelay(err_string, true)) {
+        WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", err_string);
+        // TODO: if we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
     }
 }
 
 
 bool CHDWallet::CommitTransaction(CWalletTx &wtxNew, CTransactionRecord &rtx, TxValidationState &state)
 {
-    {
-        LOCK(cs_wallet);
+    LOCK(cs_wallet);
+    WalletLogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
 
-        WalletLogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString()); /* Continued */
+    CWalletTx::Confirmation confirm;
+    AddToRecord(rtx, *wtxNew.tx, confirm);
 
-        CWalletTx::Confirmation confirm;
-        AddToRecord(rtx, *wtxNew.tx, confirm);
-
-        if (fBroadcastTransactions) {
-            // Broadcast
-            wtxNew.BindWallet(this);
-            std::string err_string;
-            if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true)) {
-                WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", err_string);
-                // TODO: if we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
-            }
+    if (fBroadcastTransactions) {
+        // Broadcast
+        std::string err_string;
+        if (!wtxNew.SubmitMemoryPoolAndRelay(err_string, true)) {
+            WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast immediately, %s\n", err_string);
+            // TODO: if we expect the failure to be long term or permanent, instead delete wtx from the wallet and return failure.
         }
     }
     return true;
@@ -9863,7 +9856,9 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::
             if (fExisted || fIsMine || fIsFromMe) {
                 CTransactionRecord rtx;
                 bool rv = AddToRecord(rtx, tx, confirm, false);
-                WakeThreadStakeMiner(this); // wallet balance may have changed
+
+                // Wallet balance may have changed
+                WakeThreadStakeMiner(this);
                 return rv;
             }
             return false;
@@ -9884,19 +9879,20 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::
                 confirm.status = CWalletTx::ABANDONED;
             }
 
-            CWalletTx wtx(this, MakeTransactionRef(tx));
+            // Block disconnection override an abandoned tx as unconfirmed
+            // which means user may have to call abandontransaction again
+            if (!AddToWallet(MakeTransactionRef(tx), confirm, /* update_wtx= */ nullptr, /* fFlushOnClose= */ false)) {
+                return false;
+            }
 
+            CWalletTx& wtx = mapWallet.at(tx.GetHash());
             if (!mapNarr.empty()) {
                 wtx.mapValue.insert(mapNarr.begin(), mapNarr.end());
             }
 
-            // Block disconnection override an abandoned tx as unconfirmed
-            // which means user may have to call abandontransaction again
-            wtx.m_confirm = confirm;
-
-            bool rv = AddToWallet(wtx, false);
-            WakeThreadStakeMiner(this); // wallet balance may have changed
-            return rv;
+            // Wallet balance may have changed
+            WakeThreadStakeMiner(this);
+            return true;
         }
     }
 
@@ -9961,24 +9957,19 @@ int CHDWallet::InsertTempTxn(const uint256 &txid, const CTransactionRecord *rtx)
 {
     LOCK(cs_wallet);
 
-    CTransactionRef tx_new;
-    CWalletTx wtx(this, std::move(tx_new));
     CStoredTransaction stx;
-
     if (!CHDWalletDB(*database).ReadStoredTx(txid, stx)) {
         return werrorN(1, "%s: ReadStoredTx failed for %s.\n", __func__, txid.ToString().c_str());
     }
 
-    wtx.BindWallet(std::remove_const<CWallet*>::type(this));
-    wtx.tx = stx.tx;
+    auto ret = mapTempWallet.emplace(std::piecewise_construct, std::forward_as_tuple(txid), std::forward_as_tuple(this, stx.tx));
 
+    // Get the inserted-CWalletTx from mapTempWallet so that the
+    // fInMempool flag is cached properly
+    CWalletTx& wtx = mapTempWallet.at(txid);
     if (rtx) {
         SetTempTxnStatus(wtx, rtx);
     }
-
-    std::pair<MapWallet_t::iterator, bool> ret = mapTempWallet.insert(std::make_pair(txid, wtx));
-    if (!ret.second) // silence compiler warning
-        WalletLogPrintf("%s: insert failed for %s.\n", __func__, txid.ToString());
 
     return 0;
 };

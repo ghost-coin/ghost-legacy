@@ -3134,11 +3134,11 @@ bool CChainState::FlushStateToDisk(
         LOCK(cs_LastBlockFile);
         if (fPruneMode && (fCheckForPruning || nManualPruneHeight > 0) && !fReindex) {
             if (nManualPruneHeight > 0) {
-                LOG_TIME_MILLIS("find files to prune (manual)", BCLog::BENCH);
+                LOG_TIME_MILLIS_WITH_CATEGORY("find files to prune (manual)", BCLog::BENCH);
 
                 FindFilesToPruneManual(setFilesToPrune, nManualPruneHeight);
             } else {
-                LOG_TIME_MILLIS("find files to prune", BCLog::BENCH);
+                LOG_TIME_MILLIS_WITH_CATEGORY("find files to prune", BCLog::BENCH);
 
                 FindFilesToPrune(setFilesToPrune, chainparams.PruneAfterHeight());
                 fCheckForPruning = false;
@@ -3176,7 +3176,7 @@ bool CChainState::FlushStateToDisk(
                 return AbortNode(state, "Disk space is too low!", _("Error: Disk space is too low!").translated, CClientUIInterface::MSG_NOPREFIX);
             }
             {
-                LOG_TIME_MILLIS("write block and undo data to disk", BCLog::BENCH);
+                LOG_TIME_MILLIS_WITH_CATEGORY("write block and undo data to disk", BCLog::BENCH);
 
                 // First make sure all block and undo data is flushed to disk.
                 FlushBlockFile();
@@ -3184,7 +3184,7 @@ bool CChainState::FlushStateToDisk(
 
             // Then update all block file information (which may refer to block and undo files).
             {
-                LOG_TIME_MILLIS("write block index to disk", BCLog::BENCH);
+                LOG_TIME_MILLIS_WITH_CATEGORY("write block index to disk", BCLog::BENCH);
 
                 std::vector<std::pair<int, const CBlockFileInfo*> > vFiles;
                 vFiles.reserve(setDirtyFileInfo.size());
@@ -3206,7 +3206,7 @@ bool CChainState::FlushStateToDisk(
             }
             // Finally remove any pruned files
             if (fFlushForPrune) {
-                LOG_TIME_MILLIS("unlink pruned files", BCLog::BENCH);
+                LOG_TIME_MILLIS_WITH_CATEGORY("unlink pruned files", BCLog::BENCH);
 
                 UnlinkPrunedFiles(setFilesToPrune);
             }
