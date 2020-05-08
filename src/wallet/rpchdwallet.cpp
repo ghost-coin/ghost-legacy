@@ -8064,7 +8064,7 @@ static UniValue rewindchain(const JSONRPCRequest &request)
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
-
+    LOCK(cs_main);
     LOCK(pwallet->cs_wallet);
 
     UniValue result(UniValue::VOBJ);
