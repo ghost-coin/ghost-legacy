@@ -45,7 +45,9 @@ void test_one_input(const std::vector<uint8_t>& buffer)
             CTxOut prevout;
             ds >> prevout;
 
-            const TransactionSignatureChecker checker{&tx, i, prevout.nValue, txdata};
+            std::vector<uint8_t> vchAmount(8);
+            memcpy(vchAmount.data(), &prevout.nValue, 8);
+            const TransactionSignatureChecker checker{&tx, i, vchAmount, txdata};
 
             ScriptError serror;
             const bool ret = VerifyScript(tx.vin.at(i).scriptSig, prevout.scriptPubKey, &tx.vin.at(i).scriptWitness, verify_flags, checker, &serror);
