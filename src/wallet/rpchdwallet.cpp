@@ -8065,7 +8065,7 @@ static UniValue rewindchain(const JSONRPCRequest &request)
     pwallet->BlockUntilSyncedToCurrentChain();
 
 
-    LOCK(pwallet->cs_wallet);
+    LOCK2(pwallet->cs_wallet, cs_main);
 
     UniValue result(UniValue::VOBJ);
 
