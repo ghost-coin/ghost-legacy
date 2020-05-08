@@ -3233,7 +3233,6 @@ int CHDWallet::AddCTData(const CCoinControl *coinControl, CTxOutBase *txout, CTe
             uint256 tweak(uint256S("0x444"));
             CKey tweaked = r.sEphem.Add(tweak.begin());
             nonce = tweaked.ECDH(CPubKey(sx.scan_pubkey));
-            CPubKey pk_tweaked = tweaked.GetPubKey();
         } else {
             nonce = r.sEphem.ECDH(r.pkTo);
         }
