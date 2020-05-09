@@ -2869,7 +2869,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             const CAmount nCalculatedStakeReward = Params().GetProofOfStakeReward(pindex->pprev, nFees); // stake_test
 
             if (block.nTime >= consensus.smsg_fee_time) {
-                CAmount smsg_fee_new, smsg_fee_prev;
+                CAmount smsg_fee_new = consensus.smsg_fee_msg_per_day_per_k, smsg_fee_prev = consensus.smsg_fee_msg_per_day_per_k;
                 if (pindex->pprev->nHeight > 0 // Skip genesis block (POW)
                     && pindex->pprev->nTime >= consensus.smsg_fee_time) {
                     if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)
@@ -2877,8 +2877,6 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                         LogPrintf("ERROR: %s: Failed to get previous smsg fee.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-fee-prev");
                     }
-                } else {
-                    smsg_fee_prev = consensus.smsg_fee_msg_per_day_per_k;
                 }
 
                 if (!txCoinstake->GetSmsgFeeRate(smsg_fee_new)) {
