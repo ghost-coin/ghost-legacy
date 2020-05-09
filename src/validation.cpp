@@ -2898,7 +2898,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             }
 
             if (block.nTime >= consensus.smsg_difficulty_time) {
-                uint32_t smsg_difficulty_new, smsg_difficulty_prev;
+                uint32_t smsg_difficulty_new = consensus.smsg_min_difficulty, smsg_difficulty_prev = consensus.smsg_min_difficulty;
                 if (pindex->pprev->nHeight > 0 // Skip genesis block (POW)
                     && pindex->pprev->nTime >= consensus.smsg_difficulty_time) {
                     if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)
@@ -2906,8 +2906,6 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                         LogPrintf("ERROR: %s: Failed to get previous smsg difficulty.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-diff-prev");
                     }
-                } else {
-                    smsg_difficulty_prev = consensus.smsg_min_difficulty;
                 }
 
                 if (!txCoinstake->GetSmsgDifficulty(smsg_difficulty_new)) {
