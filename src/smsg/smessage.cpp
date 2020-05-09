@@ -4280,12 +4280,14 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
             return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Broadcast transactions disabled.");
         }
 
-        wtx.BindWallet(pactive_wallet.get());
         std::string err_string;
         if (!wtx.SubmitMemoryPoolAndRelay(err_string, true, m_absurd_smsg_fee)) {
             return errorN(SMSG_GENERAL_ERROR, sError, __func__, "Transaction cannot be broadcast immediately: %s.", err_string);
         }
-        pactive_wallet->AddToWallet(wtx);
+        {
+            CHDWallet *pw = GetParticlWallet(pactive_wallet.get());
+            pw->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm);
+        }
     }
     memcpy(smsg.pPayload+(smsg.nPayload-32), txfundId.begin(), 32);
 #else
