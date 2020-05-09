@@ -5110,6 +5110,7 @@ CoinStakeCache smsgDifficultyCoinstakeCache(180);
 uint32_t GetSmsgDifficulty(uint64_t time, bool verify) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     const Consensus::Params &consensusParams = Params().GetConsensus();
+    uint32_t smsg_difficulty = consensusParams.smsg_min_difficulty;
 
     CBlockIndex *pindex = ::ChainActive().Tip();
     for (size_t k = 0; k < 180; ++k) {
@@ -5117,21 +5118,19 @@ uint32_t GetSmsgDifficulty(uint64_t time, bool verify) EXCLUSIVE_LOCKS_REQUIRED(
             break;
         }
         if (time >= pindex->nTime) {
-            uint32_t smsg_difficulty;
             CTransactionRef coinstake = nullptr;
             if (smsgDifficultyCoinstakeCache.GetCoinStake(pindex->GetBlockHash(), coinstake)
                 && coinstake->GetSmsgDifficulty(smsg_difficulty)) {
-
-                if (verify && smsg_difficulty != consensusParams.smsg_min_difficulty) {
-                    return smsg_difficulty + consensusParams.smsg_difficulty_max_delta;
-                }
-                return smsg_difficulty - consensusParams.smsg_difficulty_max_delta;
+                    break;
             }
         }
         pindex = pindex->pprev;
     }
 
-    return consensusParams.smsg_min_difficulty - consensusParams.smsg_difficulty_max_delta;
+    if (verify && smsg_difficulty != consensusParams.smsg_min_difficulty) {
+        return smsg_difficulty + consensusParams.smsg_difficulty_max_delta;
+    }
+    return smsg_difficulty - consensusParams.smsg_difficulty_max_delta;
 };
 
 bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, BlockValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested)
