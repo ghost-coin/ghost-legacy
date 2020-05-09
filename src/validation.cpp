@@ -5079,10 +5079,11 @@ CoinStakeCache smsgFeeCoinstakeCache;
 int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     const Consensus::Params &consensusParams = Params().GetConsensus();
+    int64_t smsg_fee_rate = consensusParams.smsg_fee_msg_per_day_per_k;
 
     if ((pindex && pindex->nTime < consensusParams.smsg_fee_time)
         || (!pindex && GetTime() < consensusParams.smsg_fee_time)) {
-        return consensusParams.smsg_fee_msg_per_day_per_k;
+        return smsg_fee_rate;
     }
 
     int chain_height = pindex ? pindex->nHeight : ::ChainActive().Height();
@@ -5093,14 +5094,13 @@ int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height) EXCLUSIVE_
 
     CBlockIndex *fee_block = ::ChainActive()[fee_height];
     if (!fee_block || fee_block->nTime < consensusParams.smsg_fee_time) {
-        return consensusParams.smsg_fee_msg_per_day_per_k;
+        return smsg_fee_rate;
     }
 
-    int64_t smsg_fee_rate;
     CTransactionRef coinstake = nullptr;
     if (!smsgFeeCoinstakeCache.GetCoinStake(fee_block->GetBlockHash(), coinstake)
         || !coinstake->GetSmsgFeeRate(smsg_fee_rate)) {
-        return consensusParams.smsg_fee_msg_per_day_per_k;
+        return smsg_fee_rate;
     }
 
     return smsg_fee_rate;
