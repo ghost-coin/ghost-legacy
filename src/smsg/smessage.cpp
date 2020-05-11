@@ -88,7 +88,7 @@ const static std::string allTypes[] = {
 } // namespace SMSGMsgType
 
 namespace smsg {
-bool fSecMsgEnabled = false;
+std::atomic<bool> fSecMsgEnabled{false};
 
 uint32_t SMSG_SECONDS_IN_HOUR   = 60 * 60;
 uint32_t SMSG_BUCKET_LEN        = SMSG_SECONDS_IN_HOUR * 1;

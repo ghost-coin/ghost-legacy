@@ -14,6 +14,7 @@
 #include <smsg/keystore.h>
 #include <interfaces/handler.h>
 
+#include <atomic>
 #include <boost/signals2/signal.hpp>
 
 class UniValue;
@@ -388,7 +389,7 @@ public:
 void AddOptions();
 const char *GetString(size_t errorCode);
 
-extern bool fSecMsgEnabled;
+extern std::atomic<bool> fSecMsgEnabled;
 class CSMSG
 {
 public:
