@@ -2870,7 +2870,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             const CAmount nCalculatedStakeReward = Params().GetProofOfStakeReward(pindex->pprev, nFees); // stake_test
 
             if (block.nTime >= consensus.smsg_fee_time) {
-                CAmount smsg_fee_new, smsg_fee_prev;
+                CAmount smsg_fee_new, smsg_fee_prev = consensus.smsg_fee_msg_per_day_per_k;
                 if (pindex->pprev->nHeight > 0 // Skip genesis block (POW)
                     && pindex->pprev->nTime >= consensus.smsg_fee_time) {
                     if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)
@@ -2878,8 +2878,6 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                         LogPrintf("ERROR: %s: Failed to get previous smsg fee.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-fee-prev");
                     }
-                } else {
-                    smsg_fee_prev = consensus.smsg_fee_msg_per_day_per_k;
                 }
 
                 if (!txCoinstake->GetSmsgFeeRate(smsg_fee_new)) {
@@ -2899,7 +2897,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             }
 
             if (block.nTime >= consensus.smsg_difficulty_time) {
-                uint32_t smsg_difficulty_new, smsg_difficulty_prev;
+                uint32_t smsg_difficulty_new, smsg_difficulty_prev = consensus.smsg_min_difficulty;
                 if (pindex->pprev->nHeight > 0 // Skip genesis block (POW)
                     && pindex->pprev->nTime >= consensus.smsg_difficulty_time) {
                     if (!coinStakeCache.GetCoinStake(pindex->pprev->GetBlockHash(), txPrevCoinstake)
@@ -2907,8 +2905,6 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                         LogPrintf("ERROR: %s: Failed to get previous smsg difficulty.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-diff-prev");
                     }
-                } else {
-                    smsg_difficulty_prev = consensus.smsg_min_difficulty;
                 }
 
                 if (!txCoinstake->GetSmsgDifficulty(smsg_difficulty_new)) {
@@ -3356,7 +3352,7 @@ bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconn
         for (const auto &it : view->spent_cache) {
             batch.Write(std::make_pair(DB_SPENTCACHE, it.first), it.second);
         }
-        if (state.m_spend_height > MIN_BLOCKS_TO_KEEP) {
+        if (state.m_spend_height > (int)MIN_BLOCKS_TO_KEEP) {
             ClearSpentCache(batch, state.m_spend_height - (MIN_BLOCKS_TO_KEEP+1));
         }
         if (!pblocktree->WriteBatch(batch)) {
@@ -5099,7 +5095,7 @@ int64_t GetSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height) EXCLUSIVE_
         return consensusParams.smsg_fee_msg_per_day_per_k;
     }
 
-    int64_t smsg_fee_rate;
+    int64_t smsg_fee_rate = consensusParams.smsg_fee_msg_per_day_per_k;
     CTransactionRef coinstake = nullptr;
     if (!smsgFeeCoinstakeCache.GetCoinStake(fee_block->GetBlockHash(), coinstake)
         || !coinstake->GetSmsgFeeRate(smsg_fee_rate)) {
@@ -5120,7 +5116,7 @@ uint32_t GetSmsgDifficulty(uint64_t time, bool verify) EXCLUSIVE_LOCKS_REQUIRED(
             break;
         }
         if (time >= pindex->nTime) {
-            uint32_t smsg_difficulty;
+            uint32_t smsg_difficulty = 0;
             CTransactionRef coinstake = nullptr;
             if (smsgDifficultyCoinstakeCache.GetCoinStake(pindex->GetBlockHash(), coinstake)
                 && coinstake->GetSmsgDifficulty(smsg_difficulty)) {
