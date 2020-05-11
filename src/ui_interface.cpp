@@ -4,6 +4,8 @@
 
 #include <ui_interface.h>
 
+#include <util/translation.h>
+
 #include <boost/signals2/last_value.hpp>
 #include <boost/signals2/signal.hpp>
 
@@ -42,8 +44,8 @@ ADD_SIGNALS_IMPL_WRAPPER(NotifyHeaderTip);
 ADD_SIGNALS_IMPL_WRAPPER(BannedListChanged);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyWaitingForDevice);
 
-bool CClientUIInterface::ThreadSafeMessageBox(const std::string& message, const std::string& caption, unsigned int style) { return g_ui_signals.ThreadSafeMessageBox(message, caption, style); }
-bool CClientUIInterface::ThreadSafeQuestion(const std::string& message, const std::string& non_interactive_message, const std::string& caption, unsigned int style) { return g_ui_signals.ThreadSafeQuestion(message, non_interactive_message, caption, style); }
+bool CClientUIInterface::ThreadSafeMessageBox(const bilingual_str& message, const std::string& caption, unsigned int style) { return g_ui_signals.ThreadSafeMessageBox(message, caption, style); }
+bool CClientUIInterface::ThreadSafeQuestion(const bilingual_str& message, const std::string& non_interactive_message, const std::string& caption, unsigned int style) { return g_ui_signals.ThreadSafeQuestion(message, non_interactive_message, caption, style); }
 void CClientUIInterface::InitMessage(const std::string& message) { return g_ui_signals.InitMessage(message); }
 void CClientUIInterface::NotifyNumConnectionsChanged(int newNumConnections) { return g_ui_signals.NotifyNumConnectionsChanged(newNumConnections); }
 void CClientUIInterface::NotifyNetworkActiveChanged(bool networkActive) { return g_ui_signals.NotifyNetworkActiveChanged(networkActive); }
@@ -54,8 +56,7 @@ void CClientUIInterface::NotifyHeaderTip(bool b, const CBlockIndex* i) { return 
 void CClientUIInterface::BannedListChanged() { return g_ui_signals.BannedListChanged(); }
 void CClientUIInterface::NotifyWaitingForDevice(bool b) { return g_ui_signals.NotifyWaitingForDevice(b); }
 
-
-bool InitError(const std::string& str)
+bool InitError(const bilingual_str& str)
 {
     uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_ERROR);
     return false;
@@ -63,5 +64,5 @@ bool InitError(const std::string& str)
 
 void InitWarning(const std::string& str)
 {
-    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_WARNING);
+    uiInterface.ThreadSafeMessageBox(Untranslated(str), "", CClientUIInterface::MSG_WARNING);
 }

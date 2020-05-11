@@ -14,5 +14,5 @@ export TEST_RUNNER_EXTRA="--coverage --extended --exclude feature_dbcrash,featur
 export RUN_UNIT_TESTS_SEQUENTIAL="true"
 export RUN_UNIT_TESTS="false"
 export GOAL="install"
-export TEST_PREVIOUS_RELEASES=true
+export PREVIOUS_RELEASES_TO_DOWNLOAD="v0.18.1.7 v0.19.0.1"
 export BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-c++17 --enable-debug CFLAGS=\"-g0 -O2 -funsigned-char\" CXXFLAGS=\"-g0 -O2 -funsigned-char\" --enable-usbdevice"

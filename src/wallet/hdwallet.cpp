@@ -179,7 +179,7 @@ bool CHDWallet::Initialise()
             }
 
             if (rescan_height != block_height) {
-                InitError(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)").translated);
+                InitError(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)"));
                 return false;
             }
         }
@@ -194,7 +194,7 @@ bool CHDWallet::Initialise()
         {
             WalletRescanReserver reserver(*this);
             if (!reserver.reserve()) {
-                InitError(_("Failed to rescan the wallet during initialization").translated);
+                InitError(_("Failed to rescan the wallet during initialization"));
                 return false;
             }
             RescanFromTime(time_first_key, reserver, true);
@@ -1469,7 +1469,7 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
 DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
 {
     if (!ParseMoney(gArgs.GetArg("-reservebalance", "0"), nReserveBalance)) {
-        InitError(_("Invalid amount for -reservebalance=<amount>").translated);
+        InitError(_("Invalid amount for -reservebalance=<amount>"));
         return DBErrors::LOAD_FAIL;
     }
 
