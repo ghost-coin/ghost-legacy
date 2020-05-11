@@ -49,6 +49,7 @@ struct StakeTestingSetup: public TestingSetup {
     ~StakeTestingSetup()
     {
         RemoveWallet(pwalletMain);
+        pwalletMain->Finalise();
         pwalletMain.reset();
 
         mapStakeSeen.clear();

@@ -3233,7 +3233,6 @@ int CHDWallet::AddCTData(const CCoinControl *coinControl, CTxOutBase *txout, CTe
             uint256 tweak(uint256S("0x444"));
             CKey tweaked = r.sEphem.Add(tweak.begin());
             nonce = tweaked.ECDH(CPubKey(sx.scan_pubkey));
-            CPubKey pk_tweaked = tweaked.GetPubKey();
         } else {
             nonce = r.sEphem.ECDH(r.pkTo);
         }
@@ -6256,8 +6255,8 @@ int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, 
         ekaOut.nFlags |= EAF_HAVE_SECRET;
     }
 
-    uint32_t nExternal, nInternal, nStealth;
-    CStoredExtKey *sekExternal = new CStoredExtKey(), *sekInternal = new CStoredExtKey(), *sekStealth;
+    uint32_t nExternal, nInternal, nStealth = 0;
+    CStoredExtKey *sekExternal = new CStoredExtKey(), *sekInternal = new CStoredExtKey(), *sekStealth = nullptr;
 
     if (sekAccount->kp.IsValidV()) {
         CExtKey evExternal, evInternal, evStealth;
@@ -6306,10 +6305,11 @@ int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, 
 
     if (sekAccount->kp.IsValidV()) {
         vSubKeyPath = vAccountPath;
-        sekStealth->mapValue[EKVT_PATH] = PushUInt32(vSubKeyPath, nStealth);
-        sekStealth->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
-
-        sekStealth->mapValue[EKVT_KEY_TYPE] = SetChar(v, EKT_STEALTH);
+        if (sekStealth) { // Silence compiler warning
+            sekStealth->mapValue[EKVT_PATH] = PushUInt32(vSubKeyPath, nStealth);
+            sekStealth->nFlags |= EAF_ACTIVE | EAF_IN_ACCOUNT;
+            sekStealth->mapValue[EKVT_KEY_TYPE] = SetChar(v, EKT_STEALTH);
+        }
 
         ekaOut.vExtKeyIDs.push_back(sekStealth->GetID());
         ekaOut.vExtKeys.push_back(sekStealth);
@@ -7880,7 +7880,7 @@ int CHDWallet::NewStealthKeyV2FromAccount(
     }
 
     CExtKeyAccount *sea = mi->second;
-    uint64_t nScanChain, nSpendChain;
+    uint64_t nScanChain = 0, nSpendChain = 0;
     CStoredExtKey *sekScan = nullptr, *sekSpend = nullptr;
     mapEKValue_t::iterator mvi = sea->mapValue.find(EKVT_STEALTH_SCAN_CHAIN);
     if (mvi == sea->mapValue.end()) {
@@ -9971,6 +9971,13 @@ int CHDWallet::InsertTempTxn(const uint256 &txid, const CTransactionRecord *rtx)
         SetTempTxnStatus(wtx, rtx);
     }
 
+    // Use ret to silence warning
+    bool fInsertedNew = ret.second;
+    if (fInsertedNew) {
+        wtx.nTimeReceived = chain().getAdjustedTime();
+        wtx.nTimeSmart = ComputeTimeSmart(wtx);
+    }
+
     return 0;
 };
 
@@ -10151,7 +10158,7 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     unsigned char msg[256]; // Currently narration is capped at 32 bytes
     size_t mlen = sizeof(msg);
     memset(msg, 0, mlen);
-    uint64_t amountOut;
+    uint64_t amountOut = 0;
 
     if (pout->vRangeproof.size() < 1000) {
         int rewind_rv = 0;

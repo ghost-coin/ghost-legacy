@@ -1,8 +1,8 @@
 /*
-*******************************************************************************    
+*******************************************************************************
 *   BTChip Bitcoin Hardware Wallet C test interface
 *   (c) 2014 BTChip - 1BTChip7VfTnrPra5jqci7ejnMguuHogTn
-*   
+*
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
 *  You may obtain a copy of the License at
@@ -22,9 +22,9 @@
 
 int wrapCommandAPDU(unsigned int channel, const unsigned char *command, size_t commandLength, unsigned int packetSize, unsigned char *out, size_t outLength) {
 	int sequenceIdx = 0;
-	int offset = 0;
+	size_t offset = 0;
 	int offsetOut = 0;
-	int blockSize;
+	size_t blockSize;
 	if (packetSize < 3) {
 		return -1;
 	}
@@ -80,11 +80,11 @@ int wrapCommandAPDU(unsigned int channel, const unsigned char *command, size_t c
 
 int unwrapReponseAPDU(unsigned int channel, const unsigned char *data, size_t dataLength, unsigned int packetSize, unsigned char *out, size_t outLength) {
 	int sequenceIdx = 0;
-	int offset = 0;
-	int offsetOut = 0;
-	int responseLength;
-	int blockSize;
-	if ((data == NULL) || (dataLength < 7 + 5)) { 
+	size_t offset = 0;
+	size_t offsetOut = 0;
+	size_t responseLength;
+	size_t blockSize;
+	if ((data == NULL) || (dataLength < 7 + 5)) {
 		return 0;
 	}
 	if (data[offset++] != ((channel >> 8) & 0xff)) {

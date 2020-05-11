@@ -1056,7 +1056,7 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
         }
 
         CExtKeyAccount *sea = mi->second;
-        uint64_t nScanChain, nSpendChain;
+        uint64_t nScanChain = 0, nSpendChain = 0;
         CStoredExtKey *sekScan = nullptr, *sekSpend = nullptr;
         mapEKValue_t::iterator mvi = sea->mapValue.find(EKVT_STEALTH_SCAN_CHAIN);
         if (mvi != sea->mapValue.end()) {

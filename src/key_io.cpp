@@ -293,7 +293,7 @@ void CBase58Data::SetData(const std::vector<unsigned char>& vchVersionIn, const 
 
 bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes)
 {
-    CChainParams::Base58Type prefixType;
+    CChainParams::Base58Type prefixType = CChainParams::MAX_BASE58_TYPES;
     fBech32 = pParams() && pParams()->IsBech32Prefix(psz, strlen(psz), prefixType);
     if (fBech32) {
         vchVersion = Params().Bech32Prefix(prefixType);
@@ -533,7 +533,7 @@ bool CBitcoinAddress::IsValid() const
 bool CBitcoinAddress::IsValid(const CChainParams& params) const
 {
     if (fBech32) {
-        CChainParams::Base58Type prefix;
+        CChainParams::Base58Type prefix = CChainParams::MAX_BASE58_TYPES;
         if (!params.IsBech32Prefix(vchVersion, prefix)) {
             return false;
         }
