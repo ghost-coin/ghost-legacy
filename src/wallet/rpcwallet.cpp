@@ -2478,12 +2478,15 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
             }.Check(request);
 
     int64_t nSleepTime;
+    int64_t relock_time;
 
     bool fWalletUnlockStakingOnly = false;
     if (request.params.size() > 2) {
         fWalletUnlockStakingOnly = request.params[2].get_bool();
     }
 
+    // Prevent concurrent calls to walletpassphrase with the same wallet.
+    LOCK(pwallet->m_unlock_mutex);
     {
         SecureString strWalletPass;
         {
@@ -2529,6 +2532,7 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
             phdw->fUnlockForStakingOnly = fWalletUnlockStakingOnly;
         }
         pwallet->nRelockTime = GetTime() + nSleepTime;
+        relock_time = pwallet->nRelockTime;
         }
     }
 
@@ -2537,17 +2541,6 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
     // previous timer (and waits for the callback to finish if already running)
     // and the callback locks cs_wallet.
     AssertLockNotHeld(wallet->cs_wallet);
-    // Keep a weak pointer to the wallet so that it is possible to unload the
-    // wallet before the following callback is called. If a valid shared pointer
-    // is acquired in the callback then the wallet is still loaded.
-    std::weak_ptr<CWallet> weak_wallet = wallet;
-    pwallet->chain().rpcRunLater(strprintf("lockwallet(%s)", pwallet->GetName()), [weak_wallet] {
-        if (auto shared_wallet = weak_wallet.lock()) {
-            LOCK(shared_wallet->cs_wallet);
-            shared_wallet->Lock();
-            shared_wallet->nRelockTime = 0;
-        }
-    }, nSleepTime);
 
     // Only allow unlimited timeout (nSleepTime=0) on staking.
     if (nSleepTime > 0 || !fWalletUnlockStakingOnly) {
@@ -2555,16 +2548,21 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
         // wallet before the following callback is called. If a valid shared pointer
         // is acquired in the callback then the wallet is still loaded.
         std::weak_ptr<CWallet> weak_wallet = wallet;
-        pwallet->chain().rpcRunLater(strprintf("lockwallet(%s)", pwallet->GetName()), [weak_wallet] {
+        pwallet->chain().rpcRunLater(strprintf("lockwallet(%s)", pwallet->GetName()), [weak_wallet, relock_time] {
             if (auto shared_wallet = weak_wallet.lock()) {
                 LOCK(shared_wallet->cs_wallet);
+                // Skip if this is not the most recent rpcRunLater callback.
+                if (shared_wallet->nRelockTime != relock_time) return;
                 shared_wallet->Lock();
                 shared_wallet->nRelockTime = 0;
             }
         }, nSleepTime);
     } else {
         RPCRunLaterErase(strprintf("lockwallet(%s)", pwallet->GetName()));
+        {
+        LOCK(pwallet->cs_wallet);
         pwallet->nRelockTime = 0;
+        }
     }
     return NullUniValue;
 }

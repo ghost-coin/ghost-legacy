@@ -17,7 +17,7 @@ class BitcoinAddressEntryValidator : public QValidator
 public:
     explicit BitcoinAddressEntryValidator(QObject *parent);
 
-    State validate(QString &input, int &pos) const;
+    State validate(QString &input, int &pos) const override;
 };
 
 /** Bitcoin address widget validator, checks for a valid bitcoin address.
@@ -29,7 +29,7 @@ class BitcoinAddressCheckValidator : public QValidator
 public:
     explicit BitcoinAddressCheckValidator(QObject *parent, bool allow_stakeonly=false);
 
-    State validate(QString &input, int &pos) const;
+    State validate(QString &input, int &pos) const override;
     bool m_allow_stakeonly;
 };
 
