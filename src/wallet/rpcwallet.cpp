@@ -3353,7 +3353,7 @@ static UniValue loadwallet(const JSONRPCRequest& request)
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
-    obj.pushKV("warning", Join(warnings, "\n", OpOriginal));
+    obj.pushKV("warning", Join(warnings, Untranslated("\n")).original);
 
     return obj;
 }
@@ -3493,7 +3493,7 @@ static UniValue createwallet(const JSONRPCRequest& request)
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
-    obj.pushKV("warning", Join(warnings, "\n", OpOriginal));
+    obj.pushKV("warning", Join(warnings, Untranslated("\n")).original);
 
     return obj;
 }
