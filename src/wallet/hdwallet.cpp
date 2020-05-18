@@ -10825,6 +10825,7 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
     const int min_depth = {coinControl ? coinControl->m_min_depth : DEFAULT_MIN_DEPTH};
     const int max_depth = {coinControl ? coinControl->m_max_depth : DEFAULT_MAX_DEPTH};
     const bool fIncludeImmature = {coinControl ? coinControl->m_include_immature : false};
+    const bool allow_locked = {coinControl ? coinControl->fAllowLocked : false};
 
     for (const auto& item : mapWallet) {
         const uint256& wtxid = item.first;
@@ -10906,7 +10907,7 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
                 continue;
             }
 
-            if (IsLockedCoin(wtxid, i)) {
+            if (!allow_locked && IsLockedCoin(wtxid, i)) {
                 continue;
             }
 
@@ -11005,7 +11006,7 @@ void CHDWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, con
                 continue;
             }
 
-            if (IsLockedCoin(txid, r.n)) {
+            if (!allow_locked && IsLockedCoin(txid, r.n)) {
                 continue;
             }
 
@@ -11149,6 +11150,7 @@ void CHDWallet::AvailableBlindedCoins(std::vector<COutputR>& vCoins, bool fOnlyS
     const int min_depth = {coinControl ? coinControl->m_min_depth : DEFAULT_MIN_DEPTH};
     const int max_depth = {coinControl ? coinControl->m_max_depth : DEFAULT_MAX_DEPTH};
     //const bool fIncludeImmature = {coinControl ? coinControl->m_include_immature : false};  // Blinded coins can't stake
+    const bool allow_locked = {coinControl ? coinControl->fAllowLocked : false};
 
     if (coinControl && coinControl->HasSelected()) {
         // Add specified coins which may not be in the chain
@@ -11156,7 +11158,7 @@ void CHDWallet::AvailableBlindedCoins(std::vector<COutputR>& vCoins, bool fOnlyS
             const uint256 &txid = it->first;
             const CTransactionRecord &rtx = it->second;
             for (const auto &r : rtx.vout) {
-                if (IsLockedCoin(txid, r.n)) {
+                if (!allow_locked && IsLockedCoin(txid, r.n)) {
                     continue;
                 }
                 if (coinControl->IsSelected(COutPoint(txid, r.n))) {
@@ -11231,8 +11233,7 @@ void CHDWallet::AvailableBlindedCoins(std::vector<COutputR>& vCoins, bool fOnlyS
                 continue;
             }
 
-            if ((!coinControl || !coinControl->fAllowLocked)
-                && IsLockedCoin(txid, r.n)) {
+            if (!allow_locked && IsLockedCoin(txid, r.n)) {
                 continue;
             }
 
@@ -11406,6 +11407,7 @@ void CHDWallet::AvailableAnonCoins(std::vector<COutputR> &vCoins, bool fOnlySafe
     const int min_depth = {coinControl ? coinControl->m_min_depth : DEFAULT_MIN_DEPTH};
     const int max_depth = {coinControl ? coinControl->m_max_depth : DEFAULT_MAX_DEPTH};
     const bool fIncludeImmature = {coinControl ? coinControl->m_include_immature : false};
+    const bool allow_locked = {coinControl ? coinControl->fAllowLocked : false};
 
     const Consensus::Params& consensusParams = Params().GetConsensus();
     for (MapRecords_t::const_iterator it = mapRecords.begin(); it != mapRecords.end(); ++it) {
@@ -11456,8 +11458,7 @@ void CHDWallet::AvailableAnonCoins(std::vector<COutputR> &vCoins, bool fOnlySafe
                 continue;
             }
 
-            if ((!coinControl || !coinControl->fAllowLocked)
-                && IsLockedCoin(txid, r.n)) {
+            if (!allow_locked && IsLockedCoin(txid, r.n)) {
                 continue;
             }
 
@@ -11479,8 +11480,8 @@ void CHDWallet::AvailableAnonCoins(std::vector<COutputR> &vCoins, bool fOnlySafe
             if (nMaximumCount > 0 && vCoins.size() >= nMaximumCount) {
                 return;
             }
-        };
-    };
+        }
+    }
 
     random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
     return;
@@ -11522,31 +11523,15 @@ std::map<CTxDestination, std::vector<COutput>> CHDWallet::ListCoins() const
     std::map<CTxDestination, std::vector<COutput>> result;
     std::vector<COutput> availableCoins;
 
-    AvailableCoins(availableCoins);
+    CCoinControl coinControl;
+    coinControl.fAllowLocked = true;
+    AvailableCoins(availableCoins, true, &coinControl);
 
     for (auto& coin : availableCoins) {
         CTxDestination address;
         if (coin.fSpendable &&
             ExtractDestination(*(FindNonChangeParentOutput(*coin.tx->tx, coin.i)->GetPScriptPubKey()), address)) {
             result[address].emplace_back(std::move(coin));
-        }
-    }
-
-    std::vector<COutPoint> lockedCoins;
-    ListLockedCoins(lockedCoins);
-    for (const auto& output : lockedCoins) {
-        auto it = mapWallet.find(output.hash);
-        if (it != mapWallet.end()) {
-            int depth = it->second.GetDepthInMainChain();
-            if (depth >= 0 && output.n < it->second.tx->vpout.size() &&
-                it->second.tx->vpout[output.n]->IsStandardOutput() &&
-                IsMine(it->second.tx->vpout[output.n].get()) == ISMINE_SPENDABLE) {
-                CTxDestination address;
-                if (ExtractDestination(*(FindNonChangeParentOutput(*it->second.tx, output.n)->GetPScriptPubKey()), address)) {
-                    result[address].emplace_back(
-                        &it->second, output.n, depth, true /* spendable */, true /* solvable */, false /* safe */);
-                }
-            }
         }
     }
 
@@ -11601,32 +11586,6 @@ std::map<CTxDestination, std::vector<COutputR>> CHDWallet::ListCoins(OutputTypes
 
         result[address].emplace_back(std::move(coin));
     }
-
-    /*
-    std::vector<COutPoint> lockedCoins;
-    ListLockedCoins(lockedCoins);
-    for (const auto& output : lockedCoins) {
-        auto it = mapRecords.find(output.hash);
-        if (it != mapRecords.end()) {
-            const COutputRecord *oR = it->second.GetOutput(output.n);
-            if (!oR || oR->nType != nType)
-                continue;
-
-            int depth = GetDepthInMainChain(it->second.blockHash, it->second.nIndex);
-            if (depth >= 0
-                && oR->nFlags & ORF_OWNED) {
-                CTxDestination address;
-                GetAddress(oR, address);
-
-                COutputR
-                result[address].emplace_back(coin
-                if (ExtractDestination(*(FindNonChangeParentOutput(*it->second.tx, output.n)->GetPScriptPubKey()), address)) {
-                    result[address].emplace_back();
-                }
-            }
-        }
-    }
-    */
 
     return result;
 };
