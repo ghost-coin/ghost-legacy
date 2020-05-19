@@ -74,9 +74,10 @@
 
 #include <walletinitinterface.h>
 
+#include <functional>
+#include <set>
 #include <stdint.h>
 #include <stdio.h>
-#include <set>
 
 #ifndef WIN32
 #include <attributes.h>
@@ -455,13 +456,13 @@ static void registerSignalHandler(int signal, void(*handler)(int))
 static boost::signals2::connection rpc_notify_block_change_connection;
 static void OnRPCStarted()
 {
-    rpc_notify_block_change_connection = uiInterface.NotifyBlockTip_connect(&RPCNotifyBlockChange);
+    rpc_notify_block_change_connection = uiInterface.NotifyBlockTip_connect(std::bind(RPCNotifyBlockChange, std::placeholders::_2));
 }
 
 static void OnRPCStopped()
 {
     rpc_notify_block_change_connection.disconnect();
-    RPCNotifyBlockChange(false, nullptr);
+    RPCNotifyBlockChange(nullptr);
     g_best_block_cv.notify_all();
     LogPrint(BCLog::RPC, "RPC stopped.\n");
 }
@@ -752,9 +753,9 @@ std::string LicenseInfo()
 }
 
 #if HAVE_SYSTEM
-static void BlockNotifyCallback(bool initialSync, const CBlockIndex *pBlockIndex)
+static void BlockNotifyCallback(SynchronizationState sync_state, const CBlockIndex* pBlockIndex)
 {
-    if (initialSync || !pBlockIndex)
+    if (sync_state != SynchronizationState::POST_INIT || !pBlockIndex)
         return;
 
     std::string strCmd = gArgs.GetArg("-blocknotify", "");
@@ -770,7 +771,7 @@ static bool fHaveGenesis = false;
 static Mutex g_genesis_wait_mutex;
 static std::condition_variable g_genesis_wait_cv;
 
-static void BlockNotifyGenesisWait(bool, const CBlockIndex *pBlockIndex)
+static void BlockNotifyGenesisWait(const CBlockIndex* pBlockIndex)
 {
     if (pBlockIndex != nullptr) {
         {
@@ -1942,7 +1943,7 @@ bool AppInitMain(NodeContext& node)
                         }
 
                         const CBlockIndex* tip = chainstate->m_chain.Tip();
-                        RPCNotifyBlockChange(true, tip);
+                        RPCNotifyBlockChange(tip);
                         if (tip
                             && tip != ::ChainActive().Genesis() // Genesis block can be set in the future
                             && tip->nTime > GetAdjustedTime() + MAX_FUTURE_BLOCK_TIME) {
@@ -2078,7 +2079,7 @@ bool AppInitMain(NodeContext& node)
     // No locking, as this happens before any background thread is started.
     boost::signals2::connection block_notify_genesis_wait_connection;
     if (::ChainActive().Tip() == nullptr) {
-        block_notify_genesis_wait_connection = uiInterface.NotifyBlockTip_connect(BlockNotifyGenesisWait);
+        block_notify_genesis_wait_connection = uiInterface.NotifyBlockTip_connect(std::bind(BlockNotifyGenesisWait, std::placeholders::_2));
     } else {
         fHaveGenesis = true;
     }
