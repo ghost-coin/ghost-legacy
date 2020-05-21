@@ -34,19 +34,12 @@ public:
         SetNull();
     }
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITE(nVersion);
-        READWRITE(hashPrevBlock);
-        READWRITE(hashMerkleRoot);
-        if (IsParticlVersion()) {
-            READWRITE(hashWitnessMerkleRoot);
+    SERIALIZE_METHODS(CBlockHeader, obj) {
+        READWRITE(obj.nVersion, obj.hashPrevBlock, obj.hashMerkleRoot);
+        if (obj.IsParticlVersion()) {
+            READWRITE(obj.hashWitnessMerkleRoot);
         }
-        READWRITE(nTime);
-        READWRITE(nBits);
-        READWRITE(nNonce);
+        READWRITE(obj.nTime, obj.nBits, obj.nNonce);
     }
 
     void SetNull()
@@ -128,14 +121,12 @@ public:
         return !IsProofOfStake();
     }
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITEAS(CBlockHeader, *this);
-        READWRITE(vtx);
-        if (nVersion == PARTICL_BLOCK_VERSION) {
-            READWRITE(vchBlockSig);
+    SERIALIZE_METHODS(CBlock, obj)
+    {
+        READWRITEAS(CBlockHeader, obj);
+        READWRITE(obj.vtx);
+        if (obj.nVersion == PARTICL_BLOCK_VERSION) {
+            READWRITE(obj.vchBlockSig);
         }
     }
 
@@ -174,14 +165,12 @@ struct CBlockLocator
 
     explicit CBlockLocator(const std::vector<uint256>& vHaveIn) : vHave(vHaveIn) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    SERIALIZE_METHODS(CBlockLocator, obj)
+    {
         int nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH))
             READWRITE(nVersion);
-        READWRITE(vHave);
+        READWRITE(obj.vHave);
     }
 
     void SetNull()

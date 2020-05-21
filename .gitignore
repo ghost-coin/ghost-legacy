@@ -5,6 +5,8 @@
 src/particl
 src/particld
 src/particl-cli
+src/particl-gui
+src/particl-node
 src/particl-tx
 src/particl-wallet
 src/test/fuzz

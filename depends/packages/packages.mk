@@ -21,6 +21,9 @@ upnp_packages=miniupnpc
 usb_packages=libusb hidapi protobuf
 usb_native_packages=native_protobuf
 
+multiprocess_packages = libmultiprocess capnp
+multiprocess_native_packages = native_libmultiprocess native_capnp
+
 darwin_native_packages = native_biplist native_ds_store native_mac_alias
 
 ifneq ($(build_os),darwin)

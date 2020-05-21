@@ -94,6 +94,10 @@ if BUILD_BITCOIND
   bin_PROGRAMS += particld
 endif
 
+if BUILD_BITCOIN_NODE
+  bin_PROGRAMS += particl-node
+endif
+
 if BUILD_BITCOIN_CLI
   bin_PROGRAMS += particl-cli
 endif
@@ -679,24 +683,21 @@ libparticl_cli_a_SOURCES = \
 nodist_libparticl_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
-# bitcoind binary #
-particld_SOURCES = bitcoind.cpp
-particld_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-particld_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-particld_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+# bitcoind & bitcoin-node binaries #
+particl_daemon_sources = bitcoind.cpp
+particl_bin_cppflags = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+particl_bin_cxxflags = $(AM_CXXFLAGS) $(PIE_FLAGS)
+particl_bin_ldflags = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-particld_SOURCES += bitcoind-res.rc
+particl_daemon_sources += bitcoind-res.rc
 endif
 
-# Libraries below may be listed more than once to resolve circular dependencies (see
-# https://eli.thegreenplace.net/2013/07/09/library-order-in-static-linking#circular-dependency)
-particld_LDADD = \
-  $(LIBPARTICL_SERVER) \
+particl_bin_ldadd = \
   $(LIBPARTICL_WALLET) \
   $(LIBPARTICL_COMMON) \
-  $(LIBUNIVALUE) \
   $(LIBPARTICL_UTIL) \
+  $(LIBUNIVALUE) \
   $(LIBPARTICL_ZMQ) \
   $(LIBPARTICL_CONSENSUS) \
   $(LIBPARTICL_CRYPTO) \
@@ -708,10 +709,22 @@ particld_LDADD = \
   $(LIBPARTICL_MNEMONIC) \
   $(LIBPARTICL_USBDEVICE)
 
-particld_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+particl_bin_ldadd += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 if ENABLE_USBDEVICE
-particld_LDADD += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
+particl_bin_ldadd += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
+
+particld_SOURCES = $(particl_daemon_sources)
+particld_CPPFLAGS = $(particl_bin_cppflags)
+particld_CXXFLAGS = $(particl_bin_cxxflags)
+particld_LDFLAGS = $(particl_bin_ldflags)
+particld_LDADD = $(LIBPARTICL_SERVER) $(particl_bin_ldadd)
+
+particl_node_SOURCES = $(particl_daemon_sources)
+particl_node_CPPFLAGS = $(particl_bin_cppflags)
+particl_node_CXXFLAGS = $(particl_bin_cxxflags)
+particl_node_LDFLAGS = $(particl_bin_ldflags)
+particl_node_LDADD = $(LIBPARTICL_SERVER) $(particl_bin_ldadd)
 
 # bitcoin-cli binary #
 #$(BITCOIN_CLI_NAME)_SOURCES = bitcoin-cli.cpp
@@ -756,15 +769,10 @@ particl_tx_LDADD += $(BOOST_LIBS)
 
 # bitcoin-wallet binary #
 particl_wallet_SOURCES = bitcoin-wallet.cpp
-particl_wallet_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-particl_wallet_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-particl_wallet_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
-
-if TARGET_WINDOWS
-particl_wallet_SOURCES += bitcoin-wallet-res.rc
-endif
-
-
+particl_wallet_CPPFLAGS = $(particl_bin_cppflags)
+particl_wallet_CXXFLAGS = $(particl_bin_cxxflags)
+particl_wallet_LDFLAGS = $(particl_bin_ldflags)
+#particl_wallet_LDADD = $(LIBPARTICL_WALLET_TOOL) $(particl_bin_ldadd)
 particl_wallet_LDADD = \
   $(LIBPARTICL_WALLET_TOOL) \
   $(LIBPARTICL_WALLET) \
@@ -782,10 +790,13 @@ particl_wallet_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
   $(LIBUNIVALUE)
-
 particl_wallet_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(MINIUPNPC_LIBS) $(ZMQ_LIBS)
 if ENABLE_USBDEVICE
 particl_wallet_LDADD += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
+endif
+
+if TARGET_WINDOWS
+particl_wallet_SOURCES += bitcoin-wallet-res.rc
 endif
 #
 
