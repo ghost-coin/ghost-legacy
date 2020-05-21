@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
     // CCoinsCacheView, so it's sort of arbitrary - but it shouldn't change
     // unless we somehow change the way the cacheCoins map allocates memory.
     //
-    constexpr int COINS_UNTIL_CRITICAL = is_64_bit ? 3 : 3;
+    constexpr int COINS_UNTIL_CRITICAL = is_64_bit ? 2 : 3;
 
     for (int i{0}; i < COINS_UNTIL_CRITICAL; ++i) {
         COutPoint res = add_coin(view);
