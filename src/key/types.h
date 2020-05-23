@@ -1,5 +1,6 @@
 // Copyright (c) 2015 The ShadowCoin developers
-// Copyright (c) 2017 The Ghost Core developers
+// Copyright (c) 2017 The Particl Core developers
+// Copyright (c) 2020 The Ghost Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
