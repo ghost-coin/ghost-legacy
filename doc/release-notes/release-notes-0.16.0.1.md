@@ -59,7 +59,7 @@ In order to facilitate deterministic generation of stealth addresses between Gho
 - New RPC command `devicegetnewstealthaddress` will generate a v2 Stealth Address from the Hardware Signing Device.
 - Updated RPC command `getnewstealthaddress` now supports a new boolean `makeV2` (default false) which will generate a v2 Stealth Address from the same method used for hardware wallets. This will be updated in a future release to default to true for all new addresses generated.
 
-Note, Legacy Stealth Addresses are not supported on Hardware Signing Devices. If you have PART/tPART received on the Legacy Stealth Addresses then we suggest you send those PART/tPART to a non-Stealth Address before attempting to use with the Hardware Signing Devices.
+Note, Legacy Stealth Addresses are not supported on Hardware Signing Devices. If you have GHOST/tPART received on the Legacy Stealth Addresses then we suggest you send those GHOST/tPART to a non-Stealth Address before attempting to use with the Hardware Signing Devices.
 
 ### Replace-By-Fee by default in GUI
 

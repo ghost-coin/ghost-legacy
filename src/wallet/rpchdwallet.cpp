@@ -5018,7 +5018,7 @@ static std::string SendHelp(CHDWallet *pwallet, OutputTypes typeIn, OutputTypes 
     return rv;
 };
 
-static UniValue sendparttoblind(const JSONRPCRequest &request)
+static UniValue sendghosttoblind(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetGhostWallet(wallet.get());
@@ -5030,7 +5030,7 @@ static UniValue sendparttoblind(const JSONRPCRequest &request)
     return SendToInner(request, OUTPUT_STANDARD, OUTPUT_CT);
 };
 
-static UniValue sendparttoanon(const JSONRPCRequest &request)
+static UniValue sendghosttoanon(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetGhostWallet(wallet.get());
@@ -8285,9 +8285,9 @@ static const CRPCCommand commands[] =
     { "wallet",             "listunspentblind",                 &listunspentblind,              {"minconf","maxconf","addresses","include_unsafe","query_options"} },
 
 
-    //sendparttopart // normal txn
-    { "wallet",             "sendparttoblind",                  &sendparttoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
-    { "wallet",             "sendparttoanon",                   &sendparttoanon,                {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
+    //sendghosttopart // normal txn
+    { "wallet",             "sendghosttoblind",                  &sendghosttoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
+    { "wallet",             "sendghosttoanon",                   &sendghosttoanon,                {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
 
     { "wallet",             "sendblindtopart",                  &sendblindtopart,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
     { "wallet",             "sendblindtoblind",                 &sendblindtoblind,              {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
