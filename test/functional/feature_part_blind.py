@@ -46,7 +46,7 @@ class BlindTest(GhostTestFramework):
         sxAddrTo1_1 = nodes[1].getnewstealthaddress('lblsx11')
         assert(sxAddrTo1_1 == 'TetbYTGv5LiqyFiUD3a5HHbpSinQ9KiRYDGAMvRzPfz4RnHMbKGAwDr1fjLGJ5Eqg1XDwpeGyqWMiwdK3qM3zKWjzHNpaatdoHVzzA')
 
-        txnHash = nodes[0].sendparttoblind(sxAddrTo1_1, 3.4, '', '', False, 'node0 -> node1 p->b')
+        txnHash = nodes[0].sendghosttoblind(sxAddrTo1_1, 3.4, '', '', False, 'node0 -> node1 p->b')
         txnHashes.append(txnHash)
 
         ro = nodes[0].listtransactions()
@@ -103,7 +103,7 @@ class BlindTest(GhostTestFramework):
         assert(e['stealth_address'] == sxAddrTo2_1)
 
 
-        txnHash4 = nodes[1].sendblindtopart(sxAddrTo2_1, 0.5, '', '', False, 'node1 -> node2 b->p')
+        txnHash4 = nodes[1].sendblindtoghost(sxAddrTo2_1, 0.5, '', '', False, 'node1 -> node2 b->p')
 
         ro = nodes[1].getwalletinfo()
         assert(ro['blind_balance'] < 2.7 and ro['blind_balance'] > 2.69)
@@ -135,7 +135,7 @@ class BlindTest(GhostTestFramework):
         assert(ro['prefix_num_bits'] == 4)
         assert(ro['prefix_bitfield'] == '0x000a')
 
-        txnHash5 = nodes[0].sendparttoblind(sxAddrTo2_3, 0.5, '', '', False, 'node0 -> node2 p->b')
+        txnHash5 = nodes[0].sendghosttoblind(sxAddrTo2_3, 0.5, '', '', False, 'node0 -> node2 p->b')
 
         assert(self.wait_for_mempool(nodes[2], txnHash5))
 

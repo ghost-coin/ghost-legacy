@@ -45,13 +45,13 @@ class FilterTransactionsTest(GhostTestFramework):
         #targetExternal = nodes[1].getnewextaddress('target external')
         stakingAddress = nodes[2].getnewaddress('staking')
 
-        # simple PART transaction
+        # simple GHOST transaction
         nodes[0].sendtoaddress(targetAddress, 10)
         self.stakeBlocks(1)
         nodes[1].sendtoaddress(selfAddress, 8)
 
-        # PART to BLIND
-        nodes[0].sendparttoblind(
+        # GHOST to BLIND
+        nodes[0].sendghosttoblind(
             selfStealth,          # address
             20,                   # amount
             '',                   # ?
@@ -60,8 +60,8 @@ class FilterTransactionsTest(GhostTestFramework):
             'node0 -> node0 p->b' # narrative
         )
 
-        # PART to ANON
-        nodes[0].sendparttoanon(
+        # GHOST to ANON
+        nodes[0].sendghosttoanon(
             targetStealth,        # address
             20,                   # amount
             '',                   # ?
@@ -344,7 +344,7 @@ class FilterTransactionsTest(GhostTestFramework):
             assert('Invalid sort' in e.error['message'])
 
         # Sent blind should show when filtered for blinded txns
-        nodes[0].sendblindtopart(targetStealth, 1.0)
+        nodes[0].sendblindtoghost(targetStealth, 1.0)
         ro = nodes[0].filtertransactions({ 'type': 'blind', 'count': 20 })
         assert(len(ro) == 2)
 
