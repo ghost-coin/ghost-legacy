@@ -113,7 +113,7 @@ public:
     SERIALIZE_METHODS(CBlockHeaderAndShortTxIDs, obj)
     {
         READWRITE(obj.header);
-        if (obj.header.IsParticlVersion()) {
+        if (obj.header.IsGhostVersion()) {
             READWRITE(obj.vchBlockSig, obj.nonce, Using<VectorFormatter<CustomUintFormatter<SHORTTXIDS_LENGTH>>>(obj.shorttxids), obj.prefilledtxn);
         } else {
             READWRITE(obj.nonce, Using<VectorFormatter<CustomUintFormatter<SHORTTXIDS_LENGTH>>>(obj.shorttxids), obj.prefilledtxn);

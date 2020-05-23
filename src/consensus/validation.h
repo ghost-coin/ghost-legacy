@@ -142,7 +142,7 @@ public:
     bool rct_active = false;
     bool fIncDataOutputs = false;
     int m_spend_height = 0;
-    bool m_particl_mode = false;
+    bool m_ghost_mode = false;
     bool m_skip_rangeproof = false;
     const Consensus::Params *m_consensus_params = nullptr;
 
@@ -151,7 +151,7 @@ public:
     bool m_has_anon_output = false;
     bool m_has_anon_input = false;
 
-    void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool particl_mode, bool skip_rangeproof)
+    void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool ghost_mode, bool skip_rangeproof)
     {
         m_consensus_params = &consensusParams;
         fEnforceSmsgFees = time >= consensusParams.nPaidSmsgTime;
@@ -161,7 +161,7 @@ public:
         if (spend_height > -1) {
             m_spend_height = spend_height; // Pass through connectblock->checkblock
         }
-        m_particl_mode = particl_mode;
+        m_ghost_mode = ghost_mode;
         m_skip_rangeproof = skip_rangeproof;
     }
 };

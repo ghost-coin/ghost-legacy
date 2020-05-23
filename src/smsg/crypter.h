@@ -1,9 +1,9 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2019 The Ghost Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_SMSG_CRYPTER_H
-#define PARTICL_SMSG_CRYPTER_H
+#ifndef GHOST_SMSG_CRYPTER_H
+#define GHOST_SMSG_CRYPTER_H
 
 #include <support/allocators/secure.h>
 #include <vector>
@@ -45,4 +45,4 @@ public:
     bool Decrypt(const uint8_t *chCiphertext, uint32_t nCipher, std::vector<uint8_t> &vchPlaintext);
 };
 
-#endif // PARTICL_SMSG_CRYPTER_H
+#endif // GHOST_SMSG_CRYPTER_H

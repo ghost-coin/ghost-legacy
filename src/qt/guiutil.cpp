@@ -109,7 +109,7 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent, bool allow_
     widget->setFont(fixedPitchFont());
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
-    widget->setPlaceholderText(QObject::tr("Enter a Particl address (e.g. %1)").arg(
+    widget->setPlaceholderText(QObject::tr("Enter a Ghost address (e.g. %1)").arg(
         QString::fromStdString(DummyAddress(Params()))));
     widget->setValidator(new BitcoinAddressEntryValidator(parent));
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent, allow_stakeonly));
@@ -118,7 +118,7 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent, bool allow_
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 {
     // return if URI is not valid or is no bitcoin: URI
-    if(!uri.isValid() || uri.scheme() != QString("particl"))
+    if(!uri.isValid() || uri.scheme() != QString("ghost"))
         return false;
 
     SendCoinsRecipient rv;
@@ -181,7 +181,7 @@ bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
 QString formatBitcoinURI(const SendCoinsRecipient &info)
 {
     bool bech_32 = info.address.startsWith(QString::fromStdString(Params().Bech32HRP() + "1"));
-    QString ret = QString("particl:%1").arg(bech_32 ? info.address.toUpper() : info.address);
+    QString ret = QString("ghost:%1").arg(bech_32 ? info.address.toUpper() : info.address);
     int paramCount = 0;
 
     if (info.amount)
@@ -560,10 +560,10 @@ fs::path static StartupShortcutPath()
 {
     std::string chain = gArgs.GetChainName();
     if (chain == CBaseChainParams::MAIN)
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "Particl.lnk";
+        return GetSpecialFolderPath(CSIDL_STARTUP) / "Ghost.lnk";
     if (chain == CBaseChainParams::TESTNET) // Remove this special case when CBaseChainParams::TESTNET = "testnet4"
-        return GetSpecialFolderPath(CSIDL_STARTUP) / "Particl (testnet).lnk";
-    return GetSpecialFolderPath(CSIDL_STARTUP) / strprintf("Particl (%s).lnk", chain);
+        return GetSpecialFolderPath(CSIDL_STARTUP) / "Ghost (testnet).lnk";
+    return GetSpecialFolderPath(CSIDL_STARTUP) / strprintf("Ghost (%s).lnk", chain);
 }
 
 bool GetStartOnSystemStartup()
@@ -643,8 +643,8 @@ fs::path static GetAutostartFilePath()
 {
     std::string chain = gArgs.GetChainName();
     if (chain == CBaseChainParams::MAIN)
-        return GetAutostartDir() / "particl.desktop";
-    return GetAutostartDir() / strprintf("particl-%s.desktop", chain);
+        return GetAutostartDir() / "ghost.desktop";
+    return GetAutostartDir() / strprintf("ghost-%s.desktop", chain);
 }
 
 bool GetStartOnSystemStartup()
@@ -688,9 +688,9 @@ bool SetStartOnSystemStartup(bool fAutoStart)
         optionFile << "[Desktop Entry]\n";
         optionFile << "Type=Application\n";
         if (chain == CBaseChainParams::MAIN)
-            optionFile << "Name=Particl\n";
+            optionFile << "Name=Ghost\n";
         else
-            optionFile << strprintf("Name=Particl (%s)\n", chain);
+            optionFile << strprintf("Name=Ghost (%s)\n", chain);
         optionFile << "Exec=" << pszExePath << strprintf(" -min -chain=%s\n", chain);
         optionFile << "Terminal=false\n";
         optionFile << "Hidden=false\n";

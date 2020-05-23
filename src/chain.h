@@ -389,7 +389,7 @@ public:
         READWRITE(obj.nVersion);
         READWRITE(obj.hashPrev);
         READWRITE(obj.hashMerkleRoot);
-        if (obj.nVersion == PARTICL_BLOCK_VERSION) {
+        if (obj.nVersion == GHOST_BLOCK_VERSION) {
             READWRITE(obj.hashWitnessMerkleRoot);
         }
         READWRITE(obj.nTime);

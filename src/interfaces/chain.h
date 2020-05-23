@@ -277,7 +277,7 @@ public:
     //! removed transactions and already added new transactions.
     virtual void requestMempoolTransactions(Notifications& notifications) = 0;
 
-    //! Particl Specific
+    //! Ghost Specific
     virtual int getHeightInt() = 0;
     virtual size_t getAnonOutputs() = 0;
     virtual int64_t getSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height=false) = 0;

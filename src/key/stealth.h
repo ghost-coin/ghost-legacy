@@ -1,10 +1,10 @@
 // Copyright (c) 2014 The ShadowCoin developers
-// Copyright (c) 2017-2020 The Particl Core developers
+// Copyright (c) 2017-2020 The Ghost Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_KEY_STEALTH_H
-#define PARTICL_KEY_STEALTH_H
+#ifndef GHOST_KEY_STEALTH_H
+#define GHOST_KEY_STEALTH_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -156,5 +156,5 @@ void ECC_Start_Stealth();
 void ECC_Stop_Stealth();
 
 
-#endif  // PARTICL_KEY_STEALTH_H
+#endif  // GHOST_KEY_STEALTH_H
 

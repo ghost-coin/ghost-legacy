@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Versions of Particl Core that are currently supported with security updates:
+Versions of Ghost Core that are currently supported with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -12,14 +12,14 @@ Versions of Particl Core that are currently supported with security updates:
 
 ## Reporting a Vulnerability
 
-To report security issues send an email to core@particl.io \
-Please note this email address is not for support and is only for issues directly affecting Particl Core.
+To report security issues send an email to core@ghost.io \
+Please note this email address is not for support and is only for issues directly affecting Ghost Core.
 
 
 The following keys may be used to communicate sensitive information to developers:
 
 | Name | Fingerprint |
 |------|-------------|
-| Particl Core (shared key) | 0F7C 8778 254F 2E28 2644  2BAC 52D9 8BD1 59DF AF40 |
+| Ghost Core (shared key) | 0F7C 8778 254F 2E28 2644  2BAC 52D9 8BD1 59DF AF40 |
 
 You can import a key by running the following command with that individual’s fingerprint: `gpg --recv-keys "<fingerprint>"` Ensure that you put quotes around fingerprints containing spaces.

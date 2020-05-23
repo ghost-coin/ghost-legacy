@@ -1,9 +1,9 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2019 The Ghost Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_WALLET_HDWALLETTYPES_H
-#define PARTICL_WALLET_HDWALLETTYPES_H
+#ifndef GHOST_WALLET_HDWALLETTYPES_H
+#define GHOST_WALLET_HDWALLETTYPES_H
 
 #include <key_io.h>
 #include <key/extkey.h>
@@ -301,5 +301,5 @@ public:
     //CAmount nBlindUsed = 0;
 };
 
-#endif // PARTICL_WALLET_HDWALLETTYPES_H
+#endif // GHOST_WALLET_HDWALLETTYPES_H
 

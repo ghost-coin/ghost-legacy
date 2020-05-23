@@ -69,8 +69,8 @@ after_script:
 #  - echo "Uploading"
 #  - DOCKER_EXEC make install
 #  - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
-#  - DOCKER_EXEC tar -cjf $OUTDIR/particl_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .
-#  - (travis_retry DOCKER_EXEC curl -s --max-time 60 --upload $OUTDIR/particl_$COMMIT.tar.bz2 https://transfer.sh/particl_$COMMIT.tar.bz2 && echo) || true
+#  - DOCKER_EXEC tar -cjf $OUTDIR/ghost_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .
+#  - (travis_retry DOCKER_EXEC curl -s --max-time 60 --upload $OUTDIR/ghost_$COMMIT.tar.bz2 https://transfer.sh/ghost_$COMMIT.tar.bz2 && echo) || true
 jobs:
   include:
 

@@ -925,7 +925,7 @@ void LegacyScriptPubKeyMan::SetHDChain(const CHDChain& chain, bool memonly)
 
 bool LegacyScriptPubKeyMan::HaveKey(const CKeyID &address) const
 {
-    if (m_storage.IsParticlWallet()) return m_storage.HaveKey(address);
+    if (m_storage.IsGhostWallet()) return m_storage.HaveKey(address);
     LOCK(cs_KeyStore);
     if (!m_storage.HasEncryptionKeys()) {
         return FillableSigningProvider::HaveKey(address);
@@ -935,7 +935,7 @@ bool LegacyScriptPubKeyMan::HaveKey(const CKeyID &address) const
 
 bool LegacyScriptPubKeyMan::GetKey(const CKeyID &address, CKey& keyOut) const
 {
-    if (m_storage.IsParticlWallet()) return m_storage.GetKey(address, keyOut);
+    if (m_storage.IsGhostWallet()) return m_storage.GetKey(address, keyOut);
     LOCK(cs_KeyStore);
     if (!m_storage.HasEncryptionKeys()) {
         return FillableSigningProvider::GetKey(address, keyOut);
@@ -1001,7 +1001,7 @@ bool LegacyScriptPubKeyMan::GetWatchPubKey(const CKeyID &address, CPubKey &pubke
 
 bool LegacyScriptPubKeyMan::GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const
 {
-    if (m_storage.IsParticlWallet()) return m_storage.GetPubKey(address, vchPubKeyOut);
+    if (m_storage.IsGhostWallet()) return m_storage.GetPubKey(address, vchPubKeyOut);
     LOCK(cs_KeyStore);
     if (!m_storage.HasEncryptionKeys()) {
         if (!FillableSigningProvider::GetPubKey(address, vchPubKeyOut)) {
@@ -1364,7 +1364,7 @@ bool LegacyScriptPubKeyMan::GetKeyFromPool(CPubKey& result, const OutputType typ
     if (!CanGetAddresses(internal)) {
         return false;
     }
-    if (m_storage.IsParticlWallet()) return m_storage.GetKeyFromPool(result, internal);
+    if (m_storage.IsGhostWallet()) return m_storage.GetKeyFromPool(result, internal);
 
     CKeyPool keypool;
     {

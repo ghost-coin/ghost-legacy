@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_SCRIPT_PARTICLCONSENSUS_H
-#define PARTICL_SCRIPT_PARTICLCONSENSUS_H
+#ifndef GHOST_SCRIPT_GHOSTCONSENSUS_H
+#define GHOST_SCRIPT_GHOSTCONSENSUS_H
 
 #include <stdint.h>
 
@@ -21,7 +21,7 @@
   #elif defined(HAVE_FUNC_ATTRIBUTE_VISIBILITY)
     #define EXPORT_SYMBOL __attribute__ ((visibility ("default")))
   #endif
-#elif defined(MSC_VER) && !defined(STATIC_LIBPARTICLCONSENSUS)
+#elif defined(MSC_VER) && !defined(STATIC_LIBGHOSTCONSENSUS)
   #define EXPORT_SYMBOL __declspec(dllimport)
 #endif
 
@@ -80,4 +80,4 @@ EXPORT_SYMBOL unsigned int bitcoinconsensus_version();
 
 #undef EXPORT_SYMBOL
 
-#endif // PARTICL_SCRIPT_PARTICLCONSENSUS_H
+#endif // GHOST_SCRIPT_GHOSTCONSENSUS_H

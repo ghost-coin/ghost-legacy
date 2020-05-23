@@ -2,15 +2,15 @@
 
 *.exe
 *.pdb
-src/particl
-src/particld
-src/particl-cli
-src/particl-tx
-src/particl-wallet
+src/ghost
+src/ghostd
+src/ghost-cli
+src/ghost-tx
+src/ghost-wallet
 src/test/fuzz
 !src/test/fuzz/*.*
-src/test/test_particl
-src/qt/test/test_particl-qt
+src/test/test_ghost
+src/qt/test/test_ghost-qt
 
 # autoreconf
 src/Makefile.in
@@ -56,11 +56,11 @@ src/qt/bitcoin-qt.creator.user
 src/qt/bitcoin-qt.files
 src/qt/bitcoin-qt.includes
 
-src/qt/particl-qt.config
-src/qt/particl-qt.creator
-src/qt/particl-qt.creator.user
-src/qt/particl-qt.files
-src/qt/particl-qt.includes
+src/qt/ghost-qt.config
+src/qt/ghost-qt.creator
+src/qt/ghost-qt.creator.user
+src/qt/ghost-qt.files
+src/qt/ghost-qt.includes
 
 .deps
 .dirstamp
@@ -97,8 +97,8 @@ src/qt/particl-qt.includes
 *.qm
 Makefile
 !depends/Makefile
-src/qt/particl-qt
-Particl-Qt.app
+src/qt/ghost-qt
+Ghost-Qt.app
 background.tiff*
 
 # Qt Creator
@@ -106,7 +106,7 @@ Makefile.am.user
 
 # Unit-tests
 Makefile.test
-particl-qt_test
+ghost-qt_test
 
 # Resources cpp
 qrc_*.cpp
@@ -122,7 +122,7 @@ releases
 *.gcno
 *.gcda
 /*.info
-test_particl.coverage/
+test_ghost.coverage/
 total.coverage/
 coverage_percent.txt
 
@@ -137,7 +137,7 @@ test/cache/*
 
 /doc/doxygen/
 
-libparticlconsensus.pc
+libghostconsensus.pc
 contrib/devtools/split-debug.sh
 
 # Output from running db4 installation

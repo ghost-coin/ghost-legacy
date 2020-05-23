@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2019 The Ghost Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -30,7 +30,7 @@ def getIndexAtProperty(arr, name, value):
     return -1
 
 
-class ParticlTestFramework(BitcoinTestFramework):
+class GhostTestFramework(BitcoinTestFramework):
     def start_node(self, i, *args, **kwargs):
         kwargs['btcmode'] = False
         return super().start_node(i, *args, **kwargs)

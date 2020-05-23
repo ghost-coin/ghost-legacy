@@ -17,7 +17,7 @@ Next Major Version
 ==============
 
 - Merged Bitcoin 0.19.1 backports.
-- Added generatemnemonic command to particl-wallet.
+- Added generatemnemonic command to ghost-wallet.
 - Qt receiving addresses table displays relative paths.
 - Qt receiving addresses page can verify an address on a hardware device.
   - Window -> Receiving addresses, right click on address -> Verify Address On Hardware Wallet
@@ -113,7 +113,7 @@ Next Major Version
 - Fixed help text for createsignaturewith commands.
 - Added 'pubkey' to output of extkey info extended-secret-key.
 - Fixed help text for getspentinfo.
-- Enabled segwit addresses in Particl mode for easier integrations.
+- Enabled segwit addresses in Ghost mode for easier integrations.
 - Raised minimum peer version to 90009.
 
 

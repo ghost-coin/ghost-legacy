@@ -66,8 +66,8 @@
         <translation>Direcciones de recepción</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Estas son tus direcciones Particl para realizar pagos. Verifica siempre el monto y la dirección de recepción antes de enviar monedas. </translation>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Estas son tus direcciones Ghost para realizar pagos. Verifica siempre el monto y la dirección de recepción antes de enviar monedas. </translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -162,8 +162,8 @@
         <translation>Confirmar cifrado de billetera</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Atención: Si cifra su monedero y pierde la contraseña, perderá ¡&lt;b&gt;TODOS SUS PARTICL&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
+        <translation>Atención: Si cifra su monedero y pierde la contraseña, perderá ¡&lt;b&gt;TODOS SUS GHOST&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -280,8 +280,8 @@
         <translation>Reindexando bloques en el disco...</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
-        <translation>Enviar monedas a una dirección Particl</translation>
+        <source>Send coins to a Ghost address</source>
+        <translation>Enviar monedas a una dirección Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -316,12 +316,12 @@
         <translation>Encriptar las llaves privadas que pertenecen a tu billetera</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Firma mensajes con tus direcciones Particl para probar que eres dueño de ellas</translation>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
+        <translation>Firma mensajes con tus direcciones Ghost para probar que eres dueño de ellas</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Verificar mensajes para asegurar que estaban firmados con direcciones Particl especificas</translation>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
+        <translation>Verificar mensajes para asegurar que estaban firmados con direcciones Ghost especificas</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -340,8 +340,8 @@
         <translation>Barra de pestañas</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Solicitar pagos (genera codigo QR y URL's de Particl)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Solicitar pagos (genera codigo QR y URL's de Ghost)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -408,8 +408,8 @@
         <translation>La billetera está encriptada y bloqueada recientemente</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Ha ocurrido un error crítico. Particl ya no puede continuar con seguridad y se cerrará.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Ha ocurrido un error crítico. Ghost ya no puede continuar con seguridad y se cerrará.</translation>
     </message>
 </context>
 <context>
@@ -592,8 +592,8 @@
         <translation>Editar dirección de envío</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
-        <translation>La dirección introducida "%1" no es una dirección Particl válida.</translation>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
+        <translation>La dirección introducida "%1" no es una dirección Ghost válida.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -657,8 +657,8 @@
         <translation>Usa un directorio de datos personalizado:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -725,8 +725,8 @@
         <translation>Experto</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Abrir automáticamente el puerto del cliente Particl en el router. Esta opción solo funciona si el router admite UPnP y está activado.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Abrir automáticamente el puerto del cliente Ghost en el router. Esta opción solo funciona si el router admite UPnP y está activado.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -824,8 +824,8 @@
         <translation>Desde</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
-        <translation>La información mostrada puede estar desactualizada. Su monedero se sincroniza automáticamente con la red Particl después de que se haya establecido una conexión, pero este proceso aún no se ha completado.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
+        <translation>La información mostrada puede estar desactualizada. Su monedero se sincroniza automáticamente con la red Ghost después de que se haya establecido una conexión, pero este proceso aún no se ha completado.</translation>
     </message>
     <message>
         <source>Available:</source>
@@ -867,8 +867,8 @@
         <translation>Error en petición de pago</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>No se pudo iniciar particl: manejador de pago-al-clic</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>No se pudo iniciar ghost: manejador de pago-al-clic</translation>
     </message>
     <message>
         <source>URI handling</source>
@@ -1307,12 +1307,12 @@
         <translation>¡Ha fallado la creación de la transacción!</translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
-        <translation>Alerta: Dirección de Particl inválida</translation>
+        <source>Warning: Invalid Ghost address</source>
+        <translation>Alerta: Dirección de Ghost inválida</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
-        <translation>Alerta: Dirección de Particl inválida</translation>
+        <translation>Alerta: Dirección de Ghost inválida</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -1412,8 +1412,8 @@
         <translation>Copiar la firma actual al portapapeles del sistema</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
-        <translation>Firmar el mensaje para demostrar que se posee esta dirección Particl</translation>
+        <source>Sign the message to prove you own this Ghost address</source>
+        <translation>Firmar el mensaje para demostrar que se posee esta dirección Ghost</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1432,8 +1432,8 @@
         <translation>&amp;Verificar mensaje</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Verificar el mensaje para comprobar que fue firmado con la dirección Particl indicada</translation>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
+        <translation>Verificar el mensaje para comprobar que fue firmado con la dirección Ghost indicada</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

@@ -120,7 +120,7 @@ bool SequenceLocks(const CTransaction &tx, int flags, std::vector<int>* prevHeig
 unsigned int GetLegacySigOpCount(const CTransaction& tx)
 {
     unsigned int nSigOps = 0;
-    if (!tx.IsParticlVersion())
+    if (!tx.IsGhostVersion())
     {
         for (const auto& txin : tx.vin)
         {
@@ -195,8 +195,8 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
         state.m_consensus_params = &::Params().GetConsensus();
     }
 
-    bool is_particl_tx = tx.IsParticlVersion();
-    if (is_particl_tx && tx.vin.size() < 1) { // early out
+    bool is_ghost_tx = tx.IsGhostVersion();
+    if (is_ghost_tx && tx.vin.size() < 1) { // early out
         return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txn-no-inputs",
                          strprintf("%s: no inputs", __func__));
     }
@@ -228,7 +228,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
         {
             if (nSpendHeight - coin.nHeight < COINBASE_MATURITY)
             {
-                if (is_particl_tx) {
+                if (is_ghost_tx) {
                     // Scale in the depth restriction to start the chain
                     int nRequiredDepth = std::min(COINBASE_MATURITY, (int)(coin.nHeight / 2));
                     if (nSpendHeight - coin.nHeight < nRequiredDepth) {
@@ -243,7 +243,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
         }
 
         // Check for negative or overflow input values
-        if (is_particl_tx) {
+        if (is_ghost_tx) {
             if (coin.nType == OUTPUT_STANDARD) {
                 nValueIn += coin.out.nValue;
                 if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn)) {
@@ -275,7 +275,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
     state.m_has_anon_output = nRingCT > nRingCTInputs;
 
     txfee = 0;
-    if (is_particl_tx) {
+    if (is_ghost_tx) {
         if (!tx.IsCoinStake()) {
             // Tally transaction fees
             if (nCt > 0 || nRingCT > 0) {
@@ -517,7 +517,7 @@ bool CheckTransaction(const CTransaction& tx, TxValidationState &state)
     if (::GetSerializeSize(tx, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-oversize");
 
-    if (tx.IsParticlVersion()) {
+    if (tx.IsGhostVersion()) {
         if (tx.vpout.empty()) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vpout-empty");
         }
@@ -570,7 +570,7 @@ bool CheckTransaction(const CTransaction& tx, TxValidationState &state)
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "too-many-data-outputs");
         }
     } else {
-        if (state.m_particl_mode) {
+        if (state.m_ghost_mode) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txn-version");
         }
         if (tx.vout.empty()) {

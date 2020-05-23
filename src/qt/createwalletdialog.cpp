@@ -11,7 +11,7 @@
 
 #include <QPushButton>
 
-extern bool fParticlMode;
+extern bool fGhostMode;
 
 CreateWalletDialog::CreateWalletDialog(QWidget* parent) :
     QDialog(parent),
@@ -22,7 +22,7 @@ CreateWalletDialog::CreateWalletDialog(QWidget* parent) :
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->wallet_name_line_edit->setFocus(Qt::ActiveWindowFocusReason);
 
-    if (fParticlMode) {
+    if (fGhostMode) {
         ui->blank_wallet_checkbox->setChecked(true);
     }
 

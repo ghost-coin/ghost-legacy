@@ -85,7 +85,7 @@ implicit-unsigned-integer-truncation:crypto/*
 implicit-unsigned-integer-truncation:leveldb/*
 implicit-integer-sign-change:crc32c/*
 
-# Particl specific
+# Ghost specific
 unsigned-integer-overflow:xxhash/xxhash.c
 implicit-signed-integer-truncation:unilib/*
 implicit-integer-sign-change:unilib/*

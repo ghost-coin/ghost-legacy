@@ -62,12 +62,12 @@
         <translation>पतों को प्राप्त कर रहा है</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>ये भुगतान भेजने के लिए ये आपके बिटकॉइन पते हैं। हमेशा सिक्के भेजने से पहले राशि और प्राप्तकर्ता पते की जांच करें।</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
-        <translation>&amp;पता कॉपी करें </translation>
+        <translation>&amp;पता कॉपी करें </translation>
     </message>
     <message>
         <source>Copy &amp;Label</source>
@@ -75,7 +75,7 @@
     </message>
     <message>
         <source>&amp;Edit</source>
-        <translation>&amp;संशोधित करें </translation>
+        <translation>&amp;संशोधित करें </translation>
     </message>
     <message>
         <source>Export Address List</source>
@@ -156,7 +156,7 @@
         <translation>वॉलेट एन्क्रिप्शन की पुष्टि करें</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
         <translation>चेतावनी: यदि आपने वॉलेट को एन्क्रिप्ट करने के बाद पदबंध खो दी तो &lt;b&gt;आप सारे बिटकॉइन खो देंगे &lt;/b&gt;!</translation>
     </message>
     <message>
@@ -340,7 +340,7 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
+        <source>Ghost</source>
         <translation>बीटकोइन</translation>
     </message>
     <message>

@@ -1,4 +1,4 @@
-Particl Core version 0.17.0.1 is now available:
+Ghost Core version 0.17.0.1 is now available:
 
 This is a new major version release, including new features, various bugfixes
 and performance improvements, as well as updated translations.
@@ -8,8 +8,8 @@ How to Upgrade
 
 If you are running an older version, shut it down. Wait until it has completely
 shut down (which might take a few minutes for older versions), then run the
-installer (on Windows) or just copy over `/Applications/Particl-Qt` (on Mac)
-or `particld`/`particl-qt` (on Linux).
+installer (on Windows) or just copy over `/Applications/Ghost-Qt` (on Mac)
+or `ghostd`/`ghost-qt` (on Linux).
 
 If your node has a txindex, the txindex db will be migrated the first time you run 0.17.0 or newer, which may take up to a few hours. Your node will not be functional until this migration completes.
 
@@ -31,10 +31,10 @@ processing the entire blockchain.
 Compatibility
 ==============
 
-Particl Core is extensively tested on multiple operating systems using
+Ghost Core is extensively tested on multiple operating systems using
 the Linux kernel, macOS 10.10+, and Windows 7 and newer (Windows XP is not supported).
 
-Particl Core should also work on most other Unix-like systems but is not
+Ghost Core should also work on most other Unix-like systems but is not
 frequently tested on them.
 
 From 0.17.0 onwards macOS <10.10 is no longer supported. 0.17.0 is built using Qt 5.9.x, which doesn't
@@ -52,7 +52,7 @@ Changed configuration options
 -----------------------------
 
 - `-includeconf=<file>` can be used to include additional configuration files.
-  Only works inside the `particl.conf` file, not inside included files or from
+  Only works inside the `ghost.conf` file, not inside included files or from
   command-line. Multiple files may be included. Can be disabled from command-
   line via `-noincludeconf`. Note that multi-argument commands like
   `-includeconf` will override preceding `-noincludeconf`, i.e.
@@ -61,7 +61,7 @@ Changed configuration options
   includeconf=relative.conf
   ```
 
-  as particl.conf will still include `relative.conf`.
+  as ghost.conf will still include `relative.conf`.
 
 GUI changes
 -----------
@@ -92,7 +92,7 @@ same as before.
 Dynamic loading and creation of wallets
 ---------------------------------------
 
-Previously, wallets could only be loaded or created at startup, by specifying `-wallet` parameters on the command line or in the particl.conf file. It is now possible to load, create and unload wallets dynamically at runtime:
+Previously, wallets could only be loaded or created at startup, by specifying `-wallet` parameters on the command line or in the ghost.conf file. It is now possible to load, create and unload wallets dynamically at runtime:
 
 - Existing wallets can be loaded by calling the `loadwallet` RPC. The wallet can be specified as file/directory basename (which must be located in the `walletdir` directory), or as an absolute path to a file/directory.
 - New wallets can be created (and loaded) by calling the `createwallet` RPC. The provided name must not match a wallet file in the `walletdir` directory or the name of a wallet that is currently loaded.
@@ -114,8 +114,8 @@ It is now possible for a single configuration file to set different
 options for different networks. This is done by using sections or by
 prefixing the option with the network, such as:
 
-    main.uacomment=particl
-    test.uacomment=particl-testnet
+    main.uacomment=ghost
+    test.uacomment=ghost-testnet
     regtest.uacomment=regtest
     [main]
     mempoolsize=300
@@ -134,7 +134,7 @@ outside of sections.
 
 A new 'label' API has been introduced for the wallet. This is intended as a
 replacement for the deprecated 'account' API. The 'account' can continue to
-be used in V0.17 by starting particld with the '-deprecatedrpc=accounts'
+be used in V0.17 by starting ghostd with the '-deprecatedrpc=accounts'
 argument, and will be fully removed in V0.18.
 
 The label RPC methods mirror the account functionality, with the following functional differences:
@@ -167,10 +167,10 @@ Here are the changes to RPC methods:
 | `listtransactions`     | The `account` named parameter has been renamed to `dummy`. If provided, the `dummy` parameter must be set to the string `*`, unless running with the `-deprecatedrpc=accounts` argument (in which case functionality is unchanged). |
 | `getbalance`           | `account`, `minconf` and `include_watchonly` parameters are deprecated, and can only be used if running with '-deprecatedrpc=accounts' |
 
-BIP 174 Partially Signed Particl Transactions support
+BIP 174 Partially Signed Ghost Transactions support
 -----------------------------------------------------
 
-[BIP 174 PSBT](https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki) is an interchange format for Particl transactions that are not fully signed
+[BIP 174 PSBT](https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki) is an interchange format for Ghost transactions that are not fully signed
 yet, together with relevant metadata to help entities work towards signing it.
 It is intended to simplify workflows where multiple parties need to cooperate to
 produce a transaction. Examples include hardware wallets, multisig setups, and
@@ -178,7 +178,7 @@ produce a transaction. Examples include hardware wallets, multisig setups, and
 
 ### Overall workflow
 
-Overall, the construction of a fully signed Particl transaction goes through the
+Overall, the construction of a fully signed Ghost transaction goes through the
 following steps:
 
 - A **Creator** proposes a particular transaction to be created. He constructs
@@ -193,7 +193,7 @@ following steps:
   partial signature for the inputs for which they have relevant key(s).
 - A **Finalizer** is run for each input to convert the partial signatures and
   possibly script information into a final `scriptSig` and/or `scriptWitness`.
-- An **Extractor** produces a valid Particl transaction (in network format)
+- An **Extractor** produces a valid Ghost transaction (in network format)
   from a PSBT for which all inputs are finalized.
 
 Generally, each of the above (excluding Creator and Extractor) will simply
@@ -262,9 +262,9 @@ hardware implementations will typically implement multiple roles simultaneously.
    `fee`, `modifiedfee`, `ancestorfee` and `descendantfee`.
 - The new RPC `getzmqnotifications` returns information about active ZMQ
   notifications.
-- When particl is not started with any `-wallet=<path>` options, the name of
+- When ghost is not started with any `-wallet=<path>` options, the name of
   the default wallet returned by `getwalletinfo` and `listwallets` RPCs is
-  now the empty string `""` instead of `"wallet.dat"`. If particl is started
+  now the empty string `""` instead of `"wallet.dat"`. If ghost is started
   with any `-wallet=<path>` options, there is no change in behavior, and the
   name of any wallet is just its `<path>` string.
 - Passing an empty string (`""`) as the `address_type` parameter to
@@ -294,7 +294,7 @@ hardware implementations will typically implement multiple roles simultaneously.
   `pubkeys`, `sigsrequired`, `pubkey`, `addresses`, `embedded`, `iscompressed`,
   `account`, `timestamp`, `hdkeypath`, `hdmasterkeyid`.
 - `signrawtransaction` is deprecated and will be fully removed in v0.18. To use
-  `signrawtransaction` in v0.17, restart particld with
+  `signrawtransaction` in v0.17, restart ghostd with
   `-deprecatedrpc=signrawtransaction`. Projects should transition to using
   `signrawtransactionwithkey` and `signrawtransactionwithwallet` before
   upgrading to v0.18.
@@ -308,7 +308,7 @@ Other API changes
 
 - The log timestamp format is now ISO 8601 (e.g. "2018-02-28T12:34:56Z").
 
-- When running particld with `-debug` but without `-daemon`, logging to stdout
+- When running ghostd with `-debug` but without `-daemon`, logging to stdout
   is now the default behavior. Setting `-printtoconsole=1` no longer implicitly
   disables logging to debug.log. Instead, logging to file can be explicitly disabled
   by setting `-debuglogfile=0`.
@@ -317,7 +317,7 @@ Transaction index changes
 -------------------------
 
 The transaction index is now built separately from the main node procedure,
-meaning the `-txindex` flag can be toggled without a full reindex. If particld
+meaning the `-txindex` flag can be toggled without a full reindex. If ghostd
 is run with `-txindex` on a node that is already partially or fully synced
 without one, the transaction index will be built in the background and become
 available once caught up. When switching from running `-txindex` to running
@@ -546,7 +546,7 @@ Cold Staking Features in QT
 - #12080 `56cc022` Add support to search the address book (promag)
 - #12621 `2bac3e4` Avoid querying unnecessary model data when filtering transactions (promag)
 - #12721 `e476826` remove "new" button during receive-mode in addressbook (jonasschnelli)
-- #12723 `310dc61` Qt5: Warning users about invalid-BIP21 URI particl:// (krab)
+- #12723 `310dc61` Qt5: Warning users about invalid-BIP21 URI ghost:// (krab)
 - #12610 `25cf18f` Multiwallet for the GUI (jonasschnelli)
 - #12779 `f4353da` Remove unused method setupAmountWidget(…) (practicalswift)
 - #12795 `68484d6` do not truncate .dat extension for wallets in gui (instagibbs)
@@ -565,7 +565,7 @@ Cold Staking Features in QT
 - #13043 `6e249e4` OptionsDialog: add prune setting (Sjors)
 - #13506 `6579d80` load wallet in UI after possible init aborts (jonasschnelli)
 - #13458 `dc53f7f` Drop qt4 support (laanwj)
-- #13528 `b877c39` Move ParticlGUI initializers to class, fix initializer order warning (laanwj)
+- #13528 `b877c39` Move GhostGUI initializers to class, fix initializer order warning (laanwj)
 - #13536 `baf3a3a` coincontrol: Remove unused qt4 workaround (MarcoFalke)
 - #13537 `10ffca7` Peer table: Visualize inbound/outbound state for every row (wodry)
 - #13791 `2c14c1f` Reject dialogs if key escape is pressed (promag)
@@ -611,7 +611,7 @@ Cold Staking Features in QT
 - #13659 `90b1c7e` add missing leveldb defines (theuni)
 - #13368 `c0f1569` Update gitian-build.sh for docker (achow101)
 - #13171 `19d8ca5` Change gitian-descriptors to use bionic instead (ken2812221)
-- #13604 `75bea05` Add depends 32-bit arm support for particl-qt (TheCharlatan)
+- #13604 `75bea05` Add depends 32-bit arm support for ghost-qt (TheCharlatan)
 - #13623 `9cdb19f` Migrate gitian-build.sh to python (ken2812221)
 - #13689 `8c36432` disable Werror when building zmq (greenaddress)
 - #13617 `cf7f9ae` release: Require macos 10.10+ (fanquake)
@@ -619,7 +619,7 @@ Cold Staking Features in QT
 - #13095 `415f2bf` update `ax_boost_chrono`/`unit_test_framework` (fanquake)
 - #13732 `e8ffec6` Fix Qt's rcc determinism (Fuzzbawls)
 - #13782 `8284f1d` Fix osslsigncode compile issue in gitian-build (ken2812221)
-- #13696 `2ab7208` Add aarch64 qt depends support for cross compiling particl-qt (TheCharlatan)
+- #13696 `2ab7208` Add aarch64 qt depends support for cross compiling ghost-qt (TheCharlatan)
 - #13705 `b413ba0` Add format string linter (practicalswift)
 - #14000 `48c8459` fix qt determinism (theuni)
 - #14018 `3e4829a` Bugfix: NSIS: Exclude `Makefile*` from docs (luke-jr)
@@ -630,12 +630,12 @@ Cold Staking Features in QT
 - #12252 `8d57319` Require all tests to follow naming convention (ajtowns)
 - #12295 `935eb8d` Enable flake8 warnings for all currently non-violated rules (practicalswift)
 - #11858 `b4d8549` Prepare tests for Windows (MarcoFalke)
-- #11771 `2dbc4a4` Change invalidtxrequest to use ParticlTestFramework (jnewbery)
+- #11771 `2dbc4a4` Change invalidtxrequest to use GhostTestFramework (jnewbery)
 - #12200 `d09968f` Bind functional test nodes to 127.0.0.1 (Sjors)
 - #12425 `26dc2da` Add some script tests (richardkiss)
 - #12455 `23481fa` Fix bip68 sequence test to reflect updated rpc error message (Empact)
 - #12477 `acd1e61` Plug memory leaks and stack-use-after-scope (MarcoFalke)
-- #12443 `07090c5` Move common args to particl.conf (MarcoFalke)
+- #12443 `07090c5` Move common args to ghost.conf (MarcoFalke)
 - #12570 `39dcac2` Add test cases for HexStr (`std::reverse_iterator` and corner cases) (kostaz)
 - #12582 `6012f1c` Fix ListCoins test failure due to unset `g_wallet_allow_fallback_fee` (ryanofsky)
 - #12516 `7f99964` Avoid unintentional unsigned integer wraparounds in tests (practicalswift)
@@ -643,7 +643,7 @@ Cold Staking Features in QT
 - #12600 `29088b1` Add a test for large tx output scripts with segwit input (richardkiss)
 - #12627 `791c3ea` Fix some tests to work on native windows (MarcoFalke)
 - #12405 `0f58d7f` travis: Full clone for git subtree check (MarcoFalke)
-- #11772 `0630974` Change invalidblockrequest to use ParticlTestFramework (jnewbery)
+- #11772 `0630974` Change invalidblockrequest to use GhostTestFramework (jnewbery)
 - #12681 `1846296` Fix ComputeTimeSmart test failure with `-DDEBUG_LOCKORDER` (ryanofsky)
 - #12682 `9f04c8e` travis: Clone depth 1 unless `$check_doc` (MarcoFalke)
 - #12710 `00d1680` Append scripts to new `test_list` array to fix bad assignment (jeffrade)
@@ -656,9 +656,9 @@ Cold Staking Features in QT
 - #12806 `18606eb` Fix function names in `feature_blocksdir` (MarcoFalke)
 - #12811 `0d8fc8d` Make summary row bold-red if any test failed and show failed tests at end of table (laanwj)
 - #12790 `490644d` Use blockmaxweight where tests previously had blockmaxsize (conscott)
-- #11773 `f0f9732` Change `feature_block.py` to use ParticlTestFramework (jnewbery)
+- #11773 `f0f9732` Change `feature_block.py` to use GhostTestFramework (jnewbery)
 - #12839 `40f4baf` Remove travis checkout depth (laanwj)
-- #11817 `2a09a78` Change `feature_csv_activation.py` to use ParticlTestFramework (jnewbery)
+- #11817 `2a09a78` Change `feature_csv_activation.py` to use GhostTestFramework (jnewbery)
 - #12284 `fa5825d` Remove assigned but never used local variables. Enable Travis checking for unused local variables (practicalswift)
 - #12719 `9beded5` Add note about test suite naming convention in developer-notes.md (practicalswift)
 - #12861 `c564424` Stop `feature_block.py` from blowing up memory (jnewbery)
@@ -668,7 +668,7 @@ Cold Staking Features in QT
 - #12766 `69310a3` Tidy up REST interface functional tests (romanz)
 - #12849 `83c7533` Add logging in loops in `p2p_sendhears.py` (ccdle12)
 - #12895 `d6f10b2` Add note about test suite name uniqueness requirement to developer notes (practicalswift)
-- #12856 `27278df` Add Metaclass for ParticlTestFramework (WillAyd)
+- #12856 `27278df` Add Metaclass for GhostTestFramework (WillAyd)
 - #12918 `6fc5a05` Assert on correct variable (kallewoof)
 - #11878 `a04440f` Add Travis check for duplicate includes (practicalswift)
 - #12917 `cf8073f` Windows fixups for functional tests (MarcoFalke)
@@ -725,7 +725,7 @@ Cold Staking Features in QT
 - #13219 `08516e0` bench: Add block assemble benchmark (MarcoFalke)
 - #13530 `b1dc39d` bench: Add missing pow.h header (laanwj)
 - #12686 `2643fa5` Add -ftrapv to CFLAGS and CXXFLAGS when --enable-debug is used. Enable -ftrapv in Travis (practicalswift)
-- #12882 `d96bdd7` Make `test_particl` pass under ThreadSanitzer (clang). Fix lock-order-inversion (potential deadlock) (practicalswift)
+- #12882 `d96bdd7` Make `test_ghost` pass under ThreadSanitzer (clang). Fix lock-order-inversion (potential deadlock) (practicalswift)
 - #13535 `2328039` `wallet_basic`: Specify minimum required amount for listunspent (MarcoFalke)
 - #13551 `c93c360` Fix incorrect documentation for test case `cuckoocache_hit_rate_ok` (practicalswift)
 - #13563 `b330f3f` bench: Simplify coinselection (promag)
@@ -741,7 +741,7 @@ Cold Staking Features in QT
 - #13663 `cbc9b50` Avoid read/write to default datadir (MarcoFalke)
 - #13682 `f8a32a3` bench: Remove unused variable (practicalswift)
 - #13638 `6fcdb5e` Use `MAX_SCRIPT_ELEMENT_SIZE` from script.py (domob1812)
-- #13687 `9d26b69` travis: Check that ~/.particl is never created (MarcoFalke)
+- #13687 `9d26b69` travis: Check that ~/.ghost is never created (MarcoFalke)
 - #13715 `e1260a7` fixes mininode's P2PConnection sending messages on closing transport (marcoagner)
 - #13729 `aa9429a` travis: Avoid unnecessarily setting env variables on the lint build (Empact)
 - #13747 `ab28b5b` Skip P2PConnection's `is_closing()` check when not available (domob1812)
@@ -752,7 +752,7 @@ Cold Staking Features in QT
 - #13779 `d25079a` travis: Improve readability of travis.yml and log outputs (scravy)
 - #13822 `0fb9c87` bench: Make coinselection output groups pass eligibility filter (achow101)
 - #13247 `e83d82a` Add tests to SingleThreadedSchedulerClient() and document the memory model (skeees)
-- #13811 `660abc1` travis: Run `bench_particl` once (MarcoFalke)
+- #13811 `660abc1` travis: Run `bench_ghost` once (MarcoFalke)
 - #13837 `990e182` Extract `rpc_timewait` as test param (MarcoFalke)
 - #13851 `9c4324d` fix locale for lint-shell (scravy)
 - #13823 `489b51b` quote path in authproxy for external multiwallets (MarcoFalke)
@@ -787,8 +787,8 @@ Cold Staking Features in QT
 - #10694 `ae5bcc7` Remove redundant code in MutateTxSign(CMutableTransaction&, const std::string&) (practicalswift)
 - #12659 `3d16f58` Improve Fatal LevelDB Log Messages (eklitzke)
 - #12643 `0f0229d` util: Remove unused `sync_chain` (MarcoFalke)
-- #12102 `7fb8fb4` Apply hardening measures in particld systemd service file (Flowdalic)
-- #12652 `55f490a` particl-cli: Provide a better error message when particld is not running (practicalswift)
+- #12102 `7fb8fb4` Apply hardening measures in ghostd systemd service file (Flowdalic)
+- #12652 `55f490a` ghost-cli: Provide a better error message when ghostd is not running (practicalswift)
 - #12630 `c290508` Provide useful error message if datadir is not writable (murrayn)
 - #11881 `624bee9` Remove Python2 support (jnewbery)
 - #12821 `082e26c` contrib: Remove unused import string (MarcoFalke)
@@ -809,7 +809,7 @@ Cold Staking Features in QT
 - #13031 `826acc9` Fix for utiltime to compile with msvc (sipsorcery)
 - #13119 `81743b5` Remove script to clean up datadirs (MarcoFalke)
 - #12954 `5a66642` util: Refactor logging code into a global object (jimpo)
-- #12769 `35eb9d6` Add systemd service to particld in debian package (ghost)
+- #12769 `35eb9d6` Add systemd service to ghostd in debian package (ghost)
 - #13146 `0bc980b` rpcauth: Make it possible to provide a custom password (laanwj)
 - #13148 `b62b437` logging: Fix potential use-after-free in logprintstr(…) (practicalswift)
 - #13214 `0612d96` Enable Travis checking for two Python linting rules we are currently not violating (practicalswift)
@@ -818,7 +818,7 @@ Cold Staking Features in QT
 - #13228 `d792e47` Add script to detect circular dependencies between source modules (sipa)
 - #13320 `e08c130` Ensure gitian-build.sh uses bash (jhfrontz)
 - #13301 `e4082d5` lint: Add linter to error on `#include <*.cpp>` (Empact)
-- #13374 `56f6936` utils and libraries: checking for particl address in translations (kaplanmaxe)
+- #13374 `56f6936` utils and libraries: checking for ghost address in translations (kaplanmaxe)
 - #13230 `7c32b41` Simplify include analysis by enforcing the developer guide's include syntax (practicalswift)
 - #13450 `32bf4c6` Add linter: Enforce the source code file naming convention described in the developer notes (practicalswift)
 - #13479 `fa2ea37` contrib: Fix cve-2018-12356 by hardening the regex (loganaden)
@@ -826,7 +826,7 @@ Cold Staking Features in QT
 - #13494 `d67eff8` Follow-up to #13454: Fix broken build by exporting `LC_ALL=C` (practicalswift)
 - #13510 `03f3925` Scripts and tools: Obsolete #!/bin/bash shebang (DesWurstes)
 - #13577 `c9eb8d1` logging: Avoid nstart may be used uninitialized in appinitmain warning (mruddy)
-- #13603 `453ae5e` particl-tx: Stricter check for valid integers (domob1812)
+- #13603 `453ae5e` ghost-tx: Stricter check for valid integers (domob1812)
 - #13118 `c05c93c` RPCAuth Detection in Logs (Linrono)
 - #13647 `4027ec1` Scripts and tools: Fix `BIND_NOW` check in security-check.py (conradoplg)
 - #13692 `f5d166a` contrib: Clone core repo in gitian-build (MarcoFalke)
@@ -850,7 +850,7 @@ Cold Staking Features in QT
 - #13441 `4a7e64f` Prevent shared conf files from failing with different available options in different binaries (achow101)
 - #13471 `5eca4e8` For AVX2 code, also check for AVX, XSAVE, and OS support (sipa)
 - #13503 `c655b2c` Document FreeBSD quirk. Fix FreeBSD build: Use std::min<int>(…) to allow for compilation under certain FreeBSD versions (practicalswift)
-- #13725 `07ce278` Fix particl-cli --version (Empact)
+- #13725 `07ce278` Fix ghost-cli --version (Empact)
 
 ### Documentation
 - #12306 `216f9a4` Improvements to UNIX documentation (axvr)
@@ -876,7 +876,7 @@ Cold Staking Features in QT
 - #12800 `2d97611` Add note about our preference for scoped enumerations ("enum class") (practicalswift)
 - #12798 `174d016` Refer to witness reserved value as spec. in the BIP (MarcoFalke)
 - #12759 `d3908e2` Improve formatting of developer notes (eklitzke)
-- #12877 `2b54155` Use particld in Tor documentation (knoxcard)
+- #12877 `2b54155` Use ghostd in Tor documentation (knoxcard)
 - #12896 `b15485e` Fix conflicting statements about initialization in developer notes (practicalswift)
 - #12850 `319991d` add qrencode to brew install instructions (buddilla)
 - #12007 `cd8e45b` Clarify the meaning of fee delta not being a fee rate in prioritisetransaction RPC (honzik666)
@@ -926,7 +926,7 @@ Cold Staking Features in QT
 - #13895 `1cd5f2c` fix GetWarnings docs to reflect behavior (Empact)
 - #13911 `3e3a50a` Revert translated string change, clarify wallet log messages (PierreRochard)
 - #13908 `d6faea4` upgrade rescan time warning from minutes to >1 hour (masonicboom)
-- #13905 `73a09b4` fixed particl-cli -help output for help2man (hebasto)
+- #13905 `73a09b4` fixed ghost-cli -help output for help2man (hebasto)
 - #14100 `2936dbc` Change documentation for =0 for non-boolean options (laanwj)
 - #14096 `465a583` Add reference documentation for descriptors language (sipa)
 - #12757 `0c5f67b` Clarify include guard naming convention (practicalswift)
@@ -935,4 +935,4 @@ Cold Staking Features in QT
 Credits
 =======
 
-Thanks to the Core Developers at Particl and Bitcoin (https://github.com/bitcoin/bitcoin).
+Thanks to the Core Developers at Ghost and Bitcoin (https://github.com/bitcoin/bitcoin).

@@ -1,41 +1,41 @@
-Particl Core
+Ghost Core
 =============
 
 Setup
 ---------------------
-Particl Core is the original Particl client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Particl transactions, which requires a few gigabytes of disk space. Depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+Ghost Core is the original Ghost client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Ghost transactions, which requires a few gigabytes of disk space. Depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
-To download Particl Core, visit [particl.io](https://particl.io/downloads/).
+To download Ghost Core, visit [ghost.io](https://ghost.io/downloads/).
 
 Running
 ---------------------
-The following are some helpful notes on how to run Particl Core on your native platform.
+The following are some helpful notes on how to run Ghost Core on your native platform.
 
 ### Unix
 
 Unpack the files into a directory and run:
 
-- `bin/particl-qt` (GUI) or
-- `bin/particld` (headless)
+- `bin/ghost-qt` (GUI) or
+- `bin/ghostd` (headless)
 
 ### Windows
 
-Unpack the files into a directory, and then run particl-qt.exe.
+Unpack the files into a directory, and then run ghost-qt.exe.
 
 ### macOS
 
-Drag Particl Core to your applications folder, and then run Particl Core.
+Drag Ghost Core to your applications folder, and then run Ghost Core.
 
 ### Need Help?
 
-* See the documentation at the [Particl Wiki](https://particl.wiki/start)
+* See the documentation at the [Ghost Wiki](https://ghost.wiki/start)
 for help and more information.
-* Ask for help on [#particl](https://riot.im/app/#/room/#particl:matrix.org) on Riot.
-* Ask for help on [Discord](https://discord.me/particl).
+* Ask for help on [#ghost](https://riot.im/app/#/room/#ghost:matrix.org) on Riot.
+* Ask for help on [Discord](https://discord.me/ghost).
 
 Building
 ---------------------
-The following are developer notes on how to build Particl Core on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
+The following are developer notes on how to build Ghost Core on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
 
 - [Dependencies](dependencies.md)
 - [macOS Build Notes](build-osx.md)
@@ -48,7 +48,7 @@ The following are developer notes on how to build Particl Core on your native pl
 
 Development
 ---------------------
-The Particl repo's [root README](/README.md) contains relevant information on the development process and automated testing.
+The Ghost repo's [root README](/README.md) contains relevant information on the development process and automated testing.
 
 - [Developer Notes](developer-notes.md)
 - [Productivity Notes](productivity.md)
@@ -67,7 +67,7 @@ The Particl repo's [root README](/README.md) contains relevant information on th
 
 ### Resources
 * Discuss on [BitcoinTalk](https://bitcointalk.org/index.php?topic=1835782.0) forums.
-* Discuss project-specific development on [#particl](https://riot.im/app/#/room/#particl-dev:matrix.org) on Riot.
+* Discuss project-specific development on [#ghost](https://riot.im/app/#/room/#ghost-dev:matrix.org) on Riot.
 
 ### Miscellaneous
 - [Assets Attribution](assets-attribution.md)

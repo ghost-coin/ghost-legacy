@@ -98,7 +98,7 @@ pushd "$TARGET" || exit 1
           exit 1
         fi
 
-        git clone https://github.com/particl/particl-core "$tag"
+        git clone https://github.com/ghost/ghost-core "$tag"
         pushd "$tag" || exit 1
         {
           git checkout "$tag"
@@ -120,9 +120,9 @@ pushd "$TARGET" || exit 1
           make
           # Move binaries, so they're in the same place as in the release download:
           mkdir bin
-          mv src/particld src/particl-cli src/particl-tx bin
+          mv src/ghostd src/ghost-cli src/ghost-tx bin
           if [ "$FUNCTIONAL_TESTS" -eq "0" ]; then
-            mv src/qt/particl-qt bin
+            mv src/qt/ghost-qt bin
           fi
         }
         popd || exit 1
@@ -142,14 +142,14 @@ pushd "$TARGET" || exit 1
         #curl -O $URL
         #tar -zxf "bitcoin-${tag:1}-$PLATFORM.tar.gz" -C "$tag" --strip-components=1 "bitcoin-${tag:1}"
         #rm "bitcoin-${tag:1}-$PLATFORM.tar.gz"
-        URL="https://github.com/particl/particl-core/releases/download/${tag}/particl-${tag:1}-$PLATFORM.tar.gz"
+        URL="https://github.com/ghost/ghost-core/releases/download/${tag}/ghost-${tag:1}-$PLATFORM.tar.gz"
         echo "Fetching: $URL"
         if ! curl -O -f $URL; then
             echo "Download failed."
             exit 1
         fi
-        tar -zxf "particl-${tag:1}-$PLATFORM.tar.gz" -C "$tag" --strip-components=1 "particl-${tag:1}"
-        rm "particl-${tag:1}-$PLATFORM.tar.gz"
+        tar -zxf "ghost-${tag:1}-$PLATFORM.tar.gz" -C "$tag" --strip-components=1 "ghost-${tag:1}"
+        rm "ghost-${tag:1}-$PLATFORM.tar.gz"
       fi
     fi
   done

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 The Particl Core developers
+// Copyright (c) 2017-2020 The Ghost Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -353,8 +353,8 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     BOOST_MESSAGE("---------------- Serialize Transaction with No Segwit ---------------------\n");
     CMutableTransaction tx;
     tx.vpout.emplace_back(txout);
-    tx.nVersion = 2|PARTICL_TXN_VERSION;
-    BOOST_CHECK_MESSAGE(tx.IsParticlVersion(), "failed IsParticlVersion");
+    tx.nVersion = 2|GHOST_TXN_VERSION;
+    BOOST_CHECK_MESSAGE(tx.IsGhostVersion(), "failed IsGhostVersion");
 
     //The peer that sends the block sets the version that the data stream will use!
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION|SERIALIZE_TRANSACTION_NO_WITNESS);
@@ -532,7 +532,7 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     SignatureData sigdataA, sigdataB, sigdataC;
 
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.SetType(TXN_COINSTAKE);
     txn.nLockTime = 0;
 
@@ -564,7 +564,7 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     BOOST_CHECK(VerifyScript(scriptSig, script, &sigdataA.scriptWitness, nFlags, MutableTransactionSignatureChecker(&txn, 0, vchAmount), &serror));
 
 
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.SetType(TXN_STANDARD);
     BOOST_CHECK(!txn.IsCoinStake());
 

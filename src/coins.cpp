@@ -105,7 +105,7 @@ void AddCoins(CCoinsViewCache& cache, const CTransaction &tx, int nHeight, bool 
     bool fCoinbase = tx.IsCoinBase() || tx.IsCoinStake();
     const uint256& txid = tx.GetHash();
 
-    if (tx.IsParticlVersion()) {
+    if (tx.IsGhostVersion()) {
         for (size_t i = 0; i < tx.vpout.size(); ++i) {
             const CTxOutBase *out = tx.vpout[i].get();
             bool overwrite = check_for_overwrite ? cache.HaveCoin(COutPoint(txid, i)) : fCoinbase;

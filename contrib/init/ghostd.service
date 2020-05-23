@@ -1,0 +1,25 @@
+[Unit]
+Description=Ghost daemon
+After=network.target
+
+[Service]
+User=ghost
+Group=ghost
+
+Type=forking
+PIDFile=/home/ghost/.ghost/ghostd.pid
+ExecStart=/home/ghost/Ghost/ghostd -daemon -pid=/home/ghost/.ghost/ghostd.pid \
+-conf=/home/ghost/.ghost/ghost.conf -datadir=/home/ghost/.ghost
+
+ExecStop=/home/ghost/Ghost/ghost-cli -conf=/home/ghost/.ghost/ghost.conf stop
+ExecStop=/usr/bin/sleep 25
+
+Restart=no
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

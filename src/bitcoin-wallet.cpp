@@ -47,19 +47,19 @@ static bool WalletAppInit(int argc, char* argv[])
         return false;
     }
     if (argc < 2 || HelpRequested(gArgs)) {
-        std::string usage = strprintf("%s particl-wallet version", PACKAGE_NAME) + " " + FormatFullVersion() + "\n\n" +
-                                      "particl-wallet is an offline tool for creating and interacting with " PACKAGE_NAME " wallet files.\n" +
-                                      "By default particl-wallet will act on wallets in the default mainnet wallet directory in the datadir.\n" +
+        std::string usage = strprintf("%s ghost-wallet version", PACKAGE_NAME) + " " + FormatFullVersion() + "\n\n" +
+                                      "ghost-wallet is an offline tool for creating and interacting with " PACKAGE_NAME " wallet files.\n" +
+                                      "By default ghost-wallet will act on wallets in the default mainnet wallet directory in the datadir.\n" +
                                       "To change the target wallet, use the -datadir, -wallet and -testnet/-regtest arguments.\n\n" +
                                       "Usage:\n" +
-                                     "  particl-wallet [options] <command>\n\n" +
+                                     "  ghost-wallet [options] <command>\n\n" +
                                      gArgs.GetHelpMessage();
 
         tfm::format(std::cout, "%s", usage);
         return false;
     }
 
-    fParticlMode = !gArgs.GetBoolArg("-btcmode", false); // qa tests
+    fGhostMode = !gArgs.GetBoolArg("-btcmode", false); // qa tests
 
     // check for printtoconsole, allow -debug
     LogInstance().m_print_to_console = gArgs.GetBoolArg("-printtoconsole", gArgs.GetBoolArg("-debug", false));
@@ -70,10 +70,10 @@ static bool WalletAppInit(int argc, char* argv[])
     }
     // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause)
     SelectParams(gArgs.GetChainName());
-    if (!fParticlMode) {
+    if (!fGhostMode) {
         WITNESS_SCALE_FACTOR = WITNESS_SCALE_FACTOR_BTC;
         if (gArgs.GetChainName() == CBaseChainParams::REGTEST) {
-            ResetParams(CBaseChainParams::REGTEST, fParticlMode);
+            ResetParams(CBaseChainParams::REGTEST, fGhostMode);
         }
     }
 
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     }
 
     if (method.empty()) {
-        tfm::format(std::cerr, "No method provided. Run `particl-wallet -help` for valid methods.\n");
+        tfm::format(std::cerr, "No method provided. Run `ghost-wallet -help` for valid methods.\n");
         return EXIT_FAILURE;
     }
 

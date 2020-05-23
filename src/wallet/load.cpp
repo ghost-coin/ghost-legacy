@@ -79,7 +79,7 @@ bool LoadWallets(interfaces::Chain& chain, const std::vector<std::string>& walle
                 chain.initError(error.translated);
                 return false;
             }
-            if (fParticlMode && !((CHDWallet*)pwallet.get())->Initialise()) {
+            if (fGhostMode && !((CHDWallet*)pwallet.get())->Initialise()) {
                 return false;
             }
             AddWallet(pwallet);

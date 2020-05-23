@@ -747,7 +747,7 @@ static UniValue getblockheader(const JSONRPCRequest& request)
                             {RPCResult::Type::STR_HEX, "chainwork", "Expected number of hashes required to produce the current chain"},
                             {RPCResult::Type::NUM, "nTx", "The number of transactions in the block"},
                             {RPCResult::Type::NUM, "anonoutputs", "The number of RCT outputs in the chain at this block"},
-                            {RPCResult::Type::STR_AMOUNT, "moneysupply", "The total amount of particl in the chain at this block"},
+                            {RPCResult::Type::STR_AMOUNT, "moneysupply", "The total amount of ghost in the chain at this block"},
                             {RPCResult::Type::STR_HEX, "previousblockhash", "The hash of the previous block"},
                             {RPCResult::Type::STR_HEX, "nextblockhash", "The hash of the next block"},
                         }},
@@ -1011,7 +1011,7 @@ static UniValue gettxoutsetinfo(const JSONRPCRequest& request)
         ret.pushKV("bestblock", stats.hashBlock.GetHex());
         ret.pushKV("transactions", (int64_t)stats.nTransactions);
         ret.pushKV("txouts", (int64_t)stats.nTransactionOutputs);
-        if (fParticlMode)
+        if (fGhostMode)
             ret.pushKV("txouts_blinded", (int64_t)stats.nBlindTransactionOutputs);
         ret.pushKV("bogosize", (int64_t)stats.nBogoSize);
         ret.pushKV("hash_serialized_2", stats.hashSerialized.GetHex());
@@ -1044,7 +1044,7 @@ UniValue gettxout(const JSONRPCRequest& request)
                                 {RPCResult::Type::STR_HEX, "hex", ""},
                                 {RPCResult::Type::NUM, "reqSigs", "Number of required signatures"},
                                 {RPCResult::Type::STR_HEX, "type", "The type, eg pubkeyhash"},
-                                {RPCResult::Type::ARR, "addresses", "array of particl addresses",
+                                {RPCResult::Type::ARR, "addresses", "array of ghost addresses",
                                     {{RPCResult::Type::STR, "address", "bitcoin address"}}},
                             }},
                         {RPCResult::Type::BOOL, "coinbase", "Coinbase or not"},
@@ -1256,7 +1256,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("blocks",                (int)::ChainActive().Height());
     obj.pushKV("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1);
     obj.pushKV("bestblockhash",         tip->GetBlockHash().GetHex());
-    if (fParticlMode) {
+    if (fGhostMode) {
         obj.pushKV("moneysupply",           ValueFromAmount(tip->nMoneySupply));
         obj.pushKV("blockindexsize",        (int)::BlockIndex().size());
         obj.pushKV("delayedblocks",         (int)CountDelayedBlocks());
@@ -1285,7 +1285,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
         }
     }
 
-    if (fParticlMode)
+    if (fGhostMode)
         return obj;
     const Consensus::Params& consensusParams = Params().GetConsensus();
     UniValue softforks(UniValue::VOBJ);
@@ -1884,7 +1884,7 @@ static UniValue getblockstats(const JSONRPCRequest& request)
 
         if (loop_inputs) {
             CAmount tx_total_in = 0;
-            const auto& txundo = blockUndo.vtxundo.at(fParticlMode ? i : i - 1); // Particl includes coinbase/coinstake in undo data
+            const auto& txundo = blockUndo.vtxundo.at(fGhostMode ? i : i - 1); // Ghost includes coinbase/coinstake in undo data
             for (const Coin& coin: txundo.vprevout) {
                 const CTxOut& prevoutput = coin.out;
 

@@ -40,7 +40,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter& ss, const uint256& hash,
 
         stats.nBogoSize += 32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ + 8 /* amount */ +
                            2 /* scriptPubKey len */ + output.second.out.scriptPubKey.size() /* scriptPubKey */ +
-                           (fParticlMode ? 1 /* nType */ + 33 /* commitment */ : 0);
+                           (fGhostMode ? 1 /* nType */ + 33 /* commitment */ : 0);
     }
     ss << VARINT(0u);
 }

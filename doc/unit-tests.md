@@ -6,9 +6,9 @@ and tests weren't explicitly disabled.
 
 After configuring, they can be run with `make check`.
 
-To run the particld tests manually, launch `src/test/test_particl`.
+To run the ghostd tests manually, launch `src/test/test_ghost`.
 
-To add more particld tests, add `BOOST_AUTO_TEST_CASE` functions to the existing
+To add more ghostd tests, add `BOOST_AUTO_TEST_CASE` functions to the existing
 .cpp files in the `test/` directory or add new .cpp files that
 implement new BOOST_AUTO_TEST_SUITE sections.
 
