@@ -1,4 +1,5 @@
 // Copyright (c) 2017-2020 The Particl Core developers
+// Copyright (c) 2020 The Ghost Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -223,44 +224,44 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
     ECC_Stop_Blinding();
 }
 
-static void ParticlAddTxPlainPlainNotOwned(benchmark::State& state) { AddTx(state, "plain", "plain", false); }
-static void ParticlAddTxPlainPlainOwned(benchmark::State& state) { AddTx(state, "plain", "plain", true); }
-static void ParticlAddTxPlainBlindNotOwned(benchmark::State& state) { AddTx(state, "plain", "blind", false); }
-static void ParticlAddTxPlainBlindOwned(benchmark::State& state) { AddTx(state, "plain", "blind", true); }
-// static void ParticlAddTxPlainAnonNotOwned(benchmark::State& state) { AddTx(state, "plain", "anon", false); }
-// static void ParticlAddTxPlainAnonOwned(benchmark::State& state) { AddTx(state, "plain", "anon", true); }
+static void GhostAddTxPlainPlainNotOwned(benchmark::State& state) { AddTx(state, "plain", "plain", false); }
+static void GhostAddTxPlainPlainOwned(benchmark::State& state) { AddTx(state, "plain", "plain", true); }
+static void GhostAddTxPlainBlindNotOwned(benchmark::State& state) { AddTx(state, "plain", "blind", false); }
+static void GhostAddTxPlainBlindOwned(benchmark::State& state) { AddTx(state, "plain", "blind", true); }
+// static void GhostAddTxPlainAnonNotOwned(benchmark::State& state) { AddTx(state, "plain", "anon", false); }
+// static void GhostAddTxPlainAnonOwned(benchmark::State& state) { AddTx(state, "plain", "anon", true); }
 
-static void ParticlAddTxBlindPlainNotOwned(benchmark::State& state) { AddTx(state, "blind", "plain", false); }
-static void ParticlAddTxBlindPlainOwned(benchmark::State& state) { AddTx(state, "blind", "plain", true); }
-static void ParticlAddTxBlindBlindNotOwned(benchmark::State& state) { AddTx(state, "blind", "blind", false); }
-static void ParticlAddTxBlindBlindOwned(benchmark::State& state) { AddTx(state, "blind", "blind", true); }
-static void ParticlAddTxBlindAnonNotOwned(benchmark::State& state) { AddTx(state, "blind", "anon", false); }
-static void ParticlAddTxBlindAnonOwned(benchmark::State& state) { AddTx(state, "blind", "anon", true); }
+static void GhostAddTxBlindPlainNotOwned(benchmark::State& state) { AddTx(state, "blind", "plain", false); }
+static void GhostAddTxBlindPlainOwned(benchmark::State& state) { AddTx(state, "blind", "plain", true); }
+static void GhostAddTxBlindBlindNotOwned(benchmark::State& state) { AddTx(state, "blind", "blind", false); }
+static void GhostAddTxBlindBlindOwned(benchmark::State& state) { AddTx(state, "blind", "blind", true); }
+static void GhostAddTxBlindAnonNotOwned(benchmark::State& state) { AddTx(state, "blind", "anon", false); }
+static void GhostAddTxBlindAnonOwned(benchmark::State& state) { AddTx(state, "blind", "anon", true); }
 
-static void ParticlAddTxAnonPlainNotOwned(benchmark::State& state) { AddTx(state, "anon", "plain", false); }
-static void ParticlAddTxAnonPlainOwned(benchmark::State& state) { AddTx(state, "anon", "plain", true); }
-static void ParticlAddTxAnonBlindNotOwned(benchmark::State& state) { AddTx(state, "anon", "blind", false); }
-static void ParticlAddTxAnonBlindOwned(benchmark::State& state) { AddTx(state, "anon", "blind", true); }
-static void ParticlAddTxAnonAnonNotOwned(benchmark::State& state) { AddTx(state, "anon", "anon", false); }
-static void ParticlAddTxAnonAnonOwned(benchmark::State& state) { AddTx(state, "anon", "anon", true); }
+static void GhostAddTxAnonPlainNotOwned(benchmark::State& state) { AddTx(state, "anon", "plain", false); }
+static void GhostAddTxAnonPlainOwned(benchmark::State& state) { AddTx(state, "anon", "plain", true); }
+static void GhostAddTxAnonBlindNotOwned(benchmark::State& state) { AddTx(state, "anon", "blind", false); }
+static void GhostAddTxAnonBlindOwned(benchmark::State& state) { AddTx(state, "anon", "blind", true); }
+static void GhostAddTxAnonAnonNotOwned(benchmark::State& state) { AddTx(state, "anon", "anon", false); }
+static void GhostAddTxAnonAnonOwned(benchmark::State& state) { AddTx(state, "anon", "anon", true); }
 
-BENCHMARK(ParticlAddTxPlainPlainNotOwned, 100);
-BENCHMARK(ParticlAddTxPlainPlainOwned, 100);
-BENCHMARK(ParticlAddTxPlainBlindNotOwned, 100);
-BENCHMARK(ParticlAddTxPlainBlindOwned, 100);
-// BENCHMARK(ParticlAddTxPlainAnonNotOwned, 100);
-// BENCHMARK(ParticlAddTxPlainAnonOwned, 100);
+BENCHMARK(GhostAddTxPlainPlainNotOwned, 100);
+BENCHMARK(GhostAddTxPlainPlainOwned, 100);
+BENCHMARK(GhostAddTxPlainBlindNotOwned, 100);
+BENCHMARK(GhostAddTxPlainBlindOwned, 100);
+// BENCHMARK(GhostAddTxPlainAnonNotOwned, 100);
+// BENCHMARK(GhostAddTxPlainAnonOwned, 100);
 
-BENCHMARK(ParticlAddTxBlindPlainNotOwned, 100);
-BENCHMARK(ParticlAddTxBlindPlainOwned, 100);
-BENCHMARK(ParticlAddTxBlindBlindNotOwned, 100);
-BENCHMARK(ParticlAddTxBlindBlindOwned, 100);
-BENCHMARK(ParticlAddTxBlindAnonNotOwned, 100);
-BENCHMARK(ParticlAddTxBlindAnonOwned, 100);
+BENCHMARK(GhostAddTxBlindPlainNotOwned, 100);
+BENCHMARK(GhostAddTxBlindPlainOwned, 100);
+BENCHMARK(GhostAddTxBlindBlindNotOwned, 100);
+BENCHMARK(GhostAddTxBlindBlindOwned, 100);
+BENCHMARK(GhostAddTxBlindAnonNotOwned, 100);
+BENCHMARK(GhostAddTxBlindAnonOwned, 100);
 
-BENCHMARK(ParticlAddTxAnonPlainNotOwned, 100);
-BENCHMARK(ParticlAddTxAnonPlainOwned, 100);
-BENCHMARK(ParticlAddTxAnonBlindNotOwned, 100);
-BENCHMARK(ParticlAddTxAnonBlindOwned, 100);
-BENCHMARK(ParticlAddTxAnonAnonNotOwned, 100);
-BENCHMARK(ParticlAddTxAnonAnonOwned, 100);
+BENCHMARK(GhostAddTxAnonPlainNotOwned, 100);
+BENCHMARK(GhostAddTxAnonPlainOwned, 100);
+BENCHMARK(GhostAddTxAnonBlindNotOwned, 100);
+BENCHMARK(GhostAddTxAnonBlindOwned, 100);
+BENCHMARK(GhostAddTxAnonAnonNotOwned, 100);
+BENCHMARK(GhostAddTxAnonAnonOwned, 100);

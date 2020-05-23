@@ -47,7 +47,7 @@
     </message>
     <message>
         <source>Choose the address to receive coins with</source>
-        <translation>Kies die adres vir die ontvangs van betaaling</translation>
+        <translation>Kies die adres vir die ontvangs van betaaling</translation>
     </message>
     <message>
         <source>C&amp;hoose</source>
@@ -62,8 +62,8 @@
         <translation>Ontvang adresse</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Dit is jou Particl-adresse vir die stuur van betalings. Kontroleer altyd die bedrag en die ontvangsadres voordat u munte stuur.</translation>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Dit is jou Ghost-adresse vir die stuur van betalings. Kontroleer altyd die bedrag en die ontvangsadres voordat u munte stuur.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -156,8 +156,8 @@
         <translation>Bevestig beursie enkripsie.</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Waarskuwing: As jy jou beursie enkripteer en jou wagwoord verloor, sal jy &lt;b&gt;AL JOU PARTICL VERLOOR&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
+        <translation>Waarskuwing: As jy jou beursie enkripteer en jou wagwoord verloor, sal jy &lt;b&gt;AL JOU GHOST VERLOOR&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -310,8 +310,8 @@
         <translation>Herindekseer blokke op skyf...</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
-        <translation>Stuur muntstukke na 'n Particl adres</translation>
+        <source>Send coins to a Ghost address</source>
+        <translation>Stuur muntstukke na 'n Ghost adres</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -346,12 +346,12 @@
         <translation>Versleutel die private sleutels wat aan u beursie behoort</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Teken boodskappe met u Particl adresse om te bewys dat u hul besit</translation>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
+        <translation>Teken boodskappe met u Ghost adresse om te bewys dat u hul besit</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Bevestig boodskappe om te verseker dat hulle geteken was met gespesifiseerde Particl adresse</translation>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
+        <translation>Bevestig boodskappe om te verseker dat hulle geteken was met gespesifiseerde Ghost adresse</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -370,8 +370,8 @@
         <translation>Blad nutsbalk</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Versoek betalings (genereer QR kodes en particl: URIs)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Versoek betalings (genereer QR kodes en ghost: URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -422,8 +422,8 @@
         <translation>Op datum</translation>
     </message>
     <message>
-        <source>Show the %1 help message to get a list with possible Particl command-line options</source>
-        <translation>Wys die %1 hulpboodskap om 'n lys met moontlike Particl bevel-lyn opsies te verkry</translation>
+        <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
+        <translation>Wys die %1 hulpboodskap om 'n lys met moontlike Ghost bevel-lyn opsies te verkry</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -500,8 +500,8 @@
         <translation>Beursie is &lt;b&gt;versleutel&lt;/b&gt; en is tans &lt;b&gt;gesluit&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>'n Noodlottige fout het voorgekom. Particl kan nie langer voortgaan nie en sal afsluit.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>'n Noodlottige fout het voorgekom. Ghost kan nie langer voortgaan nie en sal afsluit.</translation>
     </message>
 </context>
 <context>
@@ -696,8 +696,8 @@
         <translation>Wysig stuurende adres</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
-        <translation>Die ingeskrewe adres "%1" is nie 'n geldige Particl adres nie.</translation>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
+        <translation>Die ingeskrewe adres "%1" is nie 'n geldige Ghost adres nie.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -720,7 +720,7 @@
     </message>
     <message>
         <source>Directory already exists. Add %1 if you intend to create a new directory here.</source>
-        <translation>Lêer bestaan reeds. Voeg %1 indien u van plan is om n nuwe lêer hier te skep.</translation>
+        <translation>Lêer bestaan reeds. Voeg %1 indien u van plan is om n nuwe lêer hier te skep.</translation>
     </message>
     <message>
         <source>Path already exists, and is not a directory.</source>
@@ -765,8 +765,8 @@
         <translation>Gebruik 'n persoonlike data gids:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -934,7 +934,7 @@
     </message>
     <message>
         <source>Whether to show coin control features or not.</source>
-        <translation>Of om munt beheer funksies te wys of nie.</translation>
+        <translation>Of om munt beheer funksies te wys of nie.</translation>
     </message>
     <message>
         <source>&amp;OK</source>
@@ -1069,8 +1069,8 @@
         <translation>Bedrag</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
-        <translation>Voer in 'n Particl adres (bv. %1)</translation>
+        <source>Enter a Ghost address (e.g. %1)</source>
+        <translation>Voer in 'n Ghost adres (bv. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1632,11 +1632,11 @@ transaksievertragingsrisiko.</translation>
     </message>
     <message>
         <source>Payment request expired.</source>
-        <translation>Betalings versoek verstryk.</translation>
+        <translation>Betalings versoek verstryk.</translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
-        <translation>Waarskuwing: Ongeldige Particladres</translation>
+        <source>Warning: Invalid Ghost address</source>
+        <translation>Waarskuwing: Ongeldige Ghostadres</translation>
     </message>
     <message>
         <source>The address you selected for change is not part of this wallet. Any or all funds in your wallet may be sent to this address. Are you sure?</source>
@@ -1668,8 +1668,8 @@ Is u seker?</translation>
         <translation>Kies voorheen gebruikte adres</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
-        <translation>Die Particladres waarheen die betaling gestuur word</translation>
+        <source>The Ghost address to send the payment to</source>
+        <translation>Die Ghostadres waarheen die betaling gestuur word</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -1684,7 +1684,7 @@ Is u seker?</translation>
         <translation>Verwyder hierdie inskrywing</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less ghost than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>De fooi word afgetrek van die gestuurde bedrag.
 Die ontvanger sal minder ontvang as wat u in die 
 bedrag opgee. As daar meer as een ontvanger is,
@@ -2116,7 +2116,7 @@ word die fooi eweredig verdeel.</translation>
     </message>
     <message>
         <source>Transaction has too long of a mempool chain</source>
-        <translation>Transaksie se mempool ketting is te lank</translation>
+        <translation>Transaksie se mempool ketting is te lank</translation>
     </message>
     <message>
         <source>Transaction must have at least one recipient</source>
@@ -2124,7 +2124,7 @@ word die fooi eweredig verdeel.</translation>
     </message>
     <message>
         <source>Unknown network specified in -onlynet: '%s'</source>
-        <translation>Onbekende netwerk gespesifiseer in -onlynet: '%s'</translation>
+        <translation>Onbekende netwerk gespesifiseer in -onlynet: '%s'</translation>
     </message>
     <message>
         <source>Insufficient funds</source>

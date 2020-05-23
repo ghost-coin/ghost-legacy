@@ -61,7 +61,7 @@ void Seed(FastRandomContext& ctx)
     ctx = FastRandomContext(seed);
 }
 
-extern bool fParticlMode;
+extern bool fGhostMode;
 
 std::ostream& operator<<(std::ostream& os, const uint256& num)
 {
@@ -69,10 +69,10 @@ std::ostream& operator<<(std::ostream& os, const uint256& num)
     return os;
 }
 
-BasicTestingSetup::BasicTestingSetup(const std::string& chainName, const std::vector<const char*>& extra_args, bool fParticlModeIn)
+BasicTestingSetup::BasicTestingSetup(const std::string& chainName, const std::vector<const char*>& extra_args, bool fGhostModeIn)
     : m_path_root{fs::temp_directory_path() / "test_common_" PACKAGE_NAME / g_insecure_rand_ctx_temp_path.rand256().ToString()}
 {
-    fParticlMode = fParticlModeIn;
+    fGhostMode = fGhostModeIn;
     const std::vector<const char*> arguments = Cat(
         {
             "dummy",
@@ -81,8 +81,8 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, const std::ve
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
-            fParticlMode ? "" : "-btcmode",
-            fParticlMode ? "-debugexclude=hdwallet" : "",
+            fGhostMode ? "" : "-btcmode",
+            fGhostMode ? "-debugexclude=hdwallet" : "",
         },
         extra_args);
     fs::create_directories(m_path_root);
@@ -96,7 +96,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, const std::ve
         assert(error.empty());
     }
     SelectParams(chainName);
-    ResetParams(chainName, fParticlMode);
+    ResetParams(chainName, fGhostMode);
     SeedInsecureRand();
     if (G_TEST_LOG_FUN) LogInstance().PushBackCallback(G_TEST_LOG_FUN);
     InitLogging();
@@ -125,8 +125,8 @@ BasicTestingSetup::~BasicTestingSetup()
     ECC_Stop();
 }
 
-TestingSetup::TestingSetup(const std::string& chainName, const std::vector<const char*>& extra_args, bool fParticlModeIn)
-    : BasicTestingSetup(chainName, extra_args, fParticlModeIn)
+TestingSetup::TestingSetup(const std::string& chainName, const std::vector<const char*>& extra_args, bool fGhostModeIn)
+    : BasicTestingSetup(chainName, extra_args, fGhostModeIn)
 {
     const CChainParams& chainparams = Params();
     // Ideally we'd move all the RPC tests to the functional testing framework
@@ -202,7 +202,7 @@ TestChain100Setup::TestChain100Setup()
     gArgs.ForceSetArg("-segwitheight", "432");
     // Need to recreate chainparams
     SelectParams(CBaseChainParams::REGTEST);
-    ResetParams(CBaseChainParams::REGTEST, fParticlMode);
+    ResetParams(CBaseChainParams::REGTEST, fGhostMode);
 
     // Generate a 100-block chain:
     coinbaseKey.MakeNewKey(true);

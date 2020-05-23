@@ -72,9 +72,9 @@
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();
 
-const char * const BITCOIN_CONF_FILENAME = "particl.conf";
+const char * const BITCOIN_CONF_FILENAME = "ghost.conf";
 
-bool fParticlMode = true;
+bool fGhostMode = true;
 ArgsManager gArgs;
 
 /** A map that contains all the currently held directory locks. After
@@ -495,7 +495,7 @@ std::string ArgsManager::GetHelpMessage() const
                 usage += HelpMessageGroup("SMSG Commands:");
                 break;
             case OptionsCategory::PART_WALLET:
-                usage += HelpMessageGroup("Particl wallet Commands:");
+                usage += HelpMessageGroup("Ghost wallet Commands:");
                 break;
             case OptionsCategory::PART_STAKING:
                 usage += HelpMessageGroup("Staking Commands:");
@@ -554,7 +554,7 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(nullptr, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "particl";
+    const char* pszModule = "ghost";
 #endif
     if (pex)
         return strprintf(
@@ -573,13 +573,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 
 fs::path GetDefaultDataDir()
 {
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Particl
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Particl
-    // Mac: ~/Library/Application Support/Particl
-    // Unix: ~/.particl
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Ghost
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Ghost
+    // Mac: ~/Library/Application Support/Ghost
+    // Unix: ~/.ghost
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Particl";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "Ghost";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -589,10 +589,10 @@ fs::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    return pathRet / "Library/Application Support/Particl";
+    return pathRet / "Library/Application Support/Ghost";
 #else
     // Unix
-    return pathRet / ".particl";
+    return pathRet / ".ghost";
 #endif
 #endif
 }

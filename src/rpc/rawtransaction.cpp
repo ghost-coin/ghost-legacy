@@ -255,7 +255,7 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
                                          {RPCResult::Type::STR, "type", "The type, eg 'pubkeyhash'"},
                                          {RPCResult::Type::ARR, "addresses", "",
                                          {
-                                             {RPCResult::Type::STR, "address", "particl address"},
+                                             {RPCResult::Type::STR, "address", "ghost address"},
                                          }},
                                      }},
                                  }},
@@ -280,7 +280,7 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
     uint256 hash = ParseHashV(request.params[0], "parameter 1");
     CBlockIndex* blockindex = nullptr;
 
-    if (!fParticlMode && hash == Params().GenesisBlock().hashMerkleRoot) {
+    if (!fGhostMode && hash == Params().GenesisBlock().hashMerkleRoot) {
         // Special exception for the genesis block coinbase transaction
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "The genesis block coinbase is not considered an ordinary transaction and cannot be retrieved");
     }
@@ -356,7 +356,7 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
     if (blockindex) result.pushKV("in_active_chain", in_active_chain);
     result.pushKV("hex", strHex);
 
-    if (fParticlMode) {
+    if (fGhostMode) {
         TxToJSONExpanded(*tx, hash_block, result, nHeight, nConfirmations, nBlockTime);
     } else {
         TxToJSON(*tx, hash_block, result);
@@ -529,7 +529,7 @@ static UniValue createrawtransaction(const JSONRPCRequest& request)
                         {
                             {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "A key-value pair. The key (string) is the particl address, the value (float or string) is the amount in " + CURRENCY_UNIT},
+                                    {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "A key-value pair. The key (string) is the ghost address, the value (float or string) is the amount in " + CURRENCY_UNIT},
                                 },
                                 },
                             {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
@@ -627,7 +627,7 @@ static UniValue decoderawtransaction(const JSONRPCRequest& request)
                                     {RPCResult::Type::STR, "type", "The type, eg 'pubkeyhash'"},
                                     {RPCResult::Type::ARR, "addresses", "",
                                     {
-                                        {RPCResult::Type::STR, "address", "particl address"},
+                                        {RPCResult::Type::STR, "address", "ghost address"},
                                     }},
                                 }},
                             }},
@@ -683,7 +683,7 @@ static UniValue decodescript(const JSONRPCRequest& request)
                         {RPCResult::Type::NUM, "reqSigs", "The required signatures"},
                         {RPCResult::Type::ARR, "addresses", "",
                         {
-                            {RPCResult::Type::STR, "address", "particl address"},
+                            {RPCResult::Type::STR, "address", "ghost address"},
                         }},
                         {RPCResult::Type::STR, "p2sh", "address of P2SH script wrapping this redeem script (not returned if the script is already a P2SH)"},
                         {RPCResult::Type::OBJ, "segwit", "Result of a witness script public key wrapping this redeem script (not returned if the script is a P2SH or witness)",
@@ -982,7 +982,7 @@ static UniValue sendrawtransaction(const JSONRPCRequest& request)
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
 
     const CFeeRate max_raw_tx_fee_rate = request.params[1].isNull() ?
-                                             fParticlMode ? DEFAULT_MAX_RAW_TX_FEE_RATE : DEFAULT_MAX_RAW_TX_FEE_RATE_BTC :
+                                             fGhostMode ? DEFAULT_MAX_RAW_TX_FEE_RATE : DEFAULT_MAX_RAW_TX_FEE_RATE_BTC :
                                              CFeeRate(AmountFromValue(request.params[1]));
 
     int64_t virtual_size = GetVirtualTransactionSize(*tx);
@@ -1055,7 +1055,7 @@ static UniValue testmempoolaccept(const JSONRPCRequest& request)
     const uint256& tx_hash = tx->GetHash();
 
     const CFeeRate max_raw_tx_fee_rate = request.params[1].isNull() ?
-                                             fParticlMode ? DEFAULT_MAX_RAW_TX_FEE_RATE : DEFAULT_MAX_RAW_TX_FEE_RATE_BTC :
+                                             fGhostMode ? DEFAULT_MAX_RAW_TX_FEE_RATE : DEFAULT_MAX_RAW_TX_FEE_RATE_BTC :
                                              CFeeRate(AmountFromValue(request.params[1]));
 
     bool ignore_locks = !request.params[2].isNull() ? request.params[2].get_bool() : false;
@@ -1545,7 +1545,7 @@ UniValue createpsbt(const JSONRPCRequest& request)
                         {
                             {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",
                                 {
-                                    {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "A key-value pair. The key (string) is the particl address, the value (float or string) is the amount in " + CURRENCY_UNIT},
+                                    {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "A key-value pair. The key (string) is the ghost address, the value (float or string) is the amount in " + CURRENCY_UNIT},
                                 },
                                 },
                             {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "",

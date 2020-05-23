@@ -1,9 +1,10 @@
 // Copyright (c) 2018 The Particl Core developers
+// Copyright (c) 2020 The Ghost Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_USBDEVICE_USBWRAPPER_H
-#define PARTICL_USBDEVICE_USBWRAPPER_H
+#ifndef GHOST_USBDEVICE_USBWRAPPER_H
+#define GHOST_USBDEVICE_USBWRAPPER_H
 
 #include <libusb-1.0/libusb.h>
 
@@ -83,4 +84,4 @@ int webusb_read_timeout(webusb_device *dev, unsigned char *data, size_t length, 
 
 } // usb_device
 
-#endif // PARTICL_USBDEVICE_USBWRAPPER_H
+#endif // GHOST_USBDEVICE_USBWRAPPER_H

@@ -7,8 +7,8 @@ import os
 import json
 import configparser
 
-from test_framework.test_particl import (
-    ParticlTestFramework,
+from test_framework.test_ghost import (
+    GhostTestFramework,
     isclose,
     getIndexAtProperty,
     connect_nodes_bi,
@@ -18,7 +18,7 @@ from test_framework.util import assert_raises_rpc_error
 from test_framework.authproxy import JSONRPCException
 
 
-class USBDeviceTest(ParticlTestFramework):
+class USBDeviceTest(GhostTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
@@ -38,14 +38,14 @@ class USBDeviceTest(ParticlTestFramework):
 
     def run_test(self):
 
-        # Check that particl has been built with USB device enabled
+        # Check that ghost has been built with USB device enabled
         config = configparser.ConfigParser()
         if not self.options.configfile:
             self.options.configfile = os.path.dirname(__file__) + "/../config.ini"
         config.read_file(open(self.options.configfile))
 
         if not config["components"].getboolean("ENABLE_USBDEVICE"):
-            raise SkipTest("particld has not been built with usb device enabled.")
+            raise SkipTest("ghostd has not been built with usb device enabled.")
 
         nodes = self.nodes
 

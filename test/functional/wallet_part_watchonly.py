@@ -3,10 +3,10 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_particl import ParticlTestFramework, isclose, connect_nodes_bi
+from test_framework.test_ghost import GhostTestFramework, isclose, connect_nodes_bi
 
 
-class WalletParticlWatchOnlyTest(ParticlTestFramework):
+class WalletGhostWatchOnlyTest(GhostTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
@@ -93,4 +93,4 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
 
 
 if __name__ == '__main__':
-    WalletParticlWatchOnlyTest().main()
+    WalletGhostWatchOnlyTest().main()

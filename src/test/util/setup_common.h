@@ -95,7 +95,7 @@ struct BasicTestingSetup {
     ECCVerifyHandle globalVerifyHandle;
     NodeContext m_node;
 
-    explicit BasicTestingSetup(const std::string& chainName = CBaseChainParams::MAIN, const std::vector<const char*>& extra_args = {}, bool fParticlModeIn = false);
+    explicit BasicTestingSetup(const std::string& chainName = CBaseChainParams::MAIN, const std::vector<const char*>& extra_args = {}, bool fGhostModeIn = false);
     ~BasicTestingSetup();
 
 private:
@@ -108,7 +108,7 @@ private:
 struct TestingSetup : public BasicTestingSetup {
     boost::thread_group threadGroup;
 
-    explicit TestingSetup(const std::string& chainName = CBaseChainParams::MAIN, const std::vector<const char*>& extra_args = {}, bool fParticlModeIn = false);
+    explicit TestingSetup(const std::string& chainName = CBaseChainParams::MAIN, const std::vector<const char*>& extra_args = {}, bool fGhostModeIn = false);
     ~TestingSetup();
 };
 
@@ -172,8 +172,8 @@ CBlock getBlock13b8a();
 // define an implicit conversion here so that uint256 may be used directly in BOOST_CHECK_*
 std::ostream& operator<<(std::ostream& os, const uint256& num);
 
-struct ParticlBasicTestingSetup : public BasicTestingSetup {
-    ParticlBasicTestingSetup() : BasicTestingSetup(CBaseChainParams::MAIN, {}, true) {}
+struct GhostBasicTestingSetup : public BasicTestingSetup {
+    GhostBasicTestingSetup() : BasicTestingSetup(CBaseChainParams::MAIN, {}, true) {}
 };
 
 #endif

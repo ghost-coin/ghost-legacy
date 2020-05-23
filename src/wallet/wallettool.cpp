@@ -28,7 +28,7 @@ static std::shared_ptr<CWallet> CreateWallet(const std::string& name, const fs::
         return nullptr;
     }
 
-    std::shared_ptr<CWallet> wallet_instance(fParticlMode
+    std::shared_ptr<CWallet> wallet_instance(fGhostMode
         ? std::shared_ptr<CWallet>(new CHDWallet(nullptr /* chain */, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet)
         : std::shared_ptr<CWallet>(new CWallet(nullptr /* chain */, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet));
 
@@ -40,7 +40,7 @@ static std::shared_ptr<CWallet> CreateWallet(const std::string& name, const fs::
         return nullptr;
     }
 
-    if (fParticlMode) {
+    if (fGhostMode) {
         return wallet_instance;
     }
 
@@ -63,7 +63,7 @@ static std::shared_ptr<CWallet> LoadWallet(const std::string& name, const fs::pa
         return nullptr;
     }
 
-    std::shared_ptr<CWallet> wallet_instance(fParticlMode
+    std::shared_ptr<CWallet> wallet_instance(fGhostMode
         ? std::shared_ptr<CWallet>(new CHDWallet(nullptr /* chain */, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet)
         : std::shared_ptr<CWallet>(new CWallet(nullptr /* chain */, WalletLocation(name), WalletDatabase::Create(path)), WalletToolReleaseWallet));
 

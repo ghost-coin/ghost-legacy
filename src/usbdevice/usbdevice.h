@@ -2,8 +2,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_USBDEVICE_USBDEVICE_H
-#define PARTICL_USBDEVICE_USBDEVICE_H
+#ifndef GHOST_USBDEVICE_USBDEVICE_H
+#define GHOST_USBDEVICE_USBDEVICE_H
 
 #include <string.h>
 #include <assert.h>
@@ -168,7 +168,7 @@ public:
     DeviceSignatureCreator(CUSBDevice *pDeviceIn, const CMutableTransaction *txToIn, unsigned int nInIn, const std::vector<uint8_t> &amountIn, int nHashTypeIn=SIGHASH_ALL);
     const BaseSignatureChecker &Checker() const override { return checker; }
 
-    bool IsParticlVersion() const override { return txTo && txTo->IsParticlVersion(); }
+    bool IsGhostVersion() const override { return txTo && txTo->IsGhostVersion(); }
     bool IsCoinStake() const override { return txTo && txTo->IsCoinStake(); }
 
     bool CreateSig(const SigningProvider& provider, std::vector<unsigned char> &vchSig, const CKeyID &keyid, const CScript &scriptCode, SigVersion sigversion) const override;
@@ -176,5 +176,5 @@ public:
 
 } // usb_device
 
-#endif // PARTICL_USBDEVICE_USBDEVICE_H
+#endif // GHOST_USBDEVICE_USBDEVICE_H
 

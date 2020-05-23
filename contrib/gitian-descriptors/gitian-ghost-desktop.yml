@@ -1,5 +1,5 @@
 ---
-name: "particl-desktop"
+name: "ghost-desktop"
 enable_cache: true
 sudo: true
 suites:
@@ -24,8 +24,8 @@ packages:
 - "apt-transport-https"
 - "libjpeg-dev"
 remotes:
-- "url": "https://github.com/particl/particl-desktop"
-  "dir": "particl-desktop"
+- "url": "https://github.com/ghost/ghost-desktop"
+  "dir": "ghost-desktop"
 files: []
 script: |
   # prepare
@@ -91,13 +91,13 @@ script: |
   nvm install 6.11.5
   nvm use 6.11.5
 
-  cd particl-desktop
+  cd ghost-desktop
   yarn install
 
   yarn run package:linux
-  tar -cvzf packages/particl-desktop_test.tar.gz packages/linux-unpacked/
+  tar -cvzf packages/ghost-desktop_test.tar.gz packages/linux-unpacked/
   yarn run package:win
   yarn run package:mac
 
   mkdir -p $OUTDIR
-  cp packages/particl-desktop* $OUTDIR
+  cp packages/ghost-desktop* $OUTDIR

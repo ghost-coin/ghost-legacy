@@ -1,5 +1,5 @@
 ---
-name: "particl-win-0.21.0.0"
+name: "ghost-win-0.21.0.0"
 enable_cache: true
 sudo: true
 distro: "ubuntu"
@@ -24,8 +24,8 @@ packages:
 - "ca-certificates"
 - "python3"
 remotes:
-- "url": "https://github.com/particl/particl-core.git"
-  "dir": "particl-core"
+- "url": "https://github.com/ghost/ghost-core.git"
+  "dir": "ghost-core"
 files: []
 script: |
   set -e -o pipefail
@@ -98,7 +98,7 @@ script: |
   create_per-host_compiler_wrapper "2000-01-01 12:00:00"
   export PATH=${WRAP_DIR}:${PATH}
 
-  cd particl-core
+  cd ghost-core
   BASEPREFIX="${PWD}/depends"
   # Build dependencies for each host
   for i in $HOSTS; do

@@ -23,7 +23,7 @@
 #include <insight/spentindex.h>
 #include <rctindex.h>
 
-extern bool fParticlMode;
+extern bool fGhostMode;
 
 /**
  * A UTXO entry.
@@ -44,10 +44,10 @@ public:
     //! at which height this containing transaction was included in the active block chain
     uint32_t nHeight : 31;
 
-    //! type of output (Particl)
+    //! type of output (Ghost)
     uint8_t nType = OUTPUT_STANDARD;
 
-    //! commitment used for CT outputs (Particl)
+    //! commitment used for CT outputs (Ghost)
     secp256k1_pedersen_commitment commitment;
 
     //! construct a Coin from a CTxOut and height/coinbase information.
@@ -93,7 +93,7 @@ public:
         uint32_t code = nHeight * uint32_t{2} + fCoinBase;
         ::Serialize(s, VARINT(code));
         ::Serialize(s, Using<TxOutCompression>(REF(out)));
-        if (!fParticlMode) return;
+        if (!fGhostMode) return;
         ::Serialize(s, nType);
         if (nType == OUTPUT_CT) {
             s.write((char*)&commitment.data[0], 33);
@@ -107,7 +107,7 @@ public:
         nHeight = code >> 1;
         fCoinBase = code & 1;
         ::Unserialize(s, Using<TxOutCompression>(out));
-        if (!fParticlMode) return;
+        if (!fGhostMode) return;
         ::Unserialize(s, nType);
         if (nType == OUTPUT_CT) {
             s.read((char*)&commitment.data[0], 33);

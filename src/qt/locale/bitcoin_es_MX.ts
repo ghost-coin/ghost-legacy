@@ -66,8 +66,8 @@
         <translation>Direcciones de recibo</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Estas son tus direcciones de Particl para enviar pagos. Siempre revisa el monto y la dirección de envío antes de enviar monedas.</translation>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Estas son tus direcciones de Ghost para enviar pagos. Siempre revisa el monto y la dirección de envío antes de enviar monedas.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -160,8 +160,8 @@
         <translation>Confirmar la encriptación de cartera</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Advertencia: Si encripta su cartera y pierde su contraseña, &lt;b&gt;PERDERÁ TODOS SUS PARTICL&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
+        <translation>Advertencia: Si encripta su cartera y pierde su contraseña, &lt;b&gt;PERDERÁ TODOS SUS GHOST&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -307,7 +307,7 @@
     </message>
     <message>
         <source>Click to enable network activity again.</source>
-        <translation> 
+        <translation> 
 Haga clic para habilitar la actividad de red nuevamente.</translation>
     </message>
     <message>
@@ -323,8 +323,8 @@ Haga clic para habilitar la actividad de red nuevamente.</translation>
         <translation>El proxy está &lt;b&gt;habilitado&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
-        <translation>Enviar monedas a una dirección Particl</translation>
+        <source>Send coins to a Ghost address</source>
+        <translation>Enviar monedas a una dirección Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -359,12 +359,12 @@ Haga clic para habilitar la actividad de red nuevamente.</translation>
         <translation>Cifre las claves privadas que pertenecen a su billetera</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Firme mensajes con sus direcciones de Particl para demostrar que los posee</translation>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
+        <translation>Firme mensajes con sus direcciones de Ghost para demostrar que los posee</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Verifique los mensajes para asegurarse de que se firmaron con direcciones de Particl especificadas.</translation>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
+        <translation>Verifique los mensajes para asegurarse de que se firmaron con direcciones de Ghost especificadas.</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -383,10 +383,10 @@ Haga clic para habilitar la actividad de red nuevamente.</translation>
         <translation>Pestañas</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation> 
-Solicitar pagos (genera códigos QR y particl: URI)
- </translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation> 
+Solicitar pagos (genera códigos QR y ghost: URI)
+ </translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -582,8 +582,8 @@ Solicitar pagos (genera códigos QR y particl: URI)
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error</source>
@@ -667,8 +667,8 @@ Solicitar pagos (genera códigos QR y particl: URI)
         <translation>Mensaje:</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
-        <translation>Mensaje opcional para agregar a la solicitud de pago, el cual será mostrado cuando la solicitud este abierta. Nota: El mensaje no se manda con el pago a travéz de la red de Particl.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
+        <translation>Mensaje opcional para agregar a la solicitud de pago, el cual será mostrado cuando la solicitud este abierta. Nota: El mensaje no se manda con el pago a travéz de la red de Ghost.</translation>
     </message>
     <message>
         <source>Use this form to request payments. All fields are &lt;b&gt;optional&lt;/b&gt;.</source>
@@ -816,8 +816,8 @@ Solicitar pagos (genera códigos QR y particl: URI)
         <translation>¡La creación de la transación falló!</translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
-        <translation>Advertencia: Dirección de Particl invalida</translation>
+        <source>Warning: Invalid Ghost address</source>
+        <translation>Advertencia: Dirección de Ghost invalida</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>

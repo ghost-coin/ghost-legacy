@@ -6,11 +6,11 @@
 import json
 import re
 
-from test_framework.test_particl import ParticlTestFramework, connect_nodes_bi
+from test_framework.test_ghost import GhostTestFramework, connect_nodes_bi
 from test_framework.authproxy import JSONRPCException
 
 
-class TxIndexTest(ParticlTestFramework):
+class TxIndexTest(GhostTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3

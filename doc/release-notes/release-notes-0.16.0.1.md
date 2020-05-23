@@ -1,4 +1,4 @@
-Particl Core version 0.16.0.1 is now available.
+Ghost Core version 0.16.0.1 is now available.
 
 This is a new major version release, including new features, various bugfixes
 and performance improvements, as well as updated translations.
@@ -8,8 +8,8 @@ How to Upgrade
 
 If you are running an older version, shut it down. Wait until it has completely
 shut down (which might take a few minutes for older versions), then run the
-installer (on Windows) or just copy over `/Applications/Particl-Qt` (on Mac)
-or `particld`/`particl-qt` (on Linux).
+installer (on Windows) or just copy over `/Applications/Ghost-Qt` (on Mac)
+or `ghostd`/`ghost-qt` (on Linux).
 
 Downgrading warning
 -------------------
@@ -19,10 +19,10 @@ None
 Compatibility
 ==============
 
-Particl Core is extensively tested on multiple operating systems using
+Ghost Core is extensively tested on multiple operating systems using
 the Linux kernel, macOS 10.8+, and Windows Vista and later. Windows XP is not supported.
 
-Particl Core should also work on most other Unix-like systems but is not
+Ghost Core should also work on most other Unix-like systems but is not
 frequently tested on them.
 
 Notable changes
@@ -33,7 +33,7 @@ Wallet changes
 
 ### Support for Hardware Signing Devices
 
-Particl Core 0.16 introduces generic support for Hardware Signing Devices to provide key-signing capabilities. 
+Ghost Core 0.16 introduces generic support for Hardware Signing Devices to provide key-signing capabilities. 
 
 - New RPC commands
   * `listdevices`
@@ -54,7 +54,7 @@ Note, this is still considered "expert" mode for those who have a good understan
 
 ### Stealth Address v2
 
-In order to facilitate deterministic generation of stealth addresses between Particl Core and Signing Devices the method used to generate these addresses has been changed.
+In order to facilitate deterministic generation of stealth addresses between Ghost Core and Signing Devices the method used to generate these addresses has been changed.
 
 - New RPC command `devicegetnewstealthaddress` will generate a v2 Stealth Address from the Hardware Signing Device.
 - Updated RPC command `getnewstealthaddress` now supports a new boolean `makeV2` (default false) which will generate a v2 Stealth Address from the same method used for hardware wallets. This will be updated in a future release to default to true for all new addresses generated.
@@ -71,9 +71,9 @@ use the `replaceable` argument for individual transactions.
 
 ### Wallets directory configuration (`-walletdir`)
 
-Particl Core now has more flexibility in where the wallets directory can be
+Ghost Core now has more flexibility in where the wallets directory can be
 located. Previously wallet database files were stored at the top level of the
-particl data directory. The behavior is now:
+ghost data directory. The behavior is now:
 
 - For new installations (where the data directory doesn't already exist),
   wallets will now be stored in a new `wallets/` subdirectory inside the data
@@ -91,7 +91,7 @@ becomes unavailable during operation, funds may be lost.
 
 Build: Minimum GCC bumped to 4.8.x
 ------------------------------------
-The minimum version of the GCC compiler required to compile Particl Core is now 4.8. No effort will be
+The minimum version of the GCC compiler required to compile Ghost Core is now 4.8. No effort will be
 made to support older versions of GCC. See discussion in issue #11732 for more information.
 The minimum version for the Clang compiler is still 3.3. Other minimum dependency versions can be found in `doc/dependencies.md` in the repository.
 
@@ -158,8 +158,8 @@ used to create `rpcauth` credentials for a JSON-RPC user.
 Other changed command-line options
 ----------------------------------
 - `-debuglogfile=<file>` can be used to specify an alternative debug logging file.
-- particl-cli now has an `-stdinrpcpass` option to allow the RPC password to be read from standard input.
-- particl-cli now supports a new `-getinfo` flag which returns an output like that of the now-removed `getinfo` RPC.
+- ghost-cli now has an `-stdinrpcpass` option to allow the RPC password to be read from standard input.
+- ghost-cli now supports a new `-getinfo` flag which returns an output like that of the now-removed `getinfo` RPC.
 
 
 0.16.0 change log
@@ -230,7 +230,7 @@ Other changed command-line options
 - #11923 `81c89e9` Remove unused fNoncriticalErrors variable from CWalletDB::FindWalletTx (PierreRochard)
 - #11726 `604e08c` Cleanups + nit fixes for walletdir PR (MeshCollider)
 - #11403 `d889c03` Segwit wallet support (sipa)
-- #11970 `b7450cd` Add test coverage for particl-cli multiwallet calls (ryanofsky)
+- #11970 `b7450cd` Add test coverage for ghost-cli multiwallet calls (ryanofsky)
 - #11904 `66e3af7` Add a lock to the wallet directory (MeshCollider)
 - #12101 `c7978be` Clamp walletpassphrase timeout to 2^30 seconds and check its bounds (achow101)
 - #12210 `17180fa` Deprecate addwitnessaddress (laanwj)
@@ -243,7 +243,7 @@ Other changed command-line options
 ### RPC and other APIs
 - #11008 `3841aaf` Enable disablesafemode by default (gmaxwell)
 - #11050 `7ed57d3` Avoid treating null RPC arguments different from missing arguments (ryanofsky)
-- #10997 `affe927` Add option -stdinrpcpass to particl-cli to allow RPC password to be read from standard input (jharvell)
+- #10997 `affe927` Add option -stdinrpcpass to ghost-cli to allow RPC password to be read from standard input (jharvell)
 - #11179 `e0e3cbb` Push down safe mode checks (laanwj)
 - #11203 `d745b4c` add wtxid to mempool entry output (sdaftuar)
 - #11099 `bc561b4` Add savemempool RPC (greenaddress)
@@ -328,7 +328,7 @@ Other changed command-line options
 - #11541 `bb9ab0f` Build: Fix Automake warnings when running autogen.sh (fanquake)
 - #11611 `0e70791` [build] Don't fail when passed --disable-lcov and lcov isn't available (fanquake)
 - #11651 `3c098a8` refactor: Make all #includes relative to project root (laanwj, MeshCollider, ryanofsky)
-- #11621 `1f7695b` [build] Add temp_particl_locale_qrc to CLEAN_QT to fix make distcheck (fanquake)
+- #11621 `1f7695b` [build] Add temp_ghost_locale_qrc to CLEAN_QT to fix make distcheck (fanquake)
 - #11755 `84fa645` [Docs] Bump minimum required version of GCC to 4.8 (fanquake)
 - #9254 `6d3dc52` [depends] ZeroMQ 4.2.2 (fanquake)
 - #11842 `3c8f0a3` [build] Add missing stuff to clean-local (kallewoof)
@@ -338,7 +338,7 @@ Other changed command-line options
 - #11903 `8f68fd2` [trivial] Add required package dependencies for depends cross compilation (jonasschnelli)
 - #12168 `45cf8a0`  #include sys/fcntl.h to just fcntl.h (without sys/) (jsarenik)
 - #12095 `3fa1ab4` Use BDB_LIBS/CFLAGS and pass --disable-replication (fanquake)
-- #11711 `6378e5c` particl_qt.m4: Minor fixes and clean-ups (fanquake)
+- #11711 `6378e5c` ghost_qt.m4: Minor fixes and clean-ups (fanquake)
 - #11989 `90d4104` .gitignore: add QT Creator artifacts (Sjors)
 - #11577 `c0ae864` Fix warnings (-Wsign-compare) when building with DEBUG_ADDRMAN (practicalswift)
 
@@ -351,7 +351,7 @@ Other changed command-line options
 - #11260 `52f8877` travis: Assert default datadir isn't created, Run scripted diff only once (MarcoFalke)
 - #11271 `638e6c5` travis: filter out pyenv (theuni)
 - #11285 `3255d63` Add -usehd to excluded args in check-doc.py (MeshCollider)
-- #11297 `16e4184` Make sure ~/.particl doesn't exist before build (MeshCollider)
+- #11297 `16e4184` Make sure ~/.ghost doesn't exist before build (MeshCollider)
 - #11311 `cce94c5` travis: Revert default datadir check (MarcoFalke)
 - #11300 `f4ed44a` Add a lint check for trailing whitespace (MeshCollider)
 - #11323 `4ce2f3d` mininode: add an optimistic write and disable nagle (theuni)
@@ -497,7 +497,7 @@ Other changed command-line options
 - #10781 `60dd9cc` Python cleanups (practicalswift)
 - #10701 `50fae68` Remove the virtual specifier for functions with the override specifier (practicalswift)
 - #11164 `38a54a5` Fix boost headers included as user instead of system headers (danra)
-- #11143 `3aa60b7` Fix include path for particl-config.h (danra)
+- #11143 `3aa60b7` Fix include path for ghost-config.h (danra)
 - #8330 `59e1789` Structure Packing Optimizations in C{,Mutable}Transaction (JeremyRubin)
 - #10845 `39ae413` Remove unreachable code (practicalswift)
 - #11238 `6acdb1f` Add assertions before potential null deferences (MeshCollider)
@@ -540,8 +540,8 @@ Other changed command-line options
 
 ### Miscellaneous
 - #11246 `777519b` github-merge: Coalesce git fetches (laanwj)
-- #10871 `c9a4aa8` Handle getinfo in particl-cli w/ -getinfo (revival of #8843) (achow101)
-- #11419 `093074b` Utils: Fix launchctl not being able to stop particld (OmeGak)
+- #10871 `c9a4aa8` Handle getinfo in ghost-cli w/ -getinfo (revival of #8843) (achow101)
+- #11419 `093074b` Utils: Fix launchctl not being able to stop ghostd (OmeGak)
 - #11394 `6e4e98e` Perform a weaker subtree check in Travis (sipa)
 - #11702 `4122112` [build] Add a script for installing db4 (jamesob)
 - #11794 `dd49862` Prefix leveldb debug logging (laanwj)
@@ -558,7 +558,7 @@ Other changed command-line options
 - #11951 `1fb34e0` Remove dead feeest-file read code for old versions (TheBlueMatt)
 - #11421 `9ccafb1` Merge current secp256k1 subtree (MarcoFalke)
 - #11573 `2631d55` [Util] Update tinyformat.h (fanquake)
-- #10529 `331352f` Improve particld systemd service file (Flowdalic)
+- #10529 `331352f` Improve ghostd systemd service file (Flowdalic)
 - #11620 `70fec9e` [build] .gitignore: add background.tiff (Sjors)
 - #11558 `68e021e` Minimal code changes to allow msvc compilation (sipsorcery)
 - #11284 `10bee0d` Fix invalid memory access in CScript::operator+= (guidovranken, ajtowns)
@@ -575,4 +575,4 @@ Other changed command-line options
 Credits
 =======
 
-Thanks to Particl Team and everyone at Bitcoin Core who contributed to these changes.
+Thanks to Ghost Team and everyone at Bitcoin Core who contributed to these changes.

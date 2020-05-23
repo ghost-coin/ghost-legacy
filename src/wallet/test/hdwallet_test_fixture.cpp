@@ -1,4 +1,5 @@
 // Copyright (c) 2017-2020 The Particl Core developers
+// Copyright (c) 2020 The Ghost Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -13,7 +14,7 @@
 #include <blind.h>
 
 HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
-    TestingSetup(chainName, {}, true) // fParticlMode = true
+    TestingSetup(chainName, {}, true) // fGhostMode = true
 {
     ECC_Start_Stealth();
     ECC_Start_Blinding();

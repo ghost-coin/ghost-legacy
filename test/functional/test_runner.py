@@ -250,14 +250,14 @@ BASE_SCRIPTS = [
     # Put them in a random line within the section that fits their approximate run-time
 ]
 
-PARTICL_SCRIPTS = [
+GHOST_SCRIPTS = [
     'p2p_part_fork.py',
     'feature_part_pos.py',
     'feature_part_extkey.py',
     'feature_part_stealth.py',
     'feature_part_blind.py',
     'feature_part_anon.py',
-    'wallet_part_particl.py',
+    'wallet_part_ghost.py',
     'rpc_part_mnemonic.py',
     'feature_part_smsg.py',
     'feature_part_smsgpaid.py',
@@ -277,7 +277,7 @@ PARTICL_SCRIPTS = [
     'wallet_part_segwit_scripts.py',
 ]
 
-PARTICL_SCRIPTS_EXT = [
+GHOST_SCRIPTS_EXT = [
     'feature_part_smsg_multiwallet.py',
     'feature_part_smsg_rollingcache.py',
 ]
@@ -291,7 +291,7 @@ INSIGHT_SCRIPTS = [
 ]
 
 # Place EXTENDED_SCRIPTS first since it has the 3 longest running tests
-ALL_SCRIPTS = EXTENDED_SCRIPTS + BASE_SCRIPTS + PARTICL_SCRIPTS + INSIGHT_SCRIPTS + PARTICL_SCRIPTS_EXT
+ALL_SCRIPTS = EXTENDED_SCRIPTS + BASE_SCRIPTS + GHOST_SCRIPTS + INSIGHT_SCRIPTS + GHOST_SCRIPTS_EXT
 
 NON_SCRIPTS = [
     # These are python files that live in the functional tests directory, but are not test scripts.
@@ -317,8 +317,8 @@ def main():
     parser.add_argument('--exclude', '-x', help='specify a comma-separated-list of scripts to exclude.')
     parser.add_argument('--extended', action='store_true', help='run the extended test suite in addition to the basic tests')
     parser.add_argument('--bitcoin', action='store_true', help='run Bitcoin specific tests')
-    parser.add_argument('--particl', action='store_true', help='run Particl specific tests')
-    parser.add_argument('--particlext', action='store_true', help='run Particl extended tests')
+    parser.add_argument('--ghost', action='store_true', help='run Ghost specific tests')
+    parser.add_argument('--ghostext', action='store_true', help='run Ghost extended tests')
     parser.add_argument('--insight', action='store_true', help='run Insight specific tests')
     parser.add_argument('--withstdout', action='store_true', help='print stdout when test passed also')
     parser.add_argument('--help', '-h', '-?', action='store_true', help='print help text and exit')
@@ -354,7 +354,7 @@ def main():
     logging.basicConfig(format='%(message)s', level=logging_level)
 
     # Create base test directory
-    tmpdir = "%s/particl_test_runner_P_🏃_%s" % (args.tmpdirprefix, datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+    tmpdir = "%s/ghost_test_runner_P_🏃_%s" % (args.tmpdirprefix, datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
 
     os.makedirs(tmpdir)
 
@@ -398,14 +398,14 @@ def main():
         test_list = []
         if args.extended:
             test_list += EXTENDED_SCRIPTS
-        if args.particl:
-            test_list += PARTICL_SCRIPTS
+        if args.ghost:
+            test_list += GHOST_SCRIPTS
         if args.insight:
             test_list += INSIGHT_SCRIPTS
         if args.bitcoin:
             test_list += BASE_SCRIPTS
-        if args.particlext:
-            test_list += PARTICL_SCRIPTS_EXT
+        if args.ghostext:
+            test_list += GHOST_SCRIPTS_EXT
 
     # Remove the test cases that the user has explicitly asked to exclude.
     if args.exclude:
@@ -449,7 +449,7 @@ def main():
         combined_logs_len=args.combinedlogslen,
         failfast=args.failfast,
         use_term_control=args.ansi,
-        create_cache=(True if args.bitcoin or (not args.particl and not args.insight) else False)
+        create_cache=(True if args.bitcoin or (not args.ghost and not args.insight) else False)
     )
 
 def run_tests(*, test_list, src_dir, build_dir, tmpdir, jobs=1, enable_coverage=False, args=None, combined_logs_len=0, failfast=False, use_term_control, create_cache=True):
@@ -458,8 +458,8 @@ def run_tests(*, test_list, src_dir, build_dir, tmpdir, jobs=1, enable_coverage=
     # Warn if bitcoind is already running
     # pidof might fail or return an empty string if bitcoind is not running
     try:
-        if subprocess.check_output(["pidof", "particld"]) not in [b'']:
-            print("%sWARNING!%s There is already a particld process running on this system. Tests may fail unexpectedly due to resource contention!" % (BOLD[1], BOLD[0]))
+        if subprocess.check_output(["pidof", "ghostd"]) not in [b'']:
+            print("%sWARNING!%s There is already a ghostd process running on this system. Tests may fail unexpectedly due to resource contention!" % (BOLD[1], BOLD[0]))
     except (OSError, subprocess.SubprocessError):
         pass
 

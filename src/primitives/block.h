@@ -41,7 +41,7 @@ public:
         READWRITE(nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
-        if (IsParticlVersion()) {
+        if (IsGhostVersion()) {
             READWRITE(hashWitnessMerkleRoot);
         }
         READWRITE(nTime);
@@ -67,9 +67,9 @@ public:
 
     uint256 GetHash() const;
 
-    bool IsParticlVersion() const
+    bool IsGhostVersion() const
     {
-        return nVersion == PARTICL_BLOCK_VERSION;
+        return nVersion == GHOST_BLOCK_VERSION;
     }
 
     int64_t GetBlockTime() const
@@ -134,7 +134,7 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITEAS(CBlockHeader, *this);
         READWRITE(vtx);
-        if (nVersion == PARTICL_BLOCK_VERSION) {
+        if (nVersion == GHOST_BLOCK_VERSION) {
             READWRITE(vchBlockSig);
         }
     }

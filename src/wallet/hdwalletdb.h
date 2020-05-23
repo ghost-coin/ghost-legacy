@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_WALLET_HDWALLETDB_H
-#define PARTICL_WALLET_HDWALLETDB_H
+#ifndef GHOST_WALLET_HDWALLETDB_H
+#define GHOST_WALLET_HDWALLETDB_H
 
 #include <primitives/transaction.h>
 #include <wallet/walletdb.h>
@@ -408,4 +408,4 @@ public:
     bool EraseWalletSetting(const std::string &setting);
 };
 
-#endif // PARTICL_WALLET_HDWALLETDB_H
+#endif // GHOST_WALLET_HDWALLETDB_H

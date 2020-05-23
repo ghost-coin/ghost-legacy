@@ -40,7 +40,7 @@ public:
     virtual bool HasEncryptionKeys() const = 0;
     virtual bool IsLocked() const = 0;
 
-    virtual bool IsParticlWallet() const = 0;
+    virtual bool IsGhostWallet() const = 0;
     virtual bool HaveKey(const CKeyID &address) const = 0;
     virtual isminetype IsMine(const CKeyID &address) const = 0;
     virtual bool GetKey(const CKeyID &address, CKey &keyOut) const = 0;

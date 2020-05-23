@@ -94,7 +94,7 @@ void static RandomScript(CScript &script) {
 
 void static RandomTransaction(CMutableTransaction &tx, bool fSingle) {
 
-    tx.nVersion = ((uint32_t)InsecureRand32()) % (PARTICL_TXN_VERSION-1);
+    tx.nVersion = ((uint32_t)InsecureRand32()) % (GHOST_TXN_VERSION-1);
 
     tx.vin.clear();
     tx.vout.clear();
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(sighash_from_data)
         CTransactionRef tx;
         CScript scriptCode = CScript();
 
-        bool fExpectHashFailure = false; // adjusting test vectors >= PARTICL_TXN_VERSION
+        bool fExpectHashFailure = false; // adjusting test vectors >= GHOST_TXN_VERSION
         try {
           // deserialize test data
           raw_tx = test[0].get_str();
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(sighash_from_data)
             char strHex[2];
             strHex[0] = raw_tx[0];
             strHex[1] = raw_tx[1];
-            if (std::strtoul(strHex, 0, 16) >= PARTICL_TXN_VERSION)
+            if (std::strtoul(strHex, 0, 16) >= GHOST_TXN_VERSION)
             {
                 raw_tx[0] = '0';
                 raw_tx[1] = '0';

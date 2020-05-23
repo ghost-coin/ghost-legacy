@@ -20,7 +20,7 @@ CAmount GetMinimumFee(const CWallet& wallet, unsigned int nTxBytes, const CCoinC
 {
     CAmount fee_needed = GetMinimumFeeRate(wallet, coin_control, feeCalc).GetFee(nTxBytes);
 
-    // Particl
+    // Ghost
     if (coin_control.fHaveAnonOutputs) {
         fee_needed *= ANON_FEE_MULTIPLIER;
     }

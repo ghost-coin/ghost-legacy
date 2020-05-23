@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (C) 2017-2019 The Particl Core developers
+# Copyright (C) 2020 The Ghost Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 from decimal import Decimal
 
-from test_framework.test_particl import ParticlTestFramework, connect_nodes_bi
+from test_framework.test_ghost import GhostTestFramework, connect_nodes_bi
 from test_framework.util import assert_equal
 from test_framework.address import keyhash_to_p2pkh, hex_str_to_bytes
 from test_framework.authproxy import JSONRPCException
@@ -15,7 +16,7 @@ def keyhash_to_p2pkh_part(b):
     return keyhash_to_p2pkh(b, False, False)
 
 
-class ColdStakingTest(ParticlTestFramework):
+class ColdStakingTest(GhostTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3

@@ -1,9 +1,10 @@
 // Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2020 The Ghost Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_SMSG_DB_H
-#define PARTICL_SMSG_DB_H
+#ifndef GHOST_SMSG_DB_H
+#define GHOST_SMSG_DB_H
 
 #include <leveldb/write_batch.h>
 #include <leveldb/db.h>
@@ -88,4 +89,4 @@ public:
 
 } // namespace smsg
 
-#endif // PARTICL_SMSG_DB_H
+#endif // GHOST_SMSG_DB_H

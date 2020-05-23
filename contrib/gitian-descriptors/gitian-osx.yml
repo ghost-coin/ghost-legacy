@@ -1,5 +1,5 @@
 ---
-name: "particl-osx-0.21.0.0"
+name: "ghost-osx-0.21.0.0"
 enable_cache: true
 distro: "ubuntu"
 suites:
@@ -29,8 +29,8 @@ packages:
 - "python3-setuptools"
 - "fonts-tuffy"
 remotes:
-- "url": "https://github.com/particl/particl-core.git"
-  "dir": "particl-core"
+- "url": "https://github.com/ghost/ghost-core.git"
+  "dir": "ghost-core"
 files:
 - "MacOSX10.14.sdk.tar.gz"
 script: |
@@ -86,7 +86,7 @@ script: |
   create_per-host_faketime_wrappers "2000-01-01 12:00:00"
   export PATH=${WRAP_DIR}:${PATH}
 
-  cd particl-core
+  cd ghost-core
   BASEPREFIX="${PWD}/depends"
 
   mkdir -p ${BASEPREFIX}/SDKs

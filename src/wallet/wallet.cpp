@@ -166,15 +166,15 @@ std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const WalletLocati
             error = Untranslated("Wallet loading failed.") + Untranslated(" ") + error;
             return nullptr;
         }
-        if (fParticlMode && !((CHDWallet*)wallet.get())->Initialise()) {
-            error = Untranslated("Particl wallet initialisation failed.");
+        if (fGhostMode && !((CHDWallet*)wallet.get())->Initialise()) {
+            error = Untranslated("Ghost wallet initialisation failed.");
             return nullptr;
         }
 
         AddWallet(wallet);
         wallet->postInitProcess();
 
-        if (fParticlMode) {
+        if (fGhostMode) {
             RestartStakingThreads();
         }
         return wallet;
@@ -224,7 +224,7 @@ WalletCreationStatus CreateWallet(interfaces::Chain& chain, const SecureString& 
         error = Untranslated("Wallet creation failed.") + Untranslated(" ") + error;
         return WalletCreationStatus::CREATION_FAILED;
     }
-    if (fParticlMode && !GetParticlWallet(wallet.get())->Initialise()) {
+    if (fGhostMode && !GetGhostWallet(wallet.get())->Initialise()) {
         error = Untranslated("Wallet initialisation failed");
         return WalletCreationStatus::CREATION_FAILED;
     }
@@ -243,8 +243,8 @@ WalletCreationStatus CreateWallet(interfaces::Chain& chain, const SecureString& 
             }
 
             // Set a seed for the wallet
-            if (fParticlMode) {
-                if (0 != GetParticlWallet(wallet.get())->MakeDefaultAccount()) {
+            if (fGhostMode) {
+                if (0 != GetGhostWallet(wallet.get())->MakeDefaultAccount()) {
                     error = Untranslated("Error: MakeDefaultAccount failed");
                     return WalletCreationStatus::CREATION_FAILED;
                 }
@@ -1646,7 +1646,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry>& listReceived,
     }
 
     // Sent/received.
-    if (tx->IsParticlVersion()) {
+    if (tx->IsGhostVersion()) {
         for (unsigned int i = 0; i < tx->vpout.size(); ++i) {
             const CTxOutBase *txout = tx->vpout[i].get();
             if (!txout->IsStandardOutput()) {
@@ -2037,7 +2037,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache, const isminefilter& filter
     for (unsigned int i = 0; i < tx->GetNumVOuts(); i++)
     {
         if (!pwallet->IsSpent(hashTx, i) && (allow_used_addresses || !pwallet->IsSpentKey(hashTx, i))) {
-            nCredit += pwallet->IsParticlWallet()
+            nCredit += pwallet->IsGhostWallet()
                        ? pwallet->GetCredit(tx->vpout[i].get(), filter)
                        : pwallet->GetCredit(tx->vout[i], filter);
             if (!MoneyRange(nCredit))
@@ -2105,7 +2105,7 @@ bool CWalletTx::IsTrusted(std::set<uint256>& trusted_parents) const
         const CWalletTx* parent = pwallet->GetWalletTx(txin.prevout.hash);
         if (parent == nullptr) return false;
 
-        if (tx->IsParticlVersion()) {
+        if (tx->IsGhostVersion()) {
             const CTxOutBase *parentOut = parent->tx->vpout[txin.prevout.n].get();
             if (!(pwallet->IsMine(parentOut) & ISMINE_SPENDABLE)) {
                 return false;
@@ -3966,7 +3966,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
     bool fFirstRun = true;
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
-    std::shared_ptr<CWallet> walletInstance(fParticlMode
+    std::shared_ptr<CWallet> walletInstance(fGhostMode
         ? std::shared_ptr<CWallet>(new CHDWallet(&chain, location, WalletDatabase::Create(location.GetPath())), ReleaseWallet)
         : std::shared_ptr<CWallet>(new CWallet(&chain, location, WalletDatabase::Create(location.GetPath())), ReleaseWallet));
 
@@ -4010,12 +4010,12 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
 
         if (!(wallet_creation_flags & (WALLET_FLAG_DISABLE_PRIVATE_KEYS | WALLET_FLAG_BLANK_WALLET))) {
             LOCK(walletInstance->cs_wallet);
-            if (!fParticlMode && walletInstance->IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS)) {
+            if (!fGhostMode && walletInstance->IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS)) {
                 walletInstance->SetupDescriptorScriptPubKeyMans();
                 // SetupDescriptorScriptPubKeyMans already calls SetupGeneration for us so we don't need to call SetupGeneration separately
             } else {
                 // Legacy wallets need SetupGeneration here.
-                if (!fParticlMode)
+                if (!fGhostMode)
                 for (auto spk_man : walletInstance->GetActiveScriptPubKeyMans()) {
                     if (!spk_man->SetupGeneration()) {
                         error = _("Unable to generate initial keys");
@@ -4171,7 +4171,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
         walletInstance->m_last_block_processed_height = -1;
     }
 
-    if (!fParticlMode) // Must rescan after hdwallet is loaded
+    if (!fGhostMode) // Must rescan after hdwallet is loaded
     if (tip_height && *tip_height != rescan_height)
     {
         // We can't rescan beyond non-pruned blocks, stop and throw an error.
@@ -4359,7 +4359,7 @@ int CWalletTx::GetBlocksToMaturity() const
     assert(chain_depth >= 0); // coinbase tx should not be conflicted
 
     LockAssertion lock(pwallet->cs_wallet); // Remove when NO_THREAD_SAFETY_ANALYSIS resolved for GetDepthInMainChain()
-    if (fParticlMode && pwallet->m_last_block_processed_height < COINBASE_MATURITY * 2 && m_confirm.status == CWalletTx::Status::CONFIRMED) {
+    if (fGhostMode && pwallet->m_last_block_processed_height < COINBASE_MATURITY * 2 && m_confirm.status == CWalletTx::Status::CONFIRMED) {
         int nRequiredDepth = m_confirm.block_height / 2;
         return std::max(0, (nRequiredDepth+1) - chain_depth);
     }
@@ -4385,7 +4385,7 @@ std::vector<OutputGroup> CWallet::GroupOutputs(const std::vector<COutput>& outpu
 
             size_t ancestors, descendants;
             chain().getTransactionAncestry(output.tx->GetHash(), ancestors, descendants);
-            const CScript *pscript = output.tx->tx->IsParticlVersion()
+            const CScript *pscript = output.tx->tx->IsGhostVersion()
                 ? output.tx->tx->vpout[output.i]->GetPScriptPubKey() : &output.tx->tx->vout[output.i].scriptPubKey;
             if (!single_coin && ExtractDestination(*pscript, dst)) {
                 auto it = gmap.find(dst);

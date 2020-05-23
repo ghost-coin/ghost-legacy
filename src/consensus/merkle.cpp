@@ -77,7 +77,7 @@ uint256 BlockWitnessMerkleRoot(const CBlock& block, bool* mutated)
     std::vector<uint256> leaves;
     leaves.resize(block.vtx.size());
 
-    if (block.nVersion == PARTICL_BLOCK_VERSION)
+    if (block.nVersion == GHOST_BLOCK_VERSION)
     {
         for (size_t s = 0; s < block.vtx.size(); s++)
             leaves[s] = block.vtx[s]->GetWitnessHash();

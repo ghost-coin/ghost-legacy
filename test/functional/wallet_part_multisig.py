@@ -5,12 +5,12 @@
 
 from decimal import Decimal
 
-from test_framework.test_particl import ParticlTestFramework, isclose, connect_nodes_bi
+from test_framework.test_ghost import GhostTestFramework, isclose, connect_nodes_bi
 from test_framework.util import satoshi_round
 from test_framework.authproxy import JSONRPCException
 
 
-class MultiSigTest(ParticlTestFramework):
+class MultiSigTest(GhostTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3

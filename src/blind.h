@@ -1,9 +1,10 @@
 // Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2020 The Ghost Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PARTICL_BLIND_H
-#define PARTICL_BLIND_H
+#ifndef GHOST_BLIND_H
+#define GHOST_BLIND_H
 
 #include <secp256k1.h>
 #include <secp256k1_bulletproofs.h>
@@ -23,4 +24,4 @@ int GetRangeProofInfo(const std::vector<uint8_t> &vRangeproof, int &rexp, int &r
 void ECC_Start_Blinding();
 void ECC_Stop_Blinding();
 
-#endif  // PARTICL_BLIND_H
+#endif  // GHOST_BLIND_H

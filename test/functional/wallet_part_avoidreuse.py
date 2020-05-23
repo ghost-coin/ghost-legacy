@@ -3,11 +3,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_particl import ParticlTestFramework, isclose, connect_nodes_bi
+from test_framework.test_ghost import GhostTestFramework, isclose, connect_nodes_bi
 from test_framework.util import assert_equal
 
 
-class WalletParticlAvoidReuseTest(ParticlTestFramework):
+class WalletGhostAvoidReuseTest(GhostTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 4
@@ -70,4 +70,4 @@ class WalletParticlAvoidReuseTest(ParticlTestFramework):
 
 
 if __name__ == '__main__':
-    WalletParticlAvoidReuseTest().main()
+    WalletGhostAvoidReuseTest().main()

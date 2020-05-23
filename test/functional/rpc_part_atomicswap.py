@@ -11,8 +11,8 @@ import binascii
 from random import random
 from decimal import Decimal
 
-from test_framework.test_particl import (
-    ParticlTestFramework,
+from test_framework.test_ghost import (
+    GhostTestFramework,
     isclose,
     getIndexAtProperty,
     connect_nodes_bi,
@@ -367,7 +367,7 @@ def getRandomAmount():
     return round(Decimal(random()) * 9 + Decimal(1.2), 8)
 
 
-class AtomicSwapTest(ParticlTestFramework):
+class AtomicSwapTest(GhostTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2

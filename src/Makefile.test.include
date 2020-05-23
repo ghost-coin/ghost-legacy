@@ -135,11 +135,11 @@ FUZZ_TARGETS = \
 if ENABLE_FUZZ
 noinst_PROGRAMS += $(FUZZ_TARGETS:=)
 else
-bin_PROGRAMS += test/test_particl
+bin_PROGRAMS += test/test_ghost
 endif
 
 TEST_SRCDIR = test
-TEST_BINARY = test/test_particl$(EXEEXT)
+TEST_BINARY = test/test_ghost$(EXEEXT)
 
 JSON_TEST_FILES = \
   test/data/script_tests.json \
@@ -164,14 +164,14 @@ BITCOIN_TEST_SUITE = \
   $(TEST_UTIL_H)
 
 FUZZ_SUITE_LD_COMMON = \
- $(LIBPARTICL_SERVER) \
- $(LIBPARTICL_COMMON) \
- $(LIBPARTICL_UTIL) \
+ $(LIBGHOST_SERVER) \
+ $(LIBGHOST_COMMON) \
+ $(LIBGHOST_UTIL) \
  $(LIBTEST_UTIL) \
  $(LIBTEST_FUZZ) \
- $(LIBPARTICL_CONSENSUS) \
- $(LIBPARTICL_CRYPTO) \
- $(LIBPARTICL_CLI) \
+ $(LIBGHOST_CONSENSUS) \
+ $(LIBGHOST_CRYPTO) \
+ $(LIBGHOST_CLI) \
  $(LIBUNIVALUE) \
  $(LIBLEVELDB) \
  $(LIBLEVELDB_SSE42) \
@@ -266,7 +266,7 @@ BITCOIN_TESTS =\
   test/extkey_tests.cpp \
   test/ct_tests.cpp \
   test/ringct_tests.cpp \
-  test/particlchain_tests.cpp
+  test/ghostchain_tests.cpp
 
 if ENABLE_WALLET
 BITCOIN_TESTS += \
@@ -292,28 +292,28 @@ BITCOIN_TEST_SUITE += \
   wallet/test/init_test_fixture.h
 endif
 
-test_test_particl_SOURCES = $(BITCOIN_TEST_SUITE) $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
-test_test_particl_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(TESTDEFS) $(EVENT_CFLAGS)
-test_test_particl_LDADD = $(LIBTEST_UTIL)
+test_test_ghost_SOURCES = $(BITCOIN_TEST_SUITE) $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
+test_test_ghost_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(TESTDEFS) $(EVENT_CFLAGS)
+test_test_ghost_LDADD = $(LIBTEST_UTIL)
 if ENABLE_WALLET
-test_test_particl_LDADD += $(LIBPARTICL_WALLET)
+test_test_ghost_LDADD += $(LIBGHOST_WALLET)
 endif
 if ENABLE_USBDEVICE
-test_test_particl_LDADD += $(LIBPARTICL_USBDEVICE) $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
+test_test_ghost_LDADD += $(LIBGHOST_USBDEVICE) $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
-test_test_particl_LDADD += $(LIBPARTICL_SERVER) $(LIBPARTICL_CLI) $(LIBPARTICL_COMMON) $(LIBPARTICL_UTIL) $(LIBPARTICL_CONSENSUS) $(LIBPARTICL_CRYPTO) $(LIBPARTICL_SMSG) $(LIBPARTICL_MNEMONIC) $(LIBUNIVALUE) \
+test_test_ghost_LDADD += $(LIBGHOST_SERVER) $(LIBGHOST_CLI) $(LIBGHOST_COMMON) $(LIBGHOST_UTIL) $(LIBGHOST_CONSENSUS) $(LIBGHOST_CRYPTO) $(LIBGHOST_SMSG) $(LIBGHOST_MNEMONIC) $(LIBUNIVALUE) \
   $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(LIBSECP256K1) $(EVENT_LIBS) $(EVENT_PTHREADS_LIBS)
-test_test_particl_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+test_test_ghost_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
-test_test_particl_LDADD += $(BDB_LIBS) $(MINIUPNPC_LIBS)
-test_test_particl_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
+test_test_ghost_LDADD += $(BDB_LIBS) $(MINIUPNPC_LIBS)
+test_test_ghost_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 
 if ENABLE_ZMQ
-test_test_particl_LDADD += $(LIBPARTICL_ZMQ) $(ZMQ_LIBS)
+test_test_ghost_LDADD += $(LIBGHOST_ZMQ) $(ZMQ_LIBS)
 endif
 
 if ENABLE_USBDEVICE
-test_test_particl_LDADD += $(LIBPARTICL_USBDEVICE) $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
+test_test_ghost_LDADD += $(LIBGHOST_USBDEVICE) $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
 
 if ENABLE_FUZZ
@@ -1088,7 +1088,7 @@ test_fuzz_uint256_deserialize_SOURCES = test/fuzz/deserialize.cpp
 
 endif # ENABLE_FUZZ
 
-nodist_test_test_particl_SOURCES = $(GENERATED_TEST_FILES)
+nodist_test_test_ghost_SOURCES = $(GENERATED_TEST_FILES)
 
 $(BITCOIN_TESTS): $(GENERATED_TEST_FILES)
 
@@ -1110,7 +1110,7 @@ bitcoin_test_check: $(TEST_BINARY) FORCE
 	$(MAKE) check-TESTS TESTS=$^
 
 bitcoin_test_clean : FORCE
-	rm -f $(CLEAN_BITCOIN_TEST) $(test_test_particl_OBJECTS) $(TEST_BINARY)
+	rm -f $(CLEAN_BITCOIN_TEST) $(test_test_ghost_OBJECTS) $(TEST_BINARY)
 
 check-local: $(BITCOIN_TESTS:.cpp=.cpp.test)
 if BUILD_BITCOIN_TX
@@ -1122,7 +1122,7 @@ endif
 if TARGET_WINDOWS
 else
 if ENABLE_BENCH
-	@echo "Running bench/bench_particl -evals=1 -scaling=0..."
+	@echo "Running bench/bench_ghost -evals=1 -scaling=0..."
 	$(BENCH_BINARY) -evals=1 -scaling=0 > /dev/null
 endif
 endif
