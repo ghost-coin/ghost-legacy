@@ -103,7 +103,7 @@ class BlindTest(GhostTestFramework):
         assert(e['stealth_address'] == sxAddrTo2_1)
 
 
-        txnHash4 = nodes[1].sendblindtopart(sxAddrTo2_1, 0.5, '', '', False, 'node1 -> node2 b->p')
+        txnHash4 = nodes[1].sendblindtoghost(sxAddrTo2_1, 0.5, '', '', False, 'node1 -> node2 b->p')
 
         ro = nodes[1].getwalletinfo()
         assert(ro['blind_balance'] < 2.7 and ro['blind_balance'] > 2.69)

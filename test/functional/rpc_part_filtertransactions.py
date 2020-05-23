@@ -344,7 +344,7 @@ class FilterTransactionsTest(GhostTestFramework):
             assert('Invalid sort' in e.error['message'])
 
         # Sent blind should show when filtered for blinded txns
-        nodes[0].sendblindtopart(targetStealth, 1.0)
+        nodes[0].sendblindtoghost(targetStealth, 1.0)
         ro = nodes[0].filtertransactions({ 'type': 'blind', 'count': 20 })
         assert(len(ro) == 2)
 

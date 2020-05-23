@@ -5043,7 +5043,7 @@ static UniValue sendghosttoanon(const JSONRPCRequest &request)
 };
 
 
-static UniValue sendblindtopart(const JSONRPCRequest &request)
+static UniValue sendblindtoghost(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetGhostWallet(wallet.get());
@@ -5080,7 +5080,7 @@ static UniValue sendblindtoanon(const JSONRPCRequest &request)
 };
 
 
-static UniValue sendanontopart(const JSONRPCRequest &request)
+static UniValue sendanontoghost(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetGhostWallet(wallet.get());
@@ -8285,15 +8285,15 @@ static const CRPCCommand commands[] =
     { "wallet",             "listunspentblind",                 &listunspentblind,              {"minconf","maxconf","addresses","include_unsafe","query_options"} },
 
 
-    //sendghosttopart // normal txn
+    //sendghosttoghost // normal txn
     { "wallet",             "sendghosttoblind",                  &sendghosttoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
     { "wallet",             "sendghosttoanon",                   &sendghosttoanon,                {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
 
-    { "wallet",             "sendblindtopart",                  &sendblindtopart,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
+    { "wallet",             "sendblindtoghost",                  &sendblindtoghost,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
     { "wallet",             "sendblindtoblind",                 &sendblindtoblind,              {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
     { "wallet",             "sendblindtoanon",                  &sendblindtoanon,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
 
-    { "wallet",             "sendanontopart",                   &sendanontopart,                {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
+    { "wallet",             "sendanontoghost",                   &sendanontoghost,                {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
     { "wallet",             "sendanontoblind",                  &sendanontoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
     { "wallet",             "sendanontoanon",                   &sendanontoanon,                {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
 
