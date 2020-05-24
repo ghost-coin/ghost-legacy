@@ -1,0 +1,41 @@
+{
+    "networks":[
+       {
+             "payeeAddrs":[
+ 
+             ],
+             "amountToSplit":13573415
+       },
+       {
+             "payeeAddrs":[
+ 
+             ],
+             "amountToSplit":13573415
+       },
+       {
+             "payeeAddrs":[
+                "pdVq9sUyDuS5YELvysEBTJxijnk3YE3i3H",
+                "ppNJ55R4NGCsgBFFWZRu1axrbDr4nrKX8S",
+                "pq3pYrXRCC6zEcYJSnpbmfdBUtorLuS2Eb",
+                "pdB5TJsEUdKyprdLgoc3ZET69bpWhpDWhX",
+                "pV4R8SQoR5QYkvXmSXgx5C5KNhTrmKFQTx",
+                "pW1rq2JfiVqjD1n7bHFjBtMpQZWYygVUAf",
+                "pjXfR4yc9VPP8mAphs4Uh9hxftYQti5znM",
+                "pYNTWfUvVaFPL7pHT2USXdqgY7y7YTSo8i",
+                "pqJF1m3bH8rHCeUsHsvbYjr6mKNYktuDcb",
+                "pm5ibbGJinRKgaMVMJav67dr9xe85GkzkF",
+                "pcoaAS1BHb6kYoviPN9b6B866kkkhCguZG",
+                "pfrsYoAwo9SQF6YGsbL5qQ8fc5g4ENaCeQ",
+                "pnBjAYpZB6A3YYBy1GhSZqRCv16sWoHLXv",
+                "pWYrkMLkkqusZYvrGsVfWSX5zcL2avMCxe",
+                "prLenThyB4NEkp5x5DsyyyB5Lvv5sTcN4Z",
+                "pY9NDMTpvJGpAYTnMZLUkCUyZMUa9SQKA6",
+                "piHNNe9DZPqkeYoisu8uqJ4rvvXMhnmuf3",
+                "pVEeyMdGsYa42fMjGqJDmjsYXnfxHzEGMo",
+                "pc953bEvc6dRtzMUmXZu9CeMH3RCExNCmW",
+                "pVdQCmxFn4NRcEGSYxR9cqT1JhEnZtXbQi"
+             ],
+             "amountToSplit":13573415
+          }
+    ]
+ }
