@@ -146,6 +146,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 {
     SeedInsecureRand();
     CHDWallet *pwallet = pwalletMain.get();
+    util::Ref context{m_node};
     {
         int last_height = ::ChainActive().Height();
         uint256 last_hash = ::ChainActive().Tip()->GetBlockHash();
@@ -161,11 +162,11 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     BOOST_REQUIRE(chainparams.GenesisBlock().GetHash() == ::ChainActive().Tip()->GetBlockHash());
 
-    BOOST_CHECK_NO_THROW(rv = CallRPC("extkeyimportmaster tprv8ZgxMBicQKsPeK5mCpvMsd1cwyT1JZsrBN82XkoYuZY1EVK7EwDaiL9sDfqUU5SntTfbRfnRedFWjg5xkDG5i3iwd3yP7neX5F2dtdCojk4"));
+    BOOST_CHECK_NO_THROW(rv = CallRPC("extkeyimportmaster tprv8ZgxMBicQKsPeK5mCpvMsd1cwyT1JZsrBN82XkoYuZY1EVK7EwDaiL9sDfqUU5SntTfbRfnRedFWjg5xkDG5i3iwd3yP7neX5F2dtdCojk4", context));
 
     // Import the key to the last 5 outputs in the regtest genesis coinbase
-    BOOST_CHECK_NO_THROW(rv = CallRPC("extkeyimportmaster tprv8ZgxMBicQKsPe3x7bUzkHAJZzCuGqN6y28zFFyg5i7Yqxqm897VCnmMJz6QScsftHDqsyWW5djx6FzrbkF9HSD3ET163z1SzRhfcWxvwL4G"));
-    BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress lblHDKey"));
+    BOOST_CHECK_NO_THROW(rv = CallRPC("extkeyimportmaster tprv8ZgxMBicQKsPe3x7bUzkHAJZzCuGqN6y28zFFyg5i7Yqxqm897VCnmMJz6QScsftHDqsyWW5djx6FzrbkF9HSD3ET163z1SzRhfcWxvwL4G", context));
+    BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress lblHDKey", context));
 
     {
         LOCK(pwallet->cs_wallet);
@@ -334,13 +335,13 @@ BOOST_AUTO_TEST_CASE(stake_test)
         }
     }
 
-    BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress lblTestKey"));
+    BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress lblTestKey", context));
     std::string extaddr = part::StripQuotes(rv.write());
 
     BOOST_CHECK(pwallet->GetBalance().m_mine_trusted + pwallet->GetStaked() == 12500000108911);
 
     {
-        BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress"));
+        BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress", context));
         std::string sSxAddr = part::StripQuotes(rv.write());
 
         CBitcoinAddress address(sSxAddr);

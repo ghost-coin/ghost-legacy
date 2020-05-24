@@ -9,14 +9,19 @@
 #include <QThread>
 #include <univalue.h>
 
+namespace interfaces {
+class Node;
+} // namespace interfaces
+
 class RPCThread : public QThread
 {
     Q_OBJECT
 public:
-    RPCThread(const QString &command, const QString &walletID, UniValue *rv)
-        : QThread(), m_command(command), m_wallet(walletID), m_rv(rv) {};
+    RPCThread(const QString &command, interfaces::Node& node, const QString &walletID, UniValue *rv)
+        : QThread(), m_command(command), m_node(node), m_wallet(walletID), m_rv(rv) {};
     void run() override;
     QString m_command;
+    interfaces::Node& m_node;
     QString m_wallet;
     UniValue *m_rv;
 Q_SIGNALS:

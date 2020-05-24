@@ -575,7 +575,7 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
     coin_control.m_avoid_partial_spends |= coin_control.m_avoid_address_reuse;
 
     if (IsParticlWallet(pwallet)) {
-        JSONRPCRequest newRequest;
+        JSONRPCRequest newRequest(request.context);
         newRequest.fHelp = false;
         newRequest.fSkipBlock = true; // already blocked in this function
         newRequest.URI = request.URI;
@@ -1071,7 +1071,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
         }
     }
     if (IsParticlWallet(pwallet)) {
-        JSONRPCRequest newRequest;
+        JSONRPCRequest newRequest(request.context);
         newRequest.fHelp = false;
         newRequest.fSkipBlock = true; // already blocked in this function
         newRequest.URI = request.URI;
@@ -3476,6 +3476,7 @@ static UniValue createwallet(const JSONRPCRequest& request)
     }
     if (!request.params[5].isNull() && request.params[5].get_bool()) {
         flags |= WALLET_FLAG_DESCRIPTORS;
+        warnings.emplace_back(Untranslated("Wallet is an experimental descriptor wallet"));
     }
 
     bilingual_str error;
@@ -3583,8 +3584,7 @@ static UniValue resendwallettransactions(const JSONRPCRequest& request)
         }
     }
 
-    for (const uint256& txid : txids)
-    {
+    for (const uint256& txid : txids) {
         result.push_back(txid.ToString());
     }
     return result;
@@ -4981,10 +4981,6 @@ UniValue sethdseed(const JSONRPCRequest& request)
             }.Check(request);
 
     LegacyScriptPubKeyMan& spk_man = EnsureLegacyScriptPubKeyMan(*pwallet, true);
-
-    if (pwallet->chain().isInitialBlockDownload()) {
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Cannot set a new HD seed while still in Initial Block Download");
-    }
 
     if (pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Cannot set a HD seed to a wallet with private keys disabled");

@@ -18,6 +18,8 @@
 
 #include <boost/signals2/signal.hpp>
 
+#include <unordered_map>
+
 enum class OutputType;
 struct bilingual_str;
 
@@ -151,6 +153,17 @@ public:
     }
 };
 
+class KeyIDHasher
+{
+public:
+    KeyIDHasher() {}
+
+    size_t operator()(const CKeyID& id) const
+    {
+        return id.GetUint64(0);
+    }
+};
+
 /*
  * A class implementing ScriptPubKeyMan manages some (or all) scriptPubKeys used in a wallet.
  * It contains the scripts and keys related to the scriptPubKeys it manages.
@@ -233,7 +246,7 @@ public:
 
     virtual uint256 GetID() const { return uint256(); }
 
-    virtual void SetType(OutputType type, bool internal) {}
+    virtual void SetInternal(bool internal) {}
 
     /** Prepends the wallet name in logging output to ease debugging in multi-wallet use cases */
     template<typename... Params>
@@ -253,7 +266,7 @@ class LegacyScriptPubKeyMan : public ScriptPubKeyMan, public FillableSigningProv
 //private:
 public:
     //! keeps track of whether Unlock has run a thorough check before
-    bool fDecryptionThoroughlyChecked = false;
+    bool fDecryptionThoroughlyChecked = true;
 
     using WatchOnlySet = std::set<CScript>;
     using WatchKeyMap = std::map<CKeyID, CPubKey>;
@@ -298,10 +311,11 @@ public:
     bool AddKeyOriginWithDB(WalletBatch& batch, const CPubKey& pubkey, const KeyOriginInfo& info);
 
     /* the HD chain data model (external chain counters) */
-    CHDChain hdChain;
+    CHDChain m_hd_chain;
+    std::unordered_map<CKeyID, CHDChain, KeyIDHasher> m_inactive_hd_chains;
 
     /* HD derive new child key (on internal or external chain) */
-    void DeriveNewChildKey(WalletBatch& batch, CKeyMetadata& metadata, CKey& secret, bool internal = false) EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
+    void DeriveNewChildKey(WalletBatch& batch, CKeyMetadata& metadata, CKey& secret, CHDChain& hd_chain, bool internal = false) EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     std::set<int64_t> setInternalKeyPool GUARDED_BY(cs_KeyStore);
     std::set<int64_t> setExternalKeyPool GUARDED_BY(cs_KeyStore);
@@ -329,6 +343,18 @@ public:
      *     or external keypool
      */
     bool ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool, bool fRequestedInternal);
+
+    /**
+     * Like TopUp() but adds keys for inactive HD chains.
+     * Ensures that there are at least -keypool number of keys derived after the given index.
+     *
+     * @param seed_id the CKeyID for the HD seed.
+     * @param index the index to start generating keys from
+     * @param internal whether the internal chain should be used. true for internal chain, false for external chain.
+     *
+     * @return true if seed was found and keys were derived. false if unable to derive seeds
+     */
+    bool TopUpInactiveHDChain(const CKeyID seed_id, int64_t index, bool internal);
 
 public:
     using ScriptPubKeyMan::ScriptPubKeyMan;
@@ -381,7 +407,7 @@ public:
 
     uint256 GetID() const override;
 
-    void SetType(OutputType type, bool internal) override;
+    void SetInternal(bool internal) override;
 
     // Map from Key ID to key metadata.
     std::map<CKeyID, CKeyMetadata> mapKeyMetadata GUARDED_BY(cs_KeyStore);
@@ -396,7 +422,7 @@ public:
     //! Adds an encrypted key to the store, and saves it to disk.
     bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
     //! Adds an encrypted key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
+    bool LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret, bool checksum_valid);
     void UpdateTimeFirstKey(int64_t nCreateTime) EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
     //! Adds a CScript to the store
     bool LoadCScript(const CScript& redeemScript);
@@ -404,11 +430,12 @@ public:
     void LoadKeyMetadata(const CKeyID& keyID, const CKeyMetadata &metadata);
     void LoadScriptMetadata(const CScriptID& script_id, const CKeyMetadata &metadata);
     //! Generate a new key
-    CPubKey GenerateNewKey(WalletBatch& batch, bool internal = false) EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
+    CPubKey GenerateNewKey(WalletBatch& batch, CHDChain& hd_chain, bool internal = false) EXCLUSIVE_LOCKS_REQUIRED(cs_KeyStore);
 
     /* Set the HD chain model (chain child index counters) */
     void SetHDChain(const CHDChain& chain, bool memonly);
-    const CHDChain& GetHDChain() const { return hdChain; }
+    const CHDChain& GetHDChain() const { return m_hd_chain; }
+    void AddInactiveHDChain(const CHDChain& chain);
 
     //! Adds a watch-only address to the store, without saving it to disk (used by LoadWallet)
     bool LoadWatchOnly(const CScript &dest);
@@ -515,13 +542,10 @@ private:
     PubKeyMap m_map_pubkeys GUARDED_BY(cs_desc_man);
     int32_t m_max_cached_index = -1;
 
-    OutputType m_address_type;
     bool m_internal = false;
 
     KeyMap m_map_keys GUARDED_BY(cs_desc_man);
     CryptedKeyMap m_map_crypted_keys GUARDED_BY(cs_desc_man);
-
-    bool SetCrypted();
 
     //! keeps track of whether Unlock has run a thorough check before
     bool m_decryption_thoroughly_checked = false;
@@ -542,9 +566,9 @@ public:
         :   ScriptPubKeyMan(storage),
             m_wallet_descriptor(descriptor)
         {}
-    DescriptorScriptPubKeyMan(WalletStorage& storage, OutputType address_type, bool internal)
+    DescriptorScriptPubKeyMan(WalletStorage& storage, bool internal)
         :   ScriptPubKeyMan(storage),
-            m_address_type(address_type), m_internal(internal)
+            m_internal(internal)
         {}
 
     mutable RecursiveMutex cs_desc_man;
@@ -569,7 +593,7 @@ public:
     bool IsHDEnabled() const override;
 
     //! Setup descriptors based on the given CExtkey
-    bool SetupDescriptorGeneration(const CExtKey& master_key);
+    bool SetupDescriptorGeneration(const CExtKey& master_key, OutputType addr_type);
 
     bool HavePrivateKeys() const override;
 
@@ -593,7 +617,7 @@ public:
 
     uint256 GetID() const override;
 
-    void SetType(OutputType type, bool internal) override;
+    void SetInternal(bool internal) override;
 
     void SetCache(const DescriptorCache& cache);
 

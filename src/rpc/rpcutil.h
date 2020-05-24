@@ -7,14 +7,14 @@
 #ifndef PARTICL_RPC_RPCUTIL_H
 #define PARTICL_RPC_RPCUTIL_H
 
+#include <rpc/request.h>
+#include <util/ref.h>
 #include <univalue.h>
 #include <string>
 
-class JSONRPCRequest;
-
-void CallRPCVoid(std::string args, std::string wallet="");
-void CallRPCVoidRv(std::string args, std::string wallet, bool *passed, UniValue *rv);
-UniValue CallRPC(std::string args, std::string wallet="");
+void CallRPCVoid(std::string args, const util::Ref& context, std::string wallet="");
+void CallRPCVoidRv(std::string args, const util::Ref& context, std::string wallet, bool *passed, UniValue *rv);
+UniValue CallRPC(std::string args, const util::Ref& context, std::string wallet="");
 
 void AddUri(JSONRPCRequest &request, std::string wallet);
 void CallRPC(UniValue &rv, const JSONRPCRequest &request);

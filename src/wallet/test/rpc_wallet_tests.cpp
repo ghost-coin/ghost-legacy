@@ -4,6 +4,7 @@
 
 #include <rpc/server.h>
 #include <rpc/client.h>
+#include <rpc/rpcutil.h>
 
 #include <key_io.h>
 #include <validation.h>
@@ -19,7 +20,6 @@
 using namespace std;
 
 //extern JSONRPCRequest createArgs(int nRequired, const char* address1 = NULL, const char* address2 = nullptr);
-extern UniValue CallRPC(std::string args, std::string wallet="");
 
 BOOST_FIXTURE_TEST_SUITE(rpc_wallet_tests, WalletTestingSetup)
 /*
@@ -68,6 +68,7 @@ BOOST_AUTO_TEST_CASE(rpc_wallet)
     CBitcoinAddress demoAddress;
     UniValue retValue;
     string strAccount = "walletDemoAccount";
+    util::Ref context{m_node};
 
     // TODO: add new master key here
     return;
@@ -80,7 +81,7 @@ BOOST_AUTO_TEST_CASE(rpc_wallet)
         auto spk_man = m_wallet.GetLegacyScriptPubKeyMan();
         assert(spk_man);
         LOCK(spk_man->cs_KeyStore);
-        demoPubkey = spk_man->GenerateNewKey(walletdb, false);
+        demoPubkey = spk_man->GenerateNewKey(walletdb, spk_man->m_hd_chain, false);
         demoAddress = CBitcoinAddress(CTxDestination(PKHash(demoPubkey)));
         string strPurpose = "receive";
         BOOST_CHECK_NO_THROW({ /*Initialize Wallet with an account */
@@ -91,91 +92,91 @@ BOOST_AUTO_TEST_CASE(rpc_wallet)
     /*********************************
      *      getbalance
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("getbalance"));
-    BOOST_CHECK_NO_THROW(CallRPC("getbalance " + demoAddress.ToString()));
+    BOOST_CHECK_NO_THROW(CallRPC("getbalance", context));
+    BOOST_CHECK_NO_THROW(CallRPC("getbalance " + demoAddress.ToString(), context));
 
     /*********************************
      *      listunspent
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("listunspent"));
-    BOOST_CHECK_THROW(CallRPC("listunspent string"), runtime_error);
-    BOOST_CHECK_THROW(CallRPC("listunspent 0 string"), runtime_error);
-    BOOST_CHECK_THROW(CallRPC("listunspent 0 1 not_array"), runtime_error);
-    BOOST_CHECK_THROW(CallRPC("listunspent 0 1 [] extra"), runtime_error);
-    BOOST_CHECK_NO_THROW(r = CallRPC("listunspent 0 1 []"));
+    BOOST_CHECK_NO_THROW(CallRPC("listunspent", context));
+    BOOST_CHECK_THROW(CallRPC("listunspent string", context), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("listunspent 0 string", context), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("listunspent 0 1 not_array", context), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("listunspent 0 1 [] extra", context), runtime_error);
+    BOOST_CHECK_NO_THROW(r = CallRPC("listunspent 0 1 []", context));
     BOOST_CHECK(r.get_array().empty());
 
     /*********************************
      *      listreceivedbyaddress
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("listreceivedbyaddress"));
-    BOOST_CHECK_NO_THROW(CallRPC("listreceivedbyaddress 0"));
-    BOOST_CHECK_THROW(CallRPC("listreceivedbyaddress not_int"), runtime_error);
-    BOOST_CHECK_THROW(CallRPC("listreceivedbyaddress 0 not_bool"), runtime_error);
-    BOOST_CHECK_NO_THROW(CallRPC("listreceivedbyaddress 0 true"));
-    BOOST_CHECK_THROW(CallRPC("listreceivedbyaddress 0 true extra"), runtime_error);
+    BOOST_CHECK_NO_THROW(CallRPC("listreceivedbyaddress", context));
+    BOOST_CHECK_NO_THROW(CallRPC("listreceivedbyaddress 0", context));
+    BOOST_CHECK_THROW(CallRPC("listreceivedbyaddress not_int", context), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("listreceivedbyaddress 0 not_bool", context), runtime_error);
+    BOOST_CHECK_NO_THROW(CallRPC("listreceivedbyaddress 0 true", context));
+    BOOST_CHECK_THROW(CallRPC("listreceivedbyaddress 0 true extra", context), runtime_error);
 
     /*********************************
      *      listsinceblock
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("listsinceblock"));
+    BOOST_CHECK_NO_THROW(CallRPC("listsinceblock", context));
 
     /*********************************
      *      listtransactions
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("listtransactions"));
-    BOOST_CHECK_NO_THROW(CallRPC("listtransactions " + demoAddress.ToString()));
-    BOOST_CHECK_NO_THROW(CallRPC("listtransactions " + demoAddress.ToString() + " 20"));
-    BOOST_CHECK_NO_THROW(CallRPC("listtransactions " + demoAddress.ToString() + " 20 0"));
-    BOOST_CHECK_THROW(CallRPC("listtransactions " + demoAddress.ToString() + " not_int"), runtime_error);
+    BOOST_CHECK_NO_THROW(CallRPC("listtransactions", context));
+    BOOST_CHECK_NO_THROW(CallRPC("listtransactions " + demoAddress.ToString(), context));
+    BOOST_CHECK_NO_THROW(CallRPC("listtransactions " + demoAddress.ToString() + " 20", context));
+    BOOST_CHECK_NO_THROW(CallRPC("listtransactions " + demoAddress.ToString() + " 20 0", context));
+    BOOST_CHECK_THROW(CallRPC("listtransactions " + demoAddress.ToString() + " not_int", context), runtime_error);
 
     /*********************************
      *      listlockunspent
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("listlockunspent"));
+    BOOST_CHECK_NO_THROW(CallRPC("listlockunspent", context));
 
     /*********************************
      *      listaddressgroupings
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("listaddressgroupings"));
+    BOOST_CHECK_NO_THROW(CallRPC("listaddressgroupings", context));
 
     /*********************************
      *      getrawchangeaddress
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("getrawchangeaddress"));
+    BOOST_CHECK_NO_THROW(CallRPC("getrawchangeaddress", context));
 
     /*********************************
      *      getnewaddress
      *********************************/
-    BOOST_CHECK_NO_THROW(CallRPC("getnewaddress"));
-    BOOST_CHECK_NO_THROW(CallRPC("getnewaddress getnewaddress_demoaccount"));
+    BOOST_CHECK_NO_THROW(CallRPC("getnewaddress", context));
+    BOOST_CHECK_NO_THROW(CallRPC("getnewaddress getnewaddress_demoaccount", context));
 
     /*********************************
      *      signmessage + verifymessage
      *********************************/
-    BOOST_CHECK_NO_THROW(retValue = CallRPC("signmessage " + demoAddress.ToString() + " mymessage"));
-    BOOST_CHECK_THROW(CallRPC("signmessage"), runtime_error);
+    BOOST_CHECK_NO_THROW(retValue = CallRPC("signmessage " + demoAddress.ToString() + " mymessage", context));
+    BOOST_CHECK_THROW(CallRPC("signmessage", context), runtime_error);
     /* Should throw error because this address is not loaded in the wallet */
-    BOOST_CHECK_THROW(CallRPC("signmessage PwBcySALqBWYqf75g4YRUE7U1ymGvbuThA mymessage"), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("signmessage PwBcySALqBWYqf75g4YRUE7U1ymGvbuThA mymessage", context), runtime_error);
 
     /* missing arguments */
-    BOOST_CHECK_THROW(CallRPC("verifymessage " + demoAddress.ToString()), runtime_error);
-    BOOST_CHECK_THROW(CallRPC("verifymessage " + demoAddress.ToString() + " " + retValue.get_str()), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("verifymessage " + demoAddress.ToString(), context), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("verifymessage " + demoAddress.ToString() + " " + retValue.get_str(), context), runtime_error);
     /* Illegal address */
-    BOOST_CHECK_THROW(CallRPC("verifymessage uWwyrg86LkihRv6sVmqqT1nSLCebSQXeH " + retValue.get_str() + " mymessage"), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("verifymessage uWwyrg86LkihRv6sVmqqT1nSLCebSQXeH " + retValue.get_str() + " mymessage", context), runtime_error);
     /* wrong address */
-    BOOST_CHECK(CallRPC("verifymessage PjwLze4moQRruqnTgjCFZjeDksanqzfeGS " + retValue.get_str() + " mymessage").get_bool() == false);
+    BOOST_CHECK(CallRPC("verifymessage PjwLze4moQRruqnTgjCFZjeDksanqzfeGS " + retValue.get_str() + " mymessage", context).get_bool() == false);
     /* Correct address and signature but wrong message */
-    BOOST_CHECK(CallRPC("verifymessage " + demoAddress.ToString() + " " + retValue.get_str() + " wrongmessage").get_bool() == false);
+    BOOST_CHECK(CallRPC("verifymessage " + demoAddress.ToString() + " " + retValue.get_str() + " wrongmessage", context).get_bool() == false);
     /* Correct address, message and signature*/
-    BOOST_CHECK(CallRPC("verifymessage " + demoAddress.ToString() + " " + retValue.get_str() + " mymessage").get_bool() == true);
+    BOOST_CHECK(CallRPC("verifymessage " + demoAddress.ToString() + " " + retValue.get_str() + " mymessage", context).get_bool() == true);
 
 
     /*********************************
      *      fundrawtransaction
      *********************************/
-    BOOST_CHECK_THROW(CallRPC("fundrawtransaction 28z"), runtime_error);
-    BOOST_CHECK_THROW(CallRPC("fundrawtransaction 01000000000180969800000000001976a91450ce0a4b0ee0ddeb633da85199728b940ac3fe9488ac00000000"), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("fundrawtransaction 28z", context), runtime_error);
+    BOOST_CHECK_THROW(CallRPC("fundrawtransaction 01000000000180969800000000001976a91450ce0a4b0ee0ddeb633da85199728b940ac3fe9488ac00000000", context), runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

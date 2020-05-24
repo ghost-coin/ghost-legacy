@@ -13,6 +13,7 @@
 #include <lz4/lz4.h>
 #include <smsg/keystore.h>
 #include <interfaces/handler.h>
+#include <interfaces/node.h>
 
 #include <atomic>
 #include <boost/signals2/signal.hpp>
@@ -511,6 +512,8 @@ public:
     uint16_t m_smsg_max_receive_count = SMSG_DEFAULT_MAXRCV;
 
     std::map<int64_t, int64_t> m_show_requests;
+
+    NodeContext *m_node = nullptr;
 };
 
 double GetDifficulty(uint32_t compact);

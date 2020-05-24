@@ -339,9 +339,9 @@ void Shutdown(NodeContext& node)
     }
 
     // FlushStateToDisk generates a ChainStateFlushed callback, which we should avoid missing
-    {
+    if (node.chainman) {
         LOCK(cs_main);
-        for (CChainState* chainstate : g_chainman.GetAll()) {
+        for (CChainState* chainstate : node.chainman->GetAll()) {
             if (chainstate->CanFlushToDisk()) {
                 chainstate->ForceFlushStateToDisk();
             }
@@ -366,9 +366,9 @@ void Shutdown(NodeContext& node)
     // up with our current chain to avoid any strange pruning edge cases and make
     // next startup faster by avoiding rescan.
 
-    {
+    if (node.chainman) {
         LOCK(cs_main);
-        for (CChainState* chainstate : g_chainman.GetAll()) {
+        for (CChainState* chainstate : node.chainman->GetAll()) {
             if (chainstate->CanFlushToDisk()) {
                 chainstate->ForceFlushStateToDisk();
                 chainstate->ResetCoinsViews();
@@ -404,7 +404,8 @@ void Shutdown(NodeContext& node)
     ECC_Stop_Stealth();
     ECC_Stop_Blinding();
     node.args = nullptr;
-    if (node.mempool) node.mempool = nullptr;
+    node.mempool = nullptr;
+    node.chainman = nullptr;
     node.scheduler.reset();
 
     try {
@@ -837,7 +838,7 @@ static void CleanupBlockRevFiles()
     }
 }
 
-static void ThreadImport(std::vector<fs::path> vImportFiles)
+static void ThreadImport(ChainstateManager& chainman, std::vector<fs::path> vImportFiles)
 {
     const CChainParams& chainparams = Params();
     util::ThreadRename("loadblk");
@@ -894,9 +895,9 @@ static void ThreadImport(std::vector<fs::path> vImportFiles)
 
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     // We can't hold cs_main during ActivateBestChain even though we're accessing
-    // the g_chainman unique_ptrs since ABC requires us not to be holding cs_main, so retrieve
+    // the chainman unique_ptrs since ABC requires us not to be holding cs_main, so retrieve
     // the relevant pointers before the ABC call.
-    for (CChainState* chainstate : WITH_LOCK(::cs_main, return g_chainman.GetAll())) {
+    for (CChainState* chainstate : WITH_LOCK(::cs_main, return chainman.GetAll())) {
         BlockValidationState state;
         if (!chainstate->ActivateBestChain(state, chainparams, nullptr)) {
             LogPrintf("Failed to connect best block (%s)\n", state.ToString());
@@ -938,16 +939,16 @@ static bool InitSanityCheck()
     return true;
 }
 
-static bool AppInitServers()
+static bool AppInitServers(const util::Ref& context)
 {
     RPCServer::OnStarted(&OnRPCStarted);
     RPCServer::OnStopped(&OnRPCStopped);
     if (!InitHTTPServer())
         return false;
     StartRPC();
-    if (!StartHTTPRPC())
+    if (!StartHTTPRPC(context))
         return false;
-    if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE)) StartREST();
+    if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE)) StartREST(context);
     StartHTTPServer();
     return true;
 }
@@ -1416,7 +1417,7 @@ bool AppInitLockDataDirectory()
     return true;
 }
 
-bool AppInitMain(NodeContext& node)
+bool AppInitMain(const util::Ref& context, NodeContext& node)
 {
     const CChainParams& chainparams = Params();
     // ********************************************************* Step 4a: application initialization
@@ -1523,7 +1524,6 @@ bool AppInitMain(NodeContext& node)
     for (const auto& client : node.chain_clients) {
         client->registerRpcs();
     }
-    g_rpc_node = &node;
 #if ENABLE_ZMQ
     RegisterZMQRPCCommands(tableRPC);
 #endif
@@ -1536,7 +1536,7 @@ bool AppInitMain(NodeContext& node)
     if (gArgs.GetBoolArg("-server", false))
     {
         uiInterface.InitMessage_connect(SetRPCWarmupStatus);
-        if (!AppInitServers())
+        if (!AppInitServers(context))
             return InitError(_("Unable to start HTTP server. See debug log for details."));
     }
 
@@ -1561,8 +1561,11 @@ bool AppInitMain(NodeContext& node)
     // which are all started after this, may use it from the node context.
     assert(!node.mempool);
     node.mempool = &::mempool;
+    assert(!node.chainman);
+    node.chainman = &g_chainman;
+    ChainstateManager& chainman = EnsureChainman(node);
 
-    node.peer_logic.reset(new PeerLogicValidation(node.connman.get(), node.banman.get(), *node.scheduler, *node.mempool));
+    node.peer_logic.reset(new PeerLogicValidation(node.connman.get(), node.banman.get(), *node.scheduler, *node.chainman, *node.mempool));
     RegisterValidationInterface(node.peer_logic.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size
@@ -1768,7 +1771,7 @@ bool AppInitMain(NodeContext& node)
             const int64_t load_block_index_start_time = GetTimeMillis();
             try {
                 LOCK(cs_main);
-                g_chainman.InitializeChainstate();
+                chainman.InitializeChainstate();
                 UnloadBlockIndex();
 
                 // new CBlockTreeDB tries to delete the existing file, which
@@ -1797,7 +1800,7 @@ bool AppInitMain(NodeContext& node)
                 // block file from disk.
                 // Note that it also sets fReindex based on the disk flag!
                 // From here on out fReindex and fReset mean something different!
-                if (!LoadBlockIndex(chainparams)) {
+                if (!chainman.LoadBlockIndex(chainparams)) {
                     if (ShutdownRequested()) break;
                     strLoadError = _("Error loading block database");
                     break;
@@ -1849,7 +1852,7 @@ bool AppInitMain(NodeContext& node)
 
                 bool failed_chainstate_init = false;
 
-                for (CChainState* chainstate : g_chainman.GetAll()) {
+                for (CChainState* chainstate : chainman.GetAll()) {
                     LogPrintf("Initializing chainstate %s\n", chainstate->ToString());
                     chainstate->InitCoinsDB(
                         /* cache_size_bytes */ nCoinDBCache,
@@ -1910,7 +1913,7 @@ bool AppInitMain(NodeContext& node)
             bool failed_rewind{false};
             // Can't hold cs_main while calling RewindBlockIndex, so retrieve the relevant
             // chainstates beforehand.
-            for (CChainState* chainstate : WITH_LOCK(::cs_main, return g_chainman.GetAll())) {
+            for (CChainState* chainstate : WITH_LOCK(::cs_main, return chainman.GetAll())) {
                 if (!fReset) {
                     // Note that RewindBlockIndex MUST run even if we're about to -reindex-chainstate.
                     // It both disconnects blocks based on the chainstate, and drops block data in
@@ -1934,7 +1937,8 @@ bool AppInitMain(NodeContext& node)
 
             try {
                 LOCK(cs_main);
-                for (CChainState* chainstate : g_chainman.GetAll()) {
+
+                for (CChainState* chainstate : chainman.GetAll()) {
                     if (!is_coinsview_empty(chainstate)) {
                         uiInterface.InitMessage(_("Verifying blocks...").translated);
                         if (fHavePruned && gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) > MIN_BLOCKS_TO_KEEP) {
@@ -2051,7 +2055,7 @@ bool AppInitMain(NodeContext& node)
         nLocalServices = ServiceFlags(nLocalServices & ~NODE_NETWORK);
         if (!fReindex) {
             LOCK(cs_main);
-            for (CChainState* chainstate : g_chainman.GetAll()) {
+            for (CChainState* chainstate : chainman.GetAll()) {
                 uiInterface.InitMessage(_("Pruning blockstore...").translated);
                 chainstate->PruneAndFlush();
             }
@@ -2094,7 +2098,7 @@ bool AppInitMain(NodeContext& node)
         vImportFiles.push_back(strFile);
     }
 
-    threadGroup.create_thread(std::bind(&ThreadImport, vImportFiles));
+    threadGroup.create_thread([=, &chainman] { ThreadImport(chainman, vImportFiles); });
 
     // Wait for genesis block to be processed
     {
@@ -2110,6 +2114,7 @@ bool AppInitMain(NodeContext& node)
 
     // ********************************************************* Step 10.1: start secure messaging
 
+    smsgModule.m_node = &node;
     if (fParticlMode && gArgs.GetBoolArg("-smsg", true)) { // SMSG breaks functional tests with services flag, see version msg
 #ifdef ENABLE_WALLET
         auto vpwallets = GetWallets();

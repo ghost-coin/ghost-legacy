@@ -28,6 +28,7 @@
 #include <univalue.h>
 #include <rpc/server.h>
 #include <rpc/client.h>
+#include <util/ref.h>
 
 #include <stdint.h>
 #include <string>
@@ -112,7 +113,8 @@ QString TransactionDesc::toHTML(interfaces::Node& node, interfaces::Wallet& wall
     if (wtx.is_record) {
         strHTML += "<b>" + tr("Transaction ID") + ":</b> " + QString::fromStdString(wtx.irtx->first.ToString()) + "<br>";
 
-        JSONRPCRequest request;
+        util::Ref context{node};
+        JSONRPCRequest request(context);
         QByteArray encodedName = QUrl::toPercentEncoding(QString::fromStdString(wallet.getWalletName()));
         request.URI = "/wallet/"+std::string(encodedName.constData(), encodedName.length());
         request.fHelp = false;

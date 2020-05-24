@@ -65,9 +65,6 @@ Notes:
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread/thread.hpp>
 
-
-extern NodeContext* g_rpc_node;
-
 extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
 
 smsg::CSMSG smsgModule;
@@ -252,8 +249,8 @@ void ThreadSecureMsg()
         } // cs_smsg
 
         if (nLoop % 20 == 0) {
-            LOCK(g_rpc_node->connman->cs_vNodes);
-            for (auto *pnode : g_rpc_node->connman->vNodes) {
+            LOCK(smsgModule.m_node->connman->cs_vNodes);
+            for (auto *pnode : smsgModule.m_node->connman->vNodes) {
                 LOCK(pnode->smsgData.cs_smsg_net);
                 int64_t cutoffTime = now - SMSG_SECONDS_IN_DAY;
                 for (auto it = pnode->smsgData.m_buckets_last_shown.begin(); it != pnode->smsgData.m_buckets_last_shown.end(); ) {
@@ -273,8 +270,8 @@ void ThreadSecureMsg()
             // Look through the nodes for the peer that locked this bucket
 
             {
-                LOCK(g_rpc_node->connman->cs_vNodes);
-                for (auto *pnode : g_rpc_node->connman->vNodes) {
+                LOCK(smsgModule.m_node->connman->cs_vNodes);
+                for (auto *pnode : smsgModule.m_node->connman->vNodes) {
                     if (pnode->GetId() != nPeerId) {
                         continue;
                     }
@@ -287,7 +284,7 @@ void ThreadSecureMsg()
                     std::vector<uint8_t> vchData;
                     vchData.resize(8);
                     memcpy(&vchData[0], &ignoreUntil, 8);
-                    g_rpc_node->connman->PushMessage(pnode,
+                    smsgModule.m_node->connman->PushMessage(pnode,
                         CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::IGNORING, vchData));
 
                     LogPrint(BCLog::SMSG, "This node will ignore peer %d until %d.\n", nPeerId, ignoreUntil);
@@ -882,7 +879,7 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, std::vector<std::shared_pt
 #endif
 
     fSecMsgEnabled = true;
-    g_rpc_node->connman->SetLocalServices(ServiceFlags(g_rpc_node->connman->GetLocalServices() | NODE_SMSG));
+    m_node->connman->SetLocalServices(ServiceFlags(m_node->connman->GetLocalServices() | NODE_SMSG));
 
     if (ReadIni() != 0) {
         LogPrintf("Failed to read smsg.ini\n");
@@ -958,7 +955,7 @@ bool CSMSG::Shutdown()
     }
 
     fSecMsgEnabled = false;
-    g_rpc_node->connman->SetLocalServices(ServiceFlags(g_rpc_node->connman->GetLocalServices() & ~NODE_SMSG));
+    m_node->connman->SetLocalServices(ServiceFlags(m_node->connman->GetLocalServices() & ~NODE_SMSG));
 
     threadGroupSmsg.interrupt_all();
     threadGroupSmsg.join_all();
@@ -1007,14 +1004,14 @@ bool CSMSG::Enable(std::shared_ptr<CWallet> pactive_wallet, std::vector<std::sha
 
     // Ping each peer advertising smsg
     {
-        LOCK(g_rpc_node->connman->cs_vNodes);
-        for (auto *pnode : g_rpc_node->connman->vNodes) {
+        LOCK(m_node->connman->cs_vNodes);
+        for (auto *pnode : m_node->connman->vNodes) {
             if (!(pnode->GetLocalServices() & NODE_SMSG)) {
                 continue;
             }
-            g_rpc_node->connman->PushMessage(pnode,
+            m_node->connman->PushMessage(pnode,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PING)); // smsgData.fEnabled will be set on receiving smsgPong response from peer
-            g_rpc_node->connman->PushMessage(pnode,
+            m_node->connman->PushMessage(pnode,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG)); // Send pong as have missed initial ping sent by peer when it connected
         }
     }
@@ -1049,13 +1046,13 @@ bool CSMSG::Disable()
 
     // Tell each smsg enabled peer that this node is disabling
     {
-        LOCK(g_rpc_node->connman->cs_vNodes);
-        for (auto *pnode : g_rpc_node->connman->vNodes) {
+        LOCK(m_node->connman->cs_vNodes);
+        for (auto *pnode : m_node->connman->vNodes) {
             if (!pnode->smsgData.fEnabled) {
                 continue;
             }
             LOCK(pnode->smsgData.cs_smsg_net);
-            g_rpc_node->connman->PushMessage(pnode,
+            m_node->connman->PushMessage(pnode,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::DISABLED));
             pnode->smsgData.fEnabled = false;
         }
@@ -1156,8 +1153,8 @@ std::string CSMSG::LookupLabel(PKHash &hash)
 
 void CSMSG::GetNodesStats(int node_id, UniValue &result)
 {
-    LOCK(g_rpc_node->connman->cs_vNodes);
-    for (auto *pnode : g_rpc_node->connman->vNodes) {
+    LOCK(m_node->connman->cs_vNodes);
+    for (auto *pnode : m_node->connman->vNodes) {
         if (node_id > -1 && node_id != pnode->GetId()) {
             continue;
         }
@@ -1201,8 +1198,8 @@ void CSMSG::GetNodesStats(int node_id, UniValue &result)
 
 void CSMSG::ClearBanned()
 {
-    LOCK(g_rpc_node->connman->cs_vNodes);
-    for (auto *pnode : g_rpc_node->connman->vNodes) {
+    LOCK(m_node->connman->cs_vNodes);
+    for (auto *pnode : m_node->connman->vNodes) {
         LOCK(pnode->smsgData.cs_smsg_net);
         if (!pnode->smsgData.fEnabled) {
             continue;
@@ -1498,7 +1495,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 pfrom->smsgData.m_buckets_last_shown[time] = now;
             }
 
-            g_rpc_node->connman->PushMessage(pfrom,
+            m_node->connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::HAVE, vchDataOut));
         }
     } else
@@ -1590,7 +1587,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
                 }
                 bucket.nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
                 bucket.nLockPeerId  = pfrom->GetId();
-                g_rpc_node->connman->PushMessage(pfrom,
+                m_node->connman->PushMessage(pfrom,
                     CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::WANT, vchDataOut));
             }
         } // cs_smsg
@@ -1658,7 +1655,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
             memcpy(&vchBunch[0], &nBunch, 4);
             memcpy(&vchBunch[4], &time, 8);
-            g_rpc_node->connman->PushMessage(pfrom,
+            m_node->connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::MSG, vchBunch));
         }
     } else
@@ -1672,7 +1669,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
     } else
     if (strCommand == SMSGMsgType::PING) {
         // smsgPing is the initial message, send reply
-        g_rpc_node->connman->PushMessage(pfrom,
+        m_node->connman->PushMessage(pfrom,
             CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG, SMSG_VERSION));
     } else
     if (strCommand == SMSGMsgType::PONG) {
@@ -1753,12 +1750,12 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         // First contact
         LogPrint(BCLog::SMSG, "%s: New node %s, peer id %u.\n", __func__, pto->GetAddrName(), pto->GetId());
         // Send smsgPing once, do nothing until receive 1st smsgPong (then set fEnabled)
-        g_rpc_node->connman->PushMessage(pto,
+        m_node->connman->PushMessage(pto,
             CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PING));
 
         // Send smsgPong message if received smsgPing from peer while syncing chain
         if (pto->smsgData.lastSeen < 0) {
-            g_rpc_node->connman->PushMessage(pto,
+            m_node->connman->PushMessage(pto,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG));
         }
 
@@ -1836,7 +1833,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         memcpy(&vchData[0], &nBucketsShown, 4);
         LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
 
-        g_rpc_node->connman->PushMessage(pto,
+        m_node->connman->PushMessage(pto,
             CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::INV, vchData));
         pto->smsgData.lastMatched = now;
     }
@@ -1888,7 +1885,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
     }
     if (nBucketsContestReq > 0) {
         memcpy(&vchData[0], &nBucketsContestReq, 4);
-        g_rpc_node->connman->PushMessage(pto,
+        m_node->connman->PushMessage(pto,
             CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::SHOW, vchData));
     }
 

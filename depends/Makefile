@@ -14,11 +14,8 @@ NO_QR ?=
 NO_WALLET ?=
 NO_ZMQ ?=
 NO_UPNP ?=
-<<<<<<< HEAD
-NO_USB ?=
-=======
 MULTIPROCESS ?=
->>>>>>> bitcoin
+NO_USB ?=
 FALLBACK_DOWNLOAD_PATH ?= https://bitcoincore.org/depends-sources
 
 BUILD = $(shell ./config.guess)

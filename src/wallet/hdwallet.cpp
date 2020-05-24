@@ -10782,12 +10782,9 @@ void CHDWallet::ResendWalletTransactions()
     // that these are our transactions.
     if (GetTime() < nNextResend || !fBroadcastTransactions) return;
     bool fFirst = (nNextResend == 0);
-    nNextResend = GetTime() + GetRand(30 * 60);
+    // resend 12-36 hours from now, ~1 day on average.
+    nNextResend = GetTime() + (12 * 60 * 60) + GetRand(24 * 60 * 60);
     if (fFirst) return;
-
-    // Only do it if there's been a new block since last time
-    if (m_best_block_time < nLastResend) return;
-    nLastResend = GetTime();
 
     int relayed_tx_count = 0;
 

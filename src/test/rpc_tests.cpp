@@ -11,6 +11,7 @@
 #include <interfaces/chain.h>
 #include <node/context.h>
 #include <test/util/setup_common.h>
+#include <util/ref.h>
 #include <util/time.h>
 
 #include <boost/algorithm/string.hpp>
@@ -20,14 +21,21 @@
 
 #include <rpc/blockchain.h>
 
-/*
-UniValue CallRPC(std::string args)
+
+class RPCTestingSetup : public TestingSetup
+{
+public:
+    UniValue CallRPC(std::string args);
+};
+
+UniValue RPCTestingSetup::CallRPC(std::string args)
 {
     std::vector<std::string> vArgs;
     boost::split(vArgs, args, boost::is_any_of(" \t"));
     std::string strMethod = vArgs[0];
     vArgs.erase(vArgs.begin());
-    JSONRPCRequest request;
+    util::Ref context{m_node};
+    JSONRPCRequest request(context);
     request.strMethod = strMethod;
     request.params = RPCConvertValues(strMethod, vArgs);
     request.fHelp = false;
@@ -40,9 +48,9 @@ UniValue CallRPC(std::string args)
         throw std::runtime_error(find_value(objError, "message").get_str());
     }
 }
-*/
 
-BOOST_FIXTURE_TEST_SUITE(rpc_tests, TestingSetup)
+
+BOOST_FIXTURE_TEST_SUITE(rpc_tests, RPCTestingSetup)
 
 BOOST_AUTO_TEST_CASE(rpc_rawparams)
 {

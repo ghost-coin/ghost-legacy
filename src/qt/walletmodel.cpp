@@ -32,6 +32,7 @@
 #include <rpc/rpcutil.h>
 #include <util/system.h>
 #include <univalue.h>
+#include <util/ref.h>
 
 #include <stdint.h>
 
@@ -131,7 +132,7 @@ void WalletModel::updateReservedBalanceChanged(CAmount nValue)
 
 void WalletModel::startRescan()
 {
-    std::thread t(CallRPCVoid, "rescanblockchain 0", m_wallet->getWalletName());
+    std::thread t(CallRPCVoid, "rescanblockchain 0", util::Ref{m_node}, m_wallet->getWalletName());
     t.detach();
 };
 
@@ -361,16 +362,10 @@ WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const
 
 bool WalletModel::setWalletEncrypted(bool encrypted, const SecureString &passphrase)
 {
-    if(encrypted)
-    {
-        // Encrypt
+    if (encrypted) {
         return m_wallet->encryptWallet(passphrase);
     }
-    else
-    {
-        // Decrypt -- TODO; not supported yet
-        return false;
-    }
+    return false;
 }
 
 bool WalletModel::setWalletLocked(bool locked, const SecureString &passPhrase, bool stakingOnly)
@@ -556,7 +551,8 @@ bool WalletModel::isHardwareLinkedWallet() const {
 bool WalletModel::tryCallRpc(const QString &sCommand, UniValue &rv, bool returnError) const
 {
     try {
-        rv = CallRPC(sCommand.toStdString(), m_wallet->getWalletName());
+        util::Ref context{m_node};
+        rv = CallRPC(sCommand.toStdString(), context, m_wallet->getWalletName());
     } catch (UniValue& objError) {
         if (returnError) {
             rv = objError;

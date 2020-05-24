@@ -167,7 +167,7 @@ public:
     bool tryCallRpc(const QString &sCommand, UniValue &rv, bool returnError=false) const;
     void warningBox(QString heading, QString msg) const;
 
-private:
+//private:
     std::unique_ptr<interfaces::Wallet> m_wallet;
     std::unique_ptr<interfaces::Handler> m_handler_unload;
     std::unique_ptr<interfaces::Handler> m_handler_status_changed;

@@ -114,11 +114,12 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
 static void AddTx(benchmark::State& state, const std::string from, const std::string to, const bool owned)
 {
     TestingSetup test_setup{CBaseChainParams::REGTEST, {}, true};
+    util::Ref context{test_setup.m_node};
 
     ECC_Start_Stealth();
     ECC_Start_Blinding();
 
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(*g_rpc_node);
+    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(test_setup.m_node);
     std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, {});
     m_chain_client->registerRpcs();
 
@@ -158,8 +159,8 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
 
     UniValue rv;
 
-    CallRPC("extkeyimportmaster tprv8ZgxMBicQKsPeK5mCpvMsd1cwyT1JZsrBN82XkoYuZY1EVK7EwDaiL9sDfqUU5SntTfbRfnRedFWjg5xkDG5i3iwd3yP7neX5F2dtdCojk4", "a");
-    CallRPC("extkeyimportmaster \"expect trouble pause odor utility palace ignore arena disorder frog helmet addict\"", "b");
+    CallRPC("extkeyimportmaster tprv8ZgxMBicQKsPeK5mCpvMsd1cwyT1JZsrBN82XkoYuZY1EVK7EwDaiL9sDfqUU5SntTfbRfnRedFWjg5xkDG5i3iwd3yP7neX5F2dtdCojk4", context, "a");
+    CallRPC("extkeyimportmaster \"expect trouble pause odor utility palace ignore arena disorder frog helmet addict\"", context, "b");
 
     if (from == "plain") {
         from_address_type = "getnewaddress";
@@ -186,10 +187,10 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
     assert(from_tx_type != OUTPUT_NULL);
     assert(to_tx_type != OUTPUT_NULL);
 
-    rv = CallRPC(from_address_type, "a");
+    rv = CallRPC(from_address_type, context, "a");
     CBitcoinAddress addr_a(part::StripQuotes(rv.write()));
 
-    rv = CallRPC(to_address_type, "b");
+    rv = CallRPC(to_address_type, context, "b");
     CBitcoinAddress addr_b(part::StripQuotes(rv.write()));
 
     if (from == "anon" || from == "blind") {

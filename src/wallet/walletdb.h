@@ -125,6 +125,11 @@ public:
         nInternalChainCounter = 0;
         seed_id.SetNull();
     }
+
+    bool operator==(const CHDChain& chain) const
+    {
+        return seed_id == chain.seed_id;
+    }
 };
 
 class CKeyMetadata

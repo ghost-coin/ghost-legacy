@@ -10,6 +10,7 @@
 #include <qt/walletmodel.h>
 
 #include <interfaces/wallet.h>
+#include <interfaces/node.h>
 
 #include <rpc/rpcutil.h>
 #include <util/system.h>
@@ -21,8 +22,9 @@
 void RPCThread::run()
 {
     bool passed = false;
-    CallRPCVoidRv(m_command.toStdString(), m_wallet.toStdString(), &passed, m_rv);
-    Q_EMIT complete(passed);   // Can't pass back a UniValue or signal won't get detected ?
+    util::Ref context{m_node};
+    CallRPCVoidRv(m_command.toStdString(), context, m_wallet.toStdString(), &passed, m_rv);
+    Q_EMIT complete(passed);  // Can't pass back a UniValue or signal won't get detected ?
 }
 
 MnemonicDialog::MnemonicDialog(QWidget *parent, WalletModel *wm) :
@@ -139,7 +141,7 @@ void MnemonicDialog::on_btnImportFromHwd_clicked()
     ui->tbxHwdOut->appendPlainText("Waiting for device.");
     setEnabled(false);
 
-    m_thread = new RPCThread(sCommand, walletModel->getWalletName(), &m_rv);
+    m_thread = new RPCThread(sCommand, walletModel->m_node, walletModel->getWalletName(), &m_rv);
     connect(m_thread, &RPCThread::complete, this, &MnemonicDialog::hwImportComplete);
     m_thread->setObjectName("particl-hwImport");
     m_thread->start();
