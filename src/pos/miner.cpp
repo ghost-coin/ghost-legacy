@@ -310,7 +310,8 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
 
     int nBestHeight; // TODO: set from new block signal?
     int64_t nBestTime;
-
+    //Bypass peer connection check if we are on testnet or regtest
+    bool fShouldBypasspeercheck = gArgs.GetChainName() == CBaseChainParams::REGTEST || gArgs.GetChainName() == CBaseChainParams::TESTNET;
     int nLastImportHeight = Params().GetLastImportHeight();
 
     if (!gArgs.GetBoolArg("-staking", true)) {
@@ -335,31 +336,33 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             num_blocks_of_peers = GetNumBlocksOfPeers();
             num_nodes = GetNumPeers();
         }
+        if(!fShouldBypasspeercheck){
+            if (fTryToSync) {
+                fTryToSync = false;
+                if (num_nodes < 3 || nBestHeight < num_blocks_of_peers) {
+                    fIsStaking = false;
+                    LogPrint(BCLog::POS, "%s: TryToSync\n", __func__);
+                    condWaitFor(nThreadID, 30000);
+                    continue;
+                }
+            }
 
-        if (fTryToSync) {
-            fTryToSync = false;
-            if (num_nodes < 3 || nBestHeight < num_blocks_of_peers) {
+            if (num_nodes == 0 || ::ChainstateActive().IsInitialBlockDownload()) {
                 fIsStaking = false;
-                LogPrint(BCLog::POS, "%s: TryToSync\n", __func__);
-                condWaitFor(nThreadID, 30000);
+                fTryToSync = true;
+                LogPrint(BCLog::POS, "%s: IsInitialBlockDownload\n", __func__);
+                condWaitFor(nThreadID, 2000);
+                continue;
+            }
+
+            if (nBestHeight < num_blocks_of_peers - 1) {
+                fIsStaking = false;
+                LogPrint(BCLog::POS, "%s: nBestHeight < GetNumBlocksOfPeers(), %d, %d\n", __func__, nBestHeight, num_blocks_of_peers);
+                condWaitFor(nThreadID, nMinerSleep * 4);
                 continue;
             }
         }
 
-        if (num_nodes == 0 || ::ChainstateActive().IsInitialBlockDownload()) {
-            fIsStaking = false;
-            fTryToSync = true;
-            LogPrint(BCLog::POS, "%s: IsInitialBlockDownload\n", __func__);
-            condWaitFor(nThreadID, 2000);
-            continue;
-        }
-
-        if (nBestHeight < num_blocks_of_peers - 1) {
-            fIsStaking = false;
-            LogPrint(BCLog::POS, "%s: nBestHeight < GetNumBlocksOfPeers(), %d, %d\n", __func__, nBestHeight, num_blocks_of_peers);
-            condWaitFor(nThreadID, nMinerSleep * 4);
-            continue;
-        }
 
         if (nMinStakeInterval > 0 && nTimeLastStake + (int64_t)nMinStakeInterval > GetTime()) {
             LogPrint(BCLog::POS, "%s: Rate limited to 1 / %d seconds.\n", __func__, nMinStakeInterval);
