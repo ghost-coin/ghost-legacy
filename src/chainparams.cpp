@@ -703,17 +703,26 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x35, 0x87, 0xCF}; // tpub
         base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x35, 0x83, 0x94}; // tprv
 
-        bech32Prefixes[PUBKEY_ADDRESS].assign       ("tgsth",(const char*)"tgsth"+3);
-        bech32Prefixes[SCRIPT_ADDRESS].assign       ("tgstr",(const char*)"tgstr"+3);
-        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("tgstl",(const char*)"tgstl"+3);
-        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("tgstj",(const char*)"tgstj"+3);
-        bech32Prefixes[SECRET_KEY].assign           ("tgstx",(const char*)"tgstx"+3);
-        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("tgstep",(const char*)"tgstep"+4);
-        bech32Prefixes[EXT_SECRET_KEY].assign       ("tgstex",(const char*)"tgstex"+4);
-        bech32Prefixes[STEALTH_ADDRESS].assign      ("tgsts",(const char*)"tgsts"+3);
-        bech32Prefixes[EXT_KEY_HASH].assign         ("tgstek",(const char*)"tgstek"+4);
-        bech32Prefixes[EXT_ACC_HASH].assign         ("tgstea",(const char*)"tgstea"+4);
-        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tgstcs",(const char*)"tgstcs"+4);
+        {
+            std::map<int, std::string> bech32PrefixesMap{
+                {PUBKEY_ADDRESS, "tgsth"},
+                {SCRIPT_ADDRESS,"tgstr"},
+                {PUBKEY_ADDRESS_256,"tgstl"},
+                {SCRIPT_ADDRESS_256,"tgstj"},
+                {SECRET_KEY,"tgstx"},
+                {EXT_PUBLIC_KEY,"tgstep"},
+                {EXT_SECRET_KEY,"tgstex"},
+                {STEALTH_ADDRESS,"tgsts"},
+                {EXT_KEY_HASH,"tgstek"},
+                {EXT_ACC_HASH,"tgstea"},
+                {STAKE_ONLY_PKADDR,"tgstcs"},
+            };
+
+            for(auto&& p: bech32PrefixesMap)
+            {
+                bech32Prefixes[p.first].assign(p.second.begin(), p.second.end());
+            }
+        }
 
         bech32_hrp = "tgstw";
 

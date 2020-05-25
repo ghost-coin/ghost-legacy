@@ -184,8 +184,8 @@ protected:
     uint64_t m_assumed_blockchain_size;
     uint64_t m_assumed_chain_state_size;
     std::vector<std::string> vSeeds;
-    std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
-    std::vector<unsigned char> bech32Prefixes[MAX_BASE58_TYPES];
+    std::array<std::vector<unsigned char>, MAX_BASE58_TYPES> base58Prefixes;
+    std::array<std::vector<unsigned char>, MAX_BASE58_TYPES> bech32Prefixes;
     std::string bech32_hrp;
     std::string strNetworkID;
     CBlock genesis;
