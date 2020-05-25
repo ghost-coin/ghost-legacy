@@ -16,12 +16,10 @@ commander
   .parse(process.argv);
 
 const network = commander.network;
-// console.log(network)
 /*
 Config consts and coin related consts
 */
 const configNetwork = require('./config.json').networks[getNetworkID(network)];
-// console.log(config)
 
 const PayoutAddrs = configNetwork.payeeAddrs;
 const OutputsToMake = PayoutAddrs.length;
@@ -37,25 +35,39 @@ function SetupGhostParams(){
         pubkeyhash: 0x76,
         privatekey: 0x2e,
         scripthash: 0x7a,
-        bech32prefix: 'tb',
-        xpubkey: 0x043587cf,
-        xprivkey: 0x04358394,
+        bech32prefix: 'rtpw',
+        xpubkey: 0xe1427800,
+        xprivkey: 0x04889478,
         networkMagic: 0x0b110907,
-        port: 18333,
+        port: 11938,
+        dnsSeeds: []
+    });
+
+    bitcore.Networks.add({
+        name: 'testnet-ghost',
+        alias: 'test-ghost',
+        pubkeyhash: 0x4B,
+        privatekey: 0x2e,
+        scripthash: 0x89,
+        bech32prefix: 'tgstw',
+        xpubkey: 0xe1427800,
+        xprivkey: 0x04889478,
+        networkMagic: 0x0b051108,
+        port: 51938,
         dnsSeeds: []
     });
     
     bitcore.Networks.add({
         name: 'mainnet-ghost',
         alias: 'main-ghost',
-        pubkeyhash: 0x76,
-        privatekey: 0x2e,
-        scripthash: 0x7a,
-        bech32prefix: 'tb',
-        xpubkey: 0x043587cf,
-        xprivkey: 0x04358394,
-        networkMagic: 0x0b110907,
-        port: 18333,
+        pubkeyhash: 0x38,
+        privatekey: 0x6c,
+        scripthash: 0x3c,
+        bech32prefix: 'pw',
+        xpubkey: 0x696e82d1,
+        xprivkey: 0x8f1daeb8,
+        networkMagic: 0xb4eff2fb,
+        port: 51738,
         dnsSeeds: []
     });
 }
