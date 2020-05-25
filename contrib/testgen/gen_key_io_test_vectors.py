@@ -25,7 +25,7 @@ PUBKEY_ADDRESS_TEST = 0x4B
 SCRIPT_ADDRESS_TEST = 0x89
 PUBKEY_ADDRESS_REGTEST = 0x76
 SCRIPT_ADDRESS_REGTEST = 0x7a
-PRIVKEY = 0x2e
+PRIVKEY = 0x6c
 PRIVKEY_TEST = 0x2e
 PRIVKEY_REGTEST = 0x2e
 
@@ -70,25 +70,25 @@ bech32_templates = [
   ('pw',    0, 20, (False, 'main',    None, True), p2wpkh_prefix),
   ('pw',    0, 32, (False, 'main',    None, True), p2wsh_prefix),
   ('pw',    1,  2, (False, 'main',    None, True), (OP_1, 2)),
-  ('tgst',    0, 20, (False, 'test',    None, True), p2wpkh_prefix),
-  ('tgst',    0, 32, (False, 'test',    None, True), p2wsh_prefix),
-  ('tgst',    2, 16, (False, 'test',    None, True), (OP_2, 16)),
-  ('bcrt',  0, 20, (False, 'regtest', None, True), p2wpkh_prefix),
-  ('bcrt',  0, 32, (False, 'regtest', None, True), p2wsh_prefix),
-  ('bcrt', 16, 40, (False, 'regtest', None, True), (OP_16, 40))
+  ('tgstw',    0, 20, (False, 'test',    None, True), p2wpkh_prefix),
+  ('tgstw',    0, 32, (False, 'test',    None, True), p2wsh_prefix),
+  ('tgstw',    2, 16, (False, 'test',    None, True), (OP_2, 16)),
+  ('rtpw',  0, 20, (False, 'regtest', None, True), p2wpkh_prefix),
+  ('rtpw',  0, 32, (False, 'regtest', None, True), p2wsh_prefix),
+  ('rtpw', 16, 40, (False, 'regtest', None, True), (OP_16, 40))
 ]
 # templates for invalid bech32 sequences
 bech32_ng_templates = [
   # hrp, version, witprog_size, invalid_bech32, invalid_checksum, invalid_char
   ('tc',    0, 20, False, False, False),
-  ('tgst',   17, 32, False, False, False),
-  ('bcrt',  3,  1, False, False, False),
+  ('tgstw',   17, 32, False, False, False),
+  ('rtpw',  3,  1, False, False, False),
   ('pw',   15, 41, False, False, False),
-  ('tgst',    0, 16, False, False, False),
-  ('bcrt',  0, 32, True,  False, False),
+  ('tgstw',    0, 16, False, False, False),
+  ('rtpw',  0, 32, True,  False, False),
   ('pw',    0, 16, True,  False, False),
-  ('tgst',    0, 32, False, True,  False),
-  ('bcrt',  0, 20, False, False, True)
+  ('tgstw',    0, 32, False, True,  False),
+  ('rtpw',  0, 20, False, False, True)
 ]
 
 def is_valid(v):
@@ -108,7 +108,7 @@ def is_valid(v):
 
 def is_valid_bech32(v):
     '''Check vector v for bech32 validity'''
-    for hrp in ['pw', 'tgst', 'bcrt']:
+    for hrp in ['pw', 'tgstw', 'rtpw']:
         if decode(hrp, v) != (None, None):
             return True
     return False
