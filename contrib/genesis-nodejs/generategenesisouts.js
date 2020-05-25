@@ -19,7 +19,7 @@ const network = commander.network;
 /*
 Config consts and coin related consts
 */
-const configNetwork = require('./config.json').networks[getNetworkID(network)];
+const configNetwork = require('./config.json')[network];
 
 const PayoutAddrs = configNetwork.payeeAddrs;
 const OutputsToMake = PayoutAddrs.length;
@@ -80,17 +80,6 @@ function GetHash160FromAddr(addr){
     script = script.split("0x").pop();//Remove all text before 0x prefix of hash160
     script = script.replace(" OP_EQUALVERIFY OP_CHECKSIG","");//Remove opcodes from output
     return script;
-}
-
-function getNetworkID(network){
-    switch(network){
-        case 'mainnet':
-            return 0;
-        case 'testnet':
-            return 1;
-        case 'regtest':
-            return 2;
-    }
 }
 
 // Setup params first

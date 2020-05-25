@@ -1,4 +1,29 @@
-var run = function() {
+const commander = require('commander');
+/*
+Command line args
+*/
+
+commander
+  .version('1.0.0', '-v, --version')
+  .usage('[OPTIONS]...')
+  .option('-n, --network <name>', 'Network to generate for', 'mainnet')
+  .parse(process.argv);
+
+function getRPCPortforNet(net){
+    switch (net){
+        case 'mainnet':
+            return 51735;
+        case 'testnet':
+            return 51935;
+        case 'regtest':
+            return 51936;
+    }
+}
+
+/*
+Main func
+*/
+var GetNewAddresses = function() {
     var RpcClient = require('bitcoind-rpc');
     var addrs = [];
     const addrsneeded = 20;
@@ -7,7 +32,7 @@ var run = function() {
       user: 'user',
       pass: 'pass',
       host: '127.0.0.1',
-      port: '51936',
+      port: getRPCPortforNet(commander.network),
     };
   
     // config can also be an url, e.g.:
@@ -30,4 +55,4 @@ var run = function() {
     }
     getPaymentaddresses();
 };
-run()
+GetNewAddresses()
