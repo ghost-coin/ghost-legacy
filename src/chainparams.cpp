@@ -690,8 +690,8 @@ public:
 
         vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("rTvv9vsbu269mjYYEecPYinDG8Bt7D86qD", 10, 60)));
 
-        base58Prefixes[PUBKEY_ADDRESS]     = {0x76}; // p
-        base58Prefixes[SCRIPT_ADDRESS]     = {0x7a};
+        base58Prefixes[PUBKEY_ADDRESS]     = {0x4B}; // X
+        base58Prefixes[SCRIPT_ADDRESS]     = {0x89}; // x
         base58Prefixes[PUBKEY_ADDRESS_256] = {0x77};
         base58Prefixes[SCRIPT_ADDRESS_256] = {0x7b};
         base58Prefixes[SECRET_KEY]         = {0x2e};
@@ -703,19 +703,19 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x35, 0x87, 0xCF}; // tpub
         base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x35, 0x83, 0x94}; // tprv
 
-        bech32Prefixes[PUBKEY_ADDRESS].assign       ("tph",(const char*)"tph"+3);
-        bech32Prefixes[SCRIPT_ADDRESS].assign       ("tpr",(const char*)"tpr"+3);
-        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("tpl",(const char*)"tpl"+3);
-        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("tpj",(const char*)"tpj"+3);
-        bech32Prefixes[SECRET_KEY].assign           ("tpx",(const char*)"tpx"+3);
-        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("tpep",(const char*)"tpep"+4);
-        bech32Prefixes[EXT_SECRET_KEY].assign       ("tpex",(const char*)"tpex"+4);
-        bech32Prefixes[STEALTH_ADDRESS].assign      ("tps",(const char*)"tps"+3);
-        bech32Prefixes[EXT_KEY_HASH].assign         ("tpek",(const char*)"tpek"+4);
-        bech32Prefixes[EXT_ACC_HASH].assign         ("tpea",(const char*)"tpea"+4);
-        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tpcs",(const char*)"tpcs"+4);
+        bech32Prefixes[PUBKEY_ADDRESS].assign       ("tgsth",(const char*)"tgsth"+3);
+        bech32Prefixes[SCRIPT_ADDRESS].assign       ("tgstr",(const char*)"tgstr"+3);
+        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("tgstl",(const char*)"tgstl"+3);
+        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("tgstj",(const char*)"tgstj"+3);
+        bech32Prefixes[SECRET_KEY].assign           ("tgstx",(const char*)"tgstx"+3);
+        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("tgstep",(const char*)"tgstep"+4);
+        bech32Prefixes[EXT_SECRET_KEY].assign       ("tgstex",(const char*)"tgstex"+4);
+        bech32Prefixes[STEALTH_ADDRESS].assign      ("tgsts",(const char*)"tgsts"+3);
+        bech32Prefixes[EXT_KEY_HASH].assign         ("tgstek",(const char*)"tgstek"+4);
+        bech32Prefixes[EXT_ACC_HASH].assign         ("tgstea",(const char*)"tgstea"+4);
+        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("tgstcs",(const char*)"tgstcs"+4);
 
-        bech32_hrp = "tpw";
+        bech32_hrp = "tgstw";
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
