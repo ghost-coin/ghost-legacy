@@ -14,7 +14,7 @@ jobs:
     - name: Install Required Packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y libboost-all-dev libdb-dev libdb++-dev libevent-dev
+        sudo apt-get install -y libboost-all-dev libdb-dev libudev-dev libdb++-dev libevent-dev
     - name: Create Distribution Tarball
       run: |
         ./autogen.sh
@@ -94,7 +94,7 @@ jobs:
     - name: Install Required Packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64
+        sudo apt-get install -y libudev-dev g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64
     - name: Switch MinGW GCC and G++ to POSIX Threading
       run: |
         sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
@@ -137,13 +137,13 @@ jobs:
         tar -xzf ghost-*.tar.gz --strip-components=1
       working-directory: ${{ env.SOURCE_ARTIFACT }}
     - name: Install Required Packages
-      run: sudo apt install python3-setuptools libcap-dev zlib1g-dev libbz2-dev build-essential make cmake curl
+      run: sudo apt install python3-setuptools libudev-dev libcap-dev zlib1g-dev libbz2-dev build-essential make cmake curl
     - name: Get macOS SDK
       run: |
         mkdir -p depends/sdk-sources
         mkdir -p depends/SDKs
-        curl https://bitcoincore.org/depends-sources/sdks/MacOSX10.11.sdk.tar.gz -o depends/sdk-sources/MacOSX10.11.sdk.tar.gz
-        tar -C depends/SDKs -xf depends/sdk-sources/MacOSX10.11.sdk.tar.gz
+        curl https://bitcoincore.org/depends-sources/sdks/MacOSX10.14.sdk.tar.gz -o depends/sdk-sources/MacOSX10.14.sdk.tar.gz
+        tar -C depends/SDKs -xf depends/sdk-sources/MacOSX10.14.sdk.tar.gz
       working-directory: ${{ env.SOURCE_ARTIFACT }}
     - name: Build Dependencies
       run: make -C depends HOST=x86_64-apple-darwin14 -j$(nproc)
