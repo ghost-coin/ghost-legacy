@@ -105,13 +105,11 @@ public:
     CPubKey pkEphem;
     CPubKey pkScan;
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(CStealthKeyMetadata, obj)
     {
-        READWRITE(pkEphem);
-        READWRITE(pkScan);
-    };
+        READWRITE(obj.pkEphem);
+        READWRITE(obj.pkScan);
+    }
 };
 
 class CLockedAnonOutput
@@ -132,13 +130,11 @@ public:
     CPubKey   pkScan;
     COutPoint outpoint;
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(CLockedAnonOutput, obj)
     {
-        READWRITE(pkEphem);
-        READWRITE(pkScan);
-        READWRITE(outpoint);
+        READWRITE(obj.pkEphem);
+        READWRITE(obj.pkScan);
+        READWRITE(obj.outpoint);
     }
 };
 
@@ -161,12 +157,10 @@ public:
     COutPoint outpoint;
     bool fSpent;
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(COwnedAnonOutput, obj)
     {
-        READWRITE(outpoint);
-        READWRITE(fSpent);
+        READWRITE(obj.outpoint);
+        READWRITE(obj.fSpent);
     }
 };
 
@@ -178,11 +172,9 @@ public:
     CStealthAddressIndexed(std::vector<uint8_t> &addrRaw_) : addrRaw(addrRaw_) {};
     std::vector<uint8_t> addrRaw;
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(CStealthAddressIndexed, obj)
     {
-        READWRITE(addrRaw);
+        READWRITE(obj.addrRaw);
     }
 };
 
@@ -198,14 +190,12 @@ public:
     int nEnd;
     int64_t nTimeAdded;
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(CVoteToken, obj)
     {
-        READWRITE(nToken);
-        READWRITE(nStart);
-        READWRITE(nEnd);
-        READWRITE(nTimeAdded);
+        READWRITE(obj.nToken);
+        READWRITE(obj.nStart);
+        READWRITE(obj.nEnd);
+        READWRITE(obj.nTimeAdded);
     }
 };
 

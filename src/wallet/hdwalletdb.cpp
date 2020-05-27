@@ -27,14 +27,12 @@ public:
     CKeyID m_keyId;
     uint32_t m_nPack;
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    SERIALIZE_METHODS(PackKey, obj)
     {
-        READWRITE(m_prefix);
-        READWRITE(m_keyId);
-        READWRITE(m_nPack);
-    };
+        READWRITE(obj.m_prefix);
+        READWRITE(obj.m_keyId);
+        READWRITE(obj.m_nPack);
+    }
 };
 
 bool CHDWalletDB::WriteStealthKeyMeta(const CKeyID &keyId, const CStealthKeyMetadata &sxKeyMeta)

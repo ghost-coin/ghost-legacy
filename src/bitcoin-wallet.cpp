@@ -33,8 +33,10 @@ static void SetupWalletToolArgs()
 
     gArgs.AddArg("info", "Get wallet info", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
     gArgs.AddArg("create", "Create new wallet file", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
-    gArgs.AddArg("generatemnemonic", "Generate a new mnemonic: <language> <bytes_entropy>", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
+    gArgs.AddArg("salvage", "Attempt to recover private keys from a corrupt wallet", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
 
+    // Particl
+    gArgs.AddArg("generatemnemonic", "Generate a new mnemonic: <language> <bytes_entropy>", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
     gArgs.AddArg("-btcmode", "", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
 }
 

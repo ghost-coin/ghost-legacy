@@ -80,11 +80,10 @@ class CBlockGetHeader : public CBlockHeader
         CBlockGetHeader() {};
         CBlockGetHeader(const CBlockHeader &header) { *((CBlockHeader*)this) = header; };
         std::vector<CTransactionRef> vtx;
-        ADD_SERIALIZE_METHODS;
-        template <typename Stream, typename Operation>
-        inline void SerializationOp(Stream& s, Operation ser_action) {
-            READWRITE(*(CBlockHeader*)this);
-            READWRITE(vtx);
+        SERIALIZE_METHODS(CBlockGetHeader, obj)
+        {
+            READWRITEAS(CBlockHeader, obj);
+            READWRITE(obj.vtx);
         }
 };
 

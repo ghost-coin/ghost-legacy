@@ -61,13 +61,10 @@ public:
         return false;
     }
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    SERIALIZE_METHODS(CStoredTransaction, obj)
     {
-        READWRITE(tx);
-        READWRITE(vBlinds);
+        READWRITE(obj.tx);
+        READWRITE(obj.vBlinds);
     }
 };
 

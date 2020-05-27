@@ -183,19 +183,17 @@ public:
     //! Load private key and check that public key matches.
     bool Load(const CPrivKey& privkey, const CPubKey& vchPubKey, bool fSkipCheck);
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(CKey, obj)
     {
         if (!ser_action.ForRead())
         {
-            s.write((char*)&keydata[0], 32);
+            s.write((char*)&obj.keydata[0], 32);
         } else
         {
-            s.read((char*)&keydata[0], 32);
+            s.read((char*)&obj.keydata[0], 32);
         };
-        READWRITE(fValid);
-        READWRITE(fCompressed);
+        READWRITE(obj.fValid);
+        READWRITE(obj.fCompressed);
     };
 };
 /*

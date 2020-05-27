@@ -92,17 +92,15 @@ public:
     */
     std::vector<uint8_t> vPath; // index to m is stored in first entry
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(COutputRecord, obj)
     {
-        READWRITE(nType);
-        READWRITE(nFlags);
-        READWRITE(n);
-        READWRITE(nValue);
-        READWRITE(*(CScriptBase*)(&scriptPubKey));
-        READWRITE(sNarration);
-        READWRITE(vPath);
+        READWRITE(obj.nType);
+        READWRITE(obj.nFlags);
+        READWRITE(obj.n);
+        READWRITE(obj.nValue);
+        READWRITE(*(CScriptBase*)(&obj.scriptPubKey));
+        READWRITE(obj.sNarration);
+        READWRITE(obj.vPath);
     }
 };
 
@@ -177,19 +175,17 @@ public:
     bool IsCoinBase() const {return false;};
     bool IsCoinStake() const {return false;};
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(CTransactionRecord, obj)
     {
-        READWRITE(blockHash);
-        READWRITE(nFlags);
-        READWRITE(nIndex);
-        READWRITE(nBlockTime);
-        READWRITE(nTimeReceived);
-        READWRITE(mapValue);
-        READWRITE(nFee);
-        READWRITE(vin);
-        READWRITE(vout);
+        READWRITE(obj.blockHash);
+        READWRITE(obj.nFlags);
+        READWRITE(obj.nIndex);
+        READWRITE(obj.nBlockTime);
+        READWRITE(obj.nTimeReceived);
+        READWRITE(obj.mapValue);
+        READWRITE(obj.nFee);
+        READWRITE(obj.vin);
+        READWRITE(obj.vout);
     }
 };
 

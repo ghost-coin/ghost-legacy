@@ -68,13 +68,11 @@ struct CAddressUnspentValue {
     CScript script;
     int blockHeight;
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITE(satoshis);
-        READWRITE(*(CScriptBase*)(&script));
-        READWRITE(blockHeight);
+    SERIALIZE_METHODS(CAddressUnspentValue, obj)
+    {
+        READWRITE(obj.satoshis);
+        READWRITE(*(CScriptBase*)(&obj.script));
+        READWRITE(obj.blockHeight);
     }
 
     CAddressUnspentValue(CAmount sats, CScript scriptPubKey, int height) {

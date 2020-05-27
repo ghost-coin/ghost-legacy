@@ -28,18 +28,15 @@ public:
     std::string hdKeypath; //optional HD/bip32 keypath
     CKeyID hdMasterKeyID; //id of the HD masterkey used to derive this key
 
-
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
+    SERIALIZE_METHODS(SecMsgKey, obj)
     {
-        READWRITE(nCreateTime);
-        READWRITE(nFlags);
-        READWRITE(sLabel);
-        READWRITE(key);
-        READWRITE(hdKeypath);
-        READWRITE(hdMasterKeyID);
-    };
+        READWRITE(obj.nCreateTime);
+        READWRITE(obj.nFlags);
+        READWRITE(obj.sLabel);
+        READWRITE(obj.key);
+        READWRITE(obj.hdKeypath);
+        READWRITE(obj.hdMasterKeyID);
+    }
 };
 
 class SecMsgKeyStore

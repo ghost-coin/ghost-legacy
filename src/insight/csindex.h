@@ -50,14 +50,12 @@ public:
     int m_spend_height = -1;
     uint256 m_spend_txid;
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITE(m_value);
-        READWRITE(m_flags);
-        READWRITE(m_spend_height);
-        READWRITE(m_spend_txid);
+    SERIALIZE_METHODS(ColdStakeIndexOutputValue, obj)
+    {
+        READWRITE(obj.m_value);
+        READWRITE(obj.m_flags);
+        READWRITE(obj.m_spend_height);
+        READWRITE(obj.m_spend_txid);
     }
 };
 

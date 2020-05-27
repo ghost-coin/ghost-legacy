@@ -193,7 +193,7 @@ public:
 class CAddressBookData
 {
 private:
-    bool m_change{true};
+    mutable bool m_change{true};
     std::string m_label;
 public:
     std::string purpose;
@@ -204,21 +204,19 @@ public:
 
     mutable uint8_t nOwned = 0; // 0 unknown, 1 yes, 2 no
 
-    ADD_SERIALIZE_METHODS;
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    SERIALIZE_METHODS(CAddressBookData, obj)
     {
-        READWRITE(m_label);
-        READWRITE(purpose);
-        READWRITE(vPath);
-        READWRITE(destdata);
+        READWRITE(obj.m_label);
+        READWRITE(obj.purpose);
+        READWRITE(obj.vPath);
+        READWRITE(obj.destdata);
 
-        try { READWRITE(fBech32); } catch(std::exception &e) {
+        try { READWRITE(obj.fBech32); } catch(std::exception &e) {
             // old format
         }
         if (ser_action.ForRead()) {
-            if (!m_label.empty()) {
-                m_change = false;
+            if (!obj.m_label.empty()) {
+                obj.m_change = false;
             }
         }
     }
@@ -1223,7 +1221,7 @@ public:
     bool MarkReplaced(const uint256& originalHash, const uint256& newHash);
 
     //! Verify wallet naming and perform salvage on the wallet if required
-    static bool Verify(interfaces::Chain& chain, const WalletLocation& location, bool salvage_wallet, bilingual_str& error_string, std::vector<bilingual_str>& warnings);
+    static bool Verify(interfaces::Chain& chain, const WalletLocation& location, bilingual_str& error_string, std::vector<bilingual_str>& warnings);
 
     /* Initializes the wallet, returns a new CWallet instance or a null pointer in case of an error */
     static std::shared_ptr<CWallet> CreateWalletFromFile(interfaces::Chain& chain, const WalletLocation& location, bilingual_str& error, std::vector<bilingual_str>& warnings, uint64_t wallet_creation_flags = 0);

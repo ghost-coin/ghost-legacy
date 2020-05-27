@@ -687,6 +687,13 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
     return true;
 }
 
+bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, std::string& strType, std::string& strErr)
+{
+    CWalletScanState dummy_wss;
+    LOCK(pwallet->cs_wallet);
+    return ReadKeyValue(pwallet, ssKey, ssValue, dummy_wss, strType, strErr);
+}
+
 bool WalletBatch::IsKeyType(const std::string& strType)
 {
     return (strType == DBKeys::KEY ||
@@ -997,91 +1004,14 @@ void MaybeCompactWalletDB()
     fOneThread = false;
 }
 
-//
-// Try to (very carefully!) recover wallet file if there is a problem.
-//
-bool WalletBatch::Recover(const fs::path& wallet_path, void *callbackDataIn, bool (*recoverKVcallback)(void* callbackData, CDataStream &ssKey, CDataStream &ssValue), std::string& out_backup_filename)
-{
-    return BerkeleyBatch::Recover(wallet_path, callbackDataIn, recoverKVcallback, out_backup_filename);
-}
-
-bool WalletBatch::Recover(const fs::path& wallet_path, std::string& out_backup_filename)
-{
-    // recover without a key filter callback
-    // results in recovering all record types
-    return WalletBatch::Recover(wallet_path, nullptr, nullptr, out_backup_filename);
-}
-
-bool WalletBatch::RecoverKeysOnlyFilter(void *callbackData, CDataStream &ssKey, CDataStream &ssValue)
-{
-    CWallet *dummyWallet = reinterpret_cast<CWallet*>(callbackData);
-    CWalletScanState dummyWss;
-    std::string strType, strErr;
-
-    bool fReadOK;
-    if (fParticlMode) {
-        try {
-            ssKey >> strType;
-        } catch (...) {
-            LogPrintf("WARNING: WalletBatch::Recover skipping %s: %s\n", strType, strErr);
-            return false;
-        }
-        fReadOK = true;
-    } else {
-        // Required in LoadKeyMetadata():
-        LOCK(dummyWallet->cs_wallet);
-        fReadOK = ReadKeyValue(dummyWallet, ssKey, ssValue,
-                               dummyWss, strType, strErr);
-    }
-    if (!IsKeyType(strType) && strType != DBKeys::HDCHAIN) {
-        return false;
-    }
-    if (!fReadOK) {
-        LogPrintf("WARNING: WalletBatch::Recover skipping %s: %s\n", strType, strErr);
-        return false;
-    }
-
-    if (strType == DBKeys::PART_EXTACC) {
-        CExtKeyAccount sea;
-        try {
-            ssValue >> sea;
-        } catch (...) {
-            LogPrintf("WARNING: WalletBatch::Recover skipping %s: %s\n", strType, strErr);
-            return false;
-        }
-        sea.nPack = 0;
-        sea.nPackStealthKeys = 0;
-        ssValue.clear();
-        ssValue << sea;
-    }
-    if (strType == DBKeys::PART_EXTKEY) {
-        CStoredExtKey sek;
-        try {
-            ssValue >> sek;
-        } catch (...)
-        {
-            LogPrintf("WARNING: WalletBatch::Recover skipping %s: %s\n", strType, strErr);
-            return false;
-        }
-        if (sek.nFlags & EAF_RECEIVE_ON) {
-            sek.nGenerated = 0;
-            sek.nHGenerated = 0;
-        }
-        ssValue.clear();
-        ssValue << sek;
-    }
-
-    return true;
-}
-
 bool WalletBatch::VerifyEnvironment(const fs::path& wallet_path, bilingual_str& errorStr)
 {
     return BerkeleyBatch::VerifyEnvironment(wallet_path, errorStr);
 }
 
-bool WalletBatch::VerifyDatabaseFile(const fs::path& wallet_path, std::vector<bilingual_str>& warnings, bilingual_str& errorStr)
+bool WalletBatch::VerifyDatabaseFile(const fs::path& wallet_path, bilingual_str& errorStr)
 {
-    return BerkeleyBatch::VerifyDatabaseFile(wallet_path, warnings, errorStr, WalletBatch::Recover);
+    return BerkeleyBatch::VerifyDatabaseFile(wallet_path, errorStr);
 }
 
 bool WalletBatch::WriteDestData(const std::string &address, const std::string &key, const std::string &value)
