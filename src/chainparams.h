@@ -11,6 +11,9 @@
 #include <primitives/block.h>
 #include <chain.h>
 #include <protocol.h>
+#ifdef MAC_OSX
+#include <tr1/array>
+#endif
 
 #include <memory>
 #include <vector>
