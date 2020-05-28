@@ -12,11 +12,11 @@ commander
 function getRPCPortforNet(net){
     switch (net){
         case 'mainnet':
-            return 51735;
+            return 51725;
         case 'testnet':
-            return 51935;
+            return 51925;
         case 'regtest':
-            return 51936;
+            return 51926;
     }
 }
 
