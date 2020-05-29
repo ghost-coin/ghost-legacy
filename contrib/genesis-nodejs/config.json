@@ -1,9 +1,17 @@
 {
+   "networks":{
       "mainnet":{
          "payeeAddrs":[
    
          ],
-         "amountToSplit":13573415
+         "amountToSplit":13573415,
+         "config": {
+            "protocol": "http",
+            "user": "user",
+            "pass": "pass",
+            "host": "127.0.0.1",
+            "port": 51735
+         }
       },
       "testnet":{
          "payeeAddrs":[ "XQ1arJSZbaWqKJFJkuQtuHMbcith7ZMPkS",
@@ -26,7 +34,14 @@
             "XNUAvoxJta9eTByKUa1orX5DUQ7uB77FXo",
             "XT685hiSm3RqkcKvKnvxWEBgs9vq11ot1R",
             "XV11Ti2bhUCSGN5FHG2RvcP9eMXRVuqmiL" ],
-         "amountToSplit":13573415
+         "amountToSplit":13573415,
+         "config": {
+            "protocol": "http",
+            "user": "user",
+            "pass": "pass",
+            "host": "127.0.0.1",
+            "port": 51935
+         }
       },
       "regtest":{
          "payeeAddrs":[
@@ -51,6 +66,14 @@
             "pc953bEvc6dRtzMUmXZu9CeMH3RCExNCmW",
             "pVdQCmxFn4NRcEGSYxR9cqT1JhEnZtXbQi"
          ],
-         "amountToSplit":13573415
+         "amountToSplit":13573415,
+         "config": {
+            "protocol": "http",
+            "user": "user",
+            "pass": "pass",
+            "host": "127.0.0.1",
+            "port": 51936
+         },
       }
    }
+}
