@@ -19,7 +19,7 @@ const network = commander.network;
 /*
 Config consts and coin related consts
 */
-const configNetwork = require('./config.json')[network];
+const configNetwork = require('./config.json').networks[network];
 
 const PayoutAddrs = configNetwork.payeeAddrs;
 const OutputsToMake = PayoutAddrs.length;
@@ -39,7 +39,7 @@ function SetupGhostParams(){
         xpubkey: 0xe1427800,
         xprivkey: 0x04889478,
         networkMagic: 0x0b110907,
-        port: 11938,
+        port: 11928,
         dnsSeeds: []
     });
 
@@ -49,11 +49,11 @@ function SetupGhostParams(){
         pubkeyhash: 0x4B,
         privatekey: 0x2e,
         scripthash: 0x89,
-        bech32prefix: 'tgstw',
+        bech32prefix: 'tgw',
         xpubkey: 0xe1427800,
         xprivkey: 0x04889478,
         networkMagic: 0x0b051108,
-        port: 51938,
+        port: 51928,
         dnsSeeds: []
     });
     
@@ -67,7 +67,7 @@ function SetupGhostParams(){
         xpubkey: 0x696e82d1,
         xprivkey: 0x8f1daeb8,
         networkMagic: 0xb4eff2fb,
-        port: 51738,
+        port: 51728,
         dnsSeeds: []
     });
 }
@@ -89,13 +89,13 @@ function generateGenesisOutputs(){
     var outputs = "";
     //Now prepare genesisOutputs
     for(var i=0;i<OutputsToMake;i++){
-        outputs+= fillOutput(GetHash160FromAddr(PayoutAddrs[i]),PaymentPerAddr);
+        outputs+= fillOutput(PayoutAddrs[i],PaymentPerAddr);
     }
     console.log(outputs)
 }
 
-function fillOutput(hash,amt){
-    return `    std::make_pair("${hash}", ${amt} * COIN),\n`
+function fillOutput(addr,amt){
+    return `    std::make_pair("${GetHash160FromAddr(addr)}", ${amt} * COIN),//${addr}\n`
 }
 
 generateGenesisOutputs()

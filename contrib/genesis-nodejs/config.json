@@ -1,34 +1,47 @@
 {
+   "networks":{
       "mainnet":{
          "payeeAddrs":[
    
          ],
-         "amountToSplit":13573415
+         "amountToSplit":13573415,
+         "config": {
+            "protocol": "http",
+            "user": "user",
+            "pass": "pass",
+            "host": "127.0.0.1",
+            "port": 51735
+         }
       },
       "testnet":{
-         "payeeAddrs":[
-            "XP1mgKj9qRTwtrmCaQ2n73JmyxSyfFjQpU",
-            "XPQKCjnSP67UCJV8UhDkW2MiWo2enJ7G4x",
-            "XaZ3Zp3qWFqZ55F2p6L4kAc4TrViKoSXhF",
-            "XGnSznLWsoUMjp6VWfHNv7mdvj5HHrPdvJ",
-            "XH9BAegqvxwf924Vv33BMGKUGwH3MpjkNc",
-            "XBYvN55ubi2meTAFSD9Vcrm25GfANBwFnq",
-            "XNyLoPTM5nonpnzvt7Jt49L19yx58hpysM",
-            "XDSNkkcrcQ8gRYeAbKpnj1DHUwhmyaz7br",
-            "XKK9a3y9D1EbJ9rRhwyyEt77Gk63Sze5Kf",
-            "XVXQ5oauXMp9HbaHrJh9svaHsDZUDmk4qu",
-            "XL2mprx57A7ps6mhC4jCNU3a2S3tVhceZB",
-            "XQZcgV14ZwK1cLzniBjgC8yVaQP9YSQU2f",
-            "XRAwnWYZUDkCpRfiBmbgdB24nfBkZPDBLS",
-            "XRRks6vmhCuCU8BdnnTMkQkpTTmSkg9ubd",
-            "XUSJeBMpK4ZG8jgPP3Dp48XXokS1mHuHta",
-            "XFZ2BathnzjPtkHJWnT7wgY5XiA7CGREiu",
-            "XMgyFeqYejaEWizZeY1kBw8e1pNcaCMbTh",
-            "XZNnd2FVTpaPQ2RzQyg9fLWZR5UUMQuZxN",
-            "XWvnbpXPVzinp66od9Le28emrxxfyqrJVm",
-            "XZakcXQwCyB1KPP4TFLbkzFMiZVycv7KYC"
-         ],
-         "amountToSplit":13573415
+         "payeeAddrs":[ "XQ1arJSZbaWqKJFJkuQtuHMbcith7ZMPkS",
+            "XVZXUv2r3Bwc3TuePGPm19ZoYctXrtYBD4",
+            "XCMPyHzZwGoe7YY7xDq6DnQ9uiX5G4fqW9",
+            "XEA5jySRAx4DMcJBttQ19UEbxzpJg7WsZE",
+            "XDx1XaAUGLXDTBbXTvc712Jm3S54SrT5qk",
+            "XJeqBMM3Acqa9VCdbWeNyxUY2Usth73irW",
+            "XXSWNnEMaHT6JaAkQbMYUamKFuzXsCWo4o",
+            "XZJ7Eri4vRhHmFrsdNnxf73U7WtDJa4fx6",
+            "XQa3Z7tcWSmSWMEdpicKG5Z51KvdPvBJQF",
+            "XZBvxrgAgDUJzeh9Ba7L9ezkNLCxvDEAii",
+            "XGm8fm7HZ58znQTg6XKWs2SSeVQmkKvUj3",
+            "XDxwu3nuMWddnVSSnfdqj2KisJVtBKe3v4",
+            "XD5ASFiXkRoLD6ecLtXKfmBYHbKtVwRcEz",
+            "XPmqpGnKtGHoJHM6zxW8QiXZFBULkcs2hp",
+            "XKCVBBJ5pHVfgh5nLsB3FRsPt2oqiq4jwK",
+            "XUNg78DaeQwXVJ3LmgEaxRsPwFitxbSSXa",
+            "XDFprczaohtkFKkF5uzHcuijWYaMcPuzHc",
+            "XNUAvoxJta9eTByKUa1orX5DUQ7uB77FXo",
+            "XT685hiSm3RqkcKvKnvxWEBgs9vq11ot1R",
+            "XV11Ti2bhUCSGN5FHG2RvcP9eMXRVuqmiL" ],
+         "amountToSplit":13573415,
+         "config": {
+            "protocol": "http",
+            "user": "user",
+            "pass": "pass",
+            "host": "127.0.0.1",
+            "port": 51935
+         }
       },
       "regtest":{
          "payeeAddrs":[
@@ -53,6 +66,14 @@
             "pc953bEvc6dRtzMUmXZu9CeMH3RCExNCmW",
             "pVdQCmxFn4NRcEGSYxR9cqT1JhEnZtXbQi"
          ],
-         "amountToSplit":13573415
+         "amountToSplit":13573415,
+         "config": {
+            "protocol": "http",
+            "user": "user",
+            "pass": "pass",
+            "host": "127.0.0.1",
+            "port": 51936
+         }
       }
    }
+}
