@@ -100,6 +100,8 @@ public:
     /** Disconnect core signals from GUI client */
     void unsubscribeFromCoreSignals();
 
+    bool isPrivacyModeActivated() const;
+
     bool test_mode = false;
     void setTestMode() { test_mode = true; };
 
@@ -159,6 +161,7 @@ private:
     QAction* m_close_wallet_action{nullptr};
     QAction* m_wallet_selector_label_action = nullptr;
     QAction* m_wallet_selector_action = nullptr;
+    QAction* m_mask_values_action{nullptr};
     QAction *coldstakingAction = nullptr;
     QAction *mnemonicAction = nullptr;
 
@@ -215,6 +218,7 @@ Q_SIGNALS:
     void receivedURI(const QString &uri);
     /** Signal raised when RPC console shown */
     void consoleShown(RPCConsole* console);
+    void setPrivacy(bool privacy);
 
 public Q_SLOTS:
     /** Set number of connections shown in the UI */

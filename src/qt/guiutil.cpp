@@ -48,13 +48,14 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QList>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QProgressDialog>
 #include <QScreen>
 #include <QSettings>
+#include <QShortcut>
 #include <QSize>
 #include <QString>
-#include <QShortcut>
 #include <QTextDocument> // for Qt::mightBeRichText
 #include <QThread>
 #include <QUrlQuery>
@@ -230,7 +231,7 @@ QString HtmlEscape(const std::string& str, bool fMultiLine)
     return HtmlEscape(QString::fromStdString(str), fMultiLine);
 }
 
-void copyEntryData(QAbstractItemView *view, int column, int role)
+void copyEntryData(const QAbstractItemView *view, int column, int role)
 {
     if(!view || !view->selectionModel())
         return;
@@ -243,11 +244,18 @@ void copyEntryData(QAbstractItemView *view, int column, int role)
     }
 }
 
-QList<QModelIndex> getEntryData(QAbstractItemView *view, int column)
+QList<QModelIndex> getEntryData(const QAbstractItemView *view, int column)
 {
     if(!view || !view->selectionModel())
         return QList<QModelIndex>();
     return view->selectionModel()->selectedRows(column);
+}
+
+bool hasEntryData(const QAbstractItemView *view, int column, int role)
+{
+    QModelIndexList selection = getEntryData(view, column);
+    if (selection.isEmpty()) return false;
+    return !selection.at(0).data(role).toString().isEmpty();
 }
 
 QString getDefaultDataDirectory()
@@ -742,34 +750,15 @@ QString formatDurationStr(int secs)
     return strList.join(" ");
 }
 
-QString serviceFlagToStr(const quint64 mask, const int bit)
-{
-    switch (ServiceFlags(mask)) {
-    case NODE_NONE: abort();  // impossible
-    case NODE_NETWORK:         return "NETWORK";
-    case NODE_GETUTXO:         return "GETUTXO";
-    case NODE_BLOOM:           return "BLOOM";
-    case NODE_WITNESS:         return "WITNESS";
-    case NODE_NETWORK_LIMITED: return "NETWORK_LIMITED";
-    case NODE_SMSG:            return "NODE_SMSG";
-    // Not using default, so we get warned when a case is missing
-    }
-    if (bit < 8) {
-        return QString("%1[%2]").arg("UNKNOWN").arg(mask);
-    } else {
-        return QString("%1[2^%2]").arg("UNKNOWN").arg(bit);
-    }
-}
-
 QString formatServicesStr(quint64 mask)
 {
     QStringList strList;
 
     for (int i = 0; i < 64; i++) {
-        uint64_t check = 1LL << i;
+        uint64_t check = 1ull << i;
         if (mask & check)
         {
-            strList.append(serviceFlagToStr(check, i));
+            strList.append(QString::fromStdString(serviceFlagToStr(mask, i)));
         }
     }
 
@@ -908,6 +897,13 @@ void LogQtInfo()
     for (const QScreen* s : QGuiApplication::screens()) {
         LogPrintf("Screen: %s %dx%d, pixel ratio=%.1f\n", s->name().toStdString(), s->size().width(), s->size().height(), s->devicePixelRatio());
     }
+}
+
+void PopupMenu(QMenu* menu, const QPoint& point, QAction* at_action)
+{
+    // The qminimal plugin does not provide window system integration.
+    if (QApplication::platformName() == "minimal") return;
+    menu->popup(point, at_action);
 }
 
 } // namespace GUIUtil

@@ -41,6 +41,7 @@ public Q_SLOTS:
     void setReservedBalance(CAmount reservedBalance);
 
     void setBalance(const interfaces::WalletBalances& balances);
+    void setPrivacy(bool privacy);
 
 Q_SIGNALS:
     void transactionClicked(const QModelIndex &index);
@@ -51,6 +52,7 @@ private:
     ClientModel *clientModel;
     WalletModel *walletModel;
     interfaces::WalletBalances m_balances;
+    bool m_privacy{false};
     CAmount m_reservedBalance;
 
     TxViewDelegate *txdelegate;

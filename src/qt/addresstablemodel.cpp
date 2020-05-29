@@ -16,6 +16,7 @@
 #include <univalue.h>
 
 #include <algorithm>
+#include <typeinfo>
 
 #include <QFont>
 #include <QDebug>
@@ -83,12 +84,14 @@ public:
     explicit AddressTablePriv(AddressTableModel *_parent):
         parent(_parent) {}
 
-    void refreshAddressTable(interfaces::Wallet& wallet)
+    void refreshAddressTable(interfaces::Wallet& wallet, bool pk_hash_only = false)
     {
         cachedAddressTable.clear();
         {
             for (const auto& address : wallet.getAddresses())
             {
+                if (pk_hash_only && address.dest.type() != typeid(PKHash))
+                    continue;
                 const CBitcoinAddress addr(address.dest, address.fBech32);
                 AddressTableEntry::Type addressType = translateTransactionType(
                         QString::fromStdString(address.purpose), address.is_mine);
@@ -171,12 +174,12 @@ public:
     }
 };
 
-AddressTableModel::AddressTableModel(WalletModel *parent) :
+AddressTableModel::AddressTableModel(WalletModel *parent, bool pk_hash_only) :
     QAbstractTableModel(parent), walletModel(parent)
 {
     columns << tr("Label") << tr("Address") << tr("Path");
     priv = new AddressTablePriv(this);
-    priv->refreshAddressTable(parent->wallet());
+    priv->refreshAddressTable(parent->wallet(), pk_hash_only);
 }
 
 AddressTableModel::~AddressTableModel()

@@ -153,8 +153,8 @@ public:
     void lockWallet();
     interfaces::Node& node() const { return m_node; }
     interfaces::Wallet& wallet() const { return *m_wallet; }
+    ClientModel& clientModel() const { return *m_client_model; }
     void setClientModel(ClientModel* client_model);
-    int getNumBlocks() const { return cachedNumBlocks; }
 
     QString getWalletName() const;
     QString getDisplayName() const;
@@ -167,6 +167,7 @@ public:
     bool tryCallRpc(const QString &sCommand, UniValue &rv, bool returnError=false) const;
     void warningBox(QString heading, QString msg) const;
 
+    void refresh(bool pk_hash_only = false);
 //private:
     std::unique_ptr<interfaces::Wallet> m_wallet;
     std::unique_ptr<interfaces::Handler> m_handler_unload;
@@ -195,8 +196,10 @@ public:
     // Cache some values to be able to detect changes
     interfaces::WalletBalances m_cached_balances;
     EncryptionStatus cachedEncryptionStatus;
-    int cachedNumBlocks;
     QTimer* timer;
+
+    // Block hash denoting when the last balance update was done.
+    uint256 m_cached_last_update_tip{};
 
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>634</width>
+    <width>798</width>
     <height>386</height>
    </rect>
   </property>
@@ -118,6 +118,7 @@
              <widget class="QLabel" name="labelStaked">
               <property name="font">
                <font>
+                <family>Monospace</family>
                 <weight>75</weight>
                 <bold>true</bold>
                </font>
@@ -129,7 +130,7 @@
                <string>Your current staked balance</string>
               </property>
               <property name="text">
-               <string notr="true">0.000 000 00 PART</string>
+               <string notr="true">0.00000000 PART</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -143,6 +144,7 @@
              <widget class="QLabel" name="labelWatchStaked">
               <property name="font">
                <font>
+                <family>Monospace</family>
                 <weight>75</weight>
                 <bold>true</bold>
                </font>
@@ -154,7 +156,7 @@
                <string>Your current watch-only staked balance</string>
               </property>
               <property name="text">
-               <string notr="true">0.000 000 00 PART</string>
+               <string notr="true">0.00000000 PART</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -168,6 +170,7 @@
              <widget class="QLabel" name="labelWatchImmature">
               <property name="font">
                <font>
+                <family>Monospace</family>
                 <weight>75</weight>
                 <bold>true</bold>
                </font>
@@ -179,7 +182,7 @@
                <string>Mined balance in watch-only addresses that has not yet matured</string>
               </property>
               <property name="text">
-               <string notr="true">0.000 000 00 PART</string>
+               <string notr="true">0.00000000 PART</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -339,6 +342,7 @@
              <widget class="QLabel" name="labelTotal">
               <property name="font">
                <font>
+                <family>Monospace</family>
                 <weight>75</weight>
                 <bold>true</bold>
                </font>
@@ -350,7 +354,7 @@
                <string>Your current total balance</string>
               </property>
               <property name="text">
-               <string notr="true">0.000 000 00 PART</string>
+               <string notr="true">0.00000000 PART</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -395,6 +399,7 @@
              <widget class="QLabel" name="labelWatchAvailable">
               <property name="font">
                <font>
+                <family>Monospace</family>
                 <weight>75</weight>
                 <bold>true</bold>
                </font>
@@ -406,7 +411,7 @@
                <string>Your current balance in watch-only addresses</string>
               </property>
               <property name="text">
-               <string notr="true">0.000 000 00 PART</string>
+               <string notr="true">0.00000000 PART</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -444,6 +449,7 @@
              <widget class="QLabel" name="labelBlindBalance">
               <property name="font">
                <font>
+                <family>Monospace</family>
                 <weight>75</weight>
                 <bold>true</bold>
                </font>
@@ -455,7 +461,7 @@
                <string>Your current spendable blinded balance</string>
               </property>
               <property name="text">
-               <string notr="true">0.000 000 00 PART</string>
+               <string notr="true">0.00000000 PART</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -476,6 +482,7 @@
              <widget class="QLabel" name="labelAnonBalance">
               <property name="font">
                <font>
+                <family>Monospace</family>
                 <weight>75</weight>
                 <bold>true</bold>
                </font>
@@ -487,7 +494,7 @@
                <string>Your current spendable anon balance</string>
               </property>
               <property name="text">
-               <string notr="true">0.000 000 00 PART</string>
+               <string notr="true">0.00000000 PART</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -501,6 +508,7 @@
              <widget class="QLabel" name="labelBalance">
               <property name="font">
                <font>
+                <family>Monospace</family>
                 <weight>75</weight>
                 <bold>true</bold>
                </font>
@@ -512,7 +520,7 @@
                <string>Your current spendable balance</string>
               </property>
               <property name="text">
-               <string notr="true">0.000 000 00 PART</string>
+               <string notr="true">0.00000000 PART</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

@@ -9,6 +9,8 @@
 #include <pubkey.h>
 #include <script/script.h>
 
+#include <string>
+
 #include <key/extkey.h>
 #include <key/stealth.h>
 
@@ -40,7 +42,7 @@ WitnessV0ScriptHash::WitnessV0ScriptHash(const CScript& in)
     CSHA256().Write(in.data(), in.size()).Finalize(begin());
 }
 
-const char* GetTxnOutputType(txnouttype t)
+std::string GetTxnOutputType(txnouttype t)
 {
     switch (t)
     {
@@ -63,7 +65,7 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_TIMELOCKED_PUBKEYHASH256: return "timelocked_pubkeyhash256";
     case TX_TIMELOCKED_MULTISIG: return "timelocked_multisig";
     }
-    return nullptr;
+    assert(false);
 }
 
 static bool MatchPayToPubkey(const CScript& script, valtype& pubkey)
