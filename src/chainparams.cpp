@@ -629,10 +629,10 @@ public:
 
         consensus.nMinRCTOutputDepth = 12;
 
-        pchMessageStart[0] = 0x1d;
-        pchMessageStart[1] = 0x8d;
-        pchMessageStart[2] = 0x3a;
-        pchMessageStart[3] = 0x7u;
+        pchMessageStart[0] = 0xfb;
+        pchMessageStart[1] = 0xc1;
+        pchMessageStart[2] = 0xb4;
+        pchMessageStart[3] = 0xdd;
         nDefaultPort = 51928;
         nBIP44ID = (int)WithHardenedBit(1);
 
