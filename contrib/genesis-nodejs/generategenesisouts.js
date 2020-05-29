@@ -19,7 +19,7 @@ const network = commander.network;
 /*
 Config consts and coin related consts
 */
-const configNetwork = require('./config.json')[network];
+const configNetwork = require('./config.json').networks[network];
 
 const PayoutAddrs = configNetwork.payeeAddrs;
 const OutputsToMake = PayoutAddrs.length;
