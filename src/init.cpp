@@ -540,6 +540,7 @@ void SetupServerArgs(NodeContext& node)
 
     gArgs.AddArg("-dbmaxopenfiles", strprintf("Maximum number of open files parameter passed to level-db (default: %u)", DEFAULT_DB_MAX_OPEN_FILES), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-dbcompression", strprintf("Database compression parameter passed to level-db (default: %s)", DEFAULT_DB_COMPRESSION ? "true" : "false"), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-skippeerchecks", "Skip peer related checks on Staking thread", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 
     gArgs.AddArg("-findpeers", "Node will search for peers (default: 1)", ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     // end Ghost specific

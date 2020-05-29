@@ -27,7 +27,7 @@
 
 version: ~> 1.0
 
-dist: xenial
+dist: bionic
 os: linux
 language: minimal
 arch: amd64

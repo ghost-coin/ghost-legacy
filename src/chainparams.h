@@ -11,7 +11,7 @@
 #include <primitives/block.h>
 #include <chain.h>
 #include <protocol.h>
-
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -101,7 +101,7 @@ public:
 
     uint32_t GetStakeTimestampMask(int nHeight) const { return nStakeTimestampMask; }
     int64_t GetCoinYearReward(int64_t nTime) const;
-
+    int GetCoinYearPercent(int index) const;
     const DevFundSettings *GetDevFundSettings(int64_t nTime) const;
     const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const {return vDevFundSettings;};
 
@@ -170,10 +170,10 @@ protected:
     uint32_t nStakeMinConfirmations;    // min depth in chain before staked output is spendable
     uint32_t nTargetSpacing;            // targeted number of seconds between blocks
     uint32_t nTargetTimespan;
-
+    CAmount nBlockReward;               // Block reward for PoS blocks,static
     uint32_t nStakeTimestampMask = (1 << 4) -1; // 4 bits, every kernel stake hash will change every 16 seconds
     int64_t nCoinYearReward = 2 * CENT; // 2% per year
-
+    std::array<int, 47> nBlockPerc; //reward percentage each year
     std::vector<CImportedCoinbaseTxn> vImportedCoinbaseTxns;
     uint32_t nLastImportHeight;       // set from vImportedCoinbaseTxns
 
@@ -184,8 +184,8 @@ protected:
     uint64_t m_assumed_blockchain_size;
     uint64_t m_assumed_chain_state_size;
     std::vector<std::string> vSeeds;
-    std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
-    std::vector<unsigned char> bech32Prefixes[MAX_BASE58_TYPES];
+    std::array<std::vector<unsigned char>, MAX_BASE58_TYPES> base58Prefixes;
+    std::array<std::vector<unsigned char>, MAX_BASE58_TYPES> bech32Prefixes;
     std::string bech32_hrp;
     std::string strNetworkID;
     CBlock genesis;
