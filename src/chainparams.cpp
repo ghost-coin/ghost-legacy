@@ -46,13 +46,17 @@ int CChainParams::GetCoinYearPercent(int index) const
     }
 };
 
+int64_t CChainParams::GetBlocksInAYear() const{
+
+    return (365 * 24 * 60 * 60) / nTargetSpacing;
+}
+
 int64_t CChainParams::GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const
 {
     int64_t nSubsidy = 0;
     if(nBlockReward > 0)
     {
-        const int64_t nBlocksInAYear = (365 * 24 * 60 * 60) / nTargetSpacing;
-        int currYear = pindexPrev ? (pindexPrev->nHeight + 1) / nBlocksInAYear : 0;
+        int currYear = pindexPrev ? (pindexPrev->nHeight + 1) / GetBlocksInAYear() : 0;
         nSubsidy = (nBlockReward * GetCoinYearPercent(currYear)) / 100;
     }
     else

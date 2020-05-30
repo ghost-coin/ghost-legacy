@@ -106,6 +106,8 @@ public:
     const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const {return vDevFundSettings;};
 
     int64_t GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
+    int64_t GetBlocksInAYear() const;
+
     int64_t GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const;
 
     bool CheckImportCoinbase(int nHeight, uint256 &hash) const;

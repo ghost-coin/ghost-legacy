@@ -133,6 +133,10 @@ BITCOIN_CORE_H = \
   compat/cpuid.h \
   compat/endian.h \
   compat/sanity.h \
+  coldrewards/coinreward.h \
+  coldrewards/rewards.h \
+  coldrewards/rewardsview.h \
+  coldrewards/rewards_calculation.h \
   compressor.h \
   consensus/consensus.h \
   consensus/tx_check.h \
@@ -315,6 +319,9 @@ libghost_server_a_SOURCES = \
   blockfilter.cpp \
   chain.cpp \
   consensus/tx_verify.cpp \
+	coldrewards/rewards.cpp \
+	coldrewards/rewards_calculation.cpp \
+	coldrewards/rewardsview.cpp \
   flatfile.cpp \
   httprpc.cpp \
   httpserver.cpp \

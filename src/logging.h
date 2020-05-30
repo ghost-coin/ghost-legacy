@@ -56,6 +56,7 @@ namespace BCLog {
         LEVELDB     = (1 << 20),
         VALIDATION  = (1 << 21),
 
+        COLDREWARD  = (1 << 22),
         SMSG        = (1 << 27),
         RINGCT      = (1 << 28),
         POS         = (1 << 29),

@@ -252,6 +252,22 @@ std::string EncodeDestination(const CTxDestination& dest, bool fBech32, bool sta
     return boost::apply_visitor(DestinationEncoder(Params(), fBech32, stake_only), dest);
 }
 
+/* Cold reward funcs */
+
+std::string GetAddrFromTxOut(const CTxOut& out) {
+  CTxDestination dest;
+  ExtractDestination(out.scriptPubKey, dest);
+  std::string SDest = EncodeDestination(dest);
+  return SDest;
+}
+
+CTxDestination GetDestFromTxOut(const CTxOut& out) {
+  CTxDestination dest;
+  // Assume always a valid scriptkey
+  ExtractDestination(out.scriptPubKey, dest);
+  return dest;
+}
+
 CTxDestination DecodeDestination(const std::string& str, bool allow_stake_only)
 {
     return DecodeDestination(str, Params(), allow_stake_only);

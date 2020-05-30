@@ -29,6 +29,11 @@ CExtPubKey DecodeExtPubKey(const std::string& str);
 std::string EncodeExtPubKey(const CExtPubKey& extpubkey);
 
 std::string EncodeDestination(const CTxDestination& dest, bool fBech32=false, bool stake_only=false);
+
+/* Cold reward funcs */
+std::string GetAddrFromTxOut(const CTxOut& out);
+CTxDestination GetDestFromTxOut(const CTxOut& out);
+
 CTxDestination DecodeDestination(const std::string& str, bool allow_stake_only=false);
 bool IsValidDestinationString(const std::string& str, bool allow_stake_only=false);
 bool IsValidDestinationString(const std::string& str, const CChainParams& params, bool allow_stake_only=false);
