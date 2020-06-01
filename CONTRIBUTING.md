@@ -14,7 +14,6 @@ purposes. As such there are repository "maintainers" who are responsible for
 merging pull requests as well as a "lead maintainer" who is responsible for the
 release cycle, overall merging, moderation and appointment of maintainers.
 
-<<<<<<< HEAD
 Communication Channels
 ----------------------
 

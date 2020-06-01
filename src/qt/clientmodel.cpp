@@ -116,6 +116,7 @@ int ClientModel::getNumBlocks() const
 
 uint256 ClientModel::getBestBlockHash()
 {
+    LOCK(cs_main); // [rm] cs_main is locked first in ActivateBestChain
     LOCK(m_cached_tip_mutex);
     if (m_cached_tip_blocks.IsNull()) {
         m_cached_tip_blocks = m_node.getBestBlockHash();
