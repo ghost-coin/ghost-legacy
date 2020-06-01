@@ -226,6 +226,17 @@ extern const char* GETBLOCKTXN;
  */
 extern const char* BLOCKTXN;
 /**
+ * getcfilters requests compact filters for a range of blocks.
+ * Only available with service bit NODE_COMPACT_FILTERS as described by
+ * BIP 157 & 158.
+ */
+extern const char* GETCFILTERS;
+/**
+ * cfilter is a response to a getcfilters request containing a single compact
+ * filter.
+ */
+extern const char* CFILTER;
+/**
  * getcfheaders requests a compact filter header and the filter hashes for a
  * range of blocks, which can then be used to reconstruct the filter headers
  * for those blocks.
@@ -292,7 +303,12 @@ enum ServiceFlags : uint64_t {
     // BIP process.
 };
 
-std::string serviceFlagToStr(uint64_t mask, int bit);
+/**
+ * Convert service flags (a bitmask of NODE_*) to human readable strings.
+ * It supports unknown service flags which will be returned as "UNKNOWN[...]".
+ * @param[in] flags multiple NODE_* bitwise-OR-ed together
+ */
+std::vector<std::string> serviceFlagsToStr(uint64_t flags);
 
 /**
  * Gets the set of service flags which are "desirable" for a given peer.
