@@ -5,7 +5,7 @@ $(package)_file_name=v$($(package)_version).tar.gz
 $(package)_sha256_hash=02620708c4eea7e736240a623b0b156650c39bfa93a14bcfa5f3e05270313eba
 
 define $(package)_set_vars
-  $(package)_config_opts=--disable-shared --enable-udev
+  $(package)_config_opts=--disable-shared --disable-udev
   $(package)_config_opts_linux=--with-pic
 endef
 

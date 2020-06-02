@@ -1,5 +1,7 @@
 packages:=boost libevent
 
+linux_packages = eudev
+
 protobuf_native_packages = native_protobuf
 protobuf_packages = protobuf
 
