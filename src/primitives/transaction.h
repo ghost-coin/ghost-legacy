@@ -35,9 +35,14 @@ enum OutputTypes
 
 enum TransactionTypes
 {
-    TXN_STANDARD            = 0,
-    TXN_COINBASE            = 1,
-    TXN_COINSTAKE           = 2,
+    TXN_STANDARD                  = 0,
+    TXN_COINBASE                  = 1,
+    TXN_COINSTAKE                 = 2,
+    TXN_PROVIDER_REGISTER         = 3,
+    TXN_PROVIDER_UPDATE_SERVICE   = 4,
+    TXN_PROVIDER_UPDATE_REGISTRAR = 5,
+    TXN_PROVIDER_UPDATE_REVOKE    = 6,
+    TXN_QUORUM_COMMITMENT         = 7,
 };
 
 enum DataOutputTypes
