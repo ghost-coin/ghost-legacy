@@ -108,7 +108,7 @@ def is_valid(v):
 
 def is_valid_bech32(v):
     '''Check vector v for bech32 validity'''
-    for hrp in ['pw', 'tgw', 'rtpw']:
+    for hrp in ['pw', 'tgstw', 'rtpw']:
         if decode(hrp, v) != (None, None):
             return True
     return False
