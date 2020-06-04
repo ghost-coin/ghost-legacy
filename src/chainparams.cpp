@@ -682,17 +682,17 @@ public:
 
         {
             std::map<int, std::string> bech32PrefixesMap{
-                {PUBKEY_ADDRESS, "tgh"},
-                {SCRIPT_ADDRESS,"tgr"},
-                {PUBKEY_ADDRESS_256,"tgl"},
-                {SCRIPT_ADDRESS_256,"tgj"},
-                {SECRET_KEY,"tgx"},
-                {EXT_PUBLIC_KEY,"tgep"},
-                {EXT_SECRET_KEY,"tgex"},
-                {STEALTH_ADDRESS,"tgs"},
-                {EXT_KEY_HASH,"tgek"},
-                {EXT_ACC_HASH,"tgea"},
-                {STAKE_ONLY_PKADDR,"tgcs"},
+                {PUBKEY_ADDRESS, "tgsth"},
+                {SCRIPT_ADDRESS,"tgstr"},
+                {PUBKEY_ADDRESS_256,"tgstl"},
+                {SCRIPT_ADDRESS_256,"tgstj"},
+                {SECRET_KEY,"tgstx"},
+                {EXT_PUBLIC_KEY,"tgstep"},
+                {EXT_SECRET_KEY,"tgstex"},
+                {STEALTH_ADDRESS,"tgsts"},
+                {EXT_KEY_HASH,"tgstek"},
+                {EXT_ACC_HASH,"tgstea"},
+                {STAKE_ONLY_PKADDR,"tgstcs"},
             };
 
             for(auto&& p: bech32PrefixesMap)
@@ -701,7 +701,7 @@ public:
             }
         }
 
-        bech32_hrp = "tgw";
+        bech32_hrp = "tgstw";
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
