@@ -677,17 +677,17 @@ public:
 
         {
             std::map<int, std::string> bech32PrefixesMap{
-                {PUBKEY_ADDRESS, "tgsth"},
-                {SCRIPT_ADDRESS,"tgstr"},
-                {PUBKEY_ADDRESS_256,"tgstl"},
-                {SCRIPT_ADDRESS_256,"tgstj"},
-                {SECRET_KEY,"tgstx"},
-                {EXT_PUBLIC_KEY,"tgstep"},
-                {EXT_SECRET_KEY,"tgstex"},
-                {STEALTH_ADDRESS,"tgsts"},
-                {EXT_KEY_HASH,"tgstek"},
-                {EXT_ACC_HASH,"tgstea"},
-                {STAKE_ONLY_PKADDR,"tgstcs"},
+                {PUBKEY_ADDRESS, "tghost"},
+                {SCRIPT_ADDRESS,"tw"},
+                {PUBKEY_ADDRESS_256,"tl"},
+                {SCRIPT_ADDRESS_256,"tj"},
+                {SECRET_KEY,"ttx"},
+                {EXT_PUBLIC_KEY,"tep"},
+                {EXT_SECRET_KEY,"tex"},
+                {STEALTH_ADDRESS,"ts"},
+                {EXT_KEY_HASH,"tek"},
+                {EXT_ACC_HASH,"tea"},
+                {STAKE_ONLY_PKADDR,"tcs"},
             };
 
             for(auto&& p: bech32PrefixesMap)
@@ -696,7 +696,7 @@ public:
             }
         }
 
-        bech32_hrp = "tgstw";
+        bech32_hrp = "tw";
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
@@ -828,7 +828,7 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x35, 0x87, 0xCF}; // tpub
         base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x35, 0x83, 0x94}; // tprv
 
-        bech32Prefixes[PUBKEY_ADDRESS].assign       ("tph",(const char*)"tph"+3);
+        bech32Prefixes[PUBKEY_ADDRESS].assign       ("rghost",(const char*)"rghost"+6);
         bech32Prefixes[SCRIPT_ADDRESS].assign       ("tpr",(const char*)"tpr"+3);
         bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("tpl",(const char*)"tpl"+3);
         bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("tpj",(const char*)"tpj"+3);
