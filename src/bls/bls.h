@@ -18,6 +18,9 @@
 #undef DOUBLE
 #undef BENCH // To fix conflict with bench in BCLog
 #undef RAND // To fix conflict with rand in BCLog
+#undef UDEV // To fix conflict with relic
+
+#undef SEED // To fix conflict test setup
 
 #include <array>
 #include <mutex>

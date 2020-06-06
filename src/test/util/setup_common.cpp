@@ -31,7 +31,7 @@
 #include <util/vector.h>
 #include <validation.h>
 #include <validationinterface.h>
-
+#include <bls/bls.h>
 #include <functional>
 
 const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
@@ -104,6 +104,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, const std::ve
     LogInstance().StartLogging();
     SHA256AutoDetect();
     ECC_Start();
+    BLSInit();
     SetupEnvironment();
     SetupNetworking();
     InitSignatureCache();

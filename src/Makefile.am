@@ -24,6 +24,7 @@ BITCOIN_INCLUDES=-I$(builddir) $(BDB_CPPFLAGS) $(BOOST_CPPFLAGS) $(LEVELDB_CPPFL
 
 BITCOIN_INCLUDES += -I$(srcdir)/secp256k1/include
 BITCOIN_INCLUDES += $(UNIVALUE_CFLAGS)
+BLS_LIBS=-lchiabls -lgmp
 
 LIBGHOST_SERVER=libghost_server.a
 LIBGHOST_COMMON=libghost_common.a
@@ -222,6 +223,8 @@ BITCOIN_CORE_H = \
   smsg/net.h \
   smsg/smessage.h \
   smsg/rpcsmessage.h \
+  support/allocators/mt_pooled_secure.h \
+  support/allocators/pooled_secure.h \
   support/allocators/secure.h \
   support/allocators/zeroafterfree.h \
   support/cleanse.h \
@@ -546,6 +549,8 @@ libghost_consensus_a_SOURCES = \
 libghost_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libghost_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libghost_common_a_SOURCES = \
+  bls/bls.cpp \
+  bls/bls.h \
   base58.cpp \
   bech32.cpp \
   bloom.cpp \
@@ -715,7 +720,7 @@ ghostd_LDADD = \
   $(LIBGHOST_MNEMONIC) \
   $(LIBGHOST_USBDEVICE)
 
-ghostd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+ghostd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(BLS_LIBS)
 if ENABLE_USBDEVICE
 ghostd_LDADD += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
@@ -737,7 +742,7 @@ ghost_cli_LDADD = \
   $(LIBGHOST_UTIL) \
   $(LIBGHOST_CRYPTO)
 
-ghost_cli_LDADD += $(BOOST_LIBS) $(EVENT_LIBS)
+ghost_cli_LDADD += $(BOOST_LIBS) $(EVENT_LIBS) $(BLS_LIBS)
 #
 
 # bitcoin-tx binary #
@@ -758,7 +763,7 @@ ghost_tx_LDADD = \
   $(LIBGHOST_CRYPTO) \
   $(LIBSECP256K1)
 
-ghost_tx_LDADD += $(BOOST_LIBS)
+ghost_tx_LDADD += $(BOOST_LIBS) $(BLS_LIBS)
 #
 
 # bitcoin-wallet binary #
@@ -806,7 +811,7 @@ if GLIBC_BACK_COMPAT
 endif
 
 libghostconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-libghostconsensus_la_LIBADD = $(LIBSECP256K1) $(BOOST_LIBS)
+libghostconsensus_la_LIBADD = $(LIBSECP256K1) $(BOOST_LIBS) $(BLS_LIBS)
 libghostconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
 libghostconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 

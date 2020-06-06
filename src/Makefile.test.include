@@ -197,6 +197,7 @@ BITCOIN_TESTS =\
   test/blockfilter_tests.cpp \
   test/blockfilter_index_tests.cpp \
   test/bloom_tests.cpp \
+  test/bls_tests.cpp \
   test/bswap_tests.cpp \
   test/checkqueue_tests.cpp \
   test/coins_tests.cpp \
@@ -302,7 +303,7 @@ if ENABLE_USBDEVICE
 test_test_ghost_LDADD += $(LIBGHOST_USBDEVICE) $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
 test_test_ghost_LDADD += $(LIBGHOST_SERVER) $(LIBGHOST_CLI) $(LIBGHOST_COMMON) $(LIBGHOST_UTIL) $(LIBGHOST_CONSENSUS) $(LIBGHOST_CRYPTO) $(LIBGHOST_SMSG) $(LIBGHOST_MNEMONIC) $(LIBUNIVALUE) \
-  $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(LIBSECP256K1) $(EVENT_LIBS) $(EVENT_PTHREADS_LIBS)
+  $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(LIBSECP256K1) $(EVENT_LIBS) $(EVENT_PTHREADS_LIBS) $(BLS_LIBS)
 test_test_ghost_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 test_test_ghost_LDADD += $(BDB_LIBS) $(MINIUPNPC_LIBS)
