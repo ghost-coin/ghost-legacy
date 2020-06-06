@@ -13,6 +13,7 @@
 #include <amount.h>
 #include <banman.h>
 #include <blockfilter.h>
+#include <bls/bls.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <compat/sanity.h>

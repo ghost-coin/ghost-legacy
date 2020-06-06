@@ -113,7 +113,7 @@ static bool BuildChain(const CBlockIndex* pindex, const CScript& coinbase_script
 
 BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync, TestChain100Setup)
 {
-    BlockFilterIndex filter_index(BlockFilterType::BASIC, 1 << 20, true);
+    BlockFilterIndex filter_index(BlockFilterType::BASICFILTER, 1 << 20, true);
 
     uint256 last_header;
 
@@ -270,36 +270,36 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_init_destroy, BasicTestingSetup)
 {
     BlockFilterIndex* filter_index;
 
-    filter_index = GetBlockFilterIndex(BlockFilterType::BASIC);
+    filter_index = GetBlockFilterIndex(BlockFilterType::BASICFILTER);
     BOOST_CHECK(filter_index == nullptr);
 
-    BOOST_CHECK(InitBlockFilterIndex(BlockFilterType::BASIC, 1 << 20, true, false));
+    BOOST_CHECK(InitBlockFilterIndex(BlockFilterType::BASICFILTER, 1 << 20, true, false));
 
-    filter_index = GetBlockFilterIndex(BlockFilterType::BASIC);
+    filter_index = GetBlockFilterIndex(BlockFilterType::BASICFILTER);
     BOOST_CHECK(filter_index != nullptr);
-    BOOST_CHECK(filter_index->GetFilterType() == BlockFilterType::BASIC);
+    BOOST_CHECK(filter_index->GetFilterType() == BlockFilterType::BASICFILTER);
 
     // Initialize returns false if index already exists.
-    BOOST_CHECK(!InitBlockFilterIndex(BlockFilterType::BASIC, 1 << 20, true, false));
+    BOOST_CHECK(!InitBlockFilterIndex(BlockFilterType::BASICFILTER, 1 << 20, true, false));
 
     int iter_count = 0;
     ForEachBlockFilterIndex([&iter_count](BlockFilterIndex& _index) { iter_count++; });
     BOOST_CHECK_EQUAL(iter_count, 1);
 
-    BOOST_CHECK(DestroyBlockFilterIndex(BlockFilterType::BASIC));
+    BOOST_CHECK(DestroyBlockFilterIndex(BlockFilterType::BASICFILTER));
 
     // Destroy returns false because index was already destroyed.
-    BOOST_CHECK(!DestroyBlockFilterIndex(BlockFilterType::BASIC));
+    BOOST_CHECK(!DestroyBlockFilterIndex(BlockFilterType::BASICFILTER));
 
-    filter_index = GetBlockFilterIndex(BlockFilterType::BASIC);
+    filter_index = GetBlockFilterIndex(BlockFilterType::BASICFILTER);
     BOOST_CHECK(filter_index == nullptr);
 
     // Reinitialize index.
-    BOOST_CHECK(InitBlockFilterIndex(BlockFilterType::BASIC, 1 << 20, true, false));
+    BOOST_CHECK(InitBlockFilterIndex(BlockFilterType::BASICFILTER, 1 << 20, true, false));
 
     DestroyAllBlockFilterIndexes();
 
-    filter_index = GetBlockFilterIndex(BlockFilterType::BASIC);
+    filter_index = GetBlockFilterIndex(BlockFilterType::BASICFILTER);
     BOOST_CHECK(filter_index == nullptr);
 }
 

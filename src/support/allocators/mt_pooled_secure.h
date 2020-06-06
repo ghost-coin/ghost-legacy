@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef SYSCOIN_SUPPORT_ALLOCATORS_MT_POOLED_SECURE_H
-#define SYSCOIN_SUPPORT_ALLOCATORS_MT_POOLED_SECURE_H
+#ifndef BITCOIN_SUPPORT_ALLOCATORS_MT_POOLED_SECURE_H
+#define BITCOIN_SUPPORT_ALLOCATORS_MT_POOLED_SECURE_H
 
 #include <support/allocators/pooled_secure.h>
 
@@ -82,4 +82,4 @@ private:
     std::vector<std::unique_ptr<internal_pool>> pools;
 };
 
-#endif // SYSCOIN_SUPPORT_ALLOCATORS_MT_POOLED_SECURE_H
+#endif // BITCOIN_SUPPORT_ALLOCATORS_MT_POOLED_SECURE_H

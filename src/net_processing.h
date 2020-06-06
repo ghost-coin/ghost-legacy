@@ -92,7 +92,7 @@ struct CNodeStateStats {
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
-//void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
+void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
 /** Decrease a node's misbehavior score. */
 void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -106,8 +106,5 @@ void EraseTxRequest(NodeId nodeId, const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_
 
 /** Relay transaction to every node */
 void RelayTransaction(const uint256&, const CConnman& connman);
-
-/** Increase a node's misbehavior score. */
-void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 #endif // BITCOIN_NET_PROCESSING_H

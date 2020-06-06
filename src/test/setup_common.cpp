@@ -27,6 +27,7 @@
 #include <util/validation.h>
 #include <validation.h>
 #include <validationinterface.h>
+#include <bls/bls.h>
 
 #include <functional>
 
@@ -57,6 +58,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, bool fParticl
     LogInstance().StartLogging();
     SHA256AutoDetect();
     ECC_Start();
+    BLSInit();
     SetupEnvironment();
     SetupNetworking();
     InitSignatureCache();

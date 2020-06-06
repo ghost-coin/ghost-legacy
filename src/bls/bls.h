@@ -17,6 +17,9 @@
 #include <chiabls/signature.hpp>
 #undef DOUBLE
 
+// #undef SEED // To fix conflict test setup
+// #undef BASICFILTER // To fix conflict with blockfilter
+
 #include <array>
 #include <mutex>
 #include <unistd.h>
