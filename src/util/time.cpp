@@ -82,6 +82,11 @@ int64_t GetTimeMicros()
     return now;
 }
 
+void MilliSleep(int64_t n)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(n));
+}
+
 int64_t GetSystemTimeInSeconds()
 {
     return GetTimeMicros()/1000000;

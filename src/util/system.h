@@ -26,6 +26,7 @@
 #include <util/settings.h>
 #include <util/threadnames.h>
 #include <util/time.h>
+#include <ctpl.h>
 
 #include <exception>
 #include <map>
@@ -107,6 +108,9 @@ fs::path GetConfigFile(const std::string& confPath);
 #ifdef WIN32
 fs::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
+void RenameThread(const char* name);
+void RenameThreadPool(ctpl::thread_pool& tp, const char* baseName);
+
 #ifndef WIN32
 std::string ShellEscape(const std::string& arg);
 #endif

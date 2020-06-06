@@ -140,6 +140,7 @@ BITCOIN_CORE_H = \
   core_io.h \
   core_memusage.h \
   cuckoocache.h \
+  ctpl.h \
   flatfile.h \
   fs.h \
   httprpc.h \
@@ -587,6 +588,11 @@ libghost_common_a_SOURCES = \
 libghost_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libghost_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libghost_util_a_SOURCES = \
+  bls/bls_batchverifier.h \
+  bls/bls_ies.cpp \
+  bls/bls_ies.h \
+  bls/bls_worker.cpp \
+  bls/bls_worker.h \
   support/lockedpool.cpp \
   chainparamsbase.cpp \
   clientversion.cpp \

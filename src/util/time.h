@@ -28,6 +28,8 @@ int64_t GetTime();
 
 /** Returns the system time (not mockable) */
 int64_t GetTimeMillis();
+void MilliSleep(int64_t n);
+
 /** Returns the system time (not mockable) */
 int64_t GetTimeMicros();
 /** Returns the system time (not mockable) */
