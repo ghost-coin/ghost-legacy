@@ -17,7 +17,7 @@
 
 #include <type_traits>
 
-#include <boost/thread.hpp>
+#include <boost/thread/thread.hpp>
 
 #include <key/extkey.h>
 #include <key/stealth.h>

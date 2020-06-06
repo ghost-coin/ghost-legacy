@@ -8257,6 +8257,9 @@ static UniValue rehashblock(const JSONRPCRequest &request)
     return HexStr(ssBlock.begin(), ssBlock.end());
 };
 
+Span<const CRPCCommand> GetHDWalletRPCCommands()
+{
+// clang-format off
 static const CRPCCommand commands[] =
 { //  category              name                                actor (function)                argNames
   //  --------------------- ------------------------            -----------------------         ----------
@@ -8326,10 +8329,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "pruneorphanedblocks",              &pruneorphanedblocks,           {"testonly"} },
     { "blockchain",         "rehashblock",                      &rehashblock,                   {"hexblock","signwith","addtxns"} },
 };
-
-void RegisterHDWalletRPCCommands(interfaces::Chain& chain, std::vector<std::unique_ptr<interfaces::Handler>>& handlers)
-{
-    for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
-        handlers.emplace_back(chain.handleRpc(commands[vcidx]));
+// clang-format on
+    return MakeSpan(commands);
 }
 
