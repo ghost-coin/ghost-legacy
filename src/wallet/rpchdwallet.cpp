@@ -39,7 +39,6 @@
 #include <txmempool.h>
 
 #include <univalue.h>
-#include <boost/thread.hpp>
 
 void EnsureWalletIsUnlocked(CHDWallet *pwallet)
 {
@@ -7989,7 +7988,7 @@ static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file,
     uint64_t nRewind = blkdat.GetPos();
 
     while (!blkdat.eof()) {
-        boost::this_thread::interruption_point();
+        if (ShutdownRequested()) return false;
 
         blkdat.SetPos(nRewind);
         nRewind++; // start one byte further next time, in case of failure

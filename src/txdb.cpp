@@ -273,7 +273,7 @@ bool CBlockTreeDB::ReadAddressUnspentIndex(uint256 addressHash, int type,
     pcursor->Seek(std::make_pair(DB_ADDRESSUNSPENTINDEX, CAddressIndexIteratorKey(type, addressHash)));
 
     while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
+        if (ShutdownRequested()) return false;
         std::pair<char, CAddressUnspentKey> key;
         if (pcursor->GetKey(key) && key.first == DB_ADDRESSUNSPENTINDEX && key.second.hashBytes == addressHash) {
             CAddressUnspentValue nValue;
@@ -317,7 +317,7 @@ bool CBlockTreeDB::ReadAddressIndex(uint256 addressHash, int type,
     }
 
     while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
+        if (ShutdownRequested()) return false;
         std::pair<char, CAddressIndexKey> key;
         if (pcursor->GetKey(key) && key.first == DB_ADDRESSINDEX && key.second.hashBytes == addressHash) {
             if (end > 0 && key.second.blockHeight > end) {
@@ -354,7 +354,7 @@ bool CBlockTreeDB::ReadTimestampIndex(const unsigned int &high, const unsigned i
     if (fActiveOnly) {
         LockAssertion lock(::cs_main); // cs_main is locked before GetTimestampIndex if fActiveOnly
         while (pcursor->Valid()) {
-            boost::this_thread::interruption_point();
+            if (ShutdownRequested()) return false;
             std::pair<char, CTimestampIndexKey> key;
             if (pcursor->GetKey(key) && key.first == DB_TIMESTAMPINDEX && key.second.timestamp < high) {
                 if (HashOnchainActive(key.second.blockHash)) {
@@ -368,7 +368,7 @@ bool CBlockTreeDB::ReadTimestampIndex(const unsigned int &high, const unsigned i
     } else {
         // Otherwise get: requires holding mutex
         while (pcursor->Valid()) {
-            boost::this_thread::interruption_point();
+            if (ShutdownRequested()) return false;
             std::pair<char, CTimestampIndexKey> key;
             if (pcursor->GetKey(key) && key.first == DB_TIMESTAMPINDEX && key.second.timestamp < high) {
                 hashes.push_back(std::make_pair(key.second.blockHash, key.second.timestamp));

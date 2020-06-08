@@ -15,6 +15,7 @@
 #include <key_io.h>
 #include <core_io.h>
 #include <script/standard.h>
+#include <shutdown.h>
 
 #include <univalue.h>
 
@@ -908,7 +909,7 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
 
     uint256 prevkey;
     while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
+        if (ShutdownRequested()) return false;
         COutPoint key;
         Coin coin;
         if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {

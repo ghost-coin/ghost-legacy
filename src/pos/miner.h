@@ -42,7 +42,7 @@ bool CheckStake(CBlock *pblock);
 void StartThreadStakeMiner();
 void StopThreadStakeMiner();
 void WakeThreadStakeMiner(CHDWallet *pwallet);
-bool ThreadStakeMinerStopped(); // replace interruption_point
+bool ThreadStakeMinerStopped();
 
 void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &vpwallets, size_t nStart, size_t nEnd);
 

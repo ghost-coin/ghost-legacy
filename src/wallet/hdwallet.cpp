@@ -12557,7 +12557,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
     for (; it != setCoins.end(); ++it) {
         auto pcoin = *it;
-        if (ThreadStakeMinerStopped()) { // interruption_point
+        if (ThreadStakeMinerStopped()) {
             return false;
         }
 

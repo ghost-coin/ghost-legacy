@@ -237,8 +237,7 @@ class ColdStakingTest(ParticlTestFramework):
 
         assert(self.wait_for_mempool(nodes[1], txid3))
 
-        ro = nodes[1].extkey('key', 'xBDBWFLeYrbBhPRSKHzVwN61rwUGwCXvUB', 'true')
-        assert(ro['num_derives'] == '3')
+        assert(nodes[1].extkey('key', 'xBDBWFLeYrbBhPRSKHzVwN61rwUGwCXvUB', 'true')['num_derives'] == '3')
 
         # Test stake to coldstakingchangeaddress
         nodes[0].walletsettings('stakelimit', {'height':2})
@@ -247,8 +246,7 @@ class ColdStakingTest(ParticlTestFramework):
         assert(self.wait_for_height(nodes[0], 2))
         self.sync_all()
 
-        ro = nodes[1].getwalletinfo()
-        assert(ro['watchonly_staked_balance'] > 0)
+        assert(nodes[1].getwalletinfo()['watchonly_staked_balance'] > 0)
 
         ro = nodes[0].extkey('list', 'true')
         fFound = False
@@ -260,8 +258,7 @@ class ColdStakingTest(ParticlTestFramework):
         assert(fFound)
 
         # Test mapRecord watchonly
-        ro = nodes[1].getwalletinfo()
-        wotBefore = ro['watchonly_total_balance']
+        wotBefore = nodes[1].getwalletinfo()['watchonly_total_balance']
 
         n1unspent = nodes[1].listunspent()
         addr2_1s = nodes[2].getnewstealthaddress()
@@ -272,20 +269,18 @@ class ColdStakingTest(ParticlTestFramework):
 
         self.sync_all()
 
-        ro = nodes[1].getwalletinfo()
-        wotAfter = ro['watchonly_total_balance']
+        wotAfter = nodes[1].getwalletinfo()['watchonly_total_balance']
         assert(wotAfter > wotBefore-Decimal(2.0))
 
-        ro = nodes[1].listtransactions('*', 10, 0)
-        assert(len(ro) == 0)
+        assert(len(nodes[1].listtransactions('*', 10, 0)) == 0)
 
-        ro = nodes[1].listtransactions('*', 10, 0, True)
+        txn_list = nodes[1].listtransactions('*', 10, 0, True)
 
         fFound = False
-        for e in ro:
-            if e['txid'] == txid:
+        for txn in txn_list:
+            if txn['txid'] == txid:
                 fFound = True
-                assert(e['involvesWatchonly'] == True)
+                assert(txn['involvesWatchonly'] == True)
         assert(fFound)
 
         self.log.info('Test gettxoutsetinfobyscript')
