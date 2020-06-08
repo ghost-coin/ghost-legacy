@@ -133,15 +133,10 @@ pushd "$TARGET" || exit 1
       else
         mkdir "$tag"
         #if [[ "$tag" =~ v(.*)(rc[0-9]+)$ ]]; then
-            #BIN_PATH="bin/bitcoin-core-${BASH_REMATCH[1]}/test.${BASH_REMATCH[2]}"
+        #    BIN_PATH="bin/bitcoin-core-${BASH_REMATCH[1]}/test.${BASH_REMATCH[2]}"
         #else
-            #BIN_PATH="bin/bitcoin-core-${tag:1}"
+        #    BIN_PATH="bin/bitcoin-core-${tag:1}"
         #fi
-        #URL="https://bitcoin.org/$BIN_PATH/bitcoin-${tag:1}-$PLATFORM.tar.gz"
-        #echo "Fetching: $URL"
-        #curl -O $URL
-        #tar -zxf "bitcoin-${tag:1}-$PLATFORM.tar.gz" -C "$tag" --strip-components=1 "bitcoin-${tag:1}"
-        #rm "bitcoin-${tag:1}-$PLATFORM.tar.gz"
         URL="https://github.com/particl/particl-core/releases/download/${tag}/particl-${tag:1}-$PLATFORM.tar.gz"
         echo "Fetching: $URL"
         if ! curl -O -f $URL; then
