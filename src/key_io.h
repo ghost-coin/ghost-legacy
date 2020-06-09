@@ -91,7 +91,7 @@ public:
 
     CBitcoinAddress() {}
     explicit CBitcoinAddress(const CTxDestination &dest) { Set(dest); }
-    explicit CBitcoinAddress(const CTxDestination &dest, bool fBech32) { Set(dest, fBech32); }
+    explicit CBitcoinAddress(const CTxDestination &dest, bool bech32) { Set(dest, bech32); }
     explicit CBitcoinAddress(const std::string& strAddress) { SetString(strAddress); }
     explicit CBitcoinAddress(const char* pszAddress) { SetString(pszAddress); }
 
