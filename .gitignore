@@ -10,7 +10,7 @@ src/particl-wallet
 src/test/test_particl
 src/test/test_particl_fuzzy
 src/qt/test/test_particl-qt
-
+contrib/genesis-nodejs/node_modules/*
 # autoreconf
 src/Makefile.in
 Makefile.in
