@@ -421,15 +421,10 @@ class PSBTTest(BitcoinTestFramework):
         assert_equal(analysis['next'], 'creator')
         assert_equal(analysis['error'], 'PSBT is not valid. Input 0 spends unspendable output')
 
-        # Check that input amount is within MoneyRange (below coin supply limit)
         self.log.info("PSBT with invalid values should have error message and Creator as next")
         analysis = self.nodes[0].analyzepsbt('cHNidP8BAJoCAAAAAgTGGfA4NLXrLrgh61Qo4jODWEKMbLyvY4qmTeNTcbNKAAAAAAD+////ibIEqDZNCSw4sk7xkiDMLP91rrMQlcgkJ2JZZxKav3QAAAAAAP7///8C4FsBlQAAAAAWABQIU+ku4m9DqSFdshLGFnkzrDmeUAAhpDzoxhwAFgAUlCrOex4sycuk2C/IEUKnPeg1PufcAAAAAAEAiAIAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/////BAF0AQH/////AgBArjboxhwAGXapFCtFaSA2lPyZfhPywKE4O54Wx3oNiKwAAAAAAAAAACZqJKohqe3i9hw/cdHe/T+pmd+jaVN1XGkGiXmZYrSL69g2l06M+QAAAAAAAQEfYFP3mgAAAAAWABThZ2YR+REahochGqr7nZOfdPQdgAAAAA==')
         assert_equal(analysis['next'], 'creator')
         assert_equal(analysis['error'], 'PSBT is not valid. Input 0 has invalid value')
-
-        self.log.info("PSBT with signed, but not finalized, inputs should have Finalizer as next")
-        analysis = self.nodes[0].analyzepsbt('cHNidP8BAHECAAAAAZYezcxdnbXoQCmrD79t/LzDgtUo9ERqixk8wgioAobrAAAAAAD9////AlDDAAAAAAAAFgAUy/UxxZuzZswcmFnN/E9DGSiHLUsuGPUFAAAAABYAFLsH5o0R38wXx+X2cCosTMCZnQ4baAAAAAABAR8A4fUFAAAAABYAFOBI2h5thf3+Lflb2LGCsVSZwsltIgIC/i4dtVARCRWtROG0HHoGcaVklzJUcwo5homgGkSNAnJHMEQCIGx7zKcMIGr7cEES9BR4Kdt/pzPTK3fKWcGyCJXb7MVnAiALOBgqlMH4GbC1HDh/HmylmO54fyEy4lKde7/BT/PWxwEBAwQBAAAAIgYC/i4dtVARCRWtROG0HHoGcaVklzJUcwo5homgGkSNAnIYDwVpQ1QAAIABAACAAAAAgAAAAAAAAAAAAAAiAgL+CIiB59NSCssOJRGiMYQK1chahgAaaJpIXE41Cyir+xgPBWlDVAAAgAEAAIAAAACAAQAAAAAAAAAA')
-        assert_equal(analysis['next'], 'finalizer')
 
         # Check that output amount is within MoneyRange (below coin supply limit)
         analysis = self.nodes[0].analyzepsbt('cHNidP8BAFMCAAAAAVIXTvkS56s7VytpYsUG15DcETpHaBEqSwmPpXjjFjV1AQAAAAD/////AQBArjboxhwAF6kUWZ0MBE6bbK1JHzGWy2PBVl1NCHiHAAAAAAABASAA4fUFAAAAABepFDE04X0NtyNR8s+i7zXln2rIXJHFhwEHFxYAFCvs3bhhUemia0rvGImBEdwFuM39AQhrAkcwRAIgVpn2KVOYPC4zmScdN4MjxtpZwAXeTLJVxizEPdvYI/ECIAS0sxpECZ8PYB1XElSx2ZtEuh4YyzZS8avZP6QbfYWIASECl2hwdHKfQ2sU1tywWlnKAe2IRj1okOguui+X2QtxMY4AAA==')
