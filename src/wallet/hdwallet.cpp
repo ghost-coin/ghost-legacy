@@ -8315,7 +8315,7 @@ bool CHDWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& 
     }
 
     if (nFeeRet > this->m_default_max_tx_fee) {
-        error = Untranslated(TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED));
+        error = Untranslated(TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED).original);
         return false;
     }
 
