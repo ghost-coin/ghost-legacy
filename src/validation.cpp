@@ -4673,11 +4673,11 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
                 return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-cb", "Second txn of import block must be coinbase");
             }
 
-            // Check hash of genesis import txn matches expected hash.
-            uint256 txnHash = block.vtx[1]->GetHash();
-            if (!Params().CheckImportCoinbase(nHeight, txnHash)) {
-                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-cb", "Incorrect outputs hash.");
-            }
+            // // Check hash of genesis import txn matches expected hash.
+            // uint256 txnHash = block.vtx[1]->GetHash();
+            // if (!Params().CheckImportCoinbase(nHeight, txnHash)) {
+            //     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb", "Incorrect outputs hash.");
+            // }
         } else {
             // 2nd txn can't be coinbase if block height > GetLastImportHeight
             if (block.vtx.size() > 1 && block.vtx[1]->IsCoinBase()) {

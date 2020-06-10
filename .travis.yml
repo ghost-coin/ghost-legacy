@@ -25,7 +25,9 @@
 # [1] https://docs.travis-ci.com/user/caching/#build-phases
 # [2] https://docs.travis-ci.com/user/customizing-the-build#build-timeouts
 
-dist: xenial
+version: ~> 1.0
+
+dist: bionic
 os: linux
 language: minimal
 cache:

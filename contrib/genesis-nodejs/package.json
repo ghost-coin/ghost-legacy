@@ -1,0 +1,17 @@
+{
+  "name": "genesis-nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "generategenesisouts.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bitcoin-json-rpc": "^1.0.1",
+    "bitcoind-rpc": "^0.8.1",
+    "bitcore-lib": "^8.20.3",
+    "commander": "^5.1.0"
+  }
+}
