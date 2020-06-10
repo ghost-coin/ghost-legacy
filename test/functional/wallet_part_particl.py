@@ -50,12 +50,12 @@ class WalletParticlTest(ParticlTestFramework):
         self.start_nodes()
 
     def particl_wallet_process(self, *args):
-        binary = self.config["environment"]["BUILDDIR"] + '/src/particl-wallet' + self.config["environment"]["EXEEXT"]
+        binary = self.config["environment"]["BUILDDIR"] + '/src/ghost-wallet' + self.config["environment"]["EXEEXT"]
         args = ['-datadir={}'.format(self.nodes[0].datadir), '-regtest'] + list(args)
         return subprocess.Popen([binary] + args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
     def assert_tool_output(self, output, *args):
-        p = self.particl_wallet_process(*args)
+        p = self.ghost_wallet_process(*args)
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 0)
         assert_equal(stderr, '')
@@ -693,7 +693,7 @@ class WalletParticlTest(ParticlTestFramework):
         w_rpc = nodes[0].get_wallet_rpc('new_wallet_with_privkeys')
         ek_list = w_rpc.extkey('list', True)
 
-        self.log.info('Test particl-wallet')
+        self.log.info('Test ghost-wallet')
         out = textwrap.dedent('''\
             Wallet info
             ===========
@@ -738,18 +738,18 @@ class WalletParticlTest(ParticlTestFramework):
 
 
         self.log.info('Test wallet-tool generatemnemonic')
-        p = self.particl_wallet_process('-h', 'generatemnemonic')
+        p = self.ghost_wallet_process('-h', 'generatemnemonic')
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 0)
         assert_equal(stderr, '')
         assert('1. language' in stdout)
-        p = self.particl_wallet_process('generatemnemonic')
+        p = self.ghost_wallet_process('generatemnemonic')
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 0)
         assert_equal(stderr, '')
         assert(len(stdout.split(' ')) == 24)
 
-        p = self.particl_wallet_process('generatemnemonic', 'spanish', '16')
+        p = self.ghost_wallet_process('generatemnemonic', 'spanish', '16')
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 0)
         assert_equal(stderr, '')

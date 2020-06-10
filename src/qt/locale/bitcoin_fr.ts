@@ -66,11 +66,11 @@
         <translation>Adresses de réception</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Ce sont vos adresses Particl pour envoyer des paiements. Vérifiez toujours le montant et l’adresse du destinataire avant d’envoyer des pièces.</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
+        <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
         <translation>Ce sont vos adresses Particl pour recevoir des paiements. Utilisez le bouton 'Créer une nouvelle adresse de réception' dans l’onglet Recevoir afin de créer de nouvelles adresses.</translation>
     </message>
     <message>
@@ -362,7 +362,7 @@
         <translation>Le serveur mandataire est &lt;b&gt;activé&lt;/b&gt; : %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Envoyer des pièces à une adresse Particl</translation>
     </message>
     <message>
@@ -406,11 +406,11 @@
         <translation>Chiffrer les clés privées qui appartiennent à votre porte-monnaie</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Signer les messages avec vos adresses Particl pour prouver que vous les détenez</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Vérifier les messages pour s’assurer qu’ils ont été signés avec les adresses Particl indiquées</translation>
     </message>
     <message>
@@ -430,8 +430,8 @@
         <translation>Barre d’outils des onglets</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Demander des paiements (génère des codes QR et des URI particl:)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Demander des paiements (génère des codes QR et des URI ghost:)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -442,8 +442,8 @@
         <translation>Afficher la liste d’adresses de réception et d’étiquettes utilisées</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Ouvrir une URI particl: ou une demande de paiement</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Ouvrir une URI ghost: ou une demande de paiement</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -874,7 +874,7 @@
         <translation>Modifier l’adresse d’envoi</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>L’adresse saisie « %1 » n’est pas une adresse Particl valide.</translation>
     </message>
     <message>
@@ -1469,16 +1469,16 @@
         <translation>Erreur de demande de paiement</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>Impossible de démarrer le gestionnaire de cliquer-pour-payer particl:</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>Impossible de démarrer le gestionnaire de cliquer-pour-payer ghost:</translation>
     </message>
     <message>
         <source>URI handling</source>
         <translation>Gestion des URI</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://' n’est pas une URI valide. Utilisez plutôt 'particl:'.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://' n’est pas une URI valide. Utilisez plutôt 'ghost:'.</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1505,7 +1505,7 @@
         <translation>Adresse de paiement invalide %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>L’URI ne peut pas être analysée ! Cela peut être causé par une adresse Particl invalide ou par des paramètres d’URI mal formés.</translation>
     </message>
     <message>
@@ -1607,7 +1607,7 @@
         <translation>Montant</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Saisir une adresse Particl (p. ex. %1)</translation>
     </message>
     <message>
@@ -2497,7 +2497,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
         <translation><numerusform>Il est estimé que la confirmation commencera dans %n bloc.</numerusform><numerusform>Il est estimé que la confirmation commencera dans %n blocs.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>Avertissement : L’adresse Particl est invalide</translation>
     </message>
     <message>
@@ -2540,7 +2540,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
         <translation>Ceci est un paiement normal.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>L’adresse Particl à laquelle envoyer le paiement</translation>
     </message>
     <message>
@@ -2588,8 +2588,8 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
         <translation>Saisir une étiquette pour cette adresse afin de l’ajouter à la liste d’adresses utilisées</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Un message qui était joint à l’URI particl: et qui sera stocké avec la transaction pour référence. Note : Ce message ne sera pas envoyé par le réseau Particl.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>Un message qui était joint à l’URI ghost: et qui sera stocké avec la transaction pour référence. Note : Ce message ne sera pas envoyé par le réseau Particl.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2637,7 +2637,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
         <translation>Vous pouvez signer des messages ou des accords avec vos adresses pour prouver que vous pouvez recevoir des particls à ces dernières. Faites attention de ne rien signer de vague ou au hasard, car des attaques d’hameçonnage pourraient essayer de vous faire signer avec votre identité afin de l’usurper. Ne signez que des déclarations entièrement détaillées et avec lesquelles vous êtes d’accord.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation>L’adresse Particl avec laquelle signer le message</translation>
     </message>
     <message>
@@ -2669,7 +2669,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
         <translation>Copier la signature actuelle dans le presse-papiers</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>Signer le message afin de prouver que vous détenez cette adresse Particl</translation>
     </message>
     <message>
@@ -2693,11 +2693,11 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
         <translation>Saisir ci-dessous l’adresse du destinataire, le message (s’assurer de copier fidèlement les retours à la ligne, les espaces, les tabulations, etc.) et la signature pour vérifier le message. Faire attention à ne pas déduire davantage de la signature que ce qui est contenu dans le message signé même, pour éviter d’être trompé par une attaque d’homme du milieu. Prendre en compte que cela ne fait que prouver que le signataire reçoit l’adresse et ne peut pas prouver la provenance d’une transaction !</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation>L’adresse Particl avec laquelle le message a été signé</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>Vérifier le message pour s’assurer qu’il a été signé avec l’adresse Particl indiquée</translation>
     </message>
     <message>

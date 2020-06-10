@@ -66,7 +66,7 @@
         <translation>Alınan Adresler</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Bunlar ödeme göndermek için gereken Particl adreslerinizdir. Para göndermeden önce her zaman miktarı ve alıcı adresi kontrol edin.</translation>
     </message>
     <message>
@@ -326,7 +326,7 @@
         <translation>Tünelleme &lt;b&gt;etkin&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Particl adresine madeni para gönderin</translation>
     </message>
     <message>
@@ -370,11 +370,11 @@
         <translation>Cüzdanınıza ait özel anahtarları şifreleyin</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>İletileri adreslerin size ait olduğunu ispatlamak için Particl adresleri ile imzala</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Belirtilen Particl adresleri ile imzalandıklarından emin olmak için iletileri kontrol et</translation>
     </message>
     <message>
@@ -394,7 +394,7 @@
         <translation>Sekme araç çubuğu</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
         <translation>Ödeme talep et (QR kodu ve particl URI'si oluşturur)</translation>
     </message>
     <message>
@@ -406,8 +406,8 @@
         <translation>Kullanılan alış adreslerinin ve etiketlerinin listesini göster</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Bir particl: bağlantısı ya da ödeme talebi aç</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Bir ghost: bağlantısı ya da ödeme talebi aç</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -761,7 +761,7 @@
         <translation>Gönderim adresini düzenleyin</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>Girilen adres "%1" Particl adresiyle eşleşmiyor.</translation>
     </message>
     <message>
@@ -1317,7 +1317,7 @@
         <translation>Ödeme isteği hatası</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
+        <source>Cannot start ghost: click-to-pay handler</source>
         <translation>Particl başlatılamadı: tıkla-ve-öde yöneticisi</translation>
     </message>
     <message>
@@ -1325,8 +1325,8 @@
         <translation>URI yönetimi</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://' geçerli bir protokol değil. Onun yerine 'particl:' kullanınız.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://' geçerli bir protokol değil. Onun yerine 'ghost:' kullanınız.</translation>
     </message>
     <message>
         <source>Payment request fetch URL is invalid: %1</source>
@@ -1337,7 +1337,7 @@
         <translation>Hatalı ödeme adresi %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>URI ayrıştırılamıyor! Bunun nedeni geçersiz bir Particl adresi veya hatalı biçimlendirilmiş URI değişkenleri olabilir.</translation>
     </message>
     <message>
@@ -1439,7 +1439,7 @@
         <translation>Tutar</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Particl adresinizi girin (örneğin %1)</translation>
     </message>
     <message>
@@ -2257,7 +2257,7 @@
         <translation><numerusform>Tahmini %n blok içinde doğrulamaya başlanacaktır.</numerusform><numerusform>Tahmini %n blok içinde doğrulamaya başlanacaktır.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>Uyarı: Hatalı Particl adresi</translation>
     </message>
     <message>
@@ -2300,7 +2300,7 @@
         <translation>Bu, normal bir ödemedir.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>Ödemenin yollanacağı Particl adresi</translation>
     </message>
     <message>
@@ -2348,8 +2348,8 @@
         <translation>Kullanılmış adres listesine eklemek için bu adrese bir etiket girin</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Referans için particl: URI'siyle iliştirilmiş işlemle birlikte depolanacak bir ileti. Not: Bu mesaj Particl ağı üzerinden gönderilmeyecektir.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>Referans için ghost: URI'siyle iliştirilmiş işlemle birlikte depolanacak bir ileti. Not: Bu mesaj Particl ağı üzerinden gönderilmeyecektir.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2397,7 +2397,7 @@
         <translation>Adreslerinize yollanan particlleri alabileceğiniz ispatlamak için adreslerinizle iletiler/anlaşmalar imzalayabilirsiniz. Oltalama saldırılarının kimliğinizi imzanızla elde etmeyi deneyebilecekleri için belirsiz ya da rastgele hiçbir şey imzalamamaya dikkat ediniz. Sadece ayrıntılı açıklaması olan ve tümüne katıldığınız ifadeleri imzalayınız.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation>İletinin imzalanmasında kullanılacak Particl adresi</translation>
     </message>
     <message>
@@ -2429,7 +2429,7 @@
         <translation>Güncel imzayı sistem panosuna kopyala</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>Bu Particl adresinin sizin olduğunu ispatlamak için iletiyi imzalayın</translation>
     </message>
     <message>
@@ -2453,11 +2453,11 @@
         <translation>Alıcının adresini, iletiyi (satır sonları, boşluklar, sekmeler vs. karakterleri tam olarak kopyaladığınızdan emin olunuz) ve imzayı aşağıya giriniz. Bir ortadaki adam saldırısı tarafından kandırılmaya engel olmak için imzadan, imzalı iletinin içeriğini aşan bir anlam çıkarmamaya dikkat ediniz. Bunun sadece imzalayan tarafın adres ile alım yapabildiğini ispatladığını ve herhangi bir işlemin gönderi tarafını kanıtlayamayacağını unutmayınız!</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation>İletinin imzalanmasında kullanılan Particl adresi</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>Belirtilen Particl adresi ile imzalandığını doğrulamak için iletiyi kontrol et</translation>
     </message>
     <message>

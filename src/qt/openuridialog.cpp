@@ -15,7 +15,7 @@ OpenURIDialog::OpenURIDialog(QWidget *parent) :
     ui(new Ui::OpenURIDialog)
 {
     ui->setupUi(this);
-    ui->uriEdit->setPlaceholderText("particl:");
+    ui->uriEdit->setPlaceholderText("ghost:");
 }
 
 OpenURIDialog::~OpenURIDialog()

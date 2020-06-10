@@ -3,7 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <script/particlconsensus.h>
+#include <script/ghostconsensus.h>
 
 #include <primitives/transaction.h>
 #include <pubkey.h>

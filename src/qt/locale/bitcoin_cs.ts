@@ -66,7 +66,7 @@
         <translation>Přijímací adresy</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Tohle jsou tvé particlové adresy pro posílání plateb. Před odesláním mincí si vždy zkontroluj částku a cílovou adresu.</translation>
     </message>
     <message>
@@ -322,7 +322,7 @@
         <translation>Proxy je &lt;b&gt;zapnutá&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Pošli mince na particlovou adresu</translation>
     </message>
     <message>
@@ -366,11 +366,11 @@
         <translation>Zašifruj soukromé klíče ve své peněžence</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Podepiš zprávy svými particlovými adresami, čímž prokážeš, že jsi jejich vlastníkem</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Ověř zprávy, aby ses ujistil, že byly podepsány danými particlovými adresami</translation>
     </message>
     <message>
@@ -390,8 +390,8 @@
         <translation>Panel s listy</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Požaduj platby (generuje QR kódy a particl: URI)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Požaduj platby (generuje QR kódy a ghost: URI)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -402,8 +402,8 @@
         <translation>Ukaž seznam použitých přijímacích adres a jejich označení</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Načti particl: URI nebo platební požadavek</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Načti ghost: URI nebo platební požadavek</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -782,7 +782,7 @@
         <translation>Uprav odesílací adresu</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>Zadaná adresa „%1“ není platná particlová adresa.</translation>
     </message>
     <message>
@@ -1357,16 +1357,16 @@
         <translation>Chyba platebního požadavku</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>Nemůžu spustit particl: obsluha click-to-pay</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>Nemůžu spustit ghost: obsluha click-to-pay</translation>
     </message>
     <message>
         <source>URI handling</source>
         <translation>Zpracování URI</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://' není platné URI. Místo toho použij 'particl:'.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://' není platné URI. Místo toho použij 'ghost:'.</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1385,7 +1385,7 @@
         <translation>Neplatná platební adresa %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>Nepodařilo se analyzovat URI! Důvodem může být neplatná particlová adresa nebo poškozené parametry URI.</translation>
     </message>
     <message>
@@ -1487,7 +1487,7 @@
         <translation>Částka</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Zadej particlovou adresu (např. %1)</translation>
     </message>
     <message>
@@ -2357,7 +2357,7 @@ Poznámka: Jelikož je poplatek počítaný za bajt, poplatek o hodnotě "100 sa
         <translation><numerusform>Potvrzování by podle odhadu mělo začít během %n bloku.</numerusform><numerusform>Potvrzování by podle odhadu mělo začít během %n bloků.</numerusform><numerusform>Potvrzování by podle odhadu mělo začít během %n bloků.</numerusform><numerusform>Potvrzování by podle odhadu mělo začít během %n bloků.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>Upozornění: Neplatná particlová adresa</translation>
     </message>
     <message>
@@ -2400,7 +2400,7 @@ Poznámka: Jelikož je poplatek počítaný za bajt, poplatek o hodnotě "100 sa
         <translation>Tohle je normální platba.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>Particlová adresa příjemce</translation>
     </message>
     <message>
@@ -2448,8 +2448,8 @@ Poznámka: Jelikož je poplatek počítaný za bajt, poplatek o hodnotě "100 sa
         <translation>Zadej označení této adresy; obojí se ti pak uloží do adresáře</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Zpráva, která byla připojena k particl: URI a která se ti pro přehled uloží k transakci. Poznámka: Tahle zpráva se neposílá s platbou po particlové síti.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>Zpráva, která byla připojena k ghost: URI a která se ti pro přehled uloží k transakci. Poznámka: Tahle zpráva se neposílá s platbou po particlové síti.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2497,7 +2497,7 @@ Poznámka: Jelikož je poplatek počítaný za bajt, poplatek o hodnotě "100 sa
         <translation>Podepsáním zprávy/smlouvy svými adresami můžeš prokázat, že jsi na ně schopen přijmout particly. Buď opatrný a nepodepisuj nic vágního nebo náhodného; například při phishingových útocích můžeš být lákán, abys něco takového podepsal. Podepisuj pouze naprosto úplná a detailní prohlášení, se kterými souhlasíš.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation>Particlová adresa, kterou se zpráva podepíše</translation>
     </message>
     <message>
@@ -2529,7 +2529,7 @@ Poznámka: Jelikož je poplatek počítaný za bajt, poplatek o hodnotě "100 sa
         <translation>Zkopíruj tento podpis do schránky</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>Podepiš zprávu, čímž prokážeš, že jsi vlastníkem této particlové adresy</translation>
     </message>
     <message>
@@ -2553,11 +2553,11 @@ Poznámka: Jelikož je poplatek počítaný za bajt, poplatek o hodnotě "100 sa
         <translation>K ověření podpisu zprávy zadej adresu příjemce, zprávu (ověř si, že správně kopíruješ zalomení řádků, mezery, tabulátory apod.) a podpis. Dávej pozor na to, abys nezkopíroval do podpisu víc, než co je v samotné podepsané zprávě, abys nebyl napálen man-in-the-middle útokem. Poznamenejme však, že takto lze pouze prokázat, že podepisující je schopný na dané adrese přijmout platbu, ale není možnéprokázat, že odeslal jakoukoli transakci!</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation>Particlová adresa, kterou je zpráva podepsána</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>Ověř zprávu, aby ses ujistil, že byla podepsána danou particlovou adresou</translation>
     </message>
     <message>

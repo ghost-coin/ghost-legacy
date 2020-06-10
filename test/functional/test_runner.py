@@ -366,13 +366,13 @@ def main():
         test_list = []
         if args.extended:
             test_list += EXTENDED_SCRIPTS
-        if args.particl:
+        if args.ghost:
             test_list += PARTICL_SCRIPTS
         if args.insight:
             test_list += INSIGHT_SCRIPTS
         if args.bitcoin:
             test_list += BASE_SCRIPTS
-        if args.particlext:
+        if args.ghostext:
             test_list += PARTICL_SCRIPTS_EXT
 
     # Remove the test cases that the user has explicitly asked to exclude.
@@ -418,7 +418,7 @@ def main():
         failfast=args.failfast,
         runs_ci=args.ci,
         use_term_control=args.ansi,
-        create_cache=(True if args.bitcoin or (not args.particl and not args.insight) else False)
+        create_cache=(True if args.bitcoin or (not args.ghost and not args.insight) else False)
     )
 
 def run_tests(*, test_list, src_dir, build_dir, tmpdir, jobs=1, enable_coverage=False, args=None, combined_logs_len=0, failfast=False, runs_ci, use_term_control, create_cache=True):

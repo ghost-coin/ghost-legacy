@@ -136,7 +136,7 @@ LRESULT APIENTRY MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int CreateMessageWindow()
 {
-    // Create a message-only window to intercept WM_CLOSE events from particld
+    // Create a message-only window to intercept WM_CLOSE events from ghostd
 
     WNDCLASSEX WindowClassEx;
     ZeroMemory(&WindowClassEx, sizeof(WNDCLASSEX));
@@ -231,7 +231,7 @@ NODISCARD static bool CreatePidFile()
 bool ShutdownRequestedMainThread()
 {
 #ifdef WIN32
-    // Only particld will create a hidden window to receive messages
+    // Only ghostd will create a hidden window to receive messages
     while (winHwnd && PeekMessage(&winMsg, 0, 0, 0, PM_REMOVE)) {
         TranslateMessage(&winMsg);
         DispatchMessage(&winMsg);

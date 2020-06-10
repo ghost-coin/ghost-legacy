@@ -3661,7 +3661,7 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
         // Try decode as segwit address
         dest = DecodeDestination(sAddress);
         if (!IsValidDestination(dest)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Ghost address");
         }
     }
 
@@ -4656,7 +4656,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 // Try decode as segwit address
                 dest = DecodeDestination(sAddress);
                 if (!IsValidDestination(dest)) {
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Ghost address");
                 }
             }
 
@@ -4732,7 +4732,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             // Try decode as segwit address
             dest = DecodeDestination(sAddress);
             if (!IsValidDestination(dest)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Ghost address");
             }
         }
 

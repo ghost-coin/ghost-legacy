@@ -66,7 +66,7 @@
         <translation>Alamat-alamat penerima</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Berikut ialah alamat-alamat Particl Anda yang digunakan untuk mengirimkan pembayaran. Selalu periksa jumlah dan alamat penerima sebelum mengirimkan koin.</translation>
     </message>
     <message>
@@ -362,7 +362,7 @@
         <translation>Proxy di &lt;b&gt;aktifkan&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Kirim koin ke alamat Particl</translation>
     </message>
     <message>
@@ -406,11 +406,11 @@
         <translation>Enkripsi private key yang dimiliki dompet Anda</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Tanda tangani sebuah pesan menggunakan alamat Particl Anda untuk membuktikan bahwa Anda adalah pemilik alamat tersebut</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Verifikasi pesan untuk memastikan bahwa pesan tersebut ditanda tangani oleh suatu alamat Particl tertentu</translation>
     </message>
     <message>
@@ -430,8 +430,8 @@
         <translation>Baris tab</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Permintaan pembayaran (membuat kode QR dan particl: URIs)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Permintaan pembayaran (membuat kode QR dan ghost: URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -442,8 +442,8 @@
         <translation>Tampilkan daftar alamat dan label yang diterima</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Buka URI particl: atau permintaan pembayaran</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Buka URI ghost: atau permintaan pembayaran</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -874,7 +874,7 @@
         <translation>Ubah alamat pengirim</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>Alamat yang dimasukkan "%1" bukanlah alamat Particl yang valid.</translation>
     </message>
     <message>
@@ -1469,16 +1469,16 @@
         <translation>Terjadi kesalahan pada permintaan pembayaran</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>Tidak bisa memulai particl: handler click-to-pay</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>Tidak bisa memulai ghost: handler click-to-pay</translation>
     </message>
     <message>
         <source>URI handling</source>
         <translation>Pengelolaan URI</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://' bukanlah alamat URI yang valid. Silakan gunakan 'particl:'.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://' bukanlah alamat URI yang valid. Silakan gunakan 'ghost:'.</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1505,7 +1505,7 @@
         <translation>Alamat pembayaran tidak valid %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>URI tidak bisa dimengerti! Hal ini bisa disebabkan karena alamat Particl yang tidak sah atau parameter URI yang tidak tepat.</translation>
     </message>
     <message>
@@ -1607,7 +1607,7 @@
         <translation>Nilai</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Masukkan alamat Particl (contoh %1)</translation>
     </message>
     <message>
@@ -2655,7 +2655,7 @@ Catatan: Karena biaya dihitung berdasarkan per byte, biaya "100 satoshi per kB" 
         <translation>Salin tanda tangan terpilih ke sistem klipboard</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>Tandai pesan untuk menyetujui kamu pemiliki alamat Particl ini</translation>
     </message>
     <message>

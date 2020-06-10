@@ -66,11 +66,11 @@
         <translation>Imenik naslovov za prejemanje</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>To so vaši Particl naslovi za pošiljanje. Pred pošiljanjem vedno preverite količino in prejemnikov naslov.</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
+        <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
         <translation>To so vaši naslovi za prejemanje Particlov. Če želite ustvariti nov naslov za prejemanje, uporabite gumb za ustvarjanje novih naslovov v zavihku "prejemanje".</translation>
     </message>
     <message>
@@ -362,7 +362,7 @@
         <translation>Namestniški strežnik je &lt;b&gt;omogočen&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Izvedite plačilo na naslov Particl</translation>
     </message>
     <message>
@@ -406,11 +406,11 @@
         <translation>Šifrirajte zasebne ključe, ki se nahajajo v denarnici</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Podpišite poljubno sporočilo z enim svojih naslovov Particl, da prejemniku sporočila dokažete, da je ta naslov v vaši lasti.</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Preverite, če je bilo prejeto sporočilo podpisano z določenim naslovom Particl</translation>
     </message>
     <message>
@@ -430,7 +430,7 @@
         <translation>Orodna vrstica zavihkov</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
         <translation>Zahtevajte plačilo (ustvarite zahtevek s kodo QR in URI tipa particl)</translation>
     </message>
     <message>
@@ -442,7 +442,7 @@
         <translation>Preglejte in uredite seznam naslovov, na katere ste kdaj prejeli plačila</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
+        <source>Open a ghost: URI or payment request</source>
         <translation>Izvedite plačilo iz zahtevka v datoteki ali iz URI tipa particl</translation>
     </message>
     <message>
@@ -874,7 +874,7 @@
         <translation>Uredi naslov za pošiljanje</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>Vnešeni naslov "%1" ni veljaven Particl naslov.</translation>
     </message>
     <message>
@@ -1469,16 +1469,16 @@
         <translation>Napaka pri zahtevi plačila</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>Ni mogoče zagnati rokovalca plačilnih povezav tipa particl:.</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>Ni mogoče zagnati rokovalca plačilnih povezav tipa ghost:.</translation>
     </message>
     <message>
         <source>URI handling</source>
         <translation>Rokovanje z URI</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://' ni veljaven URI. Uporabite raje 'particl:' .</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://' ni veljaven URI. Uporabite raje 'ghost:' .</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1505,7 +1505,7 @@
         <translation>Neveljaven naslov za plačilo %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>URI je neprepoznaven! Možno je, da je naslov Particl neveljaven, ali da so parametri v URI napačno oblikovani.</translation>
     </message>
     <message>
@@ -1607,7 +1607,7 @@
         <translation>Znesek</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Vnesite naslov Particl (npr. %1)</translation>
     </message>
     <message>
@@ -2496,7 +2496,7 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation><numerusform>Predviden začetek potrditev po %n najdenemu bloku.</numerusform><numerusform>Predviden začetek potrditev po %n najdenih blokih.</numerusform><numerusform>Predviden začetek potrditev po %n najdenih blokih.</numerusform><numerusform>Predviden začetek potrditev po %n najdenih blokih.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>Opozorilo: Neveljaven Particl naslov</translation>
     </message>
     <message>
@@ -2539,7 +2539,7 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation>Plačilo je navadne vrste.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>Naslov Particl, na katerega bo plačilo poslano</translation>
     </message>
     <message>
@@ -2587,8 +2587,8 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation>Če vnesete oznako za zgornji naslov, se bo skupaj z naslovom shranila v imenk že uporabljenih naslovov</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Sporočilo, ki ste ga pripeli na URI tipa particl:. Shranjeno bo skupaj s podatki o transakciji. Opomba: Sporočilo ne bo poslano preko omrežja Particl.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>Sporočilo, ki ste ga pripeli na URI tipa ghost:. Shranjeno bo skupaj s podatki o transakciji. Opomba: Sporočilo ne bo poslano preko omrežja Particl.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2636,7 +2636,7 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation>S svojimi naslovi lahko podpisujete sporočila ali pogodbe in s tem dokazujete, da na teh naslovih lahko prejemate kovance. Bodite previdni in ne podpisujte ničesar nejasnega ali naključnega, ker vas zlikovci preko ribarjenja (phishing) lahko prelisičijo, da na njih prepišete svojo identiteto. Podpisujte samo podrobno opisane izjave, s katerimi se strinjate.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation>Naslov Particl, s katerim podpisujete sporočilo</translation>
     </message>
     <message>
@@ -2668,7 +2668,7 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation>Kopiranje trenutnega podpisa na sistemsko odložišče.</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>Podpišite sporočilo, da dokažete lastništvo nad zgornjim naslovom.</translation>
     </message>
     <message>
@@ -2692,11 +2692,11 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation>Da preverite verodostojnost sporočila, spodaj vnesite: prejemnikov naslov, prejeto sporočilo (pazljivo skopirajte vse prelome vrstic, presledke, tabulatorje ipd.,) in prejeti podpis. Da se izognete napadom tipa man-in-the-middle, vedite, da iz veljavnega podpisa ne sledi nič drugega, kot tisto, kar je navedeno v sporočilu. Podpis samo potrjuje dejstvo, da ima podpisnik v lasti prejemni naslov, ne more pa dokazati vira nobene transakcije!</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation>Naslov Particl, s katerim je bilo sporočilo podpisano</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>Preverite, ali je bilo sporočilo v resnici podpisano z navedenim naslovom Particl.</translation>
     </message>
     <message>

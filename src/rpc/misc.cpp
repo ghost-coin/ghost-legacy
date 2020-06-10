@@ -589,7 +589,7 @@ static UniValue echo(const JSONRPCRequest& request)
             RPCHelpMan{"echo|echojson ...",
                 "\nSimply echo back the input arguments. This command is for testing.\n"
                 "\nThe difference between echo and echojson is that echojson has argument conversion enabled in the client-side table in "
-                "particl-cli and the GUI. There is no server-side difference.",
+                "ghost-cli and the GUI. There is no server-side difference.",
                 {},
                 RPCResults{},
                 RPCExamples{""},

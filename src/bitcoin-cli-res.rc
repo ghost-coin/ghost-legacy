@@ -17,13 +17,13 @@ BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
             VALUE "CompanyName",        "Particl"
-            VALUE "FileDescription",    "particl-cli (JSON-RPC client for " PACKAGE_NAME ")"
+            VALUE "FileDescription",    "ghost-cli (JSON-RPC client for " PACKAGE_NAME ")"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "particl-cli"
+            VALUE "InternalName",       "ghost-cli"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "particl-cli.exe"
-            VALUE "ProductName",        "particl-cli"
+            VALUE "OriginalFilename",   "ghost-cli.exe"
+            VALUE "ProductName",        "ghost-cli"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

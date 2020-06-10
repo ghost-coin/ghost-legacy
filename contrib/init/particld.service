@@ -7,11 +7,11 @@ User=particl
 Group=particl
 
 Type=forking
-PIDFile=/home/particl/.particl/particld.pid
-ExecStart=/home/particl/Particl/particld -daemon -pid=/home/particl/.particl/particld.pid \
--conf=/home/particl/.particl/particl.conf -datadir=/home/particl/.particl
+PIDFile=/home/particl/.ghost/ghostd.pid
+ExecStart=/home/particl/Particl/ghostd -daemon -pid=/home/particl/.ghost/ghostd.pid \
+-conf=/home/particl/.ghost/ghost.conf -datadir=/home/particl/.ghost
 
-ExecStop=/home/particl/Particl/particl-cli -conf=/home/particl/.particl/particl.conf stop
+ExecStop=/home/particl/Particl/ghost-cli -conf=/home/particl/.ghost/ghost.conf stop
 ExecStop=/usr/bin/sleep 25
 
 Restart=no

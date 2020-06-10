@@ -66,11 +66,11 @@
         <translation>முகவரிகள் பெறப்படுகின்றன</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>இவை பணம் அனுப்புவதற்கு உங்களின் பிட்காயின் முகவரிகள். பிட்காயின்களை அனுப்புவதற்கு முன் எப்பொழுதும் தொகையும் பெறுதலையும் சரிபார்க்கவும்.</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
+        <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
         <translation>பிட்காயின் பெறுவதற்காக உங்கள் முகவரி இவை. புதிய முகவரிகளை உருவாக்க 'புதிய முகவரியை உருவாக்கு' என்ற பட்டனை கிளிக் செய்யவும்.</translation>
     </message>
     <message>
@@ -362,7 +362,7 @@
         <translation>ப்ராக்ஸி இயக்கப்பட்டது: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>ஒரு விக்கிபீடியா முகவரிக்கு நாணயங்களை அனுப்பவும்</translation>
     </message>
     <message>
@@ -406,11 +406,11 @@
         <translation>உங்கள் பணப்பைச் சேர்ந்த தனிப்பட்ட விசைகளை குறியாக்குக</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>உங்கள் பிட்டினின் முகவரியுடன் செய்திகளை உங்களிடம் வைத்திருப்பதை நிரூபிக்க</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>குறிப்பிடப்பட்ட விக்கிபீடியா முகவர்களுடன் கையொப்பமிடப்பட்டதை உறுதிப்படுத்த, செய்திகளை சரிபார்க்கவும்</translation>
     </message>
     <message>
@@ -430,7 +430,7 @@
         <translation>தாவல்கள் கருவிப்பட்டி</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
         <translation>கொடுப்பனவுகளை கோருதல் (QR குறியீடுகள் மற்றும் particl உருவாக்குகிறது: URI கள்)</translation>
     </message>
     <message>
@@ -442,7 +442,7 @@
         <translation>பயன்படுத்திய முகவரிகள் மற்றும் லேபிள்களின் பட்டியலைக் காட்டு</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
+        <source>Open a ghost: URI or payment request</source>
         <translation>ஒரு Particl திறக்க: URI அல்லது பணம் கோரிக்கை</translation>
     </message>
     <message>
@@ -874,7 +874,7 @@
         <translation>முகவரியை அனுப்புவதைத் திருத்து</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>உள்ளிட்ட முகவரி "%1" என்பது செல்லுபடியாகும் விக்கிபீடியா முகவரி அல்ல.</translation>
     </message>
     <message>
@@ -1465,7 +1465,7 @@
         <translation>கட்டணம் கோரிக்கை பிழை</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
+        <source>Cannot start ghost: click-to-pay handler</source>
         <translation>Particl தொடங்க முடியாது: கிளிக் க்கு ஊதியம் கையாளுதல்</translation>
     </message>
     <message>
@@ -1473,8 +1473,8 @@
         <translation>URI கையாளுதல்</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl: //' சரியான URI அல்ல. அதற்கு பதிலாக 'பிட்கின்:' பயன்படுத்தவும்.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost: //' சரியான URI அல்ல. அதற்கு பதிலாக 'பிட்கின்:' பயன்படுத்தவும்.</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1501,7 +1501,7 @@
         <translation>தவறான கட்டண முகவரி %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>URI அலச முடியாது! தவறான பிட்கின் முகவரி அல்லது தவறான URI அளவுருக்கள் காரணமாக இது ஏற்படலாம்.</translation>
     </message>
     <message>
@@ -1603,7 +1603,7 @@
         <translation>விலை</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>ஒரு விக்கிபீடியா முகவரியை உள்ளிடவும் (எ.கா. %1)</translation>
     </message>
     <message>
@@ -2461,7 +2461,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation><numerusform>%n பிளாக் உறுதிப்படுத்தலைத் தொடங்க மதிப்பிடப்பட்டுள்ளது.</numerusform><numerusform>%n பிளாக்குள் உறுதிப்படுத்தலைத் தொடங்க மதிப்பிடப்பட்டுள்ளது.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>எச்சரிக்கை: தவறான பிட்காயின் முகவரி</translation>
     </message>
     <message>
@@ -2504,7 +2504,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>இது சாதாரண கட்டணம்.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>கட்டணத்தை அனுப்ப பிட்காயின் முகவரி</translation>
     </message>
     <message>
@@ -2552,7 +2552,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>இந்த முகவரியை பயன்படுத்தப்பட்ட முகவரிகளின் பட்டியலில் சேர்க்க ஒரு லேபிளை உள்ளிடவும்.</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Bitcoin network.</source>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Bitcoin network.</source>
         <translation>பிட்காயினுடன் இணைக்கப்பட்ட செய்தி: உங்கள் எதிர்கால குறிப்புக்காக பரிவர்த்தனையுடன் யூஆர்ஐ சேமிக்கப்படும். குறிப்பு: இந்த செய்தி பிட்காயின் வலையமைப்பிற்கு அனுப்பப்படாது.</translation>
     </message>
     <message>
@@ -2601,7 +2601,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>மற்றவர்களுக்கு அனுப்பப்பட்ட பிட்காயின்களைப் நீங்கள் பெறலாம் என்பதை நிரூபிக்க உங்கள் முகவரிகளுடன் செய்திகள் / ஒப்பந்தங்களில் கையொப்பமிடலாம். தெளிவற்ற அல்லது சீரற்ற எதையும் கையொப்பமிடாமல் கவனமாக இருங்கள், ஏனெனில் ஃபிஷிங் தாக்குதல்கள் உங்கள் அடையாளத்தை அவர்களிடம் கையொப்பமிட்டு ஏமாற்ற முயற்சிக்கும். நீங்கள் ஒப்புக்கொள்ளும் முழுமையான மற்றும் விரிவான அறிக்கைகளில் மட்டுமே கையொப்பமிடுங்கள்.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation>செய்தியை கையொப்பமிட பிட்காயின் முகவரி</translation>
     </message>
     <message>
@@ -2633,7 +2633,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>தற்போதைய கையொப்பத்தை கிளிப்போர்டுக்கு காபி செய்</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>இந்த பிட்காயின் முகவரி உங்களுக்கு சொந்தமானது என்பதை நிரூபிக்க செய்தியை கையொப்பமிடுங்கள்</translation>
     </message>
     <message>
@@ -2653,11 +2653,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>&amp;செய்தியைச் சரிபார்க்கவும்</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation>செய்தி கையொப்பமிடப்பட்ட பிட்காயின் முகவரி</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>குறிப்பிட்ட பிட்காயின் முகவரியுடன் கையொப்பமிடப்பட்டதா என்பதை உறுதிப்படுத்த இந்த செய்தியைச் சரிபார்க்கவும்</translation>
     </message>
     <message>

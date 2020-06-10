@@ -9,18 +9,18 @@ define(_CLIENT_VERSION_RC, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
 define(_COPYRIGHT_YEAR, 2020)
 define(_COPYRIGHT_HOLDERS,[The %s developers])
-define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Particl Core]])
-AC_INIT([Particl Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION._CLIENT_VERSION_PARTICL],[https://github.com/particl/particl-core/issues],[particl],[https://particl.io/])
+define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Ghost Core]])
+AC_INIT([Ghost Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION._CLIENT_VERSION_PARTICL],[https://github.com/ghost/ghost-core/issues],[ghost],[https://www.ghostbymcafee.com/])
 AC_CONFIG_SRCDIR([src/validation.cpp])
 AC_CONFIG_HEADERS([src/config/bitcoin-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
 
-BITCOIN_DAEMON_NAME=particld
-BITCOIN_GUI_NAME=particl-qt
-BITCOIN_CLI_NAME=particl-cli
-BITCOIN_TX_NAME=particl-tx
-BITCOIN_WALLET_TOOL_NAME=particl-wallet
+BITCOIN_DAEMON_NAME=ghostd
+BITCOIN_GUI_NAME=ghost-qt
+BITCOIN_CLI_NAME=ghost-cli
+BITCOIN_TX_NAME=ghost-tx
+BITCOIN_WALLET_TOOL_NAME=ghost-wallet
 
 dnl Unless the user specified ARFLAGS, force it to be cr
 AC_ARG_VAR(ARFLAGS, [Flags for the archiver, defaults to <cr> if not set])
@@ -1470,19 +1470,19 @@ fi
 
 
 
-AC_MSG_CHECKING([whether to build particld])
+AC_MSG_CHECKING([whether to build ghostd])
 AM_CONDITIONAL([BUILD_BITCOIND], [test x$build_bitcoind = xyes])
 AC_MSG_RESULT($build_bitcoind)
 
-AC_MSG_CHECKING([whether to build particl-cli])
+AC_MSG_CHECKING([whether to build ghost-cli])
 AM_CONDITIONAL([BUILD_BITCOIN_CLI], [test x$build_bitcoin_cli = xyes])
 AC_MSG_RESULT($build_bitcoin_cli)
 
-AC_MSG_CHECKING([whether to build particl-tx])
+AC_MSG_CHECKING([whether to build ghost-tx])
 AM_CONDITIONAL([BUILD_BITCOIN_TX], [test x$build_bitcoin_tx = xyes])
 AC_MSG_RESULT($build_bitcoin_tx)
 
-AC_MSG_CHECKING([whether to build particl-wallet])
+AC_MSG_CHECKING([whether to build ghost-wallet])
 AM_CONDITIONAL([BUILD_BITCOIN_WALLET], [test x$build_bitcoin_wallet = xyes])
 AC_MSG_RESULT($build_bitcoin_wallet)
 
@@ -1490,7 +1490,7 @@ AC_MSG_CHECKING([whether to build libraries])
 AM_CONDITIONAL([BUILD_BITCOIN_LIBS], [test x$build_bitcoin_libs = xyes])
 if test x$build_bitcoin_libs = xyes; then
   AC_DEFINE(HAVE_CONSENSUS_LIB, 1, [Define this symbol if the consensus lib has been built])
-  AC_CONFIG_FILES([libparticlconsensus.pc:libparticlconsensus.pc.in])
+  AC_CONFIG_FILES([libghostconsensus.pc:libghostconsensus.pc.in])
 fi
 AC_MSG_RESULT($build_bitcoin_libs)
 

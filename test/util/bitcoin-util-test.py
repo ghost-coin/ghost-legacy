@@ -39,7 +39,7 @@ def main():
     # Add the format/level to the logger
     logging.basicConfig(format=formatter, level=level)
 
-    bctester(os.path.join(env_conf["SRCDIR"], "test", "util", "data_particl"), "particl-util-test.json", env_conf)
+    bctester(os.path.join(env_conf["SRCDIR"], "test", "util", "data_ghost"), "ghost-util-test.json", env_conf)
     #bctester(os.path.join(env_conf["SRCDIR"], "test", "util", "data"), "bitcoin-util-test.json", env_conf)
 
 def bctester(testDir, input_basename, buildenv):

@@ -62,7 +62,7 @@
         <translation>收款地址</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>這些是你要付款過去的 Particl 位址。在付款之前，務必要檢查金額和收款位址是否正確。</translation>
     </message>
     <message>
@@ -294,7 +294,7 @@
         <translation>正在為磁碟區塊重建索引...</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>付款至一個 Particl 位址</translation>
     </message>
     <message>
@@ -346,8 +346,8 @@
         <translation>說明 &amp;H</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>要求付款 (產生QR碼 particl: URIs)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>要求付款 (產生QR碼 ghost: URIs)</translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -441,7 +441,7 @@
 <context>
     <name>QObject</name>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>輸入一個 Particl 位址 (例如 %1)</translation>
     </message>
     <message>

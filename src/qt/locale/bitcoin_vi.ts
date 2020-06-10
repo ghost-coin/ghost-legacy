@@ -66,11 +66,11 @@
         <translation>Địa chỉ đang nhận</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Đây là những địa chỉ đang thực hiện thanh toán. Luôn kiểm tra số lượng và địa chỉ nhận trước khi gửi coins.</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
+        <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
         <translation>Những địa chỉ Particl này để bạn nhận thanh toán. Sử dụng  'Tạo địa chỉ nhận mới'</translation>
     </message>
     <message>
@@ -326,7 +326,7 @@
         <translation>Proxy là &lt;b&gt; cho phép &lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Gửi coin đến một địa chỉ Particl</translation>
     </message>
     <message>
@@ -370,11 +370,11 @@
         <translation>Mã hóa private key thuộc về ví của bạn</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Đăng ký lời nhắn với địa chỉ Particl của bạn để chứng minh quyền sở hữu chúng</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Xác minh lời nhắn để chắc chắn đã được đăng ký với địa chỉ Particl xác định</translation>
     </message>
     <message>
@@ -394,8 +394,8 @@
         <translation>Các thanh công cụ</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Yêu cầu thanh toán (tạo QR code và particl: URIs)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Yêu cầu thanh toán (tạo QR code và ghost: URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -406,8 +406,8 @@
         <translation>Hiển thị danh sách các địa chỉ và nhãn đã dùng để nhận</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Mở một particl: URI hoặc yêu cầu thanh toán</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Mở một ghost: URI hoặc yêu cầu thanh toán</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -790,8 +790,8 @@
         <translation>Edit address đang gửi</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
-        <translation>Address đã nhập "%1" không valid Particl address.</translation>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
+        <translation>Address đã nhập "%1" không valid Ghost address.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -1365,16 +1365,16 @@
         <translation>Payment request error</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>Không thể khởi tạo particl: click-to-pay handler</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>Không thể khởi tạo ghost: click-to-pay handler</translation>
     </message>
     <message>
         <source>URI handling</source>
         <translation>URI handling</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://' không khả dụng URI. Dùng thay vì 'particl:' .</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://' không khả dụng URI. Dùng thay vì 'ghost:' .</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1393,8 +1393,8 @@
         <translation>Invalid payment address %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
-        <translation>URI không thể phân tích cú pháp! Đây có thể gây nên bởi invalid Particl address hoặc URI không đúng định dạng tham số.</translation>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
+        <translation>URI không thể phân tích cú pháp! Đây có thể gây nên bởi invalid Ghost address hoặc URI không đúng định dạng tham số.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1495,8 +1495,8 @@
         <translation>Số lượng</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
-        <translation>Nhập một Particl address (e.g. %1)</translation>
+        <source>Enter a Ghost address (e.g. %1)</source>
+        <translation>Nhập một Ghost address (e.g. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2377,8 +2377,8 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation><numerusform>Dự kiến bắt đầu xác nhận trong vòng %n blocks.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
-        <translation>Warning: Invalid Particl address</translation>
+        <source>Warning: Invalid Ghost address</source>
+        <translation>Warning: Invalid Ghost address</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2420,8 +2420,8 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Đây là một thông thường payment.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
-        <translation>The Particl address để gửi the payment đến</translation>
+        <source>The Ghost address to send the payment to</source>
+        <translation>The Ghost address để gửi the payment đến</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2468,8 +2468,8 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Nhập một label cho cái address này để thêm vào danh sách địa chỉ đã sử dụng</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Một tin nhắn được đính kèm với số particl: URI mà sẽ được lưu giữ với transaction dành cho tài liệu tham khảo. Lưu ý: Tin nhắn này sẽ không được gửi thông qua Particl network.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>Một tin nhắn được đính kèm với số ghost: URI mà sẽ được lưu giữ với transaction dành cho tài liệu tham khảo. Lưu ý: Tin nhắn này sẽ không được gửi thông qua Particl network.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2517,8 +2517,8 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Bạn có thể ký/đồng ý với địa chỉ chứng minh bạn có thể receive particl đã gửi đến chúng. Cẩn thận không ký bất cứ không rõ hay random, như các cuộc tấn công lừa đảo có thể cố lừa bạn ký tên vào danh tính của bạn.. Chỉ ký các bản tuyên bố hoàn chỉnh mà bạn đồng ý.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
-        <translation>The Particl address để ký với tin nhắn</translation>
+        <source>The Ghost address to sign the message with</source>
+        <translation>The Ghost address để ký với tin nhắn</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2549,8 +2549,8 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Copy hiện tại signature tới system clipboard</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
-        <translation>Ký tin nhắn để chứng minh bạn sở hữu Particl address này</translation>
+        <source>Sign the message to prove you own this Ghost address</source>
+        <translation>Ký tin nhắn để chứng minh bạn sở hữu Ghost address này</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2573,12 +2573,12 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Nhập vào address người nhận, tin nhắn (chắc rằng bạn copy line breaks, khoảng trống, tabs, etc. chính xác) và signature bên dưới verify tin nhắn. Cẩn thận không đọc nhiều hơn từ signature so với cái được ký trong bản thân tin nhắn, để tránh bị lừa bới man-in-the-middle tấn công. Lưu ý rằng điều này chỉ chứng nhận nhóm những người nhân với address, nó không thể chứng minh bên gửi có bất kỳ transaction!</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
-        <translation>The Particl address tin nhắn đã ký với</translation>
+        <source>The Ghost address the message was signed with</source>
+        <translation>The Ghost address tin nhắn đã ký với</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Verify tin nhắn để chắc rằng nó đã được ký với xác định Particl address</translation>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
+        <translation>Verify tin nhắn để chắc rằng nó đã được ký với xác định Ghost address</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

@@ -66,7 +66,7 @@
         <translation>Mottager adresser</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Dette er dine Particl adresser for å sende  å sende betalinger. Husk å sjekke beløp og mottager adresser før du sender mynter.</translation>
     </message>
     <message>
@@ -326,7 +326,7 @@
         <translation>Proxy er &lt;b&gt;slått på&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Send mynter til en Particl adresse</translation>
     </message>
     <message>
@@ -370,11 +370,11 @@
         <translation>Krypter de private nøklene som tilhører lommeboken din</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Signer meldingene med Particl adresse for å bevise at diu eier dem</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Verifiser meldinger for å sikre at de ble signert med en angitt Particl adresse</translation>
     </message>
     <message>
@@ -394,7 +394,7 @@
         <translation>Hjelpelinje for fliker</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
         <translation>Be om betalinger (genererer QR-koder og particl-URIer)</translation>
     </message>
     <message>
@@ -406,8 +406,8 @@
         <translation>Vis lista over brukte mottakeradresser og merkelapper</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Åpne en particl: URI eller betalingsforespørsel</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Åpne en ghost: URI eller betalingsforespørsel</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -786,7 +786,7 @@
         <translation>Rediger utsendingsadresse</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>Den angitte adressen "%1" er ikke en gyldig Particl-adresse.</translation>
     </message>
     <message>
@@ -1337,8 +1337,8 @@
         <translation>Feil ved betalingsforespørsel</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>Kan ikke starte particl: Klikk-og-betal håndterer</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>Kan ikke starte ghost: Klikk-og-betal håndterer</translation>
     </message>
     <message>
         <source>URI handling</source>
@@ -1353,7 +1353,7 @@
         <translation>Ugyldig betalingsadresse %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>URI kan ikke fortolkes! Dette kan være forårsaket av en ugyldig particl-adresse eller feilformede URI-parametre.</translation>
     </message>
     <message>
@@ -1455,7 +1455,7 @@
         <translation>Beløp</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Oppgi en Particl-adresse (f.eks. %1)</translation>
     </message>
     <message>
@@ -2277,7 +2277,7 @@
         <translation><numerusform>Antatt bekreftelsesbegynnelse innen %n blokk.</numerusform><numerusform>Antatt bekreftelsesbegynnelse innen %n blokker.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>Advarsel Ugyldig particl-adresse</translation>
     </message>
     <message>
@@ -2320,7 +2320,7 @@
         <translation>Dette er en normal betaling.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>Particl-adressen betalingen skal sendes til</translation>
     </message>
     <message>
@@ -2368,7 +2368,7 @@
         <translation>Skriv inn en merkelapp for denne adressen for å legge den til listen av brukte adresser</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
         <translation>En melding som var tilknyttet particlen: URI vil bli lagret med transaksjonen for din oversikt. Denne meldingen vil ikke bli sendt over Particl-nettverket.</translation>
     </message>
     <message>
@@ -2417,7 +2417,7 @@
         <translation>Du kan signere meldinger/avtaler med adresser for å bevise at du kan motta particls sendt til dem. Vær forsiktig med å signere noe vagt eller tilfeldig, siden phishing-angrep kan prøve å lure deg til å signere din identitet over til dem. Bare signer fullt detaljerte utsagn som du er enig i.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation>Particl-adressen meldingen skal signeres med</translation>
     </message>
     <message>
@@ -2449,7 +2449,7 @@
         <translation>Kopier valgt signatur til utklippstavle</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>Signer meldingen for å bevise at du eier denne Particl-adressen</translation>
     </message>
     <message>
@@ -2473,11 +2473,11 @@
         <translation>Skriv inn mottakerens adresse, melding (forsikre deg om at du kopier linjeskift, mellomrom, faner osv. nøyaktig) og underskrift nedenfor for å bekrefte meldingen. Vær forsiktig så du ikke leser mer ut av signaturen enn hva som er i den signerte meldingen i seg selv, for å unngå å bli lurt av et man-in-the-middle-angrep. Merk at dette bare beviser at den som signerer kan motta med adressen, dette beviser ikke hvem som har sendt transaksjoner!</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation>Particl-adressen meldingen ble signert med</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>Verifiser meldingen for å være sikker på at den ble signert av den angitte Particl-adressen</translation>
     </message>
     <message>
