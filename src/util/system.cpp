@@ -1434,8 +1434,9 @@ std::string CopyrightHolders(const std::string& strPrefix)
 {
     const int BTC_START_YEAR = 2009;
     const int PART_START_YEAR = 2017;
+    const int GHOST_START_YEAR = 2020;
 
-    std::string sRange = strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
+    std::string sRange = strprintf(" %i-%i ", GHOST_START_YEAR, COPYRIGHT_YEAR);
     const auto copyright_devs = strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION);
     std::string strCopyrightHolders = strPrefix + sRange + copyright_devs;
 
@@ -1443,6 +1444,11 @@ std::string CopyrightHolders(const std::string& strPrefix)
     if (copyright_devs.find("Bitcoin Core") == std::string::npos) {
         sRange = strprintf(" %i-%i ", BTC_START_YEAR, COPYRIGHT_YEAR);
         strCopyrightHolders += "\n" + strPrefix + sRange + "The Bitcoin Core developers";
+    }
+    // Make sure Particl Core copyright is not removed by accident
+    if (copyright_devs.find("Particl Core") == std::string::npos) {
+        sRange = strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
+        strCopyrightHolders += "\n" + strPrefix + sRange + "The Particl Core developers";
     }
     return strCopyrightHolders;
 }
