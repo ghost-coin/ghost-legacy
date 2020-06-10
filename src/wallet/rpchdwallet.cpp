@@ -4120,9 +4120,9 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
                 {
                     {"minconf", RPCArg::Type::NUM, /* default */ "1", "The minimum confirmations to filter"},
                     {"maxconf", RPCArg::Type::NUM, /* default */ "9999999", "The maximum confirmations to filter"},
-                    {"addresses", RPCArg::Type::ARR, /* default */ "", "A json array of particl addresses to filter",
+                    {"addresses", RPCArg::Type::ARR, /* default */ "", "A json array of ghost addresses to filter",
                         {
-                            {"address", RPCArg::Type::STR, /* default */ "", "particl address"},
+                            {"address", RPCArg::Type::STR, /* default */ "", "ghost address"},
                         },
                     },
                     {"include_unsafe", RPCArg::Type::BOOL, /* default */ "true", "Include outputs that are not safe to spend\n"
@@ -4145,7 +4145,7 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
             "  {\n"
             "    \"txid\" : \"txid\",          (string) the transaction id \n"
             "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"address\" : \"address\",    (string) the particl address\n"
+            "    \"address\" : \"address\",    (string) the ghost address\n"
             "    \"label\" : \"label\",        (string) The associated label, or \"\" for the default label\n"
             //"    \"scriptPubKey\" : \"key\",   (string) the script key\n"
             "    \"amount\" : x.xxx,         (numeric) the transaction output amount in " + CURRENCY_UNIT + "\n"
@@ -4185,7 +4185,7 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
             const UniValue& input = inputs[idx];
             CBitcoinAddress address(input.get_str());
             if (!address.IsValidStealthAddress())
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Particl stealth address: ")+input.get_str());
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Ghost stealth address: ")+input.get_str());
             if (setAddress.count(address))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated address: ")+input.get_str());
            setAddress.insert(address);
@@ -4345,9 +4345,9 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 {
                     {"minconf", RPCArg::Type::NUM, /* default */ "1", "The minimum confirmations to filter"},
                     {"maxconf", RPCArg::Type::NUM, /* default */ "9999999", "The maximum confirmations to filter"},
-                    {"addresses", RPCArg::Type::ARR, /* default */ "", "A json array of particl addresses to filter",
+                    {"addresses", RPCArg::Type::ARR, /* default */ "", "A json array of ghost addresses to filter",
                         {
-                            {"address", RPCArg::Type::STR, /* default */ "", "particl address"},
+                            {"address", RPCArg::Type::STR, /* default */ "", "ghost address"},
                         },
                     },
                     {"include_unsafe", RPCArg::Type::BOOL, /* default */ "true", "Include outputs that are not safe to spend\n"
@@ -4369,7 +4369,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
             "  {\n"
             "    \"txid\" : \"txid\",          (string) the transaction id \n"
             "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"address\" : \"address\",    (string) the particl address\n"
+            "    \"address\" : \"address\",    (string) the ghost address\n"
             "    \"label\" : \"label\",        (string) The associated label, or \"\" for the default label\n"
             "    \"scriptPubKey\" : \"key\",   (string) the script key\n"
             "    \"amount\" : x.xxx,         (numeric) the transaction output amount in " + CURRENCY_UNIT + "\n"
@@ -4458,12 +4458,12 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
             const UniValue& input = inputs[idx];
             CBitcoinAddress address(input.get_str());
             if (!address.IsValidStealthAddress()) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Particl stealth address: ")+input.get_str());
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Ghost stealth address: ")+input.get_str());
             }
             if (setAddress.count(address)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated address: ")+input.get_str());
             }
-           setAddress.insert(address);
+            setAddress.insert(address);
         }
     }
 
@@ -4620,7 +4620,7 @@ void ReadCoinControlOptions(const UniValue &obj, CHDWallet *pwallet, CCoinContro
         if (!fHaveScript) {
             CTxDestination dest = DecodeDestination(sChangeAddress);
             if (!IsValidDestination(dest)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "changeAddress must be a valid particl address");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "changeAddress must be a valid ghost address");
             }
             coin_control.destChange = dest;
         }
@@ -4748,7 +4748,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
             if (typeOut == OUTPUT_RINGCT
                 && !address.IsValidStealthAddress()) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl stealth address");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Ghost stealth address");
             }
 
             if (address.IsValid() || obj.exists("script")) {
@@ -4825,7 +4825,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
         if (typeOut == OUTPUT_RINGCT
             && !address.IsValidStealthAddress()) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl stealth address");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Ghost stealth address");
         }
         if (address.IsValid()) {
             dest = address.Get();
@@ -5154,7 +5154,7 @@ static std::string SendHelp(CHDWallet *pwallet, OutputTypes typeIn, OutputTypes 
     rv += HelpRequiringPassphrase(pwallet);
 
     rv +=   "\nArguments:\n"
-            "1. \"address\"     (string, required) The particl address to send to.\n"
+            "1. \"address\"     (string, required) The ghost address to send to.\n"
             "2. \"amount\"      (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
             "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
             "                            This is not part of the transaction, just kept in your wallet.\n"
@@ -5293,7 +5293,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                         {
                             {"", RPCArg::Type::OBJ, RPCArg::Optional::NO, "",
                                 {
-                                    {"address", RPCArg::Type::STR, /* default */ "", "The particl address to send to."},
+                                    {"address", RPCArg::Type::STR, /* default */ "", "The ghost address to send to."},
                                     {"amount", RPCArg::Type::AMOUNT, /* default */ "", "The amount in " + CURRENCY_UNIT + " to send. eg 0.1."},
                                     {"narr", RPCArg::Type::STR, /* default */ "", "Up to 24 character narration sent with the transaction."},
                                     {"blindingfactor", RPCArg::Type::STR_HEX, /* default */ "", "The blinding factor, 32 bytes and hex encoded."},
@@ -5313,7 +5313,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                     {"test_fee", RPCArg::Type::BOOL, /* default */ "false", "Only return the fee it would cost to send, txn is discarded."},
                     {"coin_control", RPCArg::Type::OBJ, /* default */ "", "",
                         {
-                            {"changeaddress", RPCArg::Type::STR, /* default */ "", "The particl address to receive the change"},
+                            {"changeaddress", RPCArg::Type::STR, /* default */ "", "The ghost address to receive the change"},
                             {"inputs", RPCArg::Type::ARR, /* default */ "", "A json array of json objects",
                                 {
                                     {"", RPCArg::Type::OBJ, /* default */ "", "",
@@ -7590,7 +7590,7 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
                         {
                             {"", RPCArg::Type::OBJ, /* default */ "", "",
                                 {
-                                    {"address", RPCArg::Type::STR, /* default */ "", "The particl address."},
+                                    {"address", RPCArg::Type::STR, /* default */ "", "The ghost address."},
                                     {"amount", RPCArg::Type::AMOUNT, /* default */ "", "The numeric value (can be string) in " + CURRENCY_UNIT + " of the output."},
                                     {"data", RPCArg::Type::STR_HEX, /* default */ "", "The key is \"data\", the value is hex encoded data."},
                                     {"data_ct_fee", RPCArg::Type::AMOUNT, /* default */ "", "If type is \"data\" and output is at index 0, then it will be treated as a CT fee output."},
@@ -7957,7 +7957,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                     },
                     {"options", RPCArg::Type::OBJ, /* default */ "", "",
                         {
-                            {"changeAddress", RPCArg::Type::STR, /* default */ "", "The particl address to receive the change."},
+                            {"changeAddress", RPCArg::Type::STR, /* default */ "", "The ghost address to receive the change."},
                             {"changePosition", RPCArg::Type::NUM, /* default */ "random", "The index of the change output."},
                             //{"change_type", RPCArg::Type::STR, /* default */ "", "The output type to use. Only valid if changeAddress is not specified. Options are \"legacy\", \"p2sh-segwit\", and \"bech32\". Default is set by -changetype."},
                             {"includeWatching", RPCArg::Type::BOOL, /* default */ "false", "Also select inputs which are watch only."},
@@ -8053,7 +8053,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
             CTxDestination dest = DecodeDestination(options["changeAddress"].get_str());
 
             if (!IsValidDestination(dest)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "changeAddress must be a valid particl address");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "changeAddress must be a valid ghost address");
             }
 
             coinControl.destChange = dest;

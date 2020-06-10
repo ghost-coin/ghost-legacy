@@ -2340,7 +2340,7 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation>Prah:</translation>
     </message>
     <message>
-        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
+        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for ghost transactions than the network can process.</source>
         <translation>Kadar je v blokih manj volumna transakcij kot prostora v blokih, lahko rudarji in preusmeritvena vozlišča (relay nodes) uveljavijo minimalno provizijo. Plačilo le te minimalne provizije je čisto v redu, vendar se zavedajte, da lahko to povzroči nikoli potrjeno transakcijo, ko bo po particl transakcijah večje povpraševanje, kot ga lahko obdela omrežje.</translation>
     </message>
     <message>
