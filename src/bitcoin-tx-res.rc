@@ -16,8 +16,8 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "Particl"
-            VALUE "FileDescription",    "ghost-tx (CLI Particl transaction editor utility)"
+            VALUE "CompanyName",        "Ghost"
+            VALUE "FileDescription",    "ghost-tx (CLI Ghost transaction editor utility)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "ghost-tx"
             VALUE "LegalCopyright",     COPYRIGHT_STR
