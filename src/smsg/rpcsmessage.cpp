@@ -667,7 +667,7 @@ static UniValue smsgdumpprivkey(const JSONRPCRequest &request)
     std::string strAddress = request.params[0].get_str();
     CTxDestination dest = DecodeDestination(strAddress);
     if (!IsValidDestination(dest)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Ghost address");
     }
 
     if (dest.type() != typeid(PKHash)) {

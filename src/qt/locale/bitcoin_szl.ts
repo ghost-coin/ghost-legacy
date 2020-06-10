@@ -66,7 +66,7 @@
         <translation>Adresy ôdbiyraniŏ</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Tukej sōm adresy Particl na kere posyłŏsz płaty. Dycki wybaduj wielość i adresã ôdbiyrŏcza przed posłaniym mōnet.</translation>
     </message>
     <message>
@@ -322,7 +322,7 @@
         <translation>Proxy je &lt;b&gt;zapuszczone&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Poślij mōnety na adresã Particl</translation>
     </message>
     <message>
@@ -366,11 +366,11 @@
         <translation>Szyfruj klucze prywatne, kere sōm we twojim portmanyju</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Podpisz wiadōmości swojōm adresōm coby dowiyść jejich posiadanie</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Zweryfikuj wiadōmość, coby wejzdrzeć sie, iże ôstała podpisanŏ podanōm adresōm Particl.</translation>
     </message>
     <message>
@@ -390,8 +390,8 @@
         <translation>Lajsta szkart</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Żōndej płatu (gyneruje kod QR jak tyż URI particl:)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Żōndej płatu (gyneruje kod QR jak tyż URI ghost:)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -402,8 +402,8 @@
         <translation>Pokŏż wykŏz adres i etyket użytych do ôdbiyraniŏ</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Ôdewrzij URI particl: abo żōndanie płatu</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Ôdewrzij URI ghost: abo żōndanie płatu</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -738,7 +738,7 @@
         <translation>Edytuj adresã posyłaniŏ</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>Wkludzōnŏ adresa "%1" niyma nŏleżnōm adresōm Particl.</translation>
     </message>
     <message>
@@ -1169,8 +1169,8 @@
         <translation>Bedynōng URI</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://' to niyma nŏleżne URI. Użyj 'particl:'.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://' to niyma nŏleżne URI. Użyj 'ghost:'.</translation>
     </message>
     <message>
         <source>Payment request network doesn't match client network.</source>
@@ -1215,7 +1215,7 @@
         <translation>Kwota</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Wkludź adresã Particl (bp. %1)</translation>
     </message>
     <message>
@@ -1637,7 +1637,7 @@
         <translation>Utworzynie transakcyje niy podarziło sie!</translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>Pozōr: niynŏleżnŏ adresa Particl</translation>
     </message>
     <message>
@@ -1660,7 +1660,7 @@
         <translation>To je normalny płat.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>Adresa Particl, na kerõ chcesz posłać płat</translation>
     </message>
     <message>
@@ -1680,8 +1680,8 @@
         <translation>Wiadōmość:</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Wiadōmość, kerŏ ôstała prziwstōnŏ do URI particl:, kerŏ bydzie przechowowanŏ z transakcyjōm w cylach informacyjnych. Napōmniynie: Ta wiadōmość niy bydzie rozszyrzowanŏ w necu Particl.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>Wiadōmość, kerŏ ôstała prziwstōnŏ do URI ghost:, kerŏ bydzie przechowowanŏ z transakcyjōm w cylach informacyjnych. Napōmniynie: Ta wiadōmość niy bydzie rozszyrzowanŏ w necu Particl.</translation>
     </message>
     </context>
 <context>

@@ -45,7 +45,7 @@ class USBDeviceTest(ParticlTestFramework):
         config.read_file(open(self.options.configfile))
 
         if not config["components"].getboolean("ENABLE_USBDEVICE"):
-            raise SkipTest("particld has not been built with usb device enabled.")
+            raise SkipTest("ghostd has not been built with usb device enabled.")
 
         nodes = self.nodes
 

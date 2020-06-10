@@ -66,12 +66,12 @@
         <translation>Receiving addresses</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</translation>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</translation>
+        <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
+        <translation>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -362,8 +362,8 @@
         <translation>Proxy is &lt;b&gt;enabled&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
-        <translation>Send coins to a Particl address</translation>
+        <source>Send coins to a Ghost address</source>
+        <translation>Send coins to a Ghost address</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -406,12 +406,12 @@
         <translation>Encrypt the private keys that belong to your wallet</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Sign messages with your Particl addresses to prove you own them</translation>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
+        <translation>Sign messages with your Ghost addresses to prove you own them</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>Verify messages to ensure they were signed with specified Particl addresses</translation>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
+        <translation>Verify messages to ensure they were signed with specified Ghost addresses</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -430,8 +430,8 @@
         <translation>Tabs toolbar</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Request payments (generates QR codes and particl: URIs)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Request payments (generates QR codes and ghost: URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -442,8 +442,8 @@
         <translation>Show the list of used receiving addresses and labels</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Open a particl: URI or payment request</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Open a ghost: URI or payment request</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -874,8 +874,8 @@
         <translation>Edit sending address</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
-        <translation>The entered address "%1" is not a valid Particl address.</translation>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
+        <translation>The entered address "%1" is not a valid Ghost address.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -1469,7 +1469,7 @@
         <translation>Payment request error</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
+        <source>Cannot start ghost: click-to-pay handler</source>
         <translation>Cannot start Particl: click-to-pay handler</translation>
     </message>
     <message>
@@ -1477,8 +1477,8 @@
         <translation>URI handling</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://' is not a valid URI. Use 'particl:' instead.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://' is not a valid URI. Use 'ghost:' instead.</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1505,8 +1505,8 @@
         <translation>Invalid payment address %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
-        <translation>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</translation>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
+        <translation>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1607,8 +1607,8 @@
         <translation>Amount</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
-        <translation>Enter a Particl address (e.g. %1)</translation>
+        <source>Enter a Ghost address (e.g. %1)</source>
+        <translation>Enter a Ghost address (e.g. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2497,8 +2497,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation><numerusform>Estimated to begin confirmation within %n block.</numerusform><numerusform>Estimated to begin confirmation within %n blocks.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
-        <translation>Warning: Invalid Particl address</translation>
+        <source>Warning: Invalid Ghost address</source>
+        <translation>Warning: Invalid Ghost address</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2540,8 +2540,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>This is a normal payment.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
-        <translation>The Particl address to send the payment to</translation>
+        <source>The Ghost address to send the payment to</source>
+        <translation>The Ghost address to send the payment to</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2588,8 +2588,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>Enter a label for this address to add it to the list of used addresses</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2637,8 +2637,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
-        <translation>The Particl address to sign the message with</translation>
+        <source>The Ghost address to sign the message with</source>
+        <translation>The Ghost address to sign the message with</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2669,8 +2669,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>Copy the current signature to the system clipboard</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
-        <translation>Sign the message to prove you own this Particl address</translation>
+        <source>Sign the message to prove you own this Ghost address</source>
+        <translation>Sign the message to prove you own this Ghost address</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2693,12 +2693,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>Enter the receiver's address, message (ensure you copy line breaks, spaces, tabs, etc. exactly) and signature below to verify the message. Be careful not to read more into the signature than what is in the signed message itself, to avoid being tricked by a man-in-the-middle attack. Note that this only proves the signing party receives with the address, it cannot prove sendership of any transaction!</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
-        <translation>The Particl address the message was signed with</translation>
+        <source>The Ghost address the message was signed with</source>
+        <translation>The Ghost address the message was signed with</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Verify the message to ensure it was signed with the specified Particl address</translation>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
+        <translation>Verify the message to ensure it was signed with the specified Ghost address</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

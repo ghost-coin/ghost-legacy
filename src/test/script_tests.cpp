@@ -19,7 +19,7 @@
 #include <streams.h>
 
 #if defined(HAVE_CONSENSUS_LIB)
-#include <script/particlconsensus.h>
+#include <script/ghostconsensus.h>
 #endif
 
 #include <stdint.h>

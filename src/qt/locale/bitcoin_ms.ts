@@ -78,8 +78,8 @@
         <translation>Processing blocks on disk...</translation>
     </message>
     <message>
-        <source>%1 behind</source>
-        <translation>%1 behind</translation>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Ini adalah alamat Particl anda untuk pembayaran. Periksa jumlah dan alamat penerima sebelum membuat penghantaran koin sentiasa.</translation>
     </message>
     <message>
         <source>Last received block was generated %1 ago.</source>
@@ -337,8 +337,8 @@
         <translation>yes</translation>
     </message>
     <message>
-        <source>no</source>
-        <translation>no</translation>
+        <source>Send coins to a Ghost address</source>
+        <translation>Menghantar koin kepada alamat Particl</translation>
     </message>
     <message>
         <source>This label turns red if any recipient receives an amount smaller than the current dust threshold.</source>
@@ -387,12 +387,12 @@
         <translation>Encrypt the wallet. The wallet will be encrypted with a passphrase of your choice.</translation>
     </message>
     <message>
-        <source>Encrypt Wallet</source>
-        <translation>Encrypt Wallet</translation>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
+        <translation>sahkan mesej bersama alamat particl anda untuk menunjukkan alamat ini anda punya</translation>
     </message>
     <message>
-        <source>Disable private keys for this wallet. Wallets with private keys disabled will have no private keys and cannot have an HD seed or imported private keys. This is ideal for watch-only wallets.</source>
-        <translation>Disable private keys for this wallet. Wallets with private keys disabled will have no private keys and cannot have an HD seed or imported private keys. This is ideal for watch-only wallets.</translation>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
+        <translation>Sahkan mesej untuk memastikan mereka telah ditandatangani dengan alamat Particl yang ditentukan</translation>
     </message>
     <message>
         <source>Disable Private Keys</source>
@@ -414,8 +414,9 @@
 <context>
     <name>EditAddressDialog</name>
     <message>
-        <source>&amp;Label</source>
-        <translation>&amp;Label</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Request payments (generates QR codes and ghost: URIs)
+</translation>
     </message>
     <message>
         <source>The label associated with this address list entry</source>

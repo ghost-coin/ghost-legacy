@@ -488,9 +488,9 @@ public:
         // This is fine at runtime as we'll fall back to using them as a oneshot if they don't support the
         // service bits we want, but we should get them updated to support all service bits wanted by any
         // release ASAP to avoid it where possible.
-        vSeeds.emplace_back("mainnet-seed.particl.io");
-        vSeeds.emplace_back("dnsseed-mainnet.particl.io");
-        vSeeds.emplace_back("mainnet.particl.io");
+        vSeeds.emplace_back("mainnet-seed.ghost.io");
+        vSeeds.emplace_back("dnsseed-mainnet.ghost.io");
+        vSeeds.emplace_back("mainnet.ghost.io");
         vSeeds.emplace_back("dnsseed.tecnovert.net");
 
 

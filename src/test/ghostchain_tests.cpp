@@ -19,7 +19,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_FIXTURE_TEST_SUITE(particlchain_tests, ParticlBasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(ghostchain_tests, ParticlBasicTestingSetup)
 
 
 BOOST_AUTO_TEST_CASE(oldversion_test)
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(signature_test)
     BOOST_CHECK(serror == SCRIPT_ERR_OK);
 }
 
-BOOST_AUTO_TEST_CASE(particlchain_test)
+BOOST_AUTO_TEST_CASE(ghostchain_test)
 {
     SeedInsecureRand();
     FillableSigningProvider keystore;

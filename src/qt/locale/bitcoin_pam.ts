@@ -122,8 +122,8 @@
         <translation>&amp;Alilan ing Passphrase...</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
-        <translation>Magpadalang barya king Particl address</translation>
+        <source>Send coins to a Ghost address</source>
+        <translation>Magpadalang barya king Ghost address</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -669,8 +669,8 @@
         <translation>Kopyan ing kasalungsungan pirma king system clipboard</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
-        <translation>Pirman ing mensayi ban patune na keka ya ining Particl address</translation>
+        <source>Sign the message to prove you own this Ghost address</source>
+        <translation>Pirman ing mensayi ban patune na keka ya ining Ghost address</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -689,8 +689,8 @@
         <translation>&amp;Beripikan ing Mensayi</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Beripikan ing mensayi ban asiguradu a me pirma ya ini gamit ing mepiling Particl address</translation>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
+        <translation>Beripikan ing mensayi ban asiguradu a me pirma ya ini gamit ing mepiling Ghost address</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

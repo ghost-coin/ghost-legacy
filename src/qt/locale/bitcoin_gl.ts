@@ -182,7 +182,7 @@
         <translation>Reindexando bloques no disco...</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Enviar moedas a unha dirección Particl</translation>
     </message>
     <message>
@@ -226,11 +226,11 @@
         <translation>Encriptar as claves privadas que pertencen ao teu moedeiro</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Asina mensaxes cos teus enderezos Particl para probar que che pertencen</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Verifica mensaxes para asegurar que foron asinados con enderezos Particl específicos.</translation>
     </message>
     <message>
@@ -250,8 +250,8 @@
         <translation>Barra de ferramentas</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Solicitar pagamentos (xera códigos QR e particl: URIs)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Solicitar pagamentos (xera códigos QR e ghost: URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -262,8 +262,8 @@
         <translation>Amosar a listaxe de etiquetas e enderezos usadas para recibir</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Abrir un particl: URI ou solicitude de pagamento</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Abrir un ghost: URI ou solicitude de pagamento</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -1129,7 +1129,7 @@
         <translation>Copiar a sinatura actual ao portapapeis do sistema</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>Asina a mensaxe para probar que posúes este enderezo Particl</translation>
     </message>
     <message>
@@ -1149,7 +1149,7 @@
         <translation>&amp;Verificar Mensaxe</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>Verificar a mensaxe para asegurar que foi asinada coa dirección Particl especificada</translation>
     </message>
     <message>

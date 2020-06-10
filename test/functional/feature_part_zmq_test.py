@@ -36,7 +36,7 @@ class ZMQTest(ParticlTestFramework):
         config.read_file(open(self.options.configfile))
 
         if not config["components"].getboolean("ENABLE_ZMQ"):
-            raise SkipTest("particld has not been built with zmq enabled.")
+            raise SkipTest("ghostd has not been built with zmq enabled.")
 
         self.zmq = zmq
         self.zmqContext = zmq.Context()

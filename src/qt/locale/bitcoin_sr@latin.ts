@@ -66,7 +66,7 @@
         <translation>Adresa na koju se prima</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Ovo su Vaše Particl adrese na koju se vrše uplate. Uvek proverite iznos i prijemnu adresu pre slanja novčića.</translation>
     </message>
     <message>
@@ -342,7 +342,7 @@
         <translation>Ponovo obeležavam blokove na disku...</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Pošalji novčiće na Particl adresu</translation>
     </message>
     <message>
@@ -386,11 +386,11 @@
         <translation>Enkriptuj privatne ključeve novčanika</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Potpišite poruke sa svojim Particl adresama da biste dokazali njihovo vlasništvo</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Proverite poruke da biste utvrdili sa kojim Particl adresama su potpisane</translation>
     </message>
     <message>
@@ -410,8 +410,8 @@
         <translation>Alatke za tabove</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Zatražite plaćanje (generiše QR kodove i particl: URI-e)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Zatražite plaćanje (generiše QR kodove i ghost: URI-e)</translation>
     </message>
     <message>
         <source>Error</source>
