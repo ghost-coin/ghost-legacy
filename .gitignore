@@ -39,7 +39,7 @@ src/config/stamp-h1
 src/obj
 share/setup.nsi
 share/qt/Info.plist
-
+contrib/genesis-nodejs/node_modules/*
 src/univalue/gen
 
 src/qt/*.moc
