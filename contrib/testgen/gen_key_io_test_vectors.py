@@ -19,13 +19,13 @@ from binascii import b2a_hex
 from segwit_addr import bech32_encode, decode, convertbits, CHARSET
 
 # key types
-PUBKEY_ADDRESS = 0x38
-SCRIPT_ADDRESS = 0x3c
+PUBKEY_ADDRESS = 0x26
+SCRIPT_ADDRESS = 0x61
 PUBKEY_ADDRESS_TEST = 0x4B
 SCRIPT_ADDRESS_TEST = 0x89
 PUBKEY_ADDRESS_REGTEST = 0x76
 SCRIPT_ADDRESS_REGTEST = 0x7a
-PRIVKEY = 0x6c
+PRIVKEY = 0xA6
 PRIVKEY_TEST = 0x2e
 PRIVKEY_REGTEST = 0x2e
 
@@ -67,9 +67,9 @@ templates = [
 # templates for valid bech32 sequences
 bech32_templates = [
   # hrp, version, witprog_size, metadata, output_prefix
-  ('pw',    0, 20, (False, 'main',    None, True), p2wpkh_prefix),
-  ('pw',    0, 32, (False, 'main',    None, True), p2wsh_prefix),
-  ('pw',    1,  2, (False, 'main',    None, True), (OP_1, 2)),
+  ('gw',    0, 20, (False, 'main',    None, True), p2wpkh_prefix),
+  ('gw',    0, 32, (False, 'main',    None, True), p2wsh_prefix),
+  ('gw',    1,  2, (False, 'main',    None, True), (OP_1, 2)),
   ('tw',    0, 20, (False, 'test',    None, True), p2wpkh_prefix),
   ('tw',    0, 32, (False, 'test',    None, True), p2wsh_prefix),
   ('tw',    2, 16, (False, 'test',    None, True), (OP_2, 16)),
@@ -83,10 +83,10 @@ bech32_ng_templates = [
   ('tc',    0, 20, False, False, False),
   ('tw',   17, 32, False, False, False),
   ('rtpw',  3,  1, False, False, False),
-  ('pw',   15, 41, False, False, False),
+  ('gw',   15, 41, False, False, False),
   ('tw',    0, 16, False, False, False),
   ('rtpw',  0, 32, True,  False, False),
-  ('pw',    0, 16, True,  False, False),
+  ('gw',    0, 16, True,  False, False),
   ('tw',    0, 32, False, True,  False),
   ('rtpw',  0, 20, False, False, True)
 ]
@@ -108,7 +108,7 @@ def is_valid(v):
 
 def is_valid_bech32(v):
     '''Check vector v for bech32 validity'''
-    for hrp in ['pw', 'tw', 'rtpw']:
+    for hrp in ['gw', 'tw', 'rtpw']:
         if decode(hrp, v) != (None, None):
             return True
     return False

@@ -13,7 +13,6 @@
 #include <util/strencodings.h>
 #include <util/moneystr.h>
 #include <versionbitsinfo.h>
-
 #include <chain/chainparamsimport.h>
 
 #include <assert.h>
@@ -78,22 +77,6 @@ int64_t CChainParams::GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const
 {
     return (smsg_fee_prev * consensus.smsg_fee_max_delta_percent) / 1000000;
 };
-
-bool CChainParams::CheckImportCoinbase(int nHeight, uint256 &hash) const
-{
-    for (auto &cth : Params().vImportedCoinbaseTxns) {
-        if (cth.nHeight != (uint32_t)nHeight) {
-            continue;
-        }
-        if (hash == cth.hash) {
-            return true;
-        }
-        return error("%s - Hash mismatch at height %d: %s, expect %s.", __func__, nHeight, hash.ToString(), cth.hash.ToString());
-    }
-
-    return error("%s - Unknown height.", __func__);
-};
-
 
 const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime) const
 {
@@ -349,40 +332,6 @@ static CBlock CreateGenesisBlockMainNet(uint32_t nTime, uint32_t nNonce, uint32_
         txNew.vpout[k] = out;
     }
 
-    // Foundation Fund Raiser Funds
-    // RHFKJkrB4H38APUDVckr7TDwrK11N7V7mx
-    OUTPUT_PTR<CTxOutStandard> out = MAKE_OUTPUT<CTxOutStandard>();
-    out->nValue = 397364 * COIN;
-    out->scriptPubKey = CScript() << OP_HASH160 << ParseHex("5766354dcb13caff682ed9451b9fe5bbb786996c") << OP_EQUAL;
-    txNew.vpout.push_back(out);
-
-    out = MAKE_OUTPUT<CTxOutStandard>();
-    out->nValue = 296138 * COIN;
-    out->scriptPubKey = CScript() << OP_HASH160 << ParseHex("5766354dcb13caff682ed9451b9fe5bbb786996c") << OP_EQUAL;
-    txNew.vpout.push_back(out);
-
-    // Community Initative
-    // RKKgSiQcMjbC8TABRoyyny1gTU4fAEiQz9
-    out = MAKE_OUTPUT<CTxOutStandard>();
-    out->nValue = 156675 * COIN;
-    out->scriptPubKey = CScript() << OP_HASH160 << ParseHex("6e29c4a11fd54916d024af16ca913cdf8f89cb31") << OP_EQUAL;
-    txNew.vpout.push_back(out);
-
-    // Contributors Left Over Funds
-    // RKiaVeyLUp7EmwHtCP92j8Vc1AodhpWi2U
-    out = MAKE_OUTPUT<CTxOutStandard>();
-    out->nValue = 216346 * COIN;
-    out->scriptPubKey = CScript() << OP_HASH160 << ParseHex("727e5e75929bbf26912dd7833971d77e7450a33e") << OP_EQUAL;
-    txNew.vpout.push_back(out);
-
-    // Reserved Particl for primary round
-    // RNnoeeqBTkpPQH8d29Gf45dszVj9RtbmCu
-    out = MAKE_OUTPUT<CTxOutStandard>();
-    out->nValue = 996000 * COIN;
-    out->scriptPubKey = CScript() << 1512000000 << OP_CHECKLOCKTIMEVERIFY << OP_DROP << OP_HASH160<< ParseHex("9433643b4fd5de3ebd7fdd68675f978f34585af1") << OP_EQUAL; // 2017-11-30
-    txNew.vpout.push_back(out);
-
-
     CBlock genesis;
     genesis.nTime    = nTime;
     genesis.nBits    = nBits;
@@ -434,7 +383,7 @@ public:
         consensus.smsg_min_difficulty = 0x1effffff;
         consensus.smsg_difficulty_max_delta = 0xffff;
 
-        consensus.powLimit = uint256S("000000000000bfffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
@@ -469,19 +418,17 @@ public:
         nTargetTimespan = 24 * 60;      // 24 mins
         nBlockReward = 6 * COIN;
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
-        AddImportHashesMain(vImportedCoinbaseTxns);
         SetLastImportHeight();
 
         nPruneAfterHeight = 100000;
         m_assumed_blockchain_size = 1;
         m_assumed_chain_state_size = 1;
 
-        genesis = CreateGenesisBlockMainNet(1500296400, 31429, 0x1f00ffff); // 2017-07-17 13:00:00
+        genesis = CreateGenesisBlockMainNet(1591894832, 23058, 0x1f00ffff); // 2017-07-17 13:00:00
         consensus.hashGenesisBlock = genesis.GetHash();
-
-        assert(consensus.hashGenesisBlock == uint256S("0x0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c"));
-        assert(genesis.hashMerkleRoot == uint256S("0xc95fb023cf4bc02ddfed1a59e2b2f53edd1a726683209e2780332edf554f1e3e"));
-        assert(genesis.hashWitnessMerkleRoot == uint256S("0x619e94a7f9f04c8a1d018eb8bcd9c42d3c23171ebed8f351872256e36959d66c"));
+        assert(consensus.hashGenesisBlock == uint256S("0x0000e4dfdda37ab741c256e5f3c1651fe46a28959745ff24807a76913f282ee0"));
+        assert(genesis.hashMerkleRoot == uint256S("0xa26405950fdd6239a44762888773b363cb6b0fcbd46414439404f03bde29790e"));
+        assert(genesis.hashWitnessMerkleRoot == uint256S("0x073380df4538c5e15d1862778f391faaa7316466076589d3fb3ff48dc4aa4427"));
 
         // Note that of those which support the service bits prefix, most only support a subset of
         // possible options.
@@ -491,7 +438,6 @@ public:
         vSeeds.emplace_back("mainnet-seed.ghost.io");
         vSeeds.emplace_back("dnsseed-mainnet.ghost.io");
         vSeeds.emplace_back("mainnet.ghost.io");
-        vSeeds.emplace_back("dnsseed.tecnovert.net");
 
 
         vDevFundSettings.emplace_back(0,
@@ -500,11 +446,11 @@ public:
             DevFundSettings("RBiiQBnQsVPPQkUaJVQTjsZM9K2xMKozST", 10, 60));
 
 
-        base58Prefixes[PUBKEY_ADDRESS]     = {0x38}; // P
-        base58Prefixes[SCRIPT_ADDRESS]     = {0x3c};
+        base58Prefixes[PUBKEY_ADDRESS]     = {0x26}; // G
+        base58Prefixes[SCRIPT_ADDRESS]     = {0x61}; // g
         base58Prefixes[PUBKEY_ADDRESS_256] = {0x39};
         base58Prefixes[SCRIPT_ADDRESS_256] = {0x3d};
-        base58Prefixes[SECRET_KEY]         = {0x6c};
+        base58Prefixes[SECRET_KEY]         = {0xA6}; //PUBKEY_ADDRESS Prefix in int + 128 converted to hexadecimal
         base58Prefixes[EXT_PUBLIC_KEY]     = {0x69, 0x6e, 0x82, 0xd1}; // PPAR
         base58Prefixes[EXT_SECRET_KEY]     = {0x8f, 0x1d, 0xae, 0xb8}; // XPAR
         base58Prefixes[STEALTH_ADDRESS]    = {0x14};
@@ -513,19 +459,28 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x88, 0xB2, 0x1E}; // xpub
         base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x88, 0xAD, 0xE4}; // xprv
 
-        bech32Prefixes[PUBKEY_ADDRESS].assign       ("ph",(const char*)"ph"+2);
-        bech32Prefixes[SCRIPT_ADDRESS].assign       ("pr",(const char*)"pr"+2);
-        bech32Prefixes[PUBKEY_ADDRESS_256].assign   ("pl",(const char*)"pl"+2);
-        bech32Prefixes[SCRIPT_ADDRESS_256].assign   ("pj",(const char*)"pj"+2);
-        bech32Prefixes[SECRET_KEY].assign           ("px",(const char*)"px"+2);
-        bech32Prefixes[EXT_PUBLIC_KEY].assign       ("pep",(const char*)"pep"+3);
-        bech32Prefixes[EXT_SECRET_KEY].assign       ("pex",(const char*)"pex"+3);
-        bech32Prefixes[STEALTH_ADDRESS].assign      ("ps",(const char*)"ps"+2);
-        bech32Prefixes[EXT_KEY_HASH].assign         ("pek",(const char*)"pek"+3);
-        bech32Prefixes[EXT_ACC_HASH].assign         ("pea",(const char*)"pea"+3);
-        bech32Prefixes[STAKE_ONLY_PKADDR].assign    ("pcs",(const char*)"pcs"+3);
+        {
+            std::map<int, std::string> bech32PrefixesMap{
+                {PUBKEY_ADDRESS, "ghost"},
+                {SCRIPT_ADDRESS,"gw"},
+                {PUBKEY_ADDRESS_256,"gl"},
+                {SCRIPT_ADDRESS_256,"gj"},
+                {SECRET_KEY,"gtx"},
+                {EXT_PUBLIC_KEY,"gep"},
+                {EXT_SECRET_KEY,"gex"},
+                {STEALTH_ADDRESS,"gs"},
+                {EXT_KEY_HASH,"gek"},
+                {EXT_ACC_HASH,"gea"},
+                {STAKE_ONLY_PKADDR,"gcs"},
+            };
 
-        bech32_hrp = "pw";
+            for(auto&& p: bech32PrefixesMap)
+            {
+                bech32Prefixes[p.first].assign(p.second.begin(), p.second.end());
+            }
+        }
+
+        bech32_hrp = "gw";
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
@@ -535,19 +490,7 @@ public:
 
         checkpointData = {
             {
-                { 5000,     uint256S("0xe786020ab94bc5461a07d744f3631a811b4ebf424fceda12274f2321883713f4")},
-                { 15000,    uint256S("0xafc73ac299f2e6dd309077d230fccef547b9fc24379c1bf324dd3683b13c61c3")},
-                { 30000,    uint256S("0x35d95c12799323d7b418fd64df9d88ef67ef27f057d54033b5b2f38a5ecaacbf")},
-                { 91000,    uint256S("0x4d1ffaa5b51431918a0c74345e2672035c743511359ac8b1be67467b02ff884c")},
-                { 112250,   uint256S("0x89e4b23471aea7a875df835d6f89613fd87ba649e7a1d8cb892917d0080ef337")},
-                { 213800,   uint256S("0xfd6c0e5f7444a9e09a5fa1652db73d5b8628aeabe162529a5356be700509aa80")},
-                { 303640,   uint256S("0x7cc035d7888ee6d824cec8ff01a6287a71873d874f72a5fd3706d227b88f8e99")},
-                { 443228,   uint256S("0x1e2ae3edb2fa5b398c2f719d2bbb44b3089fb96170b6676c0c963f12bceba489")},
-                { 583322,   uint256S("0x2be0224e40ddf4763f61ff6db088806f3ad5c6530ea7a6801b067ecbbd13fec9")},
-                { 634566,   uint256S("0xc330a61e218b06d3d567c459b54e83ab682a366fc00b77d69dd78c6ed9655a2e")},
-                { 777625,   uint256S("0x75b2b1412610c1ff54e49fc38222f3f45fe934b0e485ccae7b5d461b94510734")},
-                { 856749,   uint256S("0x6b705dbf87345594314152841212a532753f11ec711ac81afc64f31eb048df19")},
-                { 887180,   uint256S("0xf9f1e91f82e73d4781052e42c8b814b8265e0929d4c16284db3feb354bfc317c")},
+                { 0,     uint256S("0xe786020ab94bc5461a07d744f3631a811b4ebf424fceda12274f2321883713f4")},
             }
         };
 
