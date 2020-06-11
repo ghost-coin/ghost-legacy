@@ -67,7 +67,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Recibiendo dirección</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Estas son sus direcciones de Particl para enviar pagos. Siempre verifique el monto y la dirección de recepción antes de enviar monedas.</translation>
     </message>
     <message>
@@ -327,7 +327,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Proxy &lt;b&gt;habilitado&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>Enviando monedas a una dirección de Particl</translation>
     </message>
     <message>
@@ -371,11 +371,11 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Encripta las claves privadas que pertenecen a tu billetera</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>Firme mensajes con sus direcciones de Particl para demostrar que los posee</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>Verifique los mensajes para asegurarse de que fueron firmados con las direcciones de Particl especificadas</translation>
     </message>
     <message>
@@ -395,8 +395,8 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Barra de herramientas de pestañas</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Solicitar pagos (genera códigos QR y particl: URIs)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Solicitar pagos (genera códigos QR y ghost: URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -407,8 +407,8 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Mostrar la lista de direcciones y etiquetas de recepción usadas</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Abra un particl: URI o solicitud de pago</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Abra un ghost: URI o solicitud de pago</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -751,7 +751,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Editar dirección de envío</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>La dirección ingresada "%1" no es una dirección válida de Particl.</translation>
     </message>
     <message>
@@ -1286,7 +1286,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Error de solicitud de pago</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
+        <source>Cannot start ghost: click-to-pay handler</source>
         <translation>No se puede iniciar Particl: controlador de clic para pagar</translation>
     </message>
     <message>
@@ -1302,7 +1302,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Dirección de pago inválida %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>¡URI no puede ser analizado! Esto puede deberse a una dirección de Particl no válida o a parámetros de URI mal formados.</translation>
     </message>
     <message>
@@ -1404,7 +1404,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Cantidad</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Ingrese una dirección de Particl (por ejemplo, %1)</translation>
     </message>
     <message>
@@ -2167,7 +2167,7 @@ Tarifa de copia</translation>
         <translation>Solicitud de pago caducada.</translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>Peligro: Dirección de Particl inválida</translation>
     </message>
     <message>
@@ -2210,7 +2210,7 @@ Tarifa de copia</translation>
         <translation>Este es un pago normal</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>Dirección Particl a enviar el pago</translation>
     </message>
     <message>
@@ -2291,7 +2291,7 @@ Tarifa de copia</translation>
         <translation>&amp;Firmar Mensaje</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation>Dirección Particl con la que firmar el mensaje</translation>
     </message>
     <message>
@@ -2323,7 +2323,7 @@ Tarifa de copia</translation>
         <translation>Copiar la firma actual al portapapeles del sistema</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>Firmar un mensjage para probar que usted es dueño de esta dirección</translation>
     </message>
     <message>
@@ -2343,11 +2343,11 @@ Tarifa de copia</translation>
         <translation>&amp;Firmar Mensaje</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation>La dirección Particl con la que se firmó el mensaje</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>Verifica el mensaje para asegurar que fue firmado con la dirección de Particl especificada.</translation>
     </message>
     <message>

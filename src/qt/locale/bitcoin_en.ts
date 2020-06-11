@@ -85,12 +85,12 @@
     </message>
     <message>
         <location line="+7"/>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
-        <source>These are your Particl addresses for receiving payments. Use the &apos;Create new receiving address&apos; button in the receive tab to create new addresses.</source>
+        <source>These are your Ghost addresses for receiving payments. Use the &apos;Create new receiving address&apos; button in the receive tab to create new addresses.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -353,7 +353,7 @@
     </message>
     <message>
         <location line="+1"/>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -363,7 +363,7 @@
     </message>
     <message>
         <location line="+1"/>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -463,7 +463,7 @@
     </message>
     <message>
         <location line="+1"/>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -473,7 +473,7 @@
     </message>
     <message>
         <location line="+1"/>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -513,7 +513,7 @@
     </message>
     <message>
         <location line="+1"/>
-        <source>Open a particl: URI or payment request</source>
+        <source>Open a ghost: URI or payment request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1212,7 +1212,7 @@
     </message>
     <message>
         <location line="+86"/>
-        <source>The entered address &quot;%1&quot; is not a valid Particl address.</source>
+        <source>The entered address &quot;%1&quot; is not a valid Ghost address.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2225,7 +2225,7 @@
     </message>
     <message>
         <location line="-531"/>
-        <source>Cannot start particl: click-to-pay handler</source>
+        <source>Cannot start ghost: click-to-pay handler</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2240,7 +2240,7 @@
     </message>
     <message>
         <location line="-55"/>
-        <source>&apos;particl://&apos; is not a valid URI. Use &apos;particl:&apos; instead.</source>
+        <source>&apos;ghost://&apos; is not a valid URI. Use &apos;ghost:&apos; instead.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2278,7 +2278,7 @@
     </message>
     <message>
         <location line="+8"/>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2431,7 +2431,7 @@
     </message>
     <message>
         <location filename="../guiutil.cpp" line="+108"/>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3402,7 +3402,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+30"/>
-        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
+        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for ghost transactions than the network can process.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3657,7 +3657,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+107"/>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3708,7 +3708,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="-1426"/>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3787,7 +3787,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+10"/>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3807,7 +3807,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+28"/>
-        <source>The Particl address that will be able to spend the output (must be 256bit)</source>
+        <source>The Ghost address that will be able to spend the output (must be 256bit)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3822,7 +3822,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+31"/>
-        <source>The Particl address that will be able to stake the output</source>
+        <source>The Ghost address that will be able to stake the output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3894,7 +3894,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+18"/>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3936,7 +3936,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+21"/>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3967,12 +3967,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+21"/>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+37"/>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

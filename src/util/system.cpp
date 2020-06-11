@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2019 The Bitcoin Core developers
+// Copyright (c) 2009-2020 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -70,7 +70,7 @@
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();
 
-const char * const BITCOIN_CONF_FILENAME = "particl.conf";
+const char * const BITCOIN_CONF_FILENAME = "ghost.conf";
 
 bool fParticlMode = true;
 bool fParticlWallet = false;
@@ -917,10 +917,10 @@ fs::path GetDefaultDataDir()
     // Windows < Vista: C:\Documents and Settings\Username\Application Data\Particl
     // Windows >= Vista: C:\Users\Username\AppData\Roaming\Particl
     // Mac: ~/Library/Application Support/Particl
-    // Unix: ~/.particl
+    // Unix: ~/.ghost
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Particl";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "Ghost";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -930,10 +930,10 @@ fs::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    return pathRet / "Library/Application Support/Particl";
+    return pathRet / "Library/Application Support/Ghost";
 #else
     // Unix
-    return pathRet / ".particl";
+    return pathRet / ".ghost";
 #endif
 #endif
 }
@@ -1429,8 +1429,9 @@ std::string CopyrightHolders(const std::string& strPrefix)
 {
     const int BTC_START_YEAR = 2009;
     const int PART_START_YEAR = 2017;
+    const int GHOST_START_YEAR = 2020;
 
-    std::string sRange = strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
+    std::string sRange = strprintf(" %i-%i ", GHOST_START_YEAR, COPYRIGHT_YEAR);
     const auto copyright_devs = strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION);
     std::string strCopyrightHolders = strPrefix + sRange + copyright_devs;
 
@@ -1438,6 +1439,11 @@ std::string CopyrightHolders(const std::string& strPrefix)
     if (copyright_devs.find("Bitcoin Core") == std::string::npos) {
         sRange = strprintf(" %i-%i ", BTC_START_YEAR, COPYRIGHT_YEAR);
         strCopyrightHolders += "\n" + strPrefix + sRange + "The Bitcoin Core developers";
+    }
+    // Make sure Particl Core copyright is not removed by accident
+    if (copyright_devs.find("Particl Core") == std::string::npos) {
+        sRange = strprintf(" %i-%i ", PART_START_YEAR, COPYRIGHT_YEAR);
+        strCopyrightHolders += "\n" + strPrefix + sRange + "The Particl Core developers";
     }
     return strCopyrightHolders;
 }

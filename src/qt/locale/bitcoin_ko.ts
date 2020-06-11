@@ -66,11 +66,11 @@
         <translation>받는 주소들</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>비트코인을 보내는 계좌 주소입니다. 코인을 보내기 전에 금액과 받는 주소를 항상 확인하세요.</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
+        <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
         <translation>지불 수신용 비트코인주소. 신규 주소를 만들려면 'Create new receiving address' 버튼을 사용하세요.</translation>
     </message>
     <message>
@@ -338,7 +338,7 @@
         <translation>프록시가 &lt;b&gt;활성화&lt;/b&gt; 되었습니다: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>비트코인 주소로 코인을 전송합니다</translation>
     </message>
     <message>
@@ -382,11 +382,11 @@
         <translation>지갑에 포함된 개인키 암호화하기</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
         <translation>지갑 주소가 본인 소유인지 증명하기 위해 메시지를 서명합니다</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
         <translation>해당 비트코인 주소로 서명되었는지 확인하기 위해 메시지를 검증합니다</translation>
     </message>
     <message>
@@ -406,8 +406,8 @@
         <translation>툴바 색인표</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>지불 요청하기 (QR코드와 particl: URI를 생성합니다)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>지불 요청하기 (QR코드와 ghost: URI를 생성합니다)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -418,8 +418,8 @@
         <translation>한번 이상 사용된 받는 주소와 라벨의 목록을 보여줍니다</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>particl: URI 또는 지불요청 열기</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>ghost: URI 또는 지불요청 열기</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -798,7 +798,7 @@
         <translation>보내는 주소 편집</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
         <translation>입력한 "%1" 주소는 올바른 비트코인 주소가 아닙니다.</translation>
     </message>
     <message>
@@ -1373,16 +1373,16 @@
         <translation>지불 요청 오류</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>particl: 핸들러를 시작할 수 없음</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>ghost: 핸들러를 시작할 수 없음</translation>
     </message>
     <message>
         <source>URI handling</source>
         <translation>URI 핸들링</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl://"은 잘못된 URI입니다. 'particl:'을 사용하십시오.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>'ghost://"은 잘못된 URI입니다. 'ghost:'을 사용하십시오.</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1401,7 +1401,7 @@
         <translation>잘못된 지불 주소 %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
         <translation>URI의 파싱에 문제가 발생했습니다. 잘못된 비트코인 주소나 URI 파라미터 구성에 오류가 존재할 수 있습니다.</translation>
     </message>
     <message>
@@ -1503,7 +1503,7 @@
         <translation>금액</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>비트코인 주소를 입력하세요 (예. %1)</translation>
     </message>
     <message>
@@ -2229,7 +2229,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>더스트:</translation>
     </message>
     <message>
-        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
+        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for ghost transactions than the network can process.</source>
         <translation>거래량이 블록에 남은 공간보다 적은 경우에는 채굴자나 중계 노드들이 최소 수수료를 허용할 수 있습니다. 최소 수수료만 지불하는건 괜찮지만, 네트워크가 처리할 수 있는 용량을 넘는 비트코인 거래가 있을 경우에는 이 거래가 승인이 안될 수 있다는 점을 유의하세요.</translation>
     </message>
     <message>
@@ -2373,7 +2373,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation><numerusform>%n 블록 안에 승인이 시작될 것으로 추정됩니다.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
+        <source>Warning: Invalid Ghost address</source>
         <translation>경고: 잘못된 비트코인주소입니다</translation>
     </message>
     <message>
@@ -2416,7 +2416,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>이것은 정상적인 지불입니다.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
+        <source>The Ghost address to send the payment to</source>
         <translation>이 비트코인 주소로 송금됩니다</translation>
     </message>
     <message>
@@ -2464,8 +2464,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>이 주소에 라벨을 입력하면 사용된 주소 목록에 라벨이 표시됩니다</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>particl: URI에 추가된 메시지는 참고를 위해 거래내역과 함께 저장될 것입니다. Note: 이 메시지는 비트코인 네트워크로 전송되지 않습니다.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>ghost: URI에 추가된 메시지는 참고를 위해 거래내역과 함께 저장될 것입니다. Note: 이 메시지는 비트코인 네트워크로 전송되지 않습니다.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2513,7 +2513,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>당신이 해당 주소로 비트코인을 받을 수 있다는 것을 증명하기 위해 메시지/합의문을 그 주소로 서명할 수 있습니다. 피싱 공격이 당신을 속일 수 있으므로 임의의 내용이나 모호한 내용에 서명하지 않도록 주의하세요. 당신이 동의하는 명확한 조항들에만 서명하세요.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
+        <source>The Ghost address to sign the message with</source>
         <translation>메세지를 서명할 비트코인 주소</translation>
     </message>
     <message>
@@ -2545,7 +2545,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>이 서명을 시스템 클립보드로 복사</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
+        <source>Sign the message to prove you own this Ghost address</source>
         <translation>당신이 이 비트코인 주소를 소유한다는 증명을 위해 메시지를 서명합니다</translation>
     </message>
     <message>
@@ -2569,11 +2569,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>메시지를 검증하기 위해 아래 칸에 각각 지갑 주소와 메시지, 서명을 입력하세요 (메시지 원본의 띄어쓰기, 들여쓰기, 행 나눔 등이 정확하게 입력되어야 하므로 원본을 복사해서 입력하세요). 네트워크 침입자의 속임수에 넘어가지 않도록 서명된 메시지 내용 이외의 내용은 참고하지 않도록 유의하세요. 이 기능은 단순히 서명한 쪽에서 해당 주소로 송금을 받을 수 있다는 것을 증명하는 것 뿐이며 그 이상은 어떤 것도 보증하지 않습니다.</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
+        <source>The Ghost address the message was signed with</source>
         <translation>메세지의 서명에 사용된 비트코인 주소</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
         <translation>입력된 비트코인 주소로 메시지가 서명되었는지 검증합니다</translation>
     </message>
     <message>

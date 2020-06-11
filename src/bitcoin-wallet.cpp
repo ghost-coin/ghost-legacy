@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018 The Bitcoin Core developers
+// Copyright (c) 2016-2020 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -47,12 +47,12 @@ static bool WalletAppInit(int argc, char* argv[])
         return false;
     }
     if (argc < 2 || HelpRequested(gArgs)) {
-        std::string usage = strprintf("%s particl-wallet version", PACKAGE_NAME) + " " + FormatFullVersion() + "\n\n" +
+        std::string usage = strprintf("%s ghost-wallet version", PACKAGE_NAME) + " " + FormatFullVersion() + "\n\n" +
                                       "wallet-tool is an offline tool for creating and interacting with Particl Core wallet files.\n" +
                                       "By default wallet-tool will act on wallets in the default mainnet wallet directory in the datadir.\n" +
                                       "To change the target wallet, use the -datadir, -wallet and -testnet/-regtest arguments.\n\n" +
                                       "Usage:\n" +
-                                     "  particl-wallet [options] <command>\n\n" +
+                                     "  ghost-wallet [options] <command>\n\n" +
                                      gArgs.GetHelpMessage();
 
         tfm::format(std::cout, "%s", usage.c_str());
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     }
 
     if (method.empty()) {
-        tfm::format(std::cerr, "No method provided. Run `particl-wallet -help` for valid methods.\n");
+        tfm::format(std::cerr, "No method provided. Run `ghost-wallet -help` for valid methods.\n");
         return EXIT_FAILURE;
     }
 

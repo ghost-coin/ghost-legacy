@@ -29,16 +29,16 @@
   <string>????</string>
 
   <key>CFBundleExecutable</key>
-  <string>Particl-Qt</string>
+  <string>Ghost-Qt</string>
 
   <key>CFBundleName</key>
-  <string>Particl-Qt</string>
+  <string>Ghost-Qt</string>
 
   <key>LSHasLocalizedDisplayName</key>
   <true/>
 
   <key>CFBundleIdentifier</key>
-  <string>io.particlfoundation.Particl-Qt</string>
+  <string>io.ghostfoundation.Ghost-Qt</string>
 
   <key>CFBundleURLTypes</key>
   <array>
@@ -46,7 +46,7 @@
       <key>CFBundleTypeRole</key>
       <string>Editor</string>
       <key>CFBundleURLName</key>
-      <string>org.particl.ParticlPayment</string>
+      <string>org.ghost.ParticlPayment</string>
       <key>CFBundleURLSchemes</key>
       <array>
         <string>particl</string>
@@ -58,7 +58,7 @@
   <array>
     <dict>
       <key>UTTypeIdentifier</key>
-      <string>org.particl.paymentrequest</string>
+      <string>org.ghost.paymentrequest</string>
       <key>UTTypeDescription</key>
       <string>Particl payment request</string>
       <key>UTTypeConformsTo</key>
@@ -84,7 +84,7 @@
       <string>Editor</string>
       <key>LSItemContentTypes</key>
       <array>
-        <string>org.particl.paymentrequest</string>
+        <string>org.ghost.paymentrequest</string>
       </array>
       <key>LSHandlerRank</key>
       <string>Owner</string>

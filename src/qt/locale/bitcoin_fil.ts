@@ -66,8 +66,8 @@
         <translation>Mga address na tatanggap</translation>
     </message>
     <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Ito ang iyong mga Particl address para sa pagpapadala ng bayad. Laging suriin ang halaga at ang address na tatanggap bago magpadala ng coins.</translation>
+        <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Ito ang iyong mga Ghost address para sa pagpapadala ng bayad. Laging suriin ang halaga at ang address na tatanggap bago magpadala ng coins.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -322,8 +322,8 @@
         <translation>Ang proxy ay &lt;b&gt;pinagana&lt;/b&gt;: %1</translation>
     </message>
     <message>
-        <source>Send coins to a Particl address</source>
-        <translation>Magpadala ng coins sa Particl address</translation>
+        <source>Send coins to a Ghost address</source>
+        <translation>Magpadala ng coins sa Ghost address</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -366,12 +366,12 @@
         <translation>I-encrypt ang private keys na kabilang sa iyong walet</translation>
     </message>
     <message>
-        <source>Sign messages with your Particl addresses to prove you own them</source>
-        <translation>Pumirma ng mga mensahe gamit ang iyong mga Particl address upang mapatunayan na pagmamay-ari mo ang mga ito</translation>
+        <source>Sign messages with your Ghost addresses to prove you own them</source>
+        <translation>Pumirma ng mga mensahe gamit ang iyong mga Ghost address upang mapatunayan na pagmamay-ari mo ang mga ito</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Particl addresses</source>
-        <translation>I-verify ang mga mensahe upang matiyak na sila ay napirmahan ng tinukoy na mga Particl address.</translation>
+        <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
+        <translation>I-verify ang mga mensahe upang matiyak na sila ay napirmahan ng tinukoy na mga Ghost address.</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -390,8 +390,8 @@
         <translation>Tabs toolbar</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and particl: URIs)</source>
-        <translation>Humiling ng bayad (lumilikha ng QR codes at particl: URIs)</translation>
+        <source>Request payments (generates QR codes and ghost: URIs)</source>
+        <translation>Humiling ng bayad (lumilikha ng QR codes at ghost: URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -402,8 +402,8 @@
         <translation>Ipakita ang talaan ng mga gamit na address at label para sa pagtanggap</translation>
     </message>
     <message>
-        <source>Open a particl: URI or payment request</source>
-        <translation>Buksan ang particl: URI o kahilingan ng bayad</translation>
+        <source>Open a ghost: URI or payment request</source>
+        <translation>Buksan ang ghost: URI o kahilingan ng bayad</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -774,8 +774,8 @@
         <translation>Baguhin ang address para sa pagpapadala</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Particl address.</source>
-        <translation>Ang address na in-enter "%1" ay hindi isang wastong Particl address.</translation>
+        <source>The entered address "%1" is not a valid Ghost address.</source>
+        <translation>Ang address na in-enter "%1" ay hindi isang wastong Ghost address.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -1341,16 +1341,16 @@
         <translation>Kamalian sa paghiling ng bayad</translation>
     </message>
     <message>
-        <source>Cannot start particl: click-to-pay handler</source>
-        <translation>Hindi masimulan ang particl: click-to-pay handler</translation>
+        <source>Cannot start ghost: click-to-pay handler</source>
+        <translation>Hindi masimulan ang ghost: click-to-pay handler</translation>
     </message>
     <message>
         <source>URI handling</source>
         <translation>URI handling</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>Ang 'particl://' ay hindi wastong URI. Sa halip, gamitin ang 'particl:'.</translation>
+        <source>'ghost://' is not a valid URI. Use 'ghost:' instead.</source>
+        <translation>Ang 'ghost://' ay hindi wastong URI. Sa halip, gamitin ang 'ghost:'.</translation>
     </message>
     <message>
         <source>You are using a BIP70 URL which will be unsupported in the future.</source>
@@ -1369,8 +1369,8 @@
         <translation>Hindi wasto and address ng bayad %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Particl address or malformed URI parameters.</source>
-        <translation>Hindi ma-parse ang URI! Marahil ito ay dahil sa hindi wastong Particl address o maling URI parameters</translation>
+        <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
+        <translation>Hindi ma-parse ang URI! Marahil ito ay dahil sa hindi wastong Ghost address o maling URI parameters</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1471,8 +1471,8 @@
         <translation>Halaga</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
-        <translation>I-enter ang Particl address (e.g. %1)</translation>
+        <source>Enter a Ghost address (e.g. %1)</source>
+        <translation>I-enter ang Ghost address (e.g. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2197,7 +2197,7 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Dust:</translation>
     </message>
     <message>
-        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
+        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for ghost transactions than the network can process.</source>
         <translation>Kapag mas kaunti ang dami ng transaksyon kaysa sa puwang sa mga blocks, ang mga minero pati na rin ang mga relaying node ay maaaring magpatupad ng minimum na bayad. Ang pagbabayad lamang ng minimum na bayad na ito ay maayos, ngunit malaman na maaari itong magresulta sa hindi kailanmang nagkukumpirmang transaksyon sa sandaling magkaroon ng higit na pangangailangan para sa mga transaksyon ng particl kaysa sa kayang i-proseso ng network.</translation>
     </message>
     <message>
@@ -2341,8 +2341,8 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation><numerusform>Tinatayang magsimula ng kumpirmasyon sa loob ng %n na mga block.</numerusform><numerusform>Tinatayang magsimula ng kumpirmasyon sa loob ng %n na mga block.</numerusform></translation>
     </message>
     <message>
-        <source>Warning: Invalid Particl address</source>
-        <translation>Babala: Hindi wastong Particl address</translation>
+        <source>Warning: Invalid Ghost address</source>
+        <translation>Babala: Hindi wastong Ghost address</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2384,8 +2384,8 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Ito ay normal na pagbabayad.</translation>
     </message>
     <message>
-        <source>The Particl address to send the payment to</source>
-        <translation>Ang Particl address kung saan ipapadala and bayad</translation>
+        <source>The Ghost address to send the payment to</source>
+        <translation>Ang Ghost address kung saan ipapadala and bayad</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2432,8 +2432,8 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Mag-enter ng label para sa address na ito upang idagdag ito sa listahan ng mga gamit na address.</translation>
     </message>
     <message>
-        <source>A message that was attached to the particl: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
-        <translation>Mensahe na nakalakip sa particl: URI na kung saan maiimbak kasama ang transaksyon para sa iyong sanggunian. Tandaan: Ang mensaheng ito ay hindi ipapadala sa network ng Particl.</translation>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <translation>Mensahe na nakalakip sa ghost: URI na kung saan maiimbak kasama ang transaksyon para sa iyong sanggunian. Tandaan: Ang mensaheng ito ay hindi ipapadala sa network ng Particl.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2481,8 +2481,8 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Maaari kang pumirma ng mga mensahe/kasunduan sa iyong mga address upang mapatunayan na maaari kang makatanggap ng mga particl na ipinadala sa kanila. Mag-ingat na huwag pumirma ng anumang bagay na hindi malinaw o random, dahil ang mga phishing attack ay maaaring subukan na linlangin ka sa pagpirma ng iyong pagkakakilanlan sa kanila. Pumirma lamang ng kumpletong mga pahayag na sumasang-ayon ka.</translation>
     </message>
     <message>
-        <source>The Particl address to sign the message with</source>
-        <translation>Ang Particl address kung anong ipipirma sa mensahe</translation>
+        <source>The Ghost address to sign the message with</source>
+        <translation>Ang Ghost address kung anong ipipirma sa mensahe</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2513,8 +2513,8 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Kopyahin ang kasalukuyang address sa system clipboard</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Particl address</source>
-        <translation>Pirmahan ang mensahe upang mapatunayan na pagmamay-ari mo ang Particl address na ito</translation>
+        <source>Sign the message to prove you own this Ghost address</source>
+        <translation>Pirmahan ang mensahe upang mapatunayan na pagmamay-ari mo ang Ghost address na ito</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2537,12 +2537,12 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Ipasok ang address ng tatanggap, mensahe (tiyakin na kopyahin mo ang mga break ng linya, puwang, mga tab, atbp.) at pirma sa ibaba upang i-verify ang mensahe. Mag-ingat na huwag magbasa ng higit pa sa pirma kaysa sa kung ano ang nasa nakapirmang mensahe mismo, upang maiwasan na maloko ng man-in-the-middle attack. Tandaan na pinapatunayan lamang nito na nakakatanggap sa address na ito ang partido na pumirma, hindi nito napapatunayan ang pagpapadala ng anumang transaksyon!</translation>
     </message>
     <message>
-        <source>The Particl address the message was signed with</source>
-        <translation>Ang Particl address na pumirma sa mensahe</translation>
+        <source>The Ghost address the message was signed with</source>
+        <translation>Ang Ghost address na pumirma sa mensahe</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Particl address</source>
-        <translation>Tiyakin ang katotohanan ng mensahe upang siguruhin na ito'y napirmahan ng tinukoy na Particl address</translation>
+        <source>Verify the message to ensure it was signed with the specified Ghost address</source>
+        <translation>Tiyakin ang katotohanan ng mensahe upang siguruhin na ito'y napirmahan ng tinukoy na Ghost address</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

@@ -13,8 +13,8 @@ export PYTHONPATH
 
 if BUILD_BITCOIN_LIBS
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libparticlconsensus.pc
-pkgconfig_DATA = libparticlconsensus.pc
+pkgconfig_DATA = libghostconsensus.pc
+pkgconfig_DATA = libghostconsensus.pc
 endif
 
 BITCOIND_BIN=$(top_builddir)/src/$(BITCOIN_DAEMON_NAME)$(EXEEXT)
@@ -27,7 +27,7 @@ BITCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EX
 empty :=
 space := $(empty) $(empty)
 
-OSX_APP=Particl-Qt.app
+OSX_APP=Ghost-Qt.app
 OSX_VOLNAME = $(subst $(space),-,$(PACKAGE_NAME))
 OSX_DMG = $(OSX_VOLNAME).dmg
 OSX_BACKGROUND_SVG=background.svg
@@ -36,7 +36,7 @@ OSX_BACKGROUND_IMAGE_DPIS=36 72
 OSX_DSSTORE_GEN=$(top_srcdir)/contrib/macdeploy/custom_dsstore.py
 OSX_DEPLOY_SCRIPT=$(top_srcdir)/contrib/macdeploy/macdeployqtplus
 OSX_FANCY_PLIST=$(top_srcdir)/contrib/macdeploy/fancy.plist
-OSX_INSTALLER_ICONS=$(top_srcdir)/src/qt/res/icons/particl.icns
+OSX_INSTALLER_ICONS=$(top_srcdir)/src/qt/res/icons/ghost.icns
 OSX_PLIST=$(top_builddir)/share/qt/Info.plist #not installed
 OSX_QT_TRANSLATIONS = da,de,es,hu,ru,uk,zh_CN,zh_TW
 
@@ -54,7 +54,7 @@ DIST_SHARE = \
 BIN_CHECKS=$(top_srcdir)/contrib/devtools/symbol-check.py \
            $(top_srcdir)/contrib/devtools/security-check.py
 
-WINDOWS_PACKAGING = $(top_srcdir)/share/pixmaps/particl.ico \
+WINDOWS_PACKAGING = $(top_srcdir)/share/pixmaps/ghost.ico \
   $(top_srcdir)/share/pixmaps/nsis-header.bmp \
   $(top_srcdir)/share/pixmaps/nsis-wizard.bmp \
   $(top_srcdir)/doc/README_windows.txt
@@ -96,11 +96,11 @@ $(OSX_APP)/Contents/Info.plist: $(OSX_PLIST)
 	$(MKDIR_P) $(@D)
 	$(INSTALL_DATA) $< $@
 
-$(OSX_APP)/Contents/Resources/particl.icns: $(OSX_INSTALLER_ICONS)
+$(OSX_APP)/Contents/Resources/ghost.icns: $(OSX_INSTALLER_ICONS)
 	$(MKDIR_P) $(@D)
 	$(INSTALL_DATA) $< $@
 
-$(OSX_APP)/Contents/MacOS/Particl-Qt: all-recursive
+$(OSX_APP)/Contents/MacOS/Ghost-Qt: all-recursive
 	$(MKDIR_P) $(@D)
 	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM)  $(BITCOIN_QT_BIN) $@
 
@@ -109,8 +109,8 @@ $(OSX_APP)/Contents/Resources/Base.lproj/InfoPlist.strings:
 	echo '{	CFBundleDisplayName = "$(PACKAGE_NAME)"; CFBundleName = "$(PACKAGE_NAME)"; }' > $@
 
 OSX_APP_BUILT=$(OSX_APP)/Contents/PkgInfo $(OSX_APP)/Contents/Resources/empty.lproj \
-  $(OSX_APP)/Contents/Resources/particl.icns $(OSX_APP)/Contents/Info.plist \
-  $(OSX_APP)/Contents/MacOS/Particl-Qt $(OSX_APP)/Contents/Resources/Base.lproj/InfoPlist.strings
+  $(OSX_APP)/Contents/Resources/ghost.icns $(OSX_APP)/Contents/Info.plist \
+  $(OSX_APP)/Contents/MacOS/Ghost-Qt $(OSX_APP)/Contents/Resources/Base.lproj/InfoPlist.strings
 
 osx_volname:
 	echo $(OSX_VOLNAME) >$@
@@ -135,7 +135,7 @@ $(APP_DIST_DIR)/Applications:
 	@rm -f $@
 	@cd $(@D); $(LN_S) /Applications $(@F)
 
-$(APP_DIST_EXTRAS): $(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/Particl-Qt
+$(APP_DIST_EXTRAS): $(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/Ghost-Qt
 
 $(OSX_DMG): $(APP_DIST_EXTRAS)
 	$(GENISOIMAGE) -no-cache-inodes -D -l -probe -V "$(OSX_VOLNAME)" -no-pad -r -dir-mode 0755 -apple -o $@ dist
@@ -150,7 +150,7 @@ $(APP_DIST_DIR)/.background/$(OSX_BACKGROUND_IMAGE): $(OSX_BACKGROUND_IMAGE_DPIF
 $(APP_DIST_DIR)/.DS_Store: $(OSX_DSSTORE_GEN)
 	$(PYTHON) $< "$@" "$(OSX_VOLNAME)"
 
-$(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/Particl-Qt: $(OSX_APP_BUILT) $(OSX_PACKAGING)
+$(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/Ghost-Qt: $(OSX_APP_BUILT) $(OSX_PACKAGING)
 	INSTALLNAMETOOL=$(INSTALLNAMETOOL)  OTOOL=$(OTOOL) STRIP=$(STRIP) $(PYTHON) $(OSX_DEPLOY_SCRIPT) $(OSX_APP) -translations-dir=$(QT_TRANSLATION_DIR) -add-qt-tr $(OSX_QT_TRANSLATIONS) -verbose 2
 
 deploydir: $(APP_DIST_EXTRAS)
@@ -288,27 +288,27 @@ EXTRA_DIST += \
     test/util/rpcauth-test.py
 
 EXTRA_DIST += \
-    test/util/data_particl/particl-util-test.json \
-    test/util/data_particl/blanktxv1.hex \
-    test/util/data_particl/blanktxv1.json \
-    test/util/data_particl/blanktxva0.hex \
-    test/util/data_particl/blanktxva0.json \
-    test/util/data_particl/tx14ae341f.hex \
-    test/util/data_particl/tt-delin1-out.hex \
-    test/util/data_particl/tt-delin1-out.json \
-    test/util/data_particl/tt-delout1-out.hex \
-    test/util/data_particl/tt-delout1-out.json \
-    test/util/data_particl/tt-locktime317000-out.hex \
-    test/util/data_particl/tt-locktime317000-out.json \
-    test/util/data_particl/txcreate1.hex \
-    test/util/data_particl/txcreate1.json \
-    test/util/data_particl/txcreate2.hex \
-    test/util/data_particl/txcreate2.json \
-    test/util/data_particl/txcreatesignva0.hex \
-    test/util/data_particl/txaddwitness0.hex \
-    test/util/data_particl/txdelwitness0.hex \
-    test/util/data_particl/txblindout0.hex \
-    test/util/data_particl/txoutdatatype0.hex
+    test/util/data_ghost/ghost-util-test.json \
+    test/util/data_ghost/blanktxv1.hex \
+    test/util/data_ghost/blanktxv1.json \
+    test/util/data_ghost/blanktxva0.hex \
+    test/util/data_ghost/blanktxva0.json \
+    test/util/data_ghost/tx14ae341f.hex \
+    test/util/data_ghost/tt-delin1-out.hex \
+    test/util/data_ghost/tt-delin1-out.json \
+    test/util/data_ghost/tt-delout1-out.hex \
+    test/util/data_ghost/tt-delout1-out.json \
+    test/util/data_ghost/tt-locktime317000-out.hex \
+    test/util/data_ghost/tt-locktime317000-out.json \
+    test/util/data_ghost/txcreate1.hex \
+    test/util/data_ghost/txcreate1.json \
+    test/util/data_ghost/txcreate2.hex \
+    test/util/data_ghost/txcreate2.json \
+    test/util/data_ghost/txcreatesignva0.hex \
+    test/util/data_ghost/txaddwitness0.hex \
+    test/util/data_ghost/txdelwitness0.hex \
+    test/util/data_ghost/txblindout0.hex \
+    test/util/data_ghost/txoutdatatype0.hex
 
 
 CLEANFILES = $(OSX_DMG) $(BITCOIN_WIN_INSTALLER)

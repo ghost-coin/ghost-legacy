@@ -187,7 +187,7 @@
         <translation>Marii</translation>
     </message>
     <message>
-        <source>Enter a Particl address (e.g. %1)</source>
+        <source>Enter a Ghost address (e.g. %1)</source>
         <translation>Nyora kero ye Particl (sekuti %1)</translation>
     </message>
     <message>

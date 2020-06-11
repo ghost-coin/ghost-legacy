@@ -1,23 +1,23 @@
 dist_man1_MANS=
 
 if BUILD_BITCOIND
-  dist_man1_MANS+=particld.1
+  dist_man1_MANS+=ghostd.1
 endif
 
 if ENABLE_QT
-  dist_man1_MANS+=particl-qt.1
+  dist_man1_MANS+=ghost-qt.1
 endif
 
 if BUILD_BITCOIN_CLI
-  dist_man1_MANS+=particl-cli.1
+  dist_man1_MANS+=ghost-cli.1
 endif
 
 if BUILD_BITCOIN_TX
-  dist_man1_MANS+=particl-tx.1
+  dist_man1_MANS+=ghost-tx.1
 endif
 
 if ENABLE_WALLET
 if BUILD_BITCOIN_WALLET
-  dist_man1_MANS+=particl-wallet.1
+  dist_man1_MANS+=ghost-wallet.1
 endif
 endif

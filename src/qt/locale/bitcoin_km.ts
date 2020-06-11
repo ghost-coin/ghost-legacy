@@ -147,7 +147,7 @@
 <context>
     <name>BitcoinGUI</name>
     <message>
-        <source>Send coins to a Particl address</source>
+        <source>Send coins to a Ghost address</source>
         <translation>ផ្ញើកាក់ទៅកាន់ អាសយដ្ឋាន Particl មួយ</translation>
     </message>
     </context>
