@@ -2088,7 +2088,7 @@ CAmount CHDWallet::GetDebit(const CTxIn &txin, const isminefilter &filter) const
 
 CAmount CHDWallet::GetDebit(const CTransaction& tx, const isminefilter& filter) const
 {
-    if (!tx.IsParticlVersion())
+    if (!tx.IsGhostVersion())
         return CWallet::GetDebit(tx, filter);
 
     CAmount nDebit = 0;
@@ -3687,7 +3687,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
     wtx.BindWallet(this);
     wtx.fFromMe = true;
     CMutableTransaction txNew;
-    txNew.nVersion = PARTICL_TXN_VERSION;
+    txNew.nVersion = GHOST_TXN_VERSION;
     txNew.vout.clear();
 
     // Discourage fee sniping. See CWallet::CreateTransaction
@@ -4255,7 +4255,7 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
     wtx.BindWallet(this);
     wtx.fFromMe = true;
     CMutableTransaction txNew;
-    txNew.nVersion = PARTICL_TXN_VERSION;
+    txNew.nVersion = GHOST_TXN_VERSION;
     txNew.vout.clear();
 
     // Discourage fee sniping. See CWallet::CreateTransaction
@@ -5038,7 +5038,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
     wtx.BindWallet(this);
     wtx.fFromMe = true;
     CMutableTransaction txNew;
-    txNew.nVersion = PARTICL_TXN_VERSION;
+    txNew.nVersion = GHOST_TXN_VERSION;
     txNew.vout.clear();
 
     txNew.nLockTime = 0;
@@ -12609,7 +12609,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             txNew.vpout.clear();
 
             // Mark as coin stake transaction
-            txNew.nVersion = PARTICL_TXN_VERSION;
+            txNew.nVersion = GHOST_TXN_VERSION;
             txNew.SetType(TXN_COINSTAKE);
 
             txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));
@@ -12931,7 +12931,7 @@ bool CHDWallet::SignBlock(CBlockTemplate *pblocktemplate, int nHeight, int64_t n
     CBlockIndex *pindexPrev = ::ChainActive().Tip();
 
     CKey key;
-    pblock->nVersion = PARTICL_BLOCK_VERSION;
+    pblock->nVersion = GHOST_BLOCK_VERSION;
     pblock->nBits = GetNextTargetRequired(pindexPrev);
     if (LogAcceptCategory(BCLog::POS)) {
         WalletLogPrintf("%s, nBits %d\n", __func__, pblock->nBits);

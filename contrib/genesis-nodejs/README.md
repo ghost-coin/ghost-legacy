@@ -1,5 +1,5 @@
 ## Genesis-nodejs
-This is a simple script mainly to help setup a new network based on Particl codebase.
+This is a simple script mainly to help setup a new network based on Ghost codebase.
 
 ## How to setup config.json
 - Run createpayoutaddrs.js,this will give you a array of newly generated addresses from daemon.

@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(signature_test)
     CKeyID id = pk.GetID();
 
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.nLockTime = 0;
 
     int nBlockHeight = 22;
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(signature_test)
     txn.vpout.push_back(out1);
 
     CMutableTransaction txn2;
-    txn2.nVersion = PARTICL_TXN_VERSION;
+    txn2.nVersion = GHOST_TXN_VERSION;
     txn2.vin.push_back(CTxIn(txn.GetHash(), 0));
 
     std::vector<uint8_t> vchAmount(8);
@@ -95,11 +95,11 @@ BOOST_AUTO_TEST_CASE(ghostchain_test)
     CScript script = CScript() << OP_DUP << OP_HASH160 << ToByteVector(id) << OP_EQUALVERIFY << OP_CHECKSIG;
 
     CBlock blk;
-    blk.nVersion = PARTICL_BLOCK_VERSION;
+    blk.nVersion = GHOST_BLOCK_VERSION;
     blk.nTime = 1487406900;
 
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.SetType(TXN_COINBASE);
     txn.nLockTime = 0;
     OUTPUT_PTR<CTxOutStandard> out0 = MAKE_OUTPUT<CTxOutStandard>();
@@ -126,6 +126,10 @@ BOOST_AUTO_TEST_CASE(ghostchain_test)
     BOOST_CHECK(blk.nTime == blkOut.nTime && blkOut.nTime == 1487406900);
 
     BOOST_CHECK(TXN_COINBASE == blkOut.vtx[0]->GetType());
+
+    CMutableTransaction txnSpend;
+
+    txnSpend.nVersion = GHOST_BLOCK_VERSION;
 }
 
 BOOST_AUTO_TEST_CASE(varints)
@@ -172,8 +176,8 @@ BOOST_AUTO_TEST_CASE(varints)
 BOOST_AUTO_TEST_CASE(mixed_input_types)
 {
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
-    BOOST_CHECK(txn.IsParticlVersion());
+    txn.nVersion = GHOST_TXN_VERSION;
+    BOOST_CHECK(txn.IsGhostVersion());
 
     CAmount txfee;
     int nSpendHeight = 1;
@@ -181,8 +185,8 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
     CCoinsViewCache inputs(&viewDummy);
 
     CMutableTransaction txnPrev;
-    txnPrev.nVersion = PARTICL_TXN_VERSION;
-    BOOST_CHECK(txnPrev.IsParticlVersion());
+    txnPrev.nVersion = GHOST_TXN_VERSION;
+    BOOST_CHECK(txnPrev.IsGhostVersion());
 
     CScript scriptPubKey;
     txnPrev.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(1 * COIN, scriptPubKey));

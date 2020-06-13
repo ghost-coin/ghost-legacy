@@ -458,7 +458,7 @@ static bool CheckInputsFromMempoolAndCache(const CTransaction& tx, CValidationSt
         if (txFrom) {
             assert(txFrom->GetHash() == txin.prevout.hash);
             assert(txFrom->GetNumVOuts() > txin.prevout.n);
-            if (txFrom->IsParticlVersion()) {
+            if (txFrom->IsGhostVersion()) {
                 assert(coin.Matches(txFrom->vpout[txin.prevout.n].get()));
             } else {
                 assert(txFrom->vout[txin.prevout.n] == coin.out);
@@ -2697,7 +2697,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                                  REJECT_INVALID, "bad-txns-nonfinal");
             }
 
-            if (tx.IsParticlVersion()
+            if (tx.IsGhostVersion()
                 && (fAddressIndex || fSpentIndex)) {
                 // Update spent inputs for insight
                 for (size_t j = 0; j < tx.vin.size(); j++) {
@@ -3347,7 +3347,7 @@ void UpdateTip(const CBlockIndex* pindexNew, const CChainParams& chainParams)
         {
             if (fParticlMode)
             {
-                if (pindex->nVersion > PARTICL_BLOCK_VERSION)
+                if (pindex->nVersion > GHOST_BLOCK_VERSION)
                     ++nUpgraded;
             } else
             {
@@ -4245,7 +4245,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, un
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     if (fParticlMode
-        && !block.IsParticlVersion())
+        && !block.IsGhostVersion())
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "block-version", "bad block version");
 
     // Check timestamp

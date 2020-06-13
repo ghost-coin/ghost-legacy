@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     CScript script = CScript() << 1487406900 << OP_CHECKLOCKTIMEVERIFY << OP_DROP << OP_DUP << OP_HASH160 << ToByteVector(id) << OP_EQUALVERIFY << OP_CHECKSIG;
 
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.SetType(TXN_COINBASE);
     txn.nLockTime = 0;
     OUTPUT_PTR<CTxOutStandard> out0 = MAKE_OUTPUT<CTxOutStandard>();

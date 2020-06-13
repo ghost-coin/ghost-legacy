@@ -124,7 +124,7 @@ bool SequenceLocks(const CTransaction &tx, int flags, std::vector<int>* prevHeig
 unsigned int GetLegacySigOpCount(const CTransaction& tx)
 {
     unsigned int nSigOps = 0;
-    if (!tx.IsParticlVersion())
+    if (!tx.IsGhostVersion())
     {
         for (const auto& txin : tx.vin)
         {
@@ -329,7 +329,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     if (::GetSerializeSize(tx, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-oversize");
 
-    if (tx.IsParticlVersion()) {
+    if (tx.IsGhostVersion()) {
         const Consensus::Params& consensusParams = Params().GetConsensus();
         if (state.m_clamp_tx_version && tx.GetParticlVersion() != PARTICL_TXN_VERSION) {
             return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txn-version");
@@ -449,7 +449,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     size_t min_ring_size = consensusParams.m_max_ringsize;
     size_t max_ring_size = consensusParams.m_min_ringsize;
 
-    bool is_particl_tx = tx.IsParticlVersion();
+    bool is_particl_tx = tx.IsGhostVersion();
     if (is_particl_tx && tx.vin.size() < 1) { // early out
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txn-no-inputs",
                          strprintf("%s: no inputs", __func__));

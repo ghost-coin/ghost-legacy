@@ -2046,7 +2046,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry>& listReceived,
     }
 
     // Sent/received.
-    if (tx->IsParticlVersion()) {
+    if (tx->IsGhostVersion()) {
         for (unsigned int i = 0; i < tx->vpout.size(); ++i) {
             const CTxOutBase *txout = tx->vpout[i].get();
             if (!txout->IsStandardOutput()) {
@@ -2511,7 +2511,7 @@ bool CWalletTx::IsTrusted(interfaces::Chain::Lock& locked_chain) const
         if (parent == nullptr)
             return false;
 
-        if (tx->IsParticlVersion()) {
+        if (tx->IsGhostVersion()) {
             const CTxOutBase *parentOut = parent->tx->vpout[txin.prevout.n].get();
             if (!(pwallet->IsMine(parentOut) & ISMINE_SPENDABLE)) {
                 return false;
@@ -5004,7 +5004,7 @@ std::vector<OutputGroup> CWallet::GroupOutputs(const std::vector<COutput>& outpu
 
             size_t ancestors, descendants;
             chain().getTransactionAncestry(output.tx->GetHash(), ancestors, descendants);
-            const CScript *pscript = output.tx->tx->IsParticlVersion()
+            const CScript *pscript = output.tx->tx->IsGhostVersion()
                 ? output.tx->tx->vpout[output.i]->GetPScriptPubKey() : &output.tx->tx->vout[output.i].scriptPubKey;
             if (!single_coin && ExtractDestination(*pscript, dst)) {
                 // Limit output groups to no more than 10 entries, to protect

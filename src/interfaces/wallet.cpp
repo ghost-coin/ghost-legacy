@@ -53,7 +53,7 @@ WalletTx MakeWalletTx(interfaces::Chain::Lock& locked_chain, CWallet& wallet, co
     for (const auto& txin : wtx.tx->vin) {
         result.txin_is_mine.emplace_back(wallet.IsMine(txin));
     }
-    if (wtx.tx->IsParticlVersion()) {
+    if (wtx.tx->IsGhostVersion()) {
         size_t nv = wtx.tx->GetNumVOuts();
         result.txout_is_mine.reserve(nv);
         result.txout_address.reserve(nv);
