@@ -1,7 +1,7 @@
-Contributing to Particl Core
+Contributing to Ghost Core
 ============================
 
-The Particl project operates an open contributor model where anyone is
+The Ghost project operates an open contributor model where anyone is
 welcome to contribute towards development in the form of peer review, testing
 and patches. This document explains the practical process and guidelines for
 contributing.
@@ -17,11 +17,14 @@ release cycle, overall merging, moderation and appointment of maintainers.
 Communication Channels
 ----------------------
 
-Most communication about Particl development happens on [#particl-dev:matrix.org](https://riot.im/app/#/room/#particl-dev:matrix.org), in the Particl Open Development channel on Riot. The easiest way to participate on Riot is
-with the web client, [riot.im](https://riot.im/app/). Desktop downloads also available.
+[Telegram: Ghost Developer Chat](https://t.me/ghostcoindevchat)
+
+[Reddit: /r/GhostPrivacyCoin](https://www.reddit.com/r/GhostPrivacyCoin/)
+
+[Discord: Ghost](https://discord.gg/stKyuBU)
 
 Discussion about code base improvements happens in GitHub issues and on pull
-requests.
+requests. For suggestions and other topics please use the social channels above.
 
 
 Contributor Workflow
@@ -181,9 +184,9 @@ workload on reviewing.
 "Decision Making" Process
 -------------------------
 
-The following applies to code changes to the Particl project..
+The following applies to code changes to the Ghost project..
 
-Whether a pull request is merged into Particl Core rests with the project merge
+Whether a pull request is merged into Ghost Core rests with the project merge
 maintainers and ultimately the project lead.
 
 Maintainers will take into consideration if a patch is in line with the general
@@ -202,7 +205,7 @@ In general, all pull requests must:
     demonstrating the bug and also proving the fix. This helps prevent regression.
   - Change relevant comments and documentation when behaviour of code changes.
 
-Patches that change Particl consensus rules are considerably more involved than
+Patches that change Ghost consensus rules are considerably more involved than
 normal because they affect the entire ecosystem and so must be preceded by
 extensive mailing list discussions and have a numbered PIP. While each case will
 be different, one should be prepared to expend more time and effort than for
@@ -257,7 +260,7 @@ higher in terms of discussion and peer review requirements, keeping in mind that
 mistakes could be very costly to the wider community. This includes refactoring
 of consensus critical code.
 
-[//]: # (Where a patch set proposes to change the Particl consensus, it must have been
+[//]: # (Where a patch set proposes to change the Ghost consensus, it must have been
 discussed extensively on the mailing list and IRC, be accompanied by a widely
 discussed BIP and have a generally widely perceived technical consensus of being
 a worthwhile change based on the judgement of the maintainers.)
@@ -297,12 +300,12 @@ about:
 Release Policy
 --------------
 
-The project leader is the release manager for each Particl Core release.
+The project leader is the release manager for each Ghost Core release.
 
 Acknowledgement
 ---------------
 
-This process was heavily influenced by the Bitcoin Core [contributing process](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md).
+This process was heavily influenced by the Bitcoin Core [contributing process](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md) and Particl Core[contributing process](https://github.com/particl/particl-core/blob/master/CONTRIBUTING.md)
 
 Copyright
 ---------
