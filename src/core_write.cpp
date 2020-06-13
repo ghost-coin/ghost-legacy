@@ -346,7 +346,7 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
         vout.push_back(out);
     }
 
-    if (!tx.IsParticlVersion())
+    if (!tx.IsGhostVersion())
     for (unsigned int i = 0; i < tx.vout.size(); i++) {
         const CTxOut& txout = tx.vout[i];
 
