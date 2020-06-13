@@ -11,7 +11,7 @@
   </array>
 
   <key>CFBundleIconFile</key>
-  <string>particl.icns</string>
+  <string>ghost.icns</string>
 
   <key>CFBundlePackageType</key>
   <string>APPL</string>
@@ -60,7 +60,7 @@
       <key>UTTypeIdentifier</key>
       <string>org.ghost.paymentrequest</string>
       <key>UTTypeDescription</key>
-      <string>Particl payment request</string>
+      <string>Ghost payment request</string>
       <key>UTTypeConformsTo</key>
       <array>
         <string>public.data</string>
