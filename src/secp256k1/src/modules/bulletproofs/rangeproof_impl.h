@@ -168,6 +168,7 @@ static int secp256k1_bulletproof_rangeproof_verify_impl(const secp256k1_ecmult_c
     int ret;
     size_t i;
     int same_generators = 1;
+    size_t scratch_checkpoint;
 
     /* sanity-check input */
     if (secp256k1_popcountl(nbits) != 1 || nbits > MAX_NBITS) {
@@ -180,11 +181,9 @@ static int secp256k1_bulletproof_rangeproof_verify_impl(const secp256k1_ecmult_c
         return 0;
     }
 
-    if (!secp256k1_scratch_allocate_frame(scratch, n_proofs * (sizeof(*ecmult_data) + sizeof(*innp_ctx)), 2)) {
-        return 0;
-    }
-    ecmult_data = (secp256k1_bulletproof_vfy_ecmult_context *)secp256k1_scratch_alloc(scratch, n_proofs * sizeof(*ecmult_data));
-    innp_ctx = (secp256k1_bulletproof_innerproduct_context *)secp256k1_scratch_alloc(scratch, n_proofs * sizeof(*innp_ctx));
+    scratch_checkpoint = secp256k1_scratch_checkpoint(&bp_error_callback, scratch);
+    ecmult_data = (secp256k1_bulletproof_vfy_ecmult_context *)secp256k1_scratch_alloc(&bp_error_callback, scratch, n_proofs * sizeof(*ecmult_data));
+    innp_ctx = (secp256k1_bulletproof_innerproduct_context *)secp256k1_scratch_alloc(&bp_error_callback, scratch, n_proofs * sizeof(*innp_ctx));
 
     /* Check if all generators are equal. If so, we can amortize all their scalar multiplications
      * by them and save one scalar-ge multiplication per proof. */
@@ -249,13 +248,13 @@ static int secp256k1_bulletproof_rangeproof_verify_impl(const secp256k1_ecmult_c
         secp256k1_bulletproof_update_commit(commit, &age, &sge);
         secp256k1_scalar_set_b32(&ecmult_data[i].y, commit, &overflow);
         if (overflow || secp256k1_scalar_is_zero(&ecmult_data[i].y)) {
-            secp256k1_scratch_deallocate_frame(scratch);
+            secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
             return 0;
         }
         secp256k1_bulletproof_update_commit(commit, &age, &sge);
         secp256k1_scalar_set_b32(&ecmult_data[i].z, commit, &overflow);
         if (overflow || secp256k1_scalar_is_zero(&ecmult_data[i].z)) {
-            secp256k1_scratch_deallocate_frame(scratch);
+            secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
             return 0;
         }
 
@@ -267,7 +266,7 @@ static int secp256k1_bulletproof_rangeproof_verify_impl(const secp256k1_ecmult_c
         secp256k1_bulletproof_update_commit(commit, &ecmult_data[i].t1, &ecmult_data[i].t2);
         secp256k1_scalar_set_b32(&ecmult_data[i].x, commit, &overflow);
         if (overflow || secp256k1_scalar_is_zero(&ecmult_data[i].x)) {
-            secp256k1_scratch_deallocate_frame(scratch);
+            secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
             return 0;
         }
 
@@ -291,26 +290,26 @@ static int secp256k1_bulletproof_rangeproof_verify_impl(const secp256k1_ecmult_c
         secp256k1_sha256_finalize(&sha256, randomizer61);
         secp256k1_scalar_set_b32(&ecmult_data[i].randomizer61, randomizer61, &overflow);
         if (overflow || secp256k1_scalar_is_zero(&ecmult_data[i].randomizer61)) {
-            secp256k1_scratch_deallocate_frame(scratch);
+            secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
             return 0;
         }
 
         /* Deserialize everything else */
         secp256k1_scalar_set_b32(&taux, &proof[i][0], &overflow);
         if (overflow || secp256k1_scalar_is_zero(&taux)) {
-            secp256k1_scratch_deallocate_frame(scratch);
+            secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
             return 0;
         }
         secp256k1_scalar_set_b32(&mu, &proof[i][32], &overflow);
         if (overflow || secp256k1_scalar_is_zero(&mu)) {
-            secp256k1_scratch_deallocate_frame(scratch);
+            secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
             return 0;
         }
         /* A little sketchy, we read t (l(x) . r(x)) off the front of the inner product proof,
          * which we otherwise treat as a black box */
         secp256k1_scalar_set_b32(&ecmult_data[i].t, &proof[i][64 + 128 + 1], &overflow);
         if (overflow || secp256k1_scalar_is_zero(&ecmult_data[i].t)) {
-            secp256k1_scratch_deallocate_frame(scratch);
+            secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
             return 0;
         }
 
@@ -336,7 +335,8 @@ static int secp256k1_bulletproof_rangeproof_verify_impl(const secp256k1_ecmult_c
     }
 
     ret = secp256k1_bulletproof_inner_product_verify_impl(ecmult_ctx, scratch, gens, nbits * n_commits, innp_ctx, n_proofs, plen - (64 + 128 + 1), same_generators);
-    secp256k1_scratch_deallocate_frame(scratch);
+    secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
+
     return ret;
 }
 

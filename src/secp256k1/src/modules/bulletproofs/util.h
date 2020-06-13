@@ -7,6 +7,16 @@
 #ifndef SECP256K1_MODULE_BULLETPROOF_UTIL
 #define SECP256K1_MODULE_BULLETPROOF_UTIL
 
+void bp_error_callback_fn(const char* str, void* data) {
+    (void)data;
+    fprintf(stderr, "[libsecp256k1] error: %s\n", str);
+}
+
+const secp256k1_callback bp_error_callback = {
+    bp_error_callback_fn,
+    NULL
+};
+
 /* floor(log2(n)) which returns 0 for 0, since this is used to estimate proof sizes */
 SECP256K1_INLINE static size_t secp256k1_floor_lg(size_t n) {
     switch (n) {

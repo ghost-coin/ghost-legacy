@@ -272,22 +272,21 @@ BOOST_AUTO_TEST_CASE(ct_test_bulletproofs)
     }
 
     secp256k1_bulletproof_generators_destroy(ctx, gens);
-    secp256k1_scratch_space_destroy(scratch);
+    secp256k1_scratch_space_destroy(ctx, scratch);
     secp256k1_context_destroy(ctx);
 }
 
 BOOST_AUTO_TEST_CASE(ct_parameters_test)
 {
     //for (size_t k = 0; k < 10000; ++k)
-    for (size_t k = 0; k < 100; ++k)
-    {
+    for (size_t k = 0; k < 100; ++k) {
         CAmount nValue = (GetRand((MAX_MONEY / (k+1))) / COIN) * COIN;
         uint64_t min_value = 0;
         int ct_exponent = 0;
         int ct_bits = 32;
 
         SelectRangeProofParameters(nValue, min_value, ct_exponent, ct_bits);
-    };
+    }
 }
 
 BOOST_AUTO_TEST_CASE(ct_commitment_test)

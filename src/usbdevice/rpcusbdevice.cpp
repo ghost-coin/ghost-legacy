@@ -434,14 +434,6 @@ static UniValue devicesignmessage(const JSONRPCRequest &request)
 
 static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
 {
-    #ifdef ENABLE_WALLET
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
-        return NullUniValue;
-    }
-    #endif
-
             RPCHelpMan{"devicesignrawtransaction",
                 "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
                 "The second optional argument (may be null) is an array of previous transaction outputs that\n"
@@ -502,6 +494,10 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
             }.Check(request);
 
 #ifdef ENABLE_WALLET
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) return NullUniValue;
+    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+
     LOCK(pwallet ? &pwallet->cs_wallet : nullptr);
 #endif
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR, UniValue::VARR, UniValue::VSTR, UniValue::VSTR}, true);
@@ -740,11 +736,6 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
 #ifdef ENABLE_WALLET
 static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
-        return NullUniValue;
-
             RPCHelpMan{"initaccountfromdevice",
                 "\nInitialise an extended key account from a hardware device." +
                 HELP_REQUIRING_PASSPHRASE,
@@ -767,6 +758,11 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
             + HelpExampleRpc("initaccountfromdevice", "\"new_acc\"")
                 },
             }.Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) return NullUniValue;
+    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR, UniValue::VBOOL, UniValue::VNUM}, true);
 
@@ -989,12 +985,6 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 
 static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
 {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
-        return NullUniValue;
-    }
-
             RPCHelpMan{"devicegetnewstealthaddress",
                 "\nReturns a new Particl stealth address for receiving payments." +
                     HELP_REQUIRING_PASSPHRASE,
@@ -1017,6 +1007,10 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
             + HelpExampleRpc("devicegetnewstealthaddress", "\"lblTestSxAddrPrefix\", 3, \"0b101\"")
                 },
             }.Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    if (!wallet) return NullUniValue;
+    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
 
     EnsureWalletIsUnlocked(pwallet);
 

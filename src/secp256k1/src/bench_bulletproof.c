@@ -102,7 +102,7 @@ static void bench_bulletproof_common_teardown(bench_bulletproof_t *data) {
     free(data->value_gen);
 }
 
-static void bench_bulletproof_rangeproof_teardown(void* arg) {
+static void bench_bulletproof_rangeproof_teardown(void* arg, int iters) {
     bench_bulletproof_rangeproof_t *data = (bench_bulletproof_rangeproof_t*)arg;
     size_t i;
 
@@ -123,7 +123,7 @@ static void bench_bulletproof_rangeproof_teardown(void* arg) {
     bench_bulletproof_common_teardown(data->common);
 }
 
-static void bench_bulletproof_rangeproof_prove(void* arg) {
+static void bench_bulletproof_rangeproof_prove(void* arg, int iters) {
     bench_bulletproof_rangeproof_t *data = (bench_bulletproof_rangeproof_t*)arg;
     size_t i;
     for (i = 0; i < 25; i++) {
@@ -131,7 +131,7 @@ static void bench_bulletproof_rangeproof_prove(void* arg) {
     }
 }
 
-static void bench_bulletproof_rangeproof_verify(void* arg) {
+static void bench_bulletproof_rangeproof_verify(void* arg, int iters) {
     size_t i;
     bench_bulletproof_rangeproof_t *data = (bench_bulletproof_rangeproof_t*)arg;
 
@@ -140,7 +140,7 @@ static void bench_bulletproof_rangeproof_verify(void* arg) {
     }
 }
 
-static void bench_bulletproof_rangeproof_rewind_succeed(void* arg) {
+static void bench_bulletproof_rangeproof_rewind_succeed(void* arg, int iters) {
     size_t i;
     size_t v;
     unsigned char blind[32];
@@ -151,7 +151,7 @@ static void bench_bulletproof_rangeproof_rewind_succeed(void* arg) {
     }
 }
 
-static void bench_bulletproof_rangeproof_rewind_fail(void* arg) {
+static void bench_bulletproof_rangeproof_rewind_fail(void* arg, int iters) {
     size_t i;
     size_t v;
     unsigned char blind[32];
@@ -237,7 +237,7 @@ int main(void) {
     /* to add more, increase the number of generators above in `data.generators = ...` */
 
     secp256k1_bulletproof_generators_destroy(data.ctx, data.generators);
-    secp256k1_scratch_space_destroy(data.scratch);
+    secp256k1_scratch_space_destroy(data.ctx, data.scratch);
     secp256k1_context_destroy(data.ctx);
     return 0;
 }

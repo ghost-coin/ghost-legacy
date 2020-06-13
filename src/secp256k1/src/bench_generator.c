@@ -23,22 +23,22 @@ static void bench_generator_setup(void* arg) {
     memset(data->blind, 0x13, 32);
 }
 
-static void bench_generator_generate(void* arg) {
+static void bench_generator_generate(void* arg, int iters) {
     int i;
     bench_generator_t *data = (bench_generator_t*)arg;
 
-    for (i = 0; i < 20000; i++) {
+    for (i = 0; i < iters; i++) {
         secp256k1_generator gen;
         CHECK(secp256k1_generator_generate(data->ctx, &gen, data->key));
         data->key[i & 31]++;
     }
 }
 
-static void bench_generator_generate_blinded(void* arg) {
+static void bench_generator_generate_blinded(void* arg, int iters) {
     int i;
     bench_generator_t *data = (bench_generator_t*)arg;
 
-    for (i = 0; i < 20000; i++) {
+    for (i = 0; i < iters; i++) {
         secp256k1_generator gen;
         CHECK(secp256k1_generator_generate_blinded(data->ctx, &gen, data->key, data->blind));
         data->key[1 + (i & 30)]++;

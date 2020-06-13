@@ -80,7 +80,7 @@ int CHDWallet::Finalise()
     m_address_book.clear();
 
     if (m_blind_scratch) {
-        secp256k1_scratch_space_destroy(m_blind_scratch);
+        secp256k1_scratch_space_destroy(secp256k1_ctx_blind, m_blind_scratch);
         m_blind_scratch = nullptr;
     }
     return 0;

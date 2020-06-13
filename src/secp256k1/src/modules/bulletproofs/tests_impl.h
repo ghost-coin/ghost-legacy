@@ -245,7 +245,7 @@ static void test_bulletproof_api(void) {
 
     secp256k1_bulletproof_generators_destroy(none, gens);
     secp256k1_bulletproof_generators_destroy(none, NULL);
-    secp256k1_scratch_destroy(scratch);
+    secp256k1_scratch_destroy(&ctx->error_callback, scratch);
     secp256k1_context_destroy(none);
     secp256k1_context_destroy(sign);
     secp256k1_context_destroy(vrfy);
@@ -373,7 +373,7 @@ void test_bulletproof_inner_product(size_t n, const secp256k1_bulletproof_genera
         ecmult_data.b = b_arr;
         ecmult_data.g = gens->gens;
         ecmult_data.h = gens->gens + gens->n/2;
-        CHECK(secp256k1_ecmult_multi_var(&ctx->ecmult_ctx, scratch, &pj, &zero, test_bulletproof_ecmult_callback, (void*) &ecmult_data, 2 * n));
+        CHECK(secp256k1_ecmult_multi_var(&ctx->error_callback, &ctx->ecmult_ctx, scratch, &pj, &zero, test_bulletproof_ecmult_callback, (void*) &ecmult_data, 2 * n));
         secp256k1_ge_set_gej(&offs_ctx.p, &pj);
     }
 
@@ -453,7 +453,7 @@ void test_bulletproof_inner_product(size_t n, const secp256k1_bulletproof_genera
 
     free(a_arr);
     free(b_arr);
-    secp256k1_scratch_destroy(scratch);
+    secp256k1_scratch_destroy(&ctx->error_callback, scratch);
 }
 
 void test_bulletproof_rangeproof(size_t nbits, size_t expected_size, const secp256k1_bulletproof_generators *gens) {
@@ -521,7 +521,7 @@ void test_bulletproof_rangeproof(size_t nbits, size_t expected_size, const secp2
     nonce[0] ^= 111;
     CHECK(secp256k1_bulletproof_rangeproof_rewind_impl(&v_recovered, &blind_recovered, proof, plen, 0, &pcommit, &secp256k1_generator_const_g, gens->blinding_gen, nonce, NULL, 0) == 0);
 
-    secp256k1_scratch_destroy(scratch);
+    secp256k1_scratch_destroy(&ctx->error_callback, scratch);
 }
 
 void test_bulletproof_rangeproof_aggregate(size_t nbits, size_t n_commits, size_t expected_size, const secp256k1_bulletproof_generators *gens) {
@@ -560,7 +560,7 @@ void test_bulletproof_rangeproof_aggregate(size_t nbits, size_t n_commits, size_
     CHECK(plen == expected_size);
     CHECK(secp256k1_bulletproof_rangeproof_verify_impl(&ctx->ecmult_ctx, scratch, &proof_ptr, 1, plen, nbits, NULL, &constptr, n_commits, &value_gen, gens, NULL, 0) == 1);
 
-    secp256k1_scratch_destroy(scratch);
+    secp256k1_scratch_destroy(&ctx->error_callback, scratch);
     free(commitp);
     free(v);
     free(blind);

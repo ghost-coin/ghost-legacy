@@ -35,7 +35,7 @@ static void bench_rangeproof_setup(void* arg) {
     CHECK(secp256k1_rangeproof_verify(data->ctx, &minv, &maxv, &data->commit, data->proof, data->len, NULL, 0, &secp256k1_generator_const_h));
 }
 
-static void bench_rangeproof(void* arg) {
+static void bench_rangeproof(void* arg, int iters) {
     int i;
     bench_rangeproof_t *data = (bench_rangeproof_t*)arg;
 

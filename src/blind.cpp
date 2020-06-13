@@ -153,7 +153,7 @@ void ECC_Start_Blinding()
 void ECC_Stop_Blinding()
 {
     secp256k1_bulletproof_generators_destroy(secp256k1_ctx_blind, blind_gens);
-    secp256k1_scratch_space_destroy(blind_scratch);
+    secp256k1_scratch_space_destroy(secp256k1_ctx_blind, blind_scratch);
 
     secp256k1_context *ctx = secp256k1_ctx_blind;
     secp256k1_ctx_blind = nullptr;

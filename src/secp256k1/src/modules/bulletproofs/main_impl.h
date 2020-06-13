@@ -85,6 +85,7 @@ int secp256k1_bulletproof_rangeproof_verify(const secp256k1_context* ctx, secp25
     secp256k1_ge value_genp;
     const secp256k1_ge *commitp_ptr;
     const uint64_t *minvalue_ptr;
+    size_t scratch_checkpoint;
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(scratch != NULL);
@@ -99,11 +100,9 @@ int secp256k1_bulletproof_rangeproof_verify(const secp256k1_context* ctx, secp25
     ARG_CHECK(extra_commit != NULL || extra_commit_len == 0);
     ARG_CHECK(secp256k1_ecmult_context_is_built(&ctx->ecmult_ctx));
 
-    if (!secp256k1_scratch_allocate_frame(scratch, 2 * n_commits * sizeof(secp256k1_ge), 1)) {
-        return 0;
-    }
+    scratch_checkpoint = secp256k1_scratch_checkpoint(&bp_error_callback, scratch);
 
-    commitp = (secp256k1_ge *)secp256k1_scratch_alloc(scratch, n_commits * sizeof(secp256k1_ge));
+    commitp = (secp256k1_ge *)secp256k1_scratch_alloc(&bp_error_callback, scratch, n_commits * sizeof(secp256k1_ge));
     for (i = 0; i < n_commits; i++) {
         secp256k1_pedersen_commitment_load(&commitp[i], &commit[i]);
     }
@@ -112,18 +111,16 @@ int secp256k1_bulletproof_rangeproof_verify(const secp256k1_context* ctx, secp25
     commitp_ptr = commitp;
     minvalue_ptr = min_value;
     ret = secp256k1_bulletproof_rangeproof_verify_impl(&ctx->ecmult_ctx, scratch, &proof, 1, plen, nbits, &minvalue_ptr, &commitp_ptr, n_commits, &value_genp, gens, &extra_commit, &extra_commit_len);
-    secp256k1_scratch_deallocate_frame(scratch);
+    secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
     return ret;
 }
-
-#define ALIGNMENT 16
-#define scratch_align(S) ((((S) + ALIGNMENT - 1) / ALIGNMENT) * ALIGNMENT)
 
 int secp256k1_bulletproof_rangeproof_verify_multi(const secp256k1_context* ctx, secp256k1_scratch_space *scratch, const secp256k1_bulletproof_generators *gens, const unsigned char* const* proof, size_t n_proofs, size_t plen, const uint64_t* const* min_value, const secp256k1_pedersen_commitment* const* commit, size_t n_commits, size_t nbits, const secp256k1_generator *value_gen, const unsigned char* const* extra_commit, size_t *extra_commit_len) {
     int ret;
     secp256k1_ge **commitp;
     secp256k1_ge *value_genp;
     size_t i;
+    size_t scratch_checkpoint;
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(scratch != NULL);
@@ -145,18 +142,13 @@ int secp256k1_bulletproof_rangeproof_verify_multi(const secp256k1_context* ctx, 
     ARG_CHECK(secp256k1_ecmult_context_is_built(&ctx->ecmult_ctx));
 
     /*if (!secp256k1_scratch_allocate_frame(scratch, n_proofs * (sizeof(*value_genp) + sizeof(*commitp) + n_commits * sizeof(**commitp)), 1 + n_proofs)) { */
-    if (!secp256k1_scratch_allocate_frame(scratch,
-            scratch_align(n_proofs * sizeof(*value_genp)) +
-            scratch_align(n_proofs * sizeof(*commitp)) +
-            n_proofs * scratch_align(n_commits * sizeof(**commitp)), 1)) {
-        return 0;
-    }
+    scratch_checkpoint = secp256k1_scratch_checkpoint(&bp_error_callback, scratch);
 
-    commitp = (secp256k1_ge **)secp256k1_scratch_alloc(scratch, n_proofs * sizeof(*commitp));
-    value_genp = (secp256k1_ge *)secp256k1_scratch_alloc(scratch, n_proofs * sizeof(*value_genp));
+    commitp = (secp256k1_ge **)secp256k1_scratch_alloc(&bp_error_callback, scratch, n_proofs * sizeof(*commitp));
+    value_genp = (secp256k1_ge *)secp256k1_scratch_alloc(&bp_error_callback, scratch, n_proofs * sizeof(*value_genp));
     for (i = 0; i < n_proofs; i++) {
         size_t j;
-        commitp[i] = (secp256k1_ge *)secp256k1_scratch_alloc(scratch, n_commits * sizeof(*commitp[i]));
+        commitp[i] = (secp256k1_ge *)secp256k1_scratch_alloc(&bp_error_callback, scratch, n_commits * sizeof(*commitp[i]));
         for (j = 0; j < n_commits; j++) {
             secp256k1_pedersen_commitment_load(&commitp[i][j], &commit[i][j]);
         }
@@ -164,7 +156,7 @@ int secp256k1_bulletproof_rangeproof_verify_multi(const secp256k1_context* ctx, 
     }
 
     ret = secp256k1_bulletproof_rangeproof_verify_impl(&ctx->ecmult_ctx, scratch, proof, n_proofs, plen, nbits, min_value, (const secp256k1_ge **) commitp, n_commits, value_genp, gens, extra_commit, extra_commit_len);
-    secp256k1_scratch_deallocate_frame(scratch);
+    secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
     return ret;
 }
 
@@ -195,6 +187,7 @@ int secp256k1_bulletproof_rangeproof_prove(const secp256k1_context* ctx, secp256
     secp256k1_scalar *blinds;
     secp256k1_ge value_genp;
     size_t i;
+    size_t scratch_checkpoint;
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(scratch != NULL);
@@ -218,11 +211,9 @@ int secp256k1_bulletproof_rangeproof_prove(const secp256k1_context* ctx, secp256
     ARG_CHECK(secp256k1_ecmult_context_is_built(&ctx->ecmult_ctx));
     ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
 
-    if (!secp256k1_scratch_allocate_frame(scratch, n_commits * (sizeof(*commitp) + sizeof(*blinds)), 2)) {
-        return 0;
-    }
-    commitp = (secp256k1_ge *)secp256k1_scratch_alloc(scratch, n_commits * sizeof(*commitp));
-    blinds = (secp256k1_scalar *)secp256k1_scratch_alloc(scratch, n_commits * sizeof(*blinds));
+    scratch_checkpoint = secp256k1_scratch_checkpoint(&bp_error_callback, scratch);
+    commitp = (secp256k1_ge *)secp256k1_scratch_alloc(&bp_error_callback, scratch, n_commits * sizeof(*commitp));
+    blinds = (secp256k1_scalar *)secp256k1_scratch_alloc(&bp_error_callback, scratch, n_commits * sizeof(*blinds));
 
     secp256k1_generator_load(&value_genp, value_gen);
     for (i = 0; i < n_commits; i++) {
@@ -230,6 +221,7 @@ int secp256k1_bulletproof_rangeproof_prove(const secp256k1_context* ctx, secp256
         secp256k1_gej commitj;
         secp256k1_scalar_set_b32(&blinds[i], blind[i], &overflow);
         if (overflow || secp256k1_scalar_is_zero(&blinds[i])) {
+            secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
             return 0;
         }
         secp256k1_pedersen_ecmult(&commitj, &blinds[i], value[i], &value_genp, &gens->blinding_gen[0]);
@@ -237,7 +229,7 @@ int secp256k1_bulletproof_rangeproof_prove(const secp256k1_context* ctx, secp256
     }
 
     ret = secp256k1_bulletproof_rangeproof_prove_impl(&ctx->ecmult_ctx, scratch, proof, plen, nbits, value, min_value, blinds, commitp, n_commits, &value_genp, gens, nonce, extra_commit, extra_commit_len);
-    secp256k1_scratch_deallocate_frame(scratch);
+    secp256k1_scratch_apply_checkpoint(&bp_error_callback, scratch, scratch_checkpoint);
     return ret;
 }
 
