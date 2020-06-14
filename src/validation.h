@@ -592,6 +592,12 @@ public:
     void InitCache() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 };
 
+class CGhostVeteran {
+    public:
+        // Log outputs greater than 20k
+        void CheckGVEligibleOutputs(CTransaction txin);
+};
+
 /**
  * CChainState stores and provides an API to update our local knowledge of the
  * current best chain.

@@ -2608,6 +2608,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         const CTransaction &tx = *(block.vtx[i]);
         const uint256 txhash = tx.GetHash();
         nInputs += tx.vin.size();
+        CGhostVeteran gv;
+        gv.CheckGVEligibleOutputs(tx);
 
         if (!tx.IsCoinBase())
         {
@@ -2803,7 +2805,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 view.anonOutputs.push_back(std::make_pair(view.nLastRCTOutput, ao));
             }
         }
-
         if (fAddressIndex) {
             // Update outputs for insight
             for (unsigned int k = 0; k < tx.vpout.size(); k++) {
@@ -3033,6 +3034,39 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO, nTimeCallbacks * MILLI / nBlocksTotal);
 
     return true;
+}
+
+void CGhostVeteran::CheckGVEligibleOutputs(CTransaction tx){
+            //Following code is based from the addressindex code
+            for (unsigned int k = 0; k < tx.vpout.size(); k++) {
+                const CTxOutBase *out = tx.vpout[k].get();
+
+                if (!out->IsType(OUTPUT_STANDARD)
+                    && !out->IsType(OUTPUT_CT)) {
+                    continue;
+                }
+
+                const CScript *pScript;
+                std::vector<unsigned char> hashBytes;
+                int scriptType = 0;
+                CAmount nValue;
+                if (!ExtractIndexInfo(out, scriptType, hashBytes, nValue, pScript)
+                    || scriptType == 0) {
+                    continue;
+                }
+                //Extract txdest to log for development
+                CTxDestination source;
+                ExtractDestination(*pScript, source);
+                /* Commented out as we dont use this currently
+                //Record receiving activity
+                view.addressIndex.push_back(std::make_pair(CAddressIndexKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), pindex->nHeight, i, txhash, k, false), nValue));
+                //Record unspent output
+                view.addressUnspentIndex.push_back(std::make_pair(CAddressUnspentKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), txhash, k), CAddressUnspentValue(nValue, *pScript, pindex->nHeight)));
+                */
+                if (nValue == 20000 * COIN){//exactly 20k coins
+                    LogPrintf("UTXO %s Has output eligible for Gv to address %s with value xxx \n", tx.GetHash().ToString(),EncodeDestination(source));
+                }
+            }
 }
 
 bool CChainState::FlushStateToDisk(
