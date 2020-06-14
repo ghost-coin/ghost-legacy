@@ -2628,6 +2628,14 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
     {
         const CTransaction &tx = *(block.vtx[i]);
         const uint256 txhash = tx.GetHash();
+        if(!tx.IsCoinStake() && !tx.IsCoinBase()){
+            for (unsigned int k=0;k < tx.vpout.size();k++){
+                CAmount txSpend = tx.vpout[k]->GetValue();
+                if (txSpend == 20000 * COIN){
+                    //this is above the veteran amount, need to save this into the txdb somewhere
+                }
+            }
+        }
         nInputs += tx.vin.size();
 
         TxValidationState tx_state;
