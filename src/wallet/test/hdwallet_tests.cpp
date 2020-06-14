@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(new_ext_key)
     }
 }
 
-static const std::string strSecret1C("GzFRfngjf5aHMuAzWDZWzJ8eYqMzp29MmkCp6NgzkXFibrh45tTc");
+static const std::string strSecret1C("RZszq9auoziFsuwYacTKAPctz31qEHsXDNLNYinVEGxzw4DWB6Xb");
 static const std::string strSecret2C("H5hDgLvFjLcZG9jyxkUTJ28P6N5T7iMBQ79boMuaPafxXuy8hb9n");
 
 BOOST_AUTO_TEST_CASE(stealth)
@@ -103,7 +103,6 @@ BOOST_AUTO_TEST_CASE(stealth)
     BOOST_CHECK(2 == vecSend.size());
     BOOST_REQUIRE(51 == vecSend[1].vData.size());
     BOOST_REQUIRE(vecSend[1].vData[34] == DO_NARR_CRYPT);
-
     CBitcoinSecret bsecret1;
     BOOST_CHECK(bsecret1.SetString(strSecret1C));
 

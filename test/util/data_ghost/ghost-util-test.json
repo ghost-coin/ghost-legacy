@@ -87,7 +87,7 @@
   { "exec": "./ghost-tx",
     "args":
     ["-create",
-     "outaddr=1:PapgSNuYnXdEf3VXHaxHmTsutq8pWMJUKx:garbage"],
+     "outaddr=1:GLjpiRYN1HHTwEyxr2xZ3CykZkVqjAT3fe:garbage"],
     "return_code": 1,
     "error_txt": "error: TX output missing or too many separators",
     "description": "Malformed outaddr argument (too many separators). Expected to fail."
@@ -114,8 +114,8 @@
      "in=5897de6bd6027a475eadd57019d4e6872c396d0716c4875a5f1a6fcfdf385c1f:0",
      "in=bf829c6bcf84579331337659d31f89dfd138f7f7785802d5501c92333145ca7c:18",
      "in=22a6f904655d53ae2ff70e701a0bbd90aa3975c0f40bfc6cc996a9049e31cdfc:1",
-     "outaddr=0.18:PapgSNuYnXdEf3VXHaxHmTsutq8pWMJUKx",
-     "outaddr=4:Pv4kf1FdtqSnVepTMnJgpFJe3moLwC5ZM8"],
+     "outaddr=0.18:GLjpiRYN1HHTwEyxr2xZ3CykZkVqjAT3fe",
+     "outaddr=4:Gfytw3tT7b71mrJtvEJx5zQUihANBC5QGE"],
     "output_cmp": "txcreate1.hex",
     "description": "Creates a new transaction with three inputs and two outputs"
   },
@@ -126,8 +126,8 @@
      "in=5897de6bd6027a475eadd57019d4e6872c396d0716c4875a5f1a6fcfdf385c1f:0",
      "in=bf829c6bcf84579331337659d31f89dfd138f7f7785802d5501c92333145ca7c:18",
      "in=22a6f904655d53ae2ff70e701a0bbd90aa3975c0f40bfc6cc996a9049e31cdfc:1",
-     "outaddr=0.18:PapgSNuYnXdEf3VXHaxHmTsutq8pWMJUKx",
-     "outaddr=4:Pv4kf1FdtqSnVepTMnJgpFJe3moLwC5ZM8"],
+     "outaddr=0.18:GLjpiRYN1HHTwEyxr2xZ3CykZkVqjAT3fe",
+     "outaddr=4:Gfytw3tT7b71mrJtvEJx5zQUihANBC5QGE"],
     "output_cmp": "txcreate1.json",
     "description": "Creates a new transaction with three inputs and two outputs (output in json)"
   },
@@ -155,9 +155,9 @@
     "args":
     ["-create",
       "in=4d49a71ec9da436f71ec4ee231d04f292a29cd316f598bb7068feccabdc59485:0",
-      "set=privatekeys:[\"4cwQ43UT2x3TZbmAuc2v1dkduKWZD41Zz2edMBHpMmitJNA5Bjj\"]",
+      "set=privatekeys:[\"6ZgaHVWJTdGbPBU5VE2sLEXZ1wECuttMd6ksVsBp1n7NvQVHraN\"]",
       "set=prevtxs:[{\"txid\":\"4d49a71ec9da436f71ec4ee231d04f292a29cd316f598bb7068feccabdc59485\",\"vout\":0,\"scriptPubKey\":\"76a91491b24bf9f5288532960ac687abb035127b1d28a588ac\",\"amount\":0.0011}]",
-      "outaddr=0.001:PfyAERb4CAjGb22mieZNw2vvggGWptSPzD",
+      "outaddr=0.001:GRtJWUDsQvPVsDXDH6ZeCn2mMbdY4gCou6",
       "sign=ALL"],
     "output_cmp": "txcreatesignva0.hex",
     "description": "Creates a new transaction with a single input and a single output, and then signs the transaction"

@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewaddress"));
     sResult = StripQuotes(rv.write());
-    BOOST_CHECK(sResult == "PZdYWHgyhuG7NHVCzEkkx3dcLKurTpvmo6");
+    BOOST_CHECK(sResult == "GKYgnLKnvevLeUyeYgm2DnjT1FGsgVNzYE");
 
 
     CKeyID id;
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewaddress"));
     sResult = StripQuotes(rv.write());
     vAddresses.push_back(sResult);
-    BOOST_CHECK(sResult == "PdsEywwkgVLJ8bF8b8Wp9gCj63KrXX3zww");
+    BOOST_CHECK(sResult == "GPnPFzaZuEzXQnja9aX5RRJZkxgsp6ysSD");
     BOOST_CHECK(CBitcoinAddress(sResult).GetKeyID(id));
 
 
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewaddress"));
     std::string sAddr = StripQuotes(rv.write());
-    BOOST_CHECK(sAddr == "PYWn26pQyqRE84XSWGmUBMQs67AzCRtvdG");
+    BOOST_CHECK(sAddr == "GJRvJ9TECb5TQG1t4imjT6Whm2Y1QyYf7S");
 
     // 2147483648 is > 32bit signed
     BOOST_CHECK_NO_THROW(rv = CallRPC("buildscript {\"recipe\":\"abslocktime\",\"time\":2147483648,\"addr\":\""+sAddr+"\"}"));

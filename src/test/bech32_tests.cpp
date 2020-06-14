@@ -11,10 +11,9 @@
 BOOST_FIXTURE_TEST_SUITE(bech32_tests, ParticlBasicTestingSetup)
 
 std::vector<std::pair<std::string, std::string> > testsPass = {
-    std::make_pair("PZdYWHgyhuG7NHVCzEkkx3dcLKurTpvmo6", "ph1z2kuclaye2ktkndy7mdpw3zk0nck78a7u6h8hm"),
-    std::make_pair("RJAPhgckEgRGVPZa9WoGSWW24spskSfLTQ", "pr1v9h7c4k0e3axk7jlejzyh8tnc5eryx6e4ys8vz"),
-    std::make_pair("SPGxiYZ1Q5dhAJxJNMk56ZbxcsUBYqTCsdEPPHsJJ96Vcns889gHTqSrTZoyrCd5E9NSe9XxLivK6izETniNp1Gu1DtrhVwv3VuZ3e", "ps1qqpvvvphd2zkphxxckzef2lgag67gzpz85alcemkxzvpl5tkgc8p34qpqwg58jx532dpkk0qtysnyudzg4ajk0vvqp8w9zlgjamxxz2l9cpt7qqqflt7zu"),
-    std::make_pair("PPARTKMMf4AUDYzRSBcXSJZALbUXgWKHi6qdpy95yBmABuznU3keHFyNHfjaMT33ehuYwjx3RXort1j8d9AYnqyhAvdN168J4GBsM2ZHuTb91rsj", "pep1qqqqqqqqqqqqqqqcpjvcv9trdnv8t2nscuw056mm74cps7jkmrrdq48xpdjy6ylf6vpru36q6zax883gjclngas40d7097mudl05y48ewzvulpnsk5z75kg24d5nf"),
+    std::make_pair("GQyhvPvXkXL8q8CEohoC5R8gzV28o7RQU4", "ghost1fequwre702vyj6eafsrkdsnfqj9pve9sqnv7ty"),
+    std::make_pair("2vPt1JSxvGXL7LvRgS6o7QysdW1iKuJASJxVJNMnKLUu6Yy4Fx1", "gl1fcmepl5tkgs6rs8s3tf5vwhrm0parf7xyjud4s3dtyal4m7nncqs66gvrx"),
+    std::make_pair("SPGyzmBFfE5wgNp3ew4PUtbcpDErYSxLCyEadwsFpfKDk9LsAV48B68F84GoRtTZ4maUVZLBpeqwwv9rAiPxBNyZsKgyKu57nW2qFg", "gs1qqp3ecdw5wueds4l0gsnz422cfu5348gw0rt9tpnykpscgwk59r23mgpq0rd3m9ctl87ry4n7e7p2wj4573l4d6x6q95gej49vf40en2s79txqqq2s0l30"),
 };
 
 std::vector<std::string> testsFail = {
@@ -25,16 +24,16 @@ std::vector<std::string> testsFail = {
 };
 
 std::vector<std::pair<CChainParams::Base58Type, std::string>> testsType = {
-    std::make_pair(CChainParams::PUBKEY_ADDRESS, "ph1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqx7sxra"),
-    std::make_pair(CChainParams::SCRIPT_ADDRESS, "pr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwp6w94"),
-    std::make_pair(CChainParams::PUBKEY_ADDRESS_256, "pl1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqra7r7c"),
-    std::make_pair(CChainParams::SCRIPT_ADDRESS_256, "pj1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqsthset"),
-    std::make_pair(CChainParams::SECRET_KEY, "px1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqjjpjvf"),
-    std::make_pair(CChainParams::EXT_PUBLIC_KEY, "pep1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq5cjrsh"),
-    std::make_pair(CChainParams::EXT_SECRET_KEY, "pex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq77wfra"),
-    std::make_pair(CChainParams::STEALTH_ADDRESS, "ps1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9ld9g7"),
-    std::make_pair(CChainParams::EXT_KEY_HASH, "pek1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhe0qm5"),
-    std::make_pair(CChainParams::EXT_ACC_HASH, "pea1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqt25ujg"),
+    std::make_pair(CChainParams::PUBKEY_ADDRESS, "ghost1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqrxahm7"),
+    std::make_pair(CChainParams::SCRIPT_ADDRESS, "gw1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq4df0gu"),
+    std::make_pair(CChainParams::PUBKEY_ADDRESS_256, "gl1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkv5vrl"),
+    std::make_pair(CChainParams::SCRIPT_ADDRESS_256, "gj1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq96alyv"),
+    std::make_pair(CChainParams::SECRET_KEY, "gtx1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqsrmekd"),
+    std::make_pair(CChainParams::EXT_PUBLIC_KEY, "gep1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqz0r4sv"),
+    std::make_pair(CChainParams::EXT_SECRET_KEY, "gex1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgfllrx"),
+    std::make_pair(CChainParams::STEALTH_ADDRESS, "gs1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqsw824e"),
+    std::make_pair(CChainParams::EXT_KEY_HASH, "gek1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpw7km0"),
+    std::make_pair(CChainParams::EXT_ACC_HASH, "gea1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqaa92jn"),
 };
 
 

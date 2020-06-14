@@ -19,9 +19,9 @@
 
 BOOST_FIXTURE_TEST_SUITE(stealth_tests, ParticlBasicTestingSetup)
 
-static const std::string strSecret1C("GzFRfngjf5aHMuAzWDZWzJ8eYqMzp29MmkCp6NgzkXFibrh45tTc");
-static const std::string strSecret2C("H5hDgLvFjLcZG9jyxkUTJ28P6N5T7iMBQ79boMuaPafxXuy8hb9n");
-static const std::string strSecret3C("Gyi9eQQC7qYRqwgAs1K1CdTEr9U7XR1RvDQdYjpK2dDU92N2cutY");
+static const std::string strSecret1C("RZszq9auoziFsuwYacTKAPctz31qEHsXDNLNYinVEGxzw4DWB6Xb");
+static const std::string strSecret2C("RfKnqhpRtFkXnAWY39NFU7cdXZjHXz5LqjHAFi14sLPEs7Qtr6yj");
+static const std::string strSecret3C("RZLiomJNGkgQMxSiwQCoNiwVHM7wwgjbMqYC15uoWNvkUDxcnJYy");
 
 BOOST_AUTO_TEST_CASE(stealth_key_1)
 {
