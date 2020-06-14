@@ -4972,7 +4972,7 @@ static const char *TypeToWord(OutputTypes type)
 
 static OutputTypes WordToType(std::string &s)
 {
-    if (s == "part")
+    if (s == "ghost")
         return OUTPUT_STANDARD;
     if (s == "blind")
         return OUTPUT_CT;
