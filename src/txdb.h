@@ -106,6 +106,10 @@ public:
     bool WriteReindexing(bool fReindexing);
     void ReadReindexing(bool &fReindexing);
 
+    //adding temporary veteran rewards here
+    bool WriteVeteranReward(const COutPoint &utxo);
+    bool UpdateVeteranReward(const std::vector<std::pair<COutPoint, COutPoint> > &vect);
+
     bool ReadSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
     bool UpdateSpentIndex(const std::vector<std::pair<CSpentIndexKey, CSpentIndexValue> >&vect);
     bool UpdateAddressUnspentIndex(const std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue > >&vect);

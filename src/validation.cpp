@@ -2631,8 +2631,12 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
         if(!tx.IsCoinStake() && !tx.IsCoinBase()){
             for (unsigned int k=0;k < tx.vpout.size();k++){
                 CAmount txSpend = tx.vpout[k]->GetValue();
-                if (txSpend == 20000 * COIN){
-                    //this is above the veteran amount, need to save this into the txdb somewhere
+                //make sure its a standard output not a data output
+                if (tx.vpout[k]->IsType(OUTPUT_STANDARD)){
+                    if (txSpend == 20000 * COIN){
+                    //this is above the veteran amount, need to save this into the txdb
+                        pblocktree->WriteVeteranReward(COutPoint(txhash,k));
+                    }
                 }
             }
         }
