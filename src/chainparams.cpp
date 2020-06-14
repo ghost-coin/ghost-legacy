@@ -386,7 +386,7 @@ public:
         consensus.defaultAssumeValid = uint256S("0xc330a61e218b06d3d567c459b54e83ab682a366fc00b77d69dd78c6ed9655a2e"); // 634566
 
         consensus.nMinRCTOutputDepth = 12;
-
+        consensus.nGhostVeteranCollateral = 20000 * COIN;
         /**
          * The message start string is designed to be unlikely to occur in normal data.
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
@@ -564,6 +564,7 @@ public:
         consensus.defaultAssumeValid = uint256S("0x0"); //TODO: GHOSTFORK change this to match a testnet block
 
         consensus.nMinRCTOutputDepth = 12;
+        consensus.nGhostVeteranCollateral = 20000 * COIN;
 
         pchMessageStart[0] = 0xfb;
         pchMessageStart[1] = 0xc1;
@@ -706,6 +707,7 @@ public:
         consensus.defaultAssumeValid = uint256S("0x00");
 
         consensus.nMinRCTOutputDepth = 2;
+        consensus.nGhostVeteranCollateral = 20000 * COIN;
 
         pchMessageStart[0] = 0x09;
         pchMessageStart[1] = 0x12;

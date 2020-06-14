@@ -28,6 +28,7 @@ class uint256;
 const char DB_RCTOUTPUT = 'A';
 const char DB_RCTOUTPUT_LINK = 'L';
 const char DB_RCTKEYIMAGE = 'K';
+const char GHOST_VETERAN_OUTPUT = 'G';
 
 
 //! No need to periodic flush if at least this much space still available.
@@ -108,7 +109,9 @@ public:
     bool ReadLastBlockFile(int &nFile);
     bool WriteReindexing(bool fReindexing);
     void ReadReindexing(bool &fReindexing);
-
+    //adding temporary veteran rewards here
+    bool WriteVeteranReward(const COutPoint &utxo);
+    bool UpdateVeteranReward(const std::vector<std::pair<COutPoint, COutPoint> > &vect);
     bool ReadSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
     bool UpdateSpentIndex(const std::vector<std::pair<CSpentIndexKey, CSpentIndexValue> >&vect);
     bool UpdateAddressUnspentIndex(const std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue > >&vect);

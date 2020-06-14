@@ -489,6 +489,13 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
     return true;
 }
 
+bool CBlockTreeDB::WriteVeteranReward(const COutPoint &utxo)
+{
+    CDBBatch batch(*this);
+    batch.Write(std::make_pair(GHOST_VETERAN_OUTPUT,utxo),0);
+    return WriteBatch(batch);
+};
+
 bool CBlockTreeDB::ReadRCTOutput(int64_t i, CAnonOutput &ao)
 {
     return Read(std::make_pair(DB_RCTOUTPUT, i), ao);
