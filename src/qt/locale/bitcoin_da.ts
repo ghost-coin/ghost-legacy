@@ -47,11 +47,11 @@
     </message>
     <message>
         <source>Choose the address to send coins to</source>
-        <translation>Vælg adresse at sende particls til</translation>
+        <translation>Vælg adresse at sende ghosts til</translation>
     </message>
     <message>
         <source>Choose the address to receive coins with</source>
-        <translation>Vælg adresse at modtage particls med</translation>
+        <translation>Vælg adresse at modtage ghosts med</translation>
     </message>
     <message>
         <source>C&amp;hoose</source>
@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Disse er dine Particl-adresser til afsendelse af betalinger. Tjek altid beløb og modtagelsesadresse, inden du sender particls.</translation>
+        <translation>Disse er dine Particl-adresser til afsendelse af betalinger. Tjek altid beløb og modtagelsesadresse, inden du sender ghosts.</translation>
     </message>
     <message>
         <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
@@ -168,8 +168,8 @@
         <translation>Bekræft tegnebogskryptering</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Advarsel: Hvis du krypterer din tegnebog og mister din adgangskode, vil du &lt;b&gt;MISTE ALLE DINE PARTICL&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
+        <translation>Advarsel: Hvis du krypterer din tegnebog og mister din adgangskode, vil du &lt;b&gt;MISTE ALLE DINE GHOST&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -188,8 +188,8 @@
         <translation>Indtast den gamle adgangskode og en ny adgangskode til tegnebogen.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
-        <translation>Husk, at kryptere din tegnebog vil ikke fuldt ud beskytte dine particls mod at blive stjålet af malware på din computer.</translation>
+        <source>Remember that encrypting your wallet cannot fully protect your ghost from being stolen by malware infecting your computer.</source>
+        <translation>Husk, at kryptere din tegnebog vil ikke fuldt ud beskytte dine ghosts mod at blive stjålet af malware på din computer.</translation>
     </message>
     <message>
         <source>Wallet to be encrypted</source>
@@ -363,7 +363,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Send particls til en Particl-adresse</translation>
+        <translation>Send ghosts til en Particl-adresse</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -450,7 +450,7 @@
         <translation>Tilvalg for &amp;kommandolinje</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Particl network</source>
+        <source>%n active connection(s) to Ghost network</source>
         <translation><numerusform>%n aktiv forbindelse til Particl-netværket</numerusform><numerusform>%n aktive forbindelser til Particl-netværket</numerusform></translation>
     </message>
     <message>
@@ -518,7 +518,7 @@
         <translation>Luk tegnebog</translation>
     </message>
     <message>
-        <source>Show the %1 help message to get a list with possible Particl command-line options</source>
+        <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
         <translation>Vis %1 hjælpebesked for at få en liste over mulige tilvalg for Particl kommandolinje</translation>
     </message>
     <message>
@@ -1026,12 +1026,12 @@
         <translation>Formular</translation>
     </message>
     <message>
-        <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the particl network, as detailed below.</source>
-        <translation>Nylige transaktioner er måske ikke synlige endnu, og derfor kan din tegnebogs saldo være ukorrekt. Denne information vil være korrekt, når din tegnebog er færdig med at synkronisere med particl-netværket, som detaljerne herunder viser.</translation>
+        <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the ghost network, as detailed below.</source>
+        <translation>Nylige transaktioner er måske ikke synlige endnu, og derfor kan din tegnebogs saldo være ukorrekt. Denne information vil være korrekt, når din tegnebog er færdig med at synkronisere med ghost-netværket, som detaljerne herunder viser.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
-        <translation>Forsøg på at bruge particl, som er indeholdt i endnu-ikke-viste transaktioner, accepteres ikke af netværket.</translation>
+        <source>Attempting to spend ghost that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <translation>Forsøg på at bruge ghost, som er indeholdt i endnu-ikke-viste transaktioner, accepteres ikke af netværket.</translation>
     </message>
     <message>
         <source>Number of blocks left</source>
@@ -1247,7 +1247,7 @@
         <translation>Tillad &amp;indkommende forbindelser</translation>
     </message>
     <message>
-        <source>Connect to the Particl network through a SOCKS5 proxy.</source>
+        <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
         <translation>Forbind til Particl-netværket gennem en SOCKS5-proxy.</translation>
     </message>
     <message>
@@ -1283,7 +1283,7 @@
         <translation>Tor</translation>
     </message>
     <message>
-        <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor hidden services.</source>
+        <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
         <translation>Forbind til Particl-netværket gennem en separat SOCKS5-proxy for Tors skjulte tjenester.</translation>
     </message>
     <message>
@@ -1320,7 +1320,7 @@
     </message>
     <message>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Vælg standard for underopdeling af enhed, som skal vises i brugergrænsefladen og ved afsendelse af particls.</translation>
+        <translation>Vælg standard for underopdeling af enhed, som skal vises i brugergrænsefladen og ved afsendelse af ghosts.</translation>
     </message>
     <message>
         <source>Whether to show coin control features or not.</source>
@@ -1394,7 +1394,7 @@
         <translation>Formular</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
         <translation>Den viste information kan være forældet. Din tegnebog synkroniserer automatisk med Particl-netværket, når en forbindelse etableres, men denne proces er ikke gennemført endnu.</translation>
     </message>
     <message>
@@ -2068,7 +2068,7 @@
         <translation>&amp;Besked:</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
         <translation>En valgfri besked, der føjes til betalingsanmodningen, og som vil vises, når anmodningen åbnes. Bemærk: Beskeden vil ikke sendes sammen med betalingen over Particl-netværket.</translation>
     </message>
     <message>
@@ -2226,7 +2226,7 @@
     <name>SendCoinsDialog</name>
     <message>
         <source>Send Coins</source>
-        <translation>Send particls</translation>
+        <translation>Send ghosts</translation>
     </message>
     <message>
         <source>Coin Control Features</source>
@@ -2342,7 +2342,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for ghost transactions than the network can process.</source>
-        <translation>På tidspunkter, hvor der er færre transaktioner, end der er plads til i nye blokke, kan minere og videresendende knuder gennemtvinge et minimumsgebyr. Du kan vælge kun at betale dette minimumsgebyr, men vær opmærksom på, at det kan resultere i en transaktion, der aldrig bliver bekræftet, hvis mængden af nye particl-transaktioner stiger til mere, end hvad netværket kan behandle ad gangen.</translation>
+        <translation>På tidspunkter, hvor der er færre transaktioner, end der er plads til i nye blokke, kan minere og videresendende knuder gennemtvinge et minimumsgebyr. Du kan vælge kun at betale dette minimumsgebyr, men vær opmærksom på, at det kan resultere i en transaktion, der aldrig bliver bekræftet, hvis mængden af nye ghost-transaktioner stiger til mere, end hvad netværket kan behandle ad gangen.</translation>
     </message>
     <message>
         <source>A too low fee might result in a never confirming transaction (read the tooltip)</source>
@@ -2454,7 +2454,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>Confirm send coins</source>
-        <translation>Bekræft afsendelse af particls</translation>
+        <translation>Bekræft afsendelse af ghosts</translation>
     </message>
     <message>
         <source>The recipient address is not valid. Please recheck.</source>
@@ -2560,8 +2560,8 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
         <translation>Fjern denne indgang</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>Gebyret vil blive trukket fra det sendte beløb. Modtageren vil modtage færre particl, end du indtaster i beløbfeltet. Hvis flere modtagere vælges, vil gebyret deles ligeligt.</translation>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less ghost than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <translation>Gebyret vil blive trukket fra det sendte beløb. Modtageren vil modtage færre ghost, end du indtaster i beløbfeltet. Hvis flere modtagere vælges, vil gebyret deles ligeligt.</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -2588,7 +2588,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
         <translation>Indtast et mærkat for denne adresse for at føje den til listen over brugte adresser</translation>
     </message>
     <message>
-        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
         <translation>En besked, som blev føjet til “bitcon:”-URI'en, som vil gemmes med transaktionen til din reference. Bemærk: Denne besked vil ikke blive sendt over Particl-netværket.</translation>
     </message>
     <message>
@@ -2633,8 +2633,8 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
         <translation>&amp;Singér besked</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Du kan signere beskeder/aftaler med dine adresser for at bevise, at du kan modtage particl, der bliver sendt til adresserne. Vær forsigtig med ikke at signere noget vagt eller tilfældigt, da eventuelle phishing-angreb kan snyde dig til at overlade din identitet til dem. Signér kun fuldt ud detaljerede udsagn, som du er enig i.</translation>
+        <source>You can sign messages/agreements with your addresses to prove you can receive ghost sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <translation>Du kan signere beskeder/aftaler med dine adresser for at bevise, at du kan modtage ghost, der bliver sendt til adresserne. Vær forsigtig med ikke at signere noget vagt eller tilfældigt, da eventuelle phishing-angreb kan snyde dig til at overlade din identitet til dem. Signér kun fuldt ud detaljerede udsagn, som du er enig i.</translation>
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
@@ -2912,7 +2912,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>Generated coins must mature %1 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to "not accepted" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Minede particls skal modne %1 blokke, før de kan bruges. Da du genererede denne blok, blev den transmitteret til netværket for at blive føjet til blokkæden. Hvis det ikke lykkes at få den i kæden, vil dens tilstand ændres til “ikke accepteret”, og den vil ikke kunne bruges. Dette kan ske nu og da, hvis en anden knude udvinder en blok inden for nogle få sekunder fra din.</translation>
+        <translation>Minede ghosts skal modne %1 blokke, før de kan bruges. Da du genererede denne blok, blev den transmitteret til netværket for at blive føjet til blokkæden. Hvis det ikke lykkes at få den i kæden, vil dens tilstand ændres til “ikke accepteret”, og den vil ikke kunne bruges. Dette kan ske nu og da, hvis en anden knude udvinder en blok inden for nogle få sekunder fra din.</translation>
     </message>
     <message>
         <source>Debug information</source>
@@ -3249,7 +3249,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     <name>WalletModel</name>
     <message>
         <source>Send Coins</source>
-        <translation>Send particls</translation>
+        <translation>Send ghosts</translation>
     </message>
     <message>
         <source>Fee bump error</source>

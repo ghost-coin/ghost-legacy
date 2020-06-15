@@ -139,7 +139,7 @@ void MnemonicDialog::on_btnImportFromHwd_clicked()
 
     m_thread = new RPCThread(sCommand, walletModel->getWalletName(), &m_rv);
     connect(m_thread, &RPCThread::complete, this, &MnemonicDialog::hwImportComplete);
-    m_thread->setObjectName("particl-hwImport");
+    m_thread->setObjectName("ghost-hwImport");
     m_thread->start();
 
     return;

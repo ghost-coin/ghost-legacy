@@ -181,7 +181,7 @@ int CloseMessageWindow()
 /**
  * The PID file facilities.
  */
-static const char* BITCOIN_PID_FILENAME = "particl.pid";
+static const char* BITCOIN_PID_FILENAME = "ghost.pid";
 
 static fs::path GetPidFile()
 {
@@ -684,7 +684,7 @@ void SetupServerArgs()
     gArgs.AddArg("-rpcuser=<user>", "Username for JSON-RPC connections", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-rpcworkqueue=<n>", strprintf("Set the depth of the work queue to service RPC calls (default: %d)", DEFAULT_HTTP_WORKQUEUE), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::RPC);
     gArgs.AddArg("-server", "Accept command line and JSON-RPC commands", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-rpccorsdomain=<domain>", "Allow JSON-RPC connections from specified domain (e.g. http://localhost:4200 or \"*\"). This needs to be set if you are using the Particl GUI in a browser.", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-rpccorsdomain=<domain>", "Allow JSON-RPC connections from specified domain (e.g. http://localhost:4200 or \"*\"). This needs to be set if you are using the Ghost GUI in a browser.", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
     gArgs.AddArg("-displaylocaltime", "Display human readable time strings in local timezone (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-displayutctime", "Display human readable time strings in UTC (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);

@@ -160,8 +160,8 @@
         <translation>Kumpirmahin ang pag-encrypt ng walet.</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Babala: Kung na-encrypt mo ang iyong walet at nawala ang iyong passphrase, &lt;b&gt;MAWAWALA MO ANG LAHAT NG IYONG MGA PARTICL!&lt;/b&gt;</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
+        <translation>Babala: Kung na-encrypt mo ang iyong walet at nawala ang iyong passphrase, &lt;b&gt;MAWAWALA MO ANG LAHAT NG IYONG MGA GHOST!&lt;/b&gt;</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -470,7 +470,7 @@
         <translation>Isara ang walet</translation>
     </message>
     <message>
-        <source>Show the %1 help message to get a list with possible Particl command-line options</source>
+        <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
         <translation>Ipakita sa %1 ang tulong na mensahe upang makuha ang talaan ng mga posibleng opsyon ng Particl command-line</translation>
     </message>
     <message>
@@ -910,12 +910,12 @@
         <translation>Anyo</translation>
     </message>
     <message>
-        <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the particl network, as detailed below.</source>
-        <translation>Ang mga bagong transaksyon ay hindi pa makikita kaya ang balanse ng iyong walet ay maaaring hindi tama. Ang impormasyong ito ay maiitama pagkatapos ma-synchronize ng iyong walet sa particl network, ayon sa ibaba.</translation>
+        <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the ghost network, as detailed below.</source>
+        <translation>Ang mga bagong transaksyon ay hindi pa makikita kaya ang balanse ng iyong walet ay maaaring hindi tama. Ang impormasyong ito ay maiitama pagkatapos ma-synchronize ng iyong walet sa ghost network, ayon sa ibaba.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
-        <translation>Ang pagtangkang gastusin ang mga particl na apektado ng mga transaksyon na hindi pa naipapakita ay hindi tatanggapin ng network.</translation>
+        <source>Attempting to spend ghost that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <translation>Ang pagtangkang gastusin ang mga ghost na apektado ng mga transaksyon na hindi pa naipapakita ay hindi tatanggapin ng network.</translation>
     </message>
     <message>
         <source>Number of blocks left</source>
@@ -1119,8 +1119,8 @@
         <translation>Ipahintulot ang mga papasok na koneksyon</translation>
     </message>
     <message>
-        <source>Connect to the Particl network through a SOCKS5 proxy.</source>
-        <translation>Kumunekta sa Particl network sa pamamagitan ng SOCKS5 proxy.</translation>
+        <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
+        <translation>Kumunekta sa Ghost network sa pamamagitan ng SOCKS5 proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1155,8 +1155,8 @@
         <translation>Tor</translation>
     </message>
     <message>
-        <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Kumunekta sa Particl network sa pamamagitan ng hiwalay na SOCKS5 proxy para sa mga tagong serbisyo ng Tor.</translation>
+        <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
+        <translation>Kumunekta sa Ghost network sa pamamagitan ng hiwalay na SOCKS5 proxy para sa mga tagong serbisyo ng Tor.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1266,8 +1266,8 @@
         <translation>Anyo</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
-        <translation>Ang ipinapakitang impormasyon ay maaaring luma na. Kusang mag-sy-synchronize ang iyong walet sa Particl network pagkatapos maitatag ang koneksyon, ngunit hindi pa nakukumpleto ang prosesong ito.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
+        <translation>Ang ipinapakitang impormasyon ay maaaring luma na. Kusang mag-sy-synchronize ang iyong walet sa Ghost network pagkatapos maitatag ang koneksyon, ngunit hindi pa nakukumpleto ang prosesong ito.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1928,8 +1928,8 @@
         <translation>Mensahe:</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
-        <translation>Opsyonal na mensahe na ilakip sa hiling ng bayad, na ipapakita pagbukas ng hiling. Tandaan: Ang mensahe ay hindi ipapadala kasama ng bayad sa Particl network.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
+        <translation>Opsyonal na mensahe na ilakip sa hiling ng bayad, na ipapakita pagbukas ng hiling. Tandaan: Ang mensahe ay hindi ipapadala kasama ng bayad sa Ghost network.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2198,7 +2198,7 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
     </message>
     <message>
         <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for ghost transactions than the network can process.</source>
-        <translation>Kapag mas kaunti ang dami ng transaksyon kaysa sa puwang sa mga blocks, ang mga minero pati na rin ang mga relaying node ay maaaring magpatupad ng minimum na bayad. Ang pagbabayad lamang ng minimum na bayad na ito ay maayos, ngunit malaman na maaari itong magresulta sa hindi kailanmang nagkukumpirmang transaksyon sa sandaling magkaroon ng higit na pangangailangan para sa mga transaksyon ng particl kaysa sa kayang i-proseso ng network.</translation>
+        <translation>Kapag mas kaunti ang dami ng transaksyon kaysa sa puwang sa mga blocks, ang mga minero pati na rin ang mga relaying node ay maaaring magpatupad ng minimum na bayad. Ang pagbabayad lamang ng minimum na bayad na ito ay maayos, ngunit malaman na maaari itong magresulta sa hindi kailanmang nagkukumpirmang transaksyon sa sandaling magkaroon ng higit na pangangailangan para sa mga transaksyon ng ghost kaysa sa kayang i-proseso ng network.</translation>
     </message>
     <message>
         <source>A too low fee might result in a never confirming transaction (read the tooltip)</source>
@@ -2404,8 +2404,8 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Alisin ang entry na ito</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>Ibabawas ang bayad mula sa halagang ipapadala. Ang tatanggap ay makakatanggap ng mas kaunting mga particl kaysa sa pinasok mo sa patlang ng halaga. Kung napili ang maraming tatanggap, ang bayad ay paghihiwalayin.</translation>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less ghost than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <translation>Ibabawas ang bayad mula sa halagang ipapadala. Ang tatanggap ay makakatanggap ng mas kaunting mga ghost kaysa sa pinasok mo sa patlang ng halaga. Kung napili ang maraming tatanggap, ang bayad ay paghihiwalayin.</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -2432,7 +2432,7 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Mag-enter ng label para sa address na ito upang idagdag ito sa listahan ng mga gamit na address.</translation>
     </message>
     <message>
-        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
         <translation>Mensahe na nakalakip sa ghost: URI na kung saan maiimbak kasama ang transaksyon para sa iyong sanggunian. Tandaan: Ang mensaheng ito ay hindi ipapadala sa network ng Particl.</translation>
     </message>
     <message>
@@ -2477,8 +2477,8 @@ Tandaan: Dahil ang bayad  ay kinakalkula sa bawat-byte na batayan, ang bayad ng 
         <translation>Pirmahan ang Mensahe</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Maaari kang pumirma ng mga mensahe/kasunduan sa iyong mga address upang mapatunayan na maaari kang makatanggap ng mga particl na ipinadala sa kanila. Mag-ingat na huwag pumirma ng anumang bagay na hindi malinaw o random, dahil ang mga phishing attack ay maaaring subukan na linlangin ka sa pagpirma ng iyong pagkakakilanlan sa kanila. Pumirma lamang ng kumpletong mga pahayag na sumasang-ayon ka.</translation>
+        <source>You can sign messages/agreements with your addresses to prove you can receive ghost sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <translation>Maaari kang pumirma ng mga mensahe/kasunduan sa iyong mga address upang mapatunayan na maaari kang makatanggap ng mga ghost na ipinadala sa kanila. Mag-ingat na huwag pumirma ng anumang bagay na hindi malinaw o random, dahil ang mga phishing attack ay maaaring subukan na linlangin ka sa pagpirma ng iyong pagkakakilanlan sa kanila. Pumirma lamang ng kumpletong mga pahayag na sumasang-ayon ka.</translation>
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>

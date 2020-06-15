@@ -109,7 +109,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+177"/>
+        <location line="+1"/>
+        <source>&amp;Verify Address On Hardware Wallet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+204"/>
         <source>Export Address List</source>
         <translation type="unfinished"></translation>
     </message>
@@ -119,7 +124,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+17"/>
         <source>Exporting Failed</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132,13 +137,18 @@
 <context>
     <name>AddressTableModel</name>
     <message>
-        <location filename="../addresstablemodel.cpp" line="+175"/>
+        <location filename="../addresstablemodel.cpp" line="+177"/>
         <source>Label</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -228,7 +238,7 @@
     </message>
     <message>
         <location line="+1"/>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -238,7 +248,7 @@
     </message>
     <message>
         <location line="+7"/>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your ghost from being stolen by malware infecting your computer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -553,7 +563,7 @@
     </message>
     <message>
         <location line="+2"/>
-        <source>Show the %1 help message to get a list with possible Particl command-line options</source>
+        <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -628,7 +638,7 @@
     </message>
     <message numerus="yes">
         <location line="+193"/>
-        <source>%n active connection(s) to Particl network</source>
+        <source>%n active connection(s) to Ghost network</source>
         <translation type="unfinished">
             <numerusform></numerusform>
             <numerusform></numerusform>
@@ -1554,7 +1564,7 @@
     </message>
     <message>
         <location line="+7"/>
-        <source>Open particl app before importing, confirm on device if prompted and wait for chain rescan to complete.</source>
+        <source>Open ghost app before importing, confirm on device if prompted and wait for chain rescan to complete.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1587,7 +1597,7 @@
     </message>
     <message>
         <location line="+119"/>
-        <source>Recent transactions may not yet be visible, and therefore your wallet&apos;s balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the particl network, as detailed below.</source>
+        <source>Recent transactions may not yet be visible, and therefore your wallet&apos;s balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the ghost network, as detailed below.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1834,7 +1844,7 @@
     </message>
     <message>
         <location line="+7"/>
-        <source>Connect to the Particl network through a SOCKS5 proxy.</source>
+        <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1895,7 +1905,7 @@
     </message>
     <message>
         <location line="+25"/>
-        <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor hidden services.</source>
+        <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2091,7 +2101,7 @@
     <message>
         <location line="+16"/>
         <location line="+539"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3052,7 +3062,7 @@
     <message>
         <location line="+13"/>
         <location line="+37"/>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Particl network.</source>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3338,7 +3348,7 @@
     <message>
         <location line="+4"/>
         <location line="+22"/>
-        <source>Part</source>
+        <source>Ghost</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3760,7 +3770,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     <message>
         <location line="+18"/>
         <location line="+83"/>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less ghost than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3777,7 +3787,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     <message>
         <location line="-74"/>
         <location line="+96"/>
-        <source>A short message sent over the Particl network, encrypted if sending to a stealth address or in a blind or anon transaction.</source>
+        <source>A short message sent over the Ghost network, encrypted if sending to a stealth address or in a blind or anon transaction.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3787,7 +3797,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+10"/>
-        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Particl network.</source>
+        <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3889,7 +3899,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
     </message>
     <message>
         <location line="+6"/>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive ghost sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4740,7 +4750,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>WalletModel</name>
     <message>
-        <location filename="../walletmodel.cpp" line="+591"/>
+        <location filename="../walletmodel.cpp" line="+593"/>
         <location line="+4"/>
         <location line="+8"/>
         <source>Wallet Model</source>

@@ -12,7 +12,7 @@ BITCOIND=${BITCOIND:-$SRCDIR/ghostd}
 BITCOINCLI=${BITCOINCLI:-$SRCDIR/ghost-cli}
 BITCOINTX=${BITCOINTX:-$SRCDIR/ghost-tx}
 WALLET_TOOL=${WALLET_TOOL:-$SRCDIR/ghost-wallet}
-BITCOINQT=${BITCOINQT:-$SRCDIR/qt/particl-qt}
+BITCOINQT=${BITCOINQT:-$SRCDIR/qt/ghost-qt}
 
 [ ! -x $BITCOIND ] && echo "$BITCOIND not found or not executable." && exit 1
 

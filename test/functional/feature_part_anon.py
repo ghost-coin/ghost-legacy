@@ -84,10 +84,10 @@ class AnonTest(ParticlTestFramework):
         assert(nodes[1].getwalletinfo()['anon_balance'] > 10)
 
         outputs = [{'address':sxAddrTo0_1, 'amount':10, 'subfee':True},]
-        ro = nodes[1].sendtypeto('anon', 'part', outputs, 'comment_to', 'comment_from', 4, 32, True)
+        ro = nodes[1].sendtypeto('anon', 'ghost', outputs, 'comment_to', 'comment_from', 4, 32, True)
         assert(ro['bytes'] > 0)
 
-        txnHashes.append(nodes[1].sendtypeto('anon', 'part', outputs))
+        txnHashes.append(nodes[1].sendtypeto('anon', 'ghost', outputs))
 
         for txhash in txnHashes:
             assert(self.wait_for_mempool(nodes[0], txhash))

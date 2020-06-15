@@ -632,7 +632,7 @@ class WalletParticlTest(ParticlTestFramework):
 
         coincontrol = {'changeaddress':scriptHex,'debug':True}
         outputs = [{'address':sAddrSpend, 'amount':1, 'narr':'not change'},]
-        ro = nodes[2].sendtypeto('part', 'part', outputs, 'comment', 'comment-to', 4, 32, True, coincontrol)
+        ro = nodes[2].sendtypeto('ghost', 'ghost', outputs, 'comment', 'comment-to', 4, 32, True, coincontrol)
 
         ro = nodes[2].decoderawtransaction(ro['hex'])
         fFound = False
