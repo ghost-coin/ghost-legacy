@@ -694,7 +694,7 @@
         <translation>Formulario</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
         <translation>A información amosada por estar desactualizada. O teu moedeiro sincronízase automáticamente coa rede Particl despois de que se estableza unha conexión, mais este proceso non está todavía rematado.</translation>
     </message>
     <message>

@@ -148,19 +148,7 @@
         <translation>వాలెట్ అన్లాక్</translation>
     </message>
     <message>
-        <source>Decrypt wallet</source>
-        <translation>డీక్రిప్ట్ వాలెట్</translation>
-    </message>
-    <message>
-        <source>Change passphrase</source>
-        <translation>పాస్‌ఫ్రేజ్‌ని మార్చండి</translation>
-    </message>
-    <message>
-        <source>Confirm wallet encryption</source>
-        <translation>వాలెట్ గుప్తీకరణను నిర్ధారించండి</translation>
-    </message>
-    <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
         <translation>హెచ్చరిక: మీ జోలెని సంకేతపరిచి మీ సంకేతపదము కోల్పోతే, &lt;b&gt;మీ బిట్‌కాయిన్లు అన్నీ కోల్పోతారు&lt;/b&gt;</translation>
     </message>
     <message>

@@ -47,31 +47,11 @@
     </message>
     <message>
         <source>Choose the address to send coins to</source>
-        <translation>Izvēlies adresi uz kuru sūtīt particl</translation>
+        <translation>Izvēlies adresi uz kuru sūtīt ghosts</translation>
     </message>
     <message>
         <source>Choose the address to receive coins with</source>
-        <translation>Izvēlies adresi ar kuru saņemt particl</translation>
-    </message>
-    <message>
-        <source>C&amp;hoose</source>
-        <translation>Izvēlēties</translation>
-    </message>
-    <message>
-        <source>Sending addresses</source>
-        <translation>Adrešu nosūtīšana</translation>
-    </message>
-    <message>
-        <source>Receiving addresses</source>
-        <translation>Adrešu saņemšana</translation>
-    </message>
-    <message>
-        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Šīs ir jūsu Particl adreses, kuras izmantojamas maksājumu veikšanai. Vienmēr pārbaudiet summu un saņēmēja adresi pirms monētu nosūtīšanas.</translation>
-    </message>
-    <message>
-        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Šīs ir jūsu Particl adreses, kuras izmantojamas maksājumu saņemšanai. Izmantojiet 'Izveidot jaunu saņemšanas adresi' pogu 'saņemt' cilnē, lai izveidotu jaunas adreses.</translation>
+        <translation>Izvēlies adresi ar kuru saņemt ghosts</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -335,7 +315,7 @@
     </message>
     <message>
         <source>Open a ghost: URI or payment request</source>
-        <translation>Atvērt particl URI vai maksājuma pieprasījumu</translation>
+        <translation>Atvērt ghost URI vai maksājuma pieprasījumu</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -608,7 +588,7 @@
     </message>
     <message>
         <source>Enable coin &amp;control features</source>
-        <translation>Ieslēgt particl &amp;kontroles funkcijas</translation>
+        <translation>Ieslēgt ghost &amp;kontroles funkcijas</translation>
     </message>
     <message>
         <source>&amp;Spend unconfirmed change</source>
@@ -706,7 +686,7 @@
         <translation>Forma</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
         <translation>Attēlotā informācija var būt novecojusi. Jūsu maciņš pēc savienojuma izveides automātiski sinhronizējas ar Particl tīklu, taču šis process vēl nav beidzies.</translation>
     </message>
     <message>

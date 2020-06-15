@@ -984,7 +984,7 @@ static UniValue extkey(const JSONRPCRequest &request)
             if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY)
                 && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC)
                 && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Import failed - Key must begin with a particl prefix.");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Import failed - Key must begin with a ghost prefix.");
             }
         }
 
@@ -1694,7 +1694,7 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
                     {"hardened", RPCArg::Type::BOOL, /* default */ "false", "Derive a hardened key."},
                 },
                 RPCResult{
-            "\"address\"              (string) The new particl extended address\n"
+            "\"address\"              (string) The new ghost extended address\n"
                 },
                 RPCExamples{
             HelpExampleCli("getnewextaddress", "") +
@@ -1764,7 +1764,7 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
                     {"makeV2", RPCArg::Type::BOOL, /* default */ "false", "Generate an address from the same scheme used for hardware wallets."},
                 },
                 RPCResult{
-            "\"address\"              (string) The new particl stealth address\n"
+            "\"address\"              (string) The new ghost stealth address\n"
                 },
                 RPCExamples{
             HelpExampleCli("getnewstealthaddress", "\"lblTestSxAddrPrefix\" 3 \"0b101\"") +
@@ -1845,7 +1845,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
                     {"bech32", RPCArg::Type::BOOL, /* default */ "false", "Use Bech32 encoding."},
                 },
                 RPCResult{
-            "\"address\"              (string) The new particl stealth address\n"
+            "\"address\"              (string) The new ghost stealth address\n"
                 },
                 RPCExamples{
             HelpExampleCli("importstealthaddress", "scan_secret spend_secret \"label\" 3 \"0b101\"") +
@@ -2112,7 +2112,7 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
             "    ]\n"
             "  }...\n"
             "]\n"
-            "\"address\"              (string) The new particl stealth address\n"
+            "\"address\"              (string) The new ghost stealth address\n"
                 },
                 RPCExamples{
             HelpExampleCli("liststealthaddresses", "") +
@@ -3866,7 +3866,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
             "  \"staking\": true|false,         (boolean) if this wallet is staking or not\n"
             "  \"errors\": \"...\"              (string) any error messages\n"
             "  \"percentyearreward\": xxxxxxx,  (numeric) current stake reward percentage\n"
-            "  \"moneysupply\": xxxxxxx,        (numeric) the total amount of particl in the network\n"
+            "  \"moneysupply\": xxxxxxx,        (numeric) the total amount of ghost in the network\n"
             "  \"reserve\": xxxxxxx,            (numeric) the reserve balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"walletfoundationdonationpercent\": xxxxxxx,\n    (numeric) user set percentage of the block reward ceded to the foundation\n"
             "  \"foundationdonationpercent\": xxxxxxx,\n    (numeric) network enforced percentage of the block reward ceded to the foundation\n"
@@ -7966,7 +7966,7 @@ static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
                             {"subtractFeeFromOutputs", RPCArg::Type::ARR, /* default */ "", "A json array of integers.\n"
                             "                              The fee will be equally deducted from the amount of each specified output.\n"
                             "                              The outputs are specified by their zero-based index, before any change output is added.\n"
-                            "                              Those recipients will receive less particl than you enter in their corresponding amount field.\n"
+                            "                              Those recipients will receive less ghost than you enter in their corresponding amount field.\n"
                             "                              If no outputs are specified here, the sender pays the fee.",
                                 {
                                     {"vout_index", RPCArg::Type::NUM, /* default */ "", ""},

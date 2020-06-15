@@ -11,7 +11,7 @@ the Particl Core software, see https://particl.io.
 
 Setup
 -----
-Unpack the files into a directory and run particl-qt.exe.
+Unpack the files into a directory and run ghost-qt.exe.
 
 Particl Core is the original Particl client and it builds the backbone of the network.
 However, it downloads and stores the entire history of Particl transactions;

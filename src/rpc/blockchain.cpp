@@ -762,7 +762,7 @@ static UniValue getblockheader(const JSONRPCRequest& request)
             "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
             "  \"chainwork\" : \"0000...1f3\"     (string) Expected number of hashes required to produce the current chain (in hex)\n"
             "  \"nTx\" : n,             (numeric) The number of transactions in the block.\n"
-            "  \"moneysupply\": xxxxxxx,        (numeric) the total amount of particl in the chain at this block\n"
+            "  \"moneysupply\": xxxxxxx,        (numeric) the total amount of ghost in the chain at this block\n"
             "  \"anonoutputs\": xxxxxxx,        (numeric) the total amount of RCT outputs in the chain at this block\n"
             "  \"previousblockhash\" : \"hash\",  (string) The hash of the previous block\n"
             "  \"nextblockhash\" : \"hash\",      (string) The hash of the next block\n"
