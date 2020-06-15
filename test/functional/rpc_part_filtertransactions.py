@@ -50,7 +50,7 @@ class FilterTransactionsTest(ParticlTestFramework):
         nodes[1].sendtoaddress(selfAddress, 8)
 
         # GHOST to BLIND
-        nodes[0].sendparttoblind(
+        nodes[0].sendghosttoblind(
             selfStealth,          # address
             20,                   # amount
             '',                   # ?
@@ -60,7 +60,7 @@ class FilterTransactionsTest(ParticlTestFramework):
         )
 
         # GHOST to ANON
-        nodes[0].sendparttoanon(
+        nodes[0].sendghosttoanon(
             targetStealth,        # address
             20,                   # amount
             '',                   # ?
@@ -343,7 +343,7 @@ class FilterTransactionsTest(ParticlTestFramework):
             assert('Invalid sort' in e.error['message'])
 
         # Sent blind should show when filtered for blinded txns
-        nodes[0].sendblindtopart(targetStealth, 1.0)
+        nodes[0].sendblindtoghost(targetStealth, 1.0)
         ro = nodes[0].filtertransactions({ 'type': 'blind', 'count': 20 })
         assert(len(ro) == 2)
 
