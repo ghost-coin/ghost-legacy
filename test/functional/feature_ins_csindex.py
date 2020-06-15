@@ -63,13 +63,13 @@ class TxIndexTest(ParticlTestFramework):
         self.stakeBlocks(1)
 
         toScript = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake, 'addrspend': addrSpend})
-        nodes[1].sendtypeto('part', 'part',
+        nodes[1].sendtypeto('ghost', 'ghost',
                             [{'address': 'script', 'amount':12000, 'script':toScript['hex']},
                              {'address': 'script', 'amount':12000, 'script':toScript['hex']}])
 
         addrStake2_stakeonly = nodes[1].validateaddress(addrStake2, True)['stakeonly_address']
         toScript = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake2_stakeonly, 'addrspend': addrSpend2})
-        nodes[1].sendtypeto('part', 'part',
+        nodes[1].sendtypeto('ghost', 'ghost',
                             [{'address': 'script', 'amount':12, 'script':toScript['hex']}])
 
         try:
@@ -79,7 +79,7 @@ class TxIndexTest(ParticlTestFramework):
             assert('Invalid address' in e.error['message'])
 
         try:
-            nodes[1].sendtypeto('part', 'part',
+            nodes[1].sendtypeto('ghost', 'ghost',
                                 [{'address': addrStake2_stakeonly, 'amount':12}])
             assert(False), 'Sent to stakeonly address'
         except JSONRPCException as e:

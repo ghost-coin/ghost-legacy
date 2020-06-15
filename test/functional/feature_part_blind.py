@@ -172,7 +172,7 @@ class BlindTest(ParticlTestFramework):
         assert(len(nodes[1].listunspentblind(minconf=0)) == len(unspent))
 
         outputs = [{'address': sxAddrTo2_3, 'amount': 2.691068, 'subfee': True},]
-        ro = nodes[1].sendtypeto('blind', 'part', outputs, 'comment_to', 'comment_from', 4, 64, True)
+        ro = nodes[1].sendtypeto('blind', 'ghost', outputs, 'comment_to', 'comment_from', 4, 64, True)
         feePerKB = (1000.0 / ro['bytes']) * float(ro['fee'])
         assert(feePerKB > 0.001 and feePerKB < 0.004)
 
@@ -180,7 +180,7 @@ class BlindTest(ParticlTestFramework):
         feePerKB = (1000.0 / ro['bytes']) * float(ro['fee'])
         assert(feePerKB > 0.001 and feePerKB < 0.004)
 
-        nodes[1].sendtypeto('blind', 'part', outputs)
+        nodes[1].sendtypeto('blind', 'ghost', outputs)
 
         try:
             ro = nodes[1].sendtypeto('blind', 'blind', outputs)
@@ -192,7 +192,7 @@ class BlindTest(ParticlTestFramework):
         addrPlain = nodes[0].getnewaddress()
         addrLong = nodes[0].getnewaddress('', False, False, True)
         outputs = [{'address': addrPlain, 'amount': 1.0}, {'address': addrLong, 'amount': 1.0}]
-        nodes[0].sendtypeto('part', 'blind', outputs)
+        nodes[0].sendtypeto('ghost', 'blind', outputs)
 
 
         self.log.info('Test sending all blind to blind')
@@ -205,12 +205,12 @@ class BlindTest(ParticlTestFramework):
         self.sync_all()
         self.stakeBlocks(1,nStakeNode=3)
 
-        self.log.info('Test sending all blind to part')
+        self.log.info('Test sending all blind to ghost')
         bal1 = nodes[1].getwalletinfo()
 
         assert(isclose(bal1['blind_balance'], 2.002582))
         outputs = [{'address': sxAddrTo1_1, 'amount': bal1['blind_balance'], 'subfee': True}]
-        nodes[1].sendtypeto('blind', 'part', outputs)
+        nodes[1].sendtypeto('blind', 'ghost', outputs)
 
         bal1 = nodes[1].getwalletinfo()
         assert(isclose(bal1['blind_balance'], 0.00000001))

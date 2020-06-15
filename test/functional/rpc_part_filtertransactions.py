@@ -71,8 +71,8 @@ class FilterTransactionsTest(ParticlTestFramework):
 
         # several outputs
         nodes[0].sendtypeto(
-            'part',               # type in
-            'part',               # type out
+            'ghost',               # type in
+            'ghost',               # type out
             [                     # outputs
                 {
                     'address':    selfAddress,
@@ -96,8 +96,8 @@ class FilterTransactionsTest(ParticlTestFramework):
             }
         )
         nodes[0].sendtypeto(
-            'part',              # type in
-            'part',              # type out
+            'ghost',              # type in
+            'ghost',              # type out
             [                    # outputs
                 {
                     'address':   'script',
@@ -109,8 +109,8 @@ class FilterTransactionsTest(ParticlTestFramework):
         )
         txid = nodes[0].sendtoaddress(selfSpending, 50)
         nodes[0].sendtypeto(
-            'part',              # type in
-            'part',              # type out
+            'ghost',              # type in
+            'ghost',              # type out
             [                    # outputs
                 {
                     'address':   targetAddress,
