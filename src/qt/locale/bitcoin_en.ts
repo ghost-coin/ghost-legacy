@@ -109,7 +109,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+177"/>
+        <location line="+1"/>
+        <source>&amp;Verify Address On Hardware Wallet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+204"/>
         <source>Export Address List</source>
         <translation type="unfinished"></translation>
     </message>
@@ -119,7 +124,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+17"/>
         <source>Exporting Failed</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132,13 +137,18 @@
 <context>
     <name>AddressTableModel</name>
     <message>
-        <location filename="../addresstablemodel.cpp" line="+175"/>
+        <location filename="../addresstablemodel.cpp" line="+177"/>
         <source>Label</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -228,7 +238,7 @@
     </message>
     <message>
         <location line="+1"/>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -553,7 +563,7 @@
     </message>
     <message>
         <location line="+2"/>
-        <source>Show the %1 help message to get a list with possible Particl command-line options</source>
+        <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3338,7 +3348,7 @@
     <message>
         <location line="+4"/>
         <location line="+22"/>
-        <source>Part</source>
+        <source>Ghost</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4740,7 +4750,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>WalletModel</name>
     <message>
-        <location filename="../walletmodel.cpp" line="+591"/>
+        <location filename="../walletmodel.cpp" line="+593"/>
         <location line="+4"/>
         <location line="+8"/>
         <source>Wallet Model</source>
