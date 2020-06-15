@@ -188,22 +188,22 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "debugwallet", 0, "options" },
 
 
-    { "sendparttoblind", 1, "amount" },
-    { "sendparttoblind", 4, "subtractfeefromamount" },
-    { "sendparttoanon", 1, "amount" },
-    { "sendparttoanon", 4, "subtractfeefromamount" },
+    { "sendghosttoblind", 1, "amount" },
+    { "sendghosttoblind", 4, "subtractfeefromamount" },
+    { "sendghosttoanon", 1, "amount" },
+    { "sendghosttoanon", 4, "subtractfeefromamount" },
 
-    { "sendblindtopart", 1, "amount" },
-    { "sendblindtopart", 4, "subtractfeefromamount" },
+    { "sendblindtoghost", 1, "amount" },
+    { "sendblindtoghost", 4, "subtractfeefromamount" },
     { "sendblindtoblind", 1, "amount" },
     { "sendblindtoblind", 4, "subtractfeefromamount" },
     { "sendblindtoanon", 1, "amount" },
     { "sendblindtoanon", 4, "subtractfeefromamount" },
 
-    { "sendanontopart", 1, "amount" },
-    { "sendanontopart", 4, "subtractfeefromamount" },
-    { "sendanontopart", 6, "ringsize" },
-    { "sendanontopart", 7, "inputs_per_sig" },
+    { "sendanontoghost", 1, "amount" },
+    { "sendanontoghost", 4, "subtractfeefromamount" },
+    { "sendanontoghost", 6, "ringsize" },
+    { "sendanontoghost", 7, "inputs_per_sig" },
 
     { "sendanontoblind", 1, "amount" },
     { "sendanontoblind", 4, "subtractfeefromamount" },
@@ -251,10 +251,10 @@ static const CRPCConvertParam vRPCConvertParams[] =
 
     { "rewindchain", 0, "height" },
 
-    { "createrawparttransaction", 0, "inputs" },
-    { "createrawparttransaction", 1, "outputs" },
-    { "createrawparttransaction", 2, "locktime" },
-    { "createrawparttransaction", 3, "replaceable" },
+    { "createrawghosttransaction", 0, "inputs" },
+    { "createrawghosttransaction", 1, "outputs" },
+    { "createrawghosttransaction", 2, "locktime" },
+    { "createrawghosttransaction", 3, "replaceable" },
     { "fundrawtransactionfrom", 2, "input_amounts" },
     { "fundrawtransactionfrom", 3, "output_amounts" },
     { "fundrawtransactionfrom", 4, "options" },

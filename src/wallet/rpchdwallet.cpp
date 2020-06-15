@@ -5180,7 +5180,7 @@ static std::string SendHelp(CHDWallet *pwallet, OutputTypes typeIn, OutputTypes 
     return rv;
 };
 
-static UniValue sendparttoblind(const JSONRPCRequest &request)
+static UniValue sendghosttoblind(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
@@ -5192,7 +5192,7 @@ static UniValue sendparttoblind(const JSONRPCRequest &request)
     return SendToInner(request, OUTPUT_STANDARD, OUTPUT_CT);
 };
 
-static UniValue sendparttoanon(const JSONRPCRequest &request)
+static UniValue sendghosttoanon(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
@@ -5204,7 +5204,7 @@ static UniValue sendparttoanon(const JSONRPCRequest &request)
     return SendToInner(request, OUTPUT_STANDARD, OUTPUT_RINGCT);
 };
 
-static UniValue sendblindtopart(const JSONRPCRequest &request)
+static UniValue sendblindtoghost(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
@@ -5241,7 +5241,7 @@ static UniValue sendblindtoanon(const JSONRPCRequest &request)
 };
 
 
-static UniValue sendanontopart(const JSONRPCRequest &request)
+static UniValue sendanontoghost(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
@@ -7560,14 +7560,14 @@ static UniValue buildscript(const JSONRPCRequest &request)
     return obj;
 };
 
-static UniValue createrawparttransaction(const JSONRPCRequest& request)
+static UniValue createrawghosttransaction(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
-            RPCHelpMan{"createrawparttransaction",
+            RPCHelpMan{"createrawghosttransaction",
                 "\nCreate a transaction spending the given inputs and creating new confidential outputs.\n"
                 "Outputs can be addresses or data.\n"
                 "Returns hex-encoded raw transaction.\n"
@@ -7624,11 +7624,11 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             "}\n"
                 },
                 RPCExamples{
-            HelpExampleCli("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"address\\\":0.01}\"")
-            + HelpExampleCli("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"data\\\":\\\"00010203\\\"}\"") +
+            HelpExampleCli("createrawghosttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"address\\\":0.01}\"")
+            + HelpExampleCli("createrawghosttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"data\\\":\\\"00010203\\\"}\"") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"address\\\":0.01}\"")
-            + HelpExampleRpc("createrawparttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"data\\\":\\\"00010203\\\"}\"")
+            + HelpExampleRpc("createrawghosttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"address\\\":0.01}\"")
+            + HelpExampleRpc("createrawghosttransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"data\\\":\\\"00010203\\\"}\"")
                 },
             }.Check(request);
 
@@ -9243,15 +9243,15 @@ static const CRPCCommand commands[] =
     { "wallet",             "listunspentblind",                 &listunspentblind,              {"minconf","maxconf","addresses","include_unsafe","query_options"} },
 
 
-    //sendparttopart // normal txn
-    { "wallet",             "sendparttoblind",                  &sendparttoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
-    { "wallet",             "sendparttoanon",                   &sendparttoanon,                {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
+    //sendghosttoghost // normal txn
+    { "wallet",             "sendghosttoblind",                  &sendghosttoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
+    { "wallet",             "sendghosttoanon",                   &sendghosttoanon,                {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
 
-    { "wallet",             "sendblindtopart",                  &sendblindtopart,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
+    { "wallet",             "sendblindtoghost",                  &sendblindtoghost,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
     { "wallet",             "sendblindtoblind",                 &sendblindtoblind,              {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
     { "wallet",             "sendblindtoanon",                  &sendblindtoanon,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },
 
-    { "wallet",             "sendanontopart",                   &sendanontopart,                {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
+    { "wallet",             "sendanontoghost",                   &sendanontoghost,                {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
     { "wallet",             "sendanontoblind",                  &sendanontoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
     { "wallet",             "sendanontoanon",                   &sendanontoanon,                {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
 
@@ -9274,7 +9274,7 @@ static const CRPCCommand commands[] =
     { "governance",         "tallyvotes",                       &tallyvotes,                    {"proposal","height_start","height_end"} },
 
     { "rawtransactions",    "buildscript",                      &buildscript,                   {"json"} },
-    { "rawtransactions",    "createrawparttransaction",         &createrawparttransaction,      {"inputs","outputs","locktime","replaceable"} },
+    { "rawtransactions",    "createrawghosttransaction",         &createrawghosttransaction,      {"inputs","outputs","locktime","replaceable"} },
     { "rawtransactions",    "fundrawtransactionfrom",           &fundrawtransactionfrom,        {"input_type","hexstring","input_amounts","output_amounts","options"} },
     { "rawtransactions",    "verifycommitment",                 &verifycommitment,              {"commitment","blind","amount"} },
     { "rawtransactions",    "rewindrangeproof",                 &rewindrangeproof,              {"rangeproof","commitment","nonce_key","ephemeral_key"} },
