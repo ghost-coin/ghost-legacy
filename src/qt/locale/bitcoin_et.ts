@@ -351,18 +351,18 @@
     </message>
     <message>
         <source>Request payments (generates QR codes and ghost: URIs)</source>
-        <translation>Loo maksepäring (genereerib QR koodid ja particli: URId)</translation>
+        <translation>Loo maksepäring (genereerib QR koodid ja ghosti: URId)</translation>
     </message>
     <message>
         <source>Open a ghost: URI or payment request</source>
-        <translation>Ava particli: URI või maksepäring</translation>
+        <translation>Ava ghosti: URI või maksepäring</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
         <translation>&amp;Käsurea valikud</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Particl network</source>
+        <source>%n active connection(s) to Ghost network</source>
         <translation><numerusform>%n aktiivne ühendus Particli võrku</numerusform><numerusform>%n aktiivset ühendust Particli võrku</numerusform></translation>
     </message>
     <message>
@@ -828,7 +828,7 @@
         <translation>Vorm</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Particl network after a connection is established, but this process has not completed yet.</source>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
         <translation>Kuvatav info ei pruugi olla ajakohane. Ühenduse loomisel süngitakse sinu rahakott automaatselt Bitconi võrgustikuga, kuid see toiming on hetkel lõpetamata.</translation>
     </message>
     <message>
