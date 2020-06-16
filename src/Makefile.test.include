@@ -157,7 +157,8 @@ BITCOIN_TESTS =\
   test/extkey_tests.cpp \
   test/ct_tests.cpp \
   test/ringct_tests.cpp \
-  test/ghostchain_tests.cpp
+  test/ghostchain_tests.cpp \
+  test/coldreward_tests.cpp
 
 if ENABLE_PROPERTY_TESTS
 BITCOIN_TESTS += \

@@ -348,6 +348,8 @@ libghost_server_a_SOURCES = \
   versionbits.cpp \
   insight/insight.cpp \
   insight/rpc.cpp \
+  coldreward/coldrewardtracker.cpp \
+  coldreward/blockheightrange.cpp \
   $(BITCOIN_CORE_H)
 
 if ENABLE_WALLET
