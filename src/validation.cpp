@@ -3075,7 +3075,7 @@ void CGhostVeteran::CheckOutputsForGVCollateral(CTransaction tx){
 
 void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
   //Following code is based from the addressindex code
-  for (unsigned int j = 0; j++ < tx.vin.size();) {
+  for (unsigned int j = 0; j < tx.vin.size();j++) {
     if (tx.vin[j].IsAnonInput()) {
       continue;
     }
