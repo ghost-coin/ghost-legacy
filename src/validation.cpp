@@ -2610,7 +2610,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         nInputs += tx.vin.size();
         CGhostVeteran gv;
         if(!tx.IsCoinBase() && !tx.IsCoinStake())
-            gv.CheckGVEligibleOutputs(tx);
+            gv.UpdateData(tx,view);
 
         if (!tx.IsCoinBase())
         {
@@ -3037,8 +3037,12 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     return true;
 }
 
-void CGhostVeteran::CheckGVEligibleOutputs(CTransaction tx) {
-  //Following code is based from the addressindex code
+void CGhostVeteran::UpdateData(CTransaction tx,CCoinsViewCache& view) {
+  CheckOutputsForGVCollateral(tx);
+  RemoveSpentTxes(tx,view);
+}
+
+void CGhostVeteran::CheckOutputsForGVCollateral(CTransaction tx){
   for (unsigned int k = 0; k < tx.vpout.size(); k++) {
     const CTxOutBase * out = tx.vpout[k].get();
     if (!out->IsType(OUTPUT_STANDARD)) {
@@ -3060,8 +3064,64 @@ void CGhostVeteran::CheckGVEligibleOutputs(CTransaction tx) {
     if (nValue == Params().GetConsensus().nGhostVeteranCollateral) { //exactly 20k coins
       LogPrintf("%s UTXO %s Has output eligible for GV , address is : %s\n",__func__, tx.GetHash().ToString(), EncodeDestination(source));
         pblocktree->WriteVeteranReward(COutPoint(tx.GetHash(),k));
+        AddEligibleAddrToTrack(EncodeDestination(source),tx.GetHash());
     }
   }
+}
+
+void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
+  //Following code is based from the addressindex code
+  for (unsigned int j = 0; j++ < tx.vin.size();) {
+    if (tx.vin[j].IsAnonInput()) {
+      continue;
+    }
+
+    const COutPoint & out = tx.vin[j].prevout;
+
+    const CTxIn input = tx.vin[j];
+
+    const Coin & coin = view.AccessCoin(tx.vin[j].prevout);
+    const CScript * pScript = & coin.out.scriptPubKey;
+    CAmount nValue = coin.nType == OUTPUT_CT ? 0 : coin.out.nValue;
+    std::vector < uint8_t > hashBytes;
+    int scriptType = 0;
+    if (!ExtractIndexInfo(pScript, scriptType, hashBytes) ||
+      scriptType == 0) {
+      continue;
+    }
+    //Extract txdest to log for development
+    CTxDestination source;
+    ExtractDestination( * pScript, source);
+    if (nValue == Params().GetConsensus().nGhostVeteranCollateral) {
+        CTransactionRef txOut;
+        uint256 hash;
+
+        // get previous transaction
+        GetTransaction(tx.vin[j].prevout.hash, txOut, Params().GetConsensus(), hash);
+        CTxDestination source;
+
+        //make sure the previous input exists
+        if (txOut->vout.size() > tx.vin[j].prevout.n) {
+          // extract the destination of the previous transactions vout[n]
+          ExtractDestination(txOut->vout[tx.vin[j].prevout.n].scriptPubKey, source);
+
+          // convert to an address
+          std::string addr = EncodeDestination(source);
+          LogPrintf("%s UTXO %s Has spent the GV Collateral , destination addr is : %s\n", __func__, tx.GetHash().ToString(), addr);
+          RemoveAddrFromTracking(addr, tx.GetHash());
+        }
+    }
+  }
+}
+
+void CGhostVeteran::AddEligibleAddrToTrack(std::string addr,uint256 txHash) {
+    // TODO GHOSTFORK Add code to check if Addr is already being tracked
+    EligibleData.insert(GVDataPair(addr,txHash));
+}
+
+void CGhostVeteran::RemoveAddrFromTracking(std::string addr,uint256 spentTxHash) {
+        //TODO GHOSTFORK add code to check if we are adding a addr we already have in spent addr data
+        SpentAddrData.insert(GVDataPair(addr,spentTxHash));
 }
 
 bool CChainState::FlushStateToDisk(

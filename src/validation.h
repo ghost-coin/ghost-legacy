@@ -594,8 +594,18 @@ public:
 
 class CGhostVeteran {
     public:
+        typedef std::map<std::string, uint256> GVDataMap;
+        typedef std::pair<std::string, uint256> GVDataPair;
+	    GVDataMap EligibleData;
+	    GVDataMap SpentAddrData;
+
         // Log outputs greater than 20k
-        void CheckGVEligibleOutputs(CTransaction txin);
+        void UpdateData(CTransaction tx,CCoinsViewCache& view);
+        void CheckOutputsForGVCollateral(CTransaction tx);
+        void RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view);
+        void AddEligibleAddrToTrack(std::string addr,uint256 txHash);
+        void RemoveAddrFromTracking(std::string addr,uint256 spentTxHash);
+
 };
 
 /**
