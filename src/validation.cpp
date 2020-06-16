@@ -3061,9 +3061,13 @@ void CGhostVeteran::CheckOutputsForGVCollateral(CTransaction tx){
     //Extract txdest to log for development
     CTxDestination source;
     ExtractDestination( * pScript, source);
+    //check if balance has now gone over 20k
+
+    //run bool below on their balance not on nvalue
     if (nValue == Params().GetConsensus().nGhostVeteranCollateral) { //exactly 20k coins
       LogPrintf("%s UTXO %s Has output eligible for GV , address is : %s\n",__func__, tx.GetHash().ToString(), EncodeDestination(source));
         pblocktree->WriteVeteranReward(COutPoint(tx.GetHash(),k));
+        //we need to adjust this to also insert the current block as the block they went over 20k
         AddEligibleAddrToTrack(EncodeDestination(source),tx.GetHash());
     }
   }
@@ -3092,6 +3096,8 @@ void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
     //Extract txdest to log for development
     CTxDestination source;
     ExtractDestination( * pScript, source);
+    //here we need to check if the senders balance dropped below 20k
+    //run the bool below on their balance not on nvalue
     if (nValue == Params().GetConsensus().nGhostVeteranCollateral) {
         CTransactionRef txOut;
         uint256 hash;
@@ -3108,6 +3114,7 @@ void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
           // convert to an address
           std::string addr = EncodeDestination(source);
           LogPrintf("%s UTXO %s Has spent the GV Collateral , destination addr is : %s\n", __func__, tx.GetHash().ToString(), addr);
+          //don't remove from tracking, but update the block that they dropped below 20k on to current block
           RemoveAddrFromTracking(addr, tx.GetHash());
         }
     }
@@ -3116,11 +3123,13 @@ void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
 
 void CGhostVeteran::AddEligibleAddrToTrack(std::string addr,uint256 txHash) {
     // TODO GHOSTFORK Add code to check if Addr is already being tracked
+    //we need to be inserting block as well.
     EligibleData.insert(GVDataPair(addr,txHash));
 }
 
 void CGhostVeteran::RemoveAddrFromTracking(std::string addr,uint256 spentTxHash) {
         //TODO GHOSTFORK add code to check if we are adding a addr we already have in spent addr data
+        //we need to be adding block here as well
         SpentAddrData.insert(GVDataPair(addr,spentTxHash));
 }
 
