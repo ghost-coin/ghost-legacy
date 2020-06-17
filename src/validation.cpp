@@ -3062,15 +3062,76 @@ void CGhostVeteran::CheckOutputsForGVCollateral(CTransaction tx){
     CTxDestination source;
     ExtractDestination( * pScript, source);
     //check if balance has now gone over 20k
+      int type = 0;
+      uint256 tempHash;
+      //go and get the index key
+      if (!GetIndexKey(source,tempHash,type)){
+          continue;
+      }
+      //now go through and get the address index
+      std::vector<std::pair<CAddressIndexKey, CAmount> > addressIndex;
+      if (!GetAddressIndex(tempHash, type, addressIndex)) {
+          continue;
+      }
+      CAmount balance = 0;
+      CAmount received = 0;
+      //now loop through addressindex to get a balance
+      for (std::vector<std::pair<CAddressIndexKey, CAmount> >::const_iterator it=addressIndex.begin(); it!=addressIndex.end(); it++) {
+          if (it->second > 0) {
+              received += it->second;
+          }
+          balance += it->second;
+      }
 
     //run bool below on their balance not on nvalue
-    if (nValue == Params().GetConsensus().nGhostVeteranCollateral) { //exactly 20k coins
+    if (balance >= Params().GetConsensus().nGhostVeteranCollateral) { //exactly 20k coins
       LogPrintf("%s UTXO %s Has output eligible for GV , address is : %s\n",__func__, tx.GetHash().ToString(), EncodeDestination(source));
         pblocktree->WriteVeteranReward(COutPoint(tx.GetHash(),k));
         //we need to adjust this to also insert the current block as the block they went over 20k
         AddEligibleAddrToTrack(EncodeDestination(source),tx.GetHash());
     }
   }
+}
+
+bool CGhostVeteran::GetIndexKey(const CTxDestination &dest, uint256 &tempHash, int &type) {
+    if (dest.type() == typeid(PKHash)) {
+        const PKHash &id = boost::get<PKHash>(dest);
+        memcpy(tempHash.begin(), id.begin(), 20);
+        type = ADDR_INDT_PUBKEY_ADDRESS;
+        return true;
+    }
+    if (dest.type() == typeid(ScriptHash)) {
+        const ScriptHash& id = boost::get<ScriptHash>(dest);
+        memcpy(tempHash.begin(), id.begin(), 20);
+        type = ADDR_INDT_SCRIPT_ADDRESS;
+        return true;
+    }
+    if (dest.type() == typeid(CKeyID256)) {
+        const CKeyID256& id = boost::get<CKeyID256>(dest);
+        memcpy(tempHash.begin(), id.begin(), 32);
+        type = ADDR_INDT_PUBKEY_ADDRESS_256;
+        return true;
+    }
+    if (dest.type() == typeid(CScriptID256)) {
+        const CScriptID256& id = boost::get<CScriptID256>(dest);
+        memcpy(tempHash.begin(), id.begin(), 32);
+        type = ADDR_INDT_SCRIPT_ADDRESS_256;
+        return true;
+    }
+    if (dest.type() == typeid(WitnessV0KeyHash)) {
+        const WitnessV0KeyHash& id = boost::get<WitnessV0KeyHash>(dest);
+        memcpy(tempHash.begin(), id.begin(), 20);
+        type = ADDR_INDT_WITNESS_V0_KEYHASH;
+        return true;
+    }
+    if (dest.type() == typeid(WitnessV0ScriptHash)) {
+        const WitnessV0ScriptHash& id = boost::get<WitnessV0ScriptHash>(dest);
+        memcpy(tempHash.begin(), id.begin(), 32);
+        type = ADDR_INDT_WITNESS_V0_SCRIPTHASH;
+        return true;
+    }
+    type = ADDR_INDT_UNKNOWN;
+    return false;
 }
 
 void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
@@ -3097,8 +3158,29 @@ void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
     CTxDestination source;
     ExtractDestination( * pScript, source);
     //here we need to check if the senders balance dropped below 20k
+    int type = 0;
+    uint256 tempHash;
+    //go and get the index key
+    if (!GetIndexKey(source,tempHash,type)){
+        continue;
+    }
+    //now go through and get the address index
+    std::vector<std::pair<CAddressIndexKey, CAmount> > addressIndex;
+    if (!GetAddressIndex(tempHash, type, addressIndex)) {
+        continue;
+    }
+    CAmount balance = 0;
+    CAmount received = 0;
+    //now loop through addressindex to get a balance
+    for (std::vector<std::pair<CAddressIndexKey, CAmount> >::const_iterator it=addressIndex.begin(); it!=addressIndex.end(); it++) {
+        
+        if (it->second > 0) {
+            received += it->second;
+        }
+        balance += it->second;
+    }
     //run the bool below on their balance not on nvalue
-    if (nValue == Params().GetConsensus().nGhostVeteranCollateral) {
+    if (balance <= Params().GetConsensus().nGhostVeteranCollateral) {
         CTransactionRef txOut;
         uint256 hash;
 

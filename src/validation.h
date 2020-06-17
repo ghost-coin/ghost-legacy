@@ -16,6 +16,7 @@
 #include <crypto/common.h> // for ReadLE64
 #include <fs.h>
 #include <policy/feerate.h>
+#include <script/standard.h>  
 #include <protocol.h> // For CMessageHeader::MessageStartChars
 #include <script/script_error.h>
 #include <sync.h>
@@ -603,6 +604,7 @@ class CGhostVeteran {
         void UpdateData(CTransaction tx,CCoinsViewCache& view);
         void CheckOutputsForGVCollateral(CTransaction tx);
         void RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view);
+        bool GetIndexKey(const CTxDestination &dest, uint256 &hashBytes, int &type);
         void AddEligibleAddrToTrack(std::string addr,uint256 txHash);
         void RemoveAddrFromTracking(std::string addr,uint256 spentTxHash);
 
