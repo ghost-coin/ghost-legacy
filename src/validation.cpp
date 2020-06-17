@@ -3156,7 +3156,7 @@ void CGhostVeteran::RemoveSpentTxes(CTransaction tx, CCoinsViewCache & view) {
     }
     //Extract txdest to log for development
     CTxDestination source;
-    ExtractDestination( * pScript, source);
+    if(ExtractDestination( * pScript, source)){
     //here we need to check if the senders balance dropped below 20k
     int type = 0;
     uint256 tempHash;
@@ -3190,15 +3190,16 @@ void CGhostVeteran::RemoveSpentTxes(CTransaction tx, CCoinsViewCache & view) {
         //make sure the previous input exists
         if (txOut->vout.size() > tx.vin[j].prevout.n) {
           // extract the destination of the previous transactions vout[n]
-          ExtractDestination(txOut->vout[tx.vin[j].prevout.n].scriptPubKey, source);
-
+          if(ExtractDestination(txOut->vout[tx.vin[j].prevout.n].scriptPubKey, source)){
           // convert to an address
           std::string addr = EncodeDestination(source);
           LogPrintf("%s UTXO %s Has spent the GV Collateral , destination addr is : %s\n", __func__, tx.GetHash().ToString(), addr);
           //don't remove from tracking, but update the block that they dropped below 20k on to current block
           RemoveAddrFromTracking(addr, tx.GetHash());
+          }
         }
       }
+    }
     }
   }
 }
