@@ -583,7 +583,7 @@ public:
         pchMessageStart[2] = 0xb4;
         pchMessageStart[3] = 0xdd;
         nDefaultPort = 51928;
-        nBIP44ID = 0x80000001;
+        nBIP44ID = 0x80000213;
 
         nModifierInterval = 10 * 60;    // 10 minutes
         nStakeMinConfirmations = 225;   // 225 * 2 minutes
