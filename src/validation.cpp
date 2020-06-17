@@ -3134,9 +3134,9 @@ bool CGhostVeteran::GetIndexKey(const CTxDestination &dest, uint256 &tempHash, i
     return false;
 }
 
-void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
+void CGhostVeteran::RemoveSpentTxes(CTransaction tx, CCoinsViewCache & view) {
   //Following code is based from the addressindex code
-  for (unsigned int j = 0; j < tx.vin.size();j++) {
+  for (unsigned int j = 0; j < tx.vin.size(); j++) {
     if (tx.vin[j].IsAnonInput()) {
       continue;
     }
@@ -3161,31 +3161,30 @@ void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
     int type = 0;
     uint256 tempHash;
     //go and get the index key
-    if (!GetIndexKey(source,tempHash,type)){
-        continue;
+    if (!GetIndexKey(source, tempHash, type)) {
+      continue;
     }
     //now go through and get the address index
-    std::vector<std::pair<CAddressIndexKey, CAmount> > addressIndex;
+    std::vector < std::pair < CAddressIndexKey, CAmount > > addressIndex;
     if (!GetAddressIndex(tempHash, type, addressIndex)) {
-        continue;
+      continue;
     }
     CAmount balance = 0;
     CAmount received = 0;
     //now loop through addressindex to get a balance
-    for (std::vector<std::pair<CAddressIndexKey, CAmount> >::const_iterator it=addressIndex.begin(); it!=addressIndex.end(); it++) {
-        
-        if (it->second > 0) {
-            received += it->second;
-        }
-        balance += it->second;
+    for (std::vector < std::pair < CAddressIndexKey, CAmount > > ::const_iterator it = addressIndex.begin(); it != addressIndex.end(); it++) {
+
+      if (it-> second > 0) {
+        received += it-> second;
+      }
+      balance += it-> second;
     }
     //run the bool below on their balance not on nvalue
     if (balance <= Params().GetConsensus().nGhostVeteranCollateral) {
-        CTransactionRef txOut;
-        uint256 hash;
-
-        // get previous transaction
-        GetTransaction(tx.vin[j].prevout.hash, txOut, Params().GetConsensus(), hash);
+      CTransactionRef txOut;
+      uint256 hash;
+      // get previous transaction
+      if (GetTransaction(tx.vin[j].prevout.hash, txOut, Params().GetConsensus(), hash)) {
         CTxDestination source;
 
         //make sure the previous input exists
@@ -3199,6 +3198,7 @@ void CGhostVeteran::RemoveSpentTxes(CTransaction tx,CCoinsViewCache& view) {
           //don't remove from tracking, but update the block that they dropped below 20k on to current block
           RemoveAddrFromTracking(addr, tx.GetHash());
         }
+      }
     }
   }
 }
