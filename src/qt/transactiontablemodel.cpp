@@ -563,7 +563,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         case TypeOut:
             return QString(QChar(rec->typeOut));
         case Amount:
-            return formatTxAmount(rec, true, BitcoinUnits::separatorAlways);
+            return formatTxAmount(rec, true, BitcoinUnits::SeparatorStyle::ALWAYS);
         }
         break;
     case Qt::EditRole:
@@ -657,14 +657,14 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
                 details.append(QString::fromStdString(rec->address));
                 details.append(" ");
             }
-            details.append(formatTxAmount(rec, false, BitcoinUnits::separatorNever));
+            details.append(formatTxAmount(rec, false, BitcoinUnits::SeparatorStyle::NEVER));
             return details;
         }
     case ConfirmedRole:
         return rec->status.status == TransactionStatus::Status::Confirming || rec->status.status == TransactionStatus::Status::Confirmed;
     case FormattedAmountRole:
         // Used for copy/export, so don't include separators
-        return formatTxAmount(rec, false, BitcoinUnits::separatorNever);
+        return formatTxAmount(rec, false, BitcoinUnits::SeparatorStyle::NEVER);
     case StatusRole:
         return rec->status.status;
     }

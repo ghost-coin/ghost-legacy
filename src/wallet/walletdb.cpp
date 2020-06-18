@@ -1086,3 +1086,9 @@ bool WalletBatch::EraseAllByPrefix(std::string sPrefix)
 
     return true;
 };
+
+bool IsWalletLoaded(const fs::path& wallet_path)
+{
+    return IsBDBWalletLoaded(wallet_path);
+}
+

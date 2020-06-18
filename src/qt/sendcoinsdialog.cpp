@@ -328,7 +328,7 @@ bool SendCoinsDialog::PrepareSendText(QString& question_string, QString& informa
             sCommand += "{\"address\":\"" + rcp.address + "\"";
         }
         sCommand += ",\"amount\":"
-            + BitcoinUnits::format(BitcoinUnits::BTC, rcp.amount, false, BitcoinUnits::separatorNever);
+            + BitcoinUnits::format(BitcoinUnits::BTC, rcp.amount, false, BitcoinUnits::SeparatorStyle::NEVER);
 
         if (rcp.fSubtractFeeFromAmount)
             sCommand += ",\"subfee\":true";
