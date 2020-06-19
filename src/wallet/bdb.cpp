@@ -352,7 +352,7 @@ BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase& database, const char* pszMode, bo
     const std::string &strFilename = database.strFile;
 
     bool fCreate = strchr(pszMode, 'c') != nullptr;
-    unsigned int nFlags = DB_THREAD;
+    unsigned int nFlags = DB_READ_UNCOMMITTED | DB_THREAD; // get must be called with DB_READ_UNCOMMITTED also for it to apply
     if (fCreate)
         nFlags |= DB_CREATE;
 
