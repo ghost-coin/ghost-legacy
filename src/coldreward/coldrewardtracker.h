@@ -15,25 +15,25 @@
  *
  * GVR: Ghost Veteran Payment
  *
- * This class is made as an interface and wrapper around the functionality that checks whether a user is eligible for a reward
+ * This class is made as an interface and wrapper around the functionality that checks whether an address is eligible for a reward
  * over a long range of blocks.
  *
  * The way this works is by defining time intervals, or ranges, for addresses that own over 20k GHOST over certain periods of time.
- * A range is a period of time, in block height. The range [0,10] is the timespam between block 0 and block 10.
+ * A range is a period of time, in block height. The range [0,10] is the timespan between block 0 and block 10.
  *
- * For every address change in balance, we add that address and the block height that did that chain.
+ * For every address change in balance, we add that address and the block height that did that change.
  * This information is stored in two forms:
  * 1. The balance of every address on the blockchain
- * 2. The set of ranges where a user had 20k+ GHOST
+ * 2. The set of ranges where an address had 20k+ GHOST
  *
  * The vector addressesRanges stores the ranges mentioned above. here are some examples on how this looks like:
  * {} (an empty vector): This address's balance never went over 20k
  * {[10,10]}: This address's balance changed at block 10 and became 20k+
- * {[10,100]}: This address's balance changed at block 10 and became 20k+, but changed again after than and is still 20k+
+ * {[10,100]}: This address's balance changed at block 10 and became 20k+, changed again at block 100 but is still 20k+
  * {[10,10],[100,100]}: This address's balance changed at block 10 and became 20k+, but then at block 100, it's not anymore 20k+
- * every range contains a bool to indicate whether in that range, the amount was over or below 20k
  *
  * Notice that the existence of a [A,A] entry means that there's an interruption in the balance being 20k+.
+ * No period where balance is below 20k is recorded.
  *
  * To get a vector of addresses eligible for GVR, we call the function getEligibleAddresses()
  *
