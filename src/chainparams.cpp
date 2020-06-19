@@ -20,22 +20,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-int64_t CChainParams::GetCoinYearReward(int64_t nTime) const
-{
-    static const int64_t nSecondsInYear = 365 * 24 * 60 * 60;
-
-    if (strNetworkID != "regtest") {
-        // Y1 5%, Y2 4%, Y3 3%, Y4 2%, ... YN 2%
-        int64_t nYearsSinceGenesis = (nTime - genesis.nTime) / nSecondsInYear;
-
-        if (nYearsSinceGenesis >= 0 && nYearsSinceGenesis < 3) {
-            return (5 - nYearsSinceGenesis) * CENT;
-        }
-    }
-
-    return nCoinYearReward;
-}
-
 int CChainParams::GetCoinYearPercent(int index) const
 {
     if(static_cast<std::size_t>(index) < nBlockPerc.size()) {
@@ -45,32 +29,25 @@ int CChainParams::GetCoinYearPercent(int index) const
     }
 };
 
-bool CChainParams::PushDevFundSettings(int64_t time_from, DevFundSettings &settings)
+int64_t CChainParams::GetBaseBlockReward() const
 {
-    if (settings.nMinDevStakePercent < 0 or settings.nMinDevStakePercent > 100) {
-        throw std::runtime_error("minstakepercent must be in range [0, 100].");
-    }
+    return nBlockReward;
+};
 
-    vDevFundSettings.emplace_back(time_from, settings);
+int64_t CChainParams::GetProofOfStakeRewardAtHeight(const int nHeight, int64_t nFees) const
+{
+    int64_t nSubsidy = 0;
+    const int64_t nBlocksInAYear = (365 * 24 * 60 * 60) / nTargetSpacing;
+    int currYear = nHeight / nBlocksInAYear;
+    nSubsidy = (GetBaseBlockReward() * GetCoinYearPercent(currYear)) / 100;
 
-    return true;
+    return nSubsidy + nFees;
 };
 
 int64_t CChainParams::GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const
 {
-    int64_t nSubsidy = 0;
-    if(nBlockReward > 0)
-    {
-        const int64_t nBlocksInAYear = (365 * 24 * 60 * 60) / nTargetSpacing;
-        int currYear = pindexPrev ? (pindexPrev->nHeight + 1) / nBlocksInAYear : 0;
-        nSubsidy = (nBlockReward * GetCoinYearPercent(currYear)) / 100;
-    }
-    else
-    {   //TODO GHOSTFORK Remove this as this is only used for regtest unit tests
-        nSubsidy = (pindexPrev->nMoneySupply / COIN) * GetCoinYearReward(pindexPrev->nTime) / (365 * 24 * (60 * 60 / nTargetSpacing));
-    }
-
-    return nSubsidy + nFees;
+    int nHeight = pindexPrev ? pindexPrev->nHeight + 1 : 0;
+    return GetProofOfStakeRewardAtHeight(nHeight,nFees);
 };
 
 int64_t CChainParams::GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const
@@ -727,7 +704,7 @@ public:
         nTargetSpacing = 5;             // 5 seconds
         nTargetTimespan = 16 * 60;      // 16 mins
         nStakeTimestampMask = 0;
-        nBlockReward = 0;               // Use default inflation of particl on regtest
+        nBlockReward = 6 * COIN;
 
         SetLastImportHeight();
 
