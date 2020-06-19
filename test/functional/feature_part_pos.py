@@ -110,7 +110,7 @@ class PosTest(ParticlTestFramework):
                 continue
             if addr0 == addrReward:
                 fFound = True
-                assert(vout['valueSat'] == 39637)
+                assert(vout['valueSat'] == 0)
                 break
         assert(fFound)
 
@@ -138,7 +138,7 @@ class PosTest(ParticlTestFramework):
                 if ro['from_ext_address_id'] == 'xXZRLYvJgbJyrqJhgNzMjEvVGViCdGmVAt':
                     assert(addr0 == 'pgaKYsNmHTuQB83FguN44WW4ADKmwJwV7e')
                     fFound = True
-                    assert(vout['valueSat'] == 39637)
+                    assert(vout['valueSat'] == 0)
             except:
                 continue
         assert(fFound)
@@ -159,7 +159,7 @@ class PosTest(ParticlTestFramework):
                 ro = nodes[0].getaddressinfo(addr0)
                 if ro['from_stealth_address'] == addrRewardSx:
                     fFound = True
-                    assert(vout['valueSat'] == 39637)
+                    assert(vout['valueSat'] == 0)
             except:
                 continue
         assert(fFound)

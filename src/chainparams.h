@@ -101,12 +101,13 @@ public:
     uint32_t GetTargetTimespan() const { return nTargetTimespan; }
 
     uint32_t GetStakeTimestampMask(int nHeight) const { return nStakeTimestampMask; }
-    int64_t GetCoinYearReward(int64_t nTime) const;
+    int64_t GetBaseBlockReward() const;
     int GetCoinYearPercent(int index) const;
     const DevFundSettings *GetDevFundSettings(int64_t nTime) const;
     const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const {return vDevFundSettings;};
 
     int64_t GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
+    int64_t GetProofOfStakeRewardAtHeight(const int nHeight, int64_t nFees) const;
     int64_t GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const;
 
     uint32_t GetLastImportHeight() const { return nLastImportHeight; }
@@ -146,6 +147,12 @@ public:
     {
         assert(strNetworkID == "regtest");
         nCoinYearReward = nCoinYearReward_;
+    }
+
+    void SetBlockReward(int64_t nBlockReward_)
+    {
+        assert(strNetworkID == "regtest");
+        nBlockReward = nBlockReward_;
     }
 
 protected:

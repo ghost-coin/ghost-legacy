@@ -240,17 +240,54 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
     }
 }
 
-BOOST_AUTO_TEST_CASE(coin_year_reward)
-{
-    BOOST_CHECK(Params().GetCoinYearReward(1529700000) == 2 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1531832399) == 2 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1531832400) == 2 * CENT);    // 2018-07-17 13:00:00
-    BOOST_CHECK(Params().GetCoinYearReward(1563368399) == 5 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1563368400) == 5 * CENT);    // 2019-07-17 13:00:00
-    BOOST_CHECK(Params().GetCoinYearReward(1594904399) == 5 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1594904400) == 5 * CENT);    // 2020-07-16 13:00:00
-    BOOST_CHECK(Params().GetCoinYearReward(1626440400) == 4 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1657976400) == 3 * CENT);
+//Test block reward over the years on GHOST
+BOOST_AUTO_TEST_CASE(blockreward_test) {
+  const int64_t nBlockInYear = (365 * 24 * 60 * 60) / Params().GetTargetSpacing();
+  int64_t blockR[40] = {
+   600000000,
+   570000000,
+   540000000,
+   516000000,
+   486000000,
+   462000000,
+   444000000,
+   420000000,
+   396000000,
+   378000000,
+   360000000,
+   342000000,
+   324000000,
+   306000000,
+   294000000,
+   276000000,
+   264000000,
+   252000000,
+   240000000,
+   228000000,
+   216000000,
+   204000000,
+   192000000,
+   186000000,
+   174000000,
+   168000000,
+   156000000,
+   150000000,
+   144000000,
+   138000000,
+   126000000,
+   120000000,
+   114000000,
+   108000000,
+   102000000,
+   102000000,
+   96000000,
+   90000000,
+   84000000,
+   84000000
+};
+  for (int i = 0; i < 40; i++) {
+    BOOST_CHECK((int64_t)Params().GetProofOfStakeRewardAtHeight(nBlockInYear * i + 1, 0) ==  blockR[i+1]);
+  }
 }
 
 
