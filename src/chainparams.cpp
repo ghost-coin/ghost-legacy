@@ -20,34 +20,39 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-int CChainParams::GetCoinYearPercent(int index) const
+int CChainParams::GetCoinYearPercent(int year) const
 {
-    if(static_cast<std::size_t>(index) < nBlockPerc.size()) {
-        return nBlockPerc[index];
+    if(static_cast<std::size_t>(year) < nBlockPerc.size()) {
+        return nBlockPerc[year];
     } else {
         return 10;
     }
 };
 
-int64_t CChainParams::GetBaseBlockReward() const
+CAmount CChainParams::GetBaseBlockReward() const
 {
     return nBlockReward;
 };
 
-int64_t CChainParams::GetProofOfStakeRewardAtHeight(const int nHeight, int64_t nFees) const
+CAmount CChainParams::GetProofOfStakeRewardAtYear(const int year) const
 {
-    int64_t nSubsidy = 0;
-    const int64_t nBlocksInAYear = (365 * 24 * 60 * 60) / nTargetSpacing;
-    int currYear = nHeight / nBlocksInAYear;
-    nSubsidy = (GetBaseBlockReward() * GetCoinYearPercent(currYear)) / 100;
-
-    return nSubsidy + nFees;
+    auto x = (GetBaseBlockReward() * GetCoinYearPercent(year)) / 100;
+    return x;
 };
 
-int64_t CChainParams::GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const
+CAmount CChainParams::GetProofOfStakeRewardAtHeight(const int nHeight) const
+{
+    const CAmount nBlocksInAYear = (365 * 24 * 60 * 60) / GetTargetSpacing();
+    const int currYear = nHeight / nBlocksInAYear;
+    const CAmount nSubsidy = GetProofOfStakeRewardAtYear(currYear);
+
+    return nSubsidy;
+}
+
+int64_t CChainParams::GetProofOfStakeReward(const CBlockIndex *pindexPrev, const int64_t nFees) const
 {
     int nHeight = pindexPrev ? pindexPrev->nHeight + 1 : 0;
-    return GetProofOfStakeRewardAtHeight(nHeight,nFees);
+    return GetProofOfStakeRewardAtHeight(nHeight) + nFees;
 };
 
 int64_t CChainParams::GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const
@@ -705,6 +710,7 @@ public:
         nTargetTimespan = 16 * 60;      // 16 mins
         nStakeTimestampMask = 0;
         nBlockReward = 6 * COIN;
+        nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
         SetLastImportHeight();
 

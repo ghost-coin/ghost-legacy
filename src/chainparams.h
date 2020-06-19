@@ -100,15 +100,16 @@ public:
     uint32_t GetTargetSpacing() const { return nTargetSpacing; }
     uint32_t GetTargetTimespan() const { return nTargetTimespan; }
 
-    uint32_t GetStakeTimestampMask(int nHeight) const { return nStakeTimestampMask; }
+    uint32_t GetStakeTimestampMask(int /*nHeight*/) const { return nStakeTimestampMask; }
     int64_t GetBaseBlockReward() const;
-    int GetCoinYearPercent(int index) const;
+    int GetCoinYearPercent(int year) const;
     const DevFundSettings *GetDevFundSettings(int64_t nTime) const;
     const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const {return vDevFundSettings;};
     bool PushDevFundSettings(int64_t time_from, DevFundSettings &settings);
 
-    int64_t GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
-    int64_t GetProofOfStakeRewardAtHeight(const int nHeight, int64_t nFees) const;
+    CAmount GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
+    CAmount GetProofOfStakeRewardAtYear(int year) const;
+    CAmount GetProofOfStakeRewardAtHeight(int nHeight) const;
     int64_t GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const;
 
     uint32_t GetLastImportHeight() const { return nLastImportHeight; }
