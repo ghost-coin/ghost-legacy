@@ -18,6 +18,36 @@
 struct ColdRewardsSetup : public BasicTestingSetup {
     explicit ColdRewardsSetup()
     {
+        std::function<CAmount(const AddressType&)> balanceGetter = [this](const AddressType& addr) {
+            auto it = balances.find(addr);
+            return it == balances.cend() ? 0 : it->second;
+        };
+        std::function<void(const AddressType&, const CAmount&)> balanceSetter = [this](const AddressType& addr, const CAmount& amount) {
+            balances[addr] = amount;
+        };
+
+        std::function<std::vector<BlockHeightRange>(const AddressType&)> rangesGetter = [this](const AddressType& addr) {
+            auto it = ranges.find(addr);
+            return it == ranges.cend() ? std::vector<BlockHeightRange>() : it->second;
+        };
+        std::function<void(const AddressType&, const std::vector<BlockHeightRange>&)> rangesSetter = [this](const AddressType& Addr, const std::vector<BlockHeightRange>& Ranges) {
+            ranges[Addr] = Ranges;
+        };
+
+        std::function<void()> transactionStarter = []() {};
+        std::function<void()> transactionEnder = []() {};
+
+        std::function<std::map<AddressType, std::vector<BlockHeightRange>>()> allRangesGetter = [this]() {
+            return ranges;
+        };
+
+        tracker.setPersistedRangesGetter(rangesGetter);
+        tracker.setPersistedRangesSetter(rangesSetter);
+        tracker.setPersistedBalanceGetter(balanceGetter);
+        tracker.setPersistedBalanceSetter(balanceSetter);
+        tracker.setPersistedTransactionStarter(transactionStarter);
+        tracker.setPersisterTransactionEnder(transactionEnder);
+        tracker.setAllRangesGetter(allRangesGetter);
     }
 
     ~ColdRewardsSetup()
@@ -37,44 +67,17 @@ ColdRewardTracker::AddressType VecUint8FromString(const std::string& str)
 {
     return ColdRewardTracker::AddressType(str.cbegin(), str.cend());
 }
+std::string StringFromVecUint8(const ColdRewardTracker::AddressType vec)
+{
+    return std::string(vec.cbegin(), vec.cend());
+}
 } // namespace
 
 
 BOOST_FIXTURE_TEST_SUITE(coldreward_tests, ColdRewardsSetup)
 
-BOOST_AUTO_TEST_CASE(basics)
+BOOST_AUTO_TEST_CASE(basic)
 {
-    std::function<CAmount(const AddressType&)> balanceGetter = [this](const AddressType& addr) {
-        auto it = balances.find(addr);
-        return it == balances.cend() ? 0 : it->second;
-    };
-    std::function<void(const AddressType&, const CAmount&)> balanceSetter = [this](const AddressType& addr, const CAmount& amount) {
-        balances[addr] = amount;
-    };
-
-    std::function<std::vector<BlockHeightRange>(const AddressType&)> rangesGetter = [this](const AddressType& addr) {
-        auto it = ranges.find(addr);
-        return it == ranges.cend() ? std::vector<BlockHeightRange>() : it->second;
-    };
-    std::function<void(const AddressType&, const std::vector<BlockHeightRange>&)> rangesSetter = [this](const AddressType& Addr, const std::vector<BlockHeightRange>& Ranges) {
-        ranges[Addr] = Ranges;
-    };
-
-    std::function<void()> transactionStarter = []() {};
-    std::function<void()> transactionEnder = []() {};
-
-    std::function<std::map<AddressType, std::vector<BlockHeightRange>>()> allRangesGetter = [this]() {
-        return ranges;
-    };
-
-    tracker.setPersistedRangesGetter(rangesGetter);
-    tracker.setPersistedRangesSetter(rangesSetter);
-    tracker.setPersistedBalanceGetter(balanceGetter);
-    tracker.setPersistedBalanceSetter(balanceSetter);
-    tracker.setPersistedTransactionStarter(transactionStarter);
-    tracker.setPersisterTransactionEnder(transactionEnder);
-    tracker.setAllRangesGetter(allRangesGetter);
-
     std::string addrStr = "abc";
     AddressType addr = VecUint8FromString(addrStr);
 
@@ -241,102 +244,296 @@ BOOST_AUTO_TEST_CASE(basics)
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 0);
 
-    //////////////////////
+}
+BOOST_AUTO_TEST_CASE(corner)
+{
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
 
-    // some corner cases
-    std::string addr2Str = "abc2";
-    AddressType addr2 = VecUint8FromString(addr2Str);
-
+    // 20k coins added at block 10
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(10, addr2, 20000 * COIN);
+    tracker.addAddressTransaction(10, addr, 20000 * COIN);
     tracker.endPersistedTransaction();
 
-    BOOST_CHECK_EQUAL(balances.at(addr2), 20000 * COIN);
-    BOOST_REQUIRE_EQUAL(ranges.size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 10);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 10);
+    BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 10);
 
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
 
+    // 5 more added to create range at block 21599 which is 1 block below the end of the first month
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(21599, addr2, 5 * COIN);
+    tracker.addAddressTransaction(21599, addr, 5 * COIN);
     tracker.endPersistedTransaction();
 
-    BOOST_CHECK_EQUAL(balances.at(addr2), 20005 * COIN);
-    BOOST_REQUIRE_EQUAL(ranges.size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 10);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 21599);
+    BOOST_CHECK_EQUAL(balances.at(addr), 20005 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21599);
+
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
+
+    // add 5 more
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(21600, addr, 5 * COIN);
+    tracker.endPersistedTransaction();
+
+    BOOST_CHECK_EQUAL(balances.at(addr), 20010 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
 
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
 
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(21600, addr2, 5 * COIN);
+    tracker.addAddressTransaction(21601, addr, 5 * COIN);
     tracker.endPersistedTransaction();
 
-    BOOST_CHECK_EQUAL(balances.at(addr2), 20010 * COIN);
-    BOOST_REQUIRE_EQUAL(ranges.size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 10);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 21600);
-
-    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
-    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
-
-    tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(21601, addr2, 5 * COIN);
-    tracker.endPersistedTransaction();
-
-    BOOST_CHECK_EQUAL(balances.at(addr2), 20015 * COIN);
-    BOOST_REQUIRE_EQUAL(ranges.size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 10);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 21601);
+    BOOST_CHECK_EQUAL(balances.at(addr), 20015 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21601);
 
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
 
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(21601, addr2, 5 * COIN);
+    tracker.removeAddressTransaction(21601, addr, 5 * COIN);
     tracker.endPersistedTransaction();
 
-    BOOST_CHECK_EQUAL(balances.at(addr2), 20010 * COIN);
-    BOOST_REQUIRE_EQUAL(ranges.size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 10);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 21600);
+    BOOST_CHECK_EQUAL(balances.at(addr), 20010 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
 
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(21601, addr2, -15 * COIN);
+    tracker.addAddressTransaction(21601, addr, -15 * COIN);
     tracker.endPersistedTransaction();
 
-    BOOST_CHECK_EQUAL(balances.at(addr2), 19995 * COIN);
-    BOOST_REQUIRE_EQUAL(ranges.size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 10);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 21600);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getStart(), 21601);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getEnd(), 21601);
+    BOOST_CHECK_EQUAL(balances.at(addr), 19995 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21601);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21601);
 
     // now since they spent more and broke the limit, they're not eligible anymore
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 0);
 
     // calling with a block that doesn't have a record should change nothing other than the balance
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(22600, addr2, 15 * COIN);
+    tracker.removeAddressTransaction(22600, addr, 15 * COIN);
     tracker.endPersistedTransaction();
 
-    BOOST_CHECK_EQUAL(balances.at(addr2), 19980 * COIN);
-    BOOST_REQUIRE_EQUAL(ranges.size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 2);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 10);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 21600);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getStart(), 21601);
-    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getEnd(), 21601);
+    BOOST_CHECK_EQUAL(balances.at(addr), 19980 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21601);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21601);
 
     // now since they spent more and broke the limit, they're not eligible anymore
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(getEligibleAddresses)
+{
+    // asserts cant be tested, maybe we change them to ` throw std::invalid_argument` ?
+    //tracker.getEligibleAddresses(1);
+
+    // assert
+    //tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan-1);
+
+    // ok
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan).size(), 0);
+
+    // assert
+    //tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan + 1);
+    //tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan + 5000);
+
+    // ok
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).size(), 0);
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), 0);
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 50).size(), 0);
+
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
+
+    // 20001 coins added at block 1
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(1, addr, 20001 * COIN);
+    tracker.endPersistedTransaction();
+
+    // nobody is ever elegible in the first period.
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan).size(), 0);
+
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).size(), 1);
+
+    // address is always eligible in any of the next months.
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).size(), 1);
+    BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).front()), addrStr);
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), 1);
+    BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front()), addrStr);
+
+    // until balance ghets below 20k
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(1, addr, -2 * COIN);
+    tracker.endPersistedTransaction();
+
+    // for month 3 we should still be eligible ? not happening.
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), 0);
+    //BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front()), addrStr);
+
+    // not eligable in month 4, this is ok.
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 4).size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(interruption)
+{
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
+
+    // 20001 coins added at block 1
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(1, addr, 20001 * COIN);
+    tracker.endPersistedTransaction();
+
+    BOOST_CHECK_EQUAL(balances.at(addr), 20001 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(1, addr, -2 * COIN);
+    tracker.endPersistedTransaction();
+
+    BOOST_CHECK_EQUAL(balances.at(addr), 19999 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 1);
+
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(1, addr, 2 * COIN);
+    tracker.endPersistedTransaction();
+
+    BOOST_CHECK_EQUAL(balances.at(addr), 20001 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 3);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getEnd(), 1);
+    // ... possible DoS
+
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(2, addr, -2 * COIN);
+    tracker.endPersistedTransaction();
+
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 4);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[3].getStart(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[3].getEnd(), 2);
+
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(2, addr, 2 * COIN);
+    tracker.endPersistedTransaction();
+
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 5);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[3].getStart(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[3].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[4].getStart(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[4].getEnd(), 2);
+    // ...
+}
+
+std::string randomAddrGen(int length) {
+    static std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    std::string result;
+    result.resize(length);
+
+    for (int i = 0; i < length; i++)
+        result[i] = charset[rand() % charset.length()];
+
+    return result;
+}
+
+BOOST_AUTO_TEST_CASE(performance)
+{
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
+
+    // 20001 coins added at block 1
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(1, addr, 20001 * COIN);
+    tracker.endPersistedTransaction();
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+
+    srand(time(NULL));
+
+    for(int i = 0; i<5000; i++) {
+        std::string addrStr = randomAddrGen(std::rand()%10);
+        AddressType addr = VecUint8FromString(addrStr);
+
+        // send some coin below 20k to all addresses
+        tracker.startPersistedTransaction();
+        tracker.addAddressTransaction(1, addr, rand()%20000 * COIN);
+        tracker.endPersistedTransaction();
+    }
+
+    begin = std::chrono::steady_clock::now();
+    tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
+    end = std::chrono::steady_clock::now();
+
+    std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+
+    for(int i = 0; i<50000; i++) {
+        std::string addrStr = randomAddrGen(std::rand()%10);
+        AddressType addr = VecUint8FromString(addrStr);
+
+        // send some coin below 20k to all addresses
+        tracker.startPersistedTransaction();
+        tracker.addAddressTransaction(1, addr, rand()%20000 * COIN);
+        tracker.endPersistedTransaction();
+    }
+
+    begin = std::chrono::steady_clock::now();
+    tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
+    end = std::chrono::steady_clock::now();
+
+    std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
