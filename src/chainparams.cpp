@@ -464,7 +464,7 @@ public:
         checkpointData = {
             {
                 //TODO GHOSTFORK add more checkpoints as mainnet progresses
-                { 0, genesis.getHash()},
+                { 0, genesis.GetHash()},
             }
         };
 
