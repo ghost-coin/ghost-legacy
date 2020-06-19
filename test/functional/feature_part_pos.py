@@ -110,7 +110,7 @@ class PosTest(ParticlTestFramework):
                 continue
             if addr0 == addrReward:
                 fFound = True
-                assert(vout['valueSat'] == 0)
+                assert(vout['valueSat'] == 600000000)
                 break
         assert(fFound)
 

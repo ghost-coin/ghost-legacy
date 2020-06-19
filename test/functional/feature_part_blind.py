@@ -145,7 +145,7 @@ class BlindTest(ParticlTestFramework):
 
         ro = nodes[0].getwalletinfo()
         # Some of the balance will have staked
-        assert(isclose(ro['balance'] + ro['staked_balance'], 99996.09788200))
+        assert(isclose(ro['balance'] + ro['staked_balance'], 100008.09788200))
         availableBalance = ro['balance']
 
 
@@ -156,7 +156,7 @@ class BlindTest(ParticlTestFramework):
 
 
         nodes[0].syncwithvalidationinterfacequeue()
-        assert(isclose(nodes[0].getwalletinfo()['total_balance'], 99996.09584800))
+        assert(isclose(nodes[0].getwalletinfo()['total_balance'], 100008.09584800))
         assert(isclose(nodes[1].getwalletinfo()['blind_balance'], 2.69580200))
 
         unspent = nodes[2].listunspentblind(minconf=0)
