@@ -80,6 +80,8 @@ protected:
     std::vector<BlockHeightRange> getAddressRanges(const AddressType& addr);
     void updateAddressRangesCache(const AddressType& addr, std::vector<BlockHeightRange>&& ranges);
 
+    void AssertTrue(bool valueShouldBeTrue, const std::string &functionName, const std::string& msg);
+
 public:
     ColdRewardTracker() = default;
 
