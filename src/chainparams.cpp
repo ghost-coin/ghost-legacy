@@ -326,7 +326,6 @@ static CBlock CreateGenesisBlockMainNet(uint32_t nTime, uint32_t nNonce, uint32_
 class CMainParams : public CChainParams {
 public:
     CMainParams() {
-        //TODO GHOSTFORK change mainnet params to ghost mainnet
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 210000;
         consensus.BIP34Height = 0;
