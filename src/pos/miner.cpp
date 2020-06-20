@@ -151,7 +151,7 @@ bool ImportOutputs(CBlockTemplate *pblocktemplate, int nHeight)
     }
 
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.SetType(TXN_COINBASE);
     txn.nLockTime = 0;
     txn.vin.push_back(CTxIn()); // null prevout
@@ -210,12 +210,6 @@ bool ImportOutputs(CBlockTemplate *pblocktemplate, int nHeight)
     }
 
     fclose(fp);
-
-    // uint256 hash = txn.GetHash();
-    // if (!Params().CheckImportCoinbase(nHeight, hash)) {
-    //     return error("%s - Incorrect outputs hash.", __func__);
-    // }
-
     pblock->vtx.insert(pblock->vtx.begin()+1, MakeTransactionRef(txn));
 
     return true;

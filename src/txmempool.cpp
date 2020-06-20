@@ -414,7 +414,7 @@ void CTxMemPool::addAddressIndex(const CTxMemPoolEntry &entry, const CCoinsViewC
     LOCK(cs);
     const CTransaction& tx = entry.GetTx();
 
-    if (!tx.IsParticlVersion())
+    if (!tx.IsGhostVersion())
         return;
 
     std::vector<CMempoolAddressDeltaKey> inserted;
@@ -513,7 +513,7 @@ void CTxMemPool::addSpentIndex(const CTxMemPoolEntry &entry, const CCoinsViewCac
 
     const CTransaction& tx = entry.GetTx();
 
-    if (!tx.IsParticlVersion())
+    if (!tx.IsGhostVersion())
         return;
 
     std::vector<CSpentIndexKey> inserted;
@@ -1143,7 +1143,7 @@ bool CCoinsViewMemPool::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     CTransactionRef ptx = mempool.get(outpoint.hash);
     if (ptx) {
 
-        if (ptx->IsParticlVersion())
+        if (ptx->IsGhostVersion())
         {
             if (outpoint.n < ptx->vpout.size())
             {

@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(new_ext_key)
     }
 }
 
-static const std::string strSecret1C("GzFRfngjf5aHMuAzWDZWzJ8eYqMzp29MmkCp6NgzkXFibrh45tTc");
+static const std::string strSecret1C("RZszq9auoziFsuwYacTKAPctz31qEHsXDNLNYinVEGxzw4DWB6Xb");
 static const std::string strSecret2C("H5hDgLvFjLcZG9jyxkUTJ28P6N5T7iMBQ79boMuaPafxXuy8hb9n");
 
 BOOST_AUTO_TEST_CASE(stealth)
@@ -102,7 +102,6 @@ BOOST_AUTO_TEST_CASE(stealth)
     BOOST_CHECK(2 == vecSend.size());
     BOOST_REQUIRE(51 == vecSend[1].vData.size());
     BOOST_REQUIRE(vecSend[1].vData[34] == DO_NARR_CRYPT);
-
     CBitcoinSecret bsecret1;
     BOOST_CHECK(bsecret1.SetString(strSecret1C));
     //BOOST_CHECK(bsecret2.SetString(strSecret2C));
@@ -354,8 +353,8 @@ BOOST_AUTO_TEST_CASE(test_TxOutRingCT)
     BOOST_MESSAGE("---------------- Serialize Transaction with No Segwit ---------------------\n");
     CMutableTransaction tx;
     tx.vpout.emplace_back(txout);
-    tx.nVersion = 2|PARTICL_TXN_VERSION;
-    BOOST_CHECK_MESSAGE(tx.IsParticlVersion(), "failed IsParticlVersion");
+    tx.nVersion = 2|GHOST_TXN_VERSION;
+    BOOST_CHECK_MESSAGE(tx.IsGhostVersion(), "failed IsGhostVersion");
 
     //The peer that sends the block sets the version that the data stream will use!
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION|SERIALIZE_TRANSACTION_NO_WITNESS);
@@ -532,7 +531,7 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     SignatureData sigdataA, sigdataB, sigdataC;
 
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.SetType(TXN_COINSTAKE);
     txn.nLockTime = 0;
 
@@ -564,7 +563,7 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     BOOST_CHECK(VerifyScript(scriptSig, script, &sigdataA.scriptWitness, nFlags, MutableTransactionSignatureChecker(&txn, 0, vchAmount), &serror));
 
 
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.SetType(TXN_STANDARD);
     BOOST_CHECK(!txn.IsCoinStake());
 

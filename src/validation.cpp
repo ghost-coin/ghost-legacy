@@ -457,7 +457,7 @@ static bool CheckInputsFromMempoolAndCache(const CTransaction& tx, CValidationSt
         if (txFrom) {
             assert(txFrom->GetHash() == txin.prevout.hash);
             assert(txFrom->GetNumVOuts() > txin.prevout.n);
-            if (txFrom->IsParticlVersion()) {
+            if (txFrom->IsGhostVersion()) {
                 assert(coin.Matches(txFrom->vpout[txin.prevout.n].get()));
             } else {
                 assert(txFrom->vout[txin.prevout.n] == coin.out);
@@ -2657,7 +2657,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                                  REJECT_INVALID, "bad-txns-nonfinal");
             }
 
-            if (tx.IsParticlVersion()
+            if (tx.IsGhostVersion()
                 && (fAddressIndex || fSpentIndex)) {
                 // Update spent inputs for insight
                 for (size_t j = 0; j < tx.vin.size(); j++) {
@@ -3296,7 +3296,7 @@ void UpdateTip(const CBlockIndex* pindexNew, const CChainParams& chainParams)
         {
             if (fParticlMode)
             {
-                if (pindex->nVersion > PARTICL_BLOCK_VERSION)
+                if (pindex->nVersion > GHOST_BLOCK_VERSION)
                     ++nUpgraded;
             } else
             {
@@ -4192,7 +4192,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, un
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     if (fParticlMode
-        && !block.IsParticlVersion())
+        && !block.IsGhostVersion())
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "block-version", "bad block version");
 
     // Check timestamp
@@ -4674,12 +4674,6 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
             if (block.vtx.size() < 2 || !block.vtx[1]->IsCoinBase()) {
                 return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-cb", "Second txn of import block must be coinbase");
             }
-
-            // // Check hash of genesis import txn matches expected hash.
-            // uint256 txnHash = block.vtx[1]->GetHash();
-            // if (!Params().CheckImportCoinbase(nHeight, txnHash)) {
-            //     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb", "Incorrect outputs hash.");
-            // }
         } else {
             // 2nd txn can't be coinbase if block height > GetLastImportHeight
             if (block.vtx.size() > 1 && block.vtx[1]->IsCoinBase()) {

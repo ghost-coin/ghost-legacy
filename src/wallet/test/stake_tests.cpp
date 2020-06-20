@@ -185,10 +185,10 @@ BOOST_AUTO_TEST_CASE(stake_test)
         const auto bal = pwallet->GetBalance();
         BOOST_REQUIRE(bal.m_mine_trusted == 12500000000000);
     }
-    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000000000);
+    BOOST_REQUIRE_EQUAL(::ChainActive().Tip()->nMoneySupply, 12500000000000);
 
     StakeNBlocks(pwallet, 2);
-    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000079274);
+    BOOST_REQUIRE_EQUAL(::ChainActive().Tip()->nMoneySupply, 12501200000000);
 
     CBlockIndex *pindexDelete = ::ChainActive().Tip();
     BOOST_REQUIRE(pindexDelete);
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     BOOST_CHECK(::ChainActive().Height() == pindexDelete->nHeight - 1);
     BOOST_CHECK(::ChainActive().Tip()->GetBlockHash() == pindexDelete->pprev->GetBlockHash());
-    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000039637);
+    BOOST_REQUIRE_EQUAL(::ChainActive().Tip()->nMoneySupply, 12500600000000);
 
 
     // Reconnect block
@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
         const Coin &coin = view.AccessCoin(txin.prevout);
         BOOST_REQUIRE(coin.IsSpent());
-        BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000079274);
+        BOOST_REQUIRE_EQUAL(::ChainActive().Tip()->nMoneySupply, 12501200000000);
     }
 
     CKey kRecv;
@@ -294,8 +294,8 @@ BOOST_AUTO_TEST_CASE(stake_test)
             LOCK(cs_main);
 
             // Reduce the reward
-            RegtestParams().SetCoinYearReward(1 * CENT);
-            BOOST_CHECK(Params().GetCoinYearReward(0) == 1 * CENT);
+            RegtestParams().SetBlockReward(5 * COIN);
+            BOOST_CHECK(Params().GetBaseBlockReward() == 5 * COIN);
 
             CValidationState state;
             CCoinsViewCache view(&::ChainstateActive().CoinsTip());
@@ -306,8 +306,8 @@ BOOST_AUTO_TEST_CASE(stake_test)
             BOOST_CHECK(prevTipHash == ::ChainActive().Tip()->GetBlockHash());
 
             // restore the reward
-            RegtestParams().SetCoinYearReward(2 * CENT);
-            BOOST_CHECK(Params().GetCoinYearReward(0) == 2 * CENT);
+            RegtestParams().SetBlockReward(6 * COIN);
+            BOOST_CHECK(Params().GetBaseBlockReward() == 6 * COIN);
 
             // block should connect now
             CValidationState clearstate;
@@ -321,14 +321,13 @@ BOOST_AUTO_TEST_CASE(stake_test)
             UpdateTip(pindexDelete, chainparams);
 
             BOOST_CHECK(tipHash == ::ChainActive().Tip()->GetBlockHash());
-            BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == 12500000153511);
+            BOOST_CHECK_EQUAL(::ChainActive().Tip()->nMoneySupply, 12501800034600);
         }
     }
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress lblTestKey"));
     std::string extaddr = StripQuotes(rv.write());
-
-    BOOST_CHECK(pwallet->GetBalance().m_mine_trusted + pwallet->GetStaked() == 12500000108911);
+    BOOST_CHECK_EQUAL(pwallet->GetBalance().m_mine_trusted + pwallet->GetStaked(), 12501799990000);
 
     {
         BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress"));
@@ -363,7 +362,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         }
 
         BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 0);
-        BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == 12500000153511);
+        BOOST_CHECK_EQUAL(::ChainActive().Tip()->nMoneySupply, 12501800034600);
     }
 }
 

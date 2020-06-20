@@ -258,7 +258,7 @@ def createRefundTxCT(node, rawtx, output_amounts, script, lockTime, privKeySign,
         'type':'blind',
         'amount':amountIn,
     }, ]
-    ro = node.createrawparttransaction(inputs, outputs, lockTime)
+    ro = node.createrawghosttransaction(inputs, outputs, lockTime)
     rawtxrefund = ro['hex']
 
     witnessSize = 5 + 73 + 33 + 1 + len(script)
@@ -318,7 +318,7 @@ def createClaimTxCT(node, rawtx, output_amounts, script, secret, privKeySign, pu
         'type':'blind',
         'amount':amountIn,
     }, ]
-    ro = node.createrawparttransaction(inputs, outputs)
+    ro = node.createrawghosttransaction(inputs, outputs)
     rawtxClaim = ro['hex']
 
     # Need estimated witnessSize for fee estimation
@@ -538,7 +538,7 @@ class AtomicSwapTest(ParticlTestFramework):
             'type':'blind',
             'amount':100,
         }, ]
-        ro = nodes[0].createrawparttransaction([], outputs)
+        ro = nodes[0].createrawghosttransaction([], outputs)
 
         ro = nodes[0].fundrawtransactionfrom('standard', ro['hex'], {}, ro['amounts'])
         rawtx = ro['hex']
@@ -604,7 +604,7 @@ class AtomicSwapTest(ParticlTestFramework):
             'type':'blind',
             'amount':amountA,
         }, ]
-        ro = nodes[0].createrawparttransaction([], outputs)
+        ro = nodes[0].createrawghosttransaction([], outputs)
         ro = nodes[0].fundrawtransactionfrom('blind', ro['hex'], {}, ro['amounts'])
         output_amounts_i = ro['output_amounts']
         ro = nodes[0].signrawtransactionwithwallet(ro['hex'])
@@ -651,7 +651,7 @@ class AtomicSwapTest(ParticlTestFramework):
             'amount':amountB,
         }, ]
 
-        ro = nodes[1].createrawparttransaction([], outputs)
+        ro = nodes[1].createrawghosttransaction([], outputs)
         ro = nodes[1].fundrawtransactionfrom('blind', ro['hex'], {}, ro['amounts'])
         output_amounts_p = ro['output_amounts']
         ro = nodes[1].signrawtransactionwithwallet(ro['hex'])
@@ -702,7 +702,7 @@ class AtomicSwapTest(ParticlTestFramework):
             'type':'blind',
             'amount':amountA,
         }, ]
-        ro = nodes[0].createrawparttransaction([], outputs)
+        ro = nodes[0].createrawghosttransaction([], outputs)
         ro = nodes[0].fundrawtransactionfrom('blind', ro['hex'], {}, ro['amounts'])
 
         r2 = nodes[0].verifyrawtransaction(ro['hex'])
@@ -758,7 +758,7 @@ class AtomicSwapTest(ParticlTestFramework):
             'type':'blind',
             'amount': amount,
         }, ]
-        ro = nodes[0].createrawparttransaction([], outputs)
+        ro = nodes[0].createrawghosttransaction([], outputs)
 
         ro = nodes[1].decoderawtransaction(ro['hex'])
         assert(ro['vout'][0]['ct_fee'] == amount)
@@ -783,8 +783,8 @@ class AtomicSwapTest(ParticlTestFramework):
             'blindingfactor': blind,
             'ephemeral_key': ephem
         }, ]
-        txA = nodes[1].createrawparttransaction([], outputs)
-        txB = nodes[0].createrawparttransaction([], outputs)
+        txA = nodes[1].createrawghosttransaction([], outputs)
+        txB = nodes[0].createrawghosttransaction([], outputs)
 
         rangeproofA = nodes[1].decoderawtransaction(txA['hex'])['vout'][0]['rangeproof']
         rangeproofB = nodes[0].decoderawtransaction(txB['hex'])['vout'][0]['rangeproof']

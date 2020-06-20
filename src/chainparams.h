@@ -100,16 +100,17 @@ public:
     uint32_t GetTargetSpacing() const { return nTargetSpacing; }
     uint32_t GetTargetTimespan() const { return nTargetTimespan; }
 
-    uint32_t GetStakeTimestampMask(int nHeight) const { return nStakeTimestampMask; }
-    int64_t GetCoinYearReward(int64_t nTime) const;
-    int GetCoinYearPercent(int index) const;
+    uint32_t GetStakeTimestampMask(int /*nHeight*/) const { return nStakeTimestampMask; }
+    int64_t GetBaseBlockReward() const;
+    int GetCoinYearPercent(int year) const;
     const DevFundSettings *GetDevFundSettings(int64_t nTime) const;
     const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const {return vDevFundSettings;};
 
-    int64_t GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
+    CAmount GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
+    CAmount GetProofOfStakeRewardAtYear(int year) const;
+    CAmount GetProofOfStakeRewardAtHeight(int nHeight) const;
     int64_t GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const;
 
-    bool CheckImportCoinbase(int nHeight, uint256 &hash) const;
     uint32_t GetLastImportHeight() const { return nLastImportHeight; }
 
     const CBlock& GenesisBlock() const { return genesis; }
@@ -149,15 +150,18 @@ public:
         nCoinYearReward = nCoinYearReward_;
     }
 
+    void SetBlockReward(int64_t nBlockReward_)
+    {
+        assert(strNetworkID == "regtest");
+        nBlockReward = nBlockReward_;
+    }
+
 protected:
     CChainParams() {}
 
     void SetLastImportHeight()
     {
         nLastImportHeight = 0;
-        for (auto cth : vImportedCoinbaseTxns) {
-            nLastImportHeight = std::max(nLastImportHeight, cth.nHeight);
-        }
     }
 
     Consensus::Params consensus;
@@ -173,8 +177,7 @@ protected:
     uint32_t nStakeTimestampMask = (1 << 4) -1; // 4 bits, every kernel stake hash will change every 16 seconds
     int64_t nCoinYearReward = 2 * CENT; // 2% per year
     std::array<int, 47> nBlockPerc; //reward percentage each year
-    std::vector<CImportedCoinbaseTxn> vImportedCoinbaseTxns;
-    uint32_t nLastImportHeight;       // set from vImportedCoinbaseTxns
+    uint32_t nLastImportHeight;       // always 0 on ghost
 
     std::vector<std::pair<int64_t, DevFundSettings> > vDevFundSettings;
 

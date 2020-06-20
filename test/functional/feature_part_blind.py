@@ -45,7 +45,7 @@ class BlindTest(ParticlTestFramework):
         sxAddrTo1_1 = nodes[1].getnewstealthaddress('lblsx11')
         assert(sxAddrTo1_1 == 'TetbYTGv5LiqyFiUD3a5HHbpSinQ9KiRYDGAMvRzPfz4RnHMbKGAwDr1fjLGJ5Eqg1XDwpeGyqWMiwdK3qM3zKWjzHNpaatdoHVzzA')
 
-        txnHash = nodes[0].sendparttoblind(sxAddrTo1_1, 3.4, '', '', False, 'node0 -> node1 p->b')
+        txnHash = nodes[0].sendghosttoblind(sxAddrTo1_1, 3.4, '', '', False, 'node0 -> node1 p->b')
         txnHashes.append(txnHash)
 
         ro = nodes[0].listtransactions()
@@ -102,7 +102,7 @@ class BlindTest(ParticlTestFramework):
         assert(e['stealth_address'] == sxAddrTo2_1)
 
 
-        txnHash4 = nodes[1].sendblindtopart(sxAddrTo2_1, 0.5, '', '', False, 'node1 -> node2 b->p')
+        txnHash4 = nodes[1].sendblindtoghost(sxAddrTo2_1, 0.5, '', '', False, 'node1 -> node2 b->p')
 
         ro = nodes[1].getwalletinfo()
         assert(ro['blind_balance'] < 2.7 and ro['blind_balance'] > 2.69)
@@ -135,7 +135,7 @@ class BlindTest(ParticlTestFramework):
         assert(ro['prefix_bitfield'] == '0x000a')
 
 
-        txnHash5 = nodes[0].sendparttoblind(sxAddrTo2_3, 0.5, '', '', False, 'node0 -> node2 p->b')
+        txnHash5 = nodes[0].sendghosttoblind(sxAddrTo2_3, 0.5, '', '', False, 'node0 -> node2 p->b')
 
         assert(self.wait_for_mempool(nodes[2], txnHash5))
 
@@ -145,7 +145,7 @@ class BlindTest(ParticlTestFramework):
 
         ro = nodes[0].getwalletinfo()
         # Some of the balance will have staked
-        assert(isclose(ro['balance'] + ro['staked_balance'], 99996.09874074))
+        assert(isclose(ro['balance'] + ro['staked_balance'], 100008.09788200))
         availableBalance = ro['balance']
 
 
@@ -156,7 +156,7 @@ class BlindTest(ParticlTestFramework):
 
 
         nodes[0].syncwithvalidationinterfacequeue()
-        assert(isclose(nodes[0].getwalletinfo()['total_balance'], 99996.09670674))
+        assert(isclose(nodes[0].getwalletinfo()['total_balance'], 100008.09584800))
         assert(isclose(nodes[1].getwalletinfo()['blind_balance'], 2.69580200))
 
         unspent = nodes[2].listunspentblind(minconf=0)
@@ -172,7 +172,7 @@ class BlindTest(ParticlTestFramework):
         assert(len(nodes[1].listunspentblind(minconf=0)) == len(unspent))
 
         outputs = [{'address': sxAddrTo2_3, 'amount': 2.691068, 'subfee': True},]
-        ro = nodes[1].sendtypeto('blind', 'part', outputs, 'comment_to', 'comment_from', 4, 64, True)
+        ro = nodes[1].sendtypeto('blind', 'ghost', outputs, 'comment_to', 'comment_from', 4, 64, True)
         feePerKB = (1000.0 / ro['bytes']) * float(ro['fee'])
         assert(feePerKB > 0.001 and feePerKB < 0.004)
 
@@ -180,7 +180,7 @@ class BlindTest(ParticlTestFramework):
         feePerKB = (1000.0 / ro['bytes']) * float(ro['fee'])
         assert(feePerKB > 0.001 and feePerKB < 0.004)
 
-        nodes[1].sendtypeto('blind', 'part', outputs)
+        nodes[1].sendtypeto('blind', 'ghost', outputs)
 
         try:
             ro = nodes[1].sendtypeto('blind', 'blind', outputs)
@@ -192,7 +192,7 @@ class BlindTest(ParticlTestFramework):
         addrPlain = nodes[0].getnewaddress()
         addrLong = nodes[0].getnewaddress('', False, False, True)
         outputs = [{'address': addrPlain, 'amount': 1.0}, {'address': addrLong, 'amount': 1.0}]
-        nodes[0].sendtypeto('part', 'blind', outputs)
+        nodes[0].sendtypeto('ghost', 'blind', outputs)
 
 
         self.log.info('Test sending all blind to blind')
@@ -205,12 +205,12 @@ class BlindTest(ParticlTestFramework):
         self.sync_all()
         self.stakeBlocks(1,nStakeNode=3)
 
-        self.log.info('Test sending all blind to part')
+        self.log.info('Test sending all blind to ghost')
         bal1 = nodes[1].getwalletinfo()
 
         assert(isclose(bal1['blind_balance'], 2.002582))
         outputs = [{'address': sxAddrTo1_1, 'amount': bal1['blind_balance'], 'subfee': True}]
-        nodes[1].sendtypeto('blind', 'part', outputs)
+        nodes[1].sendtypeto('blind', 'ghost', outputs)
 
         bal1 = nodes[1].getwalletinfo()
         assert(isclose(bal1['blind_balance'], 0.00000001))

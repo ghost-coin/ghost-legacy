@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(signature_test)
     CKeyID id = pk.GetID();
 
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.nLockTime = 0;
 
     int nBlockHeight = 22;
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(signature_test)
     txn.vpout.push_back(out1);
 
     CMutableTransaction txn2;
-    txn2.nVersion = PARTICL_TXN_VERSION;
+    txn2.nVersion = GHOST_TXN_VERSION;
     txn2.vin.push_back(CTxIn(txn.GetHash(), 0));
 
     std::vector<uint8_t> vchAmount(8);
@@ -94,11 +94,11 @@ BOOST_AUTO_TEST_CASE(ghostchain_test)
     CScript script = CScript() << OP_DUP << OP_HASH160 << ToByteVector(id) << OP_EQUALVERIFY << OP_CHECKSIG;
 
     CBlock blk;
-    blk.nVersion = PARTICL_BLOCK_VERSION;
+    blk.nVersion = GHOST_BLOCK_VERSION;
     blk.nTime = 1487406900;
 
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
+    txn.nVersion = GHOST_TXN_VERSION;
     txn.SetType(TXN_COINBASE);
     txn.nLockTime = 0;
     OUTPUT_PTR<CTxOutStandard> out0 = MAKE_OUTPUT<CTxOutStandard>();
@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(ghostchain_test)
 
     CMutableTransaction txnSpend;
 
-    txnSpend.nVersion = PARTICL_BLOCK_VERSION;
+    txnSpend.nVersion = GHOST_BLOCK_VERSION;
 }
 
 BOOST_AUTO_TEST_CASE(varints)
@@ -175,8 +175,8 @@ BOOST_AUTO_TEST_CASE(varints)
 BOOST_AUTO_TEST_CASE(mixed_input_types)
 {
     CMutableTransaction txn;
-    txn.nVersion = PARTICL_TXN_VERSION;
-    BOOST_CHECK(txn.IsParticlVersion());
+    txn.nVersion = GHOST_TXN_VERSION;
+    BOOST_CHECK(txn.IsGhostVersion());
 
     CAmount txfee;
     int nSpendHeight = 1;
@@ -184,8 +184,8 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
     CCoinsViewCache inputs(&viewDummy);
 
     CMutableTransaction txnPrev;
-    txnPrev.nVersion = PARTICL_TXN_VERSION;
-    BOOST_CHECK(txnPrev.IsParticlVersion());
+    txnPrev.nVersion = GHOST_TXN_VERSION;
+    BOOST_CHECK(txnPrev.IsGhostVersion());
 
     CScript scriptPubKey;
     txnPrev.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(1 * COIN, scriptPubKey));
@@ -240,18 +240,117 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
     }
 }
 
-BOOST_AUTO_TEST_CASE(coin_year_reward)
+//Test block reward over the years on GHOST
+BOOST_AUTO_TEST_CASE(blockreward_at_height_test)
 {
-    BOOST_CHECK(Params().GetCoinYearReward(1529700000) == 5 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1531832399) == 5 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1531832400) == 4 * CENT);    // 2018-07-17 13:00:00
-    BOOST_CHECK(Params().GetCoinYearReward(1563368399) == 4 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1563368400) == 3 * CENT);    // 2019-07-17 13:00:00
-    BOOST_CHECK(Params().GetCoinYearReward(1594904399) == 3 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1594904400) == 2 * CENT);    // 2020-07-16 13:00:00
-    BOOST_CHECK(Params().GetCoinYearReward(1626440400) == 2 * CENT);
-    BOOST_CHECK(Params().GetCoinYearReward(1657976400) == 2 * CENT);
+    const int64_t nBlocksPerYear = (365 * 24 * 60 * 60) / Params().GetTargetSpacing();
+
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 0), 600000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 1), 600000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 2), 570000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 3), 540000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 4), 516000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 5), 486000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 6), 462000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 7), 444000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 8), 420000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 9), 396000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 10), 378000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 11), 360000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 12), 342000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 13), 324000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 14), 306000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 15), 294000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 16), 276000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 17), 264000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 18), 252000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 19), 240000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 20), 228000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 21), 216000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 22), 204000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 23), 192000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 24), 186000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 25), 174000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 26), 168000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 27), 156000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 28), 150000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 29), 144000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 30), 138000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 31), 126000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 32), 120000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 33), 114000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 34), 108000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 35), 102000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 36), 102000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 37), 96000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 38), 90000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 39), 84000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 40), 84000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 41), 78000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 42), 72000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 43), 72000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 44), 66000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 45), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 46), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 47), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 48), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 49), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtHeight(nBlocksPerYear * 50), 60000000);
 }
 
+BOOST_AUTO_TEST_CASE(blockreward_at_year_test)
+{
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(0), 600000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(1), 600000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(2), 570000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(3), 540000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(4), 516000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(5), 486000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(6), 462000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(7), 444000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(8), 420000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(9), 396000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(10), 378000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(11), 360000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(12), 342000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(13), 324000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(14), 306000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(15), 294000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(16), 276000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(17), 264000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(18), 252000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(19), 240000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(20), 228000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(21), 216000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(22), 204000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(23), 192000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(24), 186000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(25), 174000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(26), 168000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(27), 156000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(28), 150000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(29), 144000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(30), 138000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(31), 126000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(32), 120000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(33), 114000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(34), 108000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(35), 102000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(36), 102000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(37), 96000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(38), 90000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(39), 84000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(40), 84000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(41), 78000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(42), 72000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(43), 72000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(44), 66000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(45), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(46), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(47), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(48), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(49), 60000000);
+    BOOST_CHECK_EQUAL(Params().GetProofOfStakeRewardAtYear(50), 60000000);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

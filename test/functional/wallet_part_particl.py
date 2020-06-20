@@ -55,7 +55,7 @@ class WalletParticlTest(ParticlTestFramework):
         return subprocess.Popen([binary] + args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
     def assert_tool_output(self, output, *args):
-        p = self.ghost_wallet_process(*args)
+        p = self.particl_wallet_process(*args)
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 0)
         assert_equal(stderr, '')
@@ -632,7 +632,7 @@ class WalletParticlTest(ParticlTestFramework):
 
         coincontrol = {'changeaddress':scriptHex,'debug':True}
         outputs = [{'address':sAddrSpend, 'amount':1, 'narr':'not change'},]
-        ro = nodes[2].sendtypeto('part', 'part', outputs, 'comment', 'comment-to', 4, 32, True, coincontrol)
+        ro = nodes[2].sendtypeto('ghost', 'ghost', outputs, 'comment', 'comment-to', 4, 32, True, coincontrol)
 
         ro = nodes[2].decoderawtransaction(ro['hex'])
         fFound = False
@@ -738,18 +738,18 @@ class WalletParticlTest(ParticlTestFramework):
 
 
         self.log.info('Test wallet-tool generatemnemonic')
-        p = self.ghost_wallet_process('-h', 'generatemnemonic')
+        p = self.particl_wallet_process('-h', 'generatemnemonic')
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 0)
         assert_equal(stderr, '')
         assert('1. language' in stdout)
-        p = self.ghost_wallet_process('generatemnemonic')
+        p = self.particl_wallet_process('generatemnemonic')
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 0)
         assert_equal(stderr, '')
         assert(len(stdout.split(' ')) == 24)
 
-        p = self.ghost_wallet_process('generatemnemonic', 'spanish', '16')
+        p = self.particl_wallet_process('generatemnemonic', 'spanish', '16')
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 0)
         assert_equal(stderr, '')

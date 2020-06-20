@@ -38,15 +38,15 @@ class AnonTest(ParticlTestFramework):
 
         sxAddrTo0_1 = nodes[0].getnewstealthaddress('lblsx01')
 
-        txnHashes.append(nodes[0].sendparttoanon(sxAddrTo1_1, 1, '', '', False, 'node0 -> node1 p->a'))
-        txnHashes.append(nodes[0].sendparttoblind(sxAddrTo0_1, 1000, '', '', False, 'node0 -> node0 p->b'))
+        txnHashes.append(nodes[0].sendghosttoanon(sxAddrTo1_1, 1, '', '', False, 'node0 -> node1 p->a'))
+        txnHashes.append(nodes[0].sendghosttoblind(sxAddrTo0_1, 1000, '', '', False, 'node0 -> node0 p->b'))
         txnHashes.append(nodes[0].sendblindtoanon(sxAddrTo1_1, 100, '', '', False, 'node0 -> node1 b->a 1'))
         txnHashes.append(nodes[0].sendblindtoanon(sxAddrTo1_1, 100, '', '', False, 'node0 -> node1 b->a 2'))
         txnHashes.append(nodes[0].sendblindtoanon(sxAddrTo1_1, 100, '', '', False, 'node0 -> node1 b->a 3'))
         txnHashes.append(nodes[0].sendblindtoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 b->a 4'))
 
         for k in range(5):
-            txnHash = nodes[0].sendparttoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 p->a')
+            txnHash = nodes[0].sendghosttoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 p->a')
             txnHashes.append(txnHash)
         for k in range(10):
             txnHash = nodes[0].sendblindtoanon(sxAddrTo1_1, 10, '', '', False, 'node0 -> node1 b->a')
@@ -84,10 +84,10 @@ class AnonTest(ParticlTestFramework):
         assert(nodes[1].getwalletinfo()['anon_balance'] > 10)
 
         outputs = [{'address':sxAddrTo0_1, 'amount':10, 'subfee':True},]
-        ro = nodes[1].sendtypeto('anon', 'part', outputs, 'comment_to', 'comment_from', 4, 32, True)
+        ro = nodes[1].sendtypeto('anon', 'ghost', outputs, 'comment_to', 'comment_from', 4, 32, True)
         assert(ro['bytes'] > 0)
 
-        txnHashes.append(nodes[1].sendtypeto('anon', 'part', outputs))
+        txnHashes.append(nodes[1].sendtypeto('anon', 'ghost', outputs))
 
         for txhash in txnHashes:
             assert(self.wait_for_mempool(nodes[0], txhash))
