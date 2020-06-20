@@ -1,5 +1,5 @@
 ---
-name: "particl-linux-0.19.1.1"
+name: "ghost-linux-0.19.1.1"
 enable_cache: true
 sudo: true
 distro: "ubuntu"
@@ -35,8 +35,8 @@ packages:
 - "python3"
 - "libudev-dev"
 remotes:
-- "url": "https://github.com/particl/particl-core.git"
-  "dir": "particl-core"
+- "url": "https://github.com/ghost/ghost-core.git"
+  "dir": "ghost-core"
 files: []
 script: |
   # prepare
@@ -132,7 +132,7 @@ script: |
   chmod +x ${WRAP_DIR}/${prog}
   done
 
-  cd particl-core
+  cd ghost-core
   BASEPREFIX=`pwd`/depends
   # Build dependencies for each host
   for i in $HOSTS; do
@@ -168,13 +168,13 @@ script: |
   ./autogen.sh
   CONFIG_SITE=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`/share/config.site ./configure --prefix=/
   make dist
-  SOURCEDIST=`echo particl-*.tar.gz`
+  SOURCEDIST=`echo ghost-*.tar.gz`
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
   # Correct tar file order
   mkdir -p temp
   pushd temp
   tar -xf ../$SOURCEDIST
-  find particl-* | sort | tar --mtime="$REFERENCE_DATETIME" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
+  find ghost-* | sort | tar --mtime="$REFERENCE_DATETIME" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
   popd
 
   # Workaround for tarball not building with the bare tag version (prep)
