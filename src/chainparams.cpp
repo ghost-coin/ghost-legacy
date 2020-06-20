@@ -457,7 +457,6 @@ public:
 
         checkpointData = {
             {
-                //TODO GHOSTFORK add more checkpoints as mainnet progresses
                 { 0, genesis.GetHash()},
             }
         };
@@ -538,10 +537,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000713ab7611e91606dd");//TODO: GHOSTFORK change this once we have staked a few blocks from the output of getblockchaininfo
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000713ab7611e91606dd");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x516d16948ce3324dd14e11c5ef3f6cb6dc2ecb8289f4bc150586d060cb83ee0c"); //TODO: GHOSTFORK change this to match a testnet block
+        consensus.defaultAssumeValid = uint256S("0x516d16948ce3324dd14e11c5ef3f6cb6dc2ecb8289f4bc150586d060cb83ee0c");
 
         consensus.nMinRCTOutputDepth = 12;
 
