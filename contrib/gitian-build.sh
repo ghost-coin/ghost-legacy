@@ -18,7 +18,7 @@ osx=true
 SIGNER=
 VERSION=
 commit=false
-url=https://github.com/particl/particl-core
+url=https://github.com/ghost/ghost-core
 proc=2
 mem=3000
 lxc=true
@@ -41,7 +41,7 @@ version         Version number, commit, or branch to build. If building a commit
 
 Options:
 -c|--commit     Indicate that the version argument is for a commit or branch
--u|--url        Specify the URL of the repository. Default is https://github.com/particl/particl-core
+-u|--url        Specify the URL of the repository. Default is https://github.com/ghost/ghost-core
 -v|--verify     Verify the Gitian build
 -b|--build      Do a Gitian build
 -s|--sign       Make signed binaries for Windows and Mac OSX
