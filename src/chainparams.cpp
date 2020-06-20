@@ -544,10 +544,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x0");//TODO: GHOSTFORK change this once we have staked a few blocks from the output of getblockchaininfo
+        consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000713ab7611e91606dd");//TODO: GHOSTFORK change this once we have staked a few blocks from the output of getblockchaininfo
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x0"); //TODO: GHOSTFORK change this to match a testnet block
+        consensus.defaultAssumeValid = uint256S("0x516d16948ce3324dd14e11c5ef3f6cb6dc2ecb8289f4bc150586d060cb83ee0c"); //TODO: GHOSTFORK change this to match a testnet block
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -634,9 +634,9 @@ public:
 
         chainTxData = ChainTxData{
             // Data from rpc: getchaintxstats 4096 1d9a63069ed2b88c9a1752ade780d39f783118a4d6f7b4a04b398c3d77d4cd1f
-            /* nTime    */ 1590511332,
-            /* nTxCount */ 633123,
-            /* dTxRate  */ 0.006
+            /* nTime    */ 1592655872,
+            /* nTxCount */ 14905,
+            /* dTxRate  */ 0.007782233656174334
         };
     }
 };
