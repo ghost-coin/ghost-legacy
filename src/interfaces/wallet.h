@@ -333,7 +333,7 @@ struct WalletAddress
     std::string path;
 
     WalletAddress(CTxDestination dest, isminetype is_mine, std::string name, std::string purpose, bool fBech32, std::string path)
-        : dest(std::move(dest)), is_mine(is_mine), name(std::move(name)), purpose(std::move(purpose)), fBech32(fBech32), path(path)
+        : dest(std::move(dest)), is_mine(is_mine), name(std::move(name)), purpose(std::move(purpose)), path(path), fBech32(fBech32)
     {
     }
 };
