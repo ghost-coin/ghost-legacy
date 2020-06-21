@@ -7,8 +7,9 @@ https://www.ghostbymcafee.com/
 What is Ghost?
 ----------------
 
-An open source, decentralized privacy platform
-built for global person to person eCommerce.
+An open source, privacy focused, anonymous and
+decentralised network that uses proof of stake 
+consensus algorithm with incentivized stakers.
 
 For more information, see https://www.ghostbymcafee.com/
 
