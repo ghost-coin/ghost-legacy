@@ -347,20 +347,14 @@ BOOST_AUTO_TEST_CASE(corner)
 
 BOOST_AUTO_TEST_CASE(getEligibleAddresses)
 {
-    // asserts cant be tested, maybe we change them to ` throw std::invalid_argument` ?
-    //tracker.getEligibleAddresses(1);
-
-    // assert
-    //tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan-1);
+    //test asserts
+    BOOST_REQUIRE_THROW(tracker.getEligibleAddresses(1), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan-1), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan + 1), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan + 5000), std::invalid_argument);
 
     // ok
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan).size(), 0);
-
-    // assert
-    //tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan + 1);
-    //tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan + 5000);
-
-    // ok
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).size(), 0);
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), 0);
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 50).size(), 0);
@@ -384,17 +378,33 @@ BOOST_AUTO_TEST_CASE(getEligibleAddresses)
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), 1);
     BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front()), addrStr);
 
-    // until balance ghets below 20k
+    // until balance gets below 20k
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(1, addr, -2 * COIN);
+    tracker.addAddressTransaction((21600 * 3) + 1, addr, -2 * COIN);
     tracker.endPersistedTransaction();
 
-    // for month 3 we should still be eligible ? not happening.
-    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), 0);
-    //BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front()), addrStr);
+    // assert was eligable for month 3 in the past but not now
+    BOOST_REQUIRE_THROW(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), std::invalid_argument);
+    BOOST_REQUIRE_THROW(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front()), std::invalid_argument);
 
     // not eligable in month 4, this is ok.
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 4).size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(balance)
+{
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
+
+    // add
+    tracker.startPersistedTransaction();
+    BOOST_REQUIRE_THROW(tracker.addAddressTransaction(1, addr, -1 * COIN), std::invalid_argument);
+    tracker.endPersistedTransaction();
+
+    // remove
+    tracker.startPersistedTransaction();
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(1, addr, 1 * COIN), std::invalid_argument);
+    tracker.endPersistedTransaction();
 }
 
 BOOST_AUTO_TEST_CASE(interruption)
