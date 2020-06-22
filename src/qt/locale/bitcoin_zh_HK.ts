@@ -63,7 +63,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>這些是你要付款過去的 Particl 位址。在付款之前，務必要檢查金額和收款位址是否正確。</translation>
+        <translation>這些是你要付款過去的 Ghost 位址。在付款之前，務必要檢查金額和收款位址是否正確。</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -157,7 +157,7 @@
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
-        <translation>警告: 如果你將錢包加密後又忘記密碼，你就會&lt;b&gt;失去所有 Particl 了&lt;/b&gt;！</translation>
+        <translation>警告: 如果你將錢包加密後又忘記密碼，你就會&lt;b&gt;失去所有 Ghost 了&lt;/b&gt;！</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -295,7 +295,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>付款至一個 Particl 位址</translation>
+        <translation>付款至一個 Ghost 位址</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -397,8 +397,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error</source>
@@ -442,7 +442,7 @@
     <name>QObject</name>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>輸入一個 Particl 位址 (例如 %1)</translation>
+        <translation>輸入一個 Ghost 位址 (例如 %1)</translation>
     </message>
     <message>
         <source>%1 d</source>

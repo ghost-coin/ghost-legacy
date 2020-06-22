@@ -67,11 +67,11 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Это ваши Particl-адреса для отправки платежей. Всегда проверяйте количество и адрес получателя перед отправкой перевода.</translation>
+        <translation>Это ваши Ghost-адреса для отправки платежей. Всегда проверяйте количество и адрес получателя перед отправкой перевода.</translation>
     </message>
     <message>
         <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Это ваши Particl-адреса для приёма платежей. Используйте кнопку «Создать новый адрес для получения» на вкладке Получить, чтобы создать новые адреса.</translation>
+        <translation>Это ваши Ghost-адреса для приёма платежей. Используйте кнопку «Создать новый адрес для получения» на вкладке Получить, чтобы создать новые адреса.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -169,7 +169,7 @@
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
-        <translation>Предупреждение: Если вы зашифруете кошелёк и потеряете пароль, вы &lt;b&gt;ПОТЕРЯЕТЕ ВСЕ ВАШИ ParticlЫ&lt;/b&gt;!</translation>
+        <translation>Предупреждение: Если вы зашифруете кошелёк и потеряете пароль, вы &lt;b&gt;ПОТЕРЯЕТЕ ВСЕ ВАШИ GhostЫ&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -189,7 +189,7 @@
     </message>
     <message>
         <source>Remember that encrypting your wallet cannot fully protect your ghost from being stolen by malware infecting your computer.</source>
-        <translation>Помните, что шифрование вашего кошелька не может полностью защитить ваши Particlы от кражи вредоносными программами, заражающими ваш компьютер.</translation>
+        <translation>Помните, что шифрование вашего кошелька не может полностью защитить ваши Ghostы от кражи вредоносными программами, заражающими ваш компьютер.</translation>
     </message>
     <message>
         <source>Wallet to be encrypted</source>
@@ -363,7 +363,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Послать средства на Particl-адрес</translation>
+        <translation>Послать средства на Ghost-адрес</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -407,11 +407,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Подписывайте сообщения Particl-адресами чтобы подтвердить что это написали именно Вы</translation>
+        <translation>Подписывайте сообщения Ghost-адресами чтобы подтвердить что это написали именно Вы</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Проверяйте сообщения чтобы убедиться что они подписаны конкретными Particl-адресами</translation>
+        <translation>Проверяйте сообщения чтобы убедиться что они подписаны конкретными Ghost-адресами</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -443,7 +443,7 @@
     </message>
     <message>
         <source>Open a ghost: URI or payment request</source>
-        <translation>Открыть Particl: URI или запрос платежа</translation>
+        <translation>Открыть Ghost: URI или запрос платежа</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -451,7 +451,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n активное подключение к сети Particl</numerusform><numerusform>%n активных подключения к сети Particl</numerusform><numerusform>%n активных подключений к сети Particl</numerusform><numerusform>%n активных подключений к сети Particl</numerusform></translation>
+        <translation><numerusform>%n активное подключение к сети Ghost</numerusform><numerusform>%n активных подключения к сети Ghost</numerusform><numerusform>%n активных подключений к сети Ghost</numerusform><numerusform>%n активных подключений к сети Ghost</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -630,8 +630,8 @@
         <translation>Кошелёк &lt;b&gt;зашифрован&lt;/b&gt; и сейчас &lt;b&gt;заблокирован&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Произошла критическая ошибка. Particl больше не может продолжать безопасную работу и будет закрыт.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Произошла критическая ошибка. Ghost больше не может продолжать безопасную работу и будет закрыт.</translation>
     </message>
 </context>
 <context>
@@ -875,7 +875,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Введенный адрес "%1" не является действительным Particl-адресом.</translation>
+        <translation>Введенный адрес "%1" не является действительным Ghost-адресом.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -975,8 +975,8 @@
         <translation>Использовать пользовательскую директорию данных</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl Core</translation>
+        <source>Ghost</source>
+        <translation>Ghost Core</translation>
     </message>
     <message>
         <source>Discard blocks after verification, except most recent %1 GB (prune)</source>
@@ -991,7 +991,7 @@
         <translation>Приблизительно %1 ГБ данных будет сохранено в эту директорию.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
         <translation>%1 скачает и сохранит копию цепи блоков.</translation>
     </message>
     <message>
@@ -1227,8 +1227,8 @@
         <translation>&amp;Тратить неподтвержденную сдачу</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Автоматически открыть порт для Particl-клиента на маршрутизаторе. Работает только если Ваш маршрутизатор поддерживает UPnP, и данная функция включена.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Автоматически открыть порт для Ghost-клиента на маршрутизаторе. Работает только если Ваш маршрутизатор поддерживает UPnP, и данная функция включена.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1244,7 +1244,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Подключится к сети Particl через прокси SOCKS5.</translation>
+        <translation>Подключится к сети Ghost через прокси SOCKS5.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1280,7 +1280,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Подключатся к Particl-сети через отдельный прокси SOCKS5 для скрытых сервисов Tor.</translation>
+        <translation>Подключатся к Ghost-сети через отдельный прокси SOCKS5 для скрытых сервисов Tor.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1391,7 +1391,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Отображаемая информация может быть устаревшей. Ваш кошелёк автоматически синхронизируется с сетью Particl после подключения, но этот процесс пока не завершён.</translation>
+        <translation>Отображаемая информация может быть устаревшей. Ваш кошелёк автоматически синхронизируется с сетью Ghost после подключения, но этот процесс пока не завершён.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1502,7 +1502,7 @@
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
-        <translation>Не удалось обработать идентификатор! Это может быть связано с неверным Particl-адресом или неправильными параметрами идентификатора.</translation>
+        <translation>Не удалось обработать идентификатор! Это может быть связано с неверным Ghost-адресом или неправильными параметрами идентификатора.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -2065,7 +2065,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Необязательное сообщение для запроса платежа, которое будет показано при открытии запроса. Заметьте: сообщение не будет отправлено вместе с платежом через сеть Particl.</translation>
+        <translation>Необязательное сообщение для запроса платежа, которое будет показано при открытии запроса. Заметьте: сообщение не будет отправлено вместе с платежом через сеть Ghost.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2338,7 +2338,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for ghost transactions than the network can process.</source>
-        <translation>Когда объем транзакций меньше, чем пространство в блоках, майнеры, а также ретранслирующие узлы могут устанавливать минимальную плату. Платить только эту минимальную комиссию - это хорошо, но имейте в виду, что это может привести к тому, что транзакция никогда не будет подтверждена, если будет больше Particl-транзакций, чем может обработать сеть.</translation>
+        <translation>Когда объем транзакций меньше, чем пространство в блоках, майнеры, а также ретранслирующие узлы могут устанавливать минимальную плату. Платить только эту минимальную комиссию - это хорошо, но имейте в виду, что это может привести к тому, что транзакция никогда не будет подтверждена, если будет больше Ghost-транзакций, чем может обработать сеть.</translation>
     </message>
     <message>
         <source>A too low fee might result in a never confirming transaction (read the tooltip)</source>
@@ -2494,7 +2494,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>Предупреждение: Неверный Particl-адрес</translation>
+        <translation>Предупреждение: Неверный Ghost-адрес</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2537,7 +2537,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Particl-адрес, на который отправить платёж</translation>
+        <translation>Ghost-адрес, на который отправить платёж</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2557,7 +2557,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The fee will be deducted from the amount being sent. The recipient will receive less ghost than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>С отправляемой суммы будет удержана комиссия. Получателю придёт меньше Particlов, чем вы вводите в поле количества. Если выбрано несколько получателей, комиссия распределяется поровну.</translation>
+        <translation>С отправляемой суммы будет удержана комиссия. Получателю придёт меньше Ghostов, чем вы вводите в поле количества. Если выбрано несколько получателей, комиссия распределяется поровну.</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -2585,7 +2585,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>Сообщение прикрепленное к ghost идентификатору будет сохранено вместе с транзакцией для вашего сведения. Заметьте: Сообщение не будет отправлено через сеть Particl.</translation>
+        <translation>Сообщение прикрепленное к ghost идентификатору будет сохранено вместе с транзакцией для вашего сведения. Заметьте: Сообщение не будет отправлено через сеть Ghost.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2630,11 +2630,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>You can sign messages/agreements with your addresses to prove you can receive ghost sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Вы можете подписывать сообщения/соглашения своими адресами, чтобы доказать свою возможность получать Particlы на них. Будьте осторожны, не подписывайте что-то неопределённое или случайное, так как фишинговые атаки могут обманным путём заставить вас подписать нежелательные сообщения. Подписывайте только те сообщения, с которыми вы согласны вплоть до мелочей.</translation>
+        <translation>Вы можете подписывать сообщения/соглашения своими адресами, чтобы доказать свою возможность получать Ghostы на них. Будьте осторожны, не подписывайте что-то неопределённое или случайное, так как фишинговые атаки могут обманным путём заставить вас подписать нежелательные сообщения. Подписывайте только те сообщения, с которыми вы согласны вплоть до мелочей.</translation>
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Particl-адрес, которым подписать сообщение</translation>
+        <translation>Ghost-адрес, которым подписать сообщение</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2666,7 +2666,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Подписать сообщение, чтобы доказать владение Particl-адресом</translation>
+        <translation>Подписать сообщение, чтобы доказать владение Ghost-адресом</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2690,11 +2690,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Particl-адрес, которым было подписано сообщение</translation>
+        <translation>Ghost-адрес, которым было подписано сообщение</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Проверить сообщение, чтобы убедиться, что оно было подписано указанным Particl-адресом</translation>
+        <translation>Проверить сообщение, чтобы убедиться, что оно было подписано указанным Ghost-адресом</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

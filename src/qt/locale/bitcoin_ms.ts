@@ -69,7 +69,7 @@ Alihkan fail data ke dalam tab semasa</translation>
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Ini adalah alamat Particl anda untuk pembayaran. Periksa jumlah dan alamat penerima sebelum membuat penghantaran koin sentiasa.</translation>
+        <translation>Ini adalah alamat Ghost anda untuk pembayaran. Periksa jumlah dan alamat penerima sebelum membuat penghantaran koin sentiasa.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -321,7 +321,7 @@ Alihkan fail data ke dalam tab semasa</translation>
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Menghantar koin kepada alamat Particl</translation>
+        <translation>Menghantar koin kepada alamat Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -369,7 +369,7 @@ Alihkan fail data ke dalam tab semasa</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Sahkan mesej untuk memastikan mereka telah ditandatangani dengan alamat Particl yang ditentukan</translation>
+        <translation>Sahkan mesej untuk memastikan mereka telah ditandatangani dengan alamat Ghost yang ditentukan</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -465,8 +465,8 @@ Alihkan fail data ke dalam tab semasa</translation>
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error</source>

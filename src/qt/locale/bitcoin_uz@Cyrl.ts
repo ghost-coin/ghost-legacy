@@ -139,7 +139,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Тангаларни Particl манзилига жўнатиш</translation>
+        <translation>Тангаларни Ghost манзилига жўнатиш</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -183,11 +183,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Particl манзилидан унинг эгаси эканлигингизни исботлаш учун хабарлар ёзинг</translation>
+        <translation>Ghost манзилидан унинг эгаси эканлигингизни исботлаш учун хабарлар ёзинг</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Хабарларни махсус Particl манзилларингиз билан ёзилганлигига ишонч ҳосил қилиш учун уларни тасдиқланг</translation>
+        <translation>Хабарларни махсус Ghost манзилларингиз билан ёзилганлигига ишонч ҳосил қилиш учун уларни тасдиқланг</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -219,7 +219,7 @@
     </message>
     <message>
         <source>Open a ghost: URI or payment request</source>
-        <translation>Particl’ни очиш: URI ёки тўлов сўрови</translation>
+        <translation>Ghost’ни очиш: URI ёки тўлов сўрови</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -227,7 +227,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n та Particl тармоғига фаол уланиш мавжуд</numerusform></translation>
+        <translation><numerusform>%n та Ghost тармоғига фаол уланиш мавжуд</numerusform></translation>
     </message>
     <message>
         <source>%1 behind</source>
@@ -427,8 +427,8 @@
         <translation>Бошқа маълумотлар директориясида фойдаланинг:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -587,7 +587,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Кўрсатилган маълумот эскирган бўлиши мумкин. Ҳамёнингиз алоқа ўрнатилгандан сўнг Particl тармоқ билан автоматик тарзда синхронланади, аммо жараён ҳалигача тугалланмади.</translation>
+        <translation>Кўрсатилган маълумот эскирган бўлиши мумкин. Ҳамёнингиз алоқа ўрнатилгандан сўнг Ghost тармоқ билан автоматик тарзда синхронланади, аммо жараён ҳалигача тугалланмади.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -668,7 +668,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Particl манзилини киритинг (масалан.  %1)</translation>
+        <translation>Ghost манзилини киритинг (масалан.  %1)</translation>
     </message>
     <message>
         <source>%1 m</source>

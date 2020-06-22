@@ -71,7 +71,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Những địa chỉ Particl này để bạn nhận thanh toán. Sử dụng  'Tạo địa chỉ nhận mới'</translation>
+        <translation>Những địa chỉ Ghost này để bạn nhận thanh toán. Sử dụng  'Tạo địa chỉ nhận mới'</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -327,7 +327,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Gửi coin đến một địa chỉ Particl</translation>
+        <translation>Gửi coin đến một địa chỉ Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -371,11 +371,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Đăng ký lời nhắn với địa chỉ Particl của bạn để chứng minh quyền sở hữu chúng</translation>
+        <translation>Đăng ký lời nhắn với địa chỉ Ghost của bạn để chứng minh quyền sở hữu chúng</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Xác minh lời nhắn để chắc chắn đã được đăng ký với địa chỉ Particl xác định</translation>
+        <translation>Xác minh lời nhắn để chắc chắn đã được đăng ký với địa chỉ Ghost xác định</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -483,7 +483,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Hiển thị %1 tin nhắn hỗ trợ để nhận được danh sách Particl command-line khả dụng</translation>
+        <translation>Hiển thị %1 tin nhắn hỗ trợ để nhận được danh sách Ghost command-line khả dụng</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -594,8 +594,8 @@
         <translation>Ví thì &lt;b&gt;encrypted&lt;/b&gt; và hiện tại &lt;b&gt;locked&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Một lỗi nghiêm trọng vừa xảy ra. Particl có thể không còn tiếp tục an toàn và sẽ bị bỏ.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Một lỗi nghiêm trọng vừa xảy ra. Ghost có thể không còn tiếp tục an toàn và sẽ bị bỏ.</translation>
     </message>
 </context>
 <context>
@@ -887,8 +887,8 @@
         <translation>Sử dụng custom danh mục data:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -899,8 +899,8 @@
         <translation>Gần đúng %1 GB of data sẽ được lưu giữ trong danh mục này.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 sẽ download và lưu trữ một bản copy của Particl block chain.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 sẽ download và lưu trữ một bản copy của Ghost block chain.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1127,8 +1127,8 @@
         <translation>&amp;Spend unconfirmed change</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>

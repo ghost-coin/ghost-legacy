@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Αυτές είναι οι Particl διευθύνσεις σας για να στέλνετε πληρωμές. Να ελέγχετε πάντα το ποσό, καθώς και τη διεύθυνση παραλήπτη πριν στείλετε νομίσματα.</translation>
+        <translation>Αυτές είναι οι Ghost διευθύνσεις σας για να στέλνετε πληρωμές. Να ελέγχετε πάντα το ποσό, καθώς και τη διεύθυνση παραλήπτη πριν στείλετε νομίσματα.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -367,7 +367,7 @@
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Υπογράψτε ένα μήνυμα για ν' αποδείξετε πως ανήκει μια συγκεκριμένη διεύθυνση Particl</translation>
+        <translation>Υπογράψτε ένα μήνυμα για ν' αποδείξετε πως ανήκει μια συγκεκριμένη διεύθυνση Ghost</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -663,7 +663,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Η διεύθυνση "%1" δεν είναι έγκυρη Particl διεύθυνση.</translation>
+        <translation>Η διεύθυνση "%1" δεν είναι έγκυρη Ghost διεύθυνση.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -743,8 +743,8 @@
         <translation>Προσαρμογή του φακέλου δεδομένων:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -883,8 +883,8 @@
         <translation>&amp;Ξόδεμα μη επικυρωμένων ρέστων</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Αυτόματο άνοιγμα των θυρών Particl στον δρομολογητή. Λειτουργεί μόνο αν ο δρομολογητής σας υποστηρίζει τη λειτουργία UPnP.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Αυτόματο άνοιγμα των θυρών Ghost στον δρομολογητή. Λειτουργεί μόνο αν ο δρομολογητής σας υποστηρίζει τη λειτουργία UPnP.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -892,7 +892,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Σύνδεση στο δίκτυο Particl μέσω διαμεσολαβητή SOCKS5 (π.χ. για σύνδεση μέσω Tor)</translation>
+        <translation>Σύνδεση στο δίκτυο Ghost μέσω διαμεσολαβητή SOCKS5 (π.χ. για σύνδεση μέσω Tor)</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1003,7 +1003,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Οι πληροφορίες που εμφανίζονται μπορεί να είναι ξεπερασμένες. Το πορτοφόλι σας συγχρονίζεται αυτόματα με το δίκτυο Particl μετά από μια σύνδεση, αλλά αυτή η διαδικασία δεν έχει ακόμη ολοκληρωθεί.</translation>
+        <translation>Οι πληροφορίες που εμφανίζονται μπορεί να είναι ξεπερασμένες. Το πορτοφόλι σας συγχρονίζεται αυτόματα με το δίκτυο Ghost μετά από μια σύνδεση, αλλά αυτή η διαδικασία δεν έχει ακόμη ολοκληρωθεί.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1116,7 +1116,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Εισάγετε μια διεύθυνση Particl (π.χ. %1)</translation>
+        <translation>Εισάγετε μια διεύθυνση Ghost (π.χ. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1637,7 +1637,7 @@
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Η διεύθυνση Particl που θα σταλεί η πληρωμή</translation>
+        <translation>Η διεύθυνση Ghost που θα σταλεί η πληρωμή</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -1698,7 +1698,7 @@
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Διεύθυνση Particl που θα σταλεί το μήνυμα</translation>
+        <translation>Διεύθυνση Ghost που θα σταλεί το μήνυμα</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -1730,7 +1730,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Υπογράψτε το μήνυμα για να αποδείξετε πως σας ανήκει η συγκεκριμένη διεύθυνση Particl</translation>
+        <translation>Υπογράψτε το μήνυμα για να αποδείξετε πως σας ανήκει η συγκεκριμένη διεύθυνση Ghost</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1750,11 +1750,11 @@
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Διεύθυνση Particl με την οποία έχει υπογραφεί το μήνυμα</translation>
+        <translation>Διεύθυνση Ghost με την οποία έχει υπογραφεί το μήνυμα</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Επαληθεύστε το μήνυμα για να αποδείξετε πως υπογράφθηκε από τη συγκεκριμένη διεύθυνση Particl</translation>
+        <translation>Επαληθεύστε το μήνυμα για να αποδείξετε πως υπογράφθηκε από τη συγκεκριμένη διεύθυνση Ghost</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

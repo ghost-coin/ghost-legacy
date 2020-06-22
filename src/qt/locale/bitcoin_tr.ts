@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Bunlar ödeme göndermek için gereken Particl adreslerinizdir. Para göndermeden önce her zaman miktarı ve alıcı adresi kontrol edin.</translation>
+        <translation>Bunlar ödeme göndermek için gereken Ghost adreslerinizdir. Para göndermeden önce her zaman miktarı ve alıcı adresi kontrol edin.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -327,7 +327,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Particl adresine madeni para gönderin</translation>
+        <translation>Ghost adresine madeni para gönderin</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -371,11 +371,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>İletileri adreslerin size ait olduğunu ispatlamak için Particl adresleri ile imzala</translation>
+        <translation>İletileri adreslerin size ait olduğunu ispatlamak için Ghost adresleri ile imzala</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Belirtilen Particl adresleri ile imzalandıklarından emin olmak için iletileri kontrol et</translation>
+        <translation>Belirtilen Ghost adresleri ile imzalandıklarından emin olmak için iletileri kontrol et</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -415,7 +415,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>Particl şebekesine %n faal bağlantı</numerusform><numerusform>Particl ağına %n etkin bağlantı var</numerusform></translation>
+        <translation><numerusform>Ghost şebekesine %n faal bağlantı</numerusform><numerusform>Ghost ağına %n etkin bağlantı var</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -475,7 +475,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Olası Particl komut satırı seçeneklerinin listesini görmek için %1 yardım mesajını göster</translation>
+        <translation>Olası Ghost komut satırı seçeneklerinin listesini görmek için %1 yardım mesajını göster</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -565,15 +565,15 @@
         <translation>Cüzdan &lt;b&gt;şifrelenmiştir&lt;/b&gt; ve şu anda &lt;b&gt;kilitlidir&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Ölümcül bir hata oluştu. Particl yazılımı artık güvenli bir şekilde çalışmaya devam edemediği için kapatılacaktır.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Ölümcül bir hata oluştu. Ghost yazılımı artık güvenli bir şekilde çalışmaya devam edemediği için kapatılacaktır.</translation>
     </message>
 </context>
 <context>
     <name>CoinControlDialog</name>
     <message>
         <source>Coin Selection</source>
-        <translation>Particl Seçimi</translation>
+        <translation>Ghost Seçimi</translation>
     </message>
     <message>
         <source>Quantity:</source>
@@ -762,7 +762,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Girilen adres "%1" Particl adresiyle eşleşmiyor.</translation>
+        <translation>Girilen adres "%1" Ghost adresiyle eşleşmiyor.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -854,7 +854,7 @@
         <translation>Özel bir veri klasörü kullan:</translation>
     </message>
     <message>
-        <source>Particl</source>
+        <source>Ghost</source>
         <translation>Bitcoin
 </translation>
     </message>
@@ -867,8 +867,8 @@
         <translation>Yaklaşık %1 GB veri bu dizinde depolanacak.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 lik Particl blok zinciri nin bir kopyasını indirecek ve depolayacak.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 lik Ghost blok zinciri nin bir kopyasını indirecek ve depolayacak.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1083,8 +1083,8 @@
         <translation>Doğrulanmamış para üstünü &amp;harca</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Yönlendiricide Particl istemci portlarını otomatik olarak açar. Bu, sadece yönlendiricinizin UPnP desteği bulunuyorsa ve etkinse çalışabilir.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Yönlendiricide Ghost istemci portlarını otomatik olarak açar. Bu, sadece yönlendiricinizin UPnP desteği bulunuyorsa ve etkinse çalışabilir.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1100,7 +1100,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Particl ağına bir SOCKS5 vekil sunucusu aracılığıyla bağlan.</translation>
+        <translation>Ghost ağına bir SOCKS5 vekil sunucusu aracılığıyla bağlan.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1136,7 +1136,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Particl ağına gizli Tor servisleri için ayrı bir SOCKS5 vekil sunucusu aracılığıyla bağlan.</translation>
+        <translation>Ghost ağına gizli Tor servisleri için ayrı bir SOCKS5 vekil sunucusu aracılığıyla bağlan.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1172,7 +1172,7 @@
     </message>
     <message>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Particl gönderildiğinde arayüzde gösterilecek varsayılan alt birimi seçiniz.</translation>
+        <translation>Ghost gönderildiğinde arayüzde gösterilecek varsayılan alt birimi seçiniz.</translation>
     </message>
     <message>
         <source>Whether to show coin control features or not.</source>
@@ -1318,7 +1318,7 @@
     </message>
     <message>
         <source>Cannot start ghost: click-to-pay handler</source>
-        <translation>Particl başlatılamadı: tıkla-ve-öde yöneticisi</translation>
+        <translation>Ghost başlatılamadı: tıkla-ve-öde yöneticisi</translation>
     </message>
     <message>
         <source>URI handling</source>
@@ -1338,7 +1338,7 @@
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
-        <translation>URI ayrıştırılamıyor! Bunun nedeni geçersiz bir Particl adresi veya hatalı biçimlendirilmiş URI değişkenleri olabilir.</translation>
+        <translation>URI ayrıştırılamıyor! Bunun nedeni geçersiz bir Ghost adresi veya hatalı biçimlendirilmiş URI değişkenleri olabilir.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1440,7 +1440,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Particl adresinizi girin (örneğin %1)</translation>
+        <translation>Ghost adresinizi girin (örneğin %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1822,7 +1822,7 @@
     </message>
     <message>
         <source>WARNING: Scammers have been active, telling users to type commands here, stealing their wallet contents. Do not use this console without fully understanding the ramifications of a command.</source>
-        <translation>UYARI: Particl dolandırıcılarının çok fazla etkin olduğu zamanlarda, dolandırıcılar bazı kullanıcılara buraya komutlar yazmalarını söylerek onların cüzdanlarındaki ghostleri çalmışlardır. Bir komutun sonuçlarını tam olarak anlamadan bu konsolu kullanmayın.</translation>
+        <translation>UYARI: Ghost dolandırıcılarının çok fazla etkin olduğu zamanlarda, dolandırıcılar bazı kullanıcılara buraya komutlar yazmalarını söylerek onların cüzdanlarındaki ghostleri çalmışlardır. Bir komutun sonuçlarını tam olarak anlamadan bu konsolu kullanmayın.</translation>
     </message>
     <message>
         <source>Network activity disabled</source>
@@ -1885,7 +1885,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Talep açıldığında gösterilecek, isteğinize dayalı, ödeme talebi ile ilişkilendirilecek bir ileti. Not: Bu ileti ödeme ile birlikte Particl ağı üzerinden gönderilmeyecektir.</translation>
+        <translation>Talep açıldığında gösterilecek, isteğinize dayalı, ödeme talebi ile ilişkilendirilecek bir ileti. Not: Bu ileti ödeme ile birlikte Ghost ağı üzerinden gönderilmeyecektir.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2258,7 +2258,7 @@
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>Uyarı: Hatalı Particl adresi</translation>
+        <translation>Uyarı: Hatalı Ghost adresi</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2301,7 +2301,7 @@
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Ödemenin yollanacağı Particl adresi</translation>
+        <translation>Ödemenin yollanacağı Ghost adresi</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2349,7 +2349,7 @@
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>Referans için ghost: URI'siyle iliştirilmiş işlemle birlikte depolanacak bir ileti. Not: Bu mesaj Particl ağı üzerinden gönderilmeyecektir.</translation>
+        <translation>Referans için ghost: URI'siyle iliştirilmiş işlemle birlikte depolanacak bir ileti. Not: Bu mesaj Ghost ağı üzerinden gönderilmeyecektir.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2398,7 +2398,7 @@
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>İletinin imzalanmasında kullanılacak Particl adresi</translation>
+        <translation>İletinin imzalanmasında kullanılacak Ghost adresi</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2430,7 +2430,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Bu Particl adresinin sizin olduğunu ispatlamak için iletiyi imzalayın</translation>
+        <translation>Bu Ghost adresinin sizin olduğunu ispatlamak için iletiyi imzalayın</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2454,11 +2454,11 @@
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>İletinin imzalanmasında kullanılan Particl adresi</translation>
+        <translation>İletinin imzalanmasında kullanılan Ghost adresi</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Belirtilen Particl adresi ile imzalandığını doğrulamak için iletiyi kontrol et</translation>
+        <translation>Belirtilen Ghost adresi ile imzalandığını doğrulamak için iletiyi kontrol et</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

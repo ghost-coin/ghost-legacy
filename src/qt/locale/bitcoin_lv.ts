@@ -199,7 +199,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Nosūtīt bitkoinus uz Particl adresi</translation>
+        <translation>Nosūtīt bitkoinus uz Ghost adresi</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -243,11 +243,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Parakstīt ziņojumus ar savām Particl adresēm lai pierādītu ka tās pieder tev</translation>
+        <translation>Parakstīt ziņojumus ar savām Ghost adresēm lai pierādītu ka tās pieder tev</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Pārbaudīt ziņojumus lai pārliecinātos, ka tie tika parakstīti ar norādītajām Particl adresēm</translation>
+        <translation>Pārbaudīt ziņojumus lai pārliecinātos, ka tie tika parakstīti ar norādītajām Ghost adresēm</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -455,8 +455,8 @@
         <translation>Izmantot pielāgotu datu mapi:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error</source>
@@ -551,8 +551,8 @@
         <translation>&amp;Tērēt neapstiprinātu atlikumu</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Uz rūtera automātiski atvērt Particl klienta portu. Tas strādā tikai tad, ja rūteris atbalsta UPnP un tas ir ieslēgts.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Uz rūtera automātiski atvērt Ghost klienta portu. Tas strādā tikai tad, ja rūteris atbalsta UPnP un tas ir ieslēgts.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -604,7 +604,7 @@
     </message>
     <message>
         <source>Whether to show coin control features or not.</source>
-        <translation>Vai rādīt Particl kontroles funkcijas vai nē.</translation>
+        <translation>Vai rādīt Ghost kontroles funkcijas vai nē.</translation>
     </message>
     <message>
         <source>&amp;OK</source>
@@ -643,7 +643,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Attēlotā informācija var būt novecojusi. Jūsu maciņš pēc savienojuma izveides automātiski sinhronizējas ar Particl tīklu, taču šis process vēl nav beidzies.</translation>
+        <translation>Attēlotā informācija var būt novecojusi. Jūsu maciņš pēc savienojuma izveides automātiski sinhronizējas ar Ghost tīklu, taču šis process vēl nav beidzies.</translation>
     </message>
     <message>
         <source>Available:</source>
@@ -914,7 +914,7 @@
     </message>
     <message>
         <source>Coin Control Features</source>
-        <translation>Particl Kontroles Funkcijas</translation>
+        <translation>Ghost Kontroles Funkcijas</translation>
     </message>
     <message>
         <source>Inputs...</source>
@@ -1098,7 +1098,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Parakstīt ziņojumu lai pierādītu, ka esi šīs Particl adreses īpašnieks.</translation>
+        <translation>Parakstīt ziņojumu lai pierādītu, ka esi šīs Ghost adreses īpašnieks.</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>

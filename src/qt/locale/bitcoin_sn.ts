@@ -155,8 +155,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     </context>
 <context>
@@ -188,7 +188,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Nyora kero ye Particl (sekuti %1)</translation>
+        <translation>Nyora kero ye Ghost (sekuti %1)</translation>
     </message>
     <message>
         <source>%1 d</source>

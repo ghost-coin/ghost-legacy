@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Acestea sunt adresele tale Particl pentru efectuarea platilor. Intotdeauna verifica atent suma de plata si adresa beneficiarului inainte de a trimite monede.</translation>
+        <translation>Acestea sunt adresele tale Ghost pentru efectuarea platilor. Intotdeauna verifica atent suma de plata si adresa beneficiarului inainte de a trimite monede.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -323,7 +323,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Trimite monede către o adresă Particl</translation>
+        <translation>Trimite monede către o adresă Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -367,11 +367,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Semnaţi mesaje cu adresa dvs. Particl pentru a dovedi că vă aparţin</translation>
+        <translation>Semnaţi mesaje cu adresa dvs. Ghost pentru a dovedi că vă aparţin</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Verificaţi mesaje pentru a vă asigura că au fost semnate cu adresa Particl specificată</translation>
+        <translation>Verificaţi mesaje pentru a vă asigura că au fost semnate cu adresa Ghost specificată</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -411,7 +411,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n conexiune activă către reţeaua Particl</numerusform><numerusform>%n conexiuni active către reţeaua Particl</numerusform><numerusform>%n de conexiuni active către reţeaua Particl</numerusform></translation>
+        <translation><numerusform>%n conexiune activă către reţeaua Ghost</numerusform><numerusform>%n conexiuni active către reţeaua Ghost</numerusform><numerusform>%n de conexiuni active către reţeaua Ghost</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -455,7 +455,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Arată mesajul de ajutor %1 pentru a obţine o listă cu opţiunile posibile de linii de comandă Particl</translation>
+        <translation>Arată mesajul de ajutor %1 pentru a obţine o listă cu opţiunile posibile de linii de comandă Ghost</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -546,8 +546,8 @@
         <translation>Portofelul este &lt;b&gt;criptat&lt;/b&gt; iar în momentul de faţă este &lt;b&gt;blocat&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>A survenit o eroare fatală. Particl nu mai poate continua în siguranţă şi se va opri.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>A survenit o eroare fatală. Ghost nu mai poate continua în siguranţă şi se va opri.</translation>
     </message>
 </context>
 <context>
@@ -743,7 +743,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Adresa introdusă "%1" nu este o adresă Particl validă.</translation>
+        <translation>Adresa introdusă "%1" nu este o adresă Ghost validă.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -839,8 +839,8 @@
         <translation>Foloseşte un dosar de date personalizat:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -851,8 +851,8 @@
         <translation>Aproximativ %1 GB de date vor fi stocate in acest director.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 va descarca si stoca o copie a blockchainului Particl</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 va descarca si stoca o copie a blockchainului Ghost</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -883,7 +883,7 @@
     </message>
     <message>
         <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the ghost network, as detailed below.</source>
-        <translation>Tranzactiile recente pot sa nu fie inca vizibile, de aceea balanta portofelului poate fi incorecta. Aceasta informatie va fi corecta de indata ce portofelul va fi complet sincronizat cu reteaua Particl, asa cum este detaliat mai jos.</translation>
+        <translation>Tranzactiile recente pot sa nu fie inca vizibile, de aceea balanta portofelului poate fi incorecta. Aceasta informatie va fi corecta de indata ce portofelul va fi complet sincronizat cu reteaua Ghost, asa cum este detaliat mai jos.</translation>
     </message>
     <message>
         <source>Attempting to spend ghost that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
@@ -1067,8 +1067,8 @@
         <translation>Cheltuire rest neconfirmat</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Deschide automat în router portul aferent clientului Particl. Funcţionează doar dacă routerul duportă UPnP şi e activat.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Deschide automat în router portul aferent clientului Ghost. Funcţionează doar dacă routerul duportă UPnP şi e activat.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1084,7 +1084,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Conectare la reţeaua Particl printr-un proxy SOCKS.</translation>
+        <translation>Conectare la reţeaua Ghost printr-un proxy SOCKS.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1120,7 +1120,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Conectare la reteaua Particl printr-un proxy SOCKS5 separat pentru serviciile TOR ascunse.</translation>
+        <translation>Conectare la reteaua Ghost printr-un proxy SOCKS5 separat pentru serviciile TOR ascunse.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1227,7 +1227,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Informaţiile afişate pot fi neactualizate. Portofelul dvs. se sincronizează automat cu reţeaua Particl după ce o conexiune este stabilită, dar acest proces nu a fost finalizat încă.</translation>
+        <translation>Informaţiile afişate pot fi neactualizate. Portofelul dvs. se sincronizează automat cu reţeaua Ghost după ce o conexiune este stabilită, dar acest proces nu a fost finalizat încă.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1302,7 +1302,7 @@
     </message>
     <message>
         <source>Cannot start ghost: click-to-pay handler</source>
-        <translation>Particl nu poate porni: click-to-pay handler</translation>
+        <translation>Ghost nu poate porni: click-to-pay handler</translation>
     </message>
     <message>
         <source>URI handling</source>
@@ -1322,7 +1322,7 @@
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
-        <translation>URI nu poate fi analizat! Acest lucru poate fi cauzat de o adresă Particl invalidă sau parametri URI deformaţi.</translation>
+        <translation>URI nu poate fi analizat! Acest lucru poate fi cauzat de o adresă Ghost invalidă sau parametri URI deformaţi.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1424,7 +1424,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Introduceţi o adresă Particl (de exemplu %1)</translation>
+        <translation>Introduceţi o adresă Ghost (de exemplu %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1869,7 +1869,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Un mesaj opţional de ataşat la cererea de plată, care va fi afişat cînd cererea este deschisă. Notă: Acest mesaj nu va fi trimis cu plata către reţeaua Particl.</translation>
+        <translation>Un mesaj opţional de ataşat la cererea de plată, care va fi afişat cînd cererea este deschisă. Notă: Acest mesaj nu va fi trimis cu plata către reţeaua Ghost.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2446,7 +2446,7 @@ Nota: Cum taxa este calculata per byte, o taxa de "100 satoshi per kB" pentru o 
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Semnează mesajul pentru a dovedi ca deţineţi acestă adresă Particl</translation>
+        <translation>Semnează mesajul pentru a dovedi ca deţineţi acestă adresă Ghost</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2470,11 +2470,11 @@ Nota: Cum taxa este calculata per byte, o taxa de "100 satoshi per kB" pentru o 
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Introduceţi o adresă Particl</translation>
+        <translation>Introduceţi o adresă Ghost</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Verificaţi mesajul pentru a vă asigura că a fost semnat cu adresa Particl specificată</translation>
+        <translation>Verificaţi mesajul pentru a vă asigura că a fost semnat cu adresa Ghost specificată</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

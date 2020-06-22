@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Estas son tus direcciones de Particl para enviar pagos. Siempre revisa el monto y la dirección de envío antes de enviar monedas.</translation>
+        <translation>Estas son tus direcciones de Ghost para enviar pagos. Siempre revisa el monto y la dirección de envío antes de enviar monedas.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -324,7 +324,7 @@ Haga clic para habilitar la actividad de red nuevamente.</translation>
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Enviar monedas a una dirección Particl</translation>
+        <translation>Enviar monedas a una dirección Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -368,11 +368,11 @@ Haga clic para habilitar la actividad de red nuevamente.</translation>
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Firme mensajes con sus direcciones de Particl para demostrar que los posee</translation>
+        <translation>Firme mensajes con sus direcciones de Ghost para demostrar que los posee</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Verifique los mensajes para asegurarse de que se firmaron con direcciones de Particl especificadas.</translation>
+        <translation>Verifique los mensajes para asegurarse de que se firmaron con direcciones de Ghost especificadas.</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -526,8 +526,8 @@ Solicitar pagos (genera códigos QR y ghost: URI)
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error</source>
@@ -616,7 +616,7 @@ Solicitar pagos (genera códigos QR y ghost: URI)
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Mensaje opcional para agregar a la solicitud de pago, el cual será mostrado cuando la solicitud este abierta. Nota: El mensaje no se manda con el pago a travéz de la red de Particl.</translation>
+        <translation>Mensaje opcional para agregar a la solicitud de pago, el cual será mostrado cuando la solicitud este abierta. Nota: El mensaje no se manda con el pago a travéz de la red de Ghost.</translation>
     </message>
     <message>
         <source>Use this form to request payments. All fields are &lt;b&gt;optional&lt;/b&gt;.</source>

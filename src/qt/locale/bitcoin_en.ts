@@ -343,7 +343,7 @@
     <name>BitcoinGUI</name>
     <message>
         <location filename="../bitcoin.cpp" line="+392"/>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1347,7 +1347,7 @@
     </message>
     <message>
         <location filename="../intro.cpp" line="+22"/>
-        <source>Particl</source>
+        <source>Ghost</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1367,7 +1367,7 @@
     </message>
     <message>
         <location line="+8"/>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1824,7 +1824,7 @@
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

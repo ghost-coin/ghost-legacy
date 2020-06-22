@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Dette er dine Particl adresser for å sende  å sende betalinger. Husk å sjekke beløp og mottager adresser før du sender mynter.</translation>
+        <translation>Dette er dine Ghost adresser for å sende  å sende betalinger. Husk å sjekke beløp og mottager adresser før du sender mynter.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -327,7 +327,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Send mynter til en Particl adresse</translation>
+        <translation>Send mynter til en Ghost adresse</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -371,11 +371,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Signer meldingene med Particl adresse for å bevise at diu eier dem</translation>
+        <translation>Signer meldingene med Ghost adresse for å bevise at diu eier dem</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Verifiser meldinger for å sikre at de ble signert med en angitt Particl adresse</translation>
+        <translation>Verifiser meldinger for å sikre at de ble signert med en angitt Ghost adresse</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -415,7 +415,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n aktiv tilkobling til Particl nettverket</numerusform><numerusform>%n aktive tilkoblinger til Particl nettverket</numerusform></translation>
+        <translation><numerusform>%n aktiv tilkobling til Ghost nettverket</numerusform><numerusform>%n aktive tilkoblinger til Ghost nettverket</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -483,7 +483,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Vis %1-hjelpemeldingen for å få en liste over mulige Particl-kommandolinjealternativer</translation>
+        <translation>Vis %1-hjelpemeldingen for å få en liste over mulige Ghost-kommandolinjealternativer</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -590,8 +590,8 @@
         <translation>Lommeboken er &lt;b&gt;kryptert&lt;/b&gt; og for tiden &lt;b&gt;låst&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>En fatal feil har inntruffet. Particl kan ikke lenger trygt fortsette, og må derfor avslutte.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>En fatal feil har inntruffet. Ghost kan ikke lenger trygt fortsette, og må derfor avslutte.</translation>
     </message>
 </context>
 <context>
@@ -787,7 +787,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Den angitte adressen "%1" er ikke en gyldig Particl-adresse.</translation>
+        <translation>Den angitte adressen "%1" er ikke en gyldig Ghost-adresse.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -879,8 +879,8 @@
         <translation>Bruk en egendefinert datamappe:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -891,8 +891,8 @@
         <translation>Omtrent %1GB data vil bli lagret i denne mappen.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 vil laste ned og lagre en kopi av Particl blokkjeden.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 vil laste ned og lagre en kopi av Ghost blokkjeden.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1103,8 +1103,8 @@
         <translation>&amp;Bruk ubekreftet veksel</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Åpne automatisk Particl klientporten på ruteren. Dette virker kun om din ruter støtter UPnP og dette er påslått.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Åpne automatisk Ghost klientporten på ruteren. Dette virker kun om din ruter støtter UPnP og dette er påslått.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1120,7 +1120,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Koble til Particl-nettverket gjennom en SOCKS5 proxy.</translation>
+        <translation>Koble til Ghost-nettverket gjennom en SOCKS5 proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1156,7 +1156,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Koble til Particl-nettverket gjennom en separat SOCKS5 mellomtjener for Tor skjulte tjenester.</translation>
+        <translation>Koble til Ghost-nettverket gjennom en separat SOCKS5 mellomtjener for Tor skjulte tjenester.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1263,7 +1263,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Informasjonen som vises kan være foreldet. Din lommebok synkroniseres automatisk med Particl-nettverket etter at tilkobling er opprettet, men denne prosessen er ikke ferdig enda.</translation>
+        <translation>Informasjonen som vises kan være foreldet. Din lommebok synkroniseres automatisk med Ghost-nettverket etter at tilkobling er opprettet, men denne prosessen er ikke ferdig enda.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1456,7 +1456,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Oppgi en Particl-adresse (f.eks. %1)</translation>
+        <translation>Oppgi en Ghost-adresse (f.eks. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1889,7 +1889,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>En valgfri melding å tilknytte betalingsetterspørringen, som vil bli vist når forespørselen er åpnet. Meldingen vil ikke bli sendt med betalingen over Particl-nettverket.</translation>
+        <translation>En valgfri melding å tilknytte betalingsetterspørringen, som vil bli vist når forespørselen er åpnet. Meldingen vil ikke bli sendt med betalingen over Ghost-nettverket.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2034,7 +2034,7 @@
     <name>SendCoinsDialog</name>
     <message>
         <source>Send Coins</source>
-        <translation>Send Particls</translation>
+        <translation>Send Ghosts</translation>
     </message>
     <message>
         <source>Coin Control Features</source>
@@ -2321,7 +2321,7 @@
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Particl-adressen betalingen skal sendes til</translation>
+        <translation>Ghost-adressen betalingen skal sendes til</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2369,7 +2369,7 @@
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>En melding som var tilknyttet ghosten: URI vil bli lagret med transaksjonen for din oversikt. Denne meldingen vil ikke bli sendt over Particl-nettverket.</translation>
+        <translation>En melding som var tilknyttet ghosten: URI vil bli lagret med transaksjonen for din oversikt. Denne meldingen vil ikke bli sendt over Ghost-nettverket.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2418,7 +2418,7 @@
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Particl-adressen meldingen skal signeres med</translation>
+        <translation>Ghost-adressen meldingen skal signeres med</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2450,7 +2450,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Signer meldingen for å bevise at du eier denne Particl-adressen</translation>
+        <translation>Signer meldingen for å bevise at du eier denne Ghost-adressen</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2474,11 +2474,11 @@
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Particl-adressen meldingen ble signert med</translation>
+        <translation>Ghost-adressen meldingen ble signert med</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Verifiser meldingen for å være sikker på at den ble signert av den angitte Particl-adressen</translation>
+        <translation>Verifiser meldingen for å være sikker på at den ble signert av den angitte Ghost-adressen</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

@@ -183,7 +183,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Enviar moedas a unha dirección Particl</translation>
+        <translation>Enviar moedas a unha dirección Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -227,11 +227,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Asina mensaxes cos teus enderezos Particl para probar que che pertencen</translation>
+        <translation>Asina mensaxes cos teus enderezos Ghost para probar que che pertencen</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Verifica mensaxes para asegurar que foron asinados con enderezos Particl específicos.</translation>
+        <translation>Verifica mensaxes para asegurar que foron asinados con enderezos Ghost específicos.</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -503,8 +503,8 @@
         <translation>Empregar un directorio de datos personalizado</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error</source>
@@ -587,8 +587,8 @@
         <translation>Experto</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Abrir automáticamente o porto do cliente Particl no router. Esto so funciona se o teu router soporta UPnP e está habilitado.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Abrir automáticamente o porto do cliente Ghost no router. Esto so funciona se o teu router soporta UPnP e está habilitado.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -695,7 +695,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>A información amosada por estar desactualizada. O teu moedeiro sincronízase automáticamente coa rede Particl despois de que se estableza unha conexión, mais este proceso non está todavía rematado.</translation>
+        <translation>A información amosada por estar desactualizada. O teu moedeiro sincronízase automáticamente coa rede Ghost despois de que se estableza unha conexión, mais este proceso non está todavía rematado.</translation>
     </message>
     <message>
         <source>Your current spendable balance</source>
@@ -1130,7 +1130,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Asina a mensaxe para probar que posúes este enderezo Particl</translation>
+        <translation>Asina a mensaxe para probar que posúes este enderezo Ghost</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1150,7 +1150,7 @@
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Verificar a mensaxe para asegurar que foi asinada coa dirección Particl especificada</translation>
+        <translation>Verificar a mensaxe para asegurar que foi asinada coa dirección Ghost especificada</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

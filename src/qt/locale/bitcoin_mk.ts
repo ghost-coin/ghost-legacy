@@ -289,7 +289,7 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
+        <source>Ghost</source>
         <translation>Биткоин</translation>
     </message>
     <message>

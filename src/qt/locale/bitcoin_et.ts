@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Need on sinu Particl aadressid maksete saatmiseks. Ennem müntide saatmist kontrolli alati summat ja makse saaja aadressi.</translation>
+        <translation>Need on sinu Ghost aadressid maksete saatmiseks. Ennem müntide saatmist kontrolli alati summat ja makse saaja aadressi.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -283,7 +283,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Saada münte Particli aadressile</translation>
+        <translation>Saada münte Ghosti aadressile</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -327,11 +327,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Omandi tõestamiseks allkirjasta sõnumid oma Particli aadressiga</translation>
+        <translation>Omandi tõestamiseks allkirjasta sõnumid oma Ghosti aadressiga</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Kinnita sõnumid kindlustamaks et need allkirjastati määratud Particli aadressiga</translation>
+        <translation>Kinnita sõnumid kindlustamaks et need allkirjastati määratud Ghosti aadressiga</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -363,7 +363,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n aktiivne ühendus Particli võrku</numerusform><numerusform>%n aktiivset ühendust Particli võrku</numerusform></translation>
+        <translation><numerusform>%n aktiivne ühendus Ghosti võrku</numerusform><numerusform>%n aktiivset ühendust Ghosti võrku</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -617,7 +617,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Sisestatud aadress "%1" ei ole korrektne Particl aadress.</translation>
+        <translation>Sisestatud aadress "%1" ei ole korrektne Ghost aadress.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -653,8 +653,8 @@
         <translation>Tere tulemast</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error</source>
@@ -729,8 +729,8 @@
         <translation>Ekspert</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Particli kliendi pordi automaatne avamine ruuteris. Toimib, kui sinu ruuter aktsepteerib UPnP ühendust.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Ghosti kliendi pordi automaatne avamine ruuteris. Toimib, kui sinu ruuter aktsepteerib UPnP ühendust.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1356,7 +1356,7 @@
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>Hoiatus: Ebakorrektne Particl aadress</translation>
+        <translation>Hoiatus: Ebakorrektne Ghost aadress</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -1440,7 +1440,7 @@
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Particl aadress millega sõnum allkirjastada</translation>
+        <translation>Ghost aadress millega sõnum allkirjastada</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -1472,7 +1472,7 @@
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Allkirjasta sõnum Particli aadressi sulle kuulumise tõestamiseks</translation>
+        <translation>Allkirjasta sõnum Ghosti aadressi sulle kuulumise tõestamiseks</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -1492,11 +1492,11 @@
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Particl aadress millega sõnum on allkirjastatud</translation>
+        <translation>Ghost aadress millega sõnum on allkirjastatud</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Kinnita sõnum tõestamaks selle allkirjastatust määratud Particli aadressiga.</translation>
+        <translation>Kinnita sõnum tõestamaks selle allkirjastatust määratud Ghosti aadressiga.</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

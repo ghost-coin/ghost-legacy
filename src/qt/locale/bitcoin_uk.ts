@@ -67,11 +67,11 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Это ваши адреса Particl для отправки платежей. Всегда проверяйте количество и адрес получателя перед отправкой перевода.</translation>
+        <translation>Это ваши адреса Ghost для отправки платежей. Всегда проверяйте количество и адрес получателя перед отправкой перевода.</translation>
     </message>
     <message>
         <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Це ваші Particl-адреси для отримання платежів. Використовуйте кнопку "Створити нову адресу прийому" на вкладці отримання, для створення нових адрес.</translation>
+        <translation>Це ваші Ghost-адреси для отримання платежів. Використовуйте кнопку "Створити нову адресу прийому" на вкладці отримання, для створення нових адрес.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -403,11 +403,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Підтвердіть, що Ви є власником повідомлення підписавши його Вашою Particl-адресою</translation>
+        <translation>Підтвердіть, що Ви є власником повідомлення підписавши його Вашою Ghost-адресою</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Перевірте повідомлення для впевненості, що воно підписано вказаною Particl-адресою</translation>
+        <translation>Перевірте повідомлення для впевненості, що воно підписано вказаною Ghost-адресою</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -447,7 +447,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n активне з'єднання з мережею Particl</numerusform><numerusform>%n активні з'єднання з мережею Particl</numerusform><numerusform>%n активних з'єднань з мережею Particl</numerusform><numerusform>%n активних з'єднань з мережею Particl</numerusform></translation>
+        <translation><numerusform>%n активне з'єднання з мережею Ghost</numerusform><numerusform>%n активні з'єднання з мережею Ghost</numerusform><numerusform>%n активних з'єднань з мережею Ghost</numerusform><numerusform>%n активних з'єднань з мережею Ghost</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -626,7 +626,7 @@
         <translation>&lt;b&gt;Зашифрований&lt;/b&gt; гаманець &lt;b&gt;заблоковано&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
         <translation>Сталася фатальна помилка. Гаманець буде закрито.</translation>
     </message>
 </context>
@@ -855,7 +855,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Введена адреса "%1" не є адресою в мережі Particl.</translation>
+        <translation>Введена адреса "%1" не є адресою в мережі Ghost.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -951,8 +951,8 @@
         <translation>Використовувати свій каталог даних:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -963,7 +963,7 @@
         <translation>Близько %1 Гб даних буде збережено в цьому каталозі.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
         <translation>%1 буде завантажувати та зберігати копію ланцюжка блоків біткінів.</translation>
     </message>
     <message>
@@ -1199,7 +1199,7 @@
         <translation>&amp;Витрачати непідтверджену решту</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
         <translation>Автоматично відкривати порт для клієнту біткоін на роутері. Працює лише якщо ваш роутер підтримує UPnP і ця функція увімкнена.</translation>
     </message>
     <message>
@@ -1216,7 +1216,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Підключення до мережі Particl через SOCKS5 проксі.</translation>
+        <translation>Підключення до мережі Ghost через SOCKS5 проксі.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1252,7 +1252,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Підключатися до мережі Particl через окремий SOCKS5 проксі для прихованих сервісів Tor.</translation>
+        <translation>Підключатися до мережі Ghost через окремий SOCKS5 проксі для прихованих сервісів Tor.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1363,7 +1363,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Показана інформація вже може бути застарілою. Ваш гаманець буде автоматично синхронізовано з мережею Particl після встановлення підключення, але цей процес ще не завершено.</translation>
+        <translation>Показана інформація вже може бути застарілою. Ваш гаманець буде автоматично синхронізовано з мережею Ghost після встановлення підключення, але цей процес ще не завершено.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1570,7 +1570,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Введіть адресу Particl (наприклад %1)</translation>
+        <translation>Введіть адресу Ghost (наприклад %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2027,7 +2027,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Необов'язкове повідомлення на додаток до запиту платежу, котре буде показане під час відкриття запиту. Примітка: Це повідомлення не буде відправлено з платежем через мережу Particl.</translation>
+        <translation>Необов'язкове повідомлення на додаток до запиту платежу, котре буде показане під час відкриття запиту. Примітка: Це повідомлення не буде відправлено з платежем через мережу Ghost.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2483,7 +2483,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Адреса Particl для відправлення платежу</translation>
+        <translation>Адреса Ghost для відправлення платежу</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2531,7 +2531,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>Повідомлення, що було додане до ghost:URI та буде збережено разом з транзакцією для довідки. Примітка: Це повідомлення не буде відправлено в мережу Particl.</translation>
+        <translation>Повідомлення, що було додане до ghost:URI та буде збережено разом з транзакцією для довідки. Примітка: Це повідомлення не буде відправлено в мережу Ghost.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2580,7 +2580,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Адреса Particl для підпису цього повідомлення</translation>
+        <translation>Адреса Ghost для підпису цього повідомлення</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2636,11 +2636,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Адреса Particl, якою було підписано це повідомлення</translation>
+        <translation>Адреса Ghost, якою було підписано це повідомлення</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Перевірте повідомлення для впевненості, що воно підписано вказаною Particl-адресою</translation>
+        <translation>Перевірте повідомлення для впевненості, що воно підписано вказаною Ghost-адресою</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

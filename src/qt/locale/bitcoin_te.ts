@@ -223,7 +223,7 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
+        <source>Ghost</source>
         <translation>బిట్కోయిన్</translation>
     </message>
     <message>

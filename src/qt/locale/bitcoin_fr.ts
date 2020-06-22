@@ -67,11 +67,11 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Ce sont vos adresses Particl pour envoyer des paiements. Vérifiez toujours le montant et l’adresse du destinataire avant d’envoyer des pièces.</translation>
+        <translation>Ce sont vos adresses Ghost pour envoyer des paiements. Vérifiez toujours le montant et l’adresse du destinataire avant d’envoyer des pièces.</translation>
     </message>
     <message>
         <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Ce sont vos adresses Particl pour recevoir des paiements. Utilisez le bouton 'Créer une nouvelle adresse de réception' dans l’onglet Recevoir afin de créer de nouvelles adresses.</translation>
+        <translation>Ce sont vos adresses Ghost pour recevoir des paiements. Utilisez le bouton 'Créer une nouvelle adresse de réception' dans l’onglet Recevoir afin de créer de nouvelles adresses.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -363,7 +363,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Envoyer des pièces à une adresse Particl</translation>
+        <translation>Envoyer des pièces à une adresse Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -407,11 +407,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Signer les messages avec vos adresses Particl pour prouver que vous les détenez</translation>
+        <translation>Signer les messages avec vos adresses Ghost pour prouver que vous les détenez</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Vérifier les messages pour s’assurer qu’ils ont été signés avec les adresses Particl indiquées</translation>
+        <translation>Vérifier les messages pour s’assurer qu’ils ont été signés avec les adresses Ghost indiquées</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -451,7 +451,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n connexion active avec le réseau Particl</numerusform><numerusform>%n connexions actives avec le réseau Particl</numerusform></translation>
+        <translation><numerusform>%n connexion active avec le réseau Ghost</numerusform><numerusform>%n connexions actives avec le réseau Ghost</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -519,7 +519,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Afficher le message d’aide de %1 pour obtenir la liste des options de ligne de commande Particl possibles.</translation>
+        <translation>Afficher le message d’aide de %1 pour obtenir la liste des options de ligne de commande Ghost possibles.</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -630,8 +630,8 @@
         <translation>Le porte-monnaie est &lt;b&gt;chiffré&lt;/b&gt; et actuellement &lt;b&gt;verrouillé&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Une erreur fatale est survenue. Particl ne peut plus continuer en toute sécurité et va s’arrêter.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Une erreur fatale est survenue. Ghost ne peut plus continuer en toute sécurité et va s’arrêter.</translation>
     </message>
 </context>
 <context>
@@ -875,7 +875,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>L’adresse saisie « %1 » n’est pas une adresse Particl valide.</translation>
+        <translation>L’adresse saisie « %1 » n’est pas une adresse Ghost valide.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -975,8 +975,8 @@
         <translation>Utiliser un répertoire de données personnalisé :</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Discard blocks after verification, except most recent %1 GB (prune)</source>
@@ -991,8 +991,8 @@
         <translation>Approximativement %1 Go de données seront stockés dans ce répertoire.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 téléchargera et stockera une copie de la chaîne de blocs Particl.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 téléchargera et stockera une copie de la chaîne de blocs Ghost.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1027,7 +1027,7 @@
     </message>
     <message>
         <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the ghost network, as detailed below.</source>
-        <translation>Les transactions récentes ne sont peut-être pas encore visibles et par conséquent le solde de votre porte-monnaie est peut-être erroné. Ces informations seront justes quand votre porte-monnaie aura fini de se synchroniser avec le réseau Particl, comme décrit ci-dessous.</translation>
+        <translation>Les transactions récentes ne sont peut-être pas encore visibles et par conséquent le solde de votre porte-monnaie est peut-être erroné. Ces informations seront justes quand votre porte-monnaie aura fini de se synchroniser avec le réseau Ghost, comme décrit ci-dessous.</translation>
     </message>
     <message>
         <source>Attempting to spend ghost that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
@@ -1231,8 +1231,8 @@
         <translation>&amp;Dépenser la monnaie non confirmée</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Ouvrir automatiquement le port du client Particl sur le routeur. Cela ne fonctionne que si votre routeur prend en charge l’UPnP et si la fonction est activée.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Ouvrir automatiquement le port du client Ghost sur le routeur. Cela ne fonctionne que si votre routeur prend en charge l’UPnP et si la fonction est activée.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1248,7 +1248,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Se connecter au réseau Particl par un mandataire SOCKS5.</translation>
+        <translation>Se connecter au réseau Ghost par un mandataire SOCKS5.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1284,7 +1284,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Se connecter au réseau Particl au travers d’un mandataire SOCKS5 séparé pour les services cachés de Tor.</translation>
+        <translation>Se connecter au réseau Ghost au travers d’un mandataire SOCKS5 séparé pour les services cachés de Tor.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1395,7 +1395,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Les informations affichées peuvent être obsolètes. Votre porte-monnaie se synchronise automatiquement avec le réseau Particl dès qu’une connexion est établie, mais ce processus n’est pas encore achevé.</translation>
+        <translation>Les informations affichées peuvent être obsolètes. Votre porte-monnaie se synchronise automatiquement avec le réseau Ghost dès qu’une connexion est établie, mais ce processus n’est pas encore achevé.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1506,7 +1506,7 @@
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
-        <translation>L’URI ne peut pas être analysée ! Cela peut être causé par une adresse Particl invalide ou par des paramètres d’URI mal formés.</translation>
+        <translation>L’URI ne peut pas être analysée ! Cela peut être causé par une adresse Ghost invalide ou par des paramètres d’URI mal formés.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1608,7 +1608,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Saisir une adresse Particl (p. ex. %1)</translation>
+        <translation>Saisir une adresse Ghost (p. ex. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2069,7 +2069,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Un message facultatif à joindre à la demande de paiement et qui sera affiché à l’ouverture de celle-ci. Note : Le message ne sera pas envoyé avec le paiement par le réseau Particl.</translation>
+        <translation>Un message facultatif à joindre à la demande de paiement et qui sera affiché à l’ouverture de celle-ci. Note : Le message ne sera pas envoyé avec le paiement par le réseau Ghost.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2498,7 +2498,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>Avertissement : L’adresse Particl est invalide</translation>
+        <translation>Avertissement : L’adresse Ghost est invalide</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2541,7 +2541,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>L’adresse Particl à laquelle envoyer le paiement</translation>
+        <translation>L’adresse Ghost à laquelle envoyer le paiement</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2589,7 +2589,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>Un message qui était joint à l’URI ghost: et qui sera stocké avec la transaction pour référence. Note : Ce message ne sera pas envoyé par le réseau Particl.</translation>
+        <translation>Un message qui était joint à l’URI ghost: et qui sera stocké avec la transaction pour référence. Note : Ce message ne sera pas envoyé par le réseau Ghost.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2638,7 +2638,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>L’adresse Particl avec laquelle signer le message</translation>
+        <translation>L’adresse Ghost avec laquelle signer le message</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2670,7 +2670,7 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Signer le message afin de prouver que vous détenez cette adresse Particl</translation>
+        <translation>Signer le message afin de prouver que vous détenez cette adresse Ghost</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2694,11 +2694,11 @@ Note : Les frais étant calculés par octet, des frais de « 100 satoshis par
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>L’adresse Particl avec laquelle le message a été signé</translation>
+        <translation>L’adresse Ghost avec laquelle le message a été signé</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Vérifier le message pour s’assurer qu’il a été signé avec l’adresse Particl indiquée</translation>
+        <translation>Vérifier le message pour s’assurer qu’il a été signé avec l’adresse Ghost indiquée</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
