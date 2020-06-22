@@ -464,7 +464,7 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
+        <source>Ghost</source>
         <translation>बीटकोइन</translation>
     </message>
     <message>

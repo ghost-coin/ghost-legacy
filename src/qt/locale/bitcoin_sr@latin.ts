@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Ovo su Vaše Particl adrese na koju se vrše uplate. Uvek proverite iznos i prijemnu adresu pre slanja novčića.</translation>
+        <translation>Ovo su Vaše Ghost adrese na koju se vrše uplate. Uvek proverite iznos i prijemnu adresu pre slanja novčića.</translation>
     </message>
     <message>
         <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
@@ -343,7 +343,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Pošalji novčiće na Particl adresu</translation>
+        <translation>Pošalji novčiće na Ghost adresu</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -387,11 +387,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Potpišite poruke sa svojim Particl adresama da biste dokazali njihovo vlasništvo</translation>
+        <translation>Potpišite poruke sa svojim Ghost adresama da biste dokazali njihovo vlasništvo</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Proverite poruke da biste utvrdili sa kojim Particl adresama su potpisane</translation>
+        <translation>Proverite poruke da biste utvrdili sa kojim Ghost adresama su potpisane</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -529,8 +529,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Error</source>

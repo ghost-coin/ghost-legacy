@@ -67,11 +67,11 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Detta är dina Particl-adresser för att skicka betalningar. Kontrollera alltid belopp och mottagaradress innan du skickar ghost.</translation>
+        <translation>Detta är dina Ghost-adresser för att skicka betalningar. Kontrollera alltid belopp och mottagaradress innan du skickar ghost.</translation>
     </message>
     <message>
         <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Detta är dina Particladresser för att ta emot betalningar. Använd knappen 'Skapa ny mottagaradress' på fliken ta emot för att skapa nya adresser .</translation>
+        <translation>Detta är dina Ghostadresser för att ta emot betalningar. Använd knappen 'Skapa ny mottagaradress' på fliken ta emot för att skapa nya adresser .</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -364,7 +364,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Skicka ghost till en Particl-adress</translation>
+        <translation>Skicka ghost till en Ghost-adress</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -408,11 +408,11 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Signera meddelanden med dina Particl-adresser för att bevisa att du äger dem</translation>
+        <translation>Signera meddelanden med dina Ghost-adresser för att bevisa att du äger dem</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Verifiera meddelanden för att vara säker på att de signerades med angivna Particl-adresser</translation>
+        <translation>Verifiera meddelanden för att vara säker på att de signerades med angivna Ghost-adresser</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -452,7 +452,7 @@ Försök igen.</translation>
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n aktiva anslutningar till Particl-nätverket.</numerusform><numerusform>%n aktiva anslutningar till Particl-nätverket.</numerusform></translation>
+        <translation><numerusform>%n aktiva anslutningar till Ghost-nätverket.</numerusform><numerusform>%n aktiva anslutningar till Ghost-nätverket.</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -520,7 +520,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Visa %1 hjälpmeddelande för att få en lista med möjliga Particl kommandoradsalternativ.</translation>
+        <translation>Visa %1 hjälpmeddelande för att få en lista med möjliga Ghost kommandoradsalternativ.</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -631,8 +631,8 @@ Försök igen.</translation>
         <translation>Denna plånbok är &lt;b&gt;krypterad&lt;/b&gt; och för närvarande &lt;b&gt;låst&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Ett kritiskt fel uppstod. Particl kan inte fortsätta att köra säkert och kommer att avslutas.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Ett kritiskt fel uppstod. Ghost kan inte fortsätta att köra säkert och kommer att avslutas.</translation>
     </message>
 </context>
 <context>
@@ -796,11 +796,7 @@ Försök igen.</translation>
         <source>Create wallet failed</source>
         <translation>Plånboken kunde inte skapas</translation>
     </message>
-    <message>
-        <source>Create wallet warning</source>
-        <translation>Skapa plånboksvarning</translation>
-    </message>
-</context>
+    </context>
 <context>
     <name>CreateWalletDialog</name>
     <message>
@@ -818,22 +814,6 @@ Försök igen.</translation>
     <message>
         <source>Encrypt Wallet</source>
         <translation>Kryptera plånbok</translation>
-    </message>
-    <message>
-        <source>Disable private keys for this wallet. Wallets with private keys disabled will have no private keys and cannot have an HD seed or imported private keys. This is ideal for watch-only wallets.</source>
-        <translation>Stäng av privata nycklar för denna plånbok. Plånböcker med privata nycklar avstängda kommer inte innehålla några privata nycklar alls, och kan inte innehålla vare sig en HD-seed eller importerade privata nycklar. Detta är idealt för plånböcker som endast ska granskas.</translation>
-    </message>
-    <message>
-        <source>Disable Private Keys</source>
-        <translation>Stäng av privata nycklar</translation>
-    </message>
-    <message>
-        <source>Make a blank wallet. Blank wallets do not initially have private keys or scripts. Private keys and addresses can be imported, or an HD seed can be set, at a later time.</source>
-        <translation>Skapa en tom plånbok. Tomma plånböcker har från början inga privata nycklar eller skript. Privata nycklar och adresser kan importeras, eller en HD-seed kan väljas, vid ett senare tillfälle.</translation>
-    </message>
-    <message>
-        <source>Make Blank Wallet</source>
-        <translation>Skapa tom plånbok</translation>
     </message>
     <message>
         <source>Create</source>
@@ -876,7 +856,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Den angivna adressen "%1" är inte en giltig Particl-adress.</translation>
+        <translation>Den angivna adressen "%1" är inte en giltig Ghost-adress.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -956,10 +936,6 @@ Försök igen.</translation>
         <translation>När du trycker OK kommer %1 att börja ladda ner och bearbeta den fullständiga %4-blockkedjan (%2 GB), med början vid de första transaktionerna %3 när %4 först lanserades.</translation>
     </message>
     <message>
-        <source>Reverting this setting requires re-downloading the entire blockchain. It is faster to download the full chain first and prune it later. Disables some advanced features.</source>
-        <translation>Att återställa detta alternativ påbörjar en omstart av nedladdningen av hela blockkedjan. Det går snabbare att ladda ner hela kedjan först, och gallra den senare. Detta alternativ stänger av vissa avancerade funktioner.</translation>
-    </message>
-    <message>
         <source>This initial synchronisation is very demanding, and may expose hardware problems with your computer that had previously gone unnoticed. Each time you run %1, it will continue downloading where it left off.</source>
         <translation>Denna första synkronisering är väldigt krävande, och kan påvisa hårdvaruproblem hos din dator som tidigare inte visat sig. Varje gång du kör %1, kommer nerladdningen att fortsätta där den avslutades.</translation>
     </message>
@@ -976,12 +952,8 @@ Försök igen.</translation>
         <translation>Använd en anpassad datakatalog:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
-    </message>
-    <message>
-        <source>Discard blocks after verification, except most recent %1 GB (prune)</source>
-        <translation>Släng block efter verifiering, förutom de senaste %1 GB (gallra).</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -992,8 +964,8 @@ Försök igen.</translation>
         <translation>Ungefär %1 GB data kommer att lagras i den här katalogen.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 kommer att ladda ner och lagra en kopia av Particl blockkedja.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 kommer att ladda ner och lagra en kopia av Ghost blockkedja.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1028,7 +1000,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Recent transactions may not yet be visible, and therefore your wallet's balance might be incorrect. This information will be correct once your wallet has finished synchronizing with the ghost network, as detailed below.</source>
-        <translation>Nyligen gjorda transaktioner visas inte korrekt och därför kan din plånboks saldo visas felaktigt. Denna information kommer att visas korrekt så snart din plånbok har synkroniserats med Particl-nätverket enligt informationen nedan.</translation>
+        <translation>Nyligen gjorda transaktioner visas inte korrekt och därför kan din plånboks saldo visas felaktigt. Denna information kommer att visas korrekt så snart din plånbok har synkroniserats med Ghost-nätverket enligt informationen nedan.</translation>
     </message>
     <message>
         <source>Attempting to spend ghost that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
@@ -1099,10 +1071,6 @@ Försök igen.</translation>
     <message>
         <source>Open wallet failed</source>
         <translation>Det gick inte att öppna plånboken</translation>
-    </message>
-    <message>
-        <source>Open wallet warning</source>
-        <translation>Öppna plånboksvarning.</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -1232,8 +1200,8 @@ Försök igen.</translation>
         <translation>&amp;Spendera obekräftad växel</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Öppna automatiskt Particl-klientens port på routern. Detta fungerar endast om din router stödjer UPnP och det är är aktiverat.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Öppna automatiskt Ghost-klientens port på routern. Detta fungerar endast om din router stödjer UPnP och det är är aktiverat.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1249,7 +1217,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Anslut till Particl-nätverket genom en SOCKS5-proxy.</translation>
+        <translation>Anslut till Ghost-nätverket genom en SOCKS5-proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1285,7 +1253,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Anslut till Particl-nätverket genom en separat SOCKS5-proxy för dolda tjänster i Tor.</translation>
+        <translation>Anslut till Ghost-nätverket genom en separat SOCKS5-proxy för dolda tjänster i Tor.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1396,7 +1364,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Den visade informationen kan vara inaktuell. Plånboken synkroniseras automatiskt med Particl-nätverket efter att anslutningen är upprättad, men denna process har inte slutförts ännu.</translation>
+        <translation>Den visade informationen kan vara inaktuell. Plånboken synkroniseras automatiskt med Ghost-nätverket efter att anslutningen är upprättad, men denna process har inte slutförts ännu.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1424,7 +1392,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Mined balance that has not yet matured</source>
-        <translation>Grävt saldo som ännu inte har mognat</translation>
+        <translation>Genererat saldo som ännu inte har mognat</translation>
     </message>
     <message>
         <source>Balances</source>
@@ -1456,7 +1424,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Mined balance in watch-only addresses that has not yet matured</source>
-        <translation>Grävt saldo i granska-bara adresser som ännu inte har mognat</translation>
+        <translation>Genererat saldo i granska-bara adresser som ännu inte har mognat</translation>
     </message>
     <message>
         <source>Current total balance in watch-only addresses</source>
@@ -1494,20 +1462,12 @@ Försök igen.</translation>
         <translation>Det går inte att behandla betalningsbegäran eftersom stöd för BIP70 inte var aktiverat vid kompilering.</translation>
     </message>
     <message>
-        <source>Due to widespread security flaws in BIP70 it's strongly recommended that any merchant instructions to switch wallets be ignored.</source>
-        <translation>Som följd av utbredda säkerhetshål i BIP70, rekommenderas det starkt att en säljares instruktion för dig att byta plånbok ignoreras.</translation>
-    </message>
-    <message>
-        <source>If you are receiving this error you should request the merchant provide a BIP21 compatible URI.</source>
-        <translation>Om du får detta fel borde du be säljaren förse dig med en BIP21-kompatibel URI.</translation>
-    </message>
-    <message>
         <source>Invalid payment address %1</source>
         <translation>Ogiltig betalningsadress %1</translation>
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
-        <translation>URI kan inte parsas! Detta kan orsakas av en ogiltig Particl-adress eller felaktiga URI-parametrar.</translation>
+        <translation>URI kan inte parsas! Detta kan orsakas av en ogiltig Ghost-adress eller felaktiga URI-parametrar.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1609,7 +1569,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Ange en Particl-adress (t.ex. %1)</translation>
+        <translation>Ange en Ghost-adress (t.ex. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1721,10 +1681,6 @@ Försök igen.</translation>
     <message>
         <source>Error encoding URI into QR Code.</source>
         <translation>Fel vid skapande av QR-kod från URI.</translation>
-    </message>
-    <message>
-        <source>QR code support not available.</source>
-        <translation>Stöd för QR-kod ej tillgängligt.</translation>
     </message>
     <message>
         <source>Save QR Code</source>
@@ -2070,7 +2026,7 @@ Försök igen.</translation>
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Ett valfritt meddelande att bifoga betalningsbegäran, vilket visas när begäran öppnas. Obs: Meddelandet kommer inte att sändas med betalningen över Particl-nätverket.</translation>
+        <translation>Ett valfritt meddelande att bifoga betalningsbegäran, vilket visas när begäran öppnas. Obs: Meddelandet kommer inte att sändas med betalningen över Ghost-nätverket.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2414,10 +2370,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <translation>från plånbok: '%1'</translation>
     </message>
     <message>
-        <source>%1 to '%2'</source>
-        <translation>%1 till '%2'</translation>
-    </message>
-    <message>
         <source>%1 to %2</source>
         <translation>%1 till %2</translation>
     </message>
@@ -2448,10 +2400,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <message>
         <source>Total Amount</source>
         <translation>Totalt belopp</translation>
-    </message>
-    <message>
-        <source>To review recipient list click "Show Details..."</source>
-        <translation>För att gå igenom mottagarlistan, tryck "Visa Detaljer..."</translation>
     </message>
     <message>
         <source>Confirm send coins</source>
@@ -2499,7 +2447,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>Varning: Ogiltig Particl-adress</translation>
+        <translation>Varning: Ogiltig Ghost-adress</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2542,7 +2490,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Particl-adress att sända betalning till</translation>
+        <translation>Ghost-adress att sända betalning till</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2590,7 +2538,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>Ett meddelande som bifogades ghost: -URIn och som sparas med transaktionen som referens. Obs: Meddelandet sänds inte över Particl-nätverket.</translation>
+        <translation>Ett meddelande som bifogades ghost: -URIn och som sparas med transaktionen som referens. Obs: Meddelandet sänds inte över Ghost-nätverket.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2639,7 +2587,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Particl-adress att signera meddelandet med</translation>
+        <translation>Ghost-adress att signera meddelandet med</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2671,7 +2619,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Signera meddelandet för att bevisa att du äger denna Particl-adress</translation>
+        <translation>Signera meddelandet för att bevisa att du äger denna Ghost-adress</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2695,11 +2643,11 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Particl-adress som meddelandet signerades med</translation>
+        <translation>Ghost-adress som meddelandet signerades med</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Verifiera meddelandet för att vara säker på att det signerades med angiven Particl-adress</translation>
+        <translation>Verifiera meddelandet för att vara säker på att det signerades med angiven Ghost-adress</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -2904,10 +2852,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <translation>Utmatningsindex</translation>
     </message>
     <message>
-        <source> (Certificate was not verified)</source>
-        <translation>(Certifikatet verifierades inte)</translation>
-    </message>
-    <message>
         <source>Merchant</source>
         <translation>Handlare</translation>
     </message>
@@ -3019,7 +2963,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>Mined</source>
-        <translation>Grävda</translation>
+        <translation>Genererade</translation>
     </message>
     <message>
         <source>watch-only</source>
@@ -3102,7 +3046,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     </message>
     <message>
         <source>Mined</source>
-        <translation>Grävda</translation>
+        <translation>Genererade</translation>
     </message>
     <message>
         <source>Other</source>
@@ -3231,12 +3175,8 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <translation>Stäng plånboken</translation>
     </message>
     <message>
-        <source>Are you sure you wish to close the wallet &lt;i&gt;%1&lt;/i&gt;?</source>
-        <translation>Är du säker att du vill stänga plånboken &lt;i&gt;%1&lt;/i&gt;?</translation>
-    </message>
-    <message>
         <source>Closing the wallet for too long can result in having to resync the entire chain if pruning is enabled.</source>
-        <translation>Om plånboken är stängd under för lång tid och gallring är aktiverad kan hela kedjan behöva synkroniseras på nytt.</translation>
+        <translation>Om plånboken är stängd under för lång tid kan hela kedjan behöva synkroniseras om, om gallring är aktiverad.</translation>
     </message>
 </context>
 <context>
@@ -3250,7 +3190,7 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <name>WalletModel</name>
     <message>
         <source>Send Coins</source>
-        <translation>Skicka Particl</translation>
+        <translation>Skicka Ghosts</translation>
     </message>
     <message>
         <source>Fee bump error</source>
@@ -3507,10 +3447,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
         <translation>Initieringschecken fallerade. %s stängs av.</translation>
     </message>
     <message>
-        <source>Invalid P2P permission: '%s'</source>
-        <translation>Ogiltigt P2P-tillstånd: '%s'</translation>
-    </message>
-    <message>
         <source>Invalid amount for -%s=&lt;amount&gt;: '%s'</source>
         <translation>Ogiltigt belopp för -%s=&lt;amount&gt;:'%s'</translation>
     </message>
@@ -3525,14 +3461,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <message>
         <source>Specified blocks directory "%s" does not exist.</source>
         <translation>Den specificerade mappen för block "%s" existerar inte.</translation>
-    </message>
-    <message>
-        <source>Unknown address type '%s'</source>
-        <translation>Okänd adress-typ '%s'</translation>
-    </message>
-    <message>
-        <source>Unknown change type '%s'</source>
-        <translation>Okänd växel-typ '%s'</translation>
     </message>
     <message>
         <source>Upgrading txindex database</source>
@@ -3715,10 +3643,6 @@ Notera: Då avgiften beräknas per byte kommer en avgift på 50 satoshi tas ut f
     <message>
         <source>Unable to generate initial keys</source>
         <translation>Det gick inte att skapa ursprungliga nycklar</translation>
-    </message>
-    <message>
-        <source>Unknown -blockfilterindex value %s.</source>
-        <translation>Okänt värde för -blockfilterindex '%s'.</translation>
     </message>
     <message>
         <source>Verifying wallet(s)...</source>

@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Tai yra jūsų Particl adresai išeinantiems mokėjimams. Visada pasitikrinkite sumą ir gavėjo adresą prieš siunčiant lėšas.</translation>
+        <translation>Tai yra jūsų Ghost adresai išeinantiems mokėjimams. Visada pasitikrinkite sumą ir gavėjo adresą prieš siunčiant lėšas.</translation>
     </message>
     <message>
         <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
@@ -343,7 +343,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Siųsti monetas Particl adresui</translation>
+        <translation>Siųsti monetas Ghost adresui</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -387,11 +387,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Pasirašydami žinutes su savo Particl adresais įrodysite jog esate jų savininkas</translation>
+        <translation>Pasirašydami žinutes su savo Ghost adresais įrodysite jog esate jų savininkas</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Patikrinkite žinutę, jog įsitikintumėte, kad ją pasirašė nurodytas Particl adresas</translation>
+        <translation>Patikrinkite žinutę, jog įsitikintumėte, kad ją pasirašė nurodytas Ghost adresas</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -431,7 +431,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n Particl tinklo aktyvus ryšys</numerusform><numerusform>%n Particl tinklo aktyvūs ryšiai</numerusform><numerusform>%n Particl tinklo aktyvūs ryšiai</numerusform><numerusform>%n Particl tinklo aktyvūs ryšiai</numerusform></translation>
+        <translation><numerusform>%n Ghost tinklo aktyvus ryšys</numerusform><numerusform>%n Ghost tinklo aktyvūs ryšiai</numerusform><numerusform>%n Ghost tinklo aktyvūs ryšiai</numerusform><numerusform>%n Ghost tinklo aktyvūs ryšiai</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -499,7 +499,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Rodyti %1 pagalbos žinutę su Particl pasirinkimo komandomis</translation>
+        <translation>Rodyti %1 pagalbos žinutę su Ghost pasirinkimo komandomis</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -610,8 +610,8 @@
         <translation>Piniginė &lt;b&gt;užšifruota&lt;/b&gt; ir šiuo metu &lt;b&gt;užrakinta&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Kritinė klaida. Particl nebegali tęsti saugiai ir bus išjungtas.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Kritinė klaida. Ghost nebegali tęsti saugiai ir bus išjungtas.</translation>
     </message>
 </context>
 <context>
@@ -847,7 +847,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Įvestas adresas „%1“ nėra galiojantis Particl adresas.</translation>
+        <translation>Įvestas adresas „%1“ nėra galiojantis Ghost adresas.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -943,8 +943,8 @@
         <translation>Naudoti kitą duomenų katalogą:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Discard blocks after verification, except most recent %1 GB (prune)</source>
@@ -959,8 +959,8 @@
         <translation>Šiame kataloge bus saugoma maždaug apie %1 GB duomenų.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 bus atsisiųsta ir išsaugota Particl blokų grandinės kopiją.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 bus atsisiųsta ir išsaugota Ghost blokų grandinės kopiją.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1195,8 +1195,8 @@
         <translation>&amp;Išleiskite nepatvirtintus pakeitimus</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Automatiškai atidaryti Particl kliento prievadą maršrutizatoriuje. Tai veikia tik tada, kai jūsų maršrutizatorius palaiko UPnP ir ji įjungta.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Automatiškai atidaryti Ghost kliento prievadą maršrutizatoriuje. Tai veikia tik tada, kai jūsų maršrutizatorius palaiko UPnP ir ji įjungta.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1212,7 +1212,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Prisijunkite prie „Particl“ tinklo per SOCKS5 proxy.</translation>
+        <translation>Prisijunkite prie „Ghost“ tinklo per SOCKS5 proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1248,7 +1248,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Prisijunkite prie „Particl“ tinklo per atskirą „SOCKS5“ proxy „Tor“ paslėptas paslaugas.</translation>
+        <translation>Prisijunkite prie „Ghost“ tinklo per atskirą „SOCKS5“ proxy „Tor“ paslėptas paslaugas.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1359,7 +1359,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Rodoma informacija gali būti pasenusi. Piniginė automatiškai sinchronizuojasi su „Particl“ tinklu po ryšio užmezgimo, tačiau šis procesas dar nebaigtas.</translation>
+        <translation>Rodoma informacija gali būti pasenusi. Piniginė automatiškai sinchronizuojasi su „Ghost“ tinklu po ryšio užmezgimo, tačiau šis procesas dar nebaigtas.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1462,7 +1462,7 @@
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
-        <translation>URI negalima perskaityti! Tai gali sukelti negaliojantys „Particl“ adresas arba netinkami URI parametrai.</translation>
+        <translation>URI negalima perskaityti! Tai gali sukelti negaliojantys „Ghost“ adresas arba netinkami URI parametrai.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1564,7 +1564,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Įveskite Particl adresą (pvz., %1)</translation>
+        <translation>Įveskite Ghost adresą (pvz., %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2025,7 +2025,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Neprivalomas pranešimas, pridedamas prie mokėjimo prašymo, kuris bus rodomas atidarius užklausą. Pastaba: pranešimas nebus išsiųstas su mokėjimu per „Particl“ tinklą.</translation>
+        <translation>Neprivalomas pranešimas, pridedamas prie mokėjimo prašymo, kuris bus rodomas atidarius užklausą. Pastaba: pranešimas nebus išsiųstas su mokėjimu per „Ghost“ tinklą.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2442,7 +2442,7 @@ Pastaba: Kadangi mokestis apskaičiuojamas pagal baitą, mokestis už „100 sat
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>Įspėjimas: neteisingas Particl adresas</translation>
+        <translation>Įspėjimas: neteisingas Ghost adresas</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2485,7 +2485,7 @@ Pastaba: Kadangi mokestis apskaičiuojamas pagal baitą, mokestis už „100 sat
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Particl adresas, į kurį siunčiamas mokėjimas</translation>
+        <translation>Ghost adresas, į kurį siunčiamas mokėjimas</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2533,7 +2533,7 @@ Pastaba: Kadangi mokestis apskaičiuojamas pagal baitą, mokestis už „100 sat
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>Pranešimas, kuris buvo pridėtas prie ghost: URI, kuris bus saugomas kartu su sandoriu jūsų nuoroda. Pastaba: šis pranešimas nebus išsiųstas per „Particl“ tinklą.</translation>
+        <translation>Pranešimas, kuris buvo pridėtas prie ghost: URI, kuris bus saugomas kartu su sandoriu jūsų nuoroda. Pastaba: šis pranešimas nebus išsiųstas per „Ghost“ tinklą.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2578,7 +2578,7 @@ Pastaba: Kadangi mokestis apskaičiuojamas pagal baitą, mokestis už „100 sat
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Particl adresas, kuriuo bus pasirašytas pranešimas su</translation>
+        <translation>Ghost adresas, kuriuo bus pasirašytas pranešimas su</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2630,11 +2630,11 @@ Pastaba: Kadangi mokestis apskaičiuojamas pagal baitą, mokestis už „100 sat
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Particl adresas, kuriuo buvo pasirašytas pranešimas</translation>
+        <translation>Ghost adresas, kuriuo buvo pasirašytas pranešimas</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Patikrinkite žinutę, jog įsitikintumėte, kad ją pasirašė nurodytas Particl adresas</translation>
+        <translation>Patikrinkite žinutę, jog įsitikintumėte, kad ją pasirašė nurodytas Ghost adresas</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Tukej sōm adresy Particl na kere posyłŏsz płaty. Dycki wybaduj wielość i adresã ôdbiyrŏcza przed posłaniym mōnet.</translation>
+        <translation>Tukej sōm adresy Ghost na kere posyłŏsz płaty. Dycki wybaduj wielość i adresã ôdbiyrŏcza przed posłaniym mōnet.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -323,7 +323,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Poślij mōnety na adresã Particl</translation>
+        <translation>Poślij mōnety na adresã Ghost</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -371,7 +371,7 @@
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Zweryfikuj wiadōmość, coby wejzdrzeć sie, iże ôstała podpisanŏ podanōm adresōm Particl.</translation>
+        <translation>Zweryfikuj wiadōmość, coby wejzdrzeć sie, iże ôstała podpisanŏ podanōm adresōm Ghost.</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -411,7 +411,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n aktywne połōnczynie do necu Particl</numerusform><numerusform>%n aktywnych połōnczyń do necu Particl</numerusform><numerusform>%n aktywnych skuplowań do necu Particl</numerusform></translation>
+        <translation><numerusform>%n aktywne połōnczynie do necu Ghost</numerusform><numerusform>%n aktywnych połōnczyń do necu Ghost</numerusform><numerusform>%n aktywnych skuplowań do necu Ghost</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -542,8 +542,8 @@
         <translation>Portmanyj je &lt;b&gt;zaszyfrowany&lt;/b&gt; i terŏźnie &lt;b&gt;zaszperowany&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Przitrefiōł sie krytyczny feler. Particl niy poradzi kōntynuować bezpiycznie i ôstanie zawrzity.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Przitrefiōł sie krytyczny feler. Ghost niy poradzi kōntynuować bezpiycznie i ôstanie zawrzity.</translation>
     </message>
 </context>
 <context>
@@ -739,7 +739,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Wkludzōnŏ adresa "%1" niyma nŏleżnōm adresōm Particl.</translation>
+        <translation>Wkludzōnŏ adresa "%1" niyma nŏleżnōm adresōm Ghost.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -831,8 +831,8 @@
         <translation>Użyj ôbranego folderu datōw</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -843,8 +843,8 @@
         <translation>Kole %1 GB datōw ôstanie spamiyntane w tym katalogu.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 sebiere i spamiyntŏ kopijõ kety blokōw Particl.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 sebiere i spamiyntŏ kopijõ kety blokōw Ghost.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1039,8 +1039,8 @@
         <translation>&amp;Wydej niyprzituplowanõ wydŏwkã</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Autōmatycznie ôdewrzij port klijynta Particl na routerze. Ta ôpcyjŏ funguje ino jeźli twōj router podpiyrŏ UPnP i je ôno zapuszczone.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Autōmatycznie ôdewrzij port klijynta Ghost na routerze. Ta ôpcyjŏ funguje ino jeźli twōj router podpiyrŏ UPnP i je ôno zapuszczone.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1056,7 +1056,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Skupluj sie z necym Particl bez SOCKS5 proxy.</translation>
+        <translation>Skupluj sie z necym Ghost bez SOCKS5 proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1088,7 +1088,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Skupluj sie z necym Particl ze pōmocōm ôsobnego proxy SOCKS5 dlŏ necu TOR</translation>
+        <translation>Skupluj sie z necym Ghost ze pōmocōm ôsobnego proxy SOCKS5 dlŏ necu TOR</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1216,7 +1216,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Wkludź adresã Particl (bp. %1)</translation>
+        <translation>Wkludź adresã Ghost (bp. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1433,7 +1433,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>Ôpcyjōnalnŏ wiadōmość do prziwstōniŏ do żōndaniŏ płatu, kerŏ bydzie wyświytlanŏ, kej żōndanie ôstanie ôdewrzōne. Napōmniynie: wiadōmość ta niy ôstanie wysłanŏ z płatym w nec Particl.</translation>
+        <translation>Ôpcyjōnalnŏ wiadōmość do prziwstōniŏ do żōndaniŏ płatu, kerŏ bydzie wyświytlanŏ, kej żōndanie ôstanie ôdewrzōne. Napōmniynie: wiadōmość ta niy ôstanie wysłanŏ z płatym w nec Ghost.</translation>
     </message>
     <message>
         <source>Clear</source>
@@ -1638,7 +1638,7 @@
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>Pozōr: niynŏleżnŏ adresa Particl</translation>
+        <translation>Pozōr: niynŏleżnŏ adresa Ghost</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -1661,7 +1661,7 @@
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Adresa Particl, na kerõ chcesz posłać płat</translation>
+        <translation>Adresa Ghost, na kerõ chcesz posłać płat</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -1681,7 +1681,7 @@
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>Wiadōmość, kerŏ ôstała prziwstōnŏ do URI ghost:, kerŏ bydzie przechowowanŏ z transakcyjōm w cylach informacyjnych. Napōmniynie: Ta wiadōmość niy bydzie rozszyrzowanŏ w necu Particl.</translation>
+        <translation>Wiadōmość, kerŏ ôstała prziwstōnŏ do URI ghost:, kerŏ bydzie przechowowanŏ z transakcyjōm w cylach informacyjnych. Napōmniynie: Ta wiadōmość niy bydzie rozszyrzowanŏ w necu Ghost.</translation>
     </message>
     </context>
 <context>

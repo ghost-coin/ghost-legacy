@@ -67,11 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Dette er dine Particl adresser for å sende  å sende betalinger. Husk å sjekke beløp og mottager adresser før du sender mynter.</translation>
-    </message>
-    <message>
-        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Dette er dine Particl adresse for å betalinger. Det er anbefalt å bruke en my mottager adresse for hver transakjon.</translation>
+        <translation>Dette er dine Ghost adresser for å sende  å sende betalinger. Husk å sjekke beløp og mottager adresser før du sender mynter.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -134,10 +130,6 @@
     <message>
         <source>Repeat new passphrase</source>
         <translation>Repeter passorsetningen</translation>
-    </message>
-    <message>
-        <source>Show passphrase</source>
-        <translation>Vis adgangsfrase</translation>
     </message>
     <message>
         <source>Encrypt wallet</source>
@@ -306,14 +298,6 @@
         <translation>Åpne &amp;URI</translation>
     </message>
     <message>
-        <source>Create Wallet...</source>
-        <translation>Lag lommebok...</translation>
-    </message>
-    <message>
-        <source>Create a new wallet</source>
-        <translation>Lag en ny lommebok</translation>
-    </message>
-    <message>
         <source>Wallet:</source>
         <translation>Lommebok:</translation>
     </message>
@@ -343,7 +327,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Send mynter til en Particl adresse</translation>
+        <translation>Send mynter til en Ghost adresse</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -387,11 +371,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Signer meldingene med Particl adresse for å bevise at diu eier dem</translation>
+        <translation>Signer meldingene med Ghost adresse for å bevise at diu eier dem</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Verifiser meldinger for å sikre at de ble signert med en angitt Particl adresse</translation>
+        <translation>Verifiser meldinger for å sikre at de ble signert med en angitt Ghost adresse</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -431,7 +415,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n aktiv tilkobling til Particl nettverket</numerusform><numerusform>%n aktive tilkoblinger til Particl nettverket</numerusform></translation>
+        <translation><numerusform>%n aktiv tilkobling til Ghost nettverket</numerusform><numerusform>%n aktive tilkoblinger til Ghost nettverket</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -499,7 +483,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Vis %1-hjelpemeldingen for å få en liste over mulige Particl-kommandolinjealternativer</translation>
+        <translation>Vis %1-hjelpemeldingen for å få en liste over mulige Ghost-kommandolinjealternativer</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -540,10 +524,6 @@
     <message>
         <source>Error: %1</source>
         <translation>Feil: %1</translation>
-    </message>
-    <message>
-        <source>Warning: %1</source>
-        <translation>Advarsel: %1</translation>
     </message>
     <message>
         <source>Date: %1
@@ -610,8 +590,8 @@
         <translation>Lommeboken er &lt;b&gt;kryptert&lt;/b&gt; og for tiden &lt;b&gt;låst&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>En fatal feil har inntruffet. Particl kan ikke lenger trygt fortsette, og må derfor avslutte.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>En fatal feil har inntruffet. Ghost kan ikke lenger trygt fortsette, og må derfor avslutte.</translation>
     </message>
 </context>
 <context>
@@ -767,58 +747,10 @@
 </context>
 <context>
     <name>CreateWalletActivity</name>
-    <message>
-        <source>Creating Wallet &lt;b&gt;%1&lt;/b&gt;...</source>
-        <translation>Lager lommebok &lt;b&gt;%1&lt;b&gt;...</translation>
-    </message>
-    <message>
-        <source>Create wallet failed</source>
-        <translation>Lage lommebok feilet</translation>
-    </message>
-    <message>
-        <source>Create wallet warning</source>
-        <translation>Lag lommebokvarsel</translation>
-    </message>
-</context>
+    </context>
 <context>
     <name>CreateWalletDialog</name>
-    <message>
-        <source>Create Wallet</source>
-        <translation>Lag lommebok</translation>
-    </message>
-    <message>
-        <source>Wallet Name</source>
-        <translation>Lommeboknavn</translation>
-    </message>
-    <message>
-        <source>Encrypt the wallet. The wallet will be encrypted with a passphrase of your choice.</source>
-        <translation>Krypter lommeboken. Lommeboken blir kryptert med en passordfrase du velger.</translation>
-    </message>
-    <message>
-        <source>Encrypt Wallet</source>
-        <translation>Krypter Lommebok</translation>
-    </message>
-    <message>
-        <source>Disable private keys for this wallet. Wallets with private keys disabled will have no private keys and cannot have an HD seed or imported private keys. This is ideal for watch-only wallets.</source>
-        <translation>Deaktiver private nøkler for denne lommeboken. Lommebøker med private nøkler er deaktivert vil ikke ha noen private nøkler og kan ikke ha en HD seed eller importerte private nøkler. Dette er ideelt for loomebøker som kun er klokker.</translation>
-    </message>
-    <message>
-        <source>Disable Private Keys</source>
-        <translation>Deaktiver Private Nøkler</translation>
-    </message>
-    <message>
-        <source>Make a blank wallet. Blank wallets do not initially have private keys or scripts. Private keys and addresses can be imported, or an HD seed can be set, at a later time.</source>
-        <translation>Lag en tom lommebok. Tomme lommebøker har i utgangspunktet ikke private nøkler eller skript. Private nøkler og adresser kan importeres, eller et HD- frø kan angis på et senere tidspunkt.</translation>
-    </message>
-    <message>
-        <source>Make Blank Wallet</source>
-        <translation>Lag Tom Lommebok</translation>
-    </message>
-    <message>
-        <source>Create</source>
-        <translation>Opprett</translation>
-    </message>
-</context>
+    </context>
 <context>
     <name>EditAddressDialog</name>
     <message>
@@ -855,15 +787,11 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Den angitte adressen "%1" er ikke en gyldig Particl-adresse.</translation>
+        <translation>Den angitte adressen "%1" er ikke en gyldig Ghost-adresse.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
         <translation>Adresse "%1" eksisterer allerede som en mottaksadresse merket "%2" og kan derfor ikke bli lagt til som en sendingsadresse.</translation>
-    </message>
-    <message>
-        <source>The entered address "%1" is already in the address book with label "%2".</source>
-        <translation>Den oppgitte adressen ''%1'' er allerede i adresseboken med etiketten ''%2''.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -935,10 +863,6 @@
         <translation>Når du klikker OK, vil %1 starte nedlasting og behandle hele den %4 blokkjeden (%2GB) fra de eldste transaksjonene i %3 når %4 først startet.</translation>
     </message>
     <message>
-        <source>Reverting this setting requires re-downloading the entire blockchain. It is faster to download the full chain first and prune it later. Disables some advanced features.</source>
-        <translation>Gjenoppretting av denne innstillingen krever at du laster ned hele blockchain på nytt. Det er raskere å laste ned hele kjeden først og beskjære den senere Deaktiver noen avanserte funksjoner.</translation>
-    </message>
-    <message>
         <source>This initial synchronisation is very demanding, and may expose hardware problems with your computer that had previously gone unnoticed. Each time you run %1, it will continue downloading where it left off.</source>
         <translation>Den initielle synkroniseringen er svært krevende, og kan forårsake problemer med maskinvaren i datamaskinen din som du tidligere ikke merket. Hver gang du kjører %1 vil den fortsette nedlastingen der den sluttet.</translation>
     </message>
@@ -955,12 +879,8 @@
         <translation>Bruk en egendefinert datamappe:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
-    </message>
-    <message>
-        <source>Discard blocks after verification, except most recent %1 GB (prune)</source>
-        <translation>Kast blokker etter bekreftelse, bortsett fra de siste %1 GB (sviske)</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -971,8 +891,8 @@
         <translation>Omtrent %1GB data vil bli lagret i denne mappen.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 vil laste ned og lagre en kopi av Particl blokkjeden.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 vil laste ned og lagre en kopi av Ghost blokkjeden.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1041,11 +961,7 @@
         <source>Hide</source>
         <translation>Skjul</translation>
     </message>
-    <message>
-        <source>Unknown. Syncing Headers (%1, %2%)...</source>
-        <translation>Ukjent.Synkroniser overskrifter (%1,%2%)...</translation>
-    </message>
-</context>
+    </context>
 <context>
     <name>OpenURIDialog</name>
     <message>
@@ -1071,14 +987,6 @@
 </context>
 <context>
     <name>OpenWalletActivity</name>
-    <message>
-        <source>Open wallet failed</source>
-        <translation>Åpne lommebok feilet</translation>
-    </message>
-    <message>
-        <source>Open wallet warning</source>
-        <translation>Advasel om åpen lommebok.</translation>
-    </message>
     <message>
         <source>default wallet</source>
         <translation>standard lommebok</translation>
@@ -1163,20 +1071,8 @@
         <translation>&amp;Nettverk</translation>
     </message>
     <message>
-        <source>Disables some advanced features but all blocks will still be fully validated. Reverting this setting requires re-downloading the entire blockchain. Actual disk usage may be somewhat higher.</source>
-        <translation>Deaktiver noen avanserte funksjoner, men alle blokker vil fortsatt være fullglyldig. Gjenoppretting av denne innstillingen krever at du laster ned hele blockchain på nytt. Faktisk diskbruk kan være noe høvere.</translation>
-    </message>
-    <message>
-        <source>Prune &amp;block storage to</source>
-        <translation>Beskjær og blokker lagring til</translation>
-    </message>
-    <message>
         <source>GB</source>
         <translation>GB</translation>
-    </message>
-    <message>
-        <source>Reverting this setting requires re-downloading the entire blockchain.</source>
-        <translation>Gjenoppretting av denne innstillingen krever at du laster ned hele blockchain på nytt</translation>
     </message>
     <message>
         <source>MiB</source>
@@ -1207,8 +1103,8 @@
         <translation>&amp;Bruk ubekreftet veksel</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Åpne automatisk Particl klientporten på ruteren. Dette virker kun om din ruter støtter UPnP og dette er påslått.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Åpne automatisk Ghost klientporten på ruteren. Dette virker kun om din ruter støtter UPnP og dette er påslått.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1224,7 +1120,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Koble til Particl-nettverket gjennom en SOCKS5 proxy.</translation>
+        <translation>Koble til Ghost-nettverket gjennom en SOCKS5 proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1260,7 +1156,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Koble til Particl-nettverket gjennom en separat SOCKS5 mellomtjener for Tor skjulte tjenester.</translation>
+        <translation>Koble til Ghost-nettverket gjennom en separat SOCKS5 mellomtjener for Tor skjulte tjenester.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1305,10 +1201,6 @@
     <message>
         <source>&amp;Third party transaction URLs</source>
         <translation>Tredjepart transaksjon URLer</translation>
-    </message>
-    <message>
-        <source>Options set in this dialog are overridden by the command line or in the configuration file:</source>
-        <translation>Alternativer som er satt i denne dialogboksen overstyres av kommandolinjen eller i konfigurasjonsfilen:</translation>
     </message>
     <message>
         <source>&amp;OK</source>
@@ -1371,7 +1263,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Informasjonen som vises kan være foreldet. Din lommebok synkroniseres automatisk med Particl-nettverket etter at tilkobling er opprettet, men denne prosessen er ikke ferdig enda.</translation>
+        <translation>Informasjonen som vises kan være foreldet. Din lommebok synkroniseres automatisk med Ghost-nettverket etter at tilkobling er opprettet, men denne prosessen er ikke ferdig enda.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1453,28 +1345,8 @@
         <translation>URI-håndtering</translation>
     </message>
     <message>
-        <source>'particl://' is not a valid URI. Use 'particl:' instead.</source>
-        <translation>'particl: //' er ikke en gyldig URI. Bruk 'particl:' i stedet.</translation>
-    </message>
-    <message>
-        <source>You are using a BIP70 URL which will be unsupported in the future.</source>
-        <translation>Du bruker en BIP70 URL som ikke støttes i fremtiden.</translation>
-    </message>
-    <message>
         <source>Payment request fetch URL is invalid: %1</source>
         <translation>Nettadressen for betalingsforespørselshenting er ugyldig: %1</translation>
-    </message>
-    <message>
-        <source>Cannot process payment request because BIP70 support was not compiled in.</source>
-        <translation>Kan ikke behandle betalingsforespørsel fordi BIP70-støtte ikke ble samlet inn.</translation>
-    </message>
-    <message>
-        <source>Due to widespread security flaws in BIP70 it's strongly recommended that any merchant instructions to switch wallets be ignored.</source>
-        <translation>På grunn av utbredte sikkerhetsfeil i BIP70 anbefales det på det sterkeste at alle selgerinstruksjoner for å bytte lommebok ignoreres.</translation>
-    </message>
-    <message>
-        <source>If you are receiving this error you should request the merchant provide a BIP21 compatible URI.</source>
-        <translation>Hvis du mottar denne feilen, bør du be selgeren gi en BIP21-kompatibel URI.</translation>
     </message>
     <message>
         <source>Invalid payment address %1</source>
@@ -1584,7 +1456,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Oppgi en Particl-adresse (f.eks. %1)</translation>
+        <translation>Oppgi en Ghost-adresse (f.eks. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1694,10 +1566,6 @@
         <translation>Feil ved koding av URI til QR-kode.</translation>
     </message>
     <message>
-        <source>QR code support not available.</source>
-        <translation>Støtte for QR kode ikke tilgjengelig.</translation>
-    </message>
-    <message>
         <source>Save QR Code</source>
         <translation>Lagre QR-kode</translation>
     </message>
@@ -1735,10 +1603,6 @@
     <message>
         <source>Datadir</source>
         <translation>Datamappe</translation>
-    </message>
-    <message>
-        <source>Blocksdir</source>
-        <translation>Blocksdir</translation>
     </message>
     <message>
         <source>Startup time</source>
@@ -1977,14 +1841,6 @@
         <translation>Nettverksaktivitet avskrudd</translation>
     </message>
     <message>
-        <source>Executing command without any wallet</source>
-        <translation>Utfør kommando uten noen lommebok</translation>
-    </message>
-    <message>
-        <source>Executing command using "%1" wallet</source>
-        <translation>Utfør kommando med lommebok "%1"</translation>
-    </message>
-    <message>
         <source>(node id: %1)</source>
         <translation>(node id: %1)</translation>
     </message>
@@ -2033,7 +1889,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>En valgfri melding å tilknytte betalingsetterspørringen, som vil bli vist når forespørselen er åpnet. Meldingen vil ikke bli sendt med betalingen over Particl-nettverket.</translation>
+        <translation>En valgfri melding å tilknytte betalingsetterspørringen, som vil bli vist når forespørselen er åpnet. Meldingen vil ikke bli sendt med betalingen over Ghost-nettverket.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2048,24 +1904,12 @@
         <translation>Et valgfritt beløp å etterspørre. La stå tomt eller null for ikke å etterspørre et spesifikt beløp.</translation>
     </message>
     <message>
-        <source>&amp;Create new receiving address</source>
-        <translation>&amp;Lag ny mottakeradresse</translation>
-    </message>
-    <message>
         <source>Clear all fields of the form.</source>
         <translation>Fjern alle felter fra skjemaet.</translation>
     </message>
     <message>
         <source>Clear</source>
         <translation>Fjern</translation>
-    </message>
-    <message>
-        <source>Native segwit addresses (aka Bech32 or BIP-173) reduce your transaction fees later on and offer better protection against typos, but old wallets don't support them. When unchecked, an address compatible with older wallets will be created instead.</source>
-        <translation>Innfødte segwit-adresser (også kalt Bech32 eller BIP-173) reduserer transaksjonsgebyrene senere og gir bedre beskyttelse mot skrivefeil, men gamle lommebøker støtter dem ikke. Når du ikke har merket av, opprettes en adresse som er kompatibel med eldre lommebøker.</translation>
-    </message>
-    <message>
-        <source>Generate native segwit (Bech32) address</source>
-        <translation>Generer nativ segwit (Bech32) adresse</translation>
     </message>
     <message>
         <source>Requested payments history</source>
@@ -2190,7 +2034,7 @@
     <name>SendCoinsDialog</name>
     <message>
         <source>Send Coins</source>
-        <translation>Send Particl</translation>
+        <translation>Send Ghosts</translation>
     </message>
     <message>
         <source>Coin Control Features</source>
@@ -2261,15 +2105,6 @@
         <translation>Legg ned gebyrinnstillinger</translation>
     </message>
     <message>
-        <source>Specify a custom fee per kB (1,000 bytes) of the transaction's virtual size.
-
-Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis per kB" for a transaction size of 500 bytes (half of 1 kB) would ultimately yield a fee of only 50 satoshis.</source>
-        <translation>
-Spesifiser en tilpasset avgift per kB (1000 byte) av transaksjonens virtuelle størrelse.
-
-Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis per kB" for en transaksjonsstørrelse på 500 byte (halvparten av 1 kB) til slutt gi et gebyr på bare 50 satoshis.</translation>
-    </message>
-    <message>
         <source>per kilobyte</source>
         <translation>per kilobyte</translation>
     </message>
@@ -2304,14 +2139,6 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     <message>
         <source>Dust:</source>
         <translation>Støv:</translation>
-    </message>
-    <message>
-        <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for particl transactions than the network can process.</source>
-        <translation>Når det er mindre transaksjonsvolum enn plass i blokkene, kan gruvearbeidere så vel som videresende noder håndheve et minimumsgebyr. Å betale bare denne minsteavgiften er helt greit, men vær klar over at dette kan resultere i en aldri bekreftende transaksjon når det er større etterspørsel etter particl-transaksjoner enn nettverket kan behandle.</translation>
-    </message>
-    <message>
-        <source>A too low fee might result in a never confirming transaction (read the tooltip)</source>
-        <translation>For lavt gebyr kan føre til en transaksjon som aldri bekreftes (les verktøytips)</translation>
     </message>
     <message>
         <source>Confirmation time target:</source>
@@ -2406,10 +2233,6 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
         <translation>Totalbeløp</translation>
     </message>
     <message>
-        <source>To review recipient list click "Show Details..."</source>
-        <translation>For å se gjennom mottakerlisten, klikk "Vis detaljer ..."</translation>
-    </message>
-    <message>
         <source>Confirm send coins</source>
         <translation>Bekreft forsendelse av mynter</translation>
     </message>
@@ -2498,7 +2321,7 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Particl-adressen betalingen skal sendes til</translation>
+        <translation>Ghost-adressen betalingen skal sendes til</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2546,7 +2369,7 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>En melding som var tilknyttet ghosten: URI vil bli lagret med transaksjonen for din oversikt. Denne meldingen vil ikke bli sendt over Particl-nettverket.</translation>
+        <translation>En melding som var tilknyttet ghosten: URI vil bli lagret med transaksjonen for din oversikt. Denne meldingen vil ikke bli sendt over Ghost-nettverket.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2595,7 +2418,7 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Particl-adressen meldingen skal signeres med</translation>
+        <translation>Ghost-adressen meldingen skal signeres med</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2627,7 +2450,7 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Signer meldingen for å bevise at du eier denne Particl-adressen</translation>
+        <translation>Signer meldingen for å bevise at du eier denne Ghost-adressen</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2651,11 +2474,11 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Particl-adressen meldingen ble signert med</translation>
+        <translation>Ghost-adressen meldingen ble signert med</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Verifiser meldingen for å være sikker på at den ble signert av den angitte Particl-adressen</translation>
+        <translation>Verifiser meldingen for å være sikker på at den ble signert av den angitte Ghost-adressen</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -2858,10 +2681,6 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     <message>
         <source>Output index</source>
         <translation>Utdatainndeks</translation>
-    </message>
-    <message>
-        <source> (Certificate was not verified)</source>
-        <translation>sertifikatet ble ikke bekreftet</translation>
     </message>
     <message>
         <source>Merchant</source>
@@ -3186,11 +3005,7 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
         <source>Close wallet</source>
         <translation>Lukk lommebok</translation>
     </message>
-    <message>
-        <source>Closing the wallet for too long can result in having to resync the entire chain if pruning is enabled.</source>
-        <translation>Å lukke lommeboken for lenge kan føre til at du må synkronisere hele kjeden hvis beskjæring er aktivert.</translation>
-    </message>
-</context>
+    </context>
 <context>
     <name>WalletFrame</name>
     <message>
@@ -3317,10 +3132,6 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     <message>
         <source>The %s developers</source>
         <translation>%s-utviklerne</translation>
-    </message>
-    <message>
-        <source>Can't generate a change-address key. No keys in the internal keypool and can't generate any keys.</source>
-        <translation>Kan ikke generere en endringsadresse-nøkkel. Ingen taster i den interne tasten og kan ikke generere noen nøkler.</translation>
     </message>
     <message>
         <source>Cannot obtain a lock on data directory %s. %s is probably already running.</source>
@@ -3471,10 +3282,6 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
         <translation>Laster maskin-til-maskin -adresser…</translation>
     </message>
     <message>
-        <source>Error: Disk space is too low!</source>
-        <translation>Feil: Diskplass er for liten!</translation>
-    </message>
-    <message>
         <source>Loading banlist...</source>
         <translation>Laster inn bannlysningsliste…</translation>
     </message>
@@ -3581,10 +3388,6 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     <message>
         <source>Need to specify a port with -whitebind: '%s'</source>
         <translation>Må oppgi en port med -whitebind: '%s'</translation>
-    </message>
-    <message>
-        <source>Prune mode is incompatible with -blockfilterindex.</source>
-        <translation>Beskjæringsmodus er inkompatibel med -blokkfilterindex.</translation>
     </message>
     <message>
         <source>Reducing -maxconnections from %d to %d, because of system limitations.</source>
@@ -3711,14 +3514,6 @@ Merk: Siden avgiften er beregnet per byte-basis, vil et gebyr på "100 satoshis 
     <message>
         <source>Insufficient funds</source>
         <translation>Utilstrekkelige midler</translation>
-    </message>
-    <message>
-        <source>Cannot upgrade a non HD split wallet without upgrading to support pre split keypool. Please use -upgradewallet=169900 or -upgradewallet with no version specified.</source>
-        <translation>Kan ikke oppgradere en delt lommebok uten HD uten å oppgradere til støtte for forhåndsdelt tastatur. Bruk -upgradewallet = 169900 eller -upgradewallet uten versjon spesifisert.</translation>
-    </message>
-    <message>
-        <source>Fee estimation failed. Fallbackfee is disabled. Wait a few blocks or enable -fallbackfee.</source>
-        <translation>Avgiftsberegning mislyktes. Fallbackfee er deaktivert. Vent et par blokker eller aktiver -fallbackfee.</translation>
     </message>
     <message>
         <source>Loading block index...</source>

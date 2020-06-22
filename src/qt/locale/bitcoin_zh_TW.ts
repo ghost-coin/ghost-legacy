@@ -67,7 +67,7 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>這些是你要付款過去的 Particl 位址。在付錢之前，務必要檢查金額和收款位址是否正確。</translation>
+        <translation>這些是你要付款過去的 Ghost 位址。在付錢之前，務必要檢查金額和收款位址是否正確。</translation>
     </message>
     <message>
         <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
@@ -169,7 +169,7 @@
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR GHOST&lt;/b&gt;!</source>
-        <translation>警告: 如果把錢包加密後又忘記密碼，你就會從此&lt;b&gt;失去其中所有的 Particl 了&lt;/b&gt;！</translation>
+        <translation>警告: 如果把錢包加密後又忘記密碼，你就會從此&lt;b&gt;失去其中所有的 Ghost 了&lt;/b&gt;！</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -355,7 +355,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>付錢給一個 Particl 位址</translation>
+        <translation>付錢給一個 Ghost 位址</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -399,11 +399,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>用 Particl 位址簽署訊息來證明位址是你的</translation>
+        <translation>用 Ghost 位址簽署訊息來證明位址是你的</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>驗證訊息是用來確定訊息是用指定的 Particl 位址簽署的</translation>
+        <translation>驗證訊息是用來確定訊息是用指定的 Ghost 位址簽署的</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -443,7 +443,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n 個運作中的 Particl 網路連線</numerusform></translation>
+        <translation><numerusform>%n 個運作中的 Ghost 網路連線</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -622,8 +622,8 @@
         <translation>錢包&lt;b&gt;已加密&lt;/b&gt;並且&lt;b&gt;上鎖中&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>發生了致命的錯誤。Particl 軟體沒辦法再繼續安全執行，只好結束。</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>發生了致命的錯誤。Ghost 軟體沒辦法再繼續安全執行，只好結束。</translation>
     </message>
 </context>
 <context>
@@ -863,7 +863,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>輸入的位址 %1 並不是有效的 Particl 位址。</translation>
+        <translation>輸入的位址 %1 並不是有效的 Ghost 位址。</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -963,8 +963,8 @@
         <translation>使用自訂的資料目錄:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>At least %1 GB of data will be stored in this directory, and it will grow over time.</source>
@@ -975,8 +975,8 @@
         <translation>在這個目錄中大約會存放 %1 GB 的資料。</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 會下載 Particl 區塊鏈並且儲存一份副本。</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 會下載 Ghost 區塊鏈並且儲存一份副本。</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1128,7 +1128,7 @@
     </message>
     <message>
         <source>Use separate SOCKS&amp;5 proxy to reach peers via Tor hidden services:</source>
-        <translation>透過另外的 SOCKS&amp;5 代理伺服器來連線到 Particl 網路中的 Tor 隱藏服務:</translation>
+        <translation>透過另外的 SOCKS&amp;5 代理伺服器來連線到 Ghost 網路中的 Tor 隱藏服務:</translation>
     </message>
     <message>
         <source>Hide the icon from the system tray.</source>
@@ -1211,8 +1211,8 @@
         <translation>可以花還沒確認的零錢(&amp;S)</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>自動在路由器上開放 Particl 的客戶端通訊埠。只有在你的路由器支援且開啓「通用即插即用」協定(UPnP)時才有作用。</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>自動在路由器上開放 Ghost 的客戶端通訊埠。只有在你的路由器支援且開啓「通用即插即用」協定(UPnP)時才有作用。</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1228,7 +1228,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>透過 SOCKS5 代理伺服器來連線到 Particl 網路。</translation>
+        <translation>透過 SOCKS5 代理伺服器來連線到 Ghost 網路。</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1264,7 +1264,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>透過另外的 SOCKS5 代理伺服器來連線到 Particl 網路中的 Tor 隱藏服務。</translation>
+        <translation>透過另外的 SOCKS5 代理伺服器來連線到 Ghost 網路中的 Tor 隱藏服務。</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1375,7 +1375,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>顯示的資訊可能是過期的。跟 Particl 網路的連線建立後，你的錢包會自動和網路同步，但是這個步驟還沒完成。</translation>
+        <translation>顯示的資訊可能是過期的。跟 Ghost 網路的連線建立後，你的錢包會自動和網路同步，但是這個步驟還沒完成。</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1486,7 +1486,7 @@
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
-        <translation>沒辦法解析 URI 位址！可能是因為 Particl 位址無效，或是 URI 參數格式錯誤。</translation>
+        <translation>沒辦法解析 URI 位址！可能是因為 Ghost 位址無效，或是 URI 參數格式錯誤。</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1588,7 +1588,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>輸入 Particl 位址 (比如說 %1)</translation>
+        <translation>輸入 Ghost 位址 (比如說 %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2049,7 +2049,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>附加在付款要求中的訊息，可以不填，打開要求內容時會顯示。注意: 這個訊息不會隨著付款送到 Particl 網路上。</translation>
+        <translation>附加在付款要求中的訊息，可以不填，打開要求內容時會顯示。注意: 這個訊息不會隨著付款送到 Ghost 網路上。</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2478,7 +2478,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>警告: Particl 位址無效</translation>
+        <translation>警告: Ghost 位址無效</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2521,7 +2521,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>接收付款的 Particl 位址</translation>
+        <translation>接收付款的 Ghost 位址</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2569,7 +2569,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>附加在 Particl 付款協議的資源識別碼(URI)中的訊息，會和交易內容一起存起來，給你自己做參考。注意: 這個訊息不會送到 Particl 網路上。</translation>
+        <translation>附加在 Ghost 付款協議的資源識別碼(URI)中的訊息，會和交易內容一起存起來，給你自己做參考。注意: 這個訊息不會送到 Ghost 網路上。</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2618,7 +2618,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>用來簽署訊息的 Particl 位址</translation>
+        <translation>用來簽署訊息的 Ghost 位址</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2650,7 +2650,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>簽署這個訊息來證明這個 Particl 位址是你的</translation>
+        <translation>簽署這個訊息來證明這個 Ghost 位址是你的</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2674,11 +2674,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>簽署這個訊息的 Particl 位址</translation>
+        <translation>簽署這個訊息的 Ghost 位址</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>驗證這個訊息來確定是用指定的 Particl 位址簽署的</translation>
+        <translation>驗證這個訊息來確定是用指定的 Ghost 位址簽署的</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>

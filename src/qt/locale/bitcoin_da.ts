@@ -67,11 +67,11 @@
     </message>
     <message>
         <source>These are your Ghost addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Disse er dine Particl-adresser til afsendelse af betalinger. Tjek altid beløb og modtagelsesadresse, inden du sender ghosts.</translation>
+        <translation>Disse er dine Ghost-adresser til afsendelse af betalinger. Tjek altid beløb og modtagelsesadresse, inden du sender ghosts.</translation>
     </message>
     <message>
         <source>These are your Ghost addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.</source>
-        <translation>Disse er dine Particl adresser til at modtage betalinger. Benyt 'Opret ny modtager adresse' knappen i modtag fanen for at oprette nye adresser.</translation>
+        <translation>Disse er dine Ghost adresser til at modtage betalinger. Benyt 'Opret ny modtager adresse' knappen i modtag fanen for at oprette nye adresser.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -363,7 +363,7 @@
     </message>
     <message>
         <source>Send coins to a Ghost address</source>
-        <translation>Send ghosts til en Particl-adresse</translation>
+        <translation>Send ghosts til en Ghost-adresse</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -407,11 +407,11 @@
     </message>
     <message>
         <source>Sign messages with your Ghost addresses to prove you own them</source>
-        <translation>Signér beskeder med dine Particl-adresser for at bevise, at de tilhører dig</translation>
+        <translation>Signér beskeder med dine Ghost-adresser for at bevise, at de tilhører dig</translation>
     </message>
     <message>
         <source>Verify messages to ensure they were signed with specified Ghost addresses</source>
-        <translation>Verificér beskeder for at sikre, at de er signeret med de angivne Particl-adresser</translation>
+        <translation>Verificér beskeder for at sikre, at de er signeret med de angivne Ghost-adresser</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -451,7 +451,7 @@
     </message>
     <message numerus="yes">
         <source>%n active connection(s) to Ghost network</source>
-        <translation><numerusform>%n aktiv forbindelse til Particl-netværket</numerusform><numerusform>%n aktive forbindelser til Particl-netværket</numerusform></translation>
+        <translation><numerusform>%n aktiv forbindelse til Ghost-netværket</numerusform><numerusform>%n aktive forbindelser til Ghost-netværket</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -519,7 +519,7 @@
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Ghost command-line options</source>
-        <translation>Vis %1 hjælpebesked for at få en liste over mulige tilvalg for Particl kommandolinje</translation>
+        <translation>Vis %1 hjælpebesked for at få en liste over mulige tilvalg for Ghost kommandolinje</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -630,8 +630,8 @@
         <translation>Tegnebog er &lt;b&gt;krypteret&lt;/b&gt; og i øjeblikket &lt;b&gt;låst&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>A fatal error occurred. Particl can no longer continue safely and will quit.</source>
-        <translation>Der opstod en fatal fejl. Particl kan ikke længere fortsætte sikkert og vil afslutte.</translation>
+        <source>A fatal error occurred. Ghost can no longer continue safely and will quit.</source>
+        <translation>Der opstod en fatal fejl. Ghost kan ikke længere fortsætte sikkert og vil afslutte.</translation>
     </message>
 </context>
 <context>
@@ -875,7 +875,7 @@
     </message>
     <message>
         <source>The entered address "%1" is not a valid Ghost address.</source>
-        <translation>Den indtastede adresse “%1” er ikke en gyldig Particl-adresse.</translation>
+        <translation>Den indtastede adresse “%1” er ikke en gyldig Ghost-adresse.</translation>
     </message>
     <message>
         <source>Address "%1" already exists as a receiving address with label "%2" and so cannot be added as a sending address.</source>
@@ -975,8 +975,8 @@
         <translation>Brug tilpasset mappe for data:</translation>
     </message>
     <message>
-        <source>Particl</source>
-        <translation>Particl</translation>
+        <source>Ghost</source>
+        <translation>Ghost</translation>
     </message>
     <message>
         <source>Discard blocks after verification, except most recent %1 GB (prune)</source>
@@ -991,8 +991,8 @@
         <translation>Omtrent %1 GB data vil blive gemt i denne mappe.</translation>
     </message>
     <message>
-        <source>%1 will download and store a copy of the Particl block chain.</source>
-        <translation>%1 vil downloade og gemme en kopi af Particl-blokkæden.</translation>
+        <source>%1 will download and store a copy of the Ghost block chain.</source>
+        <translation>%1 vil downloade og gemme en kopi af Ghost-blokkæden.</translation>
     </message>
     <message>
         <source>The wallet will also be stored in this directory.</source>
@@ -1231,8 +1231,8 @@
         <translation>&amp;Brug ubekræftede byttepenge</translation>
     </message>
     <message>
-        <source>Automatically open the Particl client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Åbn automatisk Particl-klientens port på routeren. Dette virker kun, når din router understøtter UPnP, og UPnP er aktiveret.</translation>
+        <source>Automatically open the Ghost client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Åbn automatisk Ghost-klientens port på routeren. Dette virker kun, når din router understøtter UPnP, og UPnP er aktiveret.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -1248,7 +1248,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a SOCKS5 proxy.</source>
-        <translation>Forbind til Particl-netværket gennem en SOCKS5-proxy.</translation>
+        <translation>Forbind til Ghost-netværket gennem en SOCKS5-proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1284,7 +1284,7 @@
     </message>
     <message>
         <source>Connect to the Ghost network through a separate SOCKS5 proxy for Tor hidden services.</source>
-        <translation>Forbind til Particl-netværket gennem en separat SOCKS5-proxy for Tors skjulte tjenester.</translation>
+        <translation>Forbind til Ghost-netværket gennem en separat SOCKS5-proxy for Tors skjulte tjenester.</translation>
     </message>
     <message>
         <source>&amp;Window</source>
@@ -1395,7 +1395,7 @@
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Ghost network after a connection is established, but this process has not completed yet.</source>
-        <translation>Den viste information kan være forældet. Din tegnebog synkroniserer automatisk med Particl-netværket, når en forbindelse etableres, men denne proces er ikke gennemført endnu.</translation>
+        <translation>Den viste information kan være forældet. Din tegnebog synkroniserer automatisk med Ghost-netværket, når en forbindelse etableres, men denne proces er ikke gennemført endnu.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1506,7 +1506,7 @@
     </message>
     <message>
         <source>URI cannot be parsed! This can be caused by an invalid Ghost address or malformed URI parameters.</source>
-        <translation>URI kan ikke tolkes! Dette kan skyldes en ugyldig Particl-adresse eller forkert udformede URL-parametre.</translation>
+        <translation>URI kan ikke tolkes! Dette kan skyldes en ugyldig Ghost-adresse eller forkert udformede URL-parametre.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1608,7 +1608,7 @@
     </message>
     <message>
         <source>Enter a Ghost address (e.g. %1)</source>
-        <translation>Indtast en Particl-adresse (fx %1)</translation>
+        <translation>Indtast en Ghost-adresse (fx %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2069,7 +2069,7 @@
     </message>
     <message>
         <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Ghost network.</source>
-        <translation>En valgfri besked, der føjes til betalingsanmodningen, og som vil vises, når anmodningen åbnes. Bemærk: Beskeden vil ikke sendes sammen med betalingen over Particl-netværket.</translation>
+        <translation>En valgfri besked, der føjes til betalingsanmodningen, og som vil vises, når anmodningen åbnes. Bemærk: Beskeden vil ikke sendes sammen med betalingen over Ghost-netværket.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -2498,7 +2498,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>Warning: Invalid Ghost address</source>
-        <translation>Advarsel: Ugyldig Particl-adresse</translation>
+        <translation>Advarsel: Ugyldig Ghost-adresse</translation>
     </message>
     <message>
         <source>Warning: Unknown change address</source>
@@ -2541,7 +2541,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>The Ghost address to send the payment to</source>
-        <translation>Particl-adresse, som betalingen skal sendes til</translation>
+        <translation>Ghost-adresse, som betalingen skal sendes til</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2589,7 +2589,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>A message that was attached to the ghost: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Ghost network.</source>
-        <translation>En besked, som blev føjet til “bitcon:”-URI'en, som vil gemmes med transaktionen til din reference. Bemærk: Denne besked vil ikke blive sendt over Particl-netværket.</translation>
+        <translation>En besked, som blev føjet til “bitcon:”-URI'en, som vil gemmes med transaktionen til din reference. Bemærk: Denne besked vil ikke blive sendt over Ghost-netværket.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2638,7 +2638,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>The Ghost address to sign the message with</source>
-        <translation>Particl-adresse, som beskeden skal signeres med</translation>
+        <translation>Ghost-adresse, som beskeden skal signeres med</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2670,7 +2670,7 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>Sign the message to prove you own this Ghost address</source>
-        <translation>Signér denne besked for at bevise, at Particl-adressen tilhører dig</translation>
+        <translation>Signér denne besked for at bevise, at Ghost-adressen tilhører dig</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2694,11 +2694,11 @@ Note: Siden gebyret er kalkuleret på en per-byte basis, et gebyr på "100 satos
     </message>
     <message>
         <source>The Ghost address the message was signed with</source>
-        <translation>Particl-adressen, som beskeden blev signeret med</translation>
+        <translation>Ghost-adressen, som beskeden blev signeret med</translation>
     </message>
     <message>
         <source>Verify the message to ensure it was signed with the specified Ghost address</source>
-        <translation>Verificér beskeden for at sikre, at den er signeret med den angivne Particl-adresse</translation>
+        <translation>Verificér beskeden for at sikre, at den er signeret med den angivne Ghost-adresse</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
