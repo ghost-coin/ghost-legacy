@@ -12,7 +12,7 @@ from test_framework.test_particl import (
     isclose,
     getIndexAtProperty,
 )
-from test_framework.util import assert_raises_rpc_error, connect_nodes, sync_mempools
+from test_framework.util import assert_raises_rpc_error, connect_nodes
 from test_framework.authproxy import JSONRPCException
 
 
@@ -376,7 +376,7 @@ class SmsgPaidTest(ParticlTestFramework):
         ro = nodes[0].smsgoutbox('all', '', {'sending': True})
         assert(ro['messages'][0]['msgid'] == sent_msg['msgid'])
 
-        sync_mempools([nodes[0], nodes[1]])
+        self.sync_mempools([nodes[0], nodes[1]])
         self.stakeBlocks(1, nStakeNode=1)
         i = 0
         for i in range(20):

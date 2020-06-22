@@ -2729,7 +2729,7 @@ static void ParseOutputs(
                 }
                 if (r.destination.type() == typeid(PKHash)) {
                     CStealthAddress sx;
-                    CKeyID idK = CKeyID(boost::get<PKHash>(r.destination));
+                    CKeyID idK = ToKeyID(boost::get<PKHash>(r.destination));
                     if (pwallet->GetStealthLinked(idK, sx)) {
                         output.pushKV("stealth_address", sx.Encoded(fBech32));
                     }
@@ -2919,7 +2919,7 @@ static void ParseRecords(
             }
         } else {
             if (extracted && dest.type() == typeid(PKHash)) {
-                CKeyID idK = CKeyID(boost::get<PKHash>(dest));
+                CKeyID idK = ToKeyID(boost::get<PKHash>(dest));
                 if (pwallet->GetStealthLinked(idK, sx)) {
                     output.__pushKV("stealth_address", sx.Encoded());
                     addresses.push_back(sx.Encoded());
@@ -4404,7 +4404,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
 
             if (address.type() == typeid(PKHash)) {
                 CStealthAddress sx;
-                CKeyID idk = CKeyID(boost::get<PKHash>(address));
+                CKeyID idk = ToKeyID(boost::get<PKHash>(address));
                 if (pwallet->GetStealthLinked(idk, sx)) {
                     entry.pushKV("stealth_address", sx.Encoded());
                     if (!entry.exists("label")) {
@@ -5290,7 +5290,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
         }
 
         if (destSign.type() == typeid(PKHash)) {
-            idSign = CKeyID(boost::get<PKHash>(destSign));
+            idSign = ToKeyID(boost::get<PKHash>(destSign));
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unsupported signing key type.");
         }

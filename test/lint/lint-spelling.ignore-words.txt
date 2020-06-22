@@ -14,6 +14,7 @@ setban
 hist
 ser
 unselect
+lowercased
 aks
 nd
 uncrypted

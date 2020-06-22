@@ -564,6 +564,62 @@ void SendCoinsDialog::on_sendButton_clicked()
         //} else {
         hashSent.SetHex(rv.get_str());
     }
+    /*
+    bool send_failure = false;
+    if (model->wallet().privateKeysDisabled()) {
+        CMutableTransaction mtx = CMutableTransaction{*(m_current_transaction->getWtx())};
+        PartiallySignedTransaction psbtx(mtx);
+        bool complete = false;
+        const TransactionError err = model->wallet().fillPSBT(SIGHASH_ALL, false // sign/ /, true // bip32derivs //, psbtx, complete, nullptr);
+        assert(!complete);
+        assert(err == TransactionError::OK);
+        // Serialize the PSBT
+        CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+        ssTx << psbtx;
+        GUIUtil::setClipboard(EncodeBase64(ssTx.str()).c_str());
+        QMessageBox msgBox;
+        msgBox.setText("Unsigned Transaction");
+        msgBox.setInformativeText("The PSBT has been copied to the clipboard. You can also save it.");
+        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard);
+        msgBox.setDefaultButton(QMessageBox::Discard);
+        switch (msgBox.exec()) {
+        case QMessageBox::Save: {
+            QString selectedFilter;
+            QString fileNameSuggestion = "";
+            bool first = true;
+            for (const SendCoinsRecipient &rcp : m_current_transaction->getRecipients()) {
+                if (!first) {
+                    fileNameSuggestion.append(" - ");
+                }
+                QString labelOrAddress = rcp.label.isEmpty() ? rcp.address : rcp.label;
+                QString amount = BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), rcp.amount);
+                fileNameSuggestion.append(labelOrAddress + "-" + amount);
+                first = false;
+            }
+            fileNameSuggestion.append(".psbt");
+            QString filename = GUIUtil::getSaveFileName(this,
+                tr("Save Transaction Data"), fileNameSuggestion,
+                tr("Partially Signed Transaction (Binary) (*.psbt)"), &selectedFilter);
+            if (filename.isEmpty()) {
+                return;
+            }
+            std::ofstream out(filename.toLocal8Bit().data());
+            out << ssTx.str();
+            out.close();
+            Q_EMIT message(tr("PSBT saved"), "PSBT saved to disk", CClientUIInterface::MSG_INFORMATION);
+            break;
+        }
+        case QMessageBox::Discard:
+            break;
+        default:
+            assert(false);
+        }
+    } else {
+        // now send the prepared transaction
+        WalletModel::SendCoinsReturn sendStatus = model->sendCoins(*m_current_transaction);
+        // process sendStatus and on error generate message shown to user
+        processSendCoinsReturn(sendStatus);
+    */
 
     // Update Addressbook
     for (const auto &rcp : m_current_transaction->getRecipients()) {

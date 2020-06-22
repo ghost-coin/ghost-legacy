@@ -1105,7 +1105,7 @@ isminetype CHDWallet::HaveAddress(const CTxDestination &dest)
     LOCK(cs_wallet);
 
     if (dest.type() == typeid(PKHash)) {
-        CKeyID id = CKeyID(boost::get<PKHash>(dest));
+        CKeyID id = ToKeyID(boost::get<PKHash>(dest));
         return IsMine(id);
     }
 
@@ -1459,7 +1459,7 @@ bool CHDWallet::AddressBookChangedNotify(const CTxDestination &address, ChangeTy
 
     if (tIsMine == ISMINE_SPENDABLE
         && address.type() == typeid(PKHash)) {
-        CKeyID id = CKeyID(boost::get<PKHash>(address));
+        CKeyID id = ToKeyID(boost::get<PKHash>(address));
         smsgModule.WalletKeyChanged(id, entry.GetLabel(), nMode);
     }
 
@@ -1537,7 +1537,7 @@ bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address,
 
         if (tIsMine == ISMINE_SPENDABLE
             && address.type() == typeid(PKHash)) {
-            CKeyID id = CKeyID(boost::get<PKHash>(address));
+            CKeyID id = ToKeyID(boost::get<PKHash>(address));
             smsgModule.WalletKeyChanged(id, strName, nMode);
         }
     }
@@ -1569,7 +1569,7 @@ bool CHDWallet::SetAddressBook(const CTxDestination &address, const std::string 
 
     if (fOwned
         && address.type() == typeid(PKHash)) {
-        CKeyID id = CKeyID(boost::get<PKHash>(address));
+        CKeyID id = ToKeyID(boost::get<PKHash>(address));
         smsgModule.WalletKeyChanged(id, strName, nMode);
     }
 
@@ -1612,7 +1612,7 @@ bool CHDWallet::DelAddressBook(const CTxDestination &address)
 
     if (IsMine(address) == ISMINE_SPENDABLE
         && address.type() == typeid(PKHash)) {
-        CKeyID id = CKeyID(boost::get<PKHash>(address));
+        CKeyID id = ToKeyID(boost::get<PKHash>(address));
         smsgModule.WalletKeyChanged(id, "", CT_DELETED);
     }
 
@@ -3058,7 +3058,7 @@ int CHDWallet::ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStore
             if (r.address.type() == typeid(PKHash)) {
                 // Need a matching public key
                 PKHash pkhash = boost::get<PKHash>(r.address);
-                CKeyID idTo = CKeyID(pkhash);
+                CKeyID idTo = ToKeyID(pkhash);
                 r.scriptPubKey = GetScriptForDestination(PKHash(idTo));
 
                 if (!r.pkTo.IsValid() && !GetPubKey(idTo, r.pkTo)) {
@@ -3469,7 +3469,7 @@ static bool ExpandChangeAddress(CHDWallet *phdw, CTempRecipient &r, std::string 
     if (r.address.type() == typeid(PKHash)) {
         PKHash pkhash = boost::get<PKHash>(r.address);
 
-        CKeyID idk = CKeyID(pkhash);
+        CKeyID idk = ToKeyID(pkhash);
         if (!phdw->GetPubKey(idk, r.pkTo)) {
             return errorN(false, sError, __func__, "GetPubKey failed.");
         }
@@ -3521,7 +3521,7 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
             if (r.address.type() != typeid(PKHash)) {
                 return wserrorN(0, sError, __func__, "Could not get pubkey from changescript.");
             }
-            CKeyID idk = CKeyID(boost::get<PKHash>(r.address));
+            CKeyID idk = ToKeyID(boost::get<PKHash>(r.address));
             if (!GetPubKey(idk, r.pkTo)) {
                 return wserrorN(0, sError, __func__, "Could not get pubkey from changescript.");
             }
@@ -9201,7 +9201,7 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
     ec_point pkExtracted;
     CKey sSpend;
 
-    CKeyID ckidMatch = CKeyID(boost::get<PKHash>(address));
+    CKeyID ckidMatch = ToKeyID(boost::get<PKHash>(address));
     if (HaveKey(ckidMatch)) {
         CStealthAddress sx;
         if (fNeedShared

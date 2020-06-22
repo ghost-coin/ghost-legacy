@@ -675,7 +675,7 @@ static UniValue smsgdumpprivkey(const JSONRPCRequest &request)
     if (dest.type() != typeid(PKHash)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address not a key id");
     }
-    const CKeyID &idk = CKeyID(boost::get<PKHash>(dest));
+    const CKeyID &idk = ToKeyID(boost::get<PKHash>(dest));
 
     CKey key_out;
     int rv = smsgModule.DumpPrivkey(idk, key_out);

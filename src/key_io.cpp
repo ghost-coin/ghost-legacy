@@ -394,7 +394,7 @@ private:
 public:
     CBitcoinAddressVisitor(CBitcoinAddress* addrIn, bool fBech32_ = false) : addr(addrIn), fBech32(fBech32_) {}
 
-    bool operator()(const PKHash& id) const { return addr->Set(CKeyID(id), fBech32); }
+    bool operator()(const PKHash& id) const { return addr->Set(ToKeyID(id), fBech32); }
     bool operator()(const ScriptHash& id) const { return addr->Set(CScriptID(id), fBech32); }
     bool operator()(const CKeyID& id) const { return addr->Set(id, fBech32); }
     bool operator()(const CScriptID& id) const { return addr->Set(id, fBech32); }

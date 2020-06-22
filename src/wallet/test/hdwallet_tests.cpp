@@ -385,9 +385,9 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
     // one key that would satisfy an (a|b) or 2-of-3 keys needed
     // to spend an escrow transaction.
     //
-    CHDWallet keystore(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
-    CHDWallet emptykeystore(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
-    CHDWallet partialkeystore(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+    CHDWallet keystore(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
+    CHDWallet emptykeystore(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
+    CHDWallet partialkeystore(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
     CKey key[3];
     std::vector<CTxDestination> keyaddr(3); // Wmaybe-uninitialized
     for (int i = 0; i < 3; i++) {
@@ -463,8 +463,8 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
 BOOST_AUTO_TEST_CASE(opiscoinstake_test)
 {
     SeedInsecureRand();
-    CHDWallet keystoreA(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
-    CHDWallet keystoreB(m_chain.get(), WalletLocation(), WalletDatabase::CreateDummy());
+    CHDWallet keystoreA(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
+    CHDWallet keystoreB(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
 
     CKey kA, kB;
     InsecureNewKey(kA, true);

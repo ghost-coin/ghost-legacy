@@ -4084,7 +4084,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                 continue;
             }
             if (entry.first.type() == typeid(PKHash)) {
-                addressOutbox = CKeyID(boost::get<PKHash>(entry.first));
+                addressOutbox = ToKeyID(boost::get<PKHash>(entry.first));
                 break;
             }
         }
