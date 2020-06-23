@@ -1002,7 +1002,7 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
     }
 
             RPCHelpMan{"devicegetnewstealthaddress",
-                "\nReturns a new Particl stealth address for receiving payments." +
+                "\nReturns a new Ghost stealth address for receiving payments." +
                     HelpRequiringPassphrase(pwallet) + "\n",
                 {
                     {"label", RPCArg::Type::STR, /* default */ "", "If \"label\" is specified the new address will be added to the address book."},
@@ -1015,7 +1015,7 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
                     {"bech32", RPCArg::Type::BOOL, /* default */ "true", "Use Bech32 encoding."},
                 },
                 RPCResult{
-            "\"address\"              (string) The new particl stealth address\n"
+            "\"address\"              (string) The new ghost stealth address\n"
                 },
                 RPCExamples{
              HelpExampleCli("devicegetnewstealthaddress", "\"lblTestSxAddrPrefix\" 3 \"0b101\"") +
