@@ -1,6 +1,5 @@
 ---
 name: "ghost-desktop"
-enable_cache: true
 sudo: true
 suites:
 - "bionic"
@@ -8,7 +7,6 @@ architectures:
 - "amd64"
 packages:
 - "curl"
-- "python-software-properties"
 - "build-essential"
 - "libcairo2-dev"
 - "git-core"
@@ -18,6 +16,7 @@ packages:
 - "automake"
 - "faketime"
 - "bsdmainutils"
+- "gpg-agent"
 - "ca-certificates"
 - "python"
 - "software-properties-common"
@@ -30,14 +29,21 @@ files: []
 script: |
   # prepare
   sudo dpkg --add-architecture i386
-  wget -nc https://dl.winehq.org/wine-builds/Release.key
-  sudo apt-key add Release.key
-  sudo apt-add-repository https://dl.winehq.org/wine-builds/ubuntu/
+  wget -O - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
+  sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main' 
+  wget -nv https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/Release.key -O /tmp/Release.key
+  sudo apt-key add - < /tmp/Release.key
+  sudo apt-add-repository 'deb https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/ ./'
+  sudo apt-get update -y
+
   curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
   echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
   sudo apt-get update -y
-  sudo apt-get install -y --force-yes wine-stable winehq-stable yarn
+  sudo apt install --install-recommends -y winehq-stable
+  sudo apt-get install -y yarn
   WINEARCH=win32 winecfg
+  sudo apt-get install -y rpm
+
 
   if test -n "$GBUILD_CACHE_ENABLED"; then
     export BASE_CACHE=${GBUILD_PACKAGE_CACHE}
@@ -89,16 +95,15 @@ script: |
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
   source /home/ubuntu/.bashrc
-  nvm install 6.11.5
-  nvm use 6.11.5
-
+  nvm install 10.21.0
+  nvm use 10.21.0
   cd ghost-desktop
   yarn install
 
   yarn run package:linux
   tar -cvzf packages/ghost-desktop_test.tar.gz packages/linux-unpacked/
   yarn run package:win
-  yarn run package:mac
+  # yarn run package:mac
 
   mkdir -p $OUTDIR
   cp packages/ghost-desktop* $OUTDIR
