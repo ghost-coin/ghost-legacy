@@ -64,7 +64,7 @@
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
-# error "Particl cannot be compiled without assertions."
+# error "Ghost cannot be compiled without assertions."
 #endif
 
 #define MICRO 0.000001
