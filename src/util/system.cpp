@@ -841,7 +841,7 @@ std::string ArgsManager::GetHelpMessage() const
                 usage += HelpMessageGroup("SMSG Commands:");
                 break;
             case OptionsCategory::PART_WALLET:
-                usage += HelpMessageGroup("Particl wallet Commands:");
+                usage += HelpMessageGroup("Ghost wallet Commands:");
                 break;
             case OptionsCategory::PART_STAKING:
                 usage += HelpMessageGroup("Staking Commands:");
