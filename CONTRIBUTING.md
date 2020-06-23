@@ -305,7 +305,7 @@ The project leader is the release manager for each Ghost Core release.
 Acknowledgement
 ---------------
 
-This process was heavily influenced by the Bitcoin Core [contributing process](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md) and Particl Core[contributing process](https://github.com/particl/particl-core/blob/master/CONTRIBUTING.md)
+This process was heavily influenced by the Bitcoin Core [contributing process](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md) and Ghost Core[contributing process](https://github.com/ghost-coin/ghost-core/blob/master/CONTRIBUTING.md)
 
 Copyright
 ---------

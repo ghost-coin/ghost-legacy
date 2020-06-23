@@ -169,7 +169,7 @@ void MnemonicDialog::hwImportComplete(bool passed)
             ui->tbxHwdOut->appendPlainText("Have you added a udev rule for your device?");
 #endif
 #endif
-            ui->tbxHwdOut->appendPlainText("The Particl app on your device must be open before importing.");
+            ui->tbxHwdOut->appendPlainText("The Ghost app on your device must be open before importing.");
         }
     } else {
         UniValue rv;
