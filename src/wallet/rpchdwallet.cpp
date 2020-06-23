@@ -71,7 +71,7 @@ static int ExtractBip32InfoV(const std::vector<uint8_t> &vchKey, UniValue &keyIn
 
     CChainParams::Base58Type typePk = CChainParams::EXT_PUBLIC_KEY;
     if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0) {
-        keyInfo.pushKV("type", "Particl extended secret key");
+        keyInfo.pushKV("type", "Ghost extended secret key");
     } else
     if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0) {
         keyInfo.pushKV("type", "Bitcoin extended secret key");
@@ -114,7 +114,7 @@ static int ExtractBip32InfoP(const std::vector<uint8_t> &vchKey, UniValue &keyIn
     CExtPubKey pk;
 
     if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4) == 0) {
-        keyInfo.pushKV("type", "Particl extended public key");
+        keyInfo.pushKV("type", "Ghost extended public key");
     } else
     if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4) == 0)  {
         keyInfo.pushKV("type", "Bitcoin extended public key");
@@ -725,7 +725,7 @@ static int ExtractExtKeyId(const std::string &sInKey, CKeyID &keyId, CChainParam
 static UniValue extkey(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -1386,7 +1386,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesisChain)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
@@ -1572,7 +1572,7 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
 {
     // Doesn't generate key, require users to run mnemonic new, more likely they'll save the phrase
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -1605,7 +1605,7 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
 static UniValue extkeygenesisimport(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -1640,8 +1640,8 @@ static UniValue extkeyaltversion(const JSONRPCRequest &request)
 {
             RPCHelpMan{"extkeyaltversion",
                 "\nReturns the provided ext_key encoded with alternate version bytes.\n"
-                "If the provided ext_key has a Bitcoin prefix the output will be encoded with a Particl prefix.\n"
-                "If the provided ext_key has a Particl prefix the output will be encoded with a Bitcoin prefix.\n",
+                "If the provided ext_key has a Bitcoin prefix the output will be encoded with a Ghost prefix.\n"
+                "If the provided ext_key has a Ghost prefix the output will be encoded with a Bitcoin prefix.\n",
                 {
                     {"ext_key", RPCArg::Type::STR, RPCArg::Optional::NO, ""},
                 },
@@ -1680,12 +1680,12 @@ static UniValue extkeyaltversion(const JSONRPCRequest &request)
 static UniValue getnewextaddress(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
             RPCHelpMan{"getnewextaddress",
-                "\nReturns a new Particl ext address for receiving payments." +
+                "\nReturns a new Ghost ext address for receiving payments." +
                 HelpRequiringPassphrase(pwallet) + "\n",
                 {
                     {"label", RPCArg::Type::STR, /* default */ "", "If specified the key is added to the address book."},
@@ -1745,12 +1745,12 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
 static UniValue getnewstealthaddress(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
             RPCHelpMan{"getnewstealthaddress",
-                "\nReturns a new Particl stealth address for receiving payments." +
+                "\nReturns a new Ghost stealth address for receiving payments." +
                 HelpRequiringPassphrase(pwallet) + "\n",
                 {
                     {"label", RPCArg::Type::STR, /* default */ "", "If specified the key is added to the address book."},
@@ -1825,7 +1825,7 @@ static UniValue getnewstealthaddress(const JSONRPCRequest &request)
 static UniValue importstealthaddress(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -2081,7 +2081,7 @@ int ListLooseStealthAddresses(UniValue &arr, CHDWallet *pwallet, bool fShowSecre
 static UniValue liststealthaddresses(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -2218,7 +2218,7 @@ static UniValue reservebalance(const JSONRPCRequest &request)
     // Reserve balance from being staked for network protection
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -2268,7 +2268,7 @@ static UniValue reservebalance(const JSONRPCRequest &request)
 static UniValue deriverangekeys(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -2473,7 +2473,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
 static UniValue clearwallettransactions(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -3120,7 +3120,7 @@ static std::string getAddress(UniValue const & transaction)
 static UniValue filtertransactions(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -3492,7 +3492,7 @@ public:
 static UniValue filteraddresses(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -3675,7 +3675,7 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
 static UniValue manageaddressbook(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -3852,7 +3852,7 @@ extern double GetDifficulty(const CBlockIndex* blockindex = nullptr);
 static UniValue getstakinginfo(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -3973,7 +3973,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
 static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -4109,7 +4109,7 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
 static UniValue listunspentanon(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -4332,7 +4332,7 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
 static UniValue listunspentblind(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -4698,7 +4698,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     }
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
@@ -5183,7 +5183,7 @@ static std::string SendHelp(CHDWallet *pwallet, OutputTypes typeIn, OutputTypes 
 static UniValue sendghosttoblind(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 6)
@@ -5195,7 +5195,7 @@ static UniValue sendghosttoblind(const JSONRPCRequest &request)
 static UniValue sendghosttoanon(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 6)
@@ -5207,7 +5207,7 @@ static UniValue sendghosttoanon(const JSONRPCRequest &request)
 static UniValue sendblindtoghost(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 6)
@@ -5219,7 +5219,7 @@ static UniValue sendblindtoghost(const JSONRPCRequest &request)
 static UniValue sendblindtoblind(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 6)
@@ -5231,7 +5231,7 @@ static UniValue sendblindtoblind(const JSONRPCRequest &request)
 static UniValue sendblindtoanon(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 6)
@@ -5244,7 +5244,7 @@ static UniValue sendblindtoanon(const JSONRPCRequest &request)
 static UniValue sendanontoghost(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 8)
@@ -5256,7 +5256,7 @@ static UniValue sendanontoghost(const JSONRPCRequest &request)
 static UniValue sendanontoblind(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 8)
@@ -5268,7 +5268,7 @@ static UniValue sendanontoblind(const JSONRPCRequest &request)
 static UniValue sendanontoanon(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 8)
@@ -5280,7 +5280,7 @@ static UniValue sendanontoanon(const JSONRPCRequest &request)
 UniValue sendtypeto(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
             RPCHelpMan{"sendtypeto",
@@ -5564,7 +5564,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
 static UniValue createsignaturewithwallet(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
@@ -6072,7 +6072,7 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, CAmount max_froz
 static UniValue debugwallet(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -6643,7 +6643,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
 static UniValue walletsettings(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -6956,7 +6956,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
 static UniValue transactionblinds(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -7007,7 +7007,7 @@ static UniValue transactionblinds(const JSONRPCRequest &request)
 static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -7124,7 +7124,7 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
 static UniValue setvote(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -7215,7 +7215,7 @@ static UniValue setvote(const JSONRPCRequest &request)
 static UniValue votehistory(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -7563,7 +7563,7 @@ static UniValue buildscript(const JSONRPCRequest &request)
 static UniValue createrawghosttransaction(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -7922,7 +7922,7 @@ static UniValue createrawghosttransaction(const JSONRPCRequest& request)
 static UniValue fundrawtransactionfrom(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
@@ -8999,7 +8999,7 @@ static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file,
 static UniValue rewindchain(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
@@ -9117,7 +9117,7 @@ static UniValue pruneorphanedblocks(const JSONRPCRequest &request)
 static UniValue rehashblock(const JSONRPCRequest &request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    CHDWallet *const pwallet = GetGhostWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
