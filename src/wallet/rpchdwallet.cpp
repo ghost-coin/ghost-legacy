@@ -5113,7 +5113,7 @@ static const char *TypeToWord(OutputTypes type)
     switch (type)
     {
         case OUTPUT_STANDARD:
-            return "part";
+            return "ghost";
         case OUTPUT_CT:
             return "blind";
         case OUTPUT_RINGCT:
