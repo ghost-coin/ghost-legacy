@@ -371,7 +371,7 @@ static UniValue getdevicexpub(const JSONRPCRequest &request)
                     {"accountpath", RPCArg::Type::STR, /* default */ GetDefaultAccountPath(), "Account path, set to empty string to ignore."},
                 },
                 RPCResult{
-            "\"address\"              (string) The particl extended public key\n"
+            "\"address\"              (string) The ghost extended public key\n"
                 },
                 RPCExamples{
             HelpExampleCli("getdevicexpub", "\"0\"") +
