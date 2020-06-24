@@ -6,7 +6,7 @@ etc.
 This directory contains the following sets of tests:
 
 - [functional](/test/functional) which test the functionality of
-ghostd and particl-qt by interacting with them through the RPC and P2P
+ghostd and ghost-qt by interacting with them through the RPC and P2P
 interfaces.
 - [util](/test/util) which tests the particl utilities, currently only
 particl-tx.
@@ -17,7 +17,7 @@ tests and lint scripts can be run as explained in the sections below.
 
 # Running tests locally
 
-Before tests can be run locally, Particl Core must be built.  See the [building instructions](/doc#building) for help.
+Before tests can be run locally, Ghost Core must be built.  See the [building instructions](/doc#building) for help.
 
 
 ### Functional tests
