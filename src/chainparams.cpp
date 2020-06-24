@@ -428,14 +428,14 @@ public:
 
         {
             std::map<int, std::string> bech32PrefixesMap{
-                {PUBKEY_ADDRESS, "ghost"},
+                {PUBKEY_ADDRESS, "gp"},
                 {SCRIPT_ADDRESS,"gw"},
                 {PUBKEY_ADDRESS_256,"gl"},
                 {SCRIPT_ADDRESS_256,"gj"},
                 {SECRET_KEY,"gtx"},
                 {EXT_PUBLIC_KEY,"gep"},
                 {EXT_SECRET_KEY,"gex"},
-                {STEALTH_ADDRESS,"gs"},
+                {STEALTH_ADDRESS,"gx"},
                 {EXT_KEY_HASH,"gek"},
                 {EXT_ACC_HASH,"gea"},
                 {STAKE_ONLY_PKADDR,"gcs"},
