@@ -16,7 +16,7 @@ The following are some helpful notes on how to run Particl Core on your native p
 Unpack the files into a directory and run:
 
 - `bin/particl-qt` (GUI) or
-- `bin/particld` (headless)
+- `bin/ghostd` (headless)
 
 ### Windows
 
