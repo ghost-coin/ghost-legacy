@@ -1,5 +1,5 @@
 ---
-name: "particl-osx-0.19.2.9"
+name: "ghost-osx-0.19.2.9"
 enable_cache: true
 distro: "ubuntu"
 suites:
