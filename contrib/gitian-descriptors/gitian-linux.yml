@@ -1,5 +1,5 @@
 ---
-name: "ghost-linux-0.19.1.1"
+name: "ghost-linux-0.19.1.4"
 enable_cache: true
 sudo: true
 distro: "ubuntu"
