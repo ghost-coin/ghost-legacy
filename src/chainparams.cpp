@@ -393,7 +393,6 @@ public:
         nTargetTimespan = 24 * 60;      // 24 mins
         nBlockReward = 6 * COIN;
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
-        SetLastImportHeight();
 
         nPruneAfterHeight = 100000;
         m_assumed_blockchain_size = 1;
@@ -567,8 +566,6 @@ public:
         nBlockReward = 6 * COIN;
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
-        SetLastImportHeight();
-
         nPruneAfterHeight = 1000;
         m_assumed_blockchain_size = 1;
         m_assumed_chain_state_size = 1;
@@ -712,8 +709,6 @@ public:
         nStakeTimestampMask = 0;
         nBlockReward = 6 * COIN;
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
-
-        SetLastImportHeight();
 
         nPruneAfterHeight = 1000;
         m_assumed_blockchain_size = 0;
