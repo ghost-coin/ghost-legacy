@@ -363,10 +363,10 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000000000000010001");//Chainwork at genesis
+        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000af273924ccacbf60");//Chainwork at Block 2913
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x0x00001e92daa9a7c945afdf3ce2736862b128f95c8966d3cda112caea98dd95f0"); //Genesis hash
+        consensus.defaultAssumeValid = uint256S("0xeccad59c62c2b669a746297d1f3ffb49c4de8620d6ad69c240079386130b2343"); //Blockhash of Block 2913
 
         consensus.nMinRCTOutputDepth = 12;
 
@@ -458,14 +458,17 @@ public:
         checkpointData = {
             {
                 { 0, genesis.GetHash()},
+                {1000,uint256S("0x99ccb3aa356f8bfad4a6f3052c272c21e8d087f7c625a8de3869741dcd1cbab0")},
+                {2000,uint256S("0xad2d20d55432a00ba0740da7d9376875e30558bb0a4af53049c9d33cea5cc66c")},
+                {2900,uint256S("0x2618955a4b082357450a6dae51c4900df004928e99613d55499144f34e813c74")},
             }
         };
 
         chainTxData = ChainTxData {
-            // Data from rpc: getchaintxstats 4096 c330a61e218b06d3d567c459b54e83ab682a366fc00b77d69dd78c6ed9655a2e
-            /* nTime    */ 1592430039,
-            /* nTxCount */ 1,
-            /* dTxRate  */ 1
+            // Data from rpc: getchaintxstats 2912 eccad59c62c2b669a746297d1f3ffb49c4de8620d6ad69c240079386130b2343
+            /* nTime    */ 1593280240,
+            /* nTxCount */ 3317,
+            /* dTxRate  */ 0.008253214698037342
         };
     }
 
