@@ -103,12 +103,33 @@ std::vector<ColdRewardTracker::AddressType> ColdRewardTracker::getEligibleAddres
     return result;
 }
 
-void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChange)
+void ColdRewardTracker::RemoveOldData(int lastCheckpoint, std::vector<BlockHeightRange>& ranges)
+{
+    if (ranges.size() > 0) {
+        auto itr = ranges.begin();
+        while (itr != ranges.end()) {
+            if(itr->getStart() < lastCheckpoint && itr->getEnd() < lastCheckpoint)
+                ranges.erase(itr);
+            else
+                ++itr;
+        }
+    }
+}
+
+void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChange, const std::map<int, uint256>& checkpoints)
 {
     CAmount balance = getBalance(address) + balanceChange;
     AssertTrue(balance >= 0, __func__, "Can't apply, total address balance will be negative");
-    balances[address] = balance;
     std::vector<BlockHeightRange> ranges = getAddressRanges(address);
+
+    if(checkpoints.size() > 0) {
+        const auto& last = checkpoints.rbegin()->first;
+        AssertTrue(blockHeight > last, __func__, "Can't add anything below the last checkpoint");
+        RemoveOldData(last, ranges);
+        updateAddressRangesCache(address, std::move(ranges));
+    }
+
+    balances[address] = balance;
     if (balance >= GVRThreshold) {
         if (ranges.size() == 0) {
             ranges.push_back(BlockHeightRange(blockHeight, blockHeight, true));
@@ -129,7 +150,7 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
     }
 }
 
-void ColdRewardTracker::removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock)
+void ColdRewardTracker::removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock, const std::map<int, uint256>& checkpoints)
 {
     CAmount balance = balanceGetter(address) - balanceChangeInBlock;
     AssertTrue(balance >= 0, __func__, "Can't apply, total address balance will be negative");

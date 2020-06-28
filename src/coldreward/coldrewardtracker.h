@@ -9,6 +9,8 @@
 #include <boost/optional.hpp>
 
 #include "amount.h"
+#include "uint256.h"
+
 
 /**
  * @brief The ColdRewardTracker class
@@ -81,6 +83,7 @@ protected:
     void updateAddressRangesCache(const AddressType& addr, std::vector<BlockHeightRange>&& ranges);
 
     void AssertTrue(bool valueShouldBeTrue, const std::string &functionName, const std::string& msg);
+    void RemoveOldData(int lastCheckpoint, std::vector<BlockHeightRange>& ranges);
 
 public:
     ColdRewardTracker() = default;
@@ -92,8 +95,8 @@ public:
 
     std::vector<AddressType> getEligibleAddresses(int currentBlockHeight);
 
-    void addAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChange);
-    void removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock);
+    void addAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChange, const std::map<int, uint256>& checkpoints);
+    void removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock, const std::map<int, uint256>& checkpoints);
 
     void setPersistedBalanceGetter(const std::function<CAmount(const AddressType&)>& func);
     void setPersistedBalanceSetter(const std::function<void(const AddressType&, const CAmount&)>& func);

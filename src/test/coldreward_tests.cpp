@@ -60,6 +60,7 @@ struct ColdRewardsSetup : public BasicTestingSetup {
     // we use these to simulate database storage
     std::map<AddressType, CAmount> balances;
     std::map<AddressType, std::vector<BlockHeightRange>> ranges;
+    std::map<int, uint256> checkpoints;
 };
 
 namespace {
@@ -83,7 +84,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // 10 coins added at block 50
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(50, addr, 10 * COIN);
+    tracker.addAddressTransaction(50, addr, 10 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // balance changes with no range changes, because nothing exceeded 20k
@@ -92,7 +93,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // add 20k coins at block 51
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(51, addr, 20000 * COIN);
+    tracker.addAddressTransaction(51, addr, 20000 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // now we have one new range entry + balance update
@@ -104,7 +105,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // subtract 5 coins at block 52
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(52, addr, -5 * COIN);
+    tracker.addAddressTransaction(52, addr, -5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // now that range entry got extended becasue we're still over 20k
@@ -116,7 +117,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // subtract 5 coins at block 100
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(100, addr, -5 * COIN);
+    tracker.addAddressTransaction(100, addr, -5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // we're still equal or over 20k, so the range is extended
@@ -128,7 +129,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // subtract 5 coins at block 110
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(110, addr, -5 * COIN);
+    tracker.addAddressTransaction(110, addr, -5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // now we're below 20k, we get a new range at the end [110,110] to show the break up
@@ -146,7 +147,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // revert block 110, now we're back 20k+
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(110, addr, -5 * COIN);
+    tracker.removeAddressTransaction(110, addr, -5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // we're eligible for a reward only the second month
@@ -163,7 +164,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // subtract 5 coins at block 101
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(101, addr, -5 * COIN);
+    tracker.addAddressTransaction(101, addr, -5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // now we're below 20k again
@@ -181,7 +182,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // now revert that last block
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(101, addr, -5 * COIN);
+    tracker.removeAddressTransaction(101, addr, -5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // we're eligible for a reward only the second month
@@ -206,7 +207,7 @@ BOOST_AUTO_TEST_CASE(basic)
     // (even though it wasn't added, but it's still logically valid,
     //  since the user owned a 20k+ balance from block 50 to 99)
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(100, addr, 0 * COIN);
+    tracker.removeAddressTransaction(100, addr, 0 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // we're eligible for a reward only the second month
@@ -228,7 +229,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // subtract 5 coins at block 101, again
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(101, addr, -5 * COIN);
+    tracker.addAddressTransaction(101, addr, -5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // now we're below 20k again
@@ -252,7 +253,7 @@ BOOST_AUTO_TEST_CASE(corner)
 
     // 20k coins added at block 10
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(10, addr, 20000 * COIN);
+    tracker.addAddressTransaction(10, addr, 20000 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
@@ -265,7 +266,7 @@ BOOST_AUTO_TEST_CASE(corner)
 
     // 5 more added to create range at block 21599 which is 1 block below the end of the first month
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(21599, addr, 5 * COIN);
+    tracker.addAddressTransaction(21599, addr, 5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 20005 * COIN);
@@ -279,7 +280,7 @@ BOOST_AUTO_TEST_CASE(corner)
 
     // add 5 more
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(21600, addr, 5 * COIN);
+    tracker.addAddressTransaction(21600, addr, 5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 20010 * COIN);
@@ -292,7 +293,7 @@ BOOST_AUTO_TEST_CASE(corner)
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
 
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(21601, addr, 5 * COIN);
+    tracker.addAddressTransaction(21601, addr, 5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 20015 * COIN);
@@ -304,7 +305,7 @@ BOOST_AUTO_TEST_CASE(corner)
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
 
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(21601, addr, 5 * COIN);
+    tracker.removeAddressTransaction(21601, addr, 5 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 20010 * COIN);
@@ -314,7 +315,7 @@ BOOST_AUTO_TEST_CASE(corner)
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
 
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(21601, addr, -15 * COIN);
+    tracker.addAddressTransaction(21601, addr, -15 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 19995 * COIN);
@@ -330,7 +331,7 @@ BOOST_AUTO_TEST_CASE(corner)
 
     // calling with a block that doesn't have a record should change nothing other than the balance
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(22600, addr, 15 * COIN);
+    tracker.removeAddressTransaction(22600, addr, 15 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 19980 * COIN);
@@ -364,7 +365,7 @@ BOOST_AUTO_TEST_CASE(getEligibleAddresses)
 
     // 20001 coins added at block 1
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(1, addr, 20001 * COIN);
+    tracker.addAddressTransaction(1, addr, 20001 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // nobody is ever elegible in the first period.
@@ -380,7 +381,7 @@ BOOST_AUTO_TEST_CASE(getEligibleAddresses)
 
     // until balance gets below 20k
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction((21600 * 3) + 1, addr, -2 * COIN);
+    tracker.addAddressTransaction((21600 * 3) + 1, addr, -2 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     // assert was eligable for month 3 in the past but not now
@@ -398,12 +399,12 @@ BOOST_AUTO_TEST_CASE(balance)
 
     // add
     tracker.startPersistedTransaction();
-    BOOST_REQUIRE_THROW(tracker.addAddressTransaction(1, addr, -1 * COIN), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.addAddressTransaction(1, addr, -1 * COIN, checkpoints), std::invalid_argument);
     tracker.endPersistedTransaction();
 
     // remove
     tracker.startPersistedTransaction();
-    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(1, addr, 1 * COIN), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(1, addr, 1 * COIN, checkpoints), std::invalid_argument);
     tracker.endPersistedTransaction();
 }
 
@@ -414,7 +415,7 @@ BOOST_AUTO_TEST_CASE(interruption)
 
     // 20001 coins added at block 1
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(1, addr, 20001 * COIN);
+    tracker.addAddressTransaction(1, addr, 20001 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 20001 * COIN);
@@ -424,7 +425,7 @@ BOOST_AUTO_TEST_CASE(interruption)
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
 
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(1, addr, -2 * COIN);
+    tracker.addAddressTransaction(1, addr, -2 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 19999 * COIN);
@@ -436,7 +437,7 @@ BOOST_AUTO_TEST_CASE(interruption)
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 1);
 
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(1, addr, 2 * COIN);
+    tracker.addAddressTransaction(1, addr, 2 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 20001 * COIN);
@@ -451,7 +452,7 @@ BOOST_AUTO_TEST_CASE(interruption)
     // ... possible DoS
 
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(2, addr, -2 * COIN);
+    tracker.addAddressTransaction(2, addr, -2 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_REQUIRE_EQUAL(ranges.size(), 1);
@@ -466,7 +467,7 @@ BOOST_AUTO_TEST_CASE(interruption)
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[3].getEnd(), 2);
 
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(2, addr, 2 * COIN);
+    tracker.addAddressTransaction(2, addr, 2 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     BOOST_REQUIRE_EQUAL(ranges.size(), 1);
@@ -502,7 +503,7 @@ BOOST_AUTO_TEST_CASE(performance)
 
     // 20001 coins added at block 1
     tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(1, addr, 20001 * COIN);
+    tracker.addAddressTransaction(1, addr, 20001 * COIN, checkpoints);
     tracker.endPersistedTransaction();
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -519,7 +520,7 @@ BOOST_AUTO_TEST_CASE(performance)
 
         // send some coin below 20k to all addresses
         tracker.startPersistedTransaction();
-        tracker.addAddressTransaction(1, addr, rand()%20000 * COIN);
+        tracker.addAddressTransaction(1, addr, rand()%20000 * COIN, checkpoints);
         tracker.endPersistedTransaction();
     }
 
@@ -535,7 +536,7 @@ BOOST_AUTO_TEST_CASE(performance)
 
         // send some coin below 20k to all addresses
         tracker.startPersistedTransaction();
-        tracker.addAddressTransaction(1, addr, rand()%20000 * COIN);
+        tracker.addAddressTransaction(1, addr, rand()%20000 * COIN, checkpoints);
         tracker.endPersistedTransaction();
     }
 
@@ -544,6 +545,67 @@ BOOST_AUTO_TEST_CASE(performance)
     end = std::chrono::steady_clock::now();
 
     std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+}
+
+BOOST_AUTO_TEST_CASE(checkpoints_basic)
+{
+    // add a checkpoint at block 3
+    checkpoints.insert(std::make_pair(3, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
+
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
+
+    BOOST_REQUIRE_THROW(balances.at(addr), std::out_of_range);
+
+    // add something below last checkpoint is not allowed
+    tracker.startPersistedTransaction();
+    BOOST_REQUIRE_THROW(tracker.addAddressTransaction(1, addr, 20000 * COIN, checkpoints), std::invalid_argument);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 0);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 0);
+
+    // 20001 coins added at block 4 to insert a record
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(4, addr, 20000 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 4);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 4);
+
+    // change state to below 20k
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(5, addr, -1 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 19999 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 4);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 4);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 5);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 5);
+
+    // add a new checkpoint in block 7, everything below should be deleted in the next operation
+    checkpoints.insert(std::make_pair(7, uint256S("0x7777777777777777777777777777777777777777777777777777777777777777")));
+
+    // add some transaction after the checkpoint, this will delete old records for address
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(8, addr, -1 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 19998 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 0);
+
+    // make sure it it start working again
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(9, addr, 2 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 9);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 9);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
