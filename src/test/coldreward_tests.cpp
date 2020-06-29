@@ -34,6 +34,14 @@ struct ColdRewardsSetup : public BasicTestingSetup {
             ranges[Addr] = Ranges;
         };
 
+        std::function<int()> checkpointGetter = [this]() {
+            return checkpoint;
+        };
+        std::function<void(int)> checkpointSetter = [this](int new_checkpoint) {
+            if (new_checkpoint > checkpoint)
+                checkpoint = new_checkpoint;
+        };
+
         std::function<void()> transactionStarter = []() {};
         std::function<void()> transactionEnder = []() {};
 
@@ -45,6 +53,8 @@ struct ColdRewardsSetup : public BasicTestingSetup {
         tracker.setPersistedRangesSetter(rangesSetter);
         tracker.setPersistedBalanceGetter(balanceGetter);
         tracker.setPersistedBalanceSetter(balanceSetter);
+        tracker.setPersistedCheckpointGetter(checkpointGetter);
+        tracker.setPersistedCheckpointSetter(checkpointSetter);
         tracker.setPersistedTransactionStarter(transactionStarter);
         tracker.setPersisterTransactionEnder(transactionEnder);
         tracker.setAllRangesGetter(allRangesGetter);
@@ -61,6 +71,7 @@ struct ColdRewardsSetup : public BasicTestingSetup {
     std::map<AddressType, CAmount> balances;
     std::map<AddressType, std::vector<BlockHeightRange>> ranges;
     std::map<int, uint256> checkpoints;
+    int checkpoint = 0;
 };
 
 namespace {
@@ -599,6 +610,77 @@ BOOST_AUTO_TEST_CASE(checkpoints_basic)
     BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 9);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 9);
+}
+
+BOOST_AUTO_TEST_CASE(checkpoints_rollback)
+{
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
+
+    // 20000 coins added at block 4 to insert a record
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(4, addr, 20000 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 4);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 4);
+
+    // revert back is valid as we dont have any checkpoint, first revert to block 4
+    tracker.startPersistedTransaction();
+    tracker.removeAddressTransaction(4, addr, 20000 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 0);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 0);
+
+    // then revert to block 1
+    tracker.startPersistedTransaction();
+    tracker.removeAddressTransaction(4, addr, 0, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 0);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 0);
+
+    // add a checkpoint at block 3
+    checkpoints.insert(std::make_pair(3, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
+
+    // add 20000 coins to block 5 to insert a record
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(5, addr, 20000 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 5);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 5);
+
+    // revert back below last checkpoint will fail
+    tracker.startPersistedTransaction();
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(1, addr, 20000 * COIN, checkpoints), std::invalid_argument);
+    tracker.endPersistedTransaction();
+
+    // revert to block 5 is ok
+    tracker.startPersistedTransaction();
+    tracker.removeAddressTransaction(5, addr, 20000 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 0);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 0);
+
+    // revert to block 4 is ok
+    tracker.startPersistedTransaction();
+    tracker.removeAddressTransaction(4, addr, 0, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 0);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 0);
+
+    // revert to block of checkpoint will fail
+    tracker.startPersistedTransaction();
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(3, addr, 0, checkpoints), std::invalid_argument);
+    tracker.endPersistedTransaction();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

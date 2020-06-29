@@ -63,12 +63,16 @@ public:
 private:
     std::map<AddressType, std::vector<BlockHeightRange>> addressesRanges;
     std::map<AddressType, CAmount> balances;
+    int checkpoint = 0;
 
     std::function<CAmount(const AddressType&)> balanceGetter;
     std::function<void(const AddressType&, const CAmount&)> balanceSetter;
 
     std::function<std::vector<BlockHeightRange>(const AddressType&)> rangesGetter;
     std::function<void(const AddressType&, const std::vector<BlockHeightRange>&)> rangesSetter;
+
+    std::function<int()> checkpointGetter;
+    std::function<void(int)> checkpointSetter;
 
     std::function<void()> transactionStarter;
     std::function<void()> transactionEnder;
@@ -81,6 +85,10 @@ protected:
     CAmount getBalance(const AddressType &addr);
     std::vector<BlockHeightRange> getAddressRanges(const AddressType& addr);
     void updateAddressRangesCache(const AddressType& addr, std::vector<BlockHeightRange>&& ranges);
+    boost::optional<int> getCheckpointInCache();
+    void updateCheckpointCache(int new_checkpoint);
+    int getCheckpoint();
+
 
     void AssertTrue(bool valueShouldBeTrue, const std::string &functionName, const std::string& msg);
     void RemoveOldData(int lastCheckpoint, std::vector<BlockHeightRange>& ranges);
@@ -106,6 +114,9 @@ public:
 
     void setPersistedTransactionStarter(const std::function<void()>& func);
     void setPersisterTransactionEnder(const std::function<void()>& func);
+
+    void setPersistedCheckpointGetter(const std::function<int()>& func);
+    void setPersistedCheckpointSetter(const std::function<void(int)>& func);
 
     void setAllRangesGetter(const std::function<std::map<AddressType, std::vector<BlockHeightRange>>()>& func);
 

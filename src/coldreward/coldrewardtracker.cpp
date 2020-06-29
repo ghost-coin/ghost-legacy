@@ -21,6 +21,14 @@ boost::optional<std::vector<BlockHeightRange>> ColdRewardTracker::getAddressRang
     }
 }
 
+boost::optional<int> ColdRewardTracker::getCheckpointInCache()
+{
+    if (checkpoint > 0)
+        return checkpoint;
+    else
+        return boost::none;
+}
+
 CAmount ColdRewardTracker::getBalance(const AddressType& addr)
 {
     boost::optional<CAmount> balance = getBalanceInCache(addr);
@@ -45,9 +53,28 @@ std::vector<BlockHeightRange> ColdRewardTracker::getAddressRanges(const AddressT
     return r;
 }
 
+int ColdRewardTracker::getCheckpoint()
+{
+    boost::optional<int> checkpoint = getCheckpointInCache();
+    if (checkpoint) {
+        return *checkpoint;
+    }
+    int c = checkpointGetter();
+    checkpoint = c;
+    return c;
+}
+
 void ColdRewardTracker::updateAddressRangesCache(const AddressType& addr, std::vector<BlockHeightRange>&& ranges)
 {
     addressesRanges[addr] = ranges;
+}
+
+void ColdRewardTracker::updateCheckpointCache(int new_checkpoint)
+{
+    if (new_checkpoint > checkpoint) {
+        checkpoint = new_checkpoint;
+        checkpointSetter(new_checkpoint);
+    }
 }
 
 void ColdRewardTracker::AssertTrue(bool valueShouldBeTrue, const std::string& functionName, const std::string &msg)
@@ -128,6 +155,7 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
             --last;
             RemoveOldData(last->first, ranges);
             updateAddressRangesCache(address, std::move(ranges));
+            updateCheckpointCache(last->first);
         }
     }
 
@@ -154,6 +182,7 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
 
 void ColdRewardTracker::removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock, const std::map<int, uint256>& checkpoints)
 {
+    AssertTrue(getCheckpoint() < blockHeight, __func__, "Can't apply, height is lower than the last checkpoint we saw");
     CAmount balance = balanceGetter(address) - balanceChangeInBlock;
     AssertTrue(balance >= 0, __func__, "Can't apply, total address balance will be negative");
     balances[address] = balance;
@@ -198,6 +227,16 @@ void ColdRewardTracker::setPersistedTransactionStarter(const std::function<void(
 void ColdRewardTracker::setPersisterTransactionEnder(const std::function<void()>& func)
 {
     transactionEnder = func;
+}
+
+void ColdRewardTracker::setPersistedCheckpointGetter(const std::function<int()>& func)
+{
+    checkpointGetter = func;
+}
+
+void ColdRewardTracker::setPersistedCheckpointSetter(const std::function<void(int)>& func)
+{
+    checkpointSetter = func;
 }
 
 void ColdRewardTracker::setAllRangesGetter(const std::function<std::map<AddressType, std::vector<BlockHeightRange>>()>& func)
