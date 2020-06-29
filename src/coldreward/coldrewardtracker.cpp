@@ -123,10 +123,12 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
     std::vector<BlockHeightRange> ranges = getAddressRanges(address);
 
     if(checkpoints.size() > 0) {
-        const auto& last = checkpoints.rbegin()->first;
-        AssertTrue(blockHeight > last, __func__, "Can't add anything below the last checkpoint");
-        RemoveOldData(last, ranges);
-        updateAddressRangesCache(address, std::move(ranges));
+        auto last = checkpoints.upper_bound(blockHeight);
+        if(last != checkpoints.begin()) {
+            --last;
+            RemoveOldData(last->first, ranges);
+            updateAddressRangesCache(address, std::move(ranges));
+        }
     }
 
     balances[address] = balance;

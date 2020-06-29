@@ -557,13 +557,6 @@ BOOST_AUTO_TEST_CASE(checkpoints_basic)
 
     BOOST_REQUIRE_THROW(balances.at(addr), std::out_of_range);
 
-    // add something below last checkpoint is not allowed
-    tracker.startPersistedTransaction();
-    BOOST_REQUIRE_THROW(tracker.addAddressTransaction(1, addr, 20000 * COIN, checkpoints), std::invalid_argument);
-    tracker.endPersistedTransaction();
-    BOOST_CHECK_EQUAL(balances.at(addr), 0);
-    BOOST_REQUIRE_EQUAL(ranges.size(), 0);
-
     // 20001 coins added at block 4 to insert a record
     tracker.startPersistedTransaction();
     tracker.addAddressTransaction(4, addr, 20000 * COIN, checkpoints);
