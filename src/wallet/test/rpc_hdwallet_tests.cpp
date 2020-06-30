@@ -110,16 +110,16 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_prefixchange)
     UniValue rv;
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("extkeyimportmaster xprv9s21ZrQH143K3VrEYG4rhyPddr2o53qqqpCufLP6Rb3XSta2FZsqCanRJVfpTi4UX28pRaAfVGfiGpYDczv8tzTM6Qm5TRvUA9HDStbNUbQ"));//This derives from new bip44 prefix.
-    //Get new stealth addrs and make sure it doesnt return addrs from legacy prefix
+    //Get new stealth addrs and make sure it doesnt return addrs that legacy import would
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress"));
-    BOOST_CHECK(StripQuotes(rv.write()) != "SPGxiYZ1Q5dhAJxJNMk56ZbxcsUBYqTCsdEPPHsJJ96Vcns889gHTqSrTZoyrCd5E9NSe9XxLivK6izETniNp1Gu1DtrhVwv3VuZ3e");
+    BOOST_CHECK(StripQuotes(rv.write()) == "SPGwTU7DibFptJSGsghe5yrTgPRBtJzMh2kV5DyzpHGmY2NdyGe3bLssyeszuunZKaVr62E6VJtekcDC8DcgBGobzfck2AXgkKPx5a");
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress onebit 1"));
-    BOOST_CHECK(StripQuotes(rv.write()) != "2w3KaKNNRkWvgxNVymgTwxVd95hDTKRwa98eh5fUpyZfQ17XCRDsxQ3tTARJYz2pNnCekEFni7ukDwvgdbVDgbTy449DNcJYrevkyzPL");
+    BOOST_CHECK(StripQuotes(rv.write()) == "2w3KncdXMxuSS9C7JAMxw7PYzakeergWkn7xnje6KTmTAdhB9Nkm4dQVjDHZn3bXFn1RgbXrsYCWjC1o2Cwu9Zw8wG6wjbCnRStgURc9");
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress onebit 1 0b1"));
     std::string sResult = StripQuotes(rv.write());
-    BOOST_CHECK(sResult != "2w3KJzSkeDxiZDFQ5cQdMGKyEuM2zhKHX7TWCTVFobXXcWxWS5zs3aaoF3LPWfcwKd3m65CHx7j8F9CbESmi53GqmHJmnwKggRiXQoac");
+    BOOST_CHECK(sResult == "2w3KggENVCJZnT6FGh7z4Vhe1uUke3L5QrgH7oon3X9fTWiMXWigB4mDTULUuXszjZzKLBt4XAUhJfky1RadbmXP2Hjf1YtsTa8gB6Fy");
 
 }
 
