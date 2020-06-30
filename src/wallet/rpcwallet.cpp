@@ -1115,11 +1115,16 @@ static UniValue sendmany(const JSONRPCRequest& request)
         UniValue arr(UniValue::VARR);
 
         std::vector<std::string> keys = sendTo.getKeys();
-        for (const std::string& name_ : keys) {
+        
+        for(std::size_t i=0; i < keys.size(); ++i) {
             UniValue out(UniValue::VOBJ);
+            
+            // Give the option to send funds to the same address with different amounts
+            std::string const& name_ = keys[i];
+            UniValue const& amount= sendTo[i];
 
             out.pushKV("address", name_);
-            out.pushKV("amount", sendTo[name_]);
+            out.pushKV("amount", amount);
 
             bool fSubtractFeeFromAmount = false;
             for (unsigned int idx = 0; idx < subtractFeeFromAmount.size(); idx++) {
