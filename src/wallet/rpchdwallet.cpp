@@ -1594,7 +1594,7 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
                     {"master_label", RPCArg::Type::STR, /* default */ "Master Key", "Label for master key."},
                     {"account_label", RPCArg::Type::STR, /* default */ "Default Account", "Label for account."},
                     {"scan_chain_from", RPCArg::Type::NUM, /* default */ "0", "Scan for transactions in blocks after timestamp, negative number to skip."},
-                    {"use_legacy", RPCArg::Type::BOOL, /* default */ "0", "Use legacy bip44 derivation."},
+                    {"use_legacy", RPCArg::Type::BOOL, /* default */ "false", "Use legacy bip44 derivation."},
                 },
             RPCResults{},
             RPCExamples{
@@ -1629,7 +1629,7 @@ static UniValue extkeygenesisimport(const JSONRPCRequest &request)
                     {"master_label", RPCArg::Type::STR, /* default */ "Master Key", "Label for master key."},
                     {"account_label", RPCArg::Type::STR, /* default */ "Default Account", "Label for account."},
                     {"scan_chain_from", RPCArg::Type::NUM, /* default */ "0", "Scan for transactions in blocks after timestamp, negative number to skip."},
-                    {"use_legacy", RPCArg::Type::BOOL, /* default */ "0", "Use legacy bip44 derivation."},
+                    {"use_legacy", RPCArg::Type::BOOL, /* default */ "false", "Use legacy bip44 derivation."},
                 },
             RPCResults{},
             RPCExamples{
