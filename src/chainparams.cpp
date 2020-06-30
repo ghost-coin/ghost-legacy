@@ -559,7 +559,7 @@ public:
         pchMessageStart[3] = 0xdd;
         nDefaultPort = 51928;
         nBIP44IDCurrent = 0x80000213;
-
+        nBIP44IDLegacy = nBIP44IDCurrent;
         nModifierInterval = 10 * 60;    // 10 minutes
         nStakeMinConfirmations = 225;   // 225 * 2 minutes
         nTargetSpacing = 120;           // 2 minutes
@@ -701,6 +701,7 @@ public:
         pchMessageStart[3] = 0x0c;
         nDefaultPort = 11928;
         nBIP44IDCurrent = 0x80000001;
+        nBIP44IDLegacy = nBIP44IDCurrent;
 
 
         nModifierInterval = 2 * 60;     // 2 minutes
