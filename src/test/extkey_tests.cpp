@@ -195,15 +195,11 @@ void RunDeriveTests()
 
     std::vector<DeriveTestData> vMainNetPairs = {
         DeriveTestData(0,
-            std::string("XPARHAr37YxmFP8wyjkaHAQWmp84GiyLikL7EL8j9BCx4LkB8Q1Bw5Kr8sA1GA3Ym53zNLcaxxFHr6u81JVTeCaD61c6fKS1YRAuti8Zu5SzJCjh"),
-            std::string("PPARTKMMf4AUDYzRSBcXSJZALbUXgWKHi6qdpy95yBmABuznU3keHFyNHfjaMT33ehuYwjx3RXort1j8d9AYnqyhAvdN168J4GBsM2ZHuTb91rsj")),
+            std::string("XGHSTPgtqERy21V7QzFk4zmx5aUdcDZzfY7D99B8X4kuQZdHq1pJzDg9KtMCoPixi1z6wzdyzGBnX84BgPU4RXXjP2nj4itNagLZ5FULLqCamzng"),
+            std::string("PGHSTWq7QxGFUTBgiPNvZ5KSZcsASoJLZwi5sCYCh86qRsPJFTP3nYaFnQHnwvWBeCxoQx1VSmSnXBy1So9tocovqop7VxkSE7W5paCnixDgYmsH")),
         DeriveTestData(1,
-            std::string("XPARHAt1XMcNYAwP5yxEEqHXkbawBq31u2WW5SPBRdw8j8tPjKCLeUJFoNhVYANn5Y2BkQrmYMZFBUteSXPFWSS47MyP2PckLRJNptsfPx99Hqsd"),
-            std::string("PPARTKPL4rp5WLnrYRpBPySBKNwQbcNxtP22g5PYFeVLri914xwnzewmxBH4dTMd6Xf578bi3sUnLpix65m2gENpWRdwGM5L7fM4Q4FU5StZaV2D")),
-
-        DeriveTestData(350,
-            std::string("XPARHDuzfjhA9hhyH5g3X5bwjBkUAcZpJUfeF5T2UrnHvqsWYEKGFLcLtmaMcktytFiY1hnut6SxQkN6XqhtBJXCSbNuJXaQ26eyVaTZVZ5j37bL"),
-            std::string("PPARTNRKDEts7sZSjXXzgDkbHy6waPumHqBAqiTPJsLW4R87st4ibXFs3a9vi3uVdvy14rJQxqfKLKuqnVZboDCadnzgRR1TicCxDYke1jRB4hUk")),
+            std::string("XGHSTPisPEJc1E7aePBR3njzceu3uL7P7q5i2LZZTYJj9dvZgVRQANWGaonU8mHFP9NExPTdy5G6hqGMQVQSaCc8so4EYygbFHsgZEdvWysc8S1X"),
+            std::string("PGHSTWs5xx8tTfp9wnJbXsHV6hHajuqj2EgakPvddbefAwga6vz8xhQP3Kj4HJ4UR1GkXutbfnTmKPPy9nQ5Ue38LqKrDK6ZzLTfajhrVKAUA1Rm")),
     };
 
     std::vector<DeriveTestData> vTestNetPairs = {
@@ -282,7 +278,7 @@ void RunSerialiseTests()
     CStoredExtKey skInvalid, skInvalid_;
 
     CExtKey58 eKey58;
-    BOOST_CHECK(0 == eKey58.Set58("XPARHAr37YxmFP8wyjkaHAQWmp84GiyLikL7EL8j9BCx4LkB8Q1Bw5Kr8sA1GA3Ym53zNLcaxxFHr6u81JVTeCaD61c6fKS1YRAuti8Zu5SzJCjh"));
+    BOOST_CHECK(0 == eKey58.Set58("XGHSTPgtqERy21V7QzFk4zmx5aUdcDZzfY7D99B8X4kuQZdHq1pJzDg9KtMCoPixi1z6wzdyzGBnX84BgPU4RXXjP2nj4itNagLZ5FULLqCamzng"));
 
     sk.kp = eKey58.GetKey();
     sk.sLabel = "sk label";
@@ -291,10 +287,10 @@ void RunSerialiseTests()
     sk.mapValue[EKVT_CREATED_AT] = SetCompressedInt64(v, nTest8);
 
     eKey58.SetKey(sk.kp, CChainParams::EXT_PUBLIC_KEY);
-    BOOST_CHECK(eKey58.ToString() == "PPARTKMMf4AUDYzRSBcXSJZALbUXgWKHi6qdpy95yBmABuznU3keHFyNHfjaMT33ehuYwjx3RXort1j8d9AYnqyhAvdN168J4GBsM2ZHuTb91rsj");
+    BOOST_CHECK(eKey58.ToString() == "PGHSTWq7QxGFUTBgiPNvZ5KSZcsASoJLZwi5sCYCh86qRsPJFTP3nYaFnQHnwvWBeCxoQx1VSmSnXBy1So9tocovqop7VxkSE7W5paCnixDgYmsH");
 
     eKey58.SetKeyV(sk.kp);
-    BOOST_CHECK(eKey58.ToString() == "XPARHAr37YxmFP8wyjkaHAQWmp84GiyLikL7EL8j9BCx4LkB8Q1Bw5Kr8sA1GA3Ym53zNLcaxxFHr6u81JVTeCaD61c6fKS1YRAuti8Zu5SzJCjh");
+    BOOST_CHECK(eKey58.ToString() == "XGHSTPgtqERy21V7QzFk4zmx5aUdcDZzfY7D99B8X4kuQZdHq1pJzDg9KtMCoPixi1z6wzdyzGBnX84BgPU4RXXjP2nj4itNagLZ5FULLqCamzng");
 
 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
@@ -369,33 +365,33 @@ void RunSerialiseTests()
 
     id = ev.key.GetPubKey().GetID();
     addr.Set(id, CChainParams::EXT_KEY_HASH);
-    BOOST_CHECK_MESSAGE(addr.ToString() == "XVBXuecXUaKeuy7grqGigvqSVZfhcUMSqU", addr.ToString());
+    BOOST_CHECK_MESSAGE(addr.ToString() == "XSuTNL78GorcrGY3hnqBECvho8ph1RZBFs", addr.ToString());
 
     sk.nGenerated = 1;
     BOOST_CHECK(0 == sk.DeriveNextKey(ev, nChild));
     id = ev.key.GetPubKey().GetID();
     addr.Set(id, CChainParams::EXT_KEY_HASH);
-    BOOST_CHECK_MESSAGE(addr.ToString() == "XUhmqjY32rkyUbEh4gK4id3kiP3edvZBtX", addr.ToString());
+    BOOST_CHECK_MESSAGE(addr.ToString() == "XSRbnYaLS7PFsbN9Ajh8WoYEAdCRGe9kYF", addr.ToString());
 
     sk.nHGenerated = 0;
     BOOST_CHECK(0 == sk.DeriveNextKey(ev, nChild, true));
     id = ev.key.GetPubKey().GetID();
     addr.Set(id, CChainParams::EXT_KEY_HASH);
-    BOOST_CHECK_MESSAGE(addr.ToString() == "XHfSSYZoQbeEsihuycEQafjXWszxiLe2rx", addr.ToString());
+    BOOST_CHECK_MESSAGE(addr.ToString() == "XToHwqsjTNpTGWdx65346m3U5dy2EbKmd5", addr.ToString());
     BOOST_CHECK_MESSAGE(1 == sk.nHGenerated, "nHGenerated " << sk.nHGenerated);
 
     sk.nHGenerated = 1;
     BOOST_CHECK(0 == sk.DeriveNextKey(ev, nChild, true));
     id = ev.key.GetPubKey().GetID();
     addr.Set(id, CChainParams::EXT_KEY_HASH);
-    BOOST_CHECK_MESSAGE(addr.ToString() == "XUhnhJR3Zc3m8aqxTVNXhPGRHHCg8bPXSa", addr.ToString());
+    BOOST_CHECK_MESSAGE(addr.ToString() == "XW4bxvTq1qfAB3NakPp4vAjc7A9VMFo4pN", addr.ToString());
     BOOST_CHECK_MESSAGE(2 == sk.nHGenerated, "nHGenerated " << sk.nHGenerated);
 
     sk.nHGenerated = 1;
     BOOST_CHECK(0 == sk.DeriveNextKey(ep, nChild, true));
     id = ev.key.GetPubKey().GetID();
     addr.Set(id, CChainParams::EXT_KEY_HASH);
-    BOOST_CHECK_MESSAGE(addr.ToString() == "XUhnhJR3Zc3m8aqxTVNXhPGRHHCg8bPXSa", addr.ToString());
+    BOOST_CHECK_MESSAGE(addr.ToString() == "XW4bxvTq1qfAB3NakPp4vAjc7A9VMFo4pN", addr.ToString());
     BOOST_CHECK(ep.pubkey == ev.key.GetPubKey());
 
 
@@ -458,7 +454,7 @@ void RunSerialiseTests()
     CExtKeyPair kp, kpT;
     CTxDestination dest;
 
-    BOOST_CHECK(0 == eKey58.Set58("PPARTKMMf4AUDYzRSBcXSJZALbUXgWKHi6qdpy95yBmABuznU3keHFyNHfjaMT33ehuYwjx3RXort1j8d9AYnqyhAvdN168J4GBsM2ZHuTb91rsj"));
+    BOOST_CHECK(0 == eKey58.Set58("XGHSTPisPEJc1E7aePBR3njzceu3uL7P7q5i2LZZTYJj9dvZgVRQANWGaonU8mHFP9NExPTdy5G6hqGMQVQSaCc8so4EYygbFHsgZEdvWysc8S1X"));
     kp = eKey58.GetKey();
     CBitcoinAddress addrB(kp);
     BOOST_CHECK(addrB.IsValid() == true);
@@ -467,7 +463,7 @@ void RunSerialiseTests()
     BOOST_CHECK(addr.IsValid() == true);
     BOOST_CHECK(addr.IsValid(CChainParams::EXT_SECRET_KEY) == false);
     BOOST_CHECK(addr.IsValid(CChainParams::EXT_PUBLIC_KEY) == true);
-    BOOST_CHECK(addr.ToString() == "PPARTKMMf4AUDYzRSBcXSJZALbUXgWKHi6qdpy95yBmABuznU3keHFyNHfjaMT33ehuYwjx3RXort1j8d9AYnqyhAvdN168J4GBsM2ZHuTb91rsj");
+    BOOST_CHECK(addr.ToString() == "XGHSTPisPEJc1E7aePBR3njzceu3uL7P7q5i2LZZTYJj9dvZgVRQANWGaonU8mHFP9NExPTdy5G6hqGMQVQSaCc8so4EYygbFHsgZEdvWysc8S1X");
     dest = addr.Get();
     BOOST_CHECK(dest.type() == typeid(CExtKeyPair));
     kpT = boost::get<CExtKeyPair>(dest);
