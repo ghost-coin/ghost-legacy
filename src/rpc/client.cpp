@@ -311,6 +311,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "createwallet", 1, "disable_private_keys"},
     { "createwallet", 2, "blank"},
     { "createwallet", 4, "avoid_reuse"},
+    { "createwallet", 5, "use_legacy"},
     { "getnodeaddresses", 0, "count"},
     { "stop", 0, "wait" },
 };
