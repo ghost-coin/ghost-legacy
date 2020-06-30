@@ -182,7 +182,7 @@ std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const std::string&
     return LoadWallet(chain, WalletLocation(name), error, warning);
 }
 
-WalletCreationStatus CreateWallet(interfaces::Chain& chain, const SecureString& passphrase, uint64_t wallet_creation_flags, const std::string& name, std::string& error, std::string& warning, std::shared_ptr<CWallet>& result)
+WalletCreationStatus CreateWallet(interfaces::Chain& chain, const SecureString& passphrase, uint64_t wallet_creation_flags, const std::string& name, std::string& error, std::string& warning, std::shared_ptr<CWallet>& result,bool fLegacy)
 {
     // Indicate that the wallet is actually supposed to be blank and not just blank to make it encrypted
     bool create_blank = (wallet_creation_flags & WALLET_FLAG_BLANK_WALLET);
@@ -237,7 +237,7 @@ WalletCreationStatus CreateWallet(interfaces::Chain& chain, const SecureString& 
             }
 
             // Set a seed for the wallet
-            if (fParticlMode && !!GetParticlWallet(wallet.get())->MakeDefaultAccount()) {
+            if (fParticlMode && !!GetParticlWallet(wallet.get())->MakeDefaultAccount(fLegacy)) {
                 error = "Error: MakeDefaultAccount failed";
                 return WalletCreationStatus::CREATION_FAILED;
             } else {

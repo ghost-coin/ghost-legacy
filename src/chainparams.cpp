@@ -380,7 +380,8 @@ public:
         pchMessageStart[2] = 0xe1;
         pchMessageStart[3] = 0xb4;
         nDefaultPort = 51728;
-        nBIP44ID = 0x8000002C;
+        nBIP44IDLegacy = 0x8000002C;
+        nBIP44IDCurrent = 0x80000213;
 
         nModifierInterval = 10 * 60;    // 10 minutes
         nStakeMinConfirmations = 225;   // 225 * 2 minutes
@@ -551,7 +552,7 @@ public:
         pchMessageStart[2] = 0xb4;
         pchMessageStart[3] = 0xdd;
         nDefaultPort = 51928;
-        nBIP44ID = 0x80000213;
+        nBIP44IDCurrent = 0x80000213;
 
         nModifierInterval = 10 * 60;    // 10 minutes
         nStakeMinConfirmations = 225;   // 225 * 2 minutes
@@ -691,7 +692,7 @@ public:
         pchMessageStart[2] = 0x06;
         pchMessageStart[3] = 0x0c;
         nDefaultPort = 11928;
-        nBIP44ID = 0x80000001;
+        nBIP44IDCurrent = 0x80000001;
 
 
         nModifierInterval = 2 * 60;     // 2 minutes

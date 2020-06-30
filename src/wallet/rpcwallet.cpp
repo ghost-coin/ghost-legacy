@@ -3417,6 +3417,7 @@ static UniValue createwallet(const JSONRPCRequest& request)
             {"blank", RPCArg::Type::BOOL, /* default */ "false", "Create a blank wallet. A blank wallet has no keys or HD seed. One can be set using sethdseed."},
             {"passphrase", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "Encrypt the wallet with this passphrase."},
             {"avoid_reuse", RPCArg::Type::BOOL, /* default */ "false", "Keep track of coin reuse, and treat dirty and clean coins differently with privacy considerations in mind."},
+            {"use_legacy", RPCArg::Type::BOOL, /* default */ "false", "Use legacy bip44 prefix when creating wallet."},
         },
         RPCResult{
             "{\n"
@@ -3438,6 +3439,7 @@ static UniValue createwallet(const JSONRPCRequest& request)
     if (!request.params[2].isNull() && request.params[2].get_bool()) {
         flags |= WALLET_FLAG_BLANK_WALLET;
     }
+    bool fUseLegacy = !request.params[5].isNull() && request.params[5].get_bool();
     SecureString passphrase;
     passphrase.reserve(100);
     std::string warning;
@@ -3456,7 +3458,7 @@ static UniValue createwallet(const JSONRPCRequest& request)
     std::string error;
     std::string create_warning;
     std::shared_ptr<CWallet> wallet;
-    WalletCreationStatus status = CreateWallet(*g_rpc_interfaces->chain, passphrase, flags, request.params[0].get_str(), error, create_warning, wallet);
+    WalletCreationStatus status = CreateWallet(*g_rpc_interfaces->chain, passphrase, flags, request.params[0].get_str(), error, create_warning, wallet,fUseLegacy);
     switch (status) {
         case WalletCreationStatus::CREATION_FAILED:
             throw JSONRPCError(RPC_WALLET_ERROR, error);
@@ -5188,7 +5190,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "addmultisigaddress",               &addmultisigaddress,            {"nrequired","keys","label|account","bech32","256bit","address_type"} },
     { "wallet",             "backupwallet",                     &backupwallet,                  {"destination"} },
     { "wallet",             "bumpfee",                          &bumpfee,                       {"txid", "options"} },
-    { "wallet",             "createwallet",                     &createwallet,                  {"wallet_name", "disable_private_keys", "blank", "passphrase", "avoid_reuse"} },
+    { "wallet",             "createwallet",                     &createwallet,                  {"wallet_name", "disable_private_keys", "blank", "passphrase", "avoid_reuse","use_legacy"} },
     { "wallet",             "dumpprivkey",                      &dumpprivkey,                   {"address"}  },
     { "wallet",             "dumpwallet",                       &dumpwallet,                    {"filename"} },
     { "wallet",             "encryptwallet",                    &encryptwallet,                 {"passphrase"} },

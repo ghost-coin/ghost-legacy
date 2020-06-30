@@ -743,7 +743,7 @@ static UniValue extkey(const JSONRPCRequest &request)
         "    Show default account when called without parameters or \"key/id\" = \"default\".\n"
         "extkey key \"key/id\" ( show_secrets )\n"
         "    Display details of loose extkey in wallet.\n"
-        "extkey import \"key\" ( \"label\" bip44 save_bip44_key )\n"
+        "extkey import \"key\" ( \"label\" bip44 save_bip44_key fLegacy)\n"
         "    Add loose key to wallet.\n"
         "    If bip44 is set import will add the key derived from <key> on the bip44 path.\n"
         "    If save_bip44_key is set import will save the bip44 key to the wallet.\n"
@@ -989,6 +989,11 @@ static UniValue extkey(const JSONRPCRequest &request)
         }
 
         sek.kp = eKey58.GetKey();
+        bool fLegacy = false;
+        if (request.params.size() > nParamOffset) {
+            fLegacy = GetBool(request.params[nParamOffset]);
+            nParamOffset++;
+        }
 
         {
             LOCK(pwallet->cs_wallet);
@@ -999,7 +1004,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
             int rv;
             CKeyID idDerived;
-            if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44))) {
+            if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44,fLegacy))) {
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("ExtKeyImportLoose failed, %s", ExtKeyGetString(rv)));
             }
@@ -1408,7 +1413,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     std::string sPassphrase = "";
     std::string sError;
     int64_t nScanFrom = 1;
-
+    bool fLegacy = request.params.size() > 6 ? GetBool(request.params[6]) : false;
     if (request.params.size() > 1) {
         sPassphrase = request.params[1].get_str();
     }
@@ -1429,8 +1434,8 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     if (request.params[5].isNum()) {
         nScanFrom = request.params[5].get_int64();
     }
-    if (request.params.size() > 6) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", request.params[6].get_str()));
+    if (request.params.size() > 7) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", request.params[7].get_str()));
     }
 
     LogPrintf("Importing master key and account with labels '%s', '%s'.\n", sLblMaster.c_str(), sLblAccount.c_str());
@@ -1486,7 +1491,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
             throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
         }
 
-        if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44Root))) {
+        if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44Root,fLegacy))) {
             wdb.TxnAbort();
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeyImportLoose failed, %s", ExtKeyGetString(rv)));
         }
@@ -1589,6 +1594,7 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
                     {"master_label", RPCArg::Type::STR, /* default */ "Master Key", "Label for master key."},
                     {"account_label", RPCArg::Type::STR, /* default */ "Default Account", "Label for account."},
                     {"scan_chain_from", RPCArg::Type::NUM, /* default */ "0", "Scan for transactions in blocks after timestamp, negative number to skip."},
+                    {"use_legacy", RPCArg::Type::BOOL, /* default */ "0", "Use legacy bip44 derivation."},
                 },
             RPCResults{},
             RPCExamples{
@@ -1623,6 +1629,7 @@ static UniValue extkeygenesisimport(const JSONRPCRequest &request)
                     {"master_label", RPCArg::Type::STR, /* default */ "Master Key", "Label for master key."},
                     {"account_label", RPCArg::Type::STR, /* default */ "Default Account", "Label for account."},
                     {"scan_chain_from", RPCArg::Type::NUM, /* default */ "0", "Scan for transactions in blocks after timestamp, negative number to skip."},
+                    {"use_legacy", RPCArg::Type::BOOL, /* default */ "0", "Use legacy bip44 derivation."},
                 },
             RPCResults{},
             RPCExamples{
