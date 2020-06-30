@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet)
 {
     UniValue rv;
 
-    BOOST_CHECK_NO_THROW(rv = CallRPC("extkeyimportmasterlegacy xprv9s21ZrQH143K3VrEYG4rhyPddr2o53qqqpCufLP6Rb3XSta2FZsqCanRJVfpTi4UX28pRaAfVGfiGpYDczv8tzTM6Qm5TRvUA9HDStbNUbQ \"\" false \"Master Key\" \"Default Account\" 0 true"));
+    BOOST_CHECK_NO_THROW(rv = CallRPC("extkeyimportmasterlegacy xprv9s21ZrQH143K3VrEYG4rhyPddr2o53qqqpCufLP6Rb3XSta2FZsqCanRJVfpTi4UX28pRaAfVGfiGpYDczv8tzTM6Qm5TRvUA9HDStbNUbQ"));
 
     BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress"));
     BOOST_CHECK(StripQuotes(rv.write()) == "SPGxiYZ1Q5dhAJxJNMk56ZbxcsUBYqTCsdEPPHsJJ96Vcns889gHTqSrTZoyrCd5E9NSe9XxLivK6izETniNp1Gu1DtrhVwv3VuZ3e");
