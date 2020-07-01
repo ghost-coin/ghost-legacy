@@ -451,7 +451,7 @@ static int CommandLineRPC(int argc, char *argv[])
             args.erase(args.begin()); // Remove trailing method name from arguments vector
 
             if (method == "extkeyimportmaster"
-                || method == "extkeygenesisimport" || method == "extkeyimportmasterlegacy") {
+                || method == "extkeygenesisimport" || method == "extkeyimportmasterlegacy" || method == "extkeygenesisimportlegacy") {
                 std::string sTemp;
                 if (args.size() == 0) {
                     args.resize(2);
