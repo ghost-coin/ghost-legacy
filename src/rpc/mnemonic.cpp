@@ -20,10 +20,10 @@
 //typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char> > SecureString;
 
 UniValue mnemonicrpc(const JSONRPCRequest &request)
-{
+{   //TODO update the menmonicrpc to latest rpc code style.
     std::string help = ""
         "mnemonic new|decode|addchecksum|dumpwords|listlanguages\n"
-        "mnemonic new ( \"password\" language nBytesEntropy bip44 )\n"
+        "mnemonic new ( \"password\" language nBytesEntropy bip44 fLegacy )\n"
         "    Generate a new extended key and mnemonic\n"
         "    password, can be blank "", default blank\n"
         "    language, english|french|japanese|spanish|chinese_s|chinese_t|italian|korean, default english\n"
@@ -31,7 +31,8 @@ UniValue mnemonicrpc(const JSONRPCRequest &request)
         "    bip44, true|false, default true\n"
         "mnemonic decode \"password\" \"mnemonic\" ( bip44 )\n"
         "    Decode mnemonic\n"
-        "    bip44, true|false, default true\n"
+        "    bip44,  true|false, default true\n"
+        "    fLegacy,true|false, default false\n"
         "mnemonic addchecksum \"mnemonic\"\n"
         "    Add checksum words to mnemonic.\n"
         "    Final no of words in mnemonic must be divisible by three.\n"
@@ -45,7 +46,7 @@ UniValue mnemonicrpc(const JSONRPCRequest &request)
         "\nAs a JSON-RPC call\n"
         + HelpExampleRpc("smsgpurge", "\"new\", \"my pass phrase\", french, 64, true");
 
-    if (request.fHelp || request.params.size() > 5) { // defaults to info, will always take at least 1 parameter
+    if (request.fHelp || request.params.size() > 6) { // defaults to info, will always take at least 1 parameter
         throw std::runtime_error(help);
     }
 
@@ -149,8 +150,9 @@ UniValue mnemonicrpc(const JSONRPCRequest &request)
         }
 
         bool fBip44 = request.params.size() > 3 ? GetBool(request.params[3]) : true;
+        bool fLegacy = request.params.size() > 4 ? GetBool(request.params[4]) : false;//Use legacy bip44 coinid
 
-        if (request.params.size() > 4) {
+        if (request.params.size() > 5) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
         }
         if (sMnemonic.empty()) {
@@ -182,7 +184,7 @@ UniValue mnemonicrpc(const JSONRPCRequest &request)
             // m / purpose' / coin_type' / account' / change / address_index
             CExtKey ekDerived;
             ekMaster.Derive(ekDerived, BIP44_PURPOSE);
-            ekDerived.Derive(ekDerived, Params().BIP44ID());
+            ekDerived.Derive(ekDerived, Params().BIP44ID(fLegacy));
 
             eKey58.SetKey(CExtKeyPair(ekDerived), CChainParams::EXT_SECRET_KEY);
             result.pushKV("derived", eKey58.ToString());

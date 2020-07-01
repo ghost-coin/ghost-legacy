@@ -93,7 +93,7 @@ public:
     const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
     int GetDefaultPort() const { return nDefaultPort; }
 
-    int BIP44ID() const { return nBIP44ID; }
+    int BIP44ID(bool fLegacy = false) const { return fLegacy ? nBIP44IDLegacy : nBIP44IDCurrent; }
 
     uint32_t GetModifierInterval() const { return nModifierInterval; }
     uint32_t GetStakeMinConfirmations() const { return nStakeMinConfirmations; }
@@ -162,7 +162,8 @@ protected:
     Consensus::Params consensus;
     CMessageHeader::MessageStartChars pchMessageStart;
     int nDefaultPort;
-    int nBIP44ID;
+    int nBIP44IDLegacy;
+    int nBIP44IDCurrent;
 
     uint32_t nModifierInterval;         // seconds to elapse before new modifier is computed
     uint32_t nStakeMinConfirmations;    // min depth in chain before staked output is spendable

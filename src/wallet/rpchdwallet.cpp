@@ -743,7 +743,7 @@ static UniValue extkey(const JSONRPCRequest &request)
         "    Show default account when called without parameters or \"key/id\" = \"default\".\n"
         "extkey key \"key/id\" ( show_secrets )\n"
         "    Display details of loose extkey in wallet.\n"
-        "extkey import \"key\" ( \"label\" bip44 save_bip44_key )\n"
+        "extkey import \"key\" ( \"label\" bip44 save_bip44_key fLegacy)\n"
         "    Add loose key to wallet.\n"
         "    If bip44 is set import will add the key derived from <key> on the bip44 path.\n"
         "    If save_bip44_key is set import will save the bip44 key to the wallet.\n"
@@ -989,6 +989,11 @@ static UniValue extkey(const JSONRPCRequest &request)
         }
 
         sek.kp = eKey58.GetKey();
+        bool fLegacy = false;
+        if (request.params.size() > nParamOffset) {
+            fLegacy = GetBool(request.params[nParamOffset]);
+            nParamOffset++;
+        }
 
         {
             LOCK(pwallet->cs_wallet);
@@ -999,7 +1004,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
             int rv;
             CKeyID idDerived;
-            if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44))) {
+            if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44, fLegacy))) {
                 wdb.TxnAbort();
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("ExtKeyImportLoose failed, %s", ExtKeyGetString(rv)));
             }
@@ -1383,7 +1388,7 @@ static UniValue extkey(const JSONRPCRequest &request)
     return result;
 };
 
-static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesisChain)
+static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesisChain, bool fLegacy = false)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
@@ -1408,7 +1413,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     std::string sPassphrase = "";
     std::string sError;
     int64_t nScanFrom = 1;
-
+    fLegacy = request.params.size() > 6 ? GetBool(request.params[6]) : fLegacy;
     if (request.params.size() > 1) {
         sPassphrase = request.params[1].get_str();
     }
@@ -1429,8 +1434,8 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
     if (request.params[5].isNum()) {
         nScanFrom = request.params[5].get_int64();
     }
-    if (request.params.size() > 6) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", request.params[6].get_str()));
+    if (request.params.size() > 7) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", request.params[7].get_str()));
     }
 
     LogPrintf("Importing master key and account with labels '%s', '%s'.\n", sLblMaster.c_str(), sLblAccount.c_str());
@@ -1486,7 +1491,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
             throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
         }
 
-        if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44Root))) {
+        if (0 != (rv = pwallet->ExtKeyImportLoose(&wdb, sek, idDerived, fBip44, fSaveBip44Root, fLegacy))) {
             wdb.TxnAbort();
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("ExtKeyImportLoose failed, %s", ExtKeyGetString(rv)));
         }
@@ -1589,6 +1594,7 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
                     {"master_label", RPCArg::Type::STR, /* default */ "Master Key", "Label for master key."},
                     {"account_label", RPCArg::Type::STR, /* default */ "Default Account", "Label for account."},
                     {"scan_chain_from", RPCArg::Type::NUM, /* default */ "0", "Scan for transactions in blocks after timestamp, negative number to skip."},
+                    {"use_legacy", RPCArg::Type::BOOL, /* default */ "false", "Use legacy bip44 derivation."},
                 },
             RPCResults{},
             RPCExamples{
@@ -1623,6 +1629,7 @@ static UniValue extkeygenesisimport(const JSONRPCRequest &request)
                     {"master_label", RPCArg::Type::STR, /* default */ "Master Key", "Label for master key."},
                     {"account_label", RPCArg::Type::STR, /* default */ "Default Account", "Label for account."},
                     {"scan_chain_from", RPCArg::Type::NUM, /* default */ "0", "Scan for transactions in blocks after timestamp, negative number to skip."},
+                    {"use_legacy", RPCArg::Type::BOOL, /* default */ "false", "Use legacy bip44 derivation."},
                 },
             RPCResults{},
             RPCExamples{
@@ -1634,6 +1641,74 @@ static UniValue extkeygenesisimport(const JSONRPCRequest &request)
         }.Check(request);
 
     return extkeyimportinternal(request, true);
+}
+
+static UniValue extkeyimportmasterlegacy(const JSONRPCRequest &request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+        return NullUniValue;
+
+            RPCHelpMan{"extkeyimportmasterlegacy",
+                "\nImport master key from bip44 mnemonic root key and derive default account.Uses legacy bip44 coin id\n"
+                "Derives an extra chain from path 444444 to receive imported coin." +
+                HelpRequiringPassphrase(pwallet) + "\n",
+                {
+                    {"mnemonic/key", RPCArg::Type::STR, RPCArg::Optional::NO, "The mnemonic or root extended key.\n"
+        "       Use '-stdin' to be prompted to enter a passphrase.\n"
+        "       if mnemonic is blank, defaults to '-stdin'."},
+                    {"passphrase", RPCArg::Type::STR, /* default */ "", "Passphrase when importing mnemonic.\n"
+        "       Use '-stdin' to be prompted to enter a passphrase."},
+                    {"save_bip44_root", RPCArg::Type::BOOL, /* default */ "false", "Save bip44 root key to wallet."},
+                    {"master_label", RPCArg::Type::STR, /* default */ "Master Key", "Label for master key."},
+                    {"account_label", RPCArg::Type::STR, /* default */ "Default Account", "Label for account."},
+                    {"scan_chain_from", RPCArg::Type::NUM, /* default */ "0", "Scan for transactions in blocks after timestamp, negative number to skip."},
+                },
+            RPCResults{},
+            RPCExamples{
+        HelpExampleCli("extkeyimportmasterlegacy", "-stdin -stdin false \"label_master\" \"label_account\"")
+        + HelpExampleCli("extkeyimportmasterlegacy", "\"word1 ... word24\" \"passphrase\" false \"label_master\" \"label_account\"") +
+        "\nAs a JSON-RPC call\n"
+        + HelpExampleRpc("extkeyimportmasterlegacy", "\"word1 ... word24\", \"passphrase\", false, \"label_master\", \"label_account\"")
+            },
+        }.Check(request);
+
+    return extkeyimportinternal(request, false,true);
+}
+
+static UniValue extkeygenesisimportlegacy(const JSONRPCRequest &request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+        return NullUniValue;
+
+            RPCHelpMan{"extkeyimportmasterlegacy",
+                "\nImport master key from bip44 mnemonic root key and derive default account.Uses legacy bip44 coin id\n"
+                "Derives an extra chain from path 444444 to receive imported coin." +
+                HelpRequiringPassphrase(pwallet) + "\n",
+                {
+                    {"mnemonic/key", RPCArg::Type::STR, RPCArg::Optional::NO, "The mnemonic or root extended key.\n"
+        "       Use '-stdin' to be prompted to enter a passphrase.\n"
+        "       if mnemonic is blank, defaults to '-stdin'."},
+                    {"passphrase", RPCArg::Type::STR, /* default */ "", "Passphrase when importing mnemonic.\n"
+        "       Use '-stdin' to be prompted to enter a passphrase."},
+                    {"save_bip44_root", RPCArg::Type::BOOL, /* default */ "false", "Save bip44 root key to wallet."},
+                    {"master_label", RPCArg::Type::STR, /* default */ "Master Key", "Label for master key."},
+                    {"account_label", RPCArg::Type::STR, /* default */ "Default Account", "Label for account."},
+                    {"scan_chain_from", RPCArg::Type::NUM, /* default */ "0", "Scan for transactions in blocks after timestamp, negative number to skip."},
+                },
+            RPCResults{},
+            RPCExamples{
+        HelpExampleCli("extkeyimportmasterlegacy", "-stdin -stdin false \"label_master\" \"label_account\"")
+        + HelpExampleCli("extkeyimportmasterlegacy", "\"word1 ... word24\" \"passphrase\" false \"label_master\" \"label_account\"") +
+        "\nAs a JSON-RPC call\n"
+        + HelpExampleRpc("extkeyimportmasterlegacy", "\"word1 ... word24\", \"passphrase\", false, \"label_master\", \"label_account\"")
+            },
+        }.Check(request);
+
+    return extkeyimportinternal(request, true,true);
 }
 
 static UniValue extkeyaltversion(const JSONRPCRequest &request)
@@ -8267,8 +8342,11 @@ static const CRPCCommand commands[] =
 { //  category              name                                actor (function)                argNames
   //  --------------------- ------------------------            -----------------------         ----------
     { "wallet",             "extkey",                           &extkey,                        {} },
-    { "wallet",             "extkeyimportmaster",               &extkeyimportmaster,            {"source","passphrase","save_bip44_root","master_label","account_label","scan_chain_from"} }, // import, set as master, derive account, set default account, force users to run mnemonic new first make them copy the key
-    { "wallet",             "extkeygenesisimport",              &extkeygenesisimport,           {"source","passphrase","save_bip44_root","master_label","account_label","scan_chain_from"} },
+    { "wallet",             "extkeyimportmaster",               &extkeyimportmaster,            {"source","passphrase","save_bip44_root","master_label","account_label","scan_chain_from","use_legacy"} }, // import, set as master, derive account, set default account, force users to run mnemonic new first make them copy the key
+    { "wallet",             "extkeygenesisimport",              &extkeygenesisimport,           {"source","passphrase","save_bip44_root","master_label","account_label","scan_chain_from","use_legacy"} },
+    { "wallet",             "extkeyimportmasterlegacy",         &extkeyimportmasterlegacy,      {"source","passphrase","save_bip44_root","master_label","account_label","scan_chain_from"} },
+    { "wallet",             "extkeygenesisimportlegacy",        &extkeygenesisimportlegacy,      {"source","passphrase","save_bip44_root","master_label","account_label","scan_chain_from"} },
+
     { "wallet",             "extkeyaltversion",                 &extkeyaltversion,              {"ext_key"} },
     { "wallet",             "getnewextaddress",                 &getnewextaddress,              {"label","childNo","bech32","hardened"} },
     { "wallet",             "getnewstealthaddress",             &getnewstealthaddress,          {"label","num_prefix_bits","prefix_num","bech32","makeV2"} },
