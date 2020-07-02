@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <boost/optional/optional_io.hpp>
 
 #include "coldreward/coldrewardtracker.h"
 
@@ -72,6 +73,31 @@ struct ColdRewardsSetup : public BasicTestingSetup {
     std::map<AddressType, std::vector<BlockHeightRange>> ranges;
     std::map<int, uint256> checkpoints;
     int checkpoint = 0;
+
+    struct TrackerState {
+        std::map<AddressType, CAmount> balances;
+        std::map<AddressType, std::vector<BlockHeightRange>> ranges;
+        std::map<int, uint256> checkpoints;
+        int checkpoint = 0;
+    };
+
+    TrackerState saveTrackerState() {
+        TrackerState result;
+
+        result.balances = balances;
+        result.ranges = ranges;
+        result.checkpoints = checkpoints;
+        result.checkpoint = checkpoint;
+
+        return result;
+    }
+
+    void restoreTrackerState(const TrackerState& state) {
+        balances = state.balances;
+        ranges = state.ranges;
+        checkpoints = state.checkpoints;
+        checkpoint = state.checkpoint;
+    }
 };
 
 namespace {
@@ -396,6 +422,7 @@ BOOST_AUTO_TEST_CASE(getEligibleAddresses)
     tracker.endPersistedTransaction();
 
     // assert was eligable for month 3 in the past but not now
+    // this doesn't work because we just added block (tracker.MinimumRewardRangeSpan * 3)
     BOOST_REQUIRE_THROW(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), std::invalid_argument);
     BOOST_REQUIRE_THROW(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front()), std::invalid_argument);
 
@@ -403,7 +430,7 @@ BOOST_AUTO_TEST_CASE(getEligibleAddresses)
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 4).size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(balance)
+BOOST_AUTO_TEST_CASE(negative_balance)
 {
     std::string addrStr = "abc";
     AddressType addr = VecUint8FromString(addrStr);
@@ -512,50 +539,55 @@ BOOST_AUTO_TEST_CASE(performance)
     std::string addrStr = "abc";
     AddressType addr = VecUint8FromString(addrStr);
 
-    // 20001 coins added at block 1
-    tracker.startPersistedTransaction();
-    tracker.addAddressTransaction(1, addr, 20001 * COIN, checkpoints);
-    tracker.endPersistedTransaction();
+    {
+        // 20001 coins added at block 1
+        tracker.startPersistedTransaction();
+        tracker.addAddressTransaction(1, addr, 20001 * COIN, checkpoints);
+        tracker.endPersistedTransaction();
 
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-    std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
-
+        std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << " [µs]" << std::endl;
+    }
     srand(time(NULL));
 
-    for(int i = 0; i<5000; i++) {
-        std::string addrStr = randomAddrGen(std::rand()%10);
-        AddressType addr = VecUint8FromString(addrStr);
+    {
+        for(int i = 0; i < 5000; i++) {
+            std::string addrStr = randomAddrGen(std::rand()%10);
+            AddressType addr = VecUint8FromString(addrStr);
 
-        // send some coin below 20k to all addresses
-        tracker.startPersistedTransaction();
-        tracker.addAddressTransaction(1, addr, rand()%20000 * COIN, checkpoints);
-        tracker.endPersistedTransaction();
+            // send some coin below 20k to all addresses
+            tracker.startPersistedTransaction();
+            tracker.addAddressTransaction(1, addr, rand()%20000 * COIN, checkpoints);
+            tracker.endPersistedTransaction();
+        }
+
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+        std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << " [µs]" << std::endl;
     }
 
-    begin = std::chrono::steady_clock::now();
-    tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
-    end = std::chrono::steady_clock::now();
+    {
+        for(int i = 0; i < 50000; i++) {
+            std::string addrStr = randomAddrGen(std::rand()%10);
+            AddressType addr = VecUint8FromString(addrStr);
 
-    std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+            // send some coin below 20k to all addresses
+            tracker.startPersistedTransaction();
+            tracker.addAddressTransaction(1, addr, rand()%20000 * COIN, checkpoints);
+            tracker.endPersistedTransaction();
+        }
 
-    for(int i = 0; i<50000; i++) {
-        std::string addrStr = randomAddrGen(std::rand()%10);
-        AddressType addr = VecUint8FromString(addrStr);
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-        // send some coin below 20k to all addresses
-        tracker.startPersistedTransaction();
-        tracker.addAddressTransaction(1, addr, rand()%20000 * COIN, checkpoints);
-        tracker.endPersistedTransaction();
+        std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << " [µs]" << std::endl;
     }
-
-    begin = std::chrono::steady_clock::now();
-    tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2);
-    end = std::chrono::steady_clock::now();
-
-    std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(checkpoints_basic)
@@ -610,6 +642,119 @@ BOOST_AUTO_TEST_CASE(checkpoints_basic)
     BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 9);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 9);
+    BOOST_REQUIRE(ranges.at(addr)[0].isOverThreshold());
+}
+
+BOOST_AUTO_TEST_CASE(checkpoints_many)
+{
+    // add a checkpoint at block 3
+    checkpoints.insert(std::make_pair(0, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
+    checkpoints.insert(std::make_pair(10, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
+    checkpoints.insert(std::make_pair(20, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
+    checkpoints.insert(std::make_pair(30, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
+    checkpoints.insert(std::make_pair(50, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
+    checkpoints.insert(std::make_pair(100, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
+
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
+
+    BOOST_REQUIRE_THROW(balances.at(addr), std::out_of_range);
+
+    // 20001 coins added at block 4 to insert a record
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(4, addr, 20000 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 4);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 4);
+
+    // change state to below 20k
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(7, addr, -1 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 19999 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 4);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 4);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 7);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 7);
+
+    // add some transaction after the checkpoint, this will delete old records for address,
+    // and a new one will be added
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(12, addr, 1 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 12);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 12);
+
+    // now we add a transaction at a block > 30, to test that this should not be removed yet
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(33, addr, 1 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20001 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 12);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 33);
+
+    // one more block in the future
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(45, addr, 1 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20002 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 12);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 45);
+
+    // one more block in the future that goes below the threshold, but below the next threshold
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(48, addr, -3 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 19999 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 12);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 45);
+    BOOST_REQUIRE(ranges.at(addr)[0].isOverThreshold());
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 48);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 48);
+    BOOST_REQUIRE(!ranges.at(addr)[1].isOverThreshold());
+
+    // we're gonna add after the next checkpoint, once below and once above the threshold, so we save the state
+    auto trackerState = saveTrackerState();
+
+    // now below threshold, but at the next
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(55, addr, -2 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 19997 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 0);
+
+    // now attempt to roll back before the last checkpoint. This should not be allowed
+    tracker.startPersistedTransaction();
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(48, addr, -3 * COIN, checkpoints), std::invalid_argument);
+    tracker.endPersistedTransaction();
+
+    restoreTrackerState(trackerState);
+
+    // now we do it again, but above threshold after having restored the state
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(55, addr, 3 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+    BOOST_CHECK_EQUAL(balances.at(addr), 20002 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 55);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 55);
+    BOOST_REQUIRE(ranges.at(addr)[0].isOverThreshold());
 }
 
 BOOST_AUTO_TEST_CASE(checkpoints_rollback)
@@ -681,6 +826,122 @@ BOOST_AUTO_TEST_CASE(checkpoints_rollback)
     tracker.startPersistedTransaction();
     BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(3, addr, 0, checkpoints), std::invalid_argument);
     tracker.endPersistedTransaction();
+}
+
+BOOST_AUTO_TEST_CASE(get_last_checkpoint)
+{
+    {
+        const std::map<int, uint256> checkpoints;
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 0);
+            BOOST_REQUIRE_EQUAL(cp, boost::none);
+        }
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 10);
+            BOOST_REQUIRE_EQUAL(cp, boost::none);
+        }
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 100);
+            BOOST_REQUIRE_EQUAL(cp, boost::none);
+        }
+    }
+
+    {
+        const std::map<int, uint256> checkpoints{{10, uint256()}, {20, uint256()}, {30, uint256()}};
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 0);
+            BOOST_REQUIRE_EQUAL(cp, boost::none);
+        }
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 10);
+            BOOST_REQUIRE_EQUAL(cp, 10);
+        }
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 100);
+            BOOST_REQUIRE_EQUAL(cp, 30);
+        }
+    }
+    {
+        const std::map<int, uint256> checkpoints{
+            {0, uint256()},
+            {10, uint256()},
+            {20, uint256()},
+            {30, uint256()}};
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 0);
+            BOOST_REQUIRE_EQUAL(cp, 0);
+        }
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 10);
+            BOOST_REQUIRE_EQUAL(cp, 10);
+        }
+
+        {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, 100);
+            BOOST_REQUIRE_EQUAL(cp, 30);
+        }
+    }
+
+    {
+        const std::map<int, uint256> checkpoints{
+            {10, uint256()},
+            {20, uint256()},
+            {30, uint256()},
+            {40, uint256()},
+            {50, uint256()}};
+
+        for(int i = 0; i < 100; i++) {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, i);
+            if(i < 10) {
+                BOOST_REQUIRE_EQUAL(cp, boost::none);
+            } else if(i < 20) {
+                BOOST_REQUIRE_EQUAL(*cp, 10);
+            } else if(i < 30) {
+                BOOST_REQUIRE_EQUAL(*cp, 20);
+            } else if(i < 40) {
+                BOOST_REQUIRE_EQUAL(*cp, 30);
+            } else if(i < 50) {
+                BOOST_REQUIRE_EQUAL(*cp, 40);
+            } else {
+                BOOST_REQUIRE_EQUAL(*cp, 50);
+            }
+        }
+    }
+
+    {
+        const std::map<int, uint256> checkpoints{
+            {0, uint256()},
+            {10, uint256()},
+            {20, uint256()},
+            {30, uint256()},
+            {40, uint256()},
+            {50, uint256()}};
+
+        for(int i = 0; i < 100; i++) {
+            const boost::optional<int> cp = ColdRewardTracker::GetLastCheckpoint(checkpoints, i);
+            if(i < 10) {
+                BOOST_REQUIRE_EQUAL(*cp, 0);
+            } else if(i < 20) {
+                BOOST_REQUIRE_EQUAL(*cp, 10);
+            } else if(i < 30) {
+                BOOST_REQUIRE_EQUAL(*cp, 20);
+            } else if(i < 40) {
+                BOOST_REQUIRE_EQUAL(*cp, 30);
+            } else if(i < 50) {
+                BOOST_REQUIRE_EQUAL(*cp, 40);
+            } else {
+                BOOST_REQUIRE_EQUAL(*cp, 50);
+            }
+        }
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

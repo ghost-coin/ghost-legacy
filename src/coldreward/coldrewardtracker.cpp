@@ -23,10 +23,7 @@ boost::optional<std::vector<BlockHeightRange>> ColdRewardTracker::getAddressRang
 
 boost::optional<int> ColdRewardTracker::getCheckpointInCache()
 {
-    if (checkpoint > 0)
-        return checkpoint;
-    else
-        return boost::none;
+    return lastCheckpoint;
 }
 
 CAmount ColdRewardTracker::getBalance(const AddressType& addr)
@@ -59,9 +56,8 @@ int ColdRewardTracker::getCheckpoint()
     if (checkpoint) {
         return *checkpoint;
     }
-    int c = checkpointGetter();
-    checkpoint = c;
-    return c;
+    this->lastCheckpoint = checkpointGetter();
+    return *this->lastCheckpoint;
 }
 
 void ColdRewardTracker::updateAddressRangesCache(const AddressType& addr, std::vector<BlockHeightRange>&& ranges)
@@ -71,10 +67,7 @@ void ColdRewardTracker::updateAddressRangesCache(const AddressType& addr, std::v
 
 void ColdRewardTracker::updateCheckpointCache(int new_checkpoint)
 {
-    if (new_checkpoint > checkpoint) {
-        checkpoint = new_checkpoint;
-        checkpointSetter(new_checkpoint);
-    }
+    lastCheckpoint = new_checkpoint;
 }
 
 void ColdRewardTracker::AssertTrue(bool valueShouldBeTrue, const std::string& functionName, const std::string &msg)
@@ -97,6 +90,9 @@ void ColdRewardTracker::endPersistedTransaction()
     for (auto&& p : addressesRanges) {
         rangesSetter(p.first, p.second);
     }
+    if(lastCheckpoint) {
+        checkpointSetter(*lastCheckpoint);
+    }
     transactionEnder();
     addressesRanges.clear();
     balances.clear();
@@ -107,6 +103,29 @@ void ColdRewardTracker::revertPersistedTransaction()
     addressesRanges.clear();
     balances.clear();
     transactionEnder();
+}
+
+boost::optional<int> ColdRewardTracker::GetLastCheckpoint(const std::map<int, uint256> &checkpoints, int currentBlockHeight)
+{
+    /// retrieve the last checkpoint k, where k <= currentBlockHeight
+    if(checkpoints.size() == 0) {
+        return boost::none;
+    }
+    auto last = checkpoints.lower_bound(currentBlockHeight);
+    if(last == checkpoints.end()) {
+        if(checkpoints.rbegin()->first <= currentBlockHeight) {
+            return checkpoints.rbegin()->first;
+        }
+        return boost::none;
+    }
+    if(last->first == currentBlockHeight) {
+        return last->first;
+    } else if(last != checkpoints.begin()) {
+        last--;
+        return last->first;
+    } else {
+        return boost::none;
+    }
 }
 
 std::vector<ColdRewardTracker::AddressType> ColdRewardTracker::getEligibleAddresses(int currentBlockHeight)
@@ -149,17 +168,10 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
     AssertTrue(balance >= 0, __func__, "Can't apply, total address balance will be negative");
     std::vector<BlockHeightRange> ranges = getAddressRanges(address);
 
-    if(checkpoints.size() > 0) {
-        auto last = checkpoints.upper_bound(blockHeight);
-        if(last != checkpoints.begin()) {
-            --last;
-            RemoveOldData(last->first, ranges);
-            updateAddressRangesCache(address, std::move(ranges));
-            updateCheckpointCache(last->first);
-        }
-    }
+    const std::size_t rangesSizeBefore = ranges.size();
 
     balances[address] = balance;
+
     if (balance >= GVRThreshold) {
         if (ranges.size() == 0) {
             ranges.push_back(BlockHeightRange(blockHeight, blockHeight, true));
@@ -170,13 +182,24 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
                 ranges.push_back(BlockHeightRange(blockHeight, blockHeight, true));
             }
         }
-        updateAddressRangesCache(address, std::move(ranges));
     } else {
-        if (!ranges.empty()) {
-            // we add a [blockHeight, blockHeight] range as a marker that the balance isn't GVR eligible anymore
-            ranges.push_back(BlockHeightRange(blockHeight, blockHeight, false));
-            updateAddressRangesCache(address, std::move(ranges));
-        }
+        // we add a [blockHeight, blockHeight] range as a marker that the balance isn't GVR eligible anymore
+        ranges.push_back(BlockHeightRange(blockHeight, blockHeight, false));
+    }
+
+    const boost::optional<int> lastBlockHeightInCheckpoint = GetLastCheckpoint(checkpoints, blockHeight);
+    if(lastBlockHeightInCheckpoint) {
+        RemoveOldData(*lastBlockHeightInCheckpoint, ranges);
+        updateCheckpointCache(*lastBlockHeightInCheckpoint);
+    }
+
+    // ranges that are under the threshold and come at the beginning are not interesting and don't need to remain
+    while(ranges.size() > 0 && !ranges[0].isOverThreshold()) {
+        ranges.erase(ranges.begin());
+    }
+
+    if(ranges.size() > 0 || rangesSizeBefore > 0) {
+        updateAddressRangesCache(address, std::move(ranges));
     }
 }
 

@@ -3,10 +3,10 @@
 
 #include "blockheightrange.h"
 
+#include <boost/optional.hpp>
 #include <functional>
 #include <map>
 #include <vector>
-#include <boost/optional.hpp>
 
 #include "amount.h"
 #include "uint256.h"
@@ -57,13 +57,13 @@ class ColdRewardTracker
 public:
     using AddressType = std::vector<uint8_t>;
 
-    static constexpr CAmount GVRThreshold = 20000*COIN;
-    static constexpr int MinimumRewardRangeSpan = 30*24*30;
+    static constexpr CAmount GVRThreshold = 20000 * COIN;
+    static constexpr int MinimumRewardRangeSpan = 30 * 24 * 30;
 
 private:
     std::map<AddressType, std::vector<BlockHeightRange>> addressesRanges;
     std::map<AddressType, CAmount> balances;
-    int checkpoint = 0;
+    boost::optional<int> lastCheckpoint;
 
     std::function<CAmount(const AddressType&)> balanceGetter;
     std::function<void(const AddressType&, const CAmount&)> balanceSetter;
@@ -82,7 +82,7 @@ private:
 protected:
     boost::optional<CAmount> getBalanceInCache(const AddressType& addr);
     boost::optional<std::vector<BlockHeightRange>> getAddressRangesInCache(const AddressType& addr);
-    CAmount getBalance(const AddressType &addr);
+    CAmount getBalance(const AddressType& addr);
     std::vector<BlockHeightRange> getAddressRanges(const AddressType& addr);
     void updateAddressRangesCache(const AddressType& addr, std::vector<BlockHeightRange>&& ranges);
     boost::optional<int> getCheckpointInCache();
@@ -90,16 +90,17 @@ protected:
     int getCheckpoint();
 
 
-    void AssertTrue(bool valueShouldBeTrue, const std::string &functionName, const std::string& msg);
+    void AssertTrue(bool valueShouldBeTrue, const std::string& functionName, const std::string& msg);
     void RemoveOldData(int lastCheckpoint, std::vector<BlockHeightRange>& ranges);
 
 public:
     ColdRewardTracker() = default;
 
-public:
     void startPersistedTransaction();
     void endPersistedTransaction();
     void revertPersistedTransaction();
+
+    static boost::optional<int> GetLastCheckpoint(const std::map<int, uint256>& checkpoints, int currentBlockHeight);
 
     std::vector<AddressType> getEligibleAddresses(int currentBlockHeight);
 
