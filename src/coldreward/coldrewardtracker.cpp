@@ -203,7 +203,7 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
     }
 }
 
-void ColdRewardTracker::removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock, const std::map<int, uint256>& checkpoints)
+void ColdRewardTracker::removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock)
 {
     AssertTrue(getCheckpoint() < blockHeight, __func__, "Can't apply, height is lower than the last checkpoint we saw");
     CAmount balance = balanceGetter(address) - balanceChangeInBlock;

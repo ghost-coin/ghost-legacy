@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // revert block 110, now we're back 20k+
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(110, addr, -5 * COIN, checkpoints);
+    tracker.removeAddressTransaction(110, addr, -5 * COIN);
     tracker.endPersistedTransaction();
 
     // we're eligible for a reward only the second month
@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // now revert that last block
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(101, addr, -5 * COIN, checkpoints);
+    tracker.removeAddressTransaction(101, addr, -5 * COIN);
     tracker.endPersistedTransaction();
 
     // we're eligible for a reward only the second month
@@ -244,7 +244,7 @@ BOOST_AUTO_TEST_CASE(basic)
     // (even though it wasn't added, but it's still logically valid,
     //  since the user owned a 20k+ balance from block 50 to 99)
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(100, addr, 0 * COIN, checkpoints);
+    tracker.removeAddressTransaction(100, addr, 0 * COIN);
     tracker.endPersistedTransaction();
 
     // we're eligible for a reward only the second month
@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE(corner)
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
 
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(21601, addr, 5 * COIN, checkpoints);
+    tracker.removeAddressTransaction(21601, addr, 5 * COIN);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 20010 * COIN);
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(corner)
 
     // calling with a block that doesn't have a record should change nothing other than the balance
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(22600, addr, 15 * COIN, checkpoints);
+    tracker.removeAddressTransaction(22600, addr, 15 * COIN);
     tracker.endPersistedTransaction();
 
     BOOST_CHECK_EQUAL(balances.at(addr), 19980 * COIN);
@@ -442,7 +442,7 @@ BOOST_AUTO_TEST_CASE(negative_balance)
 
     // remove
     tracker.startPersistedTransaction();
-    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(1, addr, 1 * COIN, checkpoints), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(1, addr, 1 * COIN), std::invalid_argument);
     tracker.endPersistedTransaction();
 }
 
@@ -740,7 +740,7 @@ BOOST_AUTO_TEST_CASE(checkpoints_many)
 
     // now attempt to roll back before the last checkpoint. This should not be allowed
     tracker.startPersistedTransaction();
-    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(48, addr, -3 * COIN, checkpoints), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(48, addr, -3 * COIN), std::invalid_argument);
     tracker.endPersistedTransaction();
 
     restoreTrackerState(trackerState);
@@ -774,7 +774,7 @@ BOOST_AUTO_TEST_CASE(checkpoints_rollback)
 
     // revert back is valid as we dont have any checkpoint, first revert to block 4
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(4, addr, 20000 * COIN, checkpoints);
+    tracker.removeAddressTransaction(4, addr, 20000 * COIN);
     tracker.endPersistedTransaction();
     BOOST_CHECK_EQUAL(balances.at(addr), 0);
     BOOST_REQUIRE_EQUAL(ranges.size(), 1);
@@ -782,7 +782,7 @@ BOOST_AUTO_TEST_CASE(checkpoints_rollback)
 
     // then revert to block 1
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(4, addr, 0, checkpoints);
+    tracker.removeAddressTransaction(4, addr, 0);
     tracker.endPersistedTransaction();
     BOOST_CHECK_EQUAL(balances.at(addr), 0);
     BOOST_REQUIRE_EQUAL(ranges.size(), 1);
@@ -803,12 +803,12 @@ BOOST_AUTO_TEST_CASE(checkpoints_rollback)
 
     // revert back below last checkpoint will fail
     tracker.startPersistedTransaction();
-    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(1, addr, 20000 * COIN, checkpoints), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(1, addr, 20000 * COIN), std::invalid_argument);
     tracker.endPersistedTransaction();
 
     // revert to block 5 is ok
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(5, addr, 20000 * COIN, checkpoints);
+    tracker.removeAddressTransaction(5, addr, 20000 * COIN);
     tracker.endPersistedTransaction();
     BOOST_CHECK_EQUAL(balances.at(addr), 0);
     BOOST_REQUIRE_EQUAL(ranges.size(), 1);
@@ -816,7 +816,7 @@ BOOST_AUTO_TEST_CASE(checkpoints_rollback)
 
     // revert to block 4 is ok
     tracker.startPersistedTransaction();
-    tracker.removeAddressTransaction(4, addr, 0, checkpoints);
+    tracker.removeAddressTransaction(4, addr, 0);
     tracker.endPersistedTransaction();
     BOOST_CHECK_EQUAL(balances.at(addr), 0);
     BOOST_REQUIRE_EQUAL(ranges.size(), 1);
@@ -824,7 +824,7 @@ BOOST_AUTO_TEST_CASE(checkpoints_rollback)
 
     // revert to block of checkpoint will fail
     tracker.startPersistedTransaction();
-    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(3, addr, 0, checkpoints), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.removeAddressTransaction(3, addr, 0), std::invalid_argument);
     tracker.endPersistedTransaction();
 }
 

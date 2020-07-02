@@ -105,7 +105,7 @@ public:
     std::vector<AddressType> getEligibleAddresses(int currentBlockHeight);
 
     void addAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChange, const std::map<int, uint256>& checkpoints);
-    void removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock, const std::map<int, uint256>& checkpoints);
+    void removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock);
 
     void setPersistedBalanceGetter(const std::function<CAmount(const AddressType&)>& func);
     void setPersistedBalanceSetter(const std::function<void(const AddressType&, const CAmount&)>& func);
