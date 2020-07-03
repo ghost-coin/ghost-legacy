@@ -1,5 +1,5 @@
 ---
-name: "ghost-win-0.19.1.4"
+name: "ghost-win-0.19.1.6"
 enable_cache: true
 sudo: true
 distro: "ubuntu"
