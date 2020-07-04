@@ -991,12 +991,15 @@ BOOST_AUTO_TEST_CASE(multiple_addresses)
     BOOST_REQUIRE_EQUAL(ranges.at(addr1).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getRewardMultiplier(), 1);
 
     // be below 20k for addresss1 and address2 in block 2
     tracker.startPersistedTransaction();
@@ -1013,18 +1016,24 @@ BOOST_AUTO_TEST_CASE(multiple_addresses)
     BOOST_REQUIRE_EQUAL(ranges.at(addr1).size(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr1)[1].getStart(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr1)[1].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[1].getRewardMultiplier(), 0);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getStart(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getRewardMultiplier(), 0);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3).size(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getRewardMultiplier(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3)[1].getStart(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3)[1].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[1].getRewardMultiplier(), 1);
 
     // remove last block
     tracker.startPersistedTransaction();
@@ -1041,12 +1050,15 @@ BOOST_AUTO_TEST_CASE(multiple_addresses)
     BOOST_REQUIRE_EQUAL(ranges.at(addr1).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getRewardMultiplier(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(multiple_updates)
@@ -1066,8 +1078,10 @@ BOOST_AUTO_TEST_CASE(multiple_updates)
     BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getRewardMultiplier(), 0);
 
     // be below and above 20k in the same block
     tracker.startPersistedTransaction();
@@ -1080,10 +1094,13 @@ BOOST_AUTO_TEST_CASE(multiple_updates)
     BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 3);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getRewardMultiplier(), 0);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getStart(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getRewardMultiplier(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(get_last_checkpoint)
