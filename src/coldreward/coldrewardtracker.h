@@ -57,8 +57,8 @@ class ColdRewardTracker
 public:
     using AddressType = std::vector<uint8_t>;
 
-    static constexpr CAmount GVRThreshold = 20000 * COIN;
-    static constexpr int MinimumRewardRangeSpan = 30 * 24 * 30;
+    static CAmount GVRThreshold;
+    static int MinimumRewardRangeSpan;
 
 private:
     std::map<AddressType, std::vector<BlockHeightRange>> addressesRanges;

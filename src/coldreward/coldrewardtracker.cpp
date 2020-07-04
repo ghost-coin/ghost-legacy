@@ -1,5 +1,8 @@
 ﻿#include "coldrewardtracker.h"
 
+CAmount ColdRewardTracker::GVRThreshold = 20000 * COIN;
+int ColdRewardTracker::MinimumRewardRangeSpan = 30 * 24 * 30;
+
 
 boost::optional<CAmount> ColdRewardTracker::getBalanceInCache(const AddressType& addr)
 {
