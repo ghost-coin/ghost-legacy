@@ -11,13 +11,15 @@ class BlockHeightRange
 
     /// how many multiples of the minimum amount for a GVR requirement this range has
     unsigned rewardMultiplier = 0;
+    unsigned prevMultiplier = 0;
 
 public:
-    BlockHeightRange(int Start, int End, unsigned RewardMultiplier);
+    BlockHeightRange(int Start, int End, unsigned RewardMultiplier, unsigned PrevRewardMultiplier);
 
     int getEnd() const;
     int getStart() const;
     unsigned getRewardMultiplier() const;
+    unsigned getPrevRewardMultiplier() const;
     void newEnd(int value);
 };
 

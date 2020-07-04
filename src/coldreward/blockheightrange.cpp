@@ -17,6 +17,11 @@ unsigned BlockHeightRange::getRewardMultiplier() const
     return rewardMultiplier;
 }
 
+unsigned BlockHeightRange::getPrevRewardMultiplier() const
+{
+    return prevMultiplier;
+}
+
 void BlockHeightRange::newEnd(const int value)
 {
     end = value;
@@ -25,7 +30,11 @@ void BlockHeightRange::newEnd(const int value)
     }
 }
 
-BlockHeightRange::BlockHeightRange(const int Start, const int End, const unsigned RewardMultiplier) : start(Start), end(End), rewardMultiplier(RewardMultiplier)
+BlockHeightRange::BlockHeightRange(const int Start, const int End, const unsigned RewardMultiplier, unsigned PrevRewardMultiplier)
+    : start(Start),
+      end(End),
+      rewardMultiplier(RewardMultiplier),
+      prevMultiplier(PrevRewardMultiplier)
 {
     if(Start > End) {
         throw std::runtime_error("Invalid range: [" + std::to_string(Start) + "," + std::to_string(End) + "]");

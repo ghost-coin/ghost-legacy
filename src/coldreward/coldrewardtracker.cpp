@@ -136,17 +136,47 @@ std::vector<unsigned> ColdRewardTracker::ExtractRewardMultipliersFromRanges(int 
     std::vector<unsigned> rewardMultipliers;
 
     const auto& ar = addressRanges;
+
     for(unsigned i = 0; i < ar.size(); i++) {
         const unsigned idx = ar.size() - i - 1;
+        AssertTrue(currentBlockHeight > ar[idx].getStart(), std::string(__func__), "You can't get the reward for the future");
+        AssertTrue(currentBlockHeight > ar[idx].getEnd(), std::string(__func__), "You can't get the reward for the future");
+
         // collect all reward multipliers that are > 0 over the last periods, to figure out the final reward
+        const int startDistance = currentBlockHeight - ar[idx].getStart();
+        const int endDistance = currentBlockHeight -   ar[idx].getEnd();
         if(ar[idx].getRewardMultiplier() > 0) {
+
             // collect all changes in balance over the last MinimumRewardRangeSpan
-            if(currentBlockHeight - ar[idx].getStart() >= MinimumRewardRangeSpan ||
-               currentBlockHeight -   ar[idx].getEnd() >= MinimumRewardRangeSpan)
-            rewardMultipliers.push_back(ar[idx].getRewardMultiplier());
+
+            if(startDistance == MinimumRewardRangeSpan) {
+                // if the balance changed at the point of start
+                rewardMultipliers.push_back(ar[idx].getRewardMultiplier());
+            } else if(startDistance < MinimumRewardRangeSpan || endDistance < MinimumRewardRangeSpan) {
+                // if start or end are within this reward range
+                if(startDistance >= MinimumRewardRangeSpan) {
+                    // start is before the minimum range; i.e., the current reward counts
+                    rewardMultipliers.push_back(ar[idx].getRewardMultiplier());
+                } else {
+                    // start is within the minimum range; i.e., the previous reward counts
+                    rewardMultipliers.push_back(std::min(ar[idx].getPrevRewardMultiplier(), ar[idx].getRewardMultiplier()));
+                }
+            } else if (rewardMultipliers.empty()) {
+                // we reach this point if no transaction was every done within this span. The reward is decided based on the last multiplier available
+                rewardMultipliers.push_back(ar[idx].getRewardMultiplier());
+                break;
+            }
         } else {
+            if(startDistance <= MinimumRewardRangeSpan || endDistance <= MinimumRewardRangeSpan) {
+                // if any multiplier is zero during the last MinimumRewardSpan, then no reward
+                rewardMultipliers.clear();
+            }
             break;
         }
+    }
+
+    if(std::any_of(rewardMultipliers.cbegin(), rewardMultipliers.cend(), [](const unsigned r) { return r == 0; })) {
+        rewardMultipliers.clear();
     }
 
     return rewardMultipliers;
@@ -156,13 +186,13 @@ std::vector<std::pair<ColdRewardTracker::AddressType, unsigned>> ColdRewardTrack
 {
     AssertTrue(currentBlockHeight % MinimumRewardRangeSpan == 0, std::string(__func__),
         "Block height should be a multiple of the reward range span");
-    std::map<AddressType, std::vector<BlockHeightRange>> ranges = allRangesGetter();
+    const std::map<AddressType, std::vector<BlockHeightRange>> ranges = allRangesGetter();
     std::vector<std::pair<AddressType, unsigned>> result;
 
     for(const auto& r: ranges) {
         const std::vector<BlockHeightRange>& ar = r.second;
         AssertTrue(ar.empty() || ar.back().getEnd() <= currentBlockHeight, __func__, "You cannot ask for addresses eligible for rewards in the past");
-        std::vector<unsigned> rewardMultipliers = ExtractRewardMultipliersFromRanges(currentBlockHeight, ar);
+        const std::vector<unsigned> rewardMultipliers = ExtractRewardMultipliersFromRanges(currentBlockHeight, ar);
         if(rewardMultipliers.size() > 0)
         {
             // over the range of the last MinimumRewardRangeSpan, the minimum multiplier determines the reward
@@ -201,9 +231,11 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
 
     {
         const unsigned currentMultiplier = static_cast<unsigned>(balance / GVRThreshold);
-        if (ranges.size() == 0 || ranges.back().getRewardMultiplier() != currentMultiplier) {
+        if (ranges.size() == 0) {
+            ranges.push_back(BlockHeightRange(blockHeight, blockHeight, currentMultiplier, 0));
+        } else if(ranges.back().getRewardMultiplier() != currentMultiplier) {
             // we add a [blockHeight, blockHeight] range as a marker that the balance has crossed a threshold multiple
-            ranges.push_back(BlockHeightRange(blockHeight, blockHeight, currentMultiplier));
+            ranges.push_back(BlockHeightRange(blockHeight, blockHeight, currentMultiplier, ranges.back().getRewardMultiplier()));
         } else {
             ranges.back().newEnd(blockHeight);
         }
