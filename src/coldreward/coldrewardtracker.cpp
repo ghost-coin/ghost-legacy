@@ -265,15 +265,17 @@ void ColdRewardTracker::removeAddressTransaction(int blockHeight, const AddressT
     AssertTrue(balance >= 0, __func__, "Can't apply, total address balance will be negative");
     balances[address] = balance;
     std::vector<BlockHeightRange> ranges = getAddressRanges(address);
-    if (ranges.size() > 0) {
-        while (!ranges.empty() && ranges.back().getEnd() == blockHeight) {
-            if (ranges.back().getEnd() > ranges.back().getStart()) {
-                ranges.back().newEnd(blockHeight - 1);
-            } else {
-                ranges.erase(ranges.end() - 1);
-            }
+
+    AssertTrue(ranges.empty() || ranges.back().getEnd() <= blockHeight, __func__, "Can't rollback blocks in the past before rolling back thr ones that come after them");
+
+    while (!ranges.empty() && ranges.back().getEnd() == blockHeight) {
+        if (ranges.back().getEnd() > ranges.back().getStart()) {
+            ranges.back().newEnd(blockHeight - 1);
+        } else {
+            ranges.erase(ranges.end() - 1);
         }
     }
+
     updateAddressRangesCache(address, std::move(ranges));
 }
 

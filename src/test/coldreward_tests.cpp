@@ -426,72 +426,98 @@ BOOST_AUTO_TEST_CASE(reward_multiplier_tests)
     BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 2);
 
-//    // add 5 more
-//    tracker.startPersistedTransaction();
-//    tracker.addAddressTransaction(21600, addr, 5 * COIN, checkpoints);
-//    tracker.endPersistedTransaction();
+    // add 5 more
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(21600, addr, 5 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
 
-//    BOOST_CHECK_EQUAL(balances.at(addr), 20010 * COIN);
-//    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
+    BOOST_CHECK_EQUAL(balances.at(addr), 40010 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21599);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21600);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getRewardMultiplier(), 2);
 
-//    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
-//    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
 
-//    tracker.startPersistedTransaction();
-//    tracker.addAddressTransaction(21601, addr, 5 * COIN, checkpoints);
-//    tracker.endPersistedTransaction();
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(21601, addr, 5 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
 
-//    BOOST_CHECK_EQUAL(balances.at(addr), 20015 * COIN);
-//    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21601);
+    BOOST_CHECK_EQUAL(balances.at(addr), 40015 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21599);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21601);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getRewardMultiplier(), 2);
 
-//    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
+    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 2);
 
-//    tracker.startPersistedTransaction();
-//    tracker.removeAddressTransaction(21601, addr, 5 * COIN);
-//    tracker.endPersistedTransaction();
+    tracker.startPersistedTransaction();
+    tracker.removeAddressTransaction(21601, addr, 5 * COIN);
+    tracker.endPersistedTransaction();
 
-//    BOOST_CHECK_EQUAL(balances.at(addr), 20010 * COIN);
-//    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
+    BOOST_CHECK_EQUAL(balances.at(addr), 40010 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21599);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21600);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getRewardMultiplier(), 2);
 
-//    tracker.startPersistedTransaction();
-//    tracker.addAddressTransaction(21601, addr, -15 * COIN, checkpoints);
-//    tracker.endPersistedTransaction();
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(21601, addr, -15 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
 
-//    BOOST_CHECK_EQUAL(balances.at(addr), 19995 * COIN);
-//    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21601);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21601);
+    BOOST_CHECK_EQUAL(balances.at(addr), 39995 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 3);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21599);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21600);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getRewardMultiplier(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getStart(), 21601);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getEnd(), 21601);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getRewardMultiplier(), 1);
 
-//    // now since they spent more and broke the limit, they're not eligible anymore
-//    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 0);
+    // now since they spent more and broke the limit, they're not eligible anymore
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
+    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 1);
 
-//    // calling with a block that doesn't have a record should change nothing other than the balance
-//    tracker.startPersistedTransaction();
-//    tracker.removeAddressTransaction(22600, addr, 15 * COIN);
-//    tracker.endPersistedTransaction();
+    // calling with a block that doesn't have a record should change nothing other than the balance
+    tracker.startPersistedTransaction();
+    tracker.removeAddressTransaction(22600, addr, 15 * COIN);
+    tracker.endPersistedTransaction();
 
-//    BOOST_CHECK_EQUAL(balances.at(addr), 19980 * COIN);
-//    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21601);
-//    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21601);
+    BOOST_CHECK_EQUAL(balances.at(addr), 39980 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 3);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 10);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 21599);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 21600);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getRewardMultiplier(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getStart(), 21601);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getEnd(), 21601);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getRewardMultiplier(), 1);
 
-//    // now since they spent more and broke the limit, they're not eligible anymore
-//    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 0);
+    // now since they spent more and broke the limit, they're not eligible anymore
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
+    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 1);
 }
 
 BOOST_AUTO_TEST_CASE(getEligibleAddresses)
