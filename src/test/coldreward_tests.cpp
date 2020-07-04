@@ -332,7 +332,6 @@ BOOST_AUTO_TEST_CASE(corner)
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 10);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 21600);
 
-    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
 
     tracker.startPersistedTransaction();
@@ -1078,78 +1077,76 @@ BOOST_AUTO_TEST_CASE(extract_reward_multipliers)
     {
         /// invalid block height
         const std::vector<BlockHeightRange> ranges;
-        BOOST_REQUIRE_THROW(ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2-1, ranges), std::invalid_argument);
+        BOOST_REQUIRE_THROW(ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2-1, ranges), std::invalid_argument);
     }
     {
         /// 1
         std::vector<BlockHeightRange> ranges;
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 5A
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(10, 10, 0, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 5A
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(10, 50, 0, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 2A
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(10, 21600+1, 0, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 4A
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600, 21600+10, 0, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 4B
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600, 21600+10, 1, 0));
-        std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 1);
-        BOOST_CHECK_EQUAL(multipliers[0], 1);
+        unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 1);
     }
     {
         /// 3A
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600, 21600, 0, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 3B
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600, 21600, 1, 0));
-        std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 1);
-        BOOST_CHECK_EQUAL(multipliers[0], 1);
+        unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 1);
     }
     {
         /// 6A
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600+1, 21600+10, 0, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 6B
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600+1, 21600+10, 1, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 2A
@@ -1157,8 +1154,8 @@ BOOST_AUTO_TEST_CASE(extract_reward_multipliers)
         ranges.push_back(BlockHeightRange(21600-1, 21600+1, 0, 0)); // this should never happen, but we don't care
         ranges.push_back(BlockHeightRange(21600+2, 21600+2, 1, 0));
         ranges.push_back(BlockHeightRange(21600+5, 21600+20, 1, 1)); // this should never happen, but we don't care
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         /// 6B
@@ -1168,20 +1165,16 @@ BOOST_AUTO_TEST_CASE(extract_reward_multipliers)
         ranges.push_back(BlockHeightRange(21600+5, 21600+20, 1, 1)); // this should never happen, but we don't care
         ranges.push_back(BlockHeightRange(2*21600+2, 2*21600+2, 2, 1));
         ranges.push_back(BlockHeightRange(2*21600+5, 2*21600+20, 2, 2)); // this should never happen, but we don't care
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*3, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 2);
-        BOOST_CHECK_EQUAL(multipliers[0], 2);
-        BOOST_CHECK_EQUAL(multipliers[1], 1);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*3, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 1);
     }
     {
         /// 2B
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600-1, 21600+1, 1, 0));
         ranges.push_back(BlockHeightRange(21600+5, 21600+20, 2, 1));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 2);
-        BOOST_CHECK_EQUAL(multipliers[0], 1);
-        BOOST_CHECK_EQUAL(multipliers[1], 1);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 1);
     }
     {
         /// 2A
@@ -1189,70 +1182,62 @@ BOOST_AUTO_TEST_CASE(extract_reward_multipliers)
         ranges.push_back(BlockHeightRange(21600-1, 21600+1, 0, 0)); // this should never happen, but we don't care
         ranges.push_back(BlockHeightRange(21600+2, 21600+2, 1, 0));
         ranges.push_back(BlockHeightRange(21600+5, 21600+20, 2, 1));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600-1, 21600+1, 1, 0));
         ranges.push_back(BlockHeightRange(21600+2, 21600+2, 0, 1));
         ranges.push_back(BlockHeightRange(21600+5, 21600+20, 2, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 0);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 0);
     }
     {
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600-1, 21600+1, 2, 0));
         ranges.push_back(BlockHeightRange(21600+2, 21600+2, 1, 2));
         ranges.push_back(BlockHeightRange(21600+5, 21600+20, 3, 1));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 3);
-        BOOST_CHECK_EQUAL(multipliers[0], 1);
-        BOOST_CHECK_EQUAL(multipliers[1], 1);
-        BOOST_CHECK_EQUAL(multipliers[2], 2);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 1);
     }
     {
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(21600+51, 21600+100, 1, 0));
         {
             /// 6A
-            const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-            BOOST_REQUIRE_EQUAL(multipliers.size(), 0);
+            const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+            BOOST_CHECK_EQUAL(multiplier, 0);
         }
         {
             /// 5B
-            const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*3, ranges);
-            BOOST_REQUIRE_EQUAL(multipliers.size(), 1);
-            BOOST_CHECK_EQUAL(multipliers[0], 1);
+            const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*3, ranges);
+            BOOST_CHECK_EQUAL(multiplier, 1);
         }
     }
     {
         /// 2B
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(10, 21600+1, 1, 0));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 1);
-        BOOST_CHECK_EQUAL(multipliers[0], 1);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 1);
     }
     {
         /// 5B
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(3*21600-2, 3*21600-1, 3, 0));
         ranges.push_back(BlockHeightRange(3*21600+1, 3*21600+2, 2, 3));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*4, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 1);
-        BOOST_CHECK_EQUAL(multipliers[0], 2);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*4, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 2);
     }
     {
         /// 5B
         std::vector<BlockHeightRange> ranges;
         ranges.push_back(BlockHeightRange(6*21600-2, 6*21600-1, 1, 2));
         ranges.push_back(BlockHeightRange(6*21600, 6*21600+1, 2, 1));
-        const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*7, ranges);
-        BOOST_REQUIRE_EQUAL(multipliers.size(), 1);
-        BOOST_CHECK_EQUAL(multipliers[0], 2);
+        const unsigned multiplier = ColdRewardTracker::ExtractRewardMultiplierFromRanges(21600*7, ranges);
+        BOOST_CHECK_EQUAL(multiplier, 2);
     }
-    // TODO: add more corner cases: Are there uncovered cases? Maybe cases when balance goes down?
 }
 
 namespace {
@@ -1276,7 +1261,7 @@ BOOST_AUTO_TEST_CASE(extract_reward_multipliers_fuzz)
 {
     static constexpr int REWARD_SPAN = 21600;
 
-    static constexpr int TEST_COUNT = 1000;
+    static constexpr int TEST_COUNT = 10000;
 
     for(int i = 0; i < TEST_COUNT; i++) {
         auto seed = std::random_device{}();
@@ -1318,8 +1303,7 @@ BOOST_AUTO_TEST_CASE(extract_reward_multipliers_fuzz)
             auto rangesCopy = ranges;
             rangesCopy.erase(std::remove_if(rangesCopy.begin(), rangesCopy.end(), removeUnneededRangesFunctor), rangesCopy.end());
 
-            const std::vector<unsigned> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(currentHeight, rangesCopy);
-            const unsigned multiplierResult = multipliers.empty() ? 0 : *std::min_element(multipliers.cbegin(), multipliers.cend());
+            const unsigned multiplierResult = ColdRewardTracker::ExtractRewardMultiplierFromRanges(currentHeight, rangesCopy);
 
             const int START_POINT = currentHeight - REWARD_SPAN;
 
@@ -1327,42 +1311,19 @@ BOOST_AUTO_TEST_CASE(extract_reward_multipliers_fuzz)
             for(unsigned j = 0; j < rangesCopy.size(); j++) {
                 const std::size_t idx = rangesCopy.size() - j - 1;
                 const BlockHeightRange& r = rangesCopy[idx];
-                if(r.getStart() > START_POINT && r.getEnd() > START_POINT) {
+                if(r.getStart() > START_POINT) {
                     if(expectedRewardMultiplier) {
                         expectedRewardMultiplier = vmin(r.getPrevRewardMultiplier(), r.getRewardMultiplier(), *expectedRewardMultiplier);
                     } else {
                         expectedRewardMultiplier = vmin(r.getPrevRewardMultiplier(), r.getRewardMultiplier());
                     }
-                } else if(r.getStart() == START_POINT && r.getEnd() > START_POINT) {
-                    if(expectedRewardMultiplier) {
-                        expectedRewardMultiplier = vmin(r.getRewardMultiplier(), *expectedRewardMultiplier);
-                    } else {
-                        expectedRewardMultiplier = r.getRewardMultiplier();
-                    }
-                    break;
-                } else if(r.getStart() < START_POINT && r.getEnd() > START_POINT) {
-                    if(expectedRewardMultiplier) {
-                        expectedRewardMultiplier = vmin(r.getRewardMultiplier(), *expectedRewardMultiplier);
-                    } else {
-                        expectedRewardMultiplier = r.getRewardMultiplier();
-                    }
-                    break;
-                } else if(r.getStart() < START_POINT && r.getEnd() == START_POINT) {
-                    if(expectedRewardMultiplier) {
-                        expectedRewardMultiplier = vmin(r.getRewardMultiplier(), *expectedRewardMultiplier);
-                    } else {
-                        expectedRewardMultiplier = r.getRewardMultiplier();
-                    }
-                    break;
-                } else if(r.getStart() < START_POINT && r.getEnd() < START_POINT) {
-                    if(expectedRewardMultiplier) {
-                        expectedRewardMultiplier = vmin(r.getRewardMultiplier(), *expectedRewardMultiplier);
-                    } else {
-                        expectedRewardMultiplier = r.getRewardMultiplier();
-                    }
-                    break;
                 } else {
-                    BOOST_REQUIRE(false); // this should never happen
+                    if(expectedRewardMultiplier) {
+                        expectedRewardMultiplier = vmin(r.getRewardMultiplier(), *expectedRewardMultiplier);
+                    } else {
+                        expectedRewardMultiplier = r.getRewardMultiplier();
+                    }
+                    break;
                 }
             }
 

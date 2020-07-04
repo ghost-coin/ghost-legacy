@@ -128,7 +128,7 @@ boost::optional<int> ColdRewardTracker::GetLastCheckpoint(const std::map<int, ui
     }
 }
 
-std::vector<unsigned> ColdRewardTracker::ExtractRewardMultipliersFromRanges(int currentBlockHeight, const std::vector<BlockHeightRange>& addressRanges)
+unsigned ColdRewardTracker::ExtractRewardMultiplierFromRanges(int currentBlockHeight, const std::vector<BlockHeightRange>& addressRanges)
 {
     AssertTrue(currentBlockHeight % MinimumRewardRangeSpan == 0, std::string(__func__),
         "Block height should be a multiple of the reward range span");
@@ -139,8 +139,8 @@ std::vector<unsigned> ColdRewardTracker::ExtractRewardMultipliersFromRanges(int 
 
     for(unsigned i = 0; i < ar.size(); i++) {
         const unsigned idx = ar.size() - i - 1;
-        AssertTrue(currentBlockHeight > ar[idx].getStart(), std::string(__func__), "You can't get the reward for the future");
-        AssertTrue(currentBlockHeight > ar[idx].getEnd(), std::string(__func__), "You can't get the reward for the future");
+        AssertTrue(currentBlockHeight > ar[idx].getStart(), std::string(__func__), "You can't get the reward for the past");
+        AssertTrue(currentBlockHeight > ar[idx].getEnd(), std::string(__func__), "You can't get the reward for the past");
 
         // collect all reward multipliers that are > 0 over the last periods, to figure out the final reward
         const int startDistance = currentBlockHeight - ar[idx].getStart();
@@ -175,11 +175,11 @@ std::vector<unsigned> ColdRewardTracker::ExtractRewardMultipliersFromRanges(int 
         }
     }
 
-    if(std::any_of(rewardMultipliers.cbegin(), rewardMultipliers.cend(), [](const unsigned r) { return r == 0; })) {
-        rewardMultipliers.clear();
+    if(rewardMultipliers.empty()) {
+        return 0;
+    } else {
+        return *std::min_element(rewardMultipliers.cbegin(), rewardMultipliers.cend());
     }
-
-    return rewardMultipliers;
 }
 
 std::vector<std::pair<ColdRewardTracker::AddressType, unsigned>> ColdRewardTracker::getEligibleAddresses(int currentBlockHeight)
@@ -192,15 +192,14 @@ std::vector<std::pair<ColdRewardTracker::AddressType, unsigned>> ColdRewardTrack
     for(const auto& r: ranges) {
         const std::vector<BlockHeightRange>& ar = r.second;
         AssertTrue(ar.empty() || ar.back().getEnd() <= currentBlockHeight, __func__, "You cannot ask for addresses eligible for rewards in the past");
-        const std::vector<unsigned> rewardMultipliers = ExtractRewardMultipliersFromRanges(currentBlockHeight, ar);
-        if(rewardMultipliers.size() > 0)
+        const unsigned rewardMultiplier = ExtractRewardMultiplierFromRanges(currentBlockHeight, ar);
+        if(rewardMultiplier > 0)
         {
             // over the range of the last MinimumRewardRangeSpan, the minimum multiplier determines the reward
             // Example: if over the last (month=MinimumRewardRangeSpan, and GVRThreshold=20k),
             // the balance goes below 40k, but remains over 20k, the max multiplier is 2 and minimum is 1, and the reward
             // multiplier is 1
-            const unsigned minMultiplier = *std::min_element(rewardMultipliers.cbegin(), rewardMultipliers.cend());
-            result.push_back(std::make_pair(r.first, minMultiplier));
+            result.push_back(std::make_pair(r.first, rewardMultiplier));
         }
     }
     return result;

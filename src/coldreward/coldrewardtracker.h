@@ -103,7 +103,7 @@ public:
 
     static boost::optional<int> GetLastCheckpoint(const std::map<int, uint256>& checkpoints, int currentBlockHeight);
     /// Given a set of ranges of an address, this gives all the multipliers that have to do with the reward at currentBlockHeight
-    static std::vector<unsigned> ExtractRewardMultipliersFromRanges(int currentBlockHeight, const std::vector<BlockHeightRange>& addressRanges);
+    static unsigned ExtractRewardMultiplierFromRanges(int currentBlockHeight, const std::vector<BlockHeightRange>& addressRanges);
 
 
     std::vector<std::pair<AddressType, unsigned>> getEligibleAddresses(int currentBlockHeight);
