@@ -786,7 +786,7 @@ BOOST_AUTO_TEST_CASE(checkpoints_basic)
 
 BOOST_AUTO_TEST_CASE(checkpoints_many)
 {
-    // add a checkpoint at block 3
+    // add several checkpoints
     checkpoints.insert(std::make_pair(0, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
     checkpoints.insert(std::make_pair(10, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
     checkpoints.insert(std::make_pair(20, uint256S("0x3333333333333333333333333333333333333333333333333333333333333333")));
@@ -967,7 +967,124 @@ BOOST_AUTO_TEST_CASE(checkpoints_rollback)
     tracker.endPersistedTransaction();
 }
 
-// TODO: test multiple addresses and multiple updates to a single address in one db transaction
+BOOST_AUTO_TEST_CASE(multiple_addresses)
+{
+    std::string addrStr1 = "abc1";
+    AddressType addr1 = VecUint8FromString(addrStr1);
+    std::string addrStr2 = "abc2";
+    AddressType addr2 = VecUint8FromString(addrStr2);
+    std::string addrStr3 = "abc3";
+    AddressType addr3 = VecUint8FromString(addrStr3);
+
+    // add 20k coins to all addresses in block 1
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(1, addr1, 20000 * COIN, checkpoints);
+    tracker.addAddressTransaction(1, addr2, 30000 * COIN, checkpoints);
+    tracker.addAddressTransaction(1, addr3, 40000 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+
+    // Check everything is in place
+    BOOST_CHECK_EQUAL(balances.at(addr1), 20000 * COIN);
+    BOOST_CHECK_EQUAL(balances.at(addr2), 30000 * COIN);
+    BOOST_CHECK_EQUAL(balances.at(addr3), 40000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 3);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getEnd(), 1);
+
+    // be below 20k for addresss1 and address2 in block 2
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(2, addr1, -1 * COIN, checkpoints);
+    tracker.addAddressTransaction(2, addr2, -20000 * COIN, checkpoints);
+    tracker.addAddressTransaction(2, addr3, -10000 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+
+    // Check everything is in place
+    BOOST_CHECK_EQUAL(balances.at(addr1), 19999 * COIN);
+    BOOST_CHECK_EQUAL(balances.at(addr2), 10000 * COIN);
+    BOOST_CHECK_EQUAL(balances.at(addr3), 30000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 3);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[1].getStart(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[1].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getStart(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[1].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[1].getStart(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[1].getEnd(), 2);
+
+    // remove last block
+    tracker.startPersistedTransaction();
+    tracker.removeAddressTransaction(2, addr1, -1 * COIN);
+    tracker.removeAddressTransaction(2, addr2, -20000 * COIN);
+    tracker.removeAddressTransaction(2, addr3, -10000 * COIN);
+    tracker.endPersistedTransaction();
+
+    // check everything is the same as after block 1
+    BOOST_CHECK_EQUAL(balances.at(addr1), 20000 * COIN);
+    BOOST_CHECK_EQUAL(balances.at(addr2), 30000 * COIN);
+    BOOST_CHECK_EQUAL(balances.at(addr3), 40000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 3);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr1)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr2)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3).size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr3)[0].getEnd(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(multiple_updates)
+{
+    std::string addrStr = "abc";
+    AddressType addr = VecUint8FromString(addrStr);
+
+    // be above and below 20k in the same block
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(1, addr, 20000 * COIN, checkpoints);
+    tracker.addAddressTransaction(1, addr, 1 * COIN, checkpoints);
+    tracker.addAddressTransaction(1, addr, -2 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+
+    BOOST_CHECK_EQUAL(balances.at(addr), 19999 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 1);
+
+    // be below and above 20k in the same block
+    tracker.startPersistedTransaction();
+    tracker.addAddressTransaction(2, addr, -2 * COIN, checkpoints);
+    tracker.addAddressTransaction(2, addr, 3 * COIN, checkpoints);
+    tracker.endPersistedTransaction();
+
+    BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
+    BOOST_REQUIRE_EQUAL(ranges.size(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 3);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 1);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getStart(), 2);
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[2].getEnd(), 2);
+}
 
 BOOST_AUTO_TEST_CASE(get_last_checkpoint)
 {
