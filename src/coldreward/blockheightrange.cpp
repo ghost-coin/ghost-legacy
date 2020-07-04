@@ -12,9 +12,9 @@ int BlockHeightRange::getStart() const
     return start;
 }
 
-bool BlockHeightRange::isOverThreshold() const
+unsigned BlockHeightRange::getRewardMultiplier() const
 {
-    return overThreshold;
+    return rewardMultiplier;
 }
 
 void BlockHeightRange::newEnd(const int value)
@@ -25,7 +25,7 @@ void BlockHeightRange::newEnd(const int value)
     }
 }
 
-BlockHeightRange::BlockHeightRange(const int Start, const int End, const bool OverThreshold) : start(Start), end(End), overThreshold(OverThreshold)
+BlockHeightRange::BlockHeightRange(const int Start, const int End, const unsigned RewardMultiplier) : start(Start), end(End), rewardMultiplier(RewardMultiplier)
 {
     if(Start > End) {
         throw std::runtime_error("Invalid range: [" + std::to_string(Start) + "," + std::to_string(End) + "]");

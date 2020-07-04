@@ -128,22 +128,49 @@ boost::optional<int> ColdRewardTracker::GetLastCheckpoint(const std::map<int, ui
     }
 }
 
-std::vector<ColdRewardTracker::AddressType> ColdRewardTracker::getEligibleAddresses(int currentBlockHeight)
+std::vector<unsigned> ColdRewardTracker::ExtractRewardMultipliersFromRanges(int currentBlockHeight, const std::vector<BlockHeightRange>& addressRanges)
+{
+    AssertTrue(currentBlockHeight % MinimumRewardRangeSpan == 0, std::string(__func__),
+        "Block height should be a multiple of the reward range span");
+
+    std::vector<unsigned> rewardMultipliers;
+
+    const auto& ar = addressRanges;
+    for(unsigned i = 0; i < ar.size(); i++) {
+        const unsigned idx = ar.size() - i - 1;
+        // collect all reward multipliers that are > 0 over the last periods, to figure out the final reward
+        if(ar[idx].getRewardMultiplier() > 0) {
+            // collect all changes in balance over the last MinimumRewardRangeSpan
+            if(currentBlockHeight - ar[idx].getStart() >= MinimumRewardRangeSpan ||
+               currentBlockHeight -   ar[idx].getEnd() >= MinimumRewardRangeSpan)
+            rewardMultipliers.push_back(ar[idx].getRewardMultiplier());
+        } else {
+            break;
+        }
+    }
+
+    return rewardMultipliers;
+}
+
+std::vector<std::pair<ColdRewardTracker::AddressType, unsigned>> ColdRewardTracker::getEligibleAddresses(int currentBlockHeight)
 {
     AssertTrue(currentBlockHeight % MinimumRewardRangeSpan == 0, std::string(__func__),
         "Block height should be a multiple of the reward range span");
     std::map<AddressType, std::vector<BlockHeightRange>> ranges = allRangesGetter();
-    std::vector<AddressType> result;
+    std::vector<std::pair<AddressType, unsigned>> result;
 
     for(const auto& r: ranges) {
         const std::vector<BlockHeightRange>& ar = r.second;
-        if(!ar.empty())
+        AssertTrue(ar.empty() || ar.back().getEnd() <= currentBlockHeight, __func__, "You cannot ask for addresses eligible for rewards in the past");
+        std::vector<unsigned> rewardMultipliers = ExtractRewardMultipliersFromRanges(currentBlockHeight, ar);
+        if(rewardMultipliers.size() > 0)
         {
-            AssertTrue(ar.back().getEnd() <= currentBlockHeight, __func__, "You cannot ask for addresses eligible for rewards in the past");
-            if(currentBlockHeight - ar.back().getStart() >= MinimumRewardRangeSpan && ar.back().isOverThreshold())
-            {
-                result.push_back(r.first);
-            }
+            // over the range of the last MinimumRewardRangeSpan, the minimum multiplier determines the reward
+            // Example: if over the last (month=MinimumRewardRangeSpan, and GVRThreshold=20k),
+            // the balance goes below 40k, but remains over 20k, the max multiplier is 2 and minimum is 1, and the reward
+            // multiplier is 1
+            const unsigned minMultiplier = *std::min_element(rewardMultipliers.cbegin(), rewardMultipliers.cend());
+            result.push_back(std::make_pair(r.first, minMultiplier));
         }
     }
     return result;
@@ -172,19 +199,14 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
 
     balances[address] = balance;
 
-    if (balance >= GVRThreshold) {
-        if (ranges.size() == 0) {
-            ranges.push_back(BlockHeightRange(blockHeight, blockHeight, true));
+    {
+        const unsigned currentMultiplier = static_cast<unsigned>(balance / GVRThreshold);
+        if (ranges.size() == 0 || ranges.back().getRewardMultiplier() != currentMultiplier) {
+            // we add a [blockHeight, blockHeight] range as a marker that the balance has crossed a threshold multiple
+            ranges.push_back(BlockHeightRange(blockHeight, blockHeight, currentMultiplier));
         } else {
-            if(ranges.back().isOverThreshold()) {
-                ranges.back().newEnd(blockHeight);
-            } else {
-                ranges.push_back(BlockHeightRange(blockHeight, blockHeight, true));
-            }
+            ranges.back().newEnd(blockHeight);
         }
-    } else {
-        // we add a [blockHeight, blockHeight] range as a marker that the balance isn't GVR eligible anymore
-        ranges.push_back(BlockHeightRange(blockHeight, blockHeight, false));
     }
 
     const boost::optional<int> lastBlockHeightInCheckpoint = GetLastCheckpoint(checkpoints, blockHeight);
@@ -194,7 +216,7 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
     }
 
     // ranges that are under the threshold and come at the beginning are not interesting and don't need to remain
-    while(ranges.size() > 0 && !ranges[0].isOverThreshold()) {
+    while(ranges.size() > 0 && ranges[0].getRewardMultiplier() == 0) {
         ranges.erase(ranges.begin());
     }
 

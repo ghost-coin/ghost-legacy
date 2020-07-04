@@ -111,7 +111,6 @@ std::string StringFromVecUint8(const ColdRewardTracker::AddressType vec)
 }
 } // namespace
 
-
 BOOST_FIXTURE_TEST_SUITE(coldreward_tests, ColdRewardsSetup)
 
 BOOST_AUTO_TEST_CASE(basic)
@@ -190,7 +189,8 @@ BOOST_AUTO_TEST_CASE(basic)
     // we're eligible for a reward only the second month
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
-    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0] == addr);
+    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 1);
 
     // we're back to the previous state
     BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
@@ -225,7 +225,8 @@ BOOST_AUTO_TEST_CASE(basic)
     // we're eligible for a reward only the second month
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
-    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0] == addr);
+    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 1);
 
     // we're back to the previous state
     BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
@@ -237,7 +238,8 @@ BOOST_AUTO_TEST_CASE(basic)
     // again, we're eligible for a reward only the second month
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
-    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0] == addr);
+    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 1);
 
     // now we revert one more hypothetical block (this is unrealistic, just for tests)
     // to see that we go back to 99 from 100
@@ -250,7 +252,8 @@ BOOST_AUTO_TEST_CASE(basic)
     // we're eligible for a reward only the second month
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
-    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0] == addr);
+    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 1);
 
     // we're back to the previous state
     BOOST_CHECK_EQUAL(balances.at(addr), 20000 * COIN);
@@ -262,7 +265,8 @@ BOOST_AUTO_TEST_CASE(basic)
     // again, we're eligible for a reward only the second month
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(21600).size(), 0);
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 1);
-    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0] == addr);
+    BOOST_CHECK(tracker.getEligibleAddresses(2 * 21600)[0].first == addr);
+    BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600)[0].second, 1);
 
     // subtract 5 coins at block 101, again
     tracker.startPersistedTransaction();
@@ -283,6 +287,7 @@ BOOST_AUTO_TEST_CASE(basic)
     BOOST_CHECK_EQUAL(tracker.getEligibleAddresses(2 * 21600).size(), 0);
 
 }
+
 BOOST_AUTO_TEST_CASE(corner)
 {
     std::string addrStr = "abc";
@@ -412,9 +417,11 @@ BOOST_AUTO_TEST_CASE(getEligibleAddresses)
 
     // address is always eligible in any of the next months.
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).size(), 1);
-    BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).front()), addrStr);
+    BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).front().first), addrStr);
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 2).front().second, 1);
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), 1);
-    BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front()), addrStr);
+    BOOST_REQUIRE_EQUAL(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front().first), addrStr);
+    BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front().second, 1);
 
     // until balance gets below 20k
     tracker.startPersistedTransaction();
@@ -424,7 +431,7 @@ BOOST_AUTO_TEST_CASE(getEligibleAddresses)
     // assert was eligable for month 3 in the past but not now
     // this doesn't work because we just added block (tracker.MinimumRewardRangeSpan * 3)
     BOOST_REQUIRE_THROW(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).size(), std::invalid_argument);
-    BOOST_REQUIRE_THROW(StringFromVecUint8(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front()), std::invalid_argument);
+    BOOST_REQUIRE_THROW(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 3).front(), std::invalid_argument);
 
     // not eligable in month 4, this is ok.
     BOOST_REQUIRE_EQUAL(tracker.getEligibleAddresses(tracker.MinimumRewardRangeSpan * 4).size(), 0);
@@ -642,7 +649,7 @@ BOOST_AUTO_TEST_CASE(checkpoints_basic)
     BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 9);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 9);
-    BOOST_REQUIRE(ranges.at(addr)[0].isOverThreshold());
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(checkpoints_many)
@@ -722,10 +729,10 @@ BOOST_AUTO_TEST_CASE(checkpoints_many)
     BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 2);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 12);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 45);
-    BOOST_REQUIRE(ranges.at(addr)[0].isOverThreshold());
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getStart(), 48);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[1].getEnd(), 48);
-    BOOST_REQUIRE(!ranges.at(addr)[1].isOverThreshold());
+    BOOST_REQUIRE_EQUAL(!ranges.at(addr)[1].getRewardMultiplier(), 1);
 
     // we're gonna add after the next checkpoint, once below and once above the threshold, so we save the state
     auto trackerState = saveTrackerState();
@@ -754,7 +761,7 @@ BOOST_AUTO_TEST_CASE(checkpoints_many)
     BOOST_REQUIRE_EQUAL(ranges.at(addr).size(), 1);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getStart(), 55);
     BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getEnd(), 55);
-    BOOST_REQUIRE(ranges.at(addr)[0].isOverThreshold());
+    BOOST_REQUIRE_EQUAL(ranges.at(addr)[0].getRewardMultiplier(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(checkpoints_rollback)
@@ -944,6 +951,89 @@ BOOST_AUTO_TEST_CASE(get_last_checkpoint)
             }
         }
     }
+}
+
+BOOST_AUTO_TEST_CASE(extract_reward_multipliers)
+{
+    {
+        const std::vector<BlockHeightRange> ranges;
+        BOOST_REQUIRE_THROW(ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2-1, ranges), std::invalid_argument);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(10, 10, 0));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(10, 50, 0));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(10, 21600+1, 0));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(21600, 21600+10, 0));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(21600, 21600+10, 1));
+        std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_REQUIRE_EQUAL(multipliers.size(), 1);
+        BOOST_CHECK_EQUAL(multipliers[0], 1);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(21600+1, 21600+10, 1));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(21600-1, 21600+1, 0));
+        ranges.push_back(BlockHeightRange(21600+2, 21600+2, 1));
+        ranges.push_back(BlockHeightRange(21600+5, 21600+20, 1));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(21600-1, 21600+1, 1));
+        ranges.push_back(BlockHeightRange(21600+5, 21600+20, 2));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_REQUIRE_EQUAL(multipliers.size(), 1);
+        BOOST_CHECK_EQUAL(multipliers[0], 1);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(21600-1, 21600+1, 0));
+        ranges.push_back(BlockHeightRange(21600+2, 21600+2, 1));
+        ranges.push_back(BlockHeightRange(21600+5, 21600+20, 2));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    {
+        std::vector<BlockHeightRange> ranges;
+        ranges.push_back(BlockHeightRange(21600-1, 21600+1, 1));
+        ranges.push_back(BlockHeightRange(21600+2, 21600+2, 0));
+        ranges.push_back(BlockHeightRange(21600+5, 21600+20, 2));
+        const std::vector<unsigned int> multipliers = ColdRewardTracker::ExtractRewardMultipliersFromRanges(21600*2, ranges);
+        BOOST_CHECK_EQUAL(multipliers.size(), 0);
+    }
+    // TODO: add more corner cases
 }
 
 BOOST_AUTO_TEST_SUITE_END()
