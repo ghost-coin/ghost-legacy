@@ -164,7 +164,7 @@ void ColdRewardTracker::RemoveOldData(int lastCheckpoint, std::vector<BlockHeigh
 
 void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChange, const std::map<int, uint256>& checkpoints)
 {
-    CAmount balance = getBalance(address) + balanceChange;
+    const CAmount balance = getBalance(address) + balanceChange;
     AssertTrue(balance >= 0, __func__, "Can't apply, total address balance will be negative");
     std::vector<BlockHeightRange> ranges = getAddressRanges(address);
 
@@ -205,8 +205,10 @@ void ColdRewardTracker::addAddressTransaction(int blockHeight, const AddressType
 
 void ColdRewardTracker::removeAddressTransaction(int blockHeight, const AddressType& address, const CAmount& balanceChangeInBlock)
 {
-    AssertTrue(getCheckpoint() < blockHeight, __func__, "Can't apply, height is lower than the last checkpoint we saw");
-    CAmount balance = balanceGetter(address) - balanceChangeInBlock;
+    const int lastCheckpointSeen = getCheckpoint();
+    AssertTrue(lastCheckpointSeen < blockHeight, __func__, "Can't apply, height (" + std::to_string(blockHeight) +
+                                                            ") is lower than the last checkpoint seen (" + std::to_string(lastCheckpointSeen) + ")");
+    const CAmount balance = balanceGetter(address) - balanceChangeInBlock;
     AssertTrue(balance >= 0, __func__, "Can't apply, total address balance will be negative");
     balances[address] = balance;
     std::vector<BlockHeightRange> ranges = getAddressRanges(address);

@@ -71,6 +71,7 @@ private:
     std::function<std::vector<BlockHeightRange>(const AddressType&)> rangesGetter;
     std::function<void(const AddressType&, const std::vector<BlockHeightRange>&)> rangesSetter;
 
+    /// retrieves and stores the last checkpoint in the database. If not found, return 0
     std::function<int()> checkpointGetter;
     std::function<void(int)> checkpointSetter;
 

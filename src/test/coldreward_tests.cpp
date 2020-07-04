@@ -828,6 +828,8 @@ BOOST_AUTO_TEST_CASE(checkpoints_rollback)
     tracker.endPersistedTransaction();
 }
 
+// TODO: test multiple addresses and multiple updates to a single address in one db transaction
+
 BOOST_AUTO_TEST_CASE(get_last_checkpoint)
 {
     {
