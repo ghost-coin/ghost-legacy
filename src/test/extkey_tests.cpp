@@ -344,7 +344,7 @@ void RunSerialiseTests()
         && addr.GetKeyID(idTest, CChainParams::EXT_KEY_HASH));
 
     BOOST_CHECK(id == idTest);
-    BOOST_CHECK_MESSAGE(addr.ToString() == "XCUfUzXMYkXYvP9RVtdzibVVpMP2bhfWRQ", addr.ToString());
+    BOOST_CHECK_MESSAGE(addr.ToString() == "XKCGeD8yZd1jVH75rhxirhmizmn5uiHQGJ", addr.ToString());
 
 
     // Test DeriveNextKey
@@ -403,18 +403,18 @@ void RunSerialiseTests()
     sk.nGenerated = 1;
     BOOST_CHECK(0 == sk.DeriveNextKey(k, nChild, false));
     BOOST_CHECK_MESSAGE(nChild == 1, "nChild " << nChild);
-    BOOST_CHECK_MESSAGE(HexStr(k.GetPubKey()) == "0245a12d2ce075d947b6232b3e424ffa5d2208b6ff69800a1f2501ac6392499bf8", "HexStr(k.GetPubKey()) " << HexStr(k.GetPubKey()));
+    BOOST_CHECK_MESSAGE(HexStr(k.GetPubKey()) == "038bf05f82403b848f46434ac83326c20c3f8918159dc7889bed638b08370cc82a", "HexStr(k.GetPubKey()) " << HexStr(k.GetPubKey()));
 
 
     sk.nGenerated = 2;
     BOOST_CHECK(0 == sk.DeriveNextKey(k, nChild, false));
     BOOST_CHECK_MESSAGE(nChild == 2, "nChild " << nChild);
-    BOOST_CHECK_MESSAGE(HexStr(k.GetPubKey()) == "02f430d7efc4d1ecbac888fb49446ec0b13ec4196512be93054a9b5b30df238910", "HexStr(k.GetPubKey()) " << HexStr(k.GetPubKey()));
+    BOOST_CHECK_MESSAGE(HexStr(k.GetPubKey()) == "035e248e5b1587809fe4787af388235b90e78a5601dcf506da0a08fa32381a0d07", "HexStr(k.GetPubKey()) " << HexStr(k.GetPubKey()));
 
     sk.nHGenerated = 2;
     BOOST_CHECK(0 == sk.DeriveNextKey(k, nChild, true));
     BOOST_CHECK_MESSAGE(nChild == 2147483650, "nChild " << nChild);
-    BOOST_CHECK_MESSAGE(HexStr(k.GetPubKey()) == "0355825cbaf4365a2f7015d9c9bae4ecaf9b57a05e063237256f1565b20104c183", "HexStr(k.GetPubKey()) " << HexStr(k.GetPubKey()));
+    BOOST_CHECK_MESSAGE(HexStr(k.GetPubKey()) == "0292ca892f0c6f469a089e46690bbec69e06c7c3e9224a25f6606f68f7d7634ee7", "HexStr(k.GetPubKey()) " << HexStr(k.GetPubKey()));
 
     // Can't derive keys from pubkeys
     skp.nGenerated = 1;
@@ -429,17 +429,17 @@ void RunSerialiseTests()
     sk.nGenerated = 1;
     BOOST_CHECK(0 == sk.DeriveNextKey(pk, nChild, false));
     BOOST_CHECK_MESSAGE(nChild == 1, "nChild " << nChild);
-    BOOST_CHECK_MESSAGE(HexStr(pk) == "0245a12d2ce075d947b6232b3e424ffa5d2208b6ff69800a1f2501ac6392499bf8", "HexStr(pk) " << HexStr(pk));
+    BOOST_CHECK_MESSAGE(HexStr(pk) == "038bf05f82403b848f46434ac83326c20c3f8918159dc7889bed638b08370cc82a", "HexStr(pk) " << HexStr(pk));
 
     sk.nHGenerated = 2;
     BOOST_CHECK(0 == sk.DeriveNextKey(pk, nChild, true));
     BOOST_CHECK_MESSAGE(nChild == 2147483650, "nChild " << nChild);
-    BOOST_CHECK_MESSAGE(HexStr(pk) == "0355825cbaf4365a2f7015d9c9bae4ecaf9b57a05e063237256f1565b20104c183", "HexStr(pk) " << HexStr(pk));
+    BOOST_CHECK_MESSAGE(HexStr(pk) == "0292ca892f0c6f469a089e46690bbec69e06c7c3e9224a25f6606f68f7d7634ee7", "HexStr(pk) " << HexStr(pk));
 
     skp.nGenerated = 2;
     BOOST_CHECK(0 == skp.DeriveNextKey(pk, nChild, false));
     BOOST_CHECK_MESSAGE(nChild == 2, "nChild " << nChild);
-    BOOST_CHECK_MESSAGE(HexStr(pk) == "02f430d7efc4d1ecbac888fb49446ec0b13ec4196512be93054a9b5b30df238910", "HexStr(pk) " << HexStr(pk));
+    BOOST_CHECK_MESSAGE(HexStr(pk) == "035e248e5b1587809fe4787af388235b90e78a5601dcf506da0a08fa32381a0d07", "HexStr(pk) " << HexStr(pk));
 
     // Can't derive hardened pubkeys from pubkeys
     skp.nHGenerated = 1;
@@ -463,7 +463,7 @@ void RunSerialiseTests()
     BOOST_CHECK(addr.IsValid() == true);
     BOOST_CHECK(addr.IsValid(CChainParams::EXT_SECRET_KEY) == false);
     BOOST_CHECK(addr.IsValid(CChainParams::EXT_PUBLIC_KEY) == true);
-    BOOST_CHECK(addr.ToString() == "XGHSTPisPEJc1E7aePBR3njzceu3uL7P7q5i2LZZTYJj9dvZgVRQANWGaonU8mHFP9NExPTdy5G6hqGMQVQSaCc8so4EYygbFHsgZEdvWysc8S1X");
+    BOOST_CHECK(addr.ToString() == "PGHSTWs5xx8tTfp9wnJbXsHV6hHajuqj2EgakPvddbefAwga6vz8xhQP3Kj4HJ4UR1GkXutbfnTmKPPy9nQ5Ue38LqKrDK6ZzLTfajhrVKAUA1Rm");
     dest = addr.Get();
     BOOST_CHECK(dest.type() == typeid(CExtKeyPair));
     kpT = boost::get<CExtKeyPair>(dest);
@@ -479,7 +479,7 @@ void RunSerialiseTests()
         && addr.GetKeyID(idTest, CChainParams::EXT_KEY_HASH));
 
     BOOST_CHECK(id == idTest);
-    BOOST_CHECK_MESSAGE(addr.ToString() == "x9S4Xj1DZwFsdFno1uHknNNGqdMWgXdhX6", addr.ToString());
+    BOOST_CHECK_MESSAGE(addr.ToString() == "xG9fgwcqaok4C9kTNicUvUeW23kZxrS1yF", addr.ToString());
 
 
     BOOST_CHECK(0 == eKey58.Set58("pparszDdEByd5kvHotS5WeLAiv5gp7b1YfUTs31TmudPuf1dHtos22oNJPmHT2NKyysyfqN56nFPVkUwZjPhK5zqLMucuT8g9dHXjnjsKufeSuVm"));
