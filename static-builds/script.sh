@@ -41,7 +41,6 @@ git clone git@github.com:ghost-coin/ghost-private.git ghost
 cd ~/ghost
 git checkout $BRANCH
 git pull
-wget https://raw.githubusercontent.com/particl/particl-core/master/depends/packages/hidapi.mk -O depends/packages/hidapi.mk
 
 echo @@@
 echo @@@"Building linux 64 binaries"
