@@ -4701,6 +4701,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     if (request.params[0].isArray()) {
         const UniValue &outputs = request.params[0].get_array();
+        std::set<std::string> destinations;
 
         for (size_t k = 0; k < outputs.size(); ++k) {
             if (!outputs[k].isObject()) {
@@ -4722,7 +4723,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
             if (typeOut == OUTPUT_RINGCT
                 && !address.IsValidStealthAddress()) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Ghost stealth address");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Invalid Ghost stealth address: %s", sAddress));
             }
 
             if (address.IsValid() || obj.exists("script")) {
@@ -4731,13 +4732,18 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 // Try decode as segwit address
                 dest = DecodeDestination(sAddress);
                 if (!IsValidDestination(dest)) {
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Ghost address");
+                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Invalid Ghost address: %s", sAddress));
                 }
             }
 
             if (address.getVchVersion() == Params().Bech32Prefix(CChainParams::STAKE_ONLY_PKADDR)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Can't send to stake-only address version.");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Can't send to stake-only address version: %s", sAddress));
             }
+
+            if (destinations.count(sAddress) && sAddress != "script") {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid parameter, duplicated address: %s", sAddress));
+            }
+            destinations.insert(sAddress);
 
             if (obj.exists("amount")) {
                 nAmount = AmountFromValue(obj["amount"]);
@@ -4746,7 +4752,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             }
 
             if (nAmount <= 0) {
-                throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+                throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Invalid amount: %s", obj["amount"].getValStr()));
             }
             nTotal += nAmount;
 
