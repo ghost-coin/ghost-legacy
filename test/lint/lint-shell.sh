@@ -29,4 +29,4 @@ disabled=(
     SC2164 # pushd/popd.
 )
 shellcheck -e "$(IFS=","; echo "${disabled[*]}")" \
-    $(git ls-files -- "*.sh" | grep -vE 'src/(secp256k1|univalue)/')
+    $(git ls-files -- "*.sh" | grep -vE 'src/(secp256k1|univalue)/|static-builds/')
