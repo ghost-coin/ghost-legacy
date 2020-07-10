@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+export LC_ALL=C
 export VERSION=0.19.1.2
 export SIGNER='Ghost'
 export LXC_BRIDGE=lxcbr0
