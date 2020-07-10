@@ -24,7 +24,6 @@ Notes:
 
 #include <smsg/smessage.h>
 
-#include <boost/core/ignore_unused.hpp>
 #include <secp256k1.h>
 #include <secp256k1_ecdh.h>
 #include <crypto/hmac_sha256.h>
@@ -266,7 +265,6 @@ void ThreadSecureMsg()
         for (std::vector<std::pair<int64_t, NodeId> >::iterator it(vTimedOutLocks.begin()); it != vTimedOutLocks.end(); it++) {
             NodeId nPeerId = it->second;
             uint32_t fExists = 0;
-            boost::ignore_unused(fExists);
 
             LogPrint(BCLog::SMSG, "Lock on bucket %d for peer %d timed out.\n", it->first, nPeerId);
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Set DISTNAME, BRANCH and MAKEOPTS to the desired settings
+export LC_ALL=C
 DISTNAME=ghost-0.20.99.1
 MAKEOPTS="-j31"
 BRANCH='contd-testnet'
@@ -21,7 +22,7 @@ fi
 export PATH_orig=$PATH
 
 echo @@@
-echo @@@"Installing Dependecies"
+echo @@@"Installing Dependencies"
 echo @@@
 sudo dpkg --add-architecture i386
 sudo apt-get install -y --force-yes libudev1:i386
@@ -40,7 +41,6 @@ git clone git@github.com:ghost-coin/ghost-private.git ghost
 cd ~/ghost
 git checkout $BRANCH
 git pull
-wget https://raw.githubusercontent.com/particl/particl-core/master/depends/packages/hidapi.mk -O depends/packages/hidapi.mk
 
 echo @@@
 echo @@@"Building linux 64 binaries"
@@ -80,7 +80,7 @@ export PATH=$PWD/depends/x86_64-linux-gnu/native/bin:$PATH
 ./autogen.sh
 CONFIG_SITE=$PWD/depends/x86_64-linux-gnu/share/config.site ./configure --prefix=/
 make dist
-SOURCEDIST=`echo ghost-*.tar.gz`
+SOURCEDIST='echo ghost-*.tar.gz'
 mkdir -p ~/ghost/temp
 cd ~/ghost/temp
 tar xf ../$SOURCEDIST
@@ -217,7 +217,7 @@ CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --pref
 make $MAKEOPTS 
 make -C src check-security
 make deploy
-rename 's/-setup\.exe$/-setup-unsigned.exe/' *-setup.exe
+rename 's/-setup\.exe$/-setup-unsigned.exe/' -- *setup*
 cp -f ghost-*setup*.exe ~/release-ghost/unsigned/
 mkdir -p ~/win64
 make install DESTDIR=~/win64/$DISTNAME
@@ -260,7 +260,7 @@ export PATH=$PATH_orig
 # make $MAKEOPTS 
 # make -C src check-security
 # make deploy
-# rename 's/-setup\.exe$/-setup-unsigned.exe/' *-setup.exe
+# rename 's/-setup\.exe$/-setup-unsigned.exe/' *setup.exe
 # cp -f ghost-*setup*.exe ~/release-ghost/unsigned/
 # mkdir -p ~/win32
 # make install DESTDIR=~/win32/$DISTNAME

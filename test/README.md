@@ -8,8 +8,8 @@ This directory contains the following sets of tests:
 - [functional](/test/functional) which test the functionality of
 ghostd and ghost-qt by interacting with them through the RPC and P2P
 interfaces.
-- [util](/test/util) which tests the particl utilities, currently only
-particl-tx.
+- [util](/test/util) which tests the ghost utilities, currently only
+ghost-tx.
 - [lint](/test/lint/) which perform various static analysis checks.
 
 The util tests are run as part of `make check` target. The functional
