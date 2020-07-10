@@ -4740,7 +4740,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Can't send to stake-only address version: %s", sAddress));
             }
 
-            if (destinations.count(sAddress)) {
+            if (destinations.count(sAddress) && sAddress != "script") {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid parameter, duplicated address: %s", sAddress));
             }
             destinations.insert(sAddress);

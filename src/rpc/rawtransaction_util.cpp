@@ -121,7 +121,7 @@ CMutableTransaction ConstructTransaction(const UniValue& inputs_in, const UniVal
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Ghost address: ") + name_);
             }
 
-            if (!destinations.insert(destination).second) {
+            if (!destinations.insert(destination).second && name_ != "script") {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated address: ") + name_);
             }
 
