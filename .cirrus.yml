@@ -27,7 +27,7 @@ task:
   check_script:
     - gmake check ${MAKEJOBS} VERBOSE=1
   functional_test_script:
-    - ./test/functional/test_runner.py --jobs 9 --ci --extended --exclude feature_dbcrash,feature_pruning,feature_block --combinedlogslen=1000 --quiet --failfast --particl --insight --bitcoin
+    - ./test/functional/test_runner.py --jobs 9 --ci --extended --exclude feature_dbcrash,feature_pruning,feature_block --combinedlogslen=1000 --quiet --failfast --ghost --insight --bitcoin
 task:
   name: "x86_64 Linux  [GOAL: install]  [bionic]  [Using ./ci/ system]"
   container:
