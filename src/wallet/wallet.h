@@ -836,6 +836,8 @@ private:
     void AddToSpends(const COutPoint& outpoint, const uint256& wtxid) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     virtual void AddToSpends(const uint256& wtxid) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
+    std::set<COutPoint> setWalletUTXO;
+
     /**
      * Add a transaction to the wallet, or update it.  pIndex and posInBlock should
      * be set when the transaction was known to be included in a block.  When
@@ -1065,6 +1067,7 @@ public:
     void UnlockCoin(const COutPoint& output);
     void UnlockAllCoins() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void ListLockedCoins(std::vector<COutPoint>& vOutpts) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void ListProTxCoins(std::vector<COutPoint>& vOutpts) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /*
      * Rescan abort properties
@@ -1309,6 +1312,7 @@ public:
     void ChainStateFlushed(const CBlockLocator& loc) override;
 
     DBErrors virtual LoadWallet(bool& fFirstRunRet);
+    void AutoLockMasternodeCollaterals();
     DBErrors ZapWalletTx(std::vector<CWalletTx>& vWtx);
     DBErrors ZapSelectTx(std::vector<uint256>& vHashIn, std::vector<uint256>& vHashOut) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 

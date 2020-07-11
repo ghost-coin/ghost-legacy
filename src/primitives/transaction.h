@@ -35,9 +35,14 @@ enum OutputTypes
 
 enum TransactionTypes
 {
-    TXN_STANDARD            = 0,
-    TXN_COINBASE            = 1,
-    TXN_COINSTAKE           = 2,
+    TXN_STANDARD = 0,
+    TXN_COINBASE = 1,
+    TXN_COINSTAKE = 2,
+    TRANSACTION_PROVIDER_REGISTER = 3,
+    TRANSACTION_PROVIDER_UPDATE_SERVICE = 4,
+    TRANSACTION_PROVIDER_UPDATE_REGISTRAR = 5,
+    TRANSACTION_PROVIDER_UPDATE_REVOKE = 6,
+    TRANSACTION_QUORUM_COMMITMENT = 7,
 };
 
 enum DataOutputTypes
@@ -109,6 +114,7 @@ public:
     };
 
     std::string ToString() const;
+    std::string ToStringShort() const;
 };
 
 /** An input of a transaction.  It contains the location of the previous
@@ -795,6 +801,8 @@ public:
     const int32_t nVersion;
     const uint32_t nLockTime;
 
+    const std::vector<uint8_t> vExtraPayload; // only available for special transaction types
+
 private:
     /** Memory only. */
     const uint256 hash;
@@ -815,6 +823,8 @@ public:
     template <typename Stream>
     inline void Serialize(Stream& s) const {
         SerializeTransaction(*this, s);
+        if (this->GetType() > TXN_COINSTAKE)
+            s << vExtraPayload;
     }
 
     /** This deserializing constructor is provided instead of an Unserialize method.
@@ -833,6 +843,29 @@ public:
     int GetType() const {
         return (nVersion >> 8) & 0xFF;
     }
+
+    std::string GetTypeName() const
+    {
+        switch (GetType()) {
+           case (TXN_STANDARD):
+              return "TXN_STANDARD";
+           case (TXN_COINBASE):
+              return "TXN_COINBASE";
+           case (TXN_COINSTAKE):
+              return "TXN_COINSTAKE";
+           case (TRANSACTION_PROVIDER_REGISTER):
+              return "TRANSACTION_PROVIDER_REGISTER";
+           case (TRANSACTION_PROVIDER_UPDATE_SERVICE):
+              return "TRANSACTION_PROVIDER_UPDATE_SERVICE";
+           case (TRANSACTION_PROVIDER_UPDATE_REGISTRAR):
+              return "TRANSACTION_PROVIDER_UPDATE_REGISTRAR";
+           case (TRANSACTION_PROVIDER_UPDATE_REVOKE):
+              return "TRANSACTION_PROVIDER_UPDATE_REVOKE";
+           case (TRANSACTION_QUORUM_COMMITMENT):
+              return "TRANSACTION_QUORUM_COMMITMENT";
+        }
+        return "TXN_STANDARD";
+    };
 
     size_t GetNumVOuts() const
     {
@@ -956,17 +989,23 @@ struct CMutableTransaction
     int32_t nVersion;
     uint32_t nLockTime;
 
+    std::vector<uint8_t> vExtraPayload; // only available for special transaction types
+
     CMutableTransaction();
     explicit CMutableTransaction(const CTransaction& tx);
 
     template <typename Stream>
     inline void Serialize(Stream& s) const {
         SerializeTransaction(*this, s);
+        if (this->GetType() > TXN_COINSTAKE)
+            s << vExtraPayload;
     }
 
     template <typename Stream>
     inline void Unserialize(Stream& s) {
         UnserializeTransaction(*this, s);
+        if (this->GetType() > TXN_COINSTAKE)
+            s >> vExtraPayload;
     }
 
     template <typename Stream>
@@ -985,6 +1024,29 @@ struct CMutableTransaction
     int GetType() const {
         return (nVersion >> 8) & 0xFF;
     }
+
+    std::string GetTypeName() const
+    {
+        switch (GetType()) {
+           case (TXN_STANDARD):
+              return "TXN_STANDARD";
+           case (TXN_COINBASE):
+              return "TXN_COINBASE";
+           case (TXN_COINSTAKE):
+              return "TXN_COINSTAKE";
+           case (TRANSACTION_PROVIDER_REGISTER):
+              return "TRANSACTION_PROVIDER_REGISTER";
+           case (TRANSACTION_PROVIDER_UPDATE_SERVICE):
+              return "TRANSACTION_PROVIDER_UPDATE_SERVICE";
+           case (TRANSACTION_PROVIDER_UPDATE_REGISTRAR):
+              return "TRANSACTION_PROVIDER_UPDATE_REGISTRAR";
+           case (TRANSACTION_PROVIDER_UPDATE_REVOKE):
+              return "TRANSACTION_PROVIDER_UPDATE_REVOKE";
+           case (TRANSACTION_QUORUM_COMMITMENT):
+              return "TRANSACTION_QUORUM_COMMITMENT";
+        }
+        return "TXN_STANDARD";
+    };
 
     bool IsCoinStake() const
     {
@@ -1013,6 +1075,8 @@ struct CMutableTransaction
         }
         return false;
     }
+
+    std::string ToString() const;
 };
 
 typedef std::shared_ptr<const CTransaction> CTransactionRef;

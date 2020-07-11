@@ -37,6 +37,11 @@
 
 #include <pos/kernel.h>
 
+#include <evo/specialtx.h>
+#include <evo/cbtx.h>
+
+#include <llmq/quorums_chainlocks.h>
+
 #include <assert.h>
 #include <stdint.h>
 
@@ -57,6 +62,8 @@ struct CUpdatedBlock
 static Mutex cs_blockchange;
 static std::condition_variable cond_blockchange;
 static CUpdatedBlock latestblock;
+
+extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry);
 
 /* Calculate the difficulty for a given block index.
  */
@@ -155,8 +162,16 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
             txs.push_back(tx->GetHash().GetHex());
     }
     result.pushKV("tx", txs);
-    PushTime(result, "time", block.GetBlockTime());
-    PushTime(result, "mediantime", blockindex->GetMedianTimePast());
+    if (!block.vtx[0]->vExtraPayload.empty()) {
+        CCbTx cbTx;
+        if (GetTxPayload(block.vtx[0]->vExtraPayload, cbTx)) {
+            UniValue cbTxObj;
+            cbTx.ToJson(cbTxObj);
+            result.pushKV("cbTx", cbTxObj);
+        }
+    }
+    result.pushKV("time", block.GetBlockTime());
+    result.pushKV("mediantime", (int64_t)blockindex->GetMedianTimePast());
     result.pushKV("nonce", (uint64_t)block.nNonce);
     result.pushKV("bits", strprintf("%08x", block.nBits));
     result.pushKV("difficulty", GetDifficulty(blockindex));
@@ -436,7 +451,7 @@ static void entryToJSON(const CTxMemPool& pool, UniValue& info, const CTxMemPool
     info.pushKV("weight", (int)e.GetTxWeight());
     info.pushKV("fee", ValueFromAmount(e.GetFee()));
     info.pushKV("modifiedfee", ValueFromAmount(e.GetModifiedFee()));
-    info.pushKV("time", e.GetTime());
+    info.pushKV("time", count_seconds(e.GetTime()));
     info.pushKV("height", (int)e.GetHeight());
     info.pushKV("descendantcount", e.GetCountWithDescendants());
     info.pushKV("descendantsize", e.GetSizeWithDescendants());
@@ -1997,6 +2012,106 @@ static UniValue getblockstats(const JSONRPCRequest& request)
     return ret;
 }
 
+UniValue getspecialtxes(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 5)
+        throw std::runtime_error(
+            "getspecialtxes \"blockhash\" ( type count skip verbosity ) \n"
+            "Returns an array of special transactions found in the specified block\n"
+            "\nIf verbosity is 0, returns tx hash for each transaction.\n"
+            "If verbosity is 1, returns hex-encoded data for each transaction.\n"
+            "If verbosity is 2, returns an Object with information for each transaction.\n"
+            "\nArguments:\n"
+            "1. \"blockhash\"          (string, required) The block hash\n"
+            "2. type                 (numeric, optional, default=-1) Filter special txes by type, -1 means all types\n"
+            "3. count                (numeric, optional, default=10) The number of transactions to return\n"
+            "4. skip                 (numeric, optional, default=0) The number of transactions to skip\n"
+            "5. verbosity            (numeric, optional, default=0) 0 for hashes, 1 for hex-encoded data, and 2 for json object\n"
+            "\nResult (for verbosity = 0):\n"
+            "[\n"
+            "  \"txid\" : \"xxxx\",    (string) The transaction id\n"
+            "]\n"
+            "\nResult (for verbosity = 1):\n"
+            "[\n"
+            "  \"data\",               (string) A string that is serialized, hex-encoded data for the transaction\n"
+            "]\n"
+            "\nResult (for verbosity = 2):\n"
+            "[                       (array of Objects) The transactions in the format of the getrawtransaction RPC.\n"
+            "  ...,\n"
+            "]\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getspecialtxes", "\"00000000000fd08c2fb661d2fcb0d49abb3a91e5f27082ce64feed3b4dede2e2\"")
+            + HelpExampleRpc("getspecialtxes", "\"00000000000fd08c2fb661d2fcb0d49abb3a91e5f27082ce64feed3b4dede2e2\"")
+        );
+
+    LOCK(cs_main);
+
+    std::string strHash = request.params[0].get_str();
+    uint256 hash(uint256S(strHash));
+
+    int nTxType = -1;
+    if (!request.params[1].isNull()) {
+        nTxType = request.params[1].get_int();
+    }
+
+    int nCount = 10;
+    if (!request.params[2].isNull()) {
+        nCount = request.params[2].get_int();
+        if (nCount < 0)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative count");
+    }
+
+    int nSkip = 0;
+    if (!request.params[3].isNull()) {
+        nSkip = request.params[3].get_int();
+        if (nSkip < 0)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative skip");
+    }
+
+    int nVerbosity = 0;
+    if (!request.params[4].isNull()) {
+        nVerbosity = request.params[4].get_int();
+        if (nVerbosity < 0 || nVerbosity > 2) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Verbosity must be in range 0..2");
+        }
+    }
+
+    if (::BlockIndex().count(hash) == 0)
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+
+    CBlockIndex* pblockindex = ::BlockIndex()[hash];
+    const CBlock block = GetBlockChecked(pblockindex);
+
+    int nTxNum = 0;
+    UniValue result(UniValue::VARR);
+    for(const auto& tx : block.vtx)
+    {
+        if (tx->GetType() == TXN_STANDARD || tx->GetType() != nTxType) {
+            continue;
+        }
+
+        nTxNum++;
+        if (nTxNum <= nSkip) continue;
+        if (nTxNum > nSkip + nCount) break;
+
+        switch (nVerbosity)
+        {
+            case 0 : result.push_back(tx->GetHash().GetHex()); break;
+            case 1 : result.push_back(EncodeHexTx(*tx)); break;
+            case 2 :
+                {
+                    UniValue objTx(UniValue::VOBJ);
+                    TxToJSON(*tx, uint256(), objTx);
+                    result.push_back(objTx);
+                    break;
+                }
+            default : throw JSONRPCError(RPC_INTERNAL_ERROR, "Unsupported verbosity");
+        }
+    }
+
+    return result;
+}
+
 static UniValue savemempool(const JSONRPCRequest& request)
 {
             RPCHelpMan{"savemempool",
@@ -2323,6 +2438,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "getmempoolentry",        &getmempoolentry,        {"txid"} },
     { "blockchain",         "getmempoolinfo",         &getmempoolinfo,         {} },
     { "blockchain",         "getrawmempool",          &getrawmempool,          {"verbose"} },
+    { "blockchain",         "getspecialtxes",         &getspecialtxes,         {"blockhash", "type", "count", "skip", "verbosity"} },
     { "blockchain",         "gettxout",               &gettxout,               {"txid","n","include_mempool"} },
     { "blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        {} },
     { "blockchain",         "pruneblockchain",        &pruneblockchain,        {"height"} },

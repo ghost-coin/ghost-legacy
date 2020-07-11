@@ -142,6 +142,10 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node& node, int argc, char* 
                 {
                     node.selectParams(CBaseChainParams::TESTNET);
                 }
+                else if (request.getDetails().network() == "dmn")
+                {
+                    node.selectParams(CBaseChainParams::DMNTEST);
+                }
             }
         }
         else

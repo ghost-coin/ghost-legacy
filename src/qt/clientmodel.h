@@ -5,6 +5,9 @@
 #ifndef BITCOIN_QT_CLIENTMODEL_H
 #define BITCOIN_QT_CLIENTMODEL_H
 
+#include <evo/deterministicmns.h>
+#include <sync.h>
+
 #include <QObject>
 #include <QDateTime>
 
@@ -59,6 +62,10 @@ public:
     int getHeaderTipHeight() const;
     int64_t getHeaderTipTime() const;
 
+    void setMasternodeList(const CDeterministicMNList& mnList);
+    CDeterministicMNList getMasternodeList() const;
+    void refreshMasternodeList();
+
     //! Returns enum BlockSource of the current importing/syncing state
     enum BlockSource getBlockSource() const;
     //! Return warnings to be displayed in status bar
@@ -86,9 +93,19 @@ private:
     std::unique_ptr<interfaces::Handler> m_handler_banned_list_changed;
     std::unique_ptr<interfaces::Handler> m_handler_notify_block_tip;
     std::unique_ptr<interfaces::Handler> m_handler_notify_header_tip;
+    std::unique_ptr<interfaces::Handler> m_handler_additional_data_sync_progress_changed;
+    std::unique_ptr<interfaces::Handler> m_handler_masternodelist_changed;
     OptionsModel *optionsModel;
     PeerTableModel *peerTableModel;
     BanTableModel *banTableModel;
+
+    QTimer *pollTimer;
+
+    // The cache for mn list is not technically needed because CDeterministicMNManager
+    // caches it internally for recent blocks but it's not enough to get consistent
+    // representation of the list in UI during initial sync/reindex, so we cache it here too.
+    mutable CCriticalSection cs_mnlinst; // protects mnListCached
+    CDeterministicMNList mnListCached;
 
     //! A thread to interact with m_node asynchronously
     QThread* const m_thread;
@@ -101,6 +118,8 @@ private:
 Q_SIGNALS:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count, const QDateTime& blockDate, double nVerificationProgress, bool header);
+    void masternodeListChanged() const;
+    void additionalDataSyncProgressChanged(double nSyncProgress);
     void mempoolSizeChanged(long count, size_t mempoolSizeInBytes);
     void networkActiveChanged(bool networkActive);
     void alertsChanged(const QString &warnings);
@@ -116,6 +135,7 @@ Q_SIGNALS:
     void waitingForDevice(bool fCompleted);
 
 public Q_SLOTS:
+    void updateTimer();
     void updateNumConnections(int numConnections);
     void updateNetworkActive(bool networkActive);
     void updateAlert();

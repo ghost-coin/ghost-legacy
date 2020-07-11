@@ -20,6 +20,9 @@
 #include <rpc/rpcutil.h>
 #include <rpc/client.h>
 
+#include <masternode/masternode-sync.h>
+#include <spork.h>
+
 #include <stdint.h>
 #include <tuple>
 #ifdef HAVE_MALLOC_INFO
@@ -688,6 +691,119 @@ UniValue getavgblocktime(const JSONRPCRequest& request)
     return GetAvgBlocktime(amt);
 }
 
+UniValue mnsync(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 1)
+        throw std::runtime_error(
+            "mnsync [status|next|reset]\n"
+            "Returns the sync status, updates to the next step or resets it entirely.\n"
+        );
+
+    std::string strMode = request.params[0].get_str();
+
+    if(strMode == "status") {
+        UniValue objStatus(UniValue::VOBJ);
+        objStatus.pushKV("AssetID", masternodeSync.GetAssetID());
+        objStatus.pushKV("AssetName", masternodeSync.GetAssetName());
+        objStatus.pushKV("AssetStartTime", masternodeSync.GetAssetStartTime());
+        objStatus.pushKV("Attempt", masternodeSync.GetAttempt());
+        objStatus.pushKV("IsBlockchainSynced", masternodeSync.IsBlockchainSynced());
+        objStatus.pushKV("IsSynced", masternodeSync.IsSynced());
+        objStatus.pushKV("IsFailed", masternodeSync.IsFailed());
+        return objStatus;
+    }
+
+    if(strMode == "next")
+    {
+        masternodeSync.SwitchToNextAsset(*g_connman);
+        return "sync updated to " + masternodeSync.GetAssetName();
+    }
+
+    if(strMode == "reset")
+    {
+        masternodeSync.Reset();
+        masternodeSync.SwitchToNextAsset(*g_connman);
+        return "success";
+    }
+    return "failure";
+}
+
+/*
+    Used for updating/reading spork settings on the network
+*/
+UniValue spork(const JSONRPCRequest& request)
+{
+    if (request.params.size() == 1) {
+        // basic mode, show info
+        std:: string strCommand = request.params[0].get_str();
+        if (strCommand == "show") {
+            UniValue ret(UniValue::VOBJ);
+            for (const auto& sporkDef : sporkDefs) {
+                ret.pushKV(sporkDef.name, sporkManager.GetSporkValue(sporkDef.sporkId));
+            }
+            return ret;
+        } else if(strCommand == "active"){
+            UniValue ret(UniValue::VOBJ);
+            for (const auto& sporkDef : sporkDefs) {
+                ret.pushKV(sporkDef.name, sporkManager.IsSporkActive(sporkDef.sporkId));
+            }
+            return ret;
+        }
+    }
+
+    if (request.fHelp || request.params.size() != 2) {
+        // default help, for basic mode
+        throw std::runtime_error(
+            "spork \"command\"\n"
+            "\nShows information about current state of sporks\n"
+            "\nArguments:\n"
+            "1. \"command\"                     (string, required) 'show' to show all current spork values, 'active' to show which sporks are active\n"
+            "\nResult:\n"
+            "For 'show':\n"
+            "{\n"
+            "  \"SPORK_NAME\" : spork_value,    (number) The value of the specific spork with the name SPORK_NAME\n"
+            "  ...\n"
+            "}\n"
+            "For 'active':\n"
+            "{\n"
+            "  \"SPORK_NAME\" : true|false,     (boolean) 'true' for time-based sporks if spork is active and 'false' otherwise\n"
+            "  ...\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("spork", "show")
+            + HelpExampleRpc("spork", "\"show\""));
+    } else {
+        // advanced mode, update spork values
+        SporkId nSporkID = sporkManager.GetSporkIDByName(request.params[0].get_str());
+        if(nSporkID == SPORK_INVALID)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid spork name");
+
+        if (!g_connman)
+            throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
+
+        // SPORK VALUE
+        int64_t nValue = request.params[1].get_int64();
+
+        //broadcast new spork
+        if(sporkManager.UpdateSpork(nSporkID, nValue, *g_connman)){
+            return "success";
+        } else {
+            throw std::runtime_error(
+                "spork \"name\" value\n"
+                "\nUpdate the value of the specific spork. Requires \"-sporkkey\" to be set to sign the message.\n"
+                "\nArguments:\n"
+                "1. \"name\"              (string, required) The name of the spork to update\n"
+                "2. value               (number, required) The new desired value of the spork\n"
+                "\nResult:\n"
+                "  result               (string) \"success\" if spork value was updated or this help otherwise\n"
+                "\nExamples:\n"
+                + HelpExampleCli("spork", "SPORK_2_INSTANTSEND_ENABLED 4070908800")
+                + HelpExampleRpc("spork", "\"SPORK_2_INSTANTSEND_ENABLED\", 4070908800"));
+        }
+    }
+
+}
+
 // clang-format off
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
@@ -701,6 +817,9 @@ static const CRPCCommand commands[] =
     { "util",               "verifymessage",          &verifymessage,          {"address","signature","message","message_magic"} },
     { "util",               "signmessagewithprivkey", &signmessagewithprivkey, {"privkey","message"} },
     { "util",               "getavgblocktime",        &getavgblocktime,        {"amt"} },
+
+    { "ghost",              "mnsync",                 &mnsync,                 {} },
+    { "ghost",              "spork",                  &spork,                  {"arg0","value"} },
 
     /* Not shown in help */
     { "hidden",             "setmocktime",            &setmocktime,            {"timestamp","is_offset"}},

@@ -318,8 +318,13 @@ bool CheckDataOutput(CValidationState &state, const CTxOutData *p)
 
 bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fCheckDuplicateInputs)
 {
+    bool allowEmptyTxInOut = false;
+    if (tx.GetType() > TXN_COINSTAKE) {
+        allowEmptyTxInOut = true;
+    }
+
     // Basic checks that don't depend on any context
-    if (tx.vin.empty())
+    if (!allowEmptyTxInOut && tx.vin.empty())
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-vin-empty");
 
     // Size limits (this doesn't take the witness into account, as that hasn't been checked for malleability)
@@ -380,10 +385,10 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
             return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "too-many-data-outputs");
         }
     } else {
-        if (fParticlMode) {
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txn-version");
-        }
-        if (tx.vout.empty()) {
+        //if (fParticlMode) {
+        //    return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txn-version");
+        //}
+        if (!allowEmptyTxInOut && tx.vout.empty()) {
             return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-vout-empty");
         }
 

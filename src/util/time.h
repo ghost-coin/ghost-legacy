@@ -10,6 +10,16 @@
 #include <string>
 #include <chrono>
 
+void UninterruptibleSleep(const std::chrono::microseconds& n);
+
+/**
+ * Helper to count the seconds of a duration.
+ *
+ * All durations should be using std::chrono and calling this should generally be avoided in code. Though, it is still
+ * preferred to an inline t.count() to protect against a reliance on the exact type of t.
+ */
+inline int64_t count_seconds(std::chrono::seconds t) { return t.count(); }
+
 /**
  * DEPRECATED
  * Use either GetSystemTimeInSeconds (not mockable) or GetTime<T> (mockable)
@@ -40,5 +50,6 @@ T GetTime();
  */
 std::string FormatISO8601DateTime(int64_t nTime);
 std::string FormatISO8601Date(int64_t nTime);
+std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
 
 #endif // BITCOIN_UTIL_TIME_H

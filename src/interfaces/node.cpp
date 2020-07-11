@@ -319,6 +319,14 @@ public:
             }));
     }
 
+    std::unique_ptr<Handler> handleNotifyAdditionalDataSyncProgressChanged(NotifyAdditionalDataSyncProgressChangedFn fn) override
+    {
+        return MakeHandler(::uiInterface.NotifyAdditionalDataSyncProgressChanged_connect(fn));
+    }
+    std::unique_ptr<Handler> handleNotifyMasternodeListChanged(NotifyMasternodeListChangedFn fn) override
+    {
+        return MakeHandler(::uiInterface.NotifyMasternodeListChanged_connect(fn));
+    }
     std::unique_ptr<Handler> handleNotifyWaitingForDevice(WaitingForDeviceFn fn) override
     {
         return MakeHandler(::uiInterface.NotifyWaitingForDevice_connect(fn));

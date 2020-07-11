@@ -5,6 +5,7 @@
 
 #include <script/interpreter.h>
 
+#include <primitives/transaction.h>
 #include <crypto/ripemd160.h>
 #include <crypto/sha1.h>
 #include <crypto/sha256.h>
@@ -1196,6 +1197,8 @@ public:
              SerializeOutput(s, nOutput);
         // Serialize nLockTime
         ::Serialize(s, txTo.nLockTime);
+        if (txTo.GetType() != TXN_STANDARD)
+            ::Serialize(s, txTo.vExtraPayload);
     }
 };
 

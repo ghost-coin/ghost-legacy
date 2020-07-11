@@ -78,6 +78,11 @@ std::string COutPoint::ToString() const
     return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
 }
 
+std::string COutPoint::ToStringShort() const
+{
+    return strprintf("%s-%u", hash.ToString().substr(0,64), n);
+}
+
 CTxIn::CTxIn(COutPoint prevoutIn, CScript scriptSigIn, uint32_t nSequenceIn)
 {
     prevout = prevoutIn;
@@ -217,7 +222,7 @@ std::vector<CTxOutBaseRef> DeepCopy(const std::vector<CTxOutBaseRef> &from)
 }
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
-CMutableTransaction::CMutableTransaction(const CTransaction& tx) : vin(tx.vin), vout(tx.vout), vpout{DeepCopy(tx.vpout)}, nVersion(tx.nVersion), nLockTime(tx.nLockTime) {}
+CMutableTransaction::CMutableTransaction(const CTransaction& tx) : vin(tx.vin), vout(tx.vout), vpout{DeepCopy(tx.vpout)}, nLockTime(tx.nLockTime), vExtraPayload(tx.vExtraPayload) {}
 
 uint256 CMutableTransaction::GetHash() const
 {
@@ -241,8 +246,8 @@ uint256 CTransaction::ComputeWitnessHash() const
 
 /* For backward compatibility, the hash is initialized to 0. TODO: remove the need for this default constructor entirely. */
 CTransaction::CTransaction() : vin(), vout(), vpout(), nVersion(CTransaction::CURRENT_VERSION), nLockTime(0), hash{}, m_witness_hash{} {}
-CTransaction::CTransaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), vpout{DeepCopy(tx.vpout)}, nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash{ComputeHash()}, m_witness_hash{ComputeWitnessHash()} {}
-CTransaction::CTransaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), vpout(std::move(tx.vpout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash{ComputeHash()}, m_witness_hash{ComputeWitnessHash()} {}
+CTransaction::CTransaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), vpout{DeepCopy(tx.vpout)}, nVersion(tx.nVersion), nLockTime(tx.nLockTime), vExtraPayload(tx.vExtraPayload), hash{ComputeHash()}, m_witness_hash{ComputeWitnessHash()} {}
+CTransaction::CTransaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), vpout(std::move(tx.vpout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), vExtraPayload(tx.vExtraPayload), hash{ComputeHash()}, m_witness_hash{ComputeWitnessHash()} {}
 
 CAmount CTransaction::GetValueOut() const
 {
@@ -326,12 +331,14 @@ unsigned int CTransaction::GetTotalSize() const
 std::string CTransaction::ToString() const
 {
     std::string str;
-    str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
+    str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u, nType=%s, vExtraPayload.size=%d)\n",
         GetHash().ToString().substr(0,10),
         nVersion,
         vin.size(),
         (nVersion & 0xFF) < GHOST_TXN_VERSION ? vout.size() : vpout.size(),
-        nLockTime);
+        nLockTime,
+        GetTypeName(),
+        vExtraPayload.size());
     for (const auto& tx_in : vin)
         str += "    " + tx_in.ToString() + "\n";
     for (const auto& tx_in : vin)
@@ -342,3 +349,22 @@ std::string CTransaction::ToString() const
         str += "    " + vpout[i]->ToString() + "\n";
     return str;
 }
+
+std::string CMutableTransaction::ToString() const
+{
+    std::string str;
+    str += strprintf("CMutableTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u, nType=%s, vExtraPayload.size=%d)\n",
+        GetHash().ToString().substr(0,10),
+        nVersion,
+        vin.size(),
+        vout.size(),
+        nLockTime,
+        GetTypeName(),
+        vExtraPayload.size());
+    for (unsigned int i = 0; i < vin.size(); i++)
+        str += "    " + vin[i].ToString() + "\n";
+    for (unsigned int i = 0; i < vout.size(); i++)
+        str += "    " + vout[i].ToString() + "\n";
+    return str;
+}
+

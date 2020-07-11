@@ -31,6 +31,8 @@ struct CBlockTemplate
     std::vector<CAmount> vTxFees;
     std::vector<int64_t> vTxSigOpsCost;
     std::vector<unsigned char> vchCoinbaseCommitment;
+    std::vector<CTxOut> voutMasternodePayments; // masternode payment
+    std::vector<CTxOut> voutSuperblockPayments; // superblock payment
 };
 
 // Container for tracking updates to ancestor feerate as we include (parent)
@@ -159,7 +161,7 @@ public:
     BlockAssembler(const CChainParams& params, const Options& options);
 
     /** Construct a new block template with coinbase to scriptPubKeyIn */
-    std::unique_ptr<CBlockTemplate> CreateNewBlock(const CScript& scriptPubKeyIn, bool fTestBlockValidity=true);
+    std::unique_ptr<CBlockTemplate> CreateNewBlock(const CScript& scriptPubKeyIn, bool fTestBlockValidity=false);
 
     static Optional<int64_t> m_last_block_num_txs;
     static Optional<int64_t> m_last_block_weight;

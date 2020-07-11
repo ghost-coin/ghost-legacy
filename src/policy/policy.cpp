@@ -130,10 +130,12 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType, int64_t time
 
 bool IsStandardTx(const CTransaction& tx, bool permit_bare_multisig, const CFeeRate& dust_relay_fee, std::string& reason, int64_t time)
 {
+#if 0
     if (!tx.IsGhostVersion() && (tx.nVersion > CTransaction::MAX_STANDARD_VERSION || tx.nVersion < 1)) {
         reason = "version";
         return false;
     }
+#endif
 
     // Extremely large transactions with lots of inputs can cost the network
     // almost as much to process as they cost the sender in fees, because

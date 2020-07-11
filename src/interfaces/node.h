@@ -27,6 +27,7 @@ class Coin;
 class RPCTimerInterface;
 class UniValue;
 class proxyType;
+class CDeterministicMNList;
 struct CNodeStateStats;
 enum class WalletCreationStatus;
 
@@ -257,6 +258,11 @@ public:
     using NotifyHeaderTipFn =
         std::function<void(bool initial_download, int height, int64_t block_time, double verification_progress)>;
     virtual std::unique_ptr<Handler> handleNotifyHeaderTip(NotifyHeaderTipFn fn) = 0;
+
+    using NotifyAdditionalDataSyncProgressChangedFn = std::function<void(double nSyncProgress)>;
+    virtual std::unique_ptr<Handler> handleNotifyAdditionalDataSyncProgressChanged(NotifyAdditionalDataSyncProgressChangedFn fn) = 0;  
+    using NotifyMasternodeListChangedFn = std::function<void(const CDeterministicMNList& mnList)>;
+    virtual std::unique_ptr<Handler> handleNotifyMasternodeListChanged(NotifyMasternodeListChangedFn fn) = 0;
 
     using WaitingForDeviceFn = std::function<void(bool waiting_for_device)>;
     virtual std::unique_ptr<Handler> handleNotifyWaitingForDevice(WaitingForDeviceFn fn) = 0;

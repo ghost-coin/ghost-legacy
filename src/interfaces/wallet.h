@@ -138,6 +138,9 @@ public:
     //! List locked coins.
     virtual void listLockedCoins(std::vector<COutPoint>& outputs) = 0;
 
+    //! List locked coins.
+    virtual void listProTxCoins(std::vector<COutPoint>& vOutpts) = 0;
+
     //! Create transaction.
     virtual CTransactionRef createTransaction(const std::vector<CRecipient>& recipients,
         const CCoinControl& coin_control,

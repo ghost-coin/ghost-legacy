@@ -15,6 +15,7 @@
 const std::string CBaseChainParams::MAIN = "main";
 const std::string CBaseChainParams::TESTNET = "test";
 const std::string CBaseChainParams::REGTEST = "regtest";
+const std::string CBaseChainParams::DMNTEST = "dmntest";
 
 void SetupChainParamsBaseOptions()
 {
@@ -36,10 +37,15 @@ const CBaseChainParams& BaseParams()
 
 std::unique_ptr<CBaseChainParams> CreateBaseChainParams(const std::string& chain)
 {
+    return MakeUnique<CBaseChainParams>("dmntest", 8194);
+    /////////////////////////////////////////////////////
+
     if (chain == CBaseChainParams::MAIN)
         return MakeUnique<CBaseChainParams>("", 51725);
     else if (chain == CBaseChainParams::TESTNET)
         return MakeUnique<CBaseChainParams>("testnet", 51925);
+    else if (chain == CBaseChainParams::DMNTEST)
+        return MakeUnique<CBaseChainParams>("dmntest", 8194);
     else if (chain == CBaseChainParams::REGTEST)
         return MakeUnique<CBaseChainParams>("regtest", 51926);
     else

@@ -17,6 +17,11 @@
 #include <insight/spentindex.h>
 #include <blind.h>
 
+#include <evo/cbtx.h>
+#include <evo/providertx.h>
+#include <evo/specialtx.h>
+#include <llmq/quorums_commitment.h>
+
 //extern bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
 bool (*pCoreWriteGetSpentIndex)(CSpentIndexKey &key, CSpentIndexValue &value) = nullptr; // HACK, alternative is to move GetSpentIndex into common lib
 
@@ -363,6 +368,54 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
 
     entry.pushKV("vout", vout);
 
+    if (!tx.vExtraPayload.empty()) {
+        entry.pushKV("extraPayloadSize", (int)tx.vExtraPayload.size());
+        entry.pushKV("extraPayload", HexStr(tx.vExtraPayload));
+    }
+
+    if (tx.GetType() == TRANSACTION_PROVIDER_REGISTER) {
+        CProRegTx proTx;
+        if (GetTxPayload(tx, proTx)) {
+            UniValue obj;
+            proTx.ToJson(obj);
+            entry.pushKV("proRegTx", obj);
+        }
+    } else if (tx.GetType() == TRANSACTION_PROVIDER_UPDATE_SERVICE) {
+        CProUpServTx proTx;
+        if (GetTxPayload(tx, proTx)) {
+            UniValue obj;
+            proTx.ToJson(obj);
+            entry.pushKV("proUpServTx", obj);
+        }
+    } else if (tx.GetType() == TRANSACTION_PROVIDER_UPDATE_REGISTRAR) {
+        CProUpRegTx proTx;
+        if (GetTxPayload(tx, proTx)) {
+            UniValue obj;
+            proTx.ToJson(obj);
+            entry.pushKV("proUpRegTx", obj);
+        }
+    } else if (tx.GetType() == TRANSACTION_PROVIDER_UPDATE_REVOKE) {
+        CProUpRevTx proTx;
+        if (GetTxPayload(tx, proTx)) {
+            UniValue obj;
+            proTx.ToJson(obj);
+            entry.pushKV("proUpRevTx", obj);
+        }
+    } else if (tx.GetType() == TXN_COINBASE) {
+        CCbTx cbTx;
+        if (GetTxPayload(tx, cbTx)) {
+            UniValue obj;
+            cbTx.ToJson(obj);
+            entry.pushKV("cbTx", obj);
+        }
+    } else if (tx.GetType() == TRANSACTION_QUORUM_COMMITMENT) {
+        llmq::CFinalCommitmentTxPayload qcTx;
+        if (GetTxPayload(tx, qcTx)) {
+            UniValue obj;
+            qcTx.ToJson(obj);
+            entry.pushKV("qcTx", obj);
+        }
+    }
     if (!hashBlock.IsNull())
         entry.pushKV("blockhash", hashBlock.GetHex());
 

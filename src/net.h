@@ -12,6 +12,7 @@
 #include <bloom.h>
 #include <compat.h>
 #include <crypto/siphash.h>
+#include <consensus/params.h>
 #include <hash.h>
 #include <limitedmap.h>
 #include <netaddress.h>
@@ -37,7 +38,7 @@
 
 #include <smsg/net.h>
 
-
+class CConnman;
 class CScheduler;
 class CNode;
 class BanMan;
@@ -71,6 +72,8 @@ static const int MAX_ADDNODE_CONNECTIONS = 8;
 static const int MAX_BLOCKS_ONLY_CONNECTIONS = 2;
 /** -listen default */
 static const bool DEFAULT_LISTEN = true;
+/** Eviction protection time for incoming connections  */
+static const int INBOUND_EVICTION_PROTECTION_TIME = 1;
 /** -upnp default */
 #ifdef USE_UPNP
 static const bool DEFAULT_UPNP = USE_UPNP;
@@ -94,6 +97,7 @@ static const size_t DEFAULT_MAXSENDBUFFER    = 1 * 1000;
 
 typedef int64_t NodeId;
 
+extern std::unique_ptr<CConnman> g_connman;
 
 extern CCriticalSection cs_main;
 
@@ -122,6 +126,11 @@ struct CSerializedNetMsg
 };
 
 
+struct CAllNodes {
+    bool operator() (const CNode*) const {return true;}
+};
+
+static constexpr CAllNodes AllNodes{};
 class NetEventsInterface;
 class CConnman
 {
@@ -191,35 +200,90 @@ public:
     CConnman(uint64_t seed0, uint64_t seed1);
     ~CConnman();
     bool Start(CScheduler& scheduler, const Options& options);
-
-    // TODO: Remove NO_THREAD_SAFETY_ANALYSIS. Lock cs_vNodes before reading the variable vNodes.
-    //
-    // When removing NO_THREAD_SAFETY_ANALYSIS be aware of the following lock order requirements:
-    // * CheckForStaleTipAndEvictPeers locks cs_main before indirectly calling GetExtraOutboundCount
-    //   which locks cs_vNodes.
-    // * ProcessMessage locks cs_main and g_cs_orphans before indirectly calling ForEachNode which
-    //   locks cs_vNodes.
-    //
-    // Thus the implicit locking order requirement is: (1) cs_main, (2) g_cs_orphans, (3) cs_vNodes.
-    void Stop() NO_THREAD_SAFETY_ANALYSIS;
-
+    void Stop();
     void Interrupt();
     bool GetNetworkActive() const { return fNetworkActive; };
     bool GetUseAddrmanOutgoing() const { return m_use_addrman_outgoing; };
     void SetNetworkActive(bool active);
-    void OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound = nullptr, const char *strDest = nullptr, bool fOneShot = false, bool fFeeler = false, bool manual_connection = false, bool block_relay_only = false);
+    void OpenMasternodeConnection(const CAddress& addrConnect, bool isProbe = false);
+    void OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound = nullptr, const char *strDest = nullptr, bool fOneShot = false, bool fFeeler = false, bool manual_connection = false, bool block_relay_only = false, bool fConnectToMasternode = false, bool fMasternodeProbe = false);
     bool CheckIncomingNonce(uint64_t nonce);
-
     bool ForNode(NodeId id, std::function<bool(CNode* pnode)> func);
-
     void PushMessage(CNode* pnode, CSerializedNetMsg&& msg);
+
+    bool ForNode(const CService& addr, std::function<bool(const CNode* pnode)> cond, std::function<bool(CNode* pnode)> func);
+
+    
+    struct CFullyConnectedOnly {
+        bool operator() (const CNode* pnode) const {
+            return NodeFullyConnected(pnode);
+        }
+    };
+
+    static constexpr CFullyConnectedOnly FullyConnectedOnly{};
+
+    template<typename Callable>
+    bool ForNode(const CService& addr, Callable&& func)
+    {
+        return ForNode(addr, FullyConnectedOnly, func);
+    }
+
+    template<typename Condition, typename Callable>
+    bool ForEachNodeContinueIf(const Condition& cond, Callable&& func)
+    {
+        LOCK(cs_vNodes);
+        for (auto&& node : vNodes)
+            if (cond(node))
+                if(!func(node))
+                    return false;
+        return true;
+    };
+
+    template<typename Callable>
+    bool ForEachNodeContinueIf(Callable&& func)
+    {
+        return ForEachNodeContinueIf(FullyConnectedOnly, func);
+    }
+
+    template<typename Condition, typename Callable>
+    bool ForEachNodeContinueIf(const Condition& cond, Callable&& func) const
+    {
+        LOCK(cs_vNodes);
+        for (const auto& node : vNodes)
+            if (cond(node))
+                if(!func(node))
+                    return false;
+        return true;
+    };
+
+    template<typename Callable>
+    bool ForEachNodeContinueIf(Callable&& func) const
+    {
+        return ForEachNodeContinueIf(FullyConnectedOnly, func);
+    }
+
+    template<typename Condition, typename Callable>
+    void ForEachNode(const Condition& cond, Callable&& func)
+    {
+        LOCK(cs_vNodes);
+        for (auto&& node : vNodes) {
+            if (cond(node))
+                func(node);
+        }
+    };
 
     template<typename Callable>
     void ForEachNode(Callable&& func)
     {
+        ForEachNode(FullyConnectedOnly, func);
+    }
+
+    template<typename Condition, typename Callable>
+    void ForEachNode(const Condition& cond, Callable&& func) const
+    {
         LOCK(cs_vNodes);
         for (auto&& node : vNodes) {
-            if (NodeFullyConnected(node))
+            if (cond(node))
                 func(node);
         }
     };
@@ -227,19 +291,32 @@ public:
     template<typename Callable>
     void ForEachNode(Callable&& func) const
     {
+        ForEachNode(FullyConnectedOnly, func);
+    }
+
+    template<typename Condition, typename Callable, typename CallableAfter>
+    void ForEachNodeThen(const Condition& cond, Callable&& pre, CallableAfter&& post)
+    {
         LOCK(cs_vNodes);
         for (auto&& node : vNodes) {
-            if (NodeFullyConnected(node))
-                func(node);
+            if (cond(node))
+                pre(node);
         }
+        post();
     };
 
     template<typename Callable, typename CallableAfter>
     void ForEachNodeThen(Callable&& pre, CallableAfter&& post)
     {
+        ForEachNodeThen(FullyConnectedOnly, pre, post);
+    }
+
+    template<typename Condition, typename Callable, typename CallableAfter>
+    void ForEachNodeThen(const Condition& cond, Callable&& pre, CallableAfter&& post) const
+    {
         LOCK(cs_vNodes);
         for (auto&& node : vNodes) {
-            if (NodeFullyConnected(node))
+            if (cond(node))
                 pre(node);
         }
         post();
@@ -248,14 +325,12 @@ public:
     template<typename Callable, typename CallableAfter>
     void ForEachNodeThen(Callable&& pre, CallableAfter&& post) const
     {
-        LOCK(cs_vNodes);
-        for (auto&& node : vNodes) {
-            if (NodeFullyConnected(node))
-                pre(node);
-        }
-        post();
-    };
+        ForEachNodeThen(FullyConnectedOnly, pre, post);
+    }
 
+    std::vector<CNode*> CopyNodeVector(std::function<bool(const CNode* pnode)> cond);
+    void ReleaseNodeVector(const std::vector<CNode*>& vecNodes);
+    void AddNewAddress(const CAddress& addr, const CAddress& addrFrom, int64_t nTimePenalty = 0);
     // Addrman functions
     size_t GetAddressCount() const;
     void SetServices(const CService &addr, ServiceFlags nServices);
@@ -280,7 +355,18 @@ public:
     bool RemoveAddedNode(const std::string& node);
     std::vector<AddedNodeInfo> GetAddedNodeInfo();
 
+    bool AddPendingMasternode(const uint256& proTxHash);
+    void SetMasternodeQuorumNodes(Consensus::LLMQType llmqType, const uint256& quorumHash, const std::set<uint256>& proTxHashes);
+    bool HasMasternodeQuorumNodes(Consensus::LLMQType llmqType, const uint256& quorumHash);
+    std::set<uint256> GetMasternodeQuorums(Consensus::LLMQType llmqType);
+    // also returns QWATCH nodes
+    std::set<NodeId> GetMasternodeQuorumNodes(Consensus::LLMQType llmqType, const uint256& quorumHash) const;
+    void RemoveMasternodeQuorumNodes(Consensus::LLMQType llmqType, const uint256& quorumHash);
+    bool IsMasternodeQuorumNode(const CNode* pnode);
+    void AddPendingProbeConnections(const std::set<uint256>& proTxHashes);
+
     size_t GetNodeCount(NumConnections num);
+    size_t GetMaxOutboundNodeCount();
     void GetNodeStats(std::vector<CNodeStats>& vstats);
     bool DisconnectNode(const std::string& node);
     bool DisconnectNode(const CSubNet& subnet);
@@ -336,7 +422,24 @@ public:
     */
     int64_t PoissonNextSendInbound(int64_t now, int average_interval_seconds);
 
-//private:
+    bool IsMasternodeOrDisconnectRequested(const CService& addr);
+    bool IsConnected(const CService& addr, std::function<bool(const CNode* pnode)> cond)
+    {
+        return ForNode(addr, cond, [](CNode* pnode){
+            return true;
+        });
+    }
+    bool AddMasternodeQuorumNodes(Consensus::LLMQType llmqType, const uint256& quorumHash, const std::set<uint256>& proTxHashes);
+
+    //! Relay message only to minProtoVersion peers.
+    void RelayInv(CInv& inv, const int minProtoVersion = MIN_PEER_PROTO_VERSION);
+
+    //! Relay message based to minProtoVersion peers filtered by relatedTx.
+    void RelayInvFiltered(CInv& inv, const CTransaction& relatedTx, const int minProtoVersion = MIN_PEER_PROTO_VERSION);
+
+    //! Relay message based to minProtoVersion peers filtered by relatedTxHash.
+    void RelayInvFiltered(CInv& inv, const uint256& relatedTxHash, const int minProtoVersion = MIN_PEER_PROTO_VERSION);
+
     struct ListenSocket {
     public:
         SOCKET socket;
@@ -363,6 +466,7 @@ public:
     void SocketHandler();
     void ThreadSocketHandler();
     void ThreadDNSAddressSeed();
+    void ThreadOpenMasternodeConnections();
 
     uint64_t CalculateKeyedNetGroup(const CAddress& ad) const;
 
@@ -419,12 +523,17 @@ public:
     CCriticalSection cs_vOneShots;
     std::vector<std::string> vAddedNodes GUARDED_BY(cs_vAddedNodes);
     CCriticalSection cs_vAddedNodes;
+    std::vector<uint256> vPendingMasternodes GUARDED_BY(cs_vPendingMasternodes);
+    std::map<std::pair<uint8_t, uint256>, std::set<uint256>> masternodeQuorumNodes GUARDED_BY(cs_vPendingMasternodes);
+    std::set<uint256> masternodePendingProbes;
+    mutable CCriticalSection cs_vPendingMasternodes;
     std::vector<CNode*> vNodes GUARDED_BY(cs_vNodes);
     std::list<CNode*> vNodesDisconnected;
     mutable CCriticalSection cs_vNodes;
     std::atomic<NodeId> nLastNodeId{0};
     unsigned int nPrevNodeCount{0};
 
+private:
     /**
      * Services this instance offers.
      *
@@ -441,6 +550,7 @@ public:
 
     std::unique_ptr<CSemaphore> semOutbound;
     std::unique_ptr<CSemaphore> semAddnode;
+    std::unique_ptr<CSemaphore> semMasternodeOutbound;
     int nMaxConnections;
 
     // How many full-relay (tx, block, addr) outbound peers we want
@@ -475,6 +585,7 @@ public:
     std::thread threadSocketHandler;
     std::thread threadOpenAddedConnections;
     std::thread threadOpenConnections;
+    std::thread threadOpenMasternodeConnections;
     std::thread threadMessageHandler;
 
     /** flag for deciding to connect to an extra outbound peer,
@@ -485,9 +596,8 @@ public:
     std::atomic<int64_t> m_next_send_inv_to_incoming{0};
 
     friend struct CConnmanTest;
+    friend struct ConnmanTestMsg;
 };
-extern std::unique_ptr<CConnman> g_connman;
-extern std::unique_ptr<BanMan> g_banman;
 void Discover();
 void StartMapPort();
 void InterruptMapPort();
@@ -612,6 +722,9 @@ public:
     CAddress addr;
     // Bind address of our side of the connection
     CAddress addrBind;
+    //! dash
+    uint256 verifiedProRegTxHash;
+    bool fMasternode;
 };
 
 
@@ -690,6 +803,9 @@ public:
     std::atomic<int64_t> nLastRecv{0};
     const int64_t nTimeConnected;
     std::atomic<int64_t> nTimeOffset{0};
+    //! dash message register
+    std::atomic<int64_t> nTimeFirstMessageReceived;
+    std::atomic<bool> fFirstMessageIsMNAUTH;
     // Address of this peer
     const CAddress addr;
     // Bind address of our side of the connection
@@ -717,19 +833,24 @@ public:
     // Setting fDisconnect to true will cause the node to be disconnected the
     // next time DisconnectNodes() runs
     std::atomic_bool fDisconnect{false};
+    bool fRelayTxes GUARDED_BY(cs_filter){false};
     bool fSentAddr{false};
+    bool fMasternode{false};
     CSemaphoreGrant grantOutbound;
+    CSemaphoreGrant grantMasternodeOutbound;
+    mutable RecursiveMutex cs_filter;
+    std::unique_ptr<CBloomFilter> pfilter PT_GUARDED_BY(cs_filter);
     std::atomic<int> nRefCount{0};
 
     const uint64_t nKeyedNetGroup;
     std::atomic_bool fPauseRecv{false};
     std::atomic_bool fPauseSend{false};
 
-//protected:
+public:
+
     mapMsgCmdSize mapSendBytesPerMsgCmd;
     mapMsgCmdSize mapRecvBytesPerMsgCmd GUARDED_BY(cs_vRecv);
 
-public:
     uint256 hashContinue;
     std::atomic<int> nStartingHeight{-1};
     std::atomic<int> nChainHeight{-1}; // updated from ping messages
@@ -747,6 +868,7 @@ public:
     // List of block ids we still have announce.
     // There is no final sorting before sending, as they are always sent immediately
     // and in the order requested.
+    std::vector<CInv> vInventoryOtherToSend;
     std::vector<uint256> vInventoryBlockToSend GUARDED_BY(cs_inventory);
     CCriticalSection cs_inventory;
 
@@ -802,6 +924,14 @@ public:
     // Whether a ping is requested.
     std::atomic<bool> fPingQueued{false};
 
+    //! locks for dash/dmn layer
+    mutable CCriticalSection cs_mnauth;
+    uint256 sentMNAuthChallenge;
+    uint256 receivedMNAuthChallenge;
+    uint256 verifiedProRegTxHash;
+    uint256 verifiedPubKeyHash;
+    std::atomic<bool> fSendRecSigs{false};
+    std::atomic<bool> qwatch{false};
     std::set<uint256> orphan_work_set;
 
     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn, uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn, const CAddress &addrBindIn, const std::string &addrNameIn = "", bool fInboundIn = false, bool block_relay_only = false);
@@ -929,6 +1059,9 @@ public:
         } else if (inv.type == MSG_BLOCK) {
             LOCK(cs_inventory);
             vInventoryBlockToSend.push_back(inv.hash);
+        } else {
+            LogPrint(BCLog::NET, "PushOtherInventory --  inv: %s peer=%d\n", inv.ToString(), id);
+            vInventoryOtherToSend.push_back(inv);
         }
     }
 

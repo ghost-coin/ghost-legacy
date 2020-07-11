@@ -165,6 +165,10 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "getaddressdeltas", 0, "addresses"},
     { "getaddressutxos", 0, "addresses"},
     { "getaddressmempool", 0, "addresses"},
+    { "getspecialtxes", 1, "type" },
+    { "getspecialtxes", 2, "count" },
+    { "getspecialtxes", 3, "skip" },
+    { "getspecialtxes", 4, "verbosity" },
     { "listcoldstakeunspent", 1, "height"},
     { "listcoldstakeunspent", 2, "options"},
     { "getblockreward", 0, "height"},
@@ -285,6 +289,15 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "initaccountfromdevice", 2, "makedefault" },
     { "initaccountfromdevice", 3, "scan_chain_from" },
     { "initaccountfromdevice", 4, "initstealthchain" },
+
+    { "getspecialtxes", 1, "type" },
+    { "getspecialtxes", 2, "count" },
+    { "getspecialtxes", 3, "skip" },
+    { "getspecialtxes", 4, "verbosity" },
+
+    { "spork", 1, "value" },
+    { "voteraw", 1, "tx_index" },
+    { "voteraw", 5, "time" },
 
 
     { "logging", 0, "include" },

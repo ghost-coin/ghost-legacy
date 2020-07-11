@@ -37,6 +37,8 @@
 #include <util/validation.h>
 #include <wallet/fees.h>
 
+#include <masternode/masternode-payments.h>
+
 #if ENABLE_USBDEVICE
 #include <usbdevice/usbdevice.h>
 #endif
@@ -12254,6 +12256,12 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
                 }
             }
 
+            CAmount nValue = pcoin->tx->GetValueOut();
+
+            //! avoid collateral-like inputs
+            if (nValue == Params().GetConsensus().nMasternodeCollateral)
+                continue;
+
             const uint256 &wtxid = walletEntry.first;
             for (size_t i = 0; i < tx->vpout.size(); ++i) {
                 const auto &txout = tx->vpout[i];
@@ -12829,6 +12837,19 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         }
     }
 
+    // Place masternode vout
+    int nDmnPaysStart = Params().GetConsensus().DIP0003Height;
+    if (nBlockHeight >= nDmnPaysStart) {
+        std::vector<CTxOut> voutMasternodePaymentsRet;
+        mnpayments.GetMasternodeTxOuts(nBlockHeight, nReward, voutMasternodePaymentsRet);
+        for (const auto& l : voutMasternodePaymentsRet) {
+           OUTPUT_PTR<CTxOutStandard> outDmnSplit = MAKE_OUTPUT<CTxOutStandard>();
+           outDmnSplit->scriptPubKey = l.scriptPubKey;
+           outDmnSplit->nValue = l.nValue;
+           txNew.vpout.back()->SetValue(txNew.vpout.back()->GetValue() - l.nValue);
+           txNew.vpout.push_back(outDmnSplit);
+        }
+    }
 
     // Sign
     int nIn = 0;

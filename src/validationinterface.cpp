@@ -28,6 +28,9 @@ struct ValidationInterfaceConnections {
 
     boost::signals2::scoped_connection TransactionAddedToWallet;
     boost::signals2::scoped_connection NewSecureMessage;
+
+    boost::signals2::scoped_connection NotifyChainLock;
+    boost::signals2::scoped_connection NotifyMasternodeListChanged;
 };
 
 struct MainSignalsInstance {
@@ -42,6 +45,9 @@ struct MainSignalsInstance {
 
     boost::signals2::signal<void (const std::string &, const CTransactionRef &)> TransactionAddedToWallet;
     boost::signals2::signal<void (const smsg::SecureMessage *psmsg, const uint160 &)> NewSecureMessage;
+
+    boost::signals2::signal<void (const CBlockIndex* pindex, const llmq::CChainLockSig& clsig)>NotifyChainLock;
+    boost::signals2::signal<void (bool undo, const CDeterministicMNList& oldMNList, const CDeterministicMNListDiff& diff)>NotifyMasternodeListChanged;
 
     // We are not allowed to assume the scheduler only runs in one thread,
     // but must ensure all callbacks happen in-order, so we end up creating
@@ -108,6 +114,9 @@ void RegisterValidationInterface(CValidationInterface* pwalletIn) {
 
     conns.TransactionAddedToWallet = g_signals.m_internals->TransactionAddedToWallet.connect(std::bind(&CValidationInterface::TransactionAddedToWallet, pwalletIn, std::placeholders::_1, std::placeholders::_2));
     conns.NewSecureMessage = g_signals.m_internals->NewSecureMessage.connect(std::bind(&CValidationInterface::NewSecureMessage, pwalletIn, std::placeholders::_1, std::placeholders::_2));
+
+    conns.NotifyChainLock = g_signals.m_internals->NotifyChainLock.connect(std::bind(&CValidationInterface::NotifyChainLock, pwalletIn, std::placeholders::_1, std::placeholders::_2));
+    conns.NotifyMasternodeListChanged = g_signals.m_internals->NotifyMasternodeListChanged.connect(std::bind(&CValidationInterface::NotifyMasternodeListChanged, pwalletIn, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 void UnregisterValidationInterface(CValidationInterface* pwalletIn) {
@@ -193,4 +202,12 @@ void CMainSignals::TransactionAddedToWallet(const std::string &sWalletName, cons
 
 void CMainSignals::NewSecureMessage(const smsg::SecureMessage *psmsg, const uint160 &hash) {
     m_internals->NewSecureMessage(psmsg, hash);
+}
+
+void CMainSignals::NotifyChainLock(const CBlockIndex* pindex, const llmq::CChainLockSig& clsig) {
+    m_internals->NotifyChainLock(pindex, clsig);
+}
+
+void CMainSignals::NotifyMasternodeListChanged(bool undo, const CDeterministicMNList& oldMNList, const CDeterministicMNListDiff& diff) {
+    m_internals->NotifyMasternodeListChanged(undo, oldMNList, diff);
 }

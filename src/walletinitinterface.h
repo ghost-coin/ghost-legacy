@@ -17,7 +17,7 @@ public:
     virtual bool ParameterInteraction() const = 0;
     /** Add wallets that should be opened to list of init interfaces. */
     virtual void Construct(InitInterfaces& interfaces) const = 0;
-
+    virtual void AutoLockMasternodeCollaterals() const = 0;
     virtual ~WalletInitInterface() {}
 };
 

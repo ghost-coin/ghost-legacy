@@ -23,6 +23,18 @@
 #include <util/system.h>
 #include <util/validation.h>
 
+#include <masternode/masternode-payments.h>
+#include <masternode/masternode-sync.h>
+#include <validationinterface.h>
+
+#include <evo/specialtx.h>
+#include <evo/cbtx.h>
+#include <evo/simplifiedmns.h>
+#include <evo/deterministicmns.h>
+
+#include <llmq/quorums_blockprocessor.h>
+#include <llmq/quorums_chainlocks.h>
+
 #include <algorithm>
 #include <queue>
 #include <utility>
@@ -113,6 +125,9 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     assert(pindexPrev != nullptr);
     nHeight = pindexPrev->nHeight + 1;
 
+    bool fDIP0003Active_context = nHeight >= chainparams.GetConsensus().DIP0003Height;
+    bool fDIP0008Active_context = VersionBitsState(::ChainActive().Tip(), chainparams.GetConsensus(), Consensus::DEPLOYMENT_DIP0008, versionbitscache) == ThresholdState::ACTIVE;
+
     pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
@@ -147,6 +162,9 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     m_last_block_num_txs = nBlockTx;
     m_last_block_weight = nBlockWeight;
 
+    // Get block subsidy here
+    CAmount blockReward = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+
     // Create coinbase transaction.
     CMutableTransaction coinbaseTx;
     if (!fTestBlockValidity) {
@@ -157,11 +175,47 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
         coinbaseTx.vin[0].prevout.SetNull();
         coinbaseTx.vout.resize(1);
         coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
-        coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+        coinbaseTx.vout[0].nValue = blockReward;
         coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
         pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
         pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
     }
+
+    if (fDIP0003Active_context) {
+        for (auto& p : chainparams.GetConsensus().llmqs) {
+            CTransactionRef qcTx;
+            if (llmq::quorumBlockProcessor->GetMinableCommitmentTx(p.first, nHeight, qcTx)) {
+                pblock->vtx.emplace_back(qcTx);
+                pblocktemplate->vTxFees.emplace_back(0);
+                pblocktemplate->vTxSigOpsCost.emplace_back(0);
+                nBlockWeight += qcTx->GetTotalSize();
+                ++nBlockTx;
+            }
+        }
+    }
+
+    if (fDIP0003Active_context)
+    {
+        coinbaseTx.SetType(TXN_COINBASE);
+
+        CCbTx cbTx;
+        if (fDIP0008Active_context)
+            cbTx.nVersion = 2;
+        else
+            cbTx.nVersion = 1;
+        cbTx.nHeight = nHeight;
+
+        CValidationState state;
+        if (!CalcCbTxMerkleRootMNList(*pblock, pindexPrev, cbTx.merkleRootMNList, state))
+            throw std::runtime_error(strprintf("%s: CalcCbTxMerkleRootMNList failed: %s", __func__, FormatStateMessage(state)));
+        if (fDIP0008Active_context)
+            if (!CalcCbTxMerkleRootQuorums(*pblock, pindexPrev, cbTx.merkleRootQuorums, state))
+                throw std::runtime_error(strprintf("%s: CalcCbTxMerkleRootQuorums failed: %s", __func__, FormatStateMessage(state)));
+
+        SetTxPayload(coinbaseTx, cbTx);
+    }
+
+    pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     pblocktemplate->vTxFees[0] = -nFees;
 
     //LogPrintf("CreateNewBlock(): block weight: %u txs: %u fees: %ld sigops %d\n", GetBlockWeight(*pblock), nBlockTx, nFees, nBlockSigOpsCost);
@@ -183,7 +237,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     }
     int64_t nTime2 = GetTimeMicros();
 
-    LogPrint(BCLog::BENCH, "CreateNewBlock() packages: %.2fms (%d packages, %d updated descendants), validity: %.2fms (total %.2fms)\n", 0.001 * (nTime1 - nTimeStart), nPackagesSelected, nDescendantsUpdated, 0.001 * (nTime2 - nTime1), 0.001 * (nTime2 - nTimeStart));
+    LogPrint(BCLog::BENCHMARK, "CreateNewBlock() packages: %.2fms (%d packages, %d updated descendants), validity: %.2fms (total %.2fms)\n", 0.001 * (nTime1 - nTimeStart), nPackagesSelected, nDescendantsUpdated, 0.001 * (nTime2 - nTime1), 0.001 * (nTime2 - nTimeStart));
 
     return std::move(pblocktemplate);
 }

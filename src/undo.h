@@ -49,7 +49,7 @@ public:
     template<typename Stream>
     void Unserialize(Stream &s) {
         unsigned int nCode = 0;
-        ::Unserialize(s, VARINT(nCode));
+        ::Unserialize(s, REF(VARINT(nCode)));
         txout->nHeight = nCode / 2;
         txout->fCoinBase = nCode & 1;
         if (txout->nHeight > 0) {
@@ -57,9 +57,9 @@ public:
             // a transaction's outputs. Non-final spends were indicated with
             // height = 0.
             unsigned int nVersionDummy;
-            ::Unserialize(s, VARINT(nVersionDummy));
+            ::Unserialize(s, REF(VARINT(nVersionDummy)));
         }
-        ::Unserialize(s, CTxOutCompressor(REF(txout->out)));
+        ::Unserialize(s, REF(CTxOutCompressor(REF(txout->out))));
         ::Unserialize(s, txout->nType);
         if (txout->nType == OUTPUT_CT)
             s.read((char*)&txout->commitment.data[0], 33);
@@ -92,13 +92,13 @@ public:
     void Unserialize(Stream& s) {
         // TODO: avoid reimplementing vector deserializer
         uint64_t count = 0;
-        ::Unserialize(s, COMPACTSIZE(count));
+        ::Unserialize(s, REF(COMPACTSIZE(count)));
         if (count > MAX_INPUTS_PER_BLOCK) {
             throw std::ios_base::failure("Too many input undo records");
         }
         vprevout.resize(count);
         for (auto& prevout : vprevout) {
-            ::Unserialize(s, TxInUndoDeserializer(&prevout));
+            ::Unserialize(s, REF(TxInUndoDeserializer(&prevout)));
         }
     }
 };
