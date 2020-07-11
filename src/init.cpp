@@ -69,6 +69,9 @@
 
 #include <walletinitinterface.h>
 
+#include <evo/deterministicmns.h>
+#include <spork.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <set>
@@ -92,6 +95,18 @@
 #endif
 
 #include <insight/insight.h>
+
+#include <masternode/activemasternode.h>
+#include <masternode/masternode-payments.h>
+#include <masternode/masternode-sync.h>
+#include <masternode/masternode-meta.h>
+#include <masternode/masternode-utils.h>
+#include <llmq/quorums_init.h>
+#include <evo/deterministicmns.h>
+#include <flat-database.h>
+#include <messagesigner.h>
+#include <spork.h>
+#include <netfulfilledman.h>
 
 static bool fFeeEstimatesInitialized = false;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
@@ -252,6 +267,7 @@ void Interrupt()
     InterruptRPC();
     InterruptREST();
     InterruptTorControl();
+    llmq::InterruptLLMQSystem();
     InterruptMapPort();
     if (g_connman)
         g_connman->Interrupt();
@@ -359,6 +375,9 @@ void Shutdown(InitInterfaces& interfaces)
             g_chainstate->ResetCoinsViews();
         }
         pblocktree.reset();
+        llmq::DestroyLLMQSystem();
+        deterministicMNManager.reset();
+        evoDb.reset();
     }
     for (const auto& client : interfaces.chain_clients) {
         client->stop();
@@ -877,6 +896,32 @@ static void ThreadImport(std::vector<fs::path> vImportFiles)
         //return;
     }
 
+    {
+        {
+            // Get all UTXOs for each MN collateral in one go so that we can fill coin cache early
+            // and reduce further locking overhead for cs_main in other parts of code inclluding GUI
+            LogPrintf("Filling coin cache with masternode UTXOs...\n");
+            LOCK(cs_main);
+            int64_t nStart = GetTimeMillis();
+            auto mnList = deterministicMNManager->GetListAtChainTip();
+            mnList.ForEachMN(false, [&](const CDeterministicMNCPtr& dmn) {
+                Coin coin;
+                GetUTXOCoin(dmn->collateralOutpoint, coin);
+            });
+            LogPrintf("Filling coin cache with masternode UTXOs: done in %dms\n", GetTimeMillis() - nStart);
+        }
+    
+        if (fMasternodeMode) {
+            const CBlockIndex* pindexTip;
+            {
+                LOCK(cs_main);
+                pindexTip = ::ChainActive().Tip();
+            }
+            activeMasternodeManager->Init(pindexTip);
+        }
+        g_wallet_init_interface.AutoLockMasternodeCollaterals();
+    }
+
     if (gArgs.GetBoolArg("-stopafterblockimport", DEFAULT_STOPAFTERBLOCKIMPORT)) {
         LogPrintf("Stopping after block import\n");
         StartShutdown();
@@ -903,6 +948,10 @@ static bool InitSanityCheck()
 
     if (!glibc_sanity_test() || !glibcxx_sanity_test())
         return false;
+
+    if (!BLSInit()) {
+        return false;
+    }
 
     if (!Random_SanityCheck()) {
         InitError("OS cryptographic RNG sanity check failure. Aborting.");
@@ -938,6 +987,22 @@ void InitParameterInteraction()
     if (gArgs.IsArgSet("-whitebind")) {
         if (gArgs.SoftSetBoolArg("-listen", true))
             LogPrintf("%s: parameter interaction: -whitebind set -> setting -listen=1\n", __func__);
+    }
+
+    if (gArgs.GetBoolArg("-masternodeblsprivkey", false)) {
+        // masternodes MUST accept connections from outside
+        gArgs.SoftSetBoolArg("-listen", true);
+        LogPrintf("%s: parameter interaction: -masternodeblsprivkey=... -> setting -listen=1\n", __func__);
+        #ifdef ENABLE_WALLET
+        // masternode should not have wallet enabled
+        gArgs.ForceSetArg("-disablewallet", "1");
+        LogPrintf("%s: parameter interaction: -masternodeblsprivkey=... -> setting -disablewallet=1\n", __func__);
+        #endif // ENABLE_WALLET
+        if (gArgs.GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS) < DEFAULT_MAX_PEER_CONNECTIONS) {
+            // masternodes MUST be able to handle at least DEFAULT_MAX_PEER_CONNECTIONS connections
+            gArgs.SoftSetArg("-maxconnections", itostr(DEFAULT_MAX_PEER_CONNECTIONS));
+            LogPrintf("%s: parameter interaction: -masternodeblsprivkey=... -> setting -maxconnections=%d\n", __func__, DEFAULT_MAX_PEER_CONNECTIONS);
+        }
     }
 
     if (gArgs.IsArgSet("-connect")) {
@@ -1331,6 +1396,17 @@ bool AppInitParameterInteraction()
 
     nMaxTipAge = gArgs.GetArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
 
+    if (gArgs.IsArgSet("-masternodeblsprivkey")) {
+        if (!gArgs.GetBoolArg("-listen", DEFAULT_LISTEN) && Params().RequireRoutableExternalIP()) {
+            return InitError("Masternode must accept connections from outside, set -listen=1");
+        }
+        if (gArgs.GetArg("-prune", 0) > 0) {
+            return InitError("Masternode must have no pruning enabled, set -prune=0");
+        }
+        if (gArgs.GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS) < DEFAULT_MAX_PEER_CONNECTIONS) {
+            return InitError(strprintf("Masternode must be able to handle at least %d connections, set -maxconnections=%d", DEFAULT_MAX_PEER_CONNECTIONS, DEFAULT_MAX_PEER_CONNECTIONS));
+        }
+    }
     return true;
 }
 
@@ -1385,6 +1461,19 @@ bool AppInitLockDataDirectory()
 bool AppInitMain(InitInterfaces& interfaces)
 {
     const CChainParams& chainparams = Params();
+
+    std::string strMasterNodeBLSPrivKey = gArgs.GetArg("-masternodeblsprivkey", "");
+	fMasternodeMode = !strMasterNodeBLSPrivKey.empty();
+    CBLSSecretKey keyOperator;
+    if(fMasternodeMode) {
+        if(!IsHex(strMasterNodeBLSPrivKey))
+            return InitError("Invalid masternodeblsprivkey. Please see documentation.");
+        auto binKey = ParseHex(strMasterNodeBLSPrivKey);
+        keyOperator.SetBuf(binKey);
+        if (!keyOperator.IsValid()) {
+            return InitError("Invalid masternodeblsprivkey. Please see documentation.");
+        }
+    }
     // ********************************************************* Step 4a: application initialization
     if (!CreatePidFile()) {
         // Detailed error printed inside CreatePidFile().
@@ -1437,6 +1526,30 @@ bool AppInitMain(InitInterfaces& interfaces)
     if (nScriptCheckThreads) {
         for (int i=0; i<nScriptCheckThreads-1; i++)
             threadGroup.create_thread([i]() { return ThreadScriptCheck(i); });
+    }
+    
+    std::vector<std::string> vSporkAddresses;
+    if (gArgs.IsArgSet("-sporkaddr")) {
+        vSporkAddresses = gArgs.GetArgs("-sporkaddr");
+    } else {
+        vSporkAddresses = Params().SporkAddresses();
+    }
+    for (const auto& address: vSporkAddresses) {
+        if (!sporkManager.SetSporkAddress(address)) {
+            return InitError("Invalid spork address specified with -sporkaddr");
+        }
+    }
+
+    int minsporkkeys = gArgs.GetArg("-minsporkkeys", Params().MinSporkKeys());
+    if (!sporkManager.SetMinSporkKeys(minsporkkeys)) {
+        return InitError("Invalid minimum number of spork signers specified with -minsporkkeys");
+    }
+
+
+    if (gArgs.IsArgSet("-sporkkey")) { // spork priv key
+        if (!sporkManager.SetPrivKey(gArgs.GetArg("-sporkkey", ""))) {
+            return InitError("Unable to sign spork message, wrong key?");
+        }
     }
 
     // Start the lightweight task scheduler thread
@@ -1604,6 +1717,14 @@ bool AppInitMain(InitInterfaces& interfaces)
 
     // ********************************************************* Step 7: load block chain
 
+    std::string strDBName;
+    strDBName = "sporks.dat";
+    uiInterface.InitMessage(_("Loading sporks cache...").translated);
+    CFlatDB<CSporkManager> flatdb6(strDBName, "magicSporkCache");
+    if (!flatdb6.Load(sporkManager)) {
+        return InitError(strprintf(_("Failed to load sporks cache from %s\n").translated, (GetDataDir() / strDBName).string()));
+    }
+
     fReindex = gArgs.GetBoolArg("-reindex", false);
     fSkipRangeproof = gArgs.GetBoolArg("-skiprangeproofverify", false);
     bool fReindexChainState = gArgs.GetBoolArg("-reindex-chainstate", false);
@@ -1652,6 +1773,7 @@ bool AppInitMain(InitInterfaces& interfaces)
     nTotalCache -= nCoinDBCache;
     nCoinCacheUsage = nTotalCache; // the rest goes to in-memory cache
     int64_t nMempoolSizeMax = gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+    int64_t nEvoDbCache = 1024 * 1024 * 16; // TODO
     LogPrintf("Cache configuration:\n");
     LogPrintf("* Max cache setting possible %.1fMiB\n", nMaxDbCache);
     LogPrintf("* Using %.1f MiB for block index database\n", nBlockTreeDBCache * (1.0 / 1024 / 1024));
@@ -1694,6 +1816,13 @@ bool AppInitMain(InitInterfaces& interfaces)
                     pblocktree.reset();
                     pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
                 }
+
+                llmq::DestroyLLMQSystem();
+                evoDb.reset();
+                evoDb.reset(new CEvoDB(nEvoDbCache, false, fReset || fReindexChainState));
+                deterministicMNManager.reset();
+                deterministicMNManager.reset(new CDeterministicMNManager(*evoDb));
+                llmq::InitLLMQSystem(*evoDb, false, *g_connman, *g_banman, fReset || fReindexChainState);
 
                 if (fReset) {
                     pblocktree->WriteReindexing(true);
@@ -1781,7 +1910,11 @@ bool AppInitMain(InitInterfaces& interfaces)
                     strLoadError = _("Unable to replay blocks. You will need to rebuild the database using -reindex-chainstate.").translated;
                     break;
                 }
-
+                // flush evodbss
+                if (!evoDb->CommitRootTransaction()) {
+                    strLoadError = _("Failed to commit EvoDB").translated;
+                    break;
+                }
                 // The on-disk coinsdb is now in a good state, create the cache
                 ::ChainstateActive().InitCoinsCache();
                 assert(::ChainstateActive().CanFlushToDisk());

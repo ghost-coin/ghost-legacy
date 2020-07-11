@@ -121,6 +121,12 @@ public:
     /** If this chain is exclusively used for testing */
     bool IsTestChain() const { return m_is_test_chain; }
     uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }
+    /** Require addresses specified with "-externalip" parameter to be routable */
+    bool RequireRoutableExternalIP() const { return fRequireRoutableExternalIP; }
+    /** Allow multiple addresses to be selected from the same network group (e.g. 192.168.x.x) */
+    bool AllowMultipleAddressesFromGroup() const { return fAllowMultipleAddressesFromGroup; }
+    /** Allow nodes with the same address and multiple ports */
+    bool AllowMultiplePorts() const { return fAllowMultiplePorts; }
     /** Minimum free space (in GB) needed for data directory */
     uint64_t AssumedBlockchainSize() const { return m_assumed_blockchain_size; }
     /** Minimum free space (in GB) needed for data directory when pruned; Does not include prune target*/
@@ -137,6 +143,14 @@ public:
     const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData& Checkpoints() const { return checkpointData; }
     const ChainTxData& TxData() const { return chainTxData; }
+    /** How long to wait until we allow retrying of a LLMQ connection  */
+    int LLMQConnectionRetryTimeout() const { return nLLMQConnectionRetryTimeout; }
+    int FulfilledRequestExpireTime() const { return nFulfilledRequestExpireTime; }
+    const std::vector<std::string>& SporkAddresses() const { return vSporkAddresses; }
+    int MinSporkKeys() const { return nMinSporkKeys; }
+    bool BIP9CheckMasternodesUpgraded() const { return fBIP9CheckMasternodesUpgraded; }
+    void UpdateLLMQChainLocks(Consensus::LLMQType llmqType);
+    void UpdateLLMQTestParams(int size, int threshold);
 
     bool IsBech32Prefix(const std::vector<unsigned char> &vchPrefixIn) const;
     bool IsBech32Prefix(const std::vector<unsigned char> &vchPrefixIn, CChainParams::Base58Type &rtype) const;
@@ -155,7 +169,7 @@ public:
         assert(strNetworkID == "regtest");
         nBlockReward = nBlockReward_;
     }
-
+    void UpdateDIP3Parameters(int nActivationHeight, int nEnforcementHeight);
 protected:
     CChainParams() {}
 
@@ -190,9 +204,17 @@ protected:
     std::vector<SeedSpec6> vFixedSeeds;
     bool fDefaultConsistencyChecks;
     bool fRequireStandard;
+    bool fRequireRoutableExternalIP;
+    bool fAllowMultipleAddressesFromGroup;
+    bool fAllowMultiplePorts;
     bool m_is_test_chain;
     CCheckpointData checkpointData;
     ChainTxData chainTxData;
+    int nLLMQConnectionRetryTimeout;
+    int nFulfilledRequestExpireTime;
+    std::vector<std::string> vSporkAddresses;
+    int nMinSporkKeys;
+    bool fBIP9CheckMasternodesUpgraded;
 };
 
 /**
@@ -225,5 +247,8 @@ void ResetParams(std::string sNetworkId, bool fParticlModeIn);
  * mutable handle to regtest params
  */
 CChainParams &RegtestParams();
-
+/**
+ * Allows modifying the DIP3 activation and enforcement height
+ */
+void UpdateDIP3Parameters(int nActivationHeight, int nEnforcementHeight);
 #endif // BITCOIN_CHAINPARAMS_H

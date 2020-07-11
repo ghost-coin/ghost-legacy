@@ -24,6 +24,8 @@ BITCOIN_INCLUDES=-I$(builddir) $(BDB_CPPFLAGS) $(BOOST_CPPFLAGS) $(LEVELDB_CPPFL
 BITCOIN_INCLUDES += -I$(srcdir)/secp256k1/include
 BITCOIN_INCLUDES += $(UNIVALUE_CFLAGS)
 
+BLS_LIBS=-lchiabls -lgmp
+
 LIBPARTICL_SERVER=libghost_server.a
 LIBPARTICL_COMMON=libghost_common.a
 LIBPARTICL_CONSENSUS=libghost_consensus.a
@@ -114,6 +116,7 @@ BITCOIN_CORE_H = \
   attributes.h \
   banman.h \
   base58.h \
+  batchedlogger.h \
   bech32.h \
   bloom.h \
   blockencodings.h \
@@ -137,6 +140,14 @@ BITCOIN_CORE_H = \
   core_io.h \
   core_memusage.h \
   cuckoocache.h \
+  ctpl.h \
+  evo/cbtx.h \
+  evo/deterministicmns.h \
+  evo/evodb.h \
+  evo/mnauth.h \
+  evo/providertx.h \
+  evo/simplifiedmns.h \
+  evo/specialtx.h \
   flatfile.h \
   fs.h \
   httprpc.h \
@@ -160,15 +171,34 @@ BITCOIN_CORE_H = \
   key_io.h \
   dbwrapper.h \
   limitedmap.h \
+  llmq/quorums.h \
+  llmq/quorums_blockprocessor.h \
+  llmq/quorums_commitment.h \
+  llmq/quorums_chainlocks.h \
+  llmq/quorums_debug.h \
+  llmq/quorums_dkgsessionhandler.h \
+  llmq/quorums_dkgsessionmgr.h \
+  llmq/quorums_dkgsession.h \
+  llmq/quorums_init.h \
+  llmq/quorums_signing.h \
+  llmq/quorums_signing_shares.h \
+  llmq/quorums_utils.h \
+  masternode/activemasternode.h \
+  masternode/masternode-meta.h \
+  masternode/masternode-payments.h \
+  masternode/masternode-sync.h \
+  masternode/masternode-utils.h \
   logging.h \
   memusage.h \
   merkleblock.h \
+  messagesigner.h \
   miner.h \
   net.h \
   net_permissions.h \
   net_processing.h \
   netaddress.h \
   netbase.h \
+  netfulfilledman.h \
   netmessagemaker.h \
   node/coin.h \
   node/coinstats.h \
@@ -199,6 +229,7 @@ BITCOIN_CORE_H = \
   rpc/server.h \
   rpc/util.h \
   rpc/rpcutil.h \
+  saltedhasher.h \
   scheduler.h \
   script/descriptor.h \
   script/keyorigin.h \
@@ -207,6 +238,7 @@ BITCOIN_CORE_H = \
   script/signingprovider.h \
   script/standard.h \
   script/ismine.h \
+  spork.h \
   shutdown.h \
   streams.h \
   smsg/db.h \
@@ -228,6 +260,7 @@ BITCOIN_CORE_H = \
   txmempool.h \
   ui_interface.h \
   undo.h \
+  unordered_lru_cache.h \
   util/bip32.h \
   util/bytevectorhash.h \
   util/error.h \
@@ -296,11 +329,19 @@ libghost_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libghost_server_a_SOURCES = \
   addrdb.cpp \
   addrman.cpp \
+  batchedlogger.cpp \
   banman.cpp \
   blockencodings.cpp \
   blockfilter.cpp \
   chain.cpp \
   consensus/tx_verify.cpp \
+  evo/cbtx.cpp \
+  evo/deterministicmns.cpp \
+  evo/evodb.cpp \
+  evo/mnauth.cpp \
+  evo/providertx.cpp \
+  evo/simplifiedmns.cpp \
+  evo/specialtx.cpp \
   flatfile.cpp \
   httprpc.cpp \
   httpserver.cpp \
@@ -311,8 +352,27 @@ libghost_server_a_SOURCES = \
   interfaces/node.cpp \
   init.cpp \
   dbwrapper.cpp \
+  llmq/quorums.cpp \
+  llmq/quorums_blockprocessor.cpp \
+  llmq/quorums_commitment.cpp \
+  llmq/quorums_chainlocks.cpp \
+  llmq/quorums_debug.cpp \
+  llmq/quorums_dkgsessionhandler.cpp \
+  llmq/quorums_dkgsessionmgr.cpp \
+  llmq/quorums_dkgsession.cpp \
+  llmq/quorums_init.cpp \
+  llmq/quorums_signing.cpp \
+  llmq/quorums_signing_shares.cpp \
+  llmq/quorums_utils.cpp \
+  masternode/activemasternode.cpp \
+  masternode/masternode-meta.cpp \
+  masternode/masternode-payments.cpp \
+  masternode/masternode-sync.cpp \
+  masternode/masternode-utils.cpp \
+  messagesigner.cpp \
   miner.cpp \
   net.cpp \
+  netfulfilledman.cpp \
   net_processing.cpp \
   node/coin.cpp \
   node/coinstats.cpp \
@@ -331,12 +391,14 @@ libghost_server_a_SOURCES = \
   rpc/misc.cpp \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
+  rpc/rpcevo.cpp \
   rpc/server.cpp \
   rpc/client.cpp \
   rpc/rpcutil.cpp \
   rpc/util.cpp \
   script/sigcache.cpp \
   shutdown.cpp \
+  spork.cpp \
   timedata.cpp \
   torcontrol.cpp \
   txdb.cpp \
@@ -497,6 +559,8 @@ libghost_consensus_a_SOURCES = \
   amount.h \
   arith_uint256.cpp \
   arith_uint256.h \
+  bls/bls.cpp \
+  bls/bls.h \
   consensus/merkle.cpp \
   consensus/merkle.h \
   consensus/params.h \
@@ -558,6 +622,7 @@ libghost_common_a_SOURCES = \
   psbt.cpp \
   rpc/rawtransaction_util.cpp \
   rpc/util.cpp \
+  saltedhasher.cpp \
   scheduler.cpp \
   script/descriptor.cpp \
   script/sign.cpp \
@@ -573,6 +638,11 @@ libghost_common_a_SOURCES = \
 libghost_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libghost_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libghost_util_a_SOURCES = \
+  bls/bls_batchverifier.h \
+  bls/bls_ies.cpp \
+  bls/bls_ies.h \
+  bls/bls_worker.cpp \
+  bls/bls_worker.h \
   support/lockedpool.cpp \
   chainparamsbase.cpp \
   clientversion.cpp \
@@ -685,7 +755,7 @@ ghostd_LDADD = \
   $(LIBPARTICL_MNEMONIC) \
   $(LIBPARTICL_USBDEVICE)
 
-ghostd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+ghostd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(BLS_LIBS)
 if ENABLE_USBDEVICE
 ghostd_LDADD += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
@@ -707,7 +777,7 @@ ghost_cli_LDADD = \
   $(LIBPARTICL_UTIL) \
   $(LIBPARTICL_CRYPTO)
 
-ghost_cli_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
+ghost_cli_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS) $(BLS_LIBS)
 #
 
 # bitcoin-tx binary #
@@ -728,11 +798,11 @@ ghost_tx_LDADD = \
   $(LIBPARTICL_CRYPTO) \
   $(LIBSECP256K1)
 
-ghost_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
+ghost_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS) $(BLS_LIBS)
 #
 
 # bitcoin-wallet binary #
-ghost_wallet_SOURCES = bitcoin-wallet.cpp
+ghost_wallet_SOURCES = bitcoin-wallet.cpp bls/bls.cpp bls/bls.h wallet/wallettool.cpp base58.cpp
 ghost_wallet_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 ghost_wallet_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 ghost_wallet_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
@@ -743,7 +813,6 @@ endif
 
 
 ghost_wallet_LDADD = \
-  $(LIBPARTICL_WALLET_TOOL) \
   $(LIBPARTICL_WALLET) \
   $(LIBPARTICL_SERVER) \
   $(LIBPARTICL_COMMON) \
@@ -758,9 +827,10 @@ ghost_wallet_LDADD = \
   $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
-  $(LIBUNIVALUE)
+  $(LIBUNIVALUE) \
+  $(LIBPARTICL_WALLET_TOOL)
 
-ghost_wallet_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(MINIUPNPC_LIBS) $(ZMQ_LIBS)
+ghost_wallet_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(MINIUPNPC_LIBS) $(ZMQ_LIBS) $(BLS_LIBS)
 if ENABLE_USBDEVICE
 ghost_wallet_LDADD += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
@@ -805,7 +875,10 @@ CLEANFILES += wallet/test/*.gcda wallet/test/*.gcno
 CLEANFILES += zmq/*.gcda zmq/*.gcno
 CLEANFILES += obj/build.h
 
+IMMER_DIST = immer
+
 EXTRA_DIST = $(CTAES_DIST)
+EXTRA_DIST += $(IMMER_DIST)
 
 
 config/bitcoin-config.h: config/stamp-h1

@@ -14,15 +14,18 @@
 #include <utility>
 #include <vector>
 
-
 #include <insight/addressindex.h>
 #include <insight/spentindex.h>
 #include <amount.h>
+#include <bls/bls.h>
 #include <coins.h>
 #include <crypto/siphash.h>
 #include <indirectmap.h>
+#include <netaddress.h>
 #include <policy/feerate.h>
 #include <primitives/transaction.h>
+#include <pubkey.h>
+#include <script/standard.h>
 #include <sync.h>
 #include <random.h>
 
@@ -112,7 +115,8 @@ public:
     const CAmount& GetFee() const { return nFee; }
     size_t GetTxSize() const;
     size_t GetTxWeight() const { return nTxWeight; }
-    int64_t GetTime() const { return nTime; }
+    int64_t GetLegacyTime() const { return nTime; }
+    std::chrono::seconds GetTime() const { return std::chrono::seconds{nTime}; }
     unsigned int GetHeight() const { return entryHeight; }
     int64_t GetSigOpCost() const { return sigOpCost; }
     int64_t GetModifiedFee() const { return nFee + feeDelta; }
@@ -141,6 +145,10 @@ public:
     int64_t GetSigOpCostWithAncestors() const { return nSigOpCostWithAncestors; }
 
     mutable size_t vTxHashesIdx; //!< Index in mempool's vTxHashes
+
+    // If this is a proTx, this will be the hash of the key for which this ProTx was valid
+    mutable uint256 validForProTxKey;
+    mutable bool isKeyChangeProTx{false};
 };
 
 // Helpers for modifying CTxMemPool::mapTx, which is a boost multi_index.
@@ -342,7 +350,7 @@ struct TxMempoolInfo
     CTransactionRef tx;
 
     /** Time the transaction entered the mempool. */
-    int64_t nTime;
+    std::chrono::seconds m_time;
 
     /** Feerate of the transaction. */
     CFeeRate feeRate;
@@ -563,18 +571,20 @@ private:
     typedef std::map<uint256, std::vector<CSpentIndexKey> > mapSpentIndexInserted;
     mapSpentIndexInserted mapSpentInserted;
 
+    std::multimap<uint256, uint256> mapProTxRefs; // proTxHash -> transaction (all TXs that refer to an existing proTx)
+    std::map<CService, uint256> mapProTxAddresses;
+    std::map<WitnessV0KeyHash, uint256> mapProTxPubKeyIDs;
+    std::map<uint256, uint256> mapProTxBlsPubKeyHashes;
+    std::map<COutPoint, uint256> mapProTxCollaterals;
+
     void UpdateParent(txiter entry, txiter parent, bool add);
     void UpdateChild(txiter entry, txiter child, bool add);
 
 public:
-    std::vector<indexed_transaction_set::const_iterator> GetSortedDepthAndScore() const EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-public:
     indirectmap<COutPoint, const CTransaction*> mapNextTx GUARDED_BY(cs);
     std::map<uint256, CAmount> mapDeltas;
-
     std::map<CCmpPubKey, uint256> mapKeyImages;
-
+    std::vector<indexed_transaction_set::const_iterator> GetSortedDepthAndScore() const EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /** Create a new CTxMemPool.
      */
@@ -610,7 +620,14 @@ public:
 
     void removeRecursive(const CTransaction& tx, MemPoolRemovalReason reason) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeForReorg(const CCoinsViewCache* pcoins, unsigned int nMemPoolHeight, int flags) EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
+    void removeProTxPubKeyConflicts(const CTransaction &tx, const WitnessV0KeyHash &keyId);
+    void removeProTxPubKeyConflicts(const CTransaction &tx, const CBLSPublicKey &pubKey);
+    void removeProTxCollateralConflicts(const CTransaction &tx, const COutPoint &collateralOutpoint);
+    void removeProTxSpentCollateralConflicts(const CTransaction &tx);
+    void removeProTxKeyChangedConflicts(const CTransaction &tx, const uint256& proTxHash, const uint256& newKeyHash);
+    bool existsConflicts(const CTransaction& tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeConflicts(const CTransaction& tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void removeProTxConflicts(const CTransaction &tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeForBlock(const std::vector<CTransactionRef>& vtx, unsigned int nBlockHeight) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     void clear();
@@ -695,7 +712,7 @@ public:
     void TrimToSize(size_t sizelimit, std::vector<COutPoint>* pvNoSpendsRemaining = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /** Expire all transaction (and their dependencies) in the mempool older than time. Return the number of removed transactions. */
-    int Expire(int64_t time) EXCLUSIVE_LOCKS_REQUIRED(cs);
+    int Expire(std::chrono::seconds time) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Calculate the ancestor and descendant count for the given transaction.
@@ -730,6 +747,8 @@ public:
     CTransactionRef get(const uint256& hash) const;
     TxMempoolInfo info(const uint256& hash) const;
     std::vector<TxMempoolInfo> infoAll() const;
+
+    bool existsProviderTxConflict(const CTransaction &tx) const;
 
     size_t DynamicMemoryUsage() const;
 

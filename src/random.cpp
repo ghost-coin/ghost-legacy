@@ -703,6 +703,17 @@ double GetRandDoubleUnit()
     return ((double) nRand) / (double) std::numeric_limits<uint64_t>::max();
 }
 
+bool GetRandBool(double rate)
+{
+    if (rate == 0.0) {
+        return false;
+    }
+
+    const uint64_t v = 100000000;
+    uint64_t r = GetRand(v + 1);
+    return r <= v * rate;
+}
+
 void FastRandomContext::RandomSeed()
 {
     uint256 seed = GetRandHash();

@@ -31,6 +31,20 @@
 
 #include <smsg/smessage.h>
 
+#include <spork.h>
+#include <masternode/masternode-payments.h>
+#include <masternode/masternode-sync.h>
+#include <masternode/masternode-meta.h>
+#include <evo/deterministicmns.h>
+#include <evo/mnauth.h>
+#include <evo/simplifiedmns.h>
+#include <llmq/quorums_blockprocessor.h>
+#include <llmq/quorums_commitment.h>
+#include <llmq/quorums_dkgsessionmgr.h>
+#include <llmq/quorums_init.h>
+#include <llmq/quorums_signing.h>
+#include <llmq/quorums_signing_shares.h>
+
 #include <memory>
 #include <typeinfo>
 
@@ -95,9 +109,6 @@ CCriticalSection g_cs_orphans;
 std::map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
 
 void EraseOrphansFor(NodeId peer);
-
-/** Increase a node's misbehavior score. */
-void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Average delay between local address broadcasts in seconds. */
 static constexpr unsigned int AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL = 24 * 60 * 60;
@@ -783,6 +794,25 @@ void RequestTx(CNodeState* state, const uint256& txid, std::chrono::microseconds
 
 } // namespace
 
+void EraseTxRequest(CNodeState* nodestate, const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    LogPrint(BCLog::NET, "%s -- inv=(%s)\n", __func__, inv.ToString());
+    if (nodestate) {
+        nodestate->m_tx_download.m_tx_announced.erase(inv.hash);
+        nodestate->m_tx_download.m_tx_in_flight.erase(inv.hash);
+    }
+    g_already_asked_for.erase(inv.hash);
+}
+
+void EraseTxRequest(NodeId nodeId, const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    CNodeState *nodestate = State(nodeId);
+    if (!nodestate) {
+        return;
+    }
+    EraseTxRequest(nodestate, inv);
+}
+
 // This function is used for testing the stale tip eviction logic, see
 // denialofservice_tests.cpp
 void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds)
@@ -865,6 +895,15 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
         stats.nLooseHeadersCount = (int)it->second.m_map_loose_headers.size();
     }
     return true;
+}
+
+bool IsBanned(NodeId nodeid, BanMan& banman) {
+    LOCK(cs_main);
+    CNodeState *state = State(nodeid);
+    if (state == nullptr)
+        return false;
+    
+    return banman.IsBanned(state->address);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1567,6 +1606,20 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
     case MSG_BLOCK:
     case MSG_WITNESS_BLOCK:
         return LookupBlockIndex(inv.hash) != nullptr;
+    case MSG_SPORK:
+        {
+            CSporkMessage spork;
+            return sporkManager.GetSporkByHash(inv.hash, spork);
+        }
+    case MSG_QUORUM_FINAL_COMMITMENT:
+        return llmq::quorumBlockProcessor->HasMinableCommitment(inv.hash);
+    case MSG_QUORUM_CONTRIB:
+    case MSG_QUORUM_COMPLAINT:
+    case MSG_QUORUM_JUSTIFICATION:
+    case MSG_QUORUM_PREMATURE_COMMITMENT:
+        return llmq::quorumDKGSessionManager->AlreadyHave(inv);
+    case MSG_QUORUM_RECOVERED_SIG:
+        return llmq::quorumSigningManager->AlreadyHave(inv);
     }
     // Don't know what it is, just say we already got one
     return true;
@@ -1577,7 +1630,8 @@ void RelayTransaction(const uint256& txid, const CConnman& connman)
     CInv inv(MSG_TX, txid);
     connman.ForEachNode([&inv](CNode* pnode)
     {
-        pnode->PushInventory(inv);
+        if (!pnode->fMasternode)
+            pnode->PushInventory(inv);
     });
 }
 
@@ -1795,36 +1849,108 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
                 break;
 
             const CInv &inv = *it;
+            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK || inv.type == MSG_CMPCT_BLOCK) {
+                break;
+            }
             it++;
 
             // Send stream from relay memory
             bool push = false;
-            auto mi = mapRelay.find(inv.hash);
-            int nSendFlags = (inv.type == MSG_TX ? SERIALIZE_TRANSACTION_NO_WITNESS : 0);
-            if (mi != mapRelay.end()) {
-                connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
-                push = true;
-            } else if (pfrom->m_tx_relay->timeLastMempoolReq) {
-                auto txinfo = mempool.info(inv.hash);
-                // To protect privacy, do not answer getdata using the mempool when
-                // that TX couldn't have been INVed in reply to a MEMPOOL request.
-                if (txinfo.tx && txinfo.nTime <= pfrom->m_tx_relay->timeLastMempoolReq) {
-                    connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *txinfo.tx));
+            if(inv.type == MSG_TX || inv.type == MSG_WITNESS_TX) {
+                auto mi = mapRelay.find(inv.hash);
+                int nSendFlags = (inv.type == MSG_TX ? SERIALIZE_TRANSACTION_NO_WITNESS : 0);
+                if (mi != mapRelay.end()) {
+                    connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                     push = true;
+                } else if (pfrom->m_tx_relay->timeLastMempoolReq) {
+                    auto txinfo = mempool.info(inv.hash);
+                    // To protect privacy, do not answer getdata using the mempool when
+                    // that TX couldn't have been INVed in reply to a MEMPOOL request.
+                    if (txinfo.tx) {
+                        connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *txinfo.tx));
+                        push = true;
+                    }
                 }
             }
-            if (!push) {
-                vNotFound.push_back(inv);
+            else
+            {
+                //! diff inv item types
+                switch(inv.type)
+                {
+                    case(MSG_SPORK): {
+                        CSporkMessage spork;
+                        if(sporkManager.GetSporkByHash(inv.hash, spork)) {
+                            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::SPORK, spork));
+                            push = true;
+                        }
+                        break;
+                    }
+                    case(MSG_QUORUM_FINAL_COMMITMENT): {
+                        llmq::CFinalCommitment o;
+                        if (llmq::quorumBlockProcessor->GetMinableCommitmentByHash(inv.hash, o)) {
+                            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::QFCOMMITMENT, o));
+                            push = true;
+                        }
+                        break;
+                    }
+                    case(MSG_QUORUM_CONTRIB): {
+                        llmq::CDKGContribution o;
+                        if (llmq::quorumDKGSessionManager->GetContribution(inv.hash, o)) {
+                            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::QCONTRIB, o));
+                            push = true;
+                        }
+                        break;
+                    }
+                    case(MSG_QUORUM_COMPLAINT): {
+                        llmq::CDKGComplaint o;
+                        if (llmq::quorumDKGSessionManager->GetComplaint(inv.hash, o)) {
+                            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::QCOMPLAINT, o));
+                            push = true;
+                        }
+                        break;
+                    }
+                    case(MSG_QUORUM_JUSTIFICATION): {
+                        llmq::CDKGJustification o;
+                        if (llmq::quorumDKGSessionManager->GetJustification(inv.hash, o)) {
+                            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::QJUSTIFICATION, o));
+                            push = true;
+                        }
+                        break;
+                    }
+                    case(MSG_QUORUM_PREMATURE_COMMITMENT): {
+                        llmq::CDKGPrematureCommitment o;
+                        if (llmq::quorumDKGSessionManager->GetPrematureCommitment(inv.hash, o)) {
+                            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::QPCOMMITMENT, o));
+                            push = true;
+                        }
+                        break;
+                    }
+                    case(MSG_QUORUM_RECOVERED_SIG): {
+                        llmq::CRecoveredSig o;
+                        if (llmq::quorumSigningManager->GetRecoveredSigForGetData(inv.hash, o)) {
+                            connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::QSIGREC, o));
+                            push = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (!push) {
+                    vNotFound.push_back(inv);
+                }
             }
         }
-    } // release cs_main
+    }
 
+    // Only process one BLOCK item per call, since they're uncommon and can be
+    // expensive to process.
     if (it != pfrom->vRecvGetData.end() && !pfrom->fPauseSend) {
-        const CInv &inv = *it;
+        const CInv &inv = *it++;
         if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK || inv.type == MSG_CMPCT_BLOCK || inv.type == MSG_WITNESS_BLOCK) {
-            it++;
             ProcessGetBlockData(pfrom, chainparams, inv, connman);
         }
+        // else: If the first item on the queue is an unknown type, we erase it
+        // and continue processing the queue on the next call.
     }
 
     // Unknown types in the GetData stay in vRecvGetData and block any future

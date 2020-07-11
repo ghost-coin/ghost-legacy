@@ -238,6 +238,44 @@ extern const char *GETBLOCKTXN;
  * @since protocol version 70014 as described by BIP 152
  */
 extern const char *BLOCKTXN;
+
+// Dash message types
+// NOTE: do NOT declare non-implmented here, we don't want them to be exposed to the outside
+// TODO: add description
+extern const char *LEGACYTXLOCKREQUEST; // only present for backwards compatibility
+extern const char *SPORK;
+extern const char *GETSPORKS;
+extern const char *DSACCEPT;
+extern const char *DSVIN;
+extern const char *DSFINALTX;
+extern const char *DSSIGNFINALTX;
+extern const char *DSCOMPLETE;
+extern const char *DSSTATUSUPDATE;
+extern const char *DSTX;
+extern const char *DSQUEUE;
+extern const char *SENDDSQUEUE;
+extern const char *SYNCSTATUSCOUNT;
+extern const char *MNGOVERNANCESYNC;
+extern const char *MNGOVERNANCEOBJECT;
+extern const char *MNGOVERNANCEOBJECTVOTE;
+extern const char *GETMNLISTDIFF;
+extern const char *MNLISTDIFF;
+extern const char *QSENDRECSIGS;
+extern const char *QFCOMMITMENT;
+extern const char *QCONTRIB;
+extern const char *QCOMPLAINT;
+extern const char *QJUSTIFICATION;
+extern const char *QPCOMMITMENT;
+extern const char *QWATCH;
+extern const char *QSIGSESANN;
+extern const char *QSIGSHARESINV;
+extern const char *QGETSIGSHARES;
+extern const char *QBSIGSHARES;
+extern const char *QSIGREC;
+extern const char *QSIGSHARE;
+extern const char *CLSIG;
+extern const char *ISLOCK;
+extern const char *MNAUTH;
 };
 
 /* Get a vector of all valid message types (see above) */
@@ -380,6 +418,25 @@ enum GetDataMsg
     MSG_WITNESS_BLOCK = MSG_BLOCK | MSG_WITNESS_FLAG, //!< Defined in BIP144
     MSG_WITNESS_TX = MSG_TX | MSG_WITNESS_FLAG,       //!< Defined in BIP144
     MSG_FILTERED_WITNESS_BLOCK = MSG_FILTERED_BLOCK | MSG_WITNESS_FLAG,
+    MSG_LEGACY_TXLOCK_REQUEST = 5,
+    MSG_SPORK = 6,
+    /* 7 - 15 were used in old Dash versions and were mainly budget and MN broadcast/ping related*/
+    MSG_DSTX = 16,
+    MSG_GOVERNANCE_OBJECT = 17,
+    MSG_GOVERNANCE_OBJECT_VOTE = 18,
+    /* 19 was used for MSG_MASTERNODE_VERIFY and is not supported anymore */
+    // Nodes may always request a MSG_CMPCT_BLOCK in a getdata, however,
+    // MSG_CMPCT_BLOCK should not appear in any invs except as a part of getdata.
+    MSG_QUORUM_FINAL_COMMITMENT = 21,
+    /* MSG_QUORUM_DUMMY_COMMITMENT = 22, */ // was shortly used on testnet/devnet/regtest
+    MSG_QUORUM_CONTRIB = 23,
+    MSG_QUORUM_COMPLAINT = 24,
+    MSG_QUORUM_JUSTIFICATION = 25,
+    MSG_QUORUM_PREMATURE_COMMITMENT = 26,
+    /* MSG_QUORUM_DEBUG_STATUS = 27, */ // was shortly used on testnet/devnet/regtest
+    MSG_QUORUM_RECOVERED_SIG = 28,
+    MSG_CLSIG = 29,
+    MSG_ISLOCK = 30,
 };
 
 /** inv message data */
@@ -400,8 +457,12 @@ public:
 
     friend bool operator<(const CInv& a, const CInv& b);
 
+    bool IsKnownType() const;
     std::string GetCommand() const;
     std::string ToString() const;
+
+private:
+    const char* GetCommandInternal() const;
 
 public:
     int type;

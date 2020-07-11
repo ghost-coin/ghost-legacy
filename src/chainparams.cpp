@@ -20,6 +20,82 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+void CChainParams::UpdateDIP3Parameters(int nActivationHeight, int nEnforcementHeight)
+{
+    consensus.DIP0003Height = nActivationHeight;
+    consensus.DIP0003EnforcementHeight = nEnforcementHeight;
+}
+
+void CChainParams::UpdateLLMQChainLocks(Consensus::LLMQType llmqType) {
+    consensus.llmqTypeChainLocks = llmqType;
+}
+
+void CChainParams::UpdateLLMQTestParams(int size, int threshold) {
+    auto& params = consensus.llmqs.at(Consensus::LLMQ_TEST);
+    params.size = size;
+    params.minSize = threshold;
+    params.threshold = threshold;
+    params.dkgBadVotesThreshold = threshold;
+}
+
+static Consensus::LLMQParams llmq50_60 = {
+        .type = Consensus::LLMQ_50_60,
+        .name = "llmq_50_60",
+        .size = 50,
+        .minSize = 40,
+        .threshold = 30,
+
+        .dkgInterval = 24, // one DKG per hour
+        .dkgPhaseBlocks = 2,
+        .dkgMiningWindowStart = 10, // dkgPhaseBlocks * 5 = after finalization
+        .dkgMiningWindowEnd = 18,
+        .dkgBadVotesThreshold = 40,
+
+        .signingActiveQuorumCount = 24, // a full day worth of LLMQs
+
+        .keepOldConnections = 25,
+        .recoveryMembers = 25,
+};
+
+static Consensus::LLMQParams llmq400_60 = {
+        .type = Consensus::LLMQ_400_60,
+        .name = "llmq_400_60",
+        .size = 400,
+        .minSize = 300,
+        .threshold = 240,
+
+        .dkgInterval = 24 * 12, // one DKG every 12 hours
+        .dkgPhaseBlocks = 4,
+        .dkgMiningWindowStart = 20, // dkgPhaseBlocks * 5 = after finalization
+        .dkgMiningWindowEnd = 28,
+        .dkgBadVotesThreshold = 300,
+
+        .signingActiveQuorumCount = 4, // two days worth of LLMQs
+
+        .keepOldConnections = 5,
+        .recoveryMembers = 100,
+};
+
+// Used for deployment and min-proto-version signalling, so it needs a higher threshold
+static Consensus::LLMQParams llmq400_85 = {
+        .type = Consensus::LLMQ_400_85,
+        .name = "llmq_400_85",
+        .size = 400,
+        .minSize = 350,
+        .threshold = 340,
+
+        .dkgInterval = 24 * 24, // one DKG every 24 hours
+        .dkgPhaseBlocks = 4,
+        .dkgMiningWindowStart = 20, // dkgPhaseBlocks * 5 = after finalization
+        .dkgMiningWindowEnd = 48, // give it a larger mining window to make sure it is mined
+        .dkgBadVotesThreshold = 300,
+
+        .signingActiveQuorumCount = 4, // four days worth of LLMQs
+
+        .keepOldConnections = 5,
+        .recoveryMembers = 100,
+};
+
 int CChainParams::GetCoinYearPercent(int year) const
 {
     if(static_cast<std::size_t>(year) < nBlockPerc.size()) {
@@ -362,6 +438,16 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
 
+        // Deployment of DIP0003
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0003].bit = 3;
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0003].nStartTime = 1544655600; // Dec 13th, 2018
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0003].nTimeout = 1576191600; // Dec 13th, 2019
+
+        // Deployment of DIP0008
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0008].bit = 4;
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0008].nStartTime = 1553126400; // Mar 21st, 2019
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0008].nTimeout = 1584748800; // Mar 21st, 2020
+
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000af273924ccacbf60");//Chainwork at Block 2913
 
@@ -408,7 +494,6 @@ public:
         vSeeds.emplace_back("ghostseeder.ghostbymcafee.com");
         vSeeds.emplace_back("ghostseeder.coldstake.io");
 
-
         vDevFundSettings.emplace_back(0,
             DevFundSettings("GQtToV2LnHGhHy4LRVapLDMaukdDgzZZZV", 33, 360));//Approx each 12 hr payment to dev fund
 
@@ -451,9 +536,24 @@ public:
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
+        // long living quorum params
+        consensus.llmqs[Consensus::LLMQ_50_60] = llmq50_60;
+        consensus.llmqs[Consensus::LLMQ_400_60] = llmq400_60;
+        consensus.llmqs[Consensus::LLMQ_400_85] = llmq400_85;
+        consensus.llmqTypeChainLocks = Consensus::LLMQ_400_60;
+        consensus.llmqTypeInstantSend = Consensus::LLMQ_50_60;
+
         fDefaultConsistencyChecks = false;
         fRequireStandard = true;
         m_is_test_chain = false;
+        fRequireRoutableExternalIP = true;
+        fAllowMultipleAddressesFromGroup = false;
+        fAllowMultiplePorts = false;
+        nLLMQConnectionRetryTimeout = 60;
+        nFulfilledRequestExpireTime = 60*60;
+        vSporkAddresses = {"Gbi17esbFNFrmcniL8eMBcCWJtRb9xdhmR"};
+        nMinSporkKeys = 1;
+        fBIP9CheckMasternodesUpgraded = true;
 
         checkpointData = {
             {
@@ -538,6 +638,11 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
+
+        // Deployment of DIP0003
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0003].bit = 3;
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0003].nStartTime = 1535752800; // Sep 1st, 2018
+        consensus.vDeployments[Consensus::DEPLOYMENT_DIP0003].nTimeout = 1567288800; // Sep 1st, 2019
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000000713ab7611e91606dd");

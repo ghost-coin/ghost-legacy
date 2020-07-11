@@ -19,6 +19,8 @@ struct CBlockLocator;
 class CConnman;
 class CValidationInterface;
 class CValidationState;
+class CDeterministicMNList;
+class CDeterministicMNListDiff;
 class uint256;
 class CScheduler;
 class CTxMemPool;
@@ -26,6 +28,10 @@ namespace smsg {
 class SecureMessage;
 }
 enum class MemPoolRemovalReason;
+
+namespace llmq {
+    class CChainLockSig;
+} // namespace llmq
 
 // These functions dispatch to one or all registered wallets
 
@@ -118,6 +124,8 @@ protected:
      * Called on a background thread.
      */
     virtual void BlockDisconnected(const std::shared_ptr<const CBlock> &block) {}
+    virtual void NotifyChainLock(const CBlockIndex* pindex, const llmq::CChainLockSig& clsig) {}
+    virtual void NotifyMasternodeListChanged(bool undo, const CDeterministicMNList& oldMNList, const CDeterministicMNListDiff& diff) {}
     /**
      * Notifies listeners of the new active block chain on-disk.
      *
@@ -184,6 +192,8 @@ public:
     void UpdatedBlockTip(const CBlockIndex *, const CBlockIndex *, bool fInitialDownload);
     void TransactionAddedToMempool(const CTransactionRef &);
     void BlockConnected(const std::shared_ptr<const CBlock> &, const CBlockIndex *pindex, const std::shared_ptr<const std::vector<CTransactionRef>> &);
+    void NotifyChainLock(const CBlockIndex* pindex, const llmq::CChainLockSig& clsig);
+    void NotifyMasternodeListChanged(bool undo, const CDeterministicMNList& oldMNList, const CDeterministicMNListDiff& diff);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &);
     void ChainStateFlushed(const CBlockLocator &);
     void BlockChecked(const CBlock&, const CValidationState&);

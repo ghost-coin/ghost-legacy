@@ -23,7 +23,8 @@ void RegisterRawTransactionRPCCommands(CRPCTable &tableRPC);
 void RegisterMnemonicRPCCommands(CRPCTable &tableRPC);
 /** Register anon RPC commands */
 void RegisterAnonRPCCommands(CRPCTable &tableRPC);
-
+/** Register Evo RPC commands */
+void RegisterEvoRPCCommands(CRPCTable &tableRPC);
 
 static inline void RegisterAllCoreRPCCommands(CRPCTable &t)
 {
@@ -34,6 +35,7 @@ static inline void RegisterAllCoreRPCCommands(CRPCTable &t)
     RegisterRawTransactionRPCCommands(t);
     RegisterMnemonicRPCCommands(t);
     RegisterAnonRPCCommands(t);
+    RegisterEvoRPCCommands(t);
 }
 
 #endif // BITCOIN_RPC_REGISTER_H

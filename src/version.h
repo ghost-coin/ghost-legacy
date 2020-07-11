@@ -42,4 +42,19 @@ static const int SHORT_IDS_BLOCKS_VERSION = 70014;
 //! not banning for invalid compact blocks starts with this version
 static const int INVALID_CB_NO_BAN_VERSION = 70015;
 
+//! minimum ProTx proto version
+static const int MIN_PROTX_PROTO_VERSION = 70211;
+
+//! maximum ProTx proto version (slightly higher then current PROTOCOL_VERSION to ensure masternodes can upgrade)
+static const int MAX_PROTX_PROTO_VERSION = PROTOCOL_VERSION + 2;
+
+//! introduction of DIP3/deterministic masternodes
+static const int DMN_PROTO_VERSION = 70213;
+
+//! introduction of LLMQs
+static const int LLMQS_PROTO_VERSION = 70214;
+
+//! minimum proto version of masternode to accept in DKGs
+static const int MIN_MASTERNODE_PROTO_VERSION = LLMQS_PROTO_VERSION;
+
 #endif // BITCOIN_VERSION_H

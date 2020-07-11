@@ -13,7 +13,10 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 #include <ctime>
+#include <thread>
 #include <tinyformat.h>
+
+void UninterruptibleSleep(const std::chrono::microseconds& n) { std::this_thread::sleep_for(n); }
 
 static std::atomic<int64_t> nMockTime(0); //!< For unit testing
 static std::atomic<bool> mockTimeOffset(false); // Treat nMockTime as an offset
@@ -123,3 +126,15 @@ std::string FormatISO8601Date(int64_t nTime) {
 #endif
     return strprintf("%04i-%02i-%02i", ts.tm_year + 1900, ts.tm_mon + 1, ts.tm_mday);
 }
+
+std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime)
+{
+    static std::locale classic(std::locale::classic());
+    // std::locale takes ownership of the pointer
+    std::locale loc(classic, new boost::posix_time::time_facet(pszFormat));
+    std::stringstream ss;
+    ss.imbue(loc);
+    ss << boost::posix_time::from_time_t(nTime);
+    return ss.str();
+}
+

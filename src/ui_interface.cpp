@@ -6,6 +6,7 @@
 
 #include <boost/signals2/last_value.hpp>
 #include <boost/signals2/signal.hpp>
+#include <evo/deterministicmns.h>
 
 CClientUIInterface uiInterface;
 
@@ -21,6 +22,8 @@ struct UISignals {
     boost::signals2::signal<CClientUIInterface::NotifyHeaderTipSig> NotifyHeaderTip;
     boost::signals2::signal<CClientUIInterface::BannedListChangedSig> BannedListChanged;
     boost::signals2::signal<CClientUIInterface::NotifyWaitingForDeviceSig> NotifyWaitingForDevice;
+    boost::signals2::signal<CClientUIInterface::NotifyAdditionalDataSyncProgressChangedSig> NotifyAdditionalDataSyncProgressChanged;
+    boost::signals2::signal<CClientUIInterface::NotifyMasternodeListChangedSig> NotifyMasternodeListChanged;
 };
 static UISignals g_ui_signals;
 
@@ -41,6 +44,8 @@ ADD_SIGNALS_IMPL_WRAPPER(NotifyBlockTip);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyHeaderTip);
 ADD_SIGNALS_IMPL_WRAPPER(BannedListChanged);
 ADD_SIGNALS_IMPL_WRAPPER(NotifyWaitingForDevice);
+ADD_SIGNALS_IMPL_WRAPPER(NotifyAdditionalDataSyncProgressChanged);
+ADD_SIGNALS_IMPL_WRAPPER(NotifyMasternodeListChanged);
 
 bool CClientUIInterface::ThreadSafeMessageBox(const std::string& message, const std::string& caption, unsigned int style) { return g_ui_signals.ThreadSafeMessageBox(message, caption, style); }
 bool CClientUIInterface::ThreadSafeQuestion(const std::string& message, const std::string& non_interactive_message, const std::string& caption, unsigned int style) { return g_ui_signals.ThreadSafeQuestion(message, non_interactive_message, caption, style); }
@@ -53,7 +58,8 @@ void CClientUIInterface::NotifyBlockTip(bool b, const CBlockIndex* i) { return g
 void CClientUIInterface::NotifyHeaderTip(bool b, const CBlockIndex* i) { return g_ui_signals.NotifyHeaderTip(b, i); }
 void CClientUIInterface::BannedListChanged() { return g_ui_signals.BannedListChanged(); }
 void CClientUIInterface::NotifyWaitingForDevice(bool b) { return g_ui_signals.NotifyWaitingForDevice(b); }
-
+void CClientUIInterface::NotifyAdditionalDataSyncProgressChanged(double nSyncProgress) { return g_ui_signals.NotifyAdditionalDataSyncProgressChanged(nSyncProgress); }
+void CClientUIInterface::NotifyMasternodeListChanged(const CDeterministicMNList& mnList) { return g_ui_signals.NotifyMasternodeListChanged(mnList); }
 
 bool InitError(const std::string& str)
 {

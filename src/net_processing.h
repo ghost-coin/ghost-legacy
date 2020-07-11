@@ -98,11 +98,16 @@ void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main
 
 NodeId GetBlockSource(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+bool IsBanned(NodeId nodeid, BanMan& banman);
 void IncPersistentMisbehaviour(NodeId node_id, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 int GetNumDOSStates() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 void ClearDOSStates() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+void EraseTxRequest(NodeId nodeId, const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Relay transaction to every node */
 void RelayTransaction(const uint256&, const CConnman& connman);
+
+/** Increase a node's misbehavior score. */
+void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 #endif // BITCOIN_NET_PROCESSING_H

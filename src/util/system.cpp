@@ -7,6 +7,7 @@
 
 #include <chainparamsbase.h>
 #include <util/strencodings.h>
+#include <util/time.h>
 #include <util/translation.h>
 
 #include <stdarg.h>
@@ -74,6 +75,7 @@ const char * const BITCOIN_CONF_FILENAME = "ghost.conf";
 
 bool fParticlMode = true;
 bool fParticlWallet = false;
+bool fMasternodeMode = false;
 ArgsManager gArgs;
 
 /** A map that contains all the currently held directory locks. After
@@ -1018,6 +1020,12 @@ fs::path GetConfigFile(const std::string& confPath)
     return AbsPathForConfigVal(fs::path(confPath), false);
 }
 
+fs::path GetMasternodeConfigFile()
+{
+    fs::path pathConfigFile(gArgs.GetArg("-mnconf", "masternode.conf"));
+    return pathConfigFile;
+}
+
 static std::string TrimString(const std::string& str, const std::string& pattern)
 {
     std::string::size_type front = str.find_first_not_of(pattern);
@@ -1370,6 +1378,62 @@ void runCommand(const std::string& strCommand)
         LogPrintf("runCommand error: system(%s) returned %d\n", strCommand, nErr);
 }
 #endif
+
+void RenameThread(const char* name)
+{
+#if defined(PR_SET_NAME)
+    // Only the first 15 characters are used (16 - NUL terminator)
+    ::prctl(PR_SET_NAME, name, 0, 0, 0);
+#elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
+    pthread_set_name_np(pthread_self(), name);
+
+#elif defined(MAC_OSX)
+    pthread_setname_np(name);
+#else
+    // Prevent warnings for unused parameters...
+    (void)name;
+#endif
+    LogPrintf("%s: thread new name %s\n", __func__, name);
+}
+
+
+void RenameThreadPool(ctpl::thread_pool& tp, const char* baseName)
+{
+    auto cond = std::make_shared<std::condition_variable>();
+    auto mutex = std::make_shared<std::mutex>();
+    std::atomic<int> doneCnt(0);
+    std::map<int, std::future<void> > futures;
+
+    for (int i = 0; i < tp.size(); i++) {
+        futures[i] = tp.push([baseName, i, cond, mutex, &doneCnt](int threadId) {
+            util::ThreadRename(strprintf("%s-%d", baseName, i).c_str());
+            std::unique_lock<std::mutex> l(*mutex);
+            doneCnt++;
+            cond->wait(l);
+        });
+    }
+
+    do {
+        // Always sleep to let all threads acquire locks
+        UninterruptibleSleep(std::chrono::milliseconds{10});
+        // `doneCnt` should be at least `futures.size()` if tp size was increased (for whatever reason),
+        // or at least `tp.size()` if tp size was decreased and queue was cleared
+        // (which can happen on `stop()` if we were not fast enough to get all jobs to their threads).
+    } while (doneCnt < futures.size() && doneCnt < tp.size());
+
+    cond->notify_all();
+
+    // Make sure no one is left behind, just in case
+    for (auto& pair : futures) {
+        auto& f = pair.second;
+        if (f.valid() && f.wait_for(std::chrono::milliseconds(2000)) == std::future_status::timeout) {
+            LogPrintf("%s: %s-%d timed out\n", __func__, baseName, pair.first);
+            // Notify everyone again
+            cond->notify_all();
+            break;
+        }
+    }
+}
 
 void SetupEnvironment()
 {

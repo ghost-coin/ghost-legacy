@@ -35,14 +35,19 @@
 
 #include <boost/thread/condition_variable.hpp> // for boost::thread_interrupted
 
+#include <ctpl.h>
+#include <amount.h>
+
 // Application startup time (used for uptime calculation)
 int64_t GetStartupTime();
 
 extern bool fParticlMode;
 extern bool fParticlWallet;
+extern bool fMasternodeMode;
 
 extern const char * const BITCOIN_CONF_FILENAME;
 
+void RenameThreadPool(ctpl::thread_pool& tp, const char* baseName);
 void SetupEnvironment();
 bool SetupNetworking();
 

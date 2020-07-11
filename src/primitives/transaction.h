@@ -55,6 +55,17 @@ enum DataOutputTypes
     DO_SMSG_DIFFICULTY      = 10,
 };
 
+/** Transaction types */
+enum EvoTransactionTypes {
+    TRANSACTION_NORMAL = 0,
+    TRANSACTION_PROVIDER_REGISTER = 1,
+    TRANSACTION_PROVIDER_UPDATE_SERVICE = 2,
+    TRANSACTION_PROVIDER_UPDATE_REGISTRAR = 3,
+    TRANSACTION_PROVIDER_UPDATE_REVOKE = 4,
+    TRANSACTION_COINBASE = 5,
+    TRANSACTION_QUORUM_COMMITMENT = 6,
+};
+
 bool ExtractCoinStakeInt64(const std::vector<uint8_t> &vData, DataOutputTypes get_type, CAmount &out);
 bool ExtractCoinStakeUint32(const std::vector<uint8_t> &vData, DataOutputTypes get_type, uint32_t &out);
 
@@ -109,6 +120,7 @@ public:
     };
 
     std::string ToString() const;
+    std::string ToStringShort() const;
 };
 
 /** An input of a transaction.  It contains the location of the previous
@@ -677,6 +689,13 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
     s >> bv;
     tx.nVersion |= bv<<24;
 
+    ///////////////////////////////////////////////// baz
+    //! extract our 'dash' byte from nVersion
+    uint8_t nPackedByte = (tx.nVersion >> 16) & 0xff;
+    //! extract our low/high nibble from byte
+    tx.nEvoVersion = (nPackedByte >> 4) & 0xf;
+    tx.nEvoType = (nPackedByte & 0xf);
+    /////////////////////////////////////////////////
 
     unsigned char flags = 0;
     tx.vin.clear();
@@ -710,6 +729,8 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
         throw std::ios_base::failure("Unknown transaction optional data");
     }
     s >> tx.nLockTime;
+    if (tx.nEvoVersion >= 3 && tx.nEvoType != TRANSACTION_NORMAL)
+        s >> tx.vExtraPayload;
 }
 
 template<typename Stream, typename TxType>
@@ -740,7 +761,14 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
         return;
     };
 
-    s << tx.nVersion;
+    ///////////////////////////////////////////////// baz
+    //! pack our 'dash' byte from nEvoVersion/nEvoType
+    uint8_t nPackedByte = (tx.nEvoVersion*10) + tx.nEvoType;
+    //! pack the byte back into nVersion
+    uint32_t nNewVersion = (nPackedByte<<(2<<3)) | (tx.nVersion&(0xffffffff^(0xff<<(2<<3))));
+    /////////////////////////////////////////////////
+
+    s << nNewVersion;
 
     unsigned char flags = 0;
     // Consistency check
@@ -764,6 +792,8 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
         }
     }
     s << tx.nLockTime;
+    if (tx.nEvoVersion >= 3 && tx.nEvoType != TRANSACTION_NORMAL)
+        s << tx.vExtraPayload;
 }
 
 
@@ -794,6 +824,12 @@ public:
     const std::vector<CTxOutBaseRef> vpout;
     const int32_t nVersion;
     const uint32_t nLockTime;
+
+    // nEvoVersion and nEvoType get constructed if the info is detected in the main 
+    // nVersion field (offset 2nd byte is to be non-zero)..
+    int16_t nEvoVersion;
+    int16_t nEvoType;
+    const std::vector<uint8_t> vExtraPayload; // only available for special transaction types
 
 private:
     /** Memory only. */
@@ -956,6 +992,12 @@ struct CMutableTransaction
     int32_t nVersion;
     uint32_t nLockTime;
 
+    // nEvoVersion and nEvoType get constructed if the info is detected in the main 
+    // nVersion field (offset 2nd byte is to be non-zero)..
+    int16_t nEvoVersion;
+    int16_t nEvoType;
+    std::vector<uint8_t> vExtraPayload; // only available for special transaction types
+
     CMutableTransaction();
     explicit CMutableTransaction(const CTransaction& tx);
 
@@ -1013,6 +1055,8 @@ struct CMutableTransaction
         }
         return false;
     }
+
+    std::string ToString() const;
 };
 
 typedef std::shared_ptr<const CTransaction> CTransactionRef;

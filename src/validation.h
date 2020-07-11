@@ -110,9 +110,6 @@ static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE = 1000000;
 static const int64_t BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 500000;
 
 static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
-/** Maximum age of our tip in seconds for us to be considered current for fee estimation */
-static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
-
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
 static const bool DEFAULT_TXINDEX_ = true; // required for staking
 static const char* const DEFAULT_BLOCKFILTERINDEX = "0";
@@ -153,11 +150,13 @@ struct BlockHasher
     size_t operator()(const uint256& hash) const { return ReadLE64(hash.begin()); }
 };
 
+extern std::atomic<bool> fDIP0003ActiveAtTip;
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CBlockPolicyEstimator feeEstimator;
 extern CTxMemPool mempool;
 typedef std::unordered_map<uint256, CBlockIndex*, BlockHasher> BlockMap;
+typedef std::unordered_multimap<uint256, CBlockIndex*, BlockHasher> PrevBlockMap;
 extern std::map<COutPoint, uint256> mapStakeSeen;
 extern std::list<COutPoint> listStakeSeen;
 extern uint64_t nLastBlockTx;
@@ -284,6 +283,7 @@ bool GetTransaction(const uint256 &hash, CTransactionRef &tx, const Consensus::P
  */
 bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
+CAmount GetMasternodePayment(int nHeight, CAmount blockValue);
 
 /** Guess verification progress (as a fraction between 0.0=genesis and 1.0=current tip). */
 double GuessVerificationProgress(const ChainTxData& data, const CBlockIndex* pindex);
@@ -309,6 +309,10 @@ void PruneBlockFilesManual(int nManualPruneHeight);
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx,
                         bool* pfMissingInputs, std::list<CTransactionRef>* plTxnReplaced,
                         bool bypass_limits, const CAmount nAbsurdFee, bool test_accept=false, bool ignore_locks=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+bool GetUTXOCoin(const COutPoint& outpoint, Coin& coin);
+int GetUTXOHeight(const COutPoint& outpoint);
+int GetUTXOConfirmations(const COutPoint& outpoint);
 
 /** Get the BIP9 state for a given deployment at the current tip. */
 ThresholdState VersionBitsTipState(const Consensus::Params& params, Consensus::DeploymentPos pos);
@@ -497,6 +501,7 @@ struct CBlockIndexWorkComparator
 class BlockManager {
 public:
     BlockMap m_block_index GUARDED_BY(cs_main);
+    PrevBlockMap m_prev_block_index GUARDED_BY(cs_main);
 
     /** In order to efficiently track invalidity of headers, we keep the set of
       * blocks which we tried to connect and found to be invalid here (ie which
@@ -819,6 +824,9 @@ CChain& ChainActive();
 /** @returns the global block index map. */
 BlockMap& BlockIndex();
 
+/** @returns the global previous block index map */
+PrevBlockMap& PrevBlockIndex();
+
 // Most often ::ChainstateActive() should be used instead of this, but some code
 // may not be able to assume that this has been initialized yet and so must use it
 // directly, e.g. init.cpp.
@@ -879,6 +887,12 @@ public:
     //int SetKernel(const COutPoint &kernel_);
     int Add(NodeId id);
 };
+
+/**
+ * Return true if hash can be found in ::ChainActive() at nBlockHeight height.
+ * Fills hashRet with found hash, if no nBlockHeight is specified - ::ChainActive().Height() is used.
+ */
+bool GetBlockHash(uint256& hashRet, int nBlockHeight = -1);
 
 /** Cache recently seen coinstake transactions */
 class CoinStakeCache

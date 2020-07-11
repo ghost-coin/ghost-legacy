@@ -19,6 +19,7 @@
 #include <primitives/transaction.h>
 #include <psbt.h>
 #include <random.h>
+#include <rpc/blockchain.h>
 #include <rpc/rawtransaction_util.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
@@ -141,6 +142,11 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
 
     entry.pushKV("vout", vout);
 
+    if (!tx.vExtraPayload.empty()) {
+        entry.pushKV("extraPayloadSize", (int)tx.vExtraPayload.size());
+        entry.pushKV("extraPayload", HexStr(tx.vExtraPayload));
+    }
+
     if (!hashBlock.IsNull()) {
         entry.pushKV("blockhash", hashBlock.GetHex());
 
@@ -258,6 +264,8 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
             "     }\n"
             "     ,...\n"
             "  ],\n"
+            "  \"extraPayloadSize\" : n    (numeric) Size of DIP2 extra payload. Only present if it's a special TX\n"
+            "  \"extraPayload\" : \"hex\"    (string) Hex encoded DIP2 extra payload data. Only present if it's a special TX\n"
             "  \"blockhash\" : \"hash\",   (string) the block hash\n"
             "  \"confirmations\" : n,      (numeric) The confirmations\n"
             "  \"blocktime\" : ttt         (numeric) The block time in seconds since epoch (Jan 1 1970 GMT)\n"
@@ -588,6 +596,7 @@ static UniValue decoderawtransaction(const JSONRPCRequest& request)
             "  \"vsize\" : n,            (numeric) The virtual transaction size (differs from size for witness transactions)\n"
             "  \"weight\" : n,           (numeric) The transaction's weight (between vsize*4 - 3 and vsize*4)\n"
             "  \"version\" : n,          (numeric) The version\n"
+            "  \"type\" : n,             (numeric) The type\n"
             "  \"locktime\" : ttt,       (numeric) The lock time\n"
             "  \"vin\" : [               (array of json objects)\n"
             "     {\n"
@@ -619,6 +628,8 @@ static UniValue decoderawtransaction(const JSONRPCRequest& request)
             "     }\n"
             "     ,...\n"
             "  ],\n"
+            "  \"extraPayloadSize\" : n           (numeric) Size of DIP2 extra payload. Only present if it's a special TX\n"
+            "  \"extraPayload\" : \"hex\"           (string) Hex encoded DIP2 extra payload data. Only present if it's a special TX\n"
             "}\n"
                 },
                 RPCExamples{
@@ -920,7 +931,7 @@ static UniValue signrawtransactionwithkey(const JSONRPCRequest& request)
     return SignTransaction(mtx, &keystore, coins, request.params[3]);
 }
 
-static UniValue sendrawtransaction(const JSONRPCRequest& request)
+UniValue sendrawtransaction(const JSONRPCRequest& request)
 {
     RPCHelpMan{"sendrawtransaction",
                 "\nSubmit a raw transaction (serialized, hex-encoded) to local node and network.\n"

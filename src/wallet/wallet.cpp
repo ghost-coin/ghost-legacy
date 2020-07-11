@@ -31,6 +31,8 @@
 #include <wallet/coincontrol.h>
 #include <wallet/fees.h>
 
+#include "evo/providertx.h"
+
 #include <algorithm>
 #include <assert.h>
 #include <future>
@@ -38,6 +40,7 @@
 #include <boost/algorithm/string/replace.hpp>
 
 #include <wallet/hdwallet.h>
+#include <evo/deterministicmns.h>
 
 const std::map<uint64_t,std::string> WALLET_FLAG_CAVEATS{
     {WALLET_FLAG_AVOID_REUSE,
@@ -1127,6 +1130,7 @@ bool CWallet::IsUsedDestination(const uint256& hash, unsigned int n) const
 bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
 {
     LOCK(cs_wallet);
+    auto locked_chain = LockChain();
 
     WalletBatch batch(*database, "r+", fFlushOnClose);
 
@@ -1157,6 +1161,15 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose)
         wtx.m_it_wtxOrdered = wtxOrdered.insert(std::make_pair(wtx.nOrderPos, &wtx));
         wtx.nTimeSmart = ComputeTimeSmart(wtx);
         AddToSpends(hash);
+    }
+
+    auto mnList = deterministicMNManager->GetListAtChainTip();
+    for(unsigned int i = 0; i < wtx.tx->vout.size(); ++i) {
+       if (IsMine(wtx.tx->vout[i]) && !IsSpent(*locked_chain, hash, i)) {
+                if (deterministicMNManager->IsProTxWithCollateral(wtx.tx, i) || mnList.HasMNByCollateral(COutPoint(hash, i))) {
+              LockCoin(COutPoint(hash, i));
+           }
+       }
     }
 
     bool fUpdated = false;
@@ -3607,6 +3620,25 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
     return DBErrors::LOAD_OK;
 }
 
+// Goes through all wallet transactions and checks if they are masternode collaterals, in which case these are locked
+// This avoids accidential spending of collaterals. They can still be unlocked manually if a spend is really intended.
+void CWallet::AutoLockMasternodeCollaterals()
+{
+    auto locked_chain = chain().lock();
+    auto mnList = deterministicMNManager->GetListAtChainTip();
+
+    LOCK2(cs_main, cs_wallet);
+    for (const auto& pair : mapWallet) {
+        for (unsigned int i = 0; i < pair.second.tx->vout.size(); ++i) {
+            if (IsMine(pair.second.tx->vout[i]) && !IsSpent(*locked_chain, pair.first, i)) {
+                if (deterministicMNManager->IsProTxWithCollateral(pair.second.tx, i) || mnList.HasMNByCollateral(COutPoint(pair.first, i))) {
+                    LockCoin(COutPoint(pair.first, i));
+                }
+            }
+        }
+    }
+}
+
 DBErrors CWallet::ZapSelectTx(std::vector<uint256>& vHashIn, std::vector<uint256>& vHashOut)
 {
     AssertLockHeld(cs_wallet);
@@ -4290,6 +4322,24 @@ void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts) const
          it != setLockedCoins.end(); it++) {
         COutPoint outpt = (*it);
         vOutpts.push_back(outpt);
+    }
+}
+
+void CWallet::ListProTxCoins(std::vector<COutPoint>& vOutpts) const
+{
+    auto locked_chain = chain().lock();
+    auto mnList = deterministicMNManager->GetListAtChainTip();
+
+    AssertLockHeld(cs_wallet);
+
+    for (const auto& pair : mapWallet) {
+        for (unsigned int i = 0; i < pair.second.tx->vout.size(); ++i) {
+            if (IsMine(pair.second.tx->vout[i]) && !IsSpent(*locked_chain, pair.first, i)) {
+                if (deterministicMNManager->IsProTxWithCollateral(pair.second.tx, i) || mnList.HasMNByCollateral(COutPoint(pair.first, i))) {
+                    vOutpts.emplace_back(COutPoint(pair.first, i));
+                }
+            }
+        }
     }
 }
 

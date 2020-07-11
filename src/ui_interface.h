@@ -12,6 +12,8 @@
 #include <string>
 
 class CBlockIndex;
+class CDeterministicMNList;
+
 namespace boost {
 namespace signals2 {
 class connection;
@@ -102,6 +104,11 @@ public:
      * Status bar alerts changed.
      */
     ADD_SIGNALS_DECL_WRAPPER(NotifyAlertChanged, void, );
+
+    /** Additional data sync progress changed */
+    ADD_SIGNALS_DECL_WRAPPER(NotifyAdditionalDataSyncProgressChanged, void, double nSyncProgress);
+    /** Masternode list has changed */
+    ADD_SIGNALS_DECL_WRAPPER(NotifyMasternodeListChanged, void, const CDeterministicMNList& mnList);
 
     /**
      * Show progress e.g. for verifychain.

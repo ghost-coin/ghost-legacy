@@ -99,10 +99,10 @@ public:
     template<typename Stream>
     void Unserialize(Stream &s) {
         uint32_t code = 0;
-        ::Unserialize(s, VARINT(code));
+        ::Unserialize(s, REF(VARINT(code)));
         nHeight = code >> 1;
         fCoinBase = code & 1;
-        ::Unserialize(s, CTxOutCompressor(out));
+        ::Unserialize(s, REF(CTxOutCompressor(out)));
         if (!fParticlMode) return;
         ::Unserialize(s, nType);
         if (nType == OUTPUT_CT)

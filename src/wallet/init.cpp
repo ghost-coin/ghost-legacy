@@ -31,6 +31,8 @@ public:
 
     //! Add wallets that should be opened to list of init interfaces.
     void Construct(InitInterfaces& interfaces) const override;
+
+    void AutoLockMasternodeCollaterals() const override;
 };
 
 const WalletInitInterface& g_wallet_init_interface = WalletInit();
@@ -76,6 +78,14 @@ void WalletInit::AddWalletOptions() const
 
 bool WalletInit::ParameterInteraction() const
 {
+    if (gArgs.IsArgSet("-masternodeblsprivkey") && gArgs.SoftSetBoolArg("-disablewallet", true)) {
+        LogPrintf("%s: parameter interaction: -masternodeblsprivkey set -> setting -disablewallet=1\n", __func__);
+        for (const std::string& wallet : gArgs.GetArgs("-wallet")) {
+            LogPrintf("%s: parameter interaction: -disablewallet -> ignoring -wallet=%s\n", __func__, wallet);
+        }
+        return true;
+    }
+
     if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
         for (const std::string& wallet : gArgs.GetArgs("-wallet")) {
             LogPrintf("%s: parameter interaction: -disablewallet -> ignoring -wallet=%s\n", __func__, wallet);
@@ -138,4 +148,11 @@ void WalletInit::Construct(InitInterfaces& interfaces) const
     }
     gArgs.SoftSetArg("-wallet", "");
     interfaces.chain_clients.emplace_back(interfaces::MakeWalletClient(*interfaces.chain, gArgs.GetArgs("-wallet")));
+}
+
+void WalletInit::AutoLockMasternodeCollaterals() const
+{
+    for (const std::shared_ptr<CWallet>& pwallet : GetWallets()) {
+        pwallet->AutoLockMasternodeCollaterals();
+    }
 }
