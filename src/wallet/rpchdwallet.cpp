@@ -4001,8 +4001,6 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
             "  \"coin_in_coldstakeable_script\"     (numeric) Current amount of coin in scripts stakeable by the wallet with the coldstakingaddress.\n"
             "  \"percent_in_coldstakeable_script\"  (numeric) Percentage of coin in coldstakeable scripts.\n"
             "  \"currently_staking\"                (numeric) Amount of coin estimated to be currently staking by this wallet.\n"
-            "  \"percentyearreward\": xxxxxxx,      (numeric) current stake reward percentage\n"
-            "  \"moneysupply\": xxxxxxx,            (numeric) the total amount of ghost in the network\n"
             "  \"weight\": xxxxxxx,                 (numeric) the current stake weight of this wallet\n"
             "  \"netstakeweight\": xxxxxxx,         (numeric) the current stake weight of the network\n"
             "  \"expectedtime\": xxxxxxx,           (numeric) estimated time for next stake\n"
@@ -4030,9 +4028,6 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
     uint64_t nMaximumCount = 0;
     int nHeight, nRequiredDepth;
 
-    int64_t nTipTime;
-    float rCoinYearReward;
-    CAmount nMoneySupply;
     {
         CCoinControl cctl;
         cctl.m_avoid_address_reuse = false;
@@ -4042,9 +4037,6 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         nHeight = ::ChainActive().Tip()->nHeight;
-        nTipTime = ::ChainActive().Tip()->nTime;
-        rCoinYearReward = 0;
-        nMoneySupply = ::ChainActive().Tip()->nMoneySupply;
         nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(nHeight / 2));
         pwallet->AvailableCoins(*locked_chain, vecOutputs, !include_unsafe, &cctl, nMinimumAmount, nMaximumAmount, nMinimumSumAmount, nMaximumCount);
     }
@@ -4134,8 +4126,6 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
     obj.pushKV("weight", (uint64_t)nWeight);
     obj.pushKV("netstakeweight", (uint64_t)nNetworkWeight);
     obj.pushKV("expectedtime", nExpectedTime);
-    obj.pushKV("percentyearreward", rCoinYearReward);
-    obj.pushKV("moneysupply", ValueFromAmount(nMoneySupply));
 
 
     return obj;
