@@ -4673,7 +4673,28 @@ static int AddOutput(uint8_t nType, std::vector<CTempRecipient> &vecSend, const 
     vecSend.push_back(r);
     return 0;
 };
+static int AddOutputScript(uint8_t nType, std::vector<CTempRecipient> &vecSend, const CScript &script, CAmount nValue,
+    bool fSubtractFeeFromAmount, std::string &sNarr, std::string &sBlind, std::string &sError)
+{
+    CTempRecipient r;
+    r.nType = nType;
+    r.SetAmount(nValue);
+    r.fSubtractFeeFromAmount = fSubtractFeeFromAmount;
+    r.fScriptSet = true;
+    r.scriptPubKey = script;
+    r.sNarration = sNarr;
 
+    if (!sBlind.empty()) {
+        uint256 blind;
+        blind.SetHex(sBlind);
+
+        r.vBlind.resize(32);
+        memcpy(r.vBlind.data(), blind.begin(), 32);
+    }
+
+    vecSend.push_back(r);
+    return 0;
+};
 void ReadCoinControlOptions(const UniValue &obj, CHDWallet *pwallet, CCoinControl &coin_control)
 {
     if (obj.exists("changeaddress")) {
@@ -5171,7 +5192,6 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         // This can happen if the mempool rejected the transaction.  Report
         // what happened in the "errors" response.
         vErrors.push_back(strprintf("Error: The transaction was rejected: %s", FormatStateMessage(state)));
-
         UniValue result(UniValue::VOBJ);
         result.pushKV("txid", wtx.GetHash().GetHex());
         result.pushKV("errors", vErrors);
@@ -5187,6 +5207,85 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     } else {
         return wtx.GetHash().GetHex();
     }
+}
+
+static UniValue SendToScriptInner(const JSONRPCRequest &request, CScript script = CScript())
+{
+   std::shared_ptr < CWallet>
+   const wallet = GetWalletForJSONRPCRequest(request);
+   CHDWallet *const pwallet = GetParticlWallet(wallet.get());
+   if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+   {
+      return NullUniValue;
+   }
+
+   // Make sure the results are valid at least up to the most recent block
+   // the user could have gotten from another RPC command prior to now
+   if (!request.fSkipBlock)
+   {
+      pwallet->BlockUntilSyncedToCurrentChain();
+   }
+
+   EnsureWalletIsUnlocked(pwallet);
+
+   if (pwallet->GetBroadcastTransactions() && !g_connman)
+   {
+      throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
+   }
+
+   CAmount nTotal = 0;
+
+   std::vector<CTempRecipient> vecSend;
+   std::string sError;
+
+   CAmount nAmount = AmountFromValue(request.params[0]);
+   if (nAmount <= 0)
+   {
+      throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+   }
+   nTotal += nAmount;
+
+   bool fSubtractFeeFromAmount = false;
+   std::string sNarr;  //Empty for
+   std::string sBlind;   // Always empty
+
+   if (0 != AddOutputScript(OUTPUT_STANDARD, vecSend, script, nAmount, fSubtractFeeFromAmount, sNarr, sBlind, sError))
+   {
+      throw JSONRPCError(RPC_MISC_ERROR, strprintf("AddOutput failed: %s.", sError));
+   }
+
+   const auto bal = pwallet->GetBalance();
+   if (nTotal > bal.m_mine_trusted){
+      throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
+   }
+
+   // Wallet comments
+   CTransactionRef tx_new;
+   CWalletTx wtx(pwallet, tx_new);
+   CTransactionRecord rtx;
+
+   bool fShowHex = false;
+   bool fShowFee = false;
+   bool fCheckFeeOnly = false;
+
+   CCoinControl coincontrol;
+   coincontrol.m_avoid_address_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
+   coincontrol.m_avoid_partial_spends |= coincontrol.m_avoid_address_reuse;
+
+   CAmount nFeeRet = 0;
+   {
+      auto locked_chain = pwallet->chain().lock();
+      LockAssertion lock(::cs_main);
+      if (0 != pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, !fCheckFeeOnly, nFeeRet, &coincontrol, sError))
+         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddStandardInputs failed: %s.", sError));
+   }
+
+   CValidationState state;
+   if (!pwallet->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm, state)){
+      throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Transaction commit failed: %s", FormatStateMessage(state)));
+   }
+   pwallet->PostProcessTempRecipients(vecSend);
+   return wtx.GetHash().GetHex();
 }
 
 static const char *TypeToWord(OutputTypes type)
@@ -5357,6 +5456,34 @@ static UniValue sendanontoanon(const JSONRPCRequest &request)
 
     return SendToInner(request, OUTPUT_RINGCT, OUTPUT_RINGCT);
 };
+
+static UniValue burn(const JSONRPCRequest &request){
+        RPCHelpMan{"burn",
+                "\nBurns the amount of coins by sending it to OP_RETURN.\n",
+                {
+                    {"amount", RPCArg::Type::NUM, RPCArg::Optional::NO, "The Amount to burn"},
+                    {"data", RPCArg::Type::STR, /* default */ "", "Optional string data to add with OP_RETURN"}
+                },
+                RPCResult{
+                    "TxHash"
+                },
+                RPCExamples{
+            HelpExampleCli("burn", "10 \"Rewardburn\"") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("burn", "10 ,\"Rewardburn\"")
+                },
+            }.Check(request);
+
+    //Prepare script
+    CScript burnScript = CScript() << OP_RETURN;
+    if (request.params.size() > 1 && !request.params[1].isNull() && !request.params[1].get_str().empty()) {
+        if (request.params[1].get_str().length() > 80)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Comment cannot be longer than 80 characters");
+        burnScript << ToByteVector(request.params[1].get_str());
+    }
+
+    return SendToScriptInner(request,burnScript);
+}
 
 UniValue sendtypeto(const JSONRPCRequest &request)
 {
@@ -9326,6 +9453,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "listunspentanon",                  &listunspentanon,               {"minconf","maxconf","addresses","include_unsafe","query_options"} },
     { "wallet",             "listunspentblind",                 &listunspentblind,              {"minconf","maxconf","addresses","include_unsafe","query_options"} },
 
+    { "wallet",             "burn",                             &burn,                          {"amount","data"} },
 
     //sendghosttoghost // normal txn
     { "wallet",             "sendghosttoblind",                  &sendghosttoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration"} },

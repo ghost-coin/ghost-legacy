@@ -187,7 +187,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "tallyvotes", 2, "height_end" },
     { "debugwallet", 0, "options" },
 
-
+    { "burn", 0, "amount" },
     { "sendghosttoblind", 1, "amount" },
     { "sendghosttoblind", 4, "subtractfeefromamount" },
     { "sendghosttoanon", 1, "amount" },
