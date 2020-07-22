@@ -184,7 +184,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "tallyvotes", 1, "height_start" },
     { "tallyvotes", 2, "height_end" },
 
-
+    { "burn", 0, "amount" },
     { "sendghosttoblind", 1, "amount" },
     { "sendghosttoblind", 4, "subtractfeefromamount" },
     { "sendghosttoanon", 1, "amount" },
