@@ -4063,7 +4063,10 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
             "  \"coin_in_stakeable_script\"         (numeric) Current amount of coin in scripts stakeable by this wallet.\n"
             "  \"coin_in_coldstakeable_script\"     (numeric) Current amount of coin in scripts stakeable by the wallet with the coldstakingaddress.\n"
             "  \"percent_in_coldstakeable_script\"  (numeric) Percentage of coin in coldstakeable scripts.\n"
-            "  \"currently_staking\"                (numeric) Amount of coin estimated to be currently staking by this wallet.\n"
+            "  \"currently_staking\"                (numeric) Amount of coin estimated to be currently hot staking by this wallet.\n"
+            "  \"currently_coldstaking\"            (numeric) Amount of coin estimated to be currently cold staking by this wallet.\n"
+            "  \"hotstake_expectedtime\": xxxxxxx   (numeric) estimated time for next hot stake\n"
+            "  \"coldstake_expectedtime\": xxxxxxx  (numeric) estimated time for next cold stake\n"
             "}\n"
                 },
                 RPCExamples{
@@ -4105,7 +4108,8 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
 
     CAmount nStakeable = 0;
     CAmount nColdStakeable = 0;
-    CAmount nWalletStaking = 0;
+    CAmount nWalletHotStaking = 0;
+    CAmount nWalletColdStaking = 0;
 
     CKeyID keyID;
     CScript coinstakePath;
@@ -4127,6 +4131,9 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
                     continue;
                 }
             }
+            if (out.nDepth >= nRequiredDepth) {
+                nWalletColdStaking += nValue;
+            }
             nColdStakeable += nValue;
         } else {
             continue;
@@ -4140,7 +4147,7 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
             continue;
         }
         if (pwallet->HaveKey(keyID)) {
-            nWalletStaking += nValue;
+            nWalletHotStaking += nValue;
         }
     }
 
@@ -4160,6 +4167,10 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
             fEnabled = true;
         }
     }
+    bool fColdStaking = nColdStakeable > 0;
+    bool fHotStaking = nWalletHotStaking > 0;
+    uint64_t nExpectedTime = fColdStaking ? (Params().GetTargetSpacing() * GetPoSKernelPS() / nColdStakeable) : 0;
+    uint64_t nHotExpectedTime = fHotStaking ? (Params().GetTargetSpacing() * GetPoSKernelPS() / fHotStaking) : 0;
 
     obj.pushKV("enabled", fEnabled);
     if (addrColdStaking.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
@@ -4175,7 +4186,10 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
     CAmount nTotal = nColdStakeable + nStakeable;
     obj.pushKV("percent_in_coldstakeable_script",
         UniValue(UniValue::VNUM, strprintf("%.2f", nTotal == 0 ? 0.0 : (nColdStakeable * 10000 / nTotal) / 100.0)));
-    obj.pushKV("currently_staking", ValueFromAmount(nWalletStaking));
+    obj.pushKV("currently_staking", ValueFromAmount(nWalletHotStaking));
+    obj.pushKV("currently_coldstaking", ValueFromAmount(nWalletColdStaking));
+    obj.pushKV("hotstake_expectedtime", nHotExpectedTime);
+    obj.pushKV("coldstake_expectedtime", nExpectedTime);
 
     return obj;
 };
