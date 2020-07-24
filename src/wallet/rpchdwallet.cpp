@@ -4167,10 +4167,11 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
             fEnabled = true;
         }
     }
-    bool fColdStaking = nColdStakeable > 0;
+    bool fColdStaking = nWalletColdStaking > 0;
     bool fHotStaking = nWalletHotStaking > 0;
-    uint64_t nExpectedTime = fColdStaking ? (Params().GetTargetSpacing() * GetPoSKernelPS() / nColdStakeable) : 0;
-    uint64_t nHotExpectedTime = fHotStaking ? (Params().GetTargetSpacing() * GetPoSKernelPS() / fHotStaking) : 0;
+    uint64_t nNetWeight = GetPoSKernelPS();
+    uint64_t nExpectedTime = fColdStaking ? (Params().GetTargetSpacing() * nNetWeight/ nWalletColdStaking) : 0;
+    uint64_t nHotExpectedTime = fHotStaking ? (Params().GetTargetSpacing() * nNetWeight / nWalletHotStaking) : 0;
 
     obj.pushKV("enabled", fEnabled);
     if (addrColdStaking.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
