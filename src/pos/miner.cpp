@@ -44,8 +44,6 @@ extern double GetDifficulty(const CBlockIndex* blockindex = nullptr);
 
 double GetPoSKernelPS()
 {
-    LOCK(cs_main);
-
     CBlockIndex *pindex = ::ChainActive().Tip();
     CBlockIndex *pindexPrevStake = nullptr;
 
@@ -73,8 +71,7 @@ double GetPoSKernelPS()
         result = dStakeKernelsTriedAvg / nStakesTime;
     }
 
-    //if (IsProtocolV2(nBestHeight))
-        result *= Params().GetStakeTimestampMask(nBestHeight) + 1;
+    result *= Params().GetStakeTimestampMask(nBestHeight) + 1;
 
     return result;
 }
