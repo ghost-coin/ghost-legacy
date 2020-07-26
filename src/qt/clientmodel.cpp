@@ -16,11 +16,15 @@
 #include <netbase.h>
 #include <util/system.h>
 
+#include <masternode/masternode-sync.h>
+
 #include <stdint.h>
 
 #include <QDebug>
 #include <QThread>
 #include <QTimer>
+
+#include <masternode/masternode-sync.h>
 
 static int64_t nLastHeaderTipUpdateNotification = 0;
 static int64_t nLastBlockTipUpdateNotification = 0;
@@ -77,6 +81,29 @@ int ClientModel::getNumConnections(unsigned int flags) const
     return m_node.getNodeCount(connections);
 }
 
+void ClientModel::setMasternodeList(const CDeterministicMNList& mnList)
+{
+    LOCK(cs_mnlinst);
+    if (mnListCached.GetBlockHash() == mnList.GetBlockHash()) {
+        return;
+    }
+    mnListCached = mnList;
+    Q_EMIT masternodeListChanged();
+}
+
+CDeterministicMNList ClientModel::getMasternodeList() const
+{
+    LOCK(cs_mnlinst);
+    return mnListCached;
+}
+
+void ClientModel::refreshMasternodeList()
+{
+    LOCK(cs_mnlinst);
+    setMasternodeList(deterministicMNManager->GetListAtChainTip());
+}
+
+
 int ClientModel::getHeaderTipHeight() const
 {
     if (cachedBestHeaderHeight == -1) {
@@ -103,6 +130,10 @@ int64_t ClientModel::getHeaderTipTime() const
         }
     }
     return cachedBestHeaderTime;
+}
+
+void ClientModel::updateTimer()
+{
 }
 
 void ClientModel::updateNumConnections(int numConnections)
@@ -255,6 +286,18 @@ static void BlockTipChanged(ClientModel *clientmodel, bool initialSync, int heig
     }
 }
 
+static void NotifyMasternodeListChanged(ClientModel *clientmodel, const CDeterministicMNList& newList)
+{
+    QMetaObject::invokeMethod(clientmodel, "setMasternodeList", Qt::QueuedConnection,
+                            Q_ARG(const CDeterministicMNList&, newList));
+}
+
+static void NotifyAdditionalDataSyncProgressChanged(ClientModel *clientmodel, double nSyncProgress)
+{
+    QMetaObject::invokeMethod(clientmodel, "additionalDataSyncProgressChanged", Qt::QueuedConnection,
+                              Q_ARG(double, nSyncProgress));
+}
+
 static void NotifyWaitingForDevice(ClientModel *clientmodel, bool fCompleted)
 {
     QMetaObject::invokeMethod(clientmodel, "waitingForDevice", Qt::AutoConnection,
@@ -271,7 +314,8 @@ void ClientModel::subscribeToCoreSignals()
     m_handler_banned_list_changed = m_node.handleBannedListChanged(std::bind(BannedListChanged, this));
     m_handler_notify_block_tip = m_node.handleNotifyBlockTip(std::bind(BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, false));
     m_handler_notify_header_tip = m_node.handleNotifyHeaderTip(std::bind(BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, true));
-
+    m_handler_additional_data_sync_progress_changed = m_node.handleNotifyAdditionalDataSyncProgressChanged(std::bind(NotifyAdditionalDataSyncProgressChanged, this, std::placeholders::_1));
+    m_handler_masternodelist_changed = m_node.handleNotifyMasternodeListChanged(std::bind(NotifyMasternodeListChanged, this, std::placeholders::_1));
     m_handler_notify_waiting_for_device = m_node.handleNotifyWaitingForDevice(std::bind(NotifyWaitingForDevice, this, std::placeholders::_1));
 }
 
@@ -285,7 +329,8 @@ void ClientModel::unsubscribeFromCoreSignals()
     m_handler_banned_list_changed->disconnect();
     m_handler_notify_block_tip->disconnect();
     m_handler_notify_header_tip->disconnect();
-
+    m_handler_additional_data_sync_progress_changed->disconnect();   
+    m_handler_masternodelist_changed->disconnect();
     m_handler_notify_waiting_for_device->disconnect();
 }
 

@@ -7,6 +7,7 @@
 
 #include <amount.h>
 
+#include <qt/masternodelist.h>
 #include <QStackedWidget>
 
 class BitcoinGUI;
@@ -66,6 +67,7 @@ private:
     AddressBookPage *usedSendingAddressesPage;
     AddressBookPage *usedReceivingAddressesPage;
 
+    MasternodeList *masternodeListPage;
     TransactionView *transactionView;
 
     QProgressDialog* progressDialog{nullptr};
@@ -76,6 +78,8 @@ public Q_SLOTS:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
+    /** Switch to masternode page */
+    void gotoMasternodePage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
