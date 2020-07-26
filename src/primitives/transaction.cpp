@@ -331,13 +331,13 @@ unsigned int CTransaction::GetTotalSize() const
 std::string CTransaction::ToString() const
 {
     std::string str;
-    str += strprintf("CTransaction(hash=%s, ver=%d, type=%d, vin.size=%u, vout.size=%u, nLockTime=%u) vExtraPayload.size=%d)\n",
+    str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u, nEvoType=%s, vExtraPayload.size=%d)\n",
         GetHash().ToString().substr(0,10),
         nVersion,
-        nEvoType,
         vin.size(),
         (nVersion & 0xFF) < GHOST_TXN_VERSION ? vout.size() : vpout.size(),
         nLockTime,
+        IsEvoTxVersion(nVersion) ? ReturnEvoTypeName(nVersion) : "N",
         vExtraPayload.size());
     for (const auto& tx_in : vin)
         str += "    " + tx_in.ToString() + "\n";
@@ -353,10 +353,9 @@ std::string CTransaction::ToString() const
 std::string CMutableTransaction::ToString() const
 {
     std::string str;
-    str += strprintf("CMutableTransaction(hash=%s, ver=%d, type=%d, vin.size=%u, vout.size=%u, nLockTime=%u, vExtraPayload.size=%d)\n",
+    str += strprintf("CMutableTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u, vExtraPayload.size=%d)\n",
         GetHash().ToString().substr(0,10),
         nVersion,
-        nEvoType,
         vin.size(),
         vout.size(),
         nLockTime,

@@ -573,7 +573,7 @@ private:
 
     std::multimap<uint256, uint256> mapProTxRefs; // proTxHash -> transaction (all TXs that refer to an existing proTx)
     std::map<CService, uint256> mapProTxAddresses;
-    std::map<WitnessV0KeyHash, uint256> mapProTxPubKeyIDs;
+    std::map<CKeyID, uint256> mapProTxPubKeyIDs;
     std::map<uint256, uint256> mapProTxBlsPubKeyHashes;
     std::map<COutPoint, uint256> mapProTxCollaterals;
 
@@ -620,7 +620,7 @@ public:
 
     void removeRecursive(const CTransaction& tx, MemPoolRemovalReason reason) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeForReorg(const CCoinsViewCache* pcoins, unsigned int nMemPoolHeight, int flags) EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
-    void removeProTxPubKeyConflicts(const CTransaction &tx, const WitnessV0KeyHash &keyId);
+    void removeProTxPubKeyConflicts(const CTransaction &tx, const CKeyID &keyId);
     void removeProTxPubKeyConflicts(const CTransaction &tx, const CBLSPublicKey &pubKey);
     void removeProTxCollateralConflicts(const CTransaction &tx, const COutPoint &collateralOutpoint);
     void removeProTxSpentCollateralConflicts(const CTransaction &tx);

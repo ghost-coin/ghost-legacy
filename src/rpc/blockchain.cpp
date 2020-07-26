@@ -37,6 +37,11 @@
 
 #include <pos/kernel.h>
 
+#include <evo/specialtx.h>
+#include <evo/cbtx.h>
+
+#include <llmq/quorums_chainlocks.h>
+
 #include <assert.h>
 #include <stdint.h>
 
@@ -155,8 +160,16 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
             txs.push_back(tx->GetHash().GetHex());
     }
     result.pushKV("tx", txs);
-    PushTime(result, "time", block.GetBlockTime());
-    PushTime(result, "mediantime", blockindex->GetMedianTimePast());
+    if (!block.vtx[0]->vExtraPayload.empty()) {
+        CCbTx cbTx;
+        if (GetTxPayload(block.vtx[0]->vExtraPayload, cbTx)) {
+            UniValue cbTxObj;
+            cbTx.ToJson(cbTxObj);
+            result.pushKV("cbTx", cbTxObj);
+        }
+    }
+    result.pushKV("time", block.GetBlockTime());
+    result.pushKV("mediantime", (int64_t)blockindex->GetMedianTimePast());
     result.pushKV("nonce", (uint64_t)block.nNonce);
     result.pushKV("bits", strprintf("%08x", block.nBits));
     result.pushKV("difficulty", GetDifficulty(blockindex));

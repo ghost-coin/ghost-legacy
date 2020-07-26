@@ -38,7 +38,7 @@ std::string CDeterministicMNState::ToString() const
     return strprintf("CDeterministicMNState(nRegisteredHeight=%d, nLastPaidHeight=%d, nPoSePenalty=%d, nPoSeRevivedHeight=%d, nPoSeBanHeight=%d, nRevocationReason=%d, "
         "ownerAddress=%s, pubKeyOperator=%s, votingAddress=%s, addr=%s, payoutAddress=%s, operatorPayoutAddress=%s)",
         nRegisteredHeight, nLastPaidHeight, nPoSePenalty, nPoSeRevivedHeight, nPoSeBanHeight, nRevocationReason,
-        EncodeDestination(keyIDOwner), pubKeyOperator.Get().ToString(), EncodeDestination(keyIDVoting), addr.ToStringIPPort(), payoutAddress, operatorPayoutAddress);
+        EncodeDestination(PKHash(keyIDOwner)), pubKeyOperator.Get().ToString(), EncodeDestination(PKHash(keyIDVoting)), addr.ToStringIPPort(), payoutAddress, operatorPayoutAddress);
 }
 
 void CDeterministicMNState::ToJson(UniValue& obj) const
@@ -52,8 +52,8 @@ void CDeterministicMNState::ToJson(UniValue& obj) const
     obj.pushKV("PoSeRevivedHeight", nPoSeRevivedHeight);
     obj.pushKV("PoSeBanHeight", nPoSeBanHeight);
     obj.pushKV("revocationReason", nRevocationReason);
-    obj.pushKV("ownerAddress", EncodeDestination(keyIDOwner));
-    obj.pushKV("votingAddress", EncodeDestination(keyIDVoting));
+    obj.pushKV("ownerAddress", EncodeDestination(PKHash(keyIDOwner)));
+    obj.pushKV("votingAddress", EncodeDestination(PKHash(keyIDVoting)));
 
     CTxDestination dest;
     if (ExtractDestination(scriptPayout, dest)) {
@@ -452,7 +452,7 @@ void CDeterministicMNList::AddMN(const CDeterministicMNCPtr& dmn, bool fBumpTota
         throw(std::runtime_error(strprintf("%s: can't add a masternode with a duplicate address %s", __func__, dmn->pdmnState->addr.ToStringIPPort())));
     }
     if (HasUniqueProperty(dmn->pdmnState->keyIDOwner) || HasUniqueProperty(dmn->pdmnState->pubKeyOperator)) {
-        throw(std::runtime_error(strprintf("%s: can't add a masternode with a duplicate key (%s or %s)", __func__, EncodeDestination(dmn->pdmnState->keyIDOwner), dmn->pdmnState->pubKeyOperator.Get().ToString())));
+        throw(std::runtime_error(strprintf("%s: can't add a masternode with a duplicate key (%s or %s)", __func__, EncodeDestination(PKHash(dmn->pdmnState->keyIDOwner)), dmn->pdmnState->pubKeyOperator.Get().ToString())));
     }
 
     mnMap = mnMap.set(dmn->proTxHash, dmn);
@@ -687,7 +687,7 @@ bool CDeterministicMNManager::BuildNewListFromBlock(const CBlock& block, const C
             continue;
         }
 
-        if (tx.nEvoType == TRANSACTION_PROVIDER_REGISTER) {
+        if (tx.IsEvoVersion() == TXN_PROVIDER_REGISTER) {
             CProRegTx proTx;
             if (!GetTxPayload(tx, proTx)) {
                 return _state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-protx-payload");
@@ -745,7 +745,7 @@ bool CDeterministicMNManager::BuildNewListFromBlock(const CBlock& block, const C
                 LogPrintf("CDeterministicMNManager::%s -- MN %s added at height %d: %s\n",
                     __func__, tx.GetHash().ToString(), nHeight, proTx.ToString());
             }
-        } else if (tx.nEvoType == TRANSACTION_PROVIDER_UPDATE_SERVICE) {
+        } else if (tx.IsEvoVersion() == TXN_PROVIDER_UPDATE_SERVICE) {
             CProUpServTx proTx;
             if (!GetTxPayload(tx, proTx)) {
                 return _state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-protx-payload");
@@ -782,7 +782,7 @@ bool CDeterministicMNManager::BuildNewListFromBlock(const CBlock& block, const C
                 LogPrintf("CDeterministicMNManager::%s -- MN %s updated at height %d: %s\n",
                     __func__, proTx.proTxHash.ToString(), nHeight, proTx.ToString());
             }
-        } else if (tx.nEvoType == TRANSACTION_PROVIDER_UPDATE_REGISTRAR) {
+        } else if (tx.IsEvoVersion() == TXN_PROVIDER_UPDATE_REGISTRAR) {
             CProUpRegTx proTx;
             if (!GetTxPayload(tx, proTx)) {
                 return _state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-protx-payload");
@@ -808,7 +808,7 @@ bool CDeterministicMNManager::BuildNewListFromBlock(const CBlock& block, const C
                 LogPrintf("CDeterministicMNManager::%s -- MN %s updated at height %d: %s\n",
                     __func__, proTx.proTxHash.ToString(), nHeight, proTx.ToString());
             }
-        } else if (tx.nEvoType == TRANSACTION_PROVIDER_UPDATE_REVOKE) {
+        } else if (tx.IsEvoVersion() == TXN_PROVIDER_UPDATE_REVOKE) {
             CProUpRevTx proTx;
             if (!GetTxPayload(tx, proTx)) {
                 return _state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-protx-payload");
@@ -829,7 +829,7 @@ bool CDeterministicMNManager::BuildNewListFromBlock(const CBlock& block, const C
                 LogPrintf("CDeterministicMNManager::%s -- MN %s revoked operator key at height %d: %s\n",
                     __func__, proTx.proTxHash.ToString(), nHeight, proTx.ToString());
             }
-        } else if (tx.nEvoType == TRANSACTION_QUORUM_COMMITMENT) {
+        } else if (tx.IsEvoVersion() == TXN_QUORUM_COMMITMENT) {
             llmq::CFinalCommitmentTxPayload qc;
             if (!GetTxPayload(tx, qc)) {
                 return _state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-qc-payload");
@@ -997,7 +997,7 @@ CDeterministicMNList CDeterministicMNManager::GetListAtChainTip()
 
 bool CDeterministicMNManager::IsProTxWithCollateral(const CTransactionRef& tx, uint32_t n)
 {
-    if (tx->nEvoVersion != 3 || tx->nEvoType != TRANSACTION_PROVIDER_REGISTER) {
+    if (tx->IsEvoVersion() != TXN_PROVIDER_REGISTER) {
         return false;
     }
     CProRegTx proTx;

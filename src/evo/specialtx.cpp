@@ -19,7 +19,7 @@
 
 bool CheckSpecialTx(const CTransaction& tx, const CBlockIndex* pindexPrev, CValidationState& state)
 {
-    if (tx.nEvoVersion != 3 || tx.nEvoType == TRANSACTION_NORMAL)
+    if (tx.IsEvoVersion() == TXN_STANDARD)
         return true;
 
     if (pindexPrev && pindexPrev->nHeight + 1 < Params().GetConsensus().DIP0003Height) {
@@ -27,18 +27,18 @@ bool CheckSpecialTx(const CTransaction& tx, const CBlockIndex* pindexPrev, CVali
     }
 
     try {
-        switch (tx.nEvoType) {
-        case TRANSACTION_PROVIDER_REGISTER:
+        switch (tx.IsEvoVersion()) {
+        case TXN_PROVIDER_REGISTER:
             return CheckProRegTx(tx, pindexPrev, state);
-        case TRANSACTION_PROVIDER_UPDATE_SERVICE:
+        case TXN_PROVIDER_UPDATE_SERVICE:
             return CheckProUpServTx(tx, pindexPrev, state);
-        case TRANSACTION_PROVIDER_UPDATE_REGISTRAR:
+        case TXN_PROVIDER_UPDATE_REGISTRAR:
             return CheckProUpRegTx(tx, pindexPrev, state);
-        case TRANSACTION_PROVIDER_UPDATE_REVOKE:
+        case TXN_PROVIDER_UPDATE_REVOKE:
             return CheckProUpRevTx(tx, pindexPrev, state);
-        case TRANSACTION_COINBASE:
+        case TXN_COINBASE:
             return CheckCbTx(tx, pindexPrev, state);
-        case TRANSACTION_QUORUM_COMMITMENT:
+        case TXN_QUORUM_COMMITMENT:
             return llmq::CheckLLMQCommitment(tx, pindexPrev, state);
         }
     } catch (const std::exception& e) {
@@ -51,19 +51,19 @@ bool CheckSpecialTx(const CTransaction& tx, const CBlockIndex* pindexPrev, CVali
 
 bool ProcessSpecialTx(const CTransaction& tx, const CBlockIndex* pindex, CValidationState& state)
 {
-    if (tx.nEvoVersion != 3 || tx.nEvoType == TRANSACTION_NORMAL) {
+    if (tx.IsEvoVersion() == TXN_STANDARD) {
         return true;
     }
 
-    switch (tx.nEvoType) {
-    case TRANSACTION_PROVIDER_REGISTER:
-    case TRANSACTION_PROVIDER_UPDATE_SERVICE:
-    case TRANSACTION_PROVIDER_UPDATE_REGISTRAR:
-    case TRANSACTION_PROVIDER_UPDATE_REVOKE:
+    switch (tx.IsEvoVersion()) {
+    case TXN_PROVIDER_REGISTER:
+    case TXN_PROVIDER_UPDATE_SERVICE:
+    case TXN_PROVIDER_UPDATE_REGISTRAR:
+    case TXN_PROVIDER_UPDATE_REVOKE:
         return true; // handled in batches per block
-    case TRANSACTION_COINBASE:
+    case TXN_COINBASE:
         return true; // nothing to do
-    case TRANSACTION_QUORUM_COMMITMENT:
+    case TXN_QUORUM_COMMITMENT:
         return true; // handled per block
     }
 
@@ -72,19 +72,19 @@ bool ProcessSpecialTx(const CTransaction& tx, const CBlockIndex* pindex, CValida
 
 bool UndoSpecialTx(const CTransaction& tx, const CBlockIndex* pindex)
 {
-    if (tx.nEvoVersion != 3 || tx.nEvoType == TRANSACTION_NORMAL) {
+    if (tx.IsEvoVersion() == TXN_STANDARD) {
         return true;
     }
 
-    switch (tx.nEvoType) {
-    case TRANSACTION_PROVIDER_REGISTER:
-    case TRANSACTION_PROVIDER_UPDATE_SERVICE:
-    case TRANSACTION_PROVIDER_UPDATE_REGISTRAR:
-    case TRANSACTION_PROVIDER_UPDATE_REVOKE:
+    switch (tx.IsEvoVersion()) {
+    case TXN_PROVIDER_REGISTER:
+    case TXN_PROVIDER_UPDATE_SERVICE:
+    case TXN_PROVIDER_UPDATE_REGISTRAR:
+    case TXN_PROVIDER_UPDATE_REVOKE:
         return true; // handled in batches per block
-    case TRANSACTION_COINBASE:
+    case TXN_COINBASE:
         return true; // nothing to do
-    case TRANSACTION_QUORUM_COMMITMENT:
+    case TXN_QUORUM_COMMITMENT:
         return true; // handled per block
     }
 

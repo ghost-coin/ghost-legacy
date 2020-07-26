@@ -20,7 +20,7 @@ namespace llmq
 
 // This message is an aggregation of all received premature commitments and only valid if
 // enough (>=threshold) premature commitments were aggregated
-// This is mined on-chain as part of TRANSACTION_QUORUM_COMMITMENT
+// This is mined on-chain as part of TXN_QUORUM_COMMITMENT
 class CFinalCommitment
 {
 public:

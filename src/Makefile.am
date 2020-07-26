@@ -392,6 +392,8 @@ libghost_server_a_SOURCES = \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
   rpc/rpcevo.cpp \
+  rpc/masternode.cpp \
+  rpc/rpcquorums.cpp \
   rpc/server.cpp \
   rpc/client.cpp \
   rpc/rpcutil.cpp \

@@ -25,6 +25,10 @@ void RegisterMnemonicRPCCommands(CRPCTable &tableRPC);
 void RegisterAnonRPCCommands(CRPCTable &tableRPC);
 /** Register Evo RPC commands */
 void RegisterEvoRPCCommands(CRPCTable &tableRPC);
+/** Register masternode RPC commands */
+void RegisterMasternodeRPCCommands(CRPCTable &tableRPC);
+/** Register Quorums RPC commands */
+void RegisterQuorumsRPCCommands(CRPCTable &tableRPC);
 
 static inline void RegisterAllCoreRPCCommands(CRPCTable &t)
 {
@@ -36,6 +40,8 @@ static inline void RegisterAllCoreRPCCommands(CRPCTable &t)
     RegisterMnemonicRPCCommands(t);
     RegisterAnonRPCCommands(t);
     RegisterEvoRPCCommands(t);
+    RegisterMasternodeRPCCommands(t);
+    RegisterQuorumsRPCCommands(t);
 }
 
 #endif // BITCOIN_RPC_REGISTER_H

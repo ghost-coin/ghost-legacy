@@ -46,6 +46,7 @@ static const int TOOLTIP_WRAP_THRESHOLD = 80;
 #define QAPP_ORG_DOMAIN "ghostbymcafee.com"
 #define QAPP_APP_NAME_DEFAULT "Ghost-Qt"
 #define QAPP_APP_NAME_TESTNET "Ghost-Qt-testnet"
+#define QAPP_APP_NAME_DMNTEST "Ghost-Qt-dmntest"
 #define QAPP_APP_NAME_REGTEST "Ghost-Qt-regtest"
 
 /* One gigabyte (GB) in bytes */

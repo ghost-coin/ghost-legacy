@@ -35,9 +35,17 @@ enum OutputTypes
 
 enum TransactionTypes
 {
-    TXN_STANDARD            = 0,
-    TXN_COINBASE            = 1,
-    TXN_COINSTAKE           = 2,
+    //! standard ghost types
+    TXN_STANDARD = 0,
+    TXN_COINBASE = 1,
+    TXN_COINSTAKE = 2,
+
+    //! dash evotx types
+    TXN_PROVIDER_REGISTER = 3,
+    TXN_PROVIDER_UPDATE_SERVICE = 4,
+    TXN_PROVIDER_UPDATE_REGISTRAR = 5,
+    TXN_PROVIDER_UPDATE_REVOKE = 6,
+    TXN_QUORUM_COMMITMENT = 7,
 };
 
 enum DataOutputTypes
@@ -55,23 +63,35 @@ enum DataOutputTypes
     DO_SMSG_DIFFICULTY      = 10,
 };
 
-/** Transaction types */
-enum EvoTransactionTypes {
-    TRANSACTION_NORMAL = 0,
-    TRANSACTION_PROVIDER_REGISTER = 1,
-    TRANSACTION_PROVIDER_UPDATE_SERVICE = 2,
-    TRANSACTION_PROVIDER_UPDATE_REGISTRAR = 3,
-    TRANSACTION_PROVIDER_UPDATE_REVOKE = 4,
-    TRANSACTION_COINBASE = 5,
-    TRANSACTION_QUORUM_COMMITMENT = 6,
-};
-
 bool ExtractCoinStakeInt64(const std::vector<uint8_t> &vData, DataOutputTypes get_type, CAmount &out);
 bool ExtractCoinStakeUint32(const std::vector<uint8_t> &vData, DataOutputTypes get_type, uint32_t &out);
 
 inline bool IsGhostTxVersion(int nVersion)
 {
     return (nVersion & 0xFF) >= GHOST_TXN_VERSION;
+}
+
+inline int IsEvoTxVersion(int nVersion) {
+    int testCandidate = (nVersion >> 8) & 0xFF;
+    if (testCandidate == TXN_PROVIDER_REGISTER ||
+        testCandidate == TXN_PROVIDER_UPDATE_SERVICE ||
+        testCandidate == TXN_PROVIDER_UPDATE_REGISTRAR ||
+        testCandidate == TXN_PROVIDER_UPDATE_REVOKE ||
+        testCandidate == TXN_QUORUM_COMMITMENT)
+        return testCandidate;
+    return 0;
+}
+
+inline std::string ReturnEvoTypeName(int nVersion) {
+    int testCandidate = (nVersion >> 8) & 0xFF;
+    switch(testCandidate) {
+        case TXN_PROVIDER_REGISTER: return "TXN_PROVIDER_REGISTER";
+        case TXN_PROVIDER_UPDATE_SERVICE: return "TXN_PROVIDER_UPDATE_SERVICE";
+        case TXN_PROVIDER_UPDATE_REGISTRAR: return "TXN_PROVIDER_UPDATE_REGISTRAR";
+        case TXN_PROVIDER_UPDATE_REVOKE: return "TXN_PROVIDER_UPDATE_REVOKE";
+        case TXN_QUORUM_COMMITMENT: return "TXN_QUORUM_COMMITMENT";
+        default: return "n/a";
+     }
 }
 
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
@@ -689,13 +709,6 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
     s >> bv;
     tx.nVersion |= bv<<24;
 
-    ///////////////////////////////////////////////// baz
-    //! extract our 'dash' byte from nVersion
-    uint8_t nPackedByte = (tx.nVersion >> 16) & 0xff;
-    //! extract our low/high nibble from byte
-    tx.nEvoVersion = (nPackedByte >> 4) & 0xf;
-    tx.nEvoType = (nPackedByte & 0xf);
-    /////////////////////////////////////////////////
 
     unsigned char flags = 0;
     tx.vin.clear();
@@ -729,7 +742,7 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
         throw std::ios_base::failure("Unknown transaction optional data");
     }
     s >> tx.nLockTime;
-    if (tx.nEvoVersion >= 3 && tx.nEvoType != TRANSACTION_NORMAL)
+    if (tx.IsEvoVersion())
         s >> tx.vExtraPayload;
 }
 
@@ -761,14 +774,7 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
         return;
     };
 
-    ///////////////////////////////////////////////// baz
-    //! pack our 'dash' byte from nEvoVersion/nEvoType
-    uint8_t nPackedByte = (tx.nEvoVersion*10) + tx.nEvoType;
-    //! pack the byte back into nVersion
-    uint32_t nNewVersion = (nPackedByte<<(2<<3)) | (tx.nVersion&(0xffffffff^(0xff<<(2<<3))));
-    /////////////////////////////////////////////////
-
-    s << nNewVersion;
+    s << tx.nVersion;
 
     unsigned char flags = 0;
     // Consistency check
@@ -792,7 +798,7 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
         }
     }
     s << tx.nLockTime;
-    if (tx.nEvoVersion >= 3 && tx.nEvoType != TRANSACTION_NORMAL)
+    if (tx.IsEvoVersion())
         s << tx.vExtraPayload;
 }
 
@@ -825,10 +831,6 @@ public:
     const int32_t nVersion;
     const uint32_t nLockTime;
 
-    // nEvoVersion and nEvoType get constructed if the info is detected in the main 
-    // nVersion field (offset 2nd byte is to be non-zero)..
-    int16_t nEvoVersion;
-    int16_t nEvoType;
     const std::vector<uint8_t> vExtraPayload; // only available for special transaction types
 
 private:
@@ -864,6 +866,10 @@ public:
 
     bool IsGhostVersion() const {
         return IsGhostTxVersion(nVersion);
+    }
+
+    int IsEvoVersion() const {
+        return IsEvoTxVersion(nVersion);
     }
 
     int GetType() const {
@@ -992,10 +998,6 @@ struct CMutableTransaction
     int32_t nVersion;
     uint32_t nLockTime;
 
-    // nEvoVersion and nEvoType get constructed if the info is detected in the main 
-    // nVersion field (offset 2nd byte is to be non-zero)..
-    int16_t nEvoVersion;
-    int16_t nEvoType;
     std::vector<uint8_t> vExtraPayload; // only available for special transaction types
 
     CMutableTransaction();
@@ -1022,6 +1024,10 @@ struct CMutableTransaction
 
     bool IsGhostVersion() const {
         return IsGhostTxVersion(nVersion);
+    }
+
+    int IsEvoVersion() const {
+        return IsEvoTxVersion(nVersion);
     }
 
     int GetType() const {

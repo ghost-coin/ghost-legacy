@@ -282,10 +282,7 @@ bool CSporkManager::SetSporkAddress(const std::string& strAddress) {
     LOCK(cs);
     CTxDestination dest = DecodeDestination(strAddress);
     CKeyID keyID;
-    if (auto witness_id = boost::get<WitnessV0KeyHash>(&dest)) {
-        keyID = CKeyID(*witness_id);
-    }
-    else if (auto key_id = boost::get<PKHash>(&dest)) {
+    if (auto key_id = boost::get<PKHash>(&dest)) {
         keyID = CKeyID(*key_id);
     }
     if (keyID.IsNull()) {

@@ -17,7 +17,6 @@ enum DeploymentPos
 {
     DEPLOYMENT_TESTDUMMY,
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in versionbits.cpp
-    DEPLOYMENT_DIP0001, // Deployment of DIP0001 and lower transaction fees.
     DEPLOYMENT_DIP0003, // Deployment of DIP0002 and DIP0003 (txv3 and deterministic MN lists)
     DEPLOYMENT_DIP0008, // Deployment of ChainLock enforcement
     MAX_VERSION_BITS_DEPLOYMENTS

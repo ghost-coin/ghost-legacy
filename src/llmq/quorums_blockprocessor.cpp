@@ -322,7 +322,7 @@ bool CQuorumBlockProcessor::GetCommitmentsFromBlock(const CBlock& block, const C
     ret.clear();
 
     for (const auto& tx : block.vtx) {
-        if (tx->nEvoType == TRANSACTION_QUORUM_COMMITMENT) {
+        if (tx->IsEvoVersion() == TXN_QUORUM_COMMITMENT) {
             CFinalCommitmentTxPayload qc;
             if (!GetTxPayload(*tx, qc)) {
                 // should not happen as it was verified before processing the block
@@ -568,8 +568,7 @@ bool CQuorumBlockProcessor::GetMinableCommitmentTx(Consensus::LLMQType llmqType,
     qc.nHeight = nHeight;
 
     CMutableTransaction tx;
-    tx.nVersion = 3;
-    tx.nEvoType = TRANSACTION_QUORUM_COMMITMENT;
+    tx.SetType(TXN_QUORUM_COMMITMENT);
     SetTxPayload(tx, qc);
 
     ret = MakeTransactionRef(tx);

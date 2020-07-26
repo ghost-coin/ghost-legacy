@@ -16,7 +16,7 @@
 
 bool CheckCbTx(const CTransaction& tx, const CBlockIndex* pindexPrev, CValidationState& state)
 {
-    if (tx.nEvoType != TRANSACTION_COINBASE) {
+    if (tx.IsEvoVersion() != TXN_COINBASE) {
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-cbtx-type");
     }
 
@@ -50,7 +50,7 @@ bool CheckCbTx(const CTransaction& tx, const CBlockIndex* pindexPrev, CValidatio
 // This can only be done after the block has been fully processed, as otherwise we won't have the finished MN list
 bool CheckCbTxMerkleRoots(const CBlock& block, const CBlockIndex* pindex, CValidationState& state)
 {
-    if (block.vtx[0]->nEvoType != TRANSACTION_COINBASE) {
+    if (block.vtx[0]->IsEvoVersion() != TXN_COINBASE) {
         return true;
     }
 
@@ -204,7 +204,7 @@ bool CalcCbTxMerkleRootQuorums(const CBlock& block, const CBlockIndex* pindexPre
     for (size_t i = 1; i < block.vtx.size(); i++) {
         auto& tx = block.vtx[i];
 
-        if (tx->nEvoVersion == 3 && tx->nEvoType == TRANSACTION_QUORUM_COMMITMENT) {
+        if (tx->IsEvoVersion() == TXN_QUORUM_COMMITMENT) {
             llmq::CFinalCommitmentTxPayload qc;
             if (!GetTxPayload(*tx, qc)) {
                 return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-qc-payload-calc-cbtx-quorummerkleroot");

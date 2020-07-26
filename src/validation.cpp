@@ -4319,9 +4319,9 @@ static bool FindUndoPos(CValidationState &state, int nFile, FlatFilePos &pos, un
 
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
-    if (fParticlMode
-        && !block.IsGhostVersion())
-        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "block-version", "bad block version");
+    // if (fParticlMode
+    //    && !block.IsGhostVersion())
+    //    return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "block-version", "bad block version");
 
     // Check timestamp
     if (fParticlMode
