@@ -9,12 +9,9 @@
 
 bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fCheckDuplicateInputs)
 {
-    bool allowEmptyTxInOut = false;
-    if (tx.IsEvoVersion() == TXN_COINBASE ||
+    bool allowEmptyTxInOut = tx.IsEvoVersion() == TXN_COINBASE ||
         tx.IsEvoVersion() == TXN_COINSTAKE ||
-        tx.IsEvoVersion() == TXN_QUORUM_COMMITMENT) {
-        allowEmptyTxInOut = true;
-    }
+        tx.IsEvoVersion() == TXN_QUORUM_COMMITMENT;
     // Basic checks that don't depend on any context
     if (!allowEmptyTxInOut && tx.vin.empty()) {
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-vin-empty");
