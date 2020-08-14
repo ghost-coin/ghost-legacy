@@ -21,6 +21,7 @@ Invalid tx cases not covered here can be found by running:
 """
 import abc
 
+from typing import Optional
 from test_framework.messages import CTransaction, CTxIn, CTxOut, COutPoint
 from test_framework import script as sc
 from test_framework.blocktools import create_tx_with_script, MAX_BLOCK_SIGOPS
@@ -50,7 +51,7 @@ class BadTxTemplate:
     __metaclass__ = abc.ABCMeta
 
     # The expected error code given by bitcoind upon submission of the tx.
-    reject_reason = ""
+    reject_reason = ""  # type: Optional[str]
 
     # Only specified if it differs from mempool acceptance error.
     block_reject_reason = ""
