@@ -66,7 +66,7 @@ const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime,int nHeigh
 {
     LogPrintf("Getting devfundsetting at height %d\n",nHeight);
     LogPrintf("Increaseheight is  %d\n",consensus.nBlockRewardIncreaseHeight);
-    //TODO akshaynexus cleanup this code 
+    //TODO akshaynexus cleanup this code
     if(nHeight >= consensus.nBlockRewardIncreaseHeight){
         for (auto i = vDevFundSettingsNew.rbegin(); i != vDevFundSettingsNew.rend(); ++i) {
             if (nTime > i->first) {
