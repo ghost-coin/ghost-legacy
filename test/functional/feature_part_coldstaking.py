@@ -278,7 +278,7 @@ class ColdStakingTest(ParticlTestFramework):
         ro = nodes[1].listtransactions('*', 10, 0, True)
 
         fFound = False
-        for e in ro:
+        for e in ro:# type: ignore
             if e['txid'] == txid:
                 fFound = True
                 assert(e['involvesWatchonly'] == True)
