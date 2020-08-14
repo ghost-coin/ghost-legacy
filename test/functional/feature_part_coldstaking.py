@@ -37,7 +37,6 @@ class ColdStakingTest(ParticlTestFramework):
 
         self.import_genesis_coins_a(nodes[0])
 
-        txnHashes = []
 
         nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
         nodes[2].extkeyimportmaster('sección grito médula hecho pauta posada nueve ebrio bruto buceo baúl mitad')
@@ -96,7 +95,6 @@ class ColdStakingTest(ParticlTestFramework):
 
         hashCoinstake = ''
         hashOther = ''
-        found = False
         for out in tx['vout']:
             asm = out['scriptPubKey']['asm']
             asm = asm.split()
@@ -148,7 +146,6 @@ class ColdStakingTest(ParticlTestFramework):
 
         hashCoinstake = ''
         hashSpend = ''
-        found = False
         for out in tx['vout']:
             asm = out['scriptPubKey']['asm']
             asm = asm.split()
@@ -200,7 +197,6 @@ class ColdStakingTest(ParticlTestFramework):
 
         hashCoinstake = ''
         hashSpend = ''
-        found = False
         for out in tx['vout']:
             asm = out['scriptPubKey']['asm']
             asm = asm.split()

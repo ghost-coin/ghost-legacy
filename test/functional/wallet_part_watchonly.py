@@ -48,7 +48,7 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
 
         sxaddr0 = nodes[0].getnewstealthaddress()
         sxaddrs = nodes[0].liststealthaddresses(True)
-        addr_info = nodes[0].getaddressinfo(sxaddr0)
+        nodes[0].getaddressinfo(sxaddr0)
         scan_vk = sxaddrs[0]['Stealth Addresses'][0]['Scan Secret']
         spend_pk = sxaddrs[0]['Stealth Addresses'][0]['spend_public_key']
         spend_vk = sxaddrs[0]['Stealth Addresses'][0]['Spend Secret']
@@ -59,7 +59,7 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
         assert(ro['ismine'] == False)
         assert(ro['iswatchonly'] == True)
 
-        txid = nodes[0].sendtoaddress(sxaddr0, 1.0)
+        nodes[0].sendtoaddress(sxaddr0, 1.0)
         self.stakeBlocks(1)
 
         w0 = nodes[0].getwalletinfo()

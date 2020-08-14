@@ -161,7 +161,7 @@ class AddressIndexTest(ParticlTestFramework):
         balance0 = self.nodes[1].getaddressbalance("pqavEUgLCZeGh8o9sTcCfYVAsrTgnQTUsK")
         assert_equal(balance0["balance"], 2 * 100000000)
 
-        unspent2 = self.nodes[2].listunspent()
+        self.nodes[2].listunspent()
 
 
         balance0 = self.nodes[1].getaddressbalance("pqZDE7YNWv5PJWidiaEG8tqfebkd6PNZDV")
@@ -322,7 +322,7 @@ class AddressIndexTest(ParticlTestFramework):
 
         addr256 = nodes[3].getnewaddress("", "false", "false", "true")
 
-        txid = self.nodes[3].sendtoaddress(addr256, 2.56)
+        self.nodes[3].sendtoaddress(addr256, 2.56)
         mempool = self.nodes[3].getaddressmempool({"addresses": [addr256]})
         assert_equal(len(mempool), 1)
 
