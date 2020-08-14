@@ -12740,7 +12740,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             OUTPUT_PTR<CTxOutStandard> outDevSplit = MAKE_OUTPUT<CTxOutStandard>();
             outDevSplit->nValue = nDevCfwd;
             // LogPrintf("DEVFEE ADDR %s\n",pDevFundSettings->sDevFundAddresses);
-            CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
+            CTxDestination dfDest = DecodeDestination(pDevFundSettings->sDevFundAddresses);
             if (dfDest.type() == typeid(CNoDestination)) {
                 return werror("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
             }

@@ -66,12 +66,22 @@ const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime,int nHeigh
 {
     LogPrintf("Getting devfundsetting at height %d\n",nHeight);
     LogPrintf("Increaseheight is  %d\n",consensus.nBlockRewardIncreaseHeight);
-    std::vector<std::pair<int64_t, DevFundSettings> > vDevFundSettingsCurr = nHeight >= consensus.nBlockRewardIncreaseHeight ? vDevFundSettingsNew :vDevFundSettings;
-    for (auto i = vDevFundSettingsCurr.rbegin(); i != vDevFundSettingsCurr.rend(); ++i) {
-        if (nTime > i->first) {
-            return &i->second;
+    //TODO akshaynexus cleanup this code 
+    if(nHeight >= consensus.nBlockRewardIncreaseHeight){
+        for (auto i = vDevFundSettingsNew.rbegin(); i != vDevFundSettingsNew.rend(); ++i) {
+            if (nTime > i->first) {
+                return &i->second;
+            }
         }
     }
+    else{
+        for (auto i = vDevFundSettings.rbegin(); i != vDevFundSettings.rend(); ++i) {
+            if (nTime > i->first) {
+                return &i->second;
+            }
+        }
+    }
+
 
     return nullptr;
 };

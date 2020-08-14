@@ -3408,7 +3408,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
     if (fWithReward) {
         const auto v = Params().GetDevFundSettings();
         for (const auto &s : v) {
-            CTxDestination dfDest = CBitcoinAddress(s.second.sDevFundAddresses).Get();
+            CTxDestination dfDest = DecodeDestination(s.second.sDevFundAddresses);
             if (dfDest.type() == typeid(CNoDestination)) {
                 continue;
             }
