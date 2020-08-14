@@ -12647,11 +12647,13 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         nRewardOut = nReward;
     } else {
         float nStakeSplit = std::max(pDevFundSettings->nMinDevStakePercent, (float) nWalletDevFundCedePercent);
-        float nRewardFloat = (float) nReward / COIN;
+        float nRewardFloat = nReward / COIN;
         float nDevPartFloat = (nRewardFloat * nStakeSplit) / 100;
-        CAmount nDevPart = nDevPartFloat * COIN;
+        CAmount nDevPart = (CAmount) (nDevPartFloat * COIN);
         nRewardOut = nReward - nDevPart;
-
+        //Uncomment this for debug info on rewards
+        // LogPrintf("DevReward is %d\n",nDevPart / COIN);
+        // LogPrintf("StakeReward is %d\n",nRewardOut / COIN);
         CAmount nDevBfwd = 0;
         if (nBlockHeight > 1) { // genesis block is pow
             LOCK(cs_main);
@@ -12665,6 +12667,18 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         }
 
         CAmount nDevCfwd = nDevBfwd + nDevPart;
+        if(nBlockHeight == consensusParams.nOneTimeGVRPayHeight){
+            // Place gvr one time pay
+            OUTPUT_PTR<CTxOutStandard> outDevSplit = MAKE_OUTPUT<CTxOutStandard>();
+            outDevSplit->nValue = consensusParams.nGVRPayOnetimeAmt;
+            CTxDestination dfDest = DecodeDestination(pDevFundSettings->sDevFundAddresses);
+            if (dfDest.type() == typeid(CNoDestination)) {
+                return werror("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
+            }
+            outDevSplit->scriptPubKey = GetScriptForDestination(dfDest);
+
+            txNew.vpout.insert(txNew.vpout.begin()+1, outDevSplit);
+        }
         if (nBlockHeight % pDevFundSettings->nDevOutputPeriod == 0) {
             // Place dev fund output
             OUTPUT_PTR<CTxOutStandard> outDevSplit = MAKE_OUTPUT<CTxOutStandard>();
