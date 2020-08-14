@@ -2882,8 +2882,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         if (block.IsProofOfStake()) { // Only the genesis block isn't proof of stake
             CTransactionRef txCoinstake = block.vtx[0];
             CTransactionRef txPrevCoinstake = nullptr;
-            const DevFundSettings *pDevFundSettings = chainparams.GetDevFundSettings(block.nTime);
+            const DevFundSettings *pDevFundSettings = chainparams.GetDevFundSettings(block.nTime,pindex->nHeight);
             const CAmount nCalculatedStakeReward = Params().GetProofOfStakeReward(pindex->pprev, nFees); // stake_test
+            const float nCalculatedStakeRewardReal = (float) nCalculatedStakeReward / COIN; // stake_test
 
             if (block.nTime >= consensus.smsg_fee_time) {
                 CAmount smsg_fee_new, smsg_fee_prev;
@@ -2942,7 +2943,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 assert(pDevFundSettings->nMinDevStakePercent <= 100);
 
                 CAmount nDevBfwd = 0, nDevCfwdCheck = 0;
-                CAmount nMinDevPart = (nCalculatedStakeReward * pDevFundSettings->nMinDevStakePercent) / 100;
+                float nMinDevPartFloat = (nCalculatedStakeRewardReal * pDevFundSettings->nMinDevStakePercent) / 100;
+                CAmount nMinDevPart = nMinDevPartFloat * COIN;
                 CAmount nMaxHolderPart = nCalculatedStakeReward - nMinDevPart;
                 if (nMinDevPart < 0 || nMaxHolderPart < 0) {
                     return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad coinstake split amount (foundation=%d vs reward=%d)", __func__, nMinDevPart, nMaxHolderPart), REJECT_INVALID, "bad-cs-amount");
@@ -2967,7 +2969,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                     if (nStakeReward != nDevBfwd + nCalculatedStakeReward) {
                         return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad stake-reward (actual=%d vs expected=%d)", __func__, nStakeReward, nDevBfwd + nCalculatedStakeReward), REJECT_INVALID, "bad-cs-amount");
                     }
-
+                    // LogPrintf("DEVFEE ADDR %s\n",pDevFundSettings->sDevFundAddresses);
                     CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
                     if (dfDest.type() == typeid(CNoDestination)) {
                         return error("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);

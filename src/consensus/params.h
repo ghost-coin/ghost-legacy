@@ -124,6 +124,7 @@ struct Params {
     uint256 defaultAssumeValid;
 
     int nMinRCTOutputDepth;
+    int nBlockRewardIncreaseHeight;
 };
 } // namespace Consensus
 

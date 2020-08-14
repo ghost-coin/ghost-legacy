@@ -1039,7 +1039,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
     }
 
-    const DevFundSettings *devfundconf = Params().GetDevFundSettings(pblockindex->GetBlockTime());
+    const DevFundSettings *devfundconf = Params().GetDevFundSettings(pblockindex->GetBlockTime(),pblockindex->nHeight);
     CScript devFundScriptPubKey;
     if (devfundconf) {
         CTxDestination dest = DecodeDestination(devfundconf->sDevFundAddresses);
