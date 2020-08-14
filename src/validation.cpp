@@ -2928,7 +2928,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                     if (nStakeReward != nDevBfwd + nCalculatedStakeReward) {
                         return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad stake-reward (actual=%d vs expected=%d)", __func__, nStakeReward, nDevBfwd + nCalculatedStakeReward), REJECT_INVALID, "bad-cs-amount");
                     }
-                    // LogPrintf("DEVFEE ADDR %s\n",pDevFundSettings->sDevFundAddresses);
                     CTxDestination dfDest = DecodeDestination(pDevFundSettings->sDevFundAddresses);
                     if (dfDest.type() == typeid(CNoDestination)) {
                         return error("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
