@@ -53,11 +53,11 @@ public:
 class DevFundSettings
 {
 public:
-    DevFundSettings(std::string sAddrTo, int nMinDevStakePercent_, int nDevOutputPeriod_)
+    DevFundSettings(std::string sAddrTo, float nMinDevStakePercent_, int nDevOutputPeriod_)
         : sDevFundAddresses(sAddrTo), nMinDevStakePercent(nMinDevStakePercent_), nDevOutputPeriod(nDevOutputPeriod_) {};
 
     std::string sDevFundAddresses;
-    int nMinDevStakePercent; // [0, 100]
+    float nMinDevStakePercent; // [0, 100]
     int nDevOutputPeriod; // dev fund output is created every n blocks
     //CAmount nMinDevOutputSize; // if nDevOutputGap is -1, create a devfund output when value is > nMinDevOutputSize
 };
@@ -103,7 +103,7 @@ public:
     uint32_t GetStakeTimestampMask(int /*nHeight*/) const { return nStakeTimestampMask; }
     int64_t GetBaseBlockReward() const;
     int GetCoinYearPercent(int year) const;
-    const DevFundSettings *GetDevFundSettings(int64_t nTime) const;
+    const DevFundSettings *GetDevFundSettings(int64_t nTime,int nHeight) const;
     const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const {return vDevFundSettings;};
 
     CAmount GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
@@ -170,12 +170,14 @@ protected:
     uint32_t nTargetSpacing;            // targeted number of seconds between blocks
     uint32_t nTargetTimespan;
     CAmount nBlockReward;               // Block reward for PoS blocks,static
+    CAmount nBlockRewardIncrease;               // Block reward for PoS blocks,static
     uint32_t nStakeTimestampMask = (1 << 4) -1; // 4 bits, every kernel stake hash will change every 16 seconds
     int64_t nCoinYearReward = 2 * CENT; // 2% per year
     std::array<int, 47> nBlockPerc; //reward percentage each year
     uint32_t nLastImportHeight = 0;       // always 0 on ghost
 
     std::vector<std::pair<int64_t, DevFundSettings> > vDevFundSettings;
+    std::vector<std::pair<int64_t, DevFundSettings> > vDevFundSettingsNew;
 
 
     uint64_t nPruneAfterHeight;

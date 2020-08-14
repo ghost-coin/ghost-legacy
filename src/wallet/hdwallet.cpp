@@ -12642,13 +12642,14 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
     // Process development fund
     CTransactionRef txPrevCoinstake = nullptr;
     CAmount nRewardOut;
-    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTime);
+    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTime,pindexPrev->nHeight + 1);
     if (!pDevFundSettings || pDevFundSettings->nMinDevStakePercent <= 0) {
         nRewardOut = nReward;
     } else {
-        int64_t nStakeSplit = std::max(pDevFundSettings->nMinDevStakePercent, nWalletDevFundCedePercent);
-
-        CAmount nDevPart = (nReward * nStakeSplit) / 100;
+        float nStakeSplit = std::max(pDevFundSettings->nMinDevStakePercent, (float) nWalletDevFundCedePercent);
+        float nRewardFloat = (float) nReward / COIN;
+        float nDevPartFloat = (nRewardFloat * nStakeSplit) / 100;
+        CAmount nDevPart = nDevPartFloat * COIN;
         nRewardOut = nReward - nDevPart;
 
         CAmount nDevBfwd = 0;
@@ -12668,7 +12669,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             // Place dev fund output
             OUTPUT_PTR<CTxOutStandard> outDevSplit = MAKE_OUTPUT<CTxOutStandard>();
             outDevSplit->nValue = nDevCfwd;
-
+            // LogPrintf("DEVFEE ADDR %s\n",pDevFundSettings->sDevFundAddresses);
             CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
             if (dfDest.type() == typeid(CNoDestination)) {
                 return werror("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
