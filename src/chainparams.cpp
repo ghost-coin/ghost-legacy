@@ -402,9 +402,9 @@ public:
         nTargetSpacing = 120;           // 2 minutes
         nTargetTimespan = 24 * 60;      // 24 mins
         nBlockReward = 6 * COIN;
-        consensus.nBlockRewardIncreaseHeight = 999999999;// TODO akshaynexus set mainnet height
+        consensus.nBlockRewardIncreaseHeight = 37400;
         consensus.nGVRPayOnetimeAmt = 129000 * COIN;
-        consensus.nOneTimeGVRPayHeight = 40000; //TODO akshaynexus set mainnet payout height
+        consensus.nOneTimeGVRPayHeight = 37399;
         nBlockRewardIncrease = 2;       // Times to increase blockreward
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
@@ -580,6 +580,10 @@ public:
         nTargetSpacing = 120;           // 2 minutes
         nTargetTimespan = 24 * 60;      // 24 mins
         nBlockReward = 6 * COIN;
+        consensus.nBlockRewardIncreaseHeight = 47166;// Set at 1k so that it doesnt get activated during regtest tests
+        nBlockRewardIncrease = 2;       // Times to increase blockreward
+        consensus.nGVRPayOnetimeAmt = 129000 * COIN;
+        consensus.nOneTimeGVRPayHeight = 47165; //Change this height if you want to test gvr one time pay
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
         nPruneAfterHeight = 1000;
@@ -598,6 +602,7 @@ public:
         vSeeds.emplace_back("ghost-testnetdns.mineit.io");
 
         vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 33, 1440)));
+        vDevFundSettingsNew.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 66.67, 100)));
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x4B}; // X
         base58Prefixes[SCRIPT_ADDRESS]     = {0x89}; // x
@@ -643,7 +648,7 @@ public:
 
         checkpointData = {
             {
-                {0, uint256S("0x000086a954e6fcbd5b8196725dae8b5b8bfbbae1cfe1a41852f3e7c01a7d6dcb")},
+                {0, consensus.hashGenesisBlock},
             }
         };
 
