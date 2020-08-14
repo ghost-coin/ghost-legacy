@@ -82,7 +82,6 @@ const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime,int nHeigh
         }
     }
 
-
     return nullptr;
 };
 
@@ -732,10 +731,10 @@ public:
         nTargetTimespan = 16 * 60;      // 16 mins
         nStakeTimestampMask = 0;
         nBlockReward = 6 * COIN;
-        consensus.nBlockRewardIncreaseHeight = 1000;// TODO akshaynexus set regtest height
+        consensus.nBlockRewardIncreaseHeight = 1000;// Set at 1k so that it doesnt get activated during regtest tests
         nBlockRewardIncrease = 2;       // Times to increase blockreward
         consensus.nGVRPayOnetimeAmt = 129000 * COIN;
-        consensus.nOneTimeGVRPayHeight = 51; //TODO akshaynexus set mainnet payout height
+        consensus.nOneTimeGVRPayHeight = INT_MAX; //Change this height if you want to test gvr one time pay
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
         //DevFund settings before gvr addition
         //Commented out regtest,uncomment to test gvr one time pay
