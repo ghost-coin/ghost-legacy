@@ -302,7 +302,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
     int nBestHeight; // TODO: set from new block signal?
     int64_t nBestTime;
     //Bypass peer connection check if we are on testnet or regtest
-    bool fShouldBypasspeercheck = gArgs.GetBoolArg("-skippeerchecks",false)  &&  !(gArgs.GetChainName() == CBaseChainParams::REGTEST);//TODO: GHOSTFORK
+    bool fShouldBypasspeercheck = gArgs.GetBoolArg("-skippeerchecks",false);
     int nLastImportHeight = Params().GetLastImportHeight();
 
     if (!gArgs.GetBoolArg("-staking", true)) {

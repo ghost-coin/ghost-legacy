@@ -88,7 +88,6 @@ class ZMQTest(ParticlTestFramework):
 
             topic = msg[0].decode('utf-8')
             if topic == 'smsg':
-                fFound = True
                 zmqhash = msg[1].hex()
                 assert(zmqhash[:4] == '0300')  # version 3.0
                 assert(zmqhash[4:] == msgid)
@@ -127,7 +126,7 @@ class ZMQTest(ParticlTestFramework):
                 assert(zmqhash == txnHash)
             elif topic == 'rawtx' and msgSequence == 1:
                 fFoundRawTx = True
-                body = msg[1]
+                # body = msg[1]
                 # Check that the rawtx hashes to the hashtx
                 #assert_equal(hash256(body), txnHash)
                 #CTransaction.deserialize

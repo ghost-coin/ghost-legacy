@@ -2841,8 +2841,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         if (block.IsProofOfStake()) { // Only the genesis block isn't proof of stake
             CTransactionRef txCoinstake = block.vtx[0];
             CTransactionRef txPrevCoinstake = nullptr;
-            const DevFundSettings *pDevFundSettings = chainparams.GetDevFundSettings(block.nTime);
+            const DevFundSettings *pDevFundSettings = chainparams.GetDevFundSettings(block.nTime,pindex->nHeight);
             const CAmount nCalculatedStakeReward = Params().GetProofOfStakeReward(pindex->pprev, nFees); // stake_test
+            const float nCalculatedStakeRewardReal = (float) nCalculatedStakeReward / COIN; // stake_test
 
             if (block.nTime >= consensus.smsg_fee_time) {
                 CAmount smsg_fee_new, smsg_fee_prev;
@@ -2901,7 +2902,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 assert(pDevFundSettings->nMinDevStakePercent <= 100);
 
                 CAmount nDevBfwd = 0, nDevCfwdCheck = 0;
-                CAmount nMinDevPart = (nCalculatedStakeReward * pDevFundSettings->nMinDevStakePercent) / 100;
+                float nMinDevPartFloat = (nCalculatedStakeRewardReal * pDevFundSettings->nMinDevStakePercent) / 100;
+                CAmount nMinDevPart = nMinDevPartFloat * COIN;
                 CAmount nMaxHolderPart = nCalculatedStakeReward - nMinDevPart;
                 if (nMinDevPart < 0 || nMaxHolderPart < 0) {
                     return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad coinstake split amount (foundation=%d vs reward=%d)", __func__, nMinDevPart, nMaxHolderPart), REJECT_INVALID, "bad-cs-amount");
@@ -2926,8 +2928,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                     if (nStakeReward != nDevBfwd + nCalculatedStakeReward) {
                         return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad stake-reward (actual=%d vs expected=%d)", __func__, nStakeReward, nDevBfwd + nCalculatedStakeReward), REJECT_INVALID, "bad-cs-amount");
                     }
-
-                    CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
+                    CTxDestination dfDest = DecodeDestination(pDevFundSettings->sDevFundAddresses);
                     if (dfDest.type() == typeid(CNoDestination)) {
                         return error("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
                     }
@@ -2950,7 +2951,27 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 } else {
                     // Ensure cfwd data output is correct and nStakeReward is <= nHolderPart
                     // cfwd must == nDevBfwd + (nCalculatedStakeReward - nStakeReward) // Allowing users to set a higher split
-
+                    //One time gvrpay check
+                    if(nStakeReward > nMaxHolderPart && pindex->nHeight == consensus.nOneTimeGVRPayHeight){
+                        //Make sure stakeout pays the one time pay
+                        if(txCoinstake->vpout.size() > 1){
+                            CScript devFundScriptPubKey = GetScriptForDestination(DecodeDestination(pDevFundSettings->sDevFundAddresses));
+                            const CTxOutStandard *outputDF = txCoinstake->vpout[1]->GetStandardOutput();
+                            //Check output script
+                            if (outputDF->scriptPubKey != devFundScriptPubKey) {
+                                return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad GVR Pay output script.", __func__), REJECT_INVALID, "bad-cs");
+                            }
+                            //Check payout
+                            if(outputDF->nValue != consensus.nGVRPayOnetimeAmt){
+                                return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad gvrpay-reward (actual=%d vs minfundpart=%d)", __func__, outputDF->nValue, consensus.nGVRPayOnetimeAmt), REJECT_INVALID, "bad-gvronetime-pay");
+                            }
+                            //Now if this passes set stakereward to actual reward so that we can check coinstake
+                            nStakeReward -= consensus.nGVRPayOnetimeAmt;
+                        }
+                        else{
+                            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: No gvrpay output found", __func__), REJECT_INVALID, "bad-gvronetime-pay");
+                        }
+                    }
                     if (nStakeReward < 0 || nStakeReward > nMaxHolderPart) {
                         return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad stake-reward (actual=%d vs maxholderpart=%d)", __func__, nStakeReward, nMaxHolderPart), REJECT_INVALID, "bad-cs-amount");
                     }

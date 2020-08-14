@@ -44,7 +44,9 @@ CAmount CChainParams::GetProofOfStakeRewardAtHeight(const int nHeight) const
 {
     const CAmount nBlocksInAYear = (365 * 24 * 60 * 60) / GetTargetSpacing();
     const int currYear = nHeight / nBlocksInAYear;
-    const CAmount nSubsidy = GetProofOfStakeRewardAtYear(currYear);
+    CAmount nSubsidy = GetProofOfStakeRewardAtYear(currYear);
+    if(nHeight >= consensus.nBlockRewardIncreaseHeight)
+        nSubsidy *= nBlockRewardIncrease;
 
     return nSubsidy;
 }
@@ -60,11 +62,23 @@ int64_t CChainParams::GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const
     return (smsg_fee_prev * consensus.smsg_fee_max_delta_percent) / 1000000;
 };
 
-const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime) const
+const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime,int nHeight) const
 {
-    for (auto i = vDevFundSettings.rbegin(); i != vDevFundSettings.rend(); ++i) {
-        if (nTime > i->first) {
-            return &i->second;
+    LogPrintf("Getting devfundsetting at height %d\n",nHeight);
+    LogPrintf("Increaseheight is  %d\n",consensus.nBlockRewardIncreaseHeight);
+    //TODO akshaynexus cleanup this code
+    if(nHeight >= consensus.nBlockRewardIncreaseHeight){
+        for (auto i = vDevFundSettingsNew.rbegin(); i != vDevFundSettingsNew.rend(); ++i) {
+            if (nTime > i->first) {
+                return &i->second;
+            }
+        }
+    }
+    else{
+        for (auto i = vDevFundSettings.rbegin(); i != vDevFundSettings.rend(); ++i) {
+            if (nTime > i->first) {
+                return &i->second;
+            }
         }
     }
 
@@ -388,6 +402,10 @@ public:
         nTargetSpacing = 120;           // 2 minutes
         nTargetTimespan = 24 * 60;      // 24 mins
         nBlockReward = 6 * COIN;
+        consensus.nBlockRewardIncreaseHeight = 37400;
+        consensus.nGVRPayOnetimeAmt = 129000 * COIN;
+        consensus.nOneTimeGVRPayHeight = 37399;
+        nBlockRewardIncrease = 2;       // Times to increase blockreward
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
         nPruneAfterHeight = 100000;
@@ -408,10 +426,13 @@ public:
         vSeeds.emplace_back("ghostseeder.ghostbymcafee.com");
         vSeeds.emplace_back("ghostseeder.coldstake.io");
 
-
+        //DevFund settings before gvr addition
         vDevFundSettings.emplace_back(0,
-            DevFundSettings("GQtToV2LnHGhHy4LRVapLDMaukdDgzZZZV", 33, 360));//Approx each 12 hr payment to dev fund
+            DevFundSettings("GQtToV2LnHGhHy4LRVapLDMaukdDgzZZZV", 33.00, 360));//Approx each 12 hr payment to dev fund
 
+        //Dev fee new settings
+        vDevFundSettingsNew.emplace_back(0,
+            DevFundSettings("Ga7ECMeX8QUJTTvf9VUnYgTQUFxPChDqqU", 66.67, 5040));//Approx each week to GVR Funds addr
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x26}; // G
         base58Prefixes[SCRIPT_ADDRESS]     = {0x61}; // g
@@ -559,6 +580,10 @@ public:
         nTargetSpacing = 120;           // 2 minutes
         nTargetTimespan = 24 * 60;      // 24 mins
         nBlockReward = 6 * COIN;
+        consensus.nBlockRewardIncreaseHeight = 47166;// Set at 1k so that it doesnt get activated during regtest tests
+        nBlockRewardIncrease = 2;       // Times to increase blockreward
+        consensus.nGVRPayOnetimeAmt = 129000 * COIN;
+        consensus.nOneTimeGVRPayHeight = 47165; //Change this height if you want to test gvr one time pay
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
         nPruneAfterHeight = 1000;
@@ -577,6 +602,7 @@ public:
         vSeeds.emplace_back("ghost-testnetdns.mineit.io");
 
         vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 33, 1440)));
+        vDevFundSettingsNew.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 66.67, 100)));
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x4B}; // X
         base58Prefixes[SCRIPT_ADDRESS]     = {0x89}; // x
@@ -622,7 +648,7 @@ public:
 
         checkpointData = {
             {
-                {0, uint256S("0x000086a954e6fcbd5b8196725dae8b5b8bfbbae1cfe1a41852f3e7c01a7d6dcb")},
+                {0, consensus.hashGenesisBlock},
             }
         };
 
@@ -702,7 +728,17 @@ public:
         nTargetTimespan = 16 * 60;      // 16 mins
         nStakeTimestampMask = 0;
         nBlockReward = 6 * COIN;
+        consensus.nBlockRewardIncreaseHeight = 1000;// Set at 1k so that it doesnt get activated during regtest tests
+        nBlockRewardIncrease = 2;       // Times to increase blockreward
+        consensus.nGVRPayOnetimeAmt = 129000 * COIN;
+        consensus.nOneTimeGVRPayHeight = INT_MAX; //Change this height if you want to test gvr one time pay
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
+        //DevFund settings before gvr addition
+        //Commented out regtest,uncomment to test gvr one time pay
+            //     vDevFundSettings.emplace_back(0,
+            // DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 33.00, 2));//Approx each 12 hr payment to dev fund
+            //     vDevFundSettingsNew.emplace_back(0,
+            // DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 66.67, 1));
 
         nPruneAfterHeight = 1000;
         m_assumed_blockchain_size = 0;

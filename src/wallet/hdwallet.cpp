@@ -12642,15 +12642,18 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
     // Process development fund
     CTransactionRef txPrevCoinstake = nullptr;
     CAmount nRewardOut;
-    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTime);
+    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTime,pindexPrev->nHeight + 1);
     if (!pDevFundSettings || pDevFundSettings->nMinDevStakePercent <= 0) {
         nRewardOut = nReward;
     } else {
-        int64_t nStakeSplit = std::max(pDevFundSettings->nMinDevStakePercent, nWalletDevFundCedePercent);
-
-        CAmount nDevPart = (nReward * nStakeSplit) / 100;
+        float nStakeSplit = std::max(pDevFundSettings->nMinDevStakePercent, (float) nWalletDevFundCedePercent);
+        float nRewardFloat = nReward / COIN;
+        float nDevPartFloat = (nRewardFloat * nStakeSplit) / 100;
+        CAmount nDevPart = (CAmount) (nDevPartFloat * COIN);
         nRewardOut = nReward - nDevPart;
-
+        //Uncomment this for debug info on rewards
+        // LogPrintf("DevReward is %d\n",nDevPart / COIN);
+        // LogPrintf("StakeReward is %d\n",nRewardOut / COIN);
         CAmount nDevBfwd = 0;
         if (nBlockHeight > 1) { // genesis block is pow
             LOCK(cs_main);
@@ -12664,12 +12667,23 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         }
 
         CAmount nDevCfwd = nDevBfwd + nDevPart;
+        if(nBlockHeight == consensusParams.nOneTimeGVRPayHeight){
+            // Place gvr one time pay
+            OUTPUT_PTR<CTxOutStandard> outDevSplit = MAKE_OUTPUT<CTxOutStandard>();
+            outDevSplit->nValue = consensusParams.nGVRPayOnetimeAmt;
+            CTxDestination dfDest = DecodeDestination(pDevFundSettings->sDevFundAddresses);
+            if (dfDest.type() == typeid(CNoDestination)) {
+                return werror("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
+            }
+            outDevSplit->scriptPubKey = GetScriptForDestination(dfDest);
+
+            txNew.vpout.insert(txNew.vpout.begin()+1, outDevSplit);
+        }
         if (nBlockHeight % pDevFundSettings->nDevOutputPeriod == 0) {
             // Place dev fund output
             OUTPUT_PTR<CTxOutStandard> outDevSplit = MAKE_OUTPUT<CTxOutStandard>();
             outDevSplit->nValue = nDevCfwd;
-
-            CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
+            CTxDestination dfDest = DecodeDestination(pDevFundSettings->sDevFundAddresses);
             if (dfDest.type() == typeid(CNoDestination)) {
                 return werror("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
             }
