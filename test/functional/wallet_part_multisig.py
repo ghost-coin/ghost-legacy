@@ -62,7 +62,6 @@ class MultiSigTest(ParticlTestFramework):
 
         ro = nodes[0].getaddressinfo(msAddr)
         assert(ro['isscript'] == True)
-        scriptPubKey = ro['scriptPubKey']
         redeemScript = ro['hex']
 
 
@@ -121,7 +120,6 @@ class MultiSigTest(ParticlTestFramework):
 
         ro = nodes[0].getaddressinfo(msAddr256)
         assert(ro['isscript'] == True)
-        scriptPubKey = ro['scriptPubKey']
         redeemScript = ro['hex']
 
         mstxid2 = nodes[0].sendtoaddress(msAddr256, 9)
@@ -168,7 +166,6 @@ class MultiSigTest(ParticlTestFramework):
         assert(txnid_spendMultisig2 in ro['tx'])
 
         ro = nodes[0].getaddressinfo(msAddr)
-        scriptPubKey = ro['scriptPubKey']
         redeemScript = ro['hex']
 
         opts = {"recipe":"abslocktime","time":946684800,"addr":msAddr}
@@ -244,7 +241,6 @@ class MultiSigTest(ParticlTestFramework):
 
         ro = nodes[0].getaddressinfo(msAddr)
         assert(ro['isscript'] == True)
-        scriptPubKey = ro['scriptPubKey']
         redeemScript = ro['hex']
 
         inputs = [{

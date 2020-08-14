@@ -124,7 +124,7 @@ class WalletParticlTest(ParticlTestFramework):
         ro = nodes[0].extkey('setDefaultAccount', account0_id)
         assert(ro['result'] == 'Success.')
 
-        address0 = nodes[0].getnewaddress()
+        nodes[0].getnewaddress()
 
         ro = nodes[0].extkey('account', account0_id)
 

@@ -508,7 +508,7 @@ class AtomicSwapTest(ParticlTestFramework):
 
 
         rawtx2refund = createRefundTx(nodes[0], rawtxInitiate, scriptInitiate2, lockTime, addrA_0, addrA_0)
-        txnid2 = nodes[0].sendrawtransaction(rawtxInitiate)
+        nodes[0].sendrawtransaction(rawtxInitiate)
 
         self.stakeBlocks(1)
 
@@ -616,7 +616,7 @@ class AtomicSwapTest(ParticlTestFramework):
         ro = nodes[0].testmempoolaccept([rawtx_i_refund,])
         assert('64: non-final' in ro[0]['reject-reason'])
 
-        txnid1 = nodes[0].sendrawtransaction(rawtx_i)
+        nodes[0].sendrawtransaction(rawtx_i)
         self.stakeBlocks(1)
 
 
@@ -722,7 +722,7 @@ class AtomicSwapTest(ParticlTestFramework):
         assert('missing-inputs' in ro[0]['reject-reason'])
 
 
-        txnid1 = nodes[0].sendrawtransaction(rawtx_i)
+        nodes[0].sendrawtransaction(rawtx_i)
         ro = nodes[0].getwalletinfo()
         assert(ro['unconfirmed_blind'] > 6.0 and ro['unconfirmed_blind'] < 7.0)
 

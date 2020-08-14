@@ -138,6 +138,7 @@ class SmsgPaidTest(ParticlTestFramework):
                 assert(ro['location'] == 'outbox')
                 break
             except Exception as e:
+                print(e)
                 time.sleep(1)
         assert(ro['text'] == text_3)
         assert(ro['from'] == address1)

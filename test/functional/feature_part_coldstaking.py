@@ -39,7 +39,6 @@ class ColdStakingTest(ParticlTestFramework):
         assert(ro['account_id'] == 'aaaZf2qnNr5T7PWRmqgmusuu5ACnBcX2ev')
         assert(nodes[0].getwalletinfo()['total_balance'] == 100000)
 
-        txnHashes = []
 
         nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
         nodes[2].extkeyimportmaster('sección grito médula hecho pauta posada nueve ebrio bruto buceo baúl mitad')
@@ -98,7 +97,6 @@ class ColdStakingTest(ParticlTestFramework):
 
         hashCoinstake = ''
         hashOther = ''
-        found = False
         for out in tx['vout']:
             asm = out['scriptPubKey']['asm']
             asm = asm.split()
@@ -150,7 +148,6 @@ class ColdStakingTest(ParticlTestFramework):
 
         hashCoinstake = ''
         hashSpend = ''
-        found = False
         for out in tx['vout']:
             asm = out['scriptPubKey']['asm']
             asm = asm.split()
@@ -202,7 +199,6 @@ class ColdStakingTest(ParticlTestFramework):
 
         hashCoinstake = ''
         hashSpend = ''
-        found = False
         for out in tx['vout']:
             asm = out['scriptPubKey']['asm']
             asm = asm.split()
