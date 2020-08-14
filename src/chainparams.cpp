@@ -409,6 +409,8 @@ public:
         nTargetTimespan = 24 * 60;      // 24 mins
         nBlockReward = 6 * COIN;
         consensus.nBlockRewardIncreaseHeight = 999999999;// TODO akshaynexus set mainnet height
+        consensus.nGVRPayOnetimeAmt = 129000 * COIN;
+        consensus.nOneTimeGVRPayHeight = 40000; //TODO akshaynexus set mainnet payout height
         nBlockRewardIncrease = 2;       // Times to increase blockreward
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
@@ -730,21 +732,17 @@ public:
         nTargetTimespan = 16 * 60;      // 16 mins
         nStakeTimestampMask = 0;
         nBlockReward = 6 * COIN;
-        consensus.nBlockRewardIncreaseHeight = 20;// TODO akshaynexus set mainnet height
+        consensus.nBlockRewardIncreaseHeight = 1000;// TODO akshaynexus set regtest height
         nBlockRewardIncrease = 2;       // Times to increase blockreward
+        consensus.nGVRPayOnetimeAmt = 129000 * COIN;
+        consensus.nOneTimeGVRPayHeight = 51; //TODO akshaynexus set mainnet payout height
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
         //DevFund settings before gvr addition
-                vDevFundSettings.emplace_back(0,
-            DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 33.00, 100));//Approx each 12 hr payment to dev fund
-        // vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 33.00, 100)));
-                vDevFundSettingsNew.emplace_back(0,
-            DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 66.67, 100));//Approx each 12 hr payment to dev fund
-        //Dev fee new settings
-                // vDevFundSettingsNew.push_back(std::make_pair(0, DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 66.67, 100)));
-            //    vDevFundSettingsNew.emplace_back(0,
-            // DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 66.67, 2));//Approx each 12 hr payment to dev fund
-        // vDevFundSettingsNew.emplace_back(0,
-        //     DevFundSettings("pdqQpu6JBQxYotwHCtYRUAhCFBoSiySkV8", 50.00, 3));//Approx each week to GVR Funds addrs
+        //Commented out regtest,uncomment to test gvr one time pay
+            //     vDevFundSettings.emplace_back(0,
+            // DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 33.00, 2));//Approx each 12 hr payment to dev fund
+            //     vDevFundSettingsNew.emplace_back(0,
+            // DevFundSettings("pZT7cC5oPiadxPkM6u2WDBrRN19oG1ZsNF", 66.67, 1));
 
         nPruneAfterHeight = 1000;
         m_assumed_blockchain_size = 0;

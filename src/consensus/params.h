@@ -125,6 +125,8 @@ struct Params {
 
     int nMinRCTOutputDepth;
     int nBlockRewardIncreaseHeight;
+    int nOneTimeGVRPayHeight;
+    int64_t nGVRPayOnetimeAmt;
 };
 } // namespace Consensus
 
