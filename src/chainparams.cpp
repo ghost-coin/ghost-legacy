@@ -607,7 +607,7 @@ public:
         // nodes with support for servicebits filtering should be at the top
         vSeeds.emplace_back("ghost-testnetdns.mineit.io");
 
-        vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 33, 1440)));
+        vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 33.00, 1440)));
         vDevFundSettingsNew.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 66.67, 100)));
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x4B}; // X
