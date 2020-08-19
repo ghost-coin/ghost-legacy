@@ -64,8 +64,6 @@ int64_t CChainParams::GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const
 
 const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime,int nHeight) const
 {
-    LogPrintf("Getting devfundsetting at height %d\n",nHeight);
-    LogPrintf("Increaseheight is  %d\n",consensus.nBlockRewardIncreaseHeight);
     //TODO akshaynexus cleanup this code
     if(nHeight >= consensus.nBlockRewardIncreaseHeight){
         for (auto i = vDevFundSettingsNew.rbegin(); i != vDevFundSettingsNew.rend(); ++i) {
@@ -401,10 +399,11 @@ public:
         nStakeMinConfirmations = 225;   // 225 * 2 minutes
         nTargetSpacing = 120;           // 2 minutes
         nTargetTimespan = 24 * 60;      // 24 mins
+        consensus.nLWMADiffUpgradeHeight = INT_MAX;//TODO akshaynexus set mainnet height
         nBlockReward = 6 * COIN;
-        consensus.nBlockRewardIncreaseHeight = 37400;
+        consensus.nBlockRewardIncreaseHeight = 40861;
         consensus.nGVRPayOnetimeAmt = 129000 * COIN;
-        consensus.nOneTimeGVRPayHeight = 37399;
+        consensus.nOneTimeGVRPayHeight = 40860;
         nBlockRewardIncrease = 2;       // Times to increase blockreward
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
@@ -579,6 +578,7 @@ public:
         nStakeMinConfirmations = 225;   // 225 * 2 minutes
         nTargetSpacing = 120;           // 2 minutes
         nTargetTimespan = 24 * 60;      // 24 mins
+        consensus.nLWMADiffUpgradeHeight = 49512;
         nBlockReward = 6 * COIN;
         consensus.nBlockRewardIncreaseHeight = 46864;// Set at 1k so that it doesnt get activated during regtest tests
         nBlockRewardIncrease = 2;       // Times to increase blockreward
@@ -731,6 +731,7 @@ public:
         consensus.nBlockRewardIncreaseHeight = 1000;// Set at 1k so that it doesnt get activated during regtest tests
         nBlockRewardIncrease = 2;       // Times to increase blockreward
         consensus.nGVRPayOnetimeAmt = 129000 * COIN;
+        consensus.nLWMADiffUpgradeHeight = INT_MAX;//TODO akshaynexus set regtest height
         consensus.nOneTimeGVRPayHeight = INT_MAX; //Change this height if you want to test gvr one time pay
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
         //DevFund settings before gvr addition
