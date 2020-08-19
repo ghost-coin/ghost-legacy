@@ -714,15 +714,16 @@ UniValue getavgblocktime(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
-            "getavgblocktime amount\n"
-            "\nReturns the average blocktime in the last x amount of blocks.\n"
-            "\nArguments:\n"
-            "1. amt         (numeric, required) The number of blocks to lookback\n"
-            "\nResult:\n"
-            " (int) The avg blocktime\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getavgblocktime", "1000")
-            + HelpExampleRpc("getavgblocktime", "200")
+            RPCHelpMan{"getavgblocktime",
+                "Get average blocktime\n",
+                {
+                    {"amt", RPCArg::Type::NUM, RPCArg::Optional::NO, "Number of blocks to lookback."},
+                },
+                RPCResult{
+                "x (number) Average blocktime in seconds.\n"
+                },
+                RPCExamples{""},
+            }.ToString()
         );
 
     LOCK(cs_main);
