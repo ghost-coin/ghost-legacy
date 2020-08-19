@@ -14,7 +14,7 @@
 #include <util/system.h>
 #include <util/strencodings.h>
 #include <util/validation.h>
-
+#include <validation.h>
 #include <txmempool.h>
 
 #include <rpc/rpcutil.h>
@@ -652,6 +652,42 @@ UniValue runstrings(const JSONRPCRequest& request)
     return rv;
 }
 
+int GetAvgBlocktime(int amount)
+{
+    CBlockIndex * pblockindex = ChainActive().Tip();
+    int avgblocktime = 0;
+    //Now search backwards
+    for (unsigned int nCountBlocks = 1; nCountBlocks <= amount; nCountBlocks++)
+    {
+        avgblocktime += pblockindex->nTime - pblockindex->pprev->nTime;
+        pblockindex = pblockindex->pprev;
+    }
+    //Now actually get avg
+    avgblocktime = avgblocktime / amount;
+    return avgblocktime;
+}
+
+UniValue getavgblocktime(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 1)
+        throw std::runtime_error(
+            RPCHelpMan{"getavgblocktime",
+                "Get average blocktime\n",
+                {
+                    {"amt", RPCArg::Type::NUM, RPCArg::Optional::NO, "Number of blocks to lookback."},
+                },
+                RPCResult{
+                "x (number) Average blocktime in seconds.\n"
+                },
+                RPCExamples{""},
+            }.ToString()
+        );
+
+    LOCK(cs_main);
+    int amt = request.params[0].get_int();
+    return GetAvgBlocktime(amt);
+}
+
 // clang-format off
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
@@ -664,6 +700,7 @@ static const CRPCCommand commands[] =
     { "util",               "getdescriptorinfo",      &getdescriptorinfo,      {"descriptor"} },
     { "util",               "verifymessage",          &verifymessage,          {"address","signature","message","message_magic"} },
     { "util",               "signmessagewithprivkey", &signmessagewithprivkey, {"privkey","message"} },
+    { "util",               "getavgblocktime",        &getavgblocktime,        {"amt"} },
 
     /* Not shown in help */
     { "hidden",             "setmocktime",            &setmocktime,            {"timestamp","is_offset"}},
