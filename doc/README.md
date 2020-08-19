@@ -5,7 +5,7 @@ Setup
 ---------------------
 Ghost Core is the original Ghost client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Ghost transactions, which requires a few gigabytes of disk space. Depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
-To download Ghost Core, visit [ghostbymcafee.com](https://ghostbymcafee.com/downloads/).
+To download Ghost Core, visit [ghostbyjohnmcafee.com](https://ghostbyjohnmcafee.com/downloads/).
 
 Running
 ---------------------

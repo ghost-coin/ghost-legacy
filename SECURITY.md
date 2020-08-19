@@ -12,7 +12,7 @@ Versions of Ghost Core that are currently supported with security updates:
 
 ## Reporting a Vulnerability
 
-To report security issues send an email to contact@ghostbymcafee.com
+To report security issues send an email to contact@ghostbyjohnmcafee.com
 Please note this email address is not for support and is only for issues directly affecting Ghost Core.
 
 **For support and general questions**
