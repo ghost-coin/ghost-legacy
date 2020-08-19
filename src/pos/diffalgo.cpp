@@ -24,7 +24,7 @@ unsigned int LwmaCalculateNextWorkRequired(const CBlockIndex* pindexPrev, const 
     // mining of a min-difficulty block.
     if (params.fPowAllowMinDifficultyBlocks &&
         (pblock->GetBlockTime() >
-         pindexPrev->GetBlockTime() + 10 * params.nPowTargetSpacing)) {
+         pindexPrev->GetBlockTime() + 10 * Params().GetTargetSpacing())) {
         return UintToArith256(params.powLimit).GetCompact();
     }
 
@@ -37,7 +37,7 @@ unsigned int LwmaCalculateNextWorkRequired(const CBlockIndex* pindexPrev, const 
       return UintToArith256(params.powLimit).GetCompact();
     }
 
-    const int64_t T = params.nPowTargetSpacing;
+    const int64_t T = Params().GetTargetSpacing();
     const int N = params.nZawyLwmaAveragingWindow;
     const int k = (N+1) * T / 2;  // ignore adjust 0.9989^(500/N) from python code
     const int dnorm = 10;
