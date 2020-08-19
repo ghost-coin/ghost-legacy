@@ -188,6 +188,7 @@ BITCOIN_CORE_H = \
   policy/settings.h \
   pow.h \
   pos/kernel.h \
+  pos/diffalgo.h \
   pos/miner.h \
   protocol.h \
   psbt.h \
@@ -329,6 +330,7 @@ libghost_server_a_SOURCES = \
   policy/settings.cpp \
   pow.cpp \
   pos/kernel.cpp \
+  pos/diffalgo.cpp \
   rest.cpp \
   rpc/anon.cpp \
   rpc/blockchain.cpp \

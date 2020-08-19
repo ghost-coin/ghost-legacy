@@ -24,6 +24,7 @@
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <pow.h>
+#include <pos/diffalgo.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <random.h>
@@ -4526,62 +4527,6 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
     return commitment;
 }
 
-unsigned int GetNextTargetRequired(const CBlockIndex *pindexLast)
-{
-    const Consensus::Params &consensus = Params().GetConsensus();
-
-    arith_uint256 bnProofOfWorkLimit;
-    unsigned int nProofOfWorkLimit;
-    int nHeight = pindexLast ? pindexLast->nHeight+1 : 0;
-
-    if (nHeight < (int)Params().GetLastImportHeight()) {
-        if (nHeight == 0) {
-            return arith_uint256("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").GetCompact();
-        }
-        int nLastImportHeight = (int) Params().GetLastImportHeight();
-        arith_uint256 nMaxProofOfWorkLimit = arith_uint256("000000000008ffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        arith_uint256 nMinProofOfWorkLimit = UintToArith256(consensus.powLimit);
-        arith_uint256 nStep = (nMaxProofOfWorkLimit - nMinProofOfWorkLimit) / nLastImportHeight;
-
-        bnProofOfWorkLimit = nMaxProofOfWorkLimit - (nStep * nHeight);
-        nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
-    } else {
-        bnProofOfWorkLimit = UintToArith256(consensus.powLimit);
-        nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
-    }
-
-    if (pindexLast == nullptr)
-        return nProofOfWorkLimit; // Genesis block
-
-    const CBlockIndex* pindexPrev = pindexLast;
-    if (pindexPrev->pprev == nullptr)
-        return nProofOfWorkLimit; // first block
-    const CBlockIndex *pindexPrevPrev = pindexPrev->pprev;
-    if (pindexPrevPrev->pprev == nullptr)
-        return nProofOfWorkLimit; // second block
-
-    int64_t nTargetSpacing = Params().GetTargetSpacing();
-    int64_t nTargetTimespan = Params().GetTargetTimespan();
-    int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-
-    if (nActualSpacing > nTargetSpacing * 10)
-        nActualSpacing = nTargetSpacing * 10;
-
-    // pos: target change every block
-    // pos: retarget with exponential moving toward target spacing
-    arith_uint256 bnNew;
-    bnNew.SetCompact(pindexLast->nBits);
-
-    int64_t nInterval = nTargetTimespan / nTargetSpacing;
-    bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-    bnNew /= ((nInterval + 1) * nTargetSpacing);
-
-    if (bnNew <= 0 || bnNew > bnProofOfWorkLimit)
-        return nProofOfWorkLimit;
-
-    return bnNew.GetCompact();
-}
-
 /** Context-dependent validity checks.
  *  By "context", we mean only the previous block headers, but not the UTXO
  *  set; UTXO-related validity checks are done in ConnectBlock().
@@ -4598,7 +4543,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
 
     if (fParticlMode && pindexPrev) {
         // Check proof-of-stake
-        if (block.nBits != GetNextTargetRequired(pindexPrev))
+        if (block.nBits != GetNextTargetRequired(pindexPrev,&block))
             return state.Invalid(ValidationInvalidReason::BLOCK_INVALID_HEADER, false, REJECT_INVALID, "bad-diffbits-pos", "incorrect proof of stake");
     } else {
         // Check proof of work

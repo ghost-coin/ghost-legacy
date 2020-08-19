@@ -435,8 +435,6 @@ bool CheckStakeUnique(const CBlock &block, bool fUpdate=true);
 /** Context-independent validity checks */
 bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
-unsigned int GetNextTargetRequired(const CBlockIndex *pindexLast);
-
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex,
     CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck = false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 

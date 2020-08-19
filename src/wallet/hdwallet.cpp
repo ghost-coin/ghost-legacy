@@ -25,6 +25,7 @@
 #include <script/sign.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
+#include <pos/diffalgo.h>
 #include <wallet/coincontrol.h>
 #include <blind.h>
 #include <anon.h>
@@ -12946,7 +12947,7 @@ bool CHDWallet::SignBlock(CBlockTemplate *pblocktemplate, int nHeight, int64_t n
 
     CKey key;
     pblock->nVersion = GHOST_BLOCK_VERSION;
-    pblock->nBits = GetNextTargetRequired(pindexPrev);
+    pblock->nBits = GetNextTargetRequired(pindexPrev,pblock);
     if (LogAcceptCategory(BCLog::POS)) {
         WalletLogPrintf("%s, nBits %d\n", __func__, pblock->nBits);
     }
