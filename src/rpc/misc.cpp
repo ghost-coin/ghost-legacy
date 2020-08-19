@@ -697,14 +697,14 @@ UniValue runstrings(const JSONRPCRequest& request)
 
 int GetAvgBlocktime(int amount)
 {
-	CBlockIndex * pblockindex = ChainActive().Tip();
-	int avgblocktime = 0;
-	//Now search backwards
-	for (unsigned int nCountBlocks = 1; nCountBlocks <= amount; nCountBlocks++)
-	{
+    CBlockIndex * pblockindex = ChainActive().Tip();
+    int avgblocktime = 0;
+    //Now search backwards
+    for (unsigned int nCountBlocks = 1; nCountBlocks <= amount; nCountBlocks++)
+    {
         avgblocktime += pblockindex->nTime - pblockindex->pprev->nTime;
         pblockindex = pblockindex->pprev;
-	}
+    }
     //Now actually get avg
     avgblocktime = avgblocktime / amount;
     return avgblocktime;
