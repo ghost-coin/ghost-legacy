@@ -2,7 +2,7 @@ Ghost Core integration/staging tree
 =====================================
 
 
-https://www.ghostbymcafee.com/
+https://www.ghostbyjohnmcafee.com/
 
 What is Ghost?
 ----------------
@@ -11,7 +11,7 @@ An open source, privacy focused, anonymous and
 decentralised network that uses proof of stake 
 consensus algorithm with incentivized stakers.
 
-For more information, see https://www.ghostbymcafee.com/
+For more information, see https://www.ghostbyjohnmcafee.com/
 
 
 Getting Started

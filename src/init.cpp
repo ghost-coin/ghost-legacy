@@ -708,7 +708,7 @@ void SetupServerArgs()
 std::string LicenseInfo()
 {
     const std::string URL_SOURCE_CODE = "<https://github.com/ghost-coin/ghost-core>";
-    const std::string URL_WEBSITE = "<https://ghostbymcafee.com/>";
+    const std::string URL_WEBSITE = "<https://ghostbyjohnmcafee.com/>";
 
     return CopyrightHolders(strprintf(_("Copyright (C)").translated)) + "\n" +
            "\n" +
