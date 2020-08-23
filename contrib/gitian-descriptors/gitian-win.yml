@@ -1,5 +1,5 @@
 ---
-name: "ghost-win-0.19.1.7"
+name: "ghost-win-0.19.1.8"
 enable_cache: true
 sudo: true
 distro: "ubuntu"
@@ -25,7 +25,7 @@ packages:
 - "python3"
 - "rename"
 remotes:
-- "url": "https://github.com/ghost/ghost-core.git"
+- "url": "https://github.com/ghost-coin/ghost-core.git"
   "dir": "ghost-core"
 files: []
 script: |
