@@ -23,7 +23,7 @@ packages:
 - "apt-transport-https"
 - "libjpeg-dev"
 remotes:
-- "url": "https://github.com/ghost/ghost-desktop"
+- "url": "https://github.com/ghost-coin/ghost-desktop"
   "dir": "ghost-desktop"
 files: []
 script: |
