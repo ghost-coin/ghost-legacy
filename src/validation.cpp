@@ -2953,14 +2953,14 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                     // Ensure cfwd data output is correct and nStakeReward is <= nHolderPart
                     // cfwd must == nDevBfwd + (nCalculatedStakeReward - nStakeReward) // Allowing users to set a higher split
                     //One time gvrpay check
-                    if(nStakeReward > nMaxHolderPart && pindex->nHeight == consensus.nOneTimeGVRPayHeight){
+                    if(pindex->nHeight == consensus.nOneTimeGVRPayHeight){
                         //Make sure stakeout pays the one time pay
-                        if(txCoinstake->vpout.size() > 1){
-                            CScript devFundScriptPubKey = GetScriptForDestination(DecodeDestination(pDevFundSettings->sDevFundAddresses));
+                        if(txCoinstake->vpout.size() > 1 && nStakeReward > nMaxHolderPart){
+                            CScript gvrPayeeSCP = GetScriptForDestination(DecodeDestination(pDevFundSettings->sDevFundAddresses));
                             const CTxOutStandard *outputDF = txCoinstake->vpout[1]->GetStandardOutput();
                             //Check output script
-                            if (outputDF->scriptPubKey != devFundScriptPubKey) {
-                                return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad GVR Pay output script.", __func__), REJECT_INVALID, "bad-cs");
+                            if (outputDF->scriptPubKey != gvrPayeeSCP) {
+                                return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Bad GVR Pay output script", __func__), REJECT_INVALID, "bad-gvrpay");
                             }
                             //Check payout
                             if(outputDF->nValue != consensus.nGVRPayOnetimeAmt){
@@ -2970,7 +2970,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                             nStakeReward -= consensus.nGVRPayOnetimeAmt;
                         }
                         else{
-                            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: No gvrpay output found", __func__), REJECT_INVALID, "bad-gvronetime-pay");
+                            return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: No gvr-onetime-pay output found", __func__), REJECT_INVALID, "bad-gvronetime-pay");
                         }
                     }
                     if (nStakeReward < 0 || nStakeReward > nMaxHolderPart) {

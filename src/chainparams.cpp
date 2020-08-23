@@ -404,7 +404,7 @@ public:
         nBlockReward = 6 * COIN;
         consensus.nBlockRewardIncreaseHeight = 40862;
         consensus.nGVRPayOnetimeAmt = 129000 * COIN;
-        consensus.nOneTimeGVRPayHeight = 40861;
+        consensus.nOneTimeGVRPayHeight = 42308;//Approx Tuesday,August 25,2020,Time: 12:50 PM GMT +3
         nBlockRewardIncrease = 2;       // Times to increase blockreward
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
