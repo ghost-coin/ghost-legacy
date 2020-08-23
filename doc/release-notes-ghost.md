@@ -46,3 +46,8 @@ AkshayCM (33):
 
 reborn1002 (1):
 - RPC warning for duplicate address sends + formatting
+
+0.19.1.8
+==============
+- Enforce GVR onetime payout on payout height
+- Disconnect old version after payout height
