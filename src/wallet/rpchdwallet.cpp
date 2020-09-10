@@ -5824,7 +5824,8 @@ static UniValue walletsettings(const JSONRPCRequest &request)
     // Special case for stakelimit. Todo: Merge stakelimit into stakingoptions with option to update only one key
     if (sSetting == "stakelimit") {
         if (request.params.size() == 1) {
-            result.pushKV(sSetting, pwallet->nStakeLimitHeight);
+            result.pushKV("height", pwallet->nStakeLimitHeight);
+            return result;
         }
         if (!request.params[1].isObject()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Must be json object.");

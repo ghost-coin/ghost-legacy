@@ -241,8 +241,11 @@ class ColdStakingTest(ParticlTestFramework):
         assert(ro['num_derives'] == '3')
 
         # Test stake to coldstakingchangeaddress
-        nodes[0].walletsettings('stakelimit', {'height':2})
+        nodes[0].walletsettings('stakelimit', {'height': 2})
         nodes[0].reservebalance(False)
+
+        # Test walletsettings stakelimit view path
+        assert(nodes[0].walletsettings('stakelimit')['height'] == 2)
 
         assert(self.wait_for_height(nodes[0], 2))
         self.sync_all()
