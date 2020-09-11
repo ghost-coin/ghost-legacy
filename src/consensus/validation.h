@@ -50,7 +50,8 @@ enum class ValidationInvalidReason {
     BLOCK_TIME_FUTURE,          //!< block timestamp was > 2 hours in the future (or our clock is bad)
     BLOCK_CHECKPOINT,        //!< the block failed to meet one of our checkpoints
     // Only loose txn:
-    TX_NOT_STANDARD,          //!< didn't meet our local policy rules
+    TX_INPUTS_NOT_STANDARD,   //!< inputs (covered by txid) failed policy rules
+    TX_NOT_STANDARD,          //!< otherwise didn't meet our local policy rules
     TX_MISSING_INPUTS,        //!< a transaction was missing some of its inputs
     TX_PREMATURE_SPEND,       //!< transaction spends a coinbase too early, or violates locktime/sequence locks
     /**
@@ -85,6 +86,7 @@ inline bool IsTransactionReason(ValidationInvalidReason r)
            r == ValidationInvalidReason::DOS_5 ||
            r == ValidationInvalidReason::DOS_1 ||
            r == ValidationInvalidReason::RECENT_CONSENSUS_CHANGE ||
+           r == ValidationInvalidReason::TX_INPUTS_NOT_STANDARD ||
            r == ValidationInvalidReason::TX_NOT_STANDARD ||
            r == ValidationInvalidReason::TX_PREMATURE_SPEND ||
            r == ValidationInvalidReason::TX_MISSING_INPUTS ||
