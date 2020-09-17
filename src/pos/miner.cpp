@@ -317,6 +317,9 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
         return;
     }
 
+    size_t stake_thread_cond_delay_ms = gArgs.GetArg("-stakethreadconddelayms", 60000);
+    LogPrint(BCLog::POS, "Stake thread conditional delay set to %d.\n", stake_thread_cond_delay_ms);
+
     CScript coinbaseScript;
     while (!fStopMinerProc) {
         if (fReindex || fImporting || fBusyImporting) {
@@ -383,8 +386,9 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
 
         std::unique_ptr<CBlockTemplate> pblocktemplate;
 
-        size_t nWaitFor = 60000;
+        size_t nWaitFor = stake_thread_cond_delay_ms;
         CAmount reserve_balance;
+
         for (size_t i = nStart; i < nEnd; ++i) {
             auto pwallet = GetParticlWallet(vpwallets[i].get());
 
@@ -419,7 +423,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                 LOCK(pwallet->cs_wallet);
                 pwallet->m_is_staking = CHDWallet::NOT_STAKING_BALANCE;
                 nWaitFor = std::min(nWaitFor, (size_t)60000);
-                pwallet->nLastCoinStakeSearchTime = nSearchTime + 60;
+                pwallet->nLastCoinStakeSearchTime = nSearchTime + stake_thread_cond_delay_ms / 1000;
                 LogPrint(BCLog::POS, "%s: Wallet %d, low balance.\n", __func__, i);
                 continue;
             }
@@ -441,7 +445,6 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                     continue;
                 }
             }
-
             pwallet->m_is_staking = CHDWallet::IS_STAKING;
 
             nWaitFor = nMinerSleep;
