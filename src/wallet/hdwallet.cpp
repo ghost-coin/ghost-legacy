@@ -96,6 +96,7 @@ void CHDWallet::AddOptions()
 
     gArgs.AddArg("-staking", "Stake your coins to support network and gain reward (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
     gArgs.AddArg("-stakingthreads", "Number of threads to start for staking, max 1 per active wallet, will divide wallets evenly between threads (default: 1)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
+    gArgs.AddArg("-stakethreadconddelayms", "Number of milliseconds to delay staking for on error condition (default: 60000)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
     gArgs.AddArg("-minstakeinterval=<n>", "Minimum time in seconds between successful stakes (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
     gArgs.AddArg("-minersleep=<n>", "Milliseconds between stake attempts. Lowering this param will not result in more stakes. (default: 500)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
     gArgs.AddArg("-reservebalance=<amount>", "Ensure available balance remains above reservebalance. (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);

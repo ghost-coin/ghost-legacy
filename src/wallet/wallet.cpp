@@ -252,6 +252,9 @@ WalletCreationStatus CreateWallet(interfaces::Chain& chain, const SecureString& 
     }
     AddWallet(wallet);
     wallet->postInitProcess();
+    if (fParticlMode) {
+        RestartStakingThreads();
+    }
     result = wallet;
     return WalletCreationStatus::SUCCESS;
 }
