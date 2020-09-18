@@ -101,8 +101,6 @@ const size_t MAX_BUNCH_BYTES = SMSG_MAX_MSG_BYTES_PAID * 4;
 const uint16_t MAX_WANT_SENT = 16000;
 const size_t SMSG_MAX_SHOW = 64;
 
-boost::thread_group threadGroupSmsg;
-
 boost::signals2::signal<void (SecMsgStored &inboxHdr)> NotifySecMsgInboxChanged;
 boost::signals2::signal<void (SecMsgStored &outboxHdr)> NotifySecMsgOutboxChanged;
 boost::signals2::signal<void ()> NotifySecMsgWalletUnlocked;
@@ -299,7 +297,8 @@ void ThreadSecureMsg()
         }
 
         // Check every SMSG_THREAD_DELAY seconds
-        std::this_thread::sleep_for(std::chrono::milliseconds(SMSG_THREAD_DELAY * 1000));
+        std::unique_lock<std::mutex> lock(smsgModule.mtx_threads);
+        smsgModule.cv_ending.wait_for(lock, std::chrono::milliseconds(SMSG_THREAD_DELAY * 1000), [] { return smsgModule.wake_threads; });
     }
     return;
 };
@@ -399,8 +398,8 @@ void ThreadSecureMsgPow()
 
         delete it;
 
-        // Shutdown thread waits 2 seconds
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        std::unique_lock<std::mutex> lock(smsgModule.mtx_threads);
+        smsgModule.cv_ending.wait_for(lock, std::chrono::milliseconds(2000), [] { return smsgModule.wake_threads; });
     }
     return;
 };
@@ -932,8 +931,8 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, std::vector<std::shared_pt
 
     start_time = GetAdjustedTime();
 
-    threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
-    threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
+    thread_smsg = std::thread(std::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
+    thread_smsg_pow = std::thread(std::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
 
 #ifdef ENABLE_WALLET
     m_wallet_load_handler = interfaces::MakeHandler(NotifyWalletAdded.connect(boost::bind(&ListenWalletAdded, this, _1)));
@@ -957,8 +956,14 @@ bool CSMSG::Shutdown()
     fSecMsgEnabled = false;
     m_node->connman->SetLocalServices(ServiceFlags(m_node->connman->GetLocalServices() & ~NODE_SMSG));
 
-    threadGroupSmsg.interrupt_all();
-    threadGroupSmsg.join_all();
+    {
+        std::lock_guard<std::mutex> lock(mtx_threads);
+        wake_threads = true;
+    }
+    cv_ending.notify_all();
+
+    thread_smsg.join();
+    thread_smsg_pow.join();
 
     if (smsgDB) {
         LOCK(cs_smsgDB);
