@@ -131,13 +131,11 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
     WalletLocation location_a("a");
     std::shared_ptr<CHDWallet> pwallet_a = std::static_pointer_cast<CHDWallet>(CWallet::CreateWalletFromFile(*m_chain.get(), location_a, error, warnings, wallet_creation_flags));
     assert(pwallet_a.get());
-    pwallet_a->Initialise();
     AddWallet(pwallet_a);
 
     WalletLocation location_b("b");
     std::shared_ptr<CHDWallet> pwallet_b = std::static_pointer_cast<CHDWallet>(CWallet::CreateWalletFromFile(*m_chain.get(), location_b, error, warnings, wallet_creation_flags));
     assert(pwallet_b.get());
-    pwallet_b->Initialise();
     AddWallet(pwallet_b);
 
     {

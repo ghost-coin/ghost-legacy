@@ -126,115 +126,9 @@ void CHDWallet::AddOptions()
     return;
 };
 
-bool CHDWallet::Initialise()
+bool CHDWallet::ShouldRescan()
 {
-    // Continue from CHDWallet::LoadWallet
-    auto spk_man = GetOrCreateLegacyScriptPubKeyMan();
-    assert(spk_man);
-
-    m_blind_scratch = secp256k1_scratch_space_create(secp256k1_ctx_blind, 1024 * 1024);
-    assert(m_blind_scratch);
-
-    PostProcessUnloadSpent();
-
-    LOCK(cs_wallet);
-
-    {
-        CHDWalletDB wdb(GetDBHandle());
-
-        LoadAddressBook(&wdb);
-        LoadTxRecords(&wdb);
-        LoadVoteTokens(&wdb);
-    }
-
-    int rescan_height = 0;
-    if (!gArgs.GetBoolArg("-rescan", false))
-    {
-        WalletBatch batch(*database);
-        CBlockLocator locator;
-        if (batch.ReadBestBlock(locator)) {
-            if (const Optional<int> fork_height = chain().findLocatorFork(locator)) {
-                rescan_height = *fork_height;
-            }
-        }
-    }
-
-    const Optional<int> tip_height = chain().getHeight();
-    if (tip_height) {
-        m_last_block_processed = chain().getBlockHash(*tip_height);
-    } else {
-        m_last_block_processed.SetNull();
-    }
-
-    if ((mapExtAccounts.size() > 0 || CountKeys() > 0) // Don't scan an empty wallet
-        && tip_height && *tip_height != rescan_height)
-    {
-        //We can't rescan beyond non-pruned blocks, stop and throw an error
-        //this might happen if a user uses an old wallet within a pruned node
-        // or if he ran -disablewallet for a longer time, then decided to re-enable
-        if (fPruneMode)
-        {
-            int block_height = *tip_height;
-            while (block_height > 0 && chain().haveBlockOnDisk(block_height - 1) && rescan_height != block_height) {
-                --block_height;
-            }
-
-            if (rescan_height != block_height) {
-                InitError(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)"));
-                return false;
-            }
-        }
-
-        uiInterface.InitMessage(_("Rescanning...").translated);
-        WalletLogPrintf("Rescanning last %i blocks (from block %i)...\n", *tip_height - rescan_height, rescan_height);
-
-        // No need to read and scan block if block was created before
-        // our wallet birthday (as adjusted for block time variability)
-        int64_t time_first_key = GetTimeFirstKey();
-        int64_t nStart = GetTimeMillis();
-        {
-            WalletRescanReserver reserver(*this);
-            if (!reserver.reserve()) {
-                InitError(_("Failed to rescan the wallet during initialization"));
-                return false;
-            }
-            RescanFromTime(time_first_key, reserver, true);
-        }
-
-        WalletLogPrintf("Rescan completed in %15dms\n", GetTimeMillis() - nStart);
-        chainStateFlushed(chain().getTipLocator());
-        database->IncrementUpdateCounter();
-    }
-
-    if (!pEKMaster) {
-        if (gArgs.GetBoolArg("-createdefaultmasterkey", false)) {
-            std::string sMsg = "Generating random HD keys for wallet " + GetName();
-            #ifndef ENABLE_QT
-            tfm::format(std::cout, "%s\n", sMsg.c_str());
-            #endif
-            LogPrintf("%s\n", sMsg);
-            if (MakeDefaultAccount() != 0) {
-                tfm::format(std::cout, "Error: MakeDefaultAccount failed!\n");
-            }
-        } else {
-            /*
-            std::string sWarning = "Warning: Wallet " + pwallet->GetName() + " has no master HD key set, please view the readme.";
-            #ifndef ENABLE_QT
-            tfm::format(std::cout, "%s\n", sWarning.c_str());
-            #endif
-            LogPrintf("%s\n", sWarning);
-            */
-        }
-    }
-    if (!IsWalletFlagSet(WALLET_FLAG_BLANK_WALLET) && idDefaultAccount.IsNull()) {
-        std::string sWarning = "Warning: Wallet " + GetName() + " has no active account, please view the readme.";
-        #ifndef ENABLE_QT
-        tfm::format(std::cout, "%s\n", sWarning.c_str());
-        #endif
-        LogPrintf("%s\n", sWarning);
-    }
-
-    return true;
+    return mapExtAccounts.size() > 0 || CountKeys() > 0;
 };
 
 static void AppendError(std::string &sError, std::string s)
@@ -1499,7 +1393,57 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
     if (pEKMaster || !idDefaultAccount.IsNull()) {
         fFirstRunRet = false; // if fFirstRun is true, CreateWalletFromFile -> upgrade -> ChainStateFlushed -> WriteBestBlock before catch-up rescan tries to run
     }
-    return rv;
+
+    if (rv != DBErrors::LOAD_OK) {
+        return rv;
+    }
+
+    auto spk_man = GetOrCreateLegacyScriptPubKeyMan();
+    assert(spk_man);
+
+    m_blind_scratch = secp256k1_scratch_space_create(secp256k1_ctx_blind, 1024 * 1024);
+    assert(m_blind_scratch);
+
+    PostProcessUnloadSpent();
+
+    LOCK(cs_wallet);
+
+    {
+        CHDWalletDB wdb(GetDBHandle());
+
+        LoadAddressBook(&wdb);
+        LoadTxRecords(&wdb);
+        LoadVoteTokens(&wdb);
+    }
+
+    if (!pEKMaster) {
+        if (gArgs.GetBoolArg("-createdefaultmasterkey", false)) {
+            std::string sMsg = "Generating random HD keys for wallet " + GetName();
+#ifndef ENABLE_QT
+            tfm::format(std::cout, "%s\n", sMsg.c_str());
+#endif
+            LogPrintf("%s\n", sMsg);
+            if (MakeDefaultAccount() != 0) {
+                tfm::format(std::cout, "Error: MakeDefaultAccount failed!\n");
+            }
+        } else {
+            /*
+            std::string sWarning = "Warning: Wallet " + pwallet->GetName() + " has no master HD key set, please view the readme.";
+            #ifndef ENABLE_QT
+            tfm::format(std::cout, "%s\n", sWarning.c_str());
+            #endif
+            LogPrintf("%s\n", sWarning);
+            */
+        }
+    }
+    if (idDefaultAccount.IsNull() && m_chain) { // If !m_chain, probably running from particl-wallet
+        std::string sWarning = "Warning: Wallet " + GetName() + " has no active account, please view the readme.";
+#ifndef ENABLE_QT
+        tfm::format(std::cout, "%s\n", sWarning.c_str());
+#endif
+        LogPrintf("%s\n", sWarning);
+    }
+    return DBErrors::LOAD_OK;
 }
 
 bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address, const std::string &strName,
