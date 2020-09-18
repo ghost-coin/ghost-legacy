@@ -21,7 +21,7 @@
 void RPCThread::run()
 {
     bool passed = false;
-    CallRPCVoidRv(m_command.toStdString(), m_wallet.toStdString(), &passed, m_rv);
+    CallRPCVoidRv(m_command.toStdString(), m_wallet.toStdString(), &passed, m_rv, true);
     Q_EMIT complete(passed);   // Can't pass back a UniValue or signal won't get detected ?
 }
 

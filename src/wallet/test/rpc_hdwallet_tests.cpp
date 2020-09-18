@@ -22,7 +22,7 @@
 using namespace std;
 
 extern UniValue createArgs(int nRequired, const char* address1 = NULL, const char* address2 = nullptr);
-extern UniValue CallRPC(std::string args, std::string wallet="");
+extern UniValue CallRPC(std::string args, std::string wallet="", bool force_wallet=false);
 
 void RewindHdSxChain(CHDWallet *pwallet)
 {

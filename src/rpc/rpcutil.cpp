@@ -11,17 +11,17 @@
 
 #include <support/events.h>
 
-void CallRPCVoid(std::string args, std::string wallet)
+void CallRPCVoid(std::string args, std::string wallet, bool force_wallet)
 {
     CallRPC(args, wallet);
     return;
 };
 
-void CallRPCVoidRv(std::string args, std::string wallet, bool *passed, UniValue *rv)
+void CallRPCVoidRv(std::string args, std::string wallet, bool *passed, UniValue *rv, bool force_wallet)
 {
     try
     {
-        *rv = CallRPC(args, wallet);
+        *rv = CallRPC(args, wallet, force_wallet);
         *passed = true;
     } catch (UniValue& objError)
     {
@@ -35,7 +35,7 @@ void CallRPCVoidRv(std::string args, std::string wallet, bool *passed, UniValue 
     return;
 };
 
-UniValue CallRPC(std::string args, std::string wallet)
+UniValue CallRPC(std::string args, std::string wallet, bool force_wallet)
 {
     if (args.empty())
         throw std::runtime_error("No input.");
@@ -74,16 +74,16 @@ UniValue CallRPC(std::string args, std::string wallet)
     request.params = RPCConvertValues(strMethod, vArgs);
     request.fHelp = false;
 
-    AddUri(request, wallet);
+    AddUri(request, wallet, force_wallet);
 
     UniValue rv;
     CallRPC(rv, request);
     return rv;
 };
 
-void AddUri(JSONRPCRequest &request, std::string wallet)
+void AddUri(JSONRPCRequest &request, std::string wallet, bool force_wallet)
 {
-    if (!wallet.empty()) {
+    if (!wallet.empty() || force_wallet) {
         char *encodedURI = evhttp_uriencode(wallet.c_str(), wallet.size(), false);
         if (encodedURI) {
             request.URI = "/wallet/"+ std::string(encodedURI);

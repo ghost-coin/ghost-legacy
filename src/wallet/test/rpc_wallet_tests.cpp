@@ -19,7 +19,7 @@
 using namespace std;
 
 //extern JSONRPCRequest createArgs(int nRequired, const char* address1 = NULL, const char* address2 = nullptr);
-extern UniValue CallRPC(std::string args, std::string wallet="");
+extern UniValue CallRPC(std::string args, std::string wallet="", bool force_wallet=false);
 
 BOOST_FIXTURE_TEST_SUITE(rpc_wallet_tests, WalletTestingSetup)
 /*
