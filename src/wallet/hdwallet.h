@@ -85,7 +85,7 @@ public:
 
     static void AddOptions();
 
-    bool Initialise();
+    bool ShouldRescan() override;
 
     bool ProcessStakingSettings(std::string &sError);
     bool ProcessWalletSettings(std::string &sError);

@@ -1479,6 +1479,8 @@ public:
 
     /** Implement lookup of key origin information through wallet key metadata. */
     bool GetKeyOrigin(const CKeyID& keyid, KeyOriginInfo& info) const override;
+
+    virtual bool ShouldRescan() { return true; };
 };
 
 /**

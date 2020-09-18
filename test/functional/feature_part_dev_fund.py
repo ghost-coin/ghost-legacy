@@ -75,7 +75,7 @@ class DevFundTest(ParticlTestFramework):
             coin_year_reward = int(2 * 1e6)  # 2%
 
             stakes_per_year = 365 * 24 * (60 * 60 // target_spacing)
-            return (base_supply // COIN) * coin_year_reward // stakes_per_year
+            return (moneysupply // COIN) * coin_year_reward // stakes_per_year
 
         expect_reward = get_coinstake_reward(base_supply)
         assert(expect_reward == 39637)

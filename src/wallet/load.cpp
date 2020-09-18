@@ -71,9 +71,6 @@ bool LoadWallets(interfaces::Chain& chain, const std::vector<std::string>& walle
         if (!pwallet) {
             return false;
         }
-        if (fParticlMode && !((CHDWallet*)pwallet.get())->Initialise()) {
-            return false;
-        }
         AddWallet(pwallet);
     }
 
