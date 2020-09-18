@@ -130,7 +130,7 @@ void WalletModel::updateReservedBalanceChanged(CAmount nValue)
 
 void WalletModel::startRescan()
 {
-    std::thread t(CallRPCVoid, "rescanblockchain 0", util::Ref{m_node}, m_wallet->getWalletName());
+    std::thread t(CallRPCVoid, "rescanblockchain 0", util::Ref{m_node}, m_wallet->getWalletName(), true);
     t.detach();
 };
 
@@ -550,7 +550,7 @@ bool WalletModel::tryCallRpc(const QString &sCommand, UniValue &rv, bool returnE
 {
     try {
         util::Ref context{m_node};
-        rv = CallRPC(sCommand.toStdString(), context, m_wallet->getWalletName());
+        rv = CallRPC(sCommand.toStdString(), context, m_wallet->getWalletName(), true);
     } catch (UniValue& objError) {
         if (returnError) {
             rv = objError;

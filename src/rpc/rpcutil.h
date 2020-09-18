@@ -12,11 +12,11 @@
 #include <univalue.h>
 #include <string>
 
-void CallRPCVoid(std::string args, const util::Ref& context, std::string wallet="");
-void CallRPCVoidRv(std::string args, const util::Ref& context, std::string wallet, bool *passed, UniValue *rv);
-UniValue CallRPC(std::string args, const util::Ref& context, std::string wallet="");
+void CallRPCVoid(std::string args, const util::Ref& context, std::string wallet="", bool force_wallet=false);
+void CallRPCVoidRv(std::string args, const util::Ref& context, std::string wallet, bool *passed, UniValue *rv, bool force_wallet=false);
+UniValue CallRPC(std::string args, const util::Ref& context, std::string wallet="", bool force_wallet=false);
 
-void AddUri(JSONRPCRequest &request, std::string wallet);
+void AddUri(JSONRPCRequest &request, std::string wallet, bool force_wallet=false);
 void CallRPC(UniValue &rv, const JSONRPCRequest &request);
 
 #endif // PARTICL_RPC_RPCUTIL_H
