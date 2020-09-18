@@ -404,6 +404,9 @@ bool CHDWallet::IsHDEnabled() const
 
 bool CHDWallet::CanGetAddresses(bool internal) const
 {
+    if (!idDefaultAccount.IsNull()) {
+        return true;
+    }
     if (CWallet::CanGetAddresses(internal)) {
         return true;
     }
