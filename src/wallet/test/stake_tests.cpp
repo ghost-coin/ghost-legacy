@@ -192,15 +192,18 @@ BOOST_AUTO_TEST_CASE(stake_test)
         BOOST_CHECK(idk == key.GetPubKey().GetID());
     }
 
+    CAmount base_supply = 12500000000000;
     {
         LOCK(pwallet->cs_wallet);
         const auto bal = pwallet->GetBalance();
-        BOOST_REQUIRE(bal.m_mine_trusted == 12500000000000);
+        BOOST_REQUIRE(bal.m_mine_trusted == base_supply);
     }
-    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000000000);
+    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == base_supply);
+    CAmount stake_reward = Params().GetProofOfStakeReward(::ChainActive().Tip(), 0);
 
     StakeNBlocks(pwallet, 2);
     BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000079274);
+    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == base_supply + stake_reward * 2);
 
     CBlockIndex *pindexDelete = ::ChainActive().Tip();
     BOOST_REQUIRE(pindexDelete);
@@ -227,7 +230,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     BOOST_CHECK(::ChainActive().Height() == pindexDelete->nHeight - 1);
     BOOST_CHECK(::ChainActive().Tip()->GetBlockHash() == pindexDelete->pprev->GetBlockHash());
-    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000039637);
+    BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == base_supply + stake_reward * 1);
 
 
     // Reconnect block
@@ -240,14 +243,14 @@ BOOST_AUTO_TEST_CASE(stake_test)
         CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
         const Coin &coin = view.AccessCoin(txin.prevout);
         BOOST_REQUIRE(coin.IsSpent());
-        BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == 12500000079274);
+        BOOST_REQUIRE(::ChainActive().Tip()->nMoneySupply == base_supply + stake_reward * 2);
     }
 
     CKey kRecv;
     InsecureNewKey(kRecv, true);
 
     bool fSubtractFeeFromAmount = false;
-    CAmount nAmount = 10000;
+    CAmount nAmountSendAway = 10000;
     CTransactionRef tx_new;
 
     // Parse Bitcoin address
@@ -258,7 +261,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
     bilingual_str bl_error;
     std::vector<CRecipient> vecSend;
     int nChangePosRet = -1;
-    CRecipient recipient = {scriptPubKey, nAmount, fSubtractFeeFromAmount};
+    CRecipient recipient = {scriptPubKey, nAmountSendAway, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
 
     CCoinControl coinControl;
@@ -331,7 +334,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
             UpdateTip(pindexDelete, chainparams);
 
             BOOST_CHECK(tipHash == ::ChainActive().Tip()->GetBlockHash());
-            BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == 12500000153511);
+            BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == 12500000118911);
         }
     }
 
@@ -339,6 +342,8 @@ BOOST_AUTO_TEST_CASE(stake_test)
     std::string extaddr = part::StripQuotes(rv.write());
 
     BOOST_CHECK(pwallet->GetBalance().m_mine_trusted + pwallet->GetStaked() == 12500000108911);
+    BOOST_CHECK(::ChainActive().Tip()->nMoneySupply - nAmountSendAway == 12500000108911);
+
 
     {
         BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress", context));
@@ -355,6 +360,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         BOOST_CHECK(30 * COIN == pwallet->GetAvailableAnonBalance(&coinControl));
 
         BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 4);
+        BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == base_supply + stake_reward * 5);
 
         for (size_t i = 0; i < 2; ++i) {
             LOCK(cs_main);
@@ -373,7 +379,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         }
 
         BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 0);
-        BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == 12500000153511);
+        BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == 12500000118911);
     }
 }
 

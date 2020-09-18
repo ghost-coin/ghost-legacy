@@ -318,7 +318,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
                 }
             }
         } else {
-            // Return stake reward in txfee
+            // Return block reward in txfee
             txfee = nPlainValueOut - nValueIn;
             if (nCt > 0 || nRingCT > 0) { // Counters track both outputs and inputs
                 LogPrintf("%s: non-standard elements in coinstake\n", __func__);
@@ -518,6 +518,9 @@ bool CheckTransaction(const CTransaction& tx, TxValidationState &state)
         return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-oversize");
 
     if (tx.IsParticlVersion()) {
+        if (state.m_clamp_tx_version && tx.GetParticlVersion() != PARTICL_TXN_VERSION) {
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txn-version");
+        }
         if (tx.vpout.empty()) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-vpout-empty");
         }

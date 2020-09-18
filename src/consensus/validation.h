@@ -150,6 +150,7 @@ public:
     bool m_funds_smsg = false;
     bool m_has_anon_output = false;
     bool m_has_anon_input = false;
+    bool m_clamp_tx_version = false;
 
     void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool particl_mode, bool skip_rangeproof)
     {
@@ -163,6 +164,8 @@ public:
         }
         m_particl_mode = particl_mode;
         m_skip_rangeproof = skip_rangeproof;
+
+        m_clamp_tx_version = time >= consensusParams.clamp_tx_version_time;
     }
 };
 

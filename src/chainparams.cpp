@@ -37,6 +37,17 @@ int64_t CChainParams::GetCoinYearReward(int64_t nTime) const
     return nCoinYearReward;
 };
 
+bool CChainParams::PushDevFundSettings(int64_t time_from, DevFundSettings &settings)
+{
+    if (settings.nMinDevStakePercent < 0 or settings.nMinDevStakePercent > 100) {
+        throw std::runtime_error("minstakepercent must be in range [0, 100].");
+    }
+
+    vDevFundSettings.emplace_back(time_from, settings);
+
+    return true;
+};
+
 int64_t CChainParams::GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const
 {
     int64_t nSubsidy;
@@ -770,6 +781,8 @@ public:
         consensus.bulletproof_time = 0;
         consensus.rct_time = 0;
         consensus.smsg_difficulty_time = 0;
+
+        consensus.clamp_tx_version_time = 0;
 
         consensus.smsg_fee_period = 50;
         consensus.smsg_fee_funding_tx_per_k = 200000;

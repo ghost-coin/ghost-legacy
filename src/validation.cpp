@@ -464,8 +464,9 @@ static bool CheckInputsFromMempoolAndCache(const CTransaction& tx, TxValidationS
 
     assert(!tx.IsCoinBase());
     for (const CTxIn& txin : tx.vin) {
-        if (txin.IsAnonInput())
+        if (txin.IsAnonInput()) {
             continue;
+        }
         const Coin& coin = view.AccessCoin(txin.prevout);
 
         // AcceptToMemoryPoolWorker has already checked that the coins are
@@ -2667,7 +2668,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             }
             if (tx.IsCoinStake())
             {
-                // Stake reward is passed back in txfee (nPlainValueOut - nPlainValueIn)
+                // Block reward is passed back in txfee (nPlainValueOut - nPlainValueIn)
                 nStakeReward += txfee;
                 nMoneyCreated += nStakeReward;
             } else
@@ -2885,6 +2886,9 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
     }
 
     if (fParticlMode) {
+        if (block.nTime >= consensus.clamp_tx_version_time) {
+            nMoneyCreated -= nFees;
+        }
         if (block.IsProofOfStake()) { // Only the genesis block isn't proof of stake
             CTransactionRef txCoinstake = block.vtx[0];
             CTransactionRef txPrevCoinstake = nullptr;

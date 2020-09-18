@@ -125,10 +125,6 @@ BOOST_AUTO_TEST_CASE(particlchain_test)
     BOOST_CHECK(blk.nTime == blkOut.nTime && blkOut.nTime == 1487406900);
 
     BOOST_CHECK(TXN_COINBASE == blkOut.vtx[0]->GetType());
-
-    CMutableTransaction txnSpend;
-
-    txnSpend.nVersion = PARTICL_BLOCK_VERSION;
 }
 
 BOOST_AUTO_TEST_CASE(varints)

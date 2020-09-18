@@ -284,6 +284,7 @@ PARTICL_SCRIPTS = [
 PARTICL_SCRIPTS_EXT = [
     'feature_part_smsg_multiwallet.py',
     'feature_part_smsg_rollingcache.py',
+    'feature_part_dev_fund.py',
 ]
 
 INSIGHT_SCRIPTS = [

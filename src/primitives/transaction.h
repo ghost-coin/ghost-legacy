@@ -768,7 +768,7 @@ public:
     // bumping the default CURRENT_VERSION at which point both CURRENT_VERSION and
     // MAX_STANDARD_VERSION will be equal.
     static const int32_t MAX_STANDARD_VERSION=2;
-    static const int32_t MAX_STANDARD_PARTICL_VERSION=0xA0;
+    static const int32_t MAX_STANDARD_PARTICL_VERSION=0xA1;
 
     // The local variables are made const to prevent unintended modification
     // without updating the cached hash value. However, CTransaction is not
@@ -814,6 +814,10 @@ public:
 
     bool IsParticlVersion() const {
         return IsParticlTxVersion(nVersion);
+    }
+
+    int GetParticlVersion() const {
+        return nVersion & 0xFF;
     }
 
     int GetType() const {
@@ -963,6 +967,10 @@ struct CMutableTransaction
 
     bool IsParticlVersion() const {
         return IsParticlTxVersion(nVersion);
+    }
+
+    int GetParticlVersion() const {
+        return nVersion & 0xFF;
     }
 
     int GetType() const {

@@ -1300,14 +1300,22 @@ uint256 GetOutputsHash(const T& txTo)
 {
     CHashWriter ss(SER_GETHASH, 0);
 
-    if (txTo.IsParticlVersion())
-    {
-        for (unsigned int n = 0; n < txTo.vpout.size(); n++)
+    bool have_non_plain = false;
+    if (txTo.IsParticlVersion()) {
+        for (unsigned int n = 0; n < txTo.vpout.size(); n++) {
             ss << *txTo.vpout[n];
-    } else
-    {
+            if (txTo.vpout[n]->GetType() != OUTPUT_STANDARD) {
+                have_non_plain = true;
+            }
+        }
+    } else {
         for (const auto& txout : txTo.vout) {
             ss << txout;
+        }
+    }
+    if (have_non_plain && (txTo.nVersion & 0xFF) > PARTICL_TXN_VERSION) {
+        for (unsigned int n = 0; n < txTo.vpout.size(); n++) {
+            ss << txTo.vpout[n]->GetType();
         }
     }
     return ss.GetHash();
@@ -1367,10 +1375,11 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
         } else if ((nHashType & 0x1f) == SIGHASH_SINGLE && nIn < txTo.GetNumVOuts()) {
             CHashWriter ss(SER_GETHASH, 0);
 
-            if (txTo.IsParticlVersion())
+            if (txTo.IsParticlVersion()) {
                 ss << *(txTo.vpout[nIn].get());
-            else
+            } else {
                 ss << txTo.vout[nIn];
+            }
             hashOutputs = ss.GetHash();
         }
 
