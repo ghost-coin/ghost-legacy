@@ -169,6 +169,8 @@ public:
     bool fIncDataOutputs = false; // per block
     int m_spend_height = 0;
 
+    bool m_clamp_tx_version = false;
+
     void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams)
     {
         fEnforceSmsgFees = time >= consensusParams.nPaidSmsgTime;
@@ -178,6 +180,7 @@ public:
         if (spend_height > -1) {
             m_spend_height = spend_height; // Pass through connectblock->checkblock
         }
+        m_clamp_tx_version = time >= consensusParams.clamp_tx_version_time;
     }
 
     int nodeId;

@@ -104,6 +104,7 @@ public:
 
     const DevFundSettings *GetDevFundSettings(int64_t nTime) const;
     const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const {return vDevFundSettings;};
+    bool PushDevFundSettings(int64_t time_from, DevFundSettings &settings);
 
     int64_t GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
     int64_t GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const;

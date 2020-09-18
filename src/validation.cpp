@@ -441,8 +441,9 @@ static bool CheckInputsFromMempoolAndCache(const CTransaction& tx, CValidationSt
 
     assert(!tx.IsCoinBase());
     for (const CTxIn& txin : tx.vin) {
-        if (txin.IsAnonInput())
+        if (txin.IsAnonInput()) {
             continue;
+        }
         const Coin& coin = view.AccessCoin(txin.prevout);
 
         // At this point we haven't actually checked if the coins are all
@@ -2624,7 +2625,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             }
             if (tx.IsCoinStake())
             {
-                // Stake reward is passed back in txfee (nPlainValueOut - nPlainValueIn)
+                // Block reward is passed back in txfee (nPlainValueOut - nPlainValueIn)
                 nStakeReward += txfee;
                 nMoneyCreated += nStakeReward;
             } else
@@ -2836,6 +2837,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: CheckQueue failed", __func__), REJECT_INVALID, "block-validation-failed");
 
     if (fParticlMode) {
+        if (block.nTime >= consensus.clamp_tx_version_time) {
+            nMoneyCreated -= nFees;
+        }
         if (block.IsProofOfStake()) { // Only the genesis block isn't proof of stake
             CTransactionRef txCoinstake = block.vtx[0];
             CTransactionRef txPrevCoinstake = nullptr;

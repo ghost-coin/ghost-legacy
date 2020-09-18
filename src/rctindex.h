@@ -39,4 +39,3 @@ public:
 
 
 #endif // PARTICL_RCTINDEX_H
-

@@ -413,6 +413,49 @@ static UniValue setmocktime(const JSONRPCRequest& request)
     return NullUniValue;
 }
 
+static UniValue pushdevfundsetting(const JSONRPCRequest& request)
+{
+    RPCHelpMan{"pushdevfundsetting",
+        "\nAdd a dev fund setting.\n",
+        {
+            {"setting", RPCArg::Type::OBJ, RPCArg::Optional::NO, "JSON with dev fund setting",
+                {
+                    {"timefrom", RPCArg::Type::NUM, RPCArg::Optional::NO, "Block time setting will apply from"},
+                    {"fundaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "Address accumulated dev fund coin is paid out to"},
+                    {"minstakepercent", RPCArg::Type::NUM, RPCArg::Optional::NO, "Minimum percentage of the block reward allocated to dev fund"},
+                    {"outputperiod", RPCArg::Type::NUM, RPCArg::Optional::NO, "Blocks between dev fund outputs"},
+                },
+            },
+        },
+        RPCResults{},
+        RPCExamples{""},
+    }.Check(request);
+
+    if (!Params().MineBlocksOnDemand()) {
+        throw std::runtime_error("pushdevfundsetting is for regression testing (-regtest mode) only");
+    }
+
+    RPCTypeCheck(request.params, {UniValue::VOBJ});
+    const UniValue &setting = request.params[0].get_obj();
+    RPCTypeCheckObj(setting,
+        {
+            {"timefrom", UniValueType(UniValue::VNUM)},
+            {"fundaddress", UniValueType(UniValue::VSTR)},
+            {"minstakepercent", UniValueType(UniValue::VNUM)},
+            {"outputperiod", UniValueType(UniValue::VNUM)},
+        });
+
+    LOCK(cs_main);
+
+    DevFundSettings settings(setting["fundaddress"].get_str(), setting["minstakepercent"].get_int(), setting["outputperiod"].get_int());
+    RegtestParams().PushDevFundSettings(setting["timefrom"].get_int(), settings);
+
+    LogPrintf("Added dev fund setting from %d: (%s, %d, %d)\n",
+        setting["timefrom"].get_int(), setting["fundaddress"].get_str(), setting["minstakepercent"].get_int(), setting["outputperiod"].get_int());
+
+    return NullUniValue;
+}
+
 static UniValue RPCLockedMemoryInfo()
 {
     LockedPool::Stats stats = LockedPoolManager::Instance().stats();
@@ -669,7 +712,8 @@ static const CRPCCommand commands[] =
     { "hidden",             "setmocktime",            &setmocktime,            {"timestamp","is_offset"}},
     { "hidden",             "echo",                   &echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "echojson",               &echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
-    { "hidden",             "runstrings",             &runstrings,             {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
+    { "hidden",             "runstrings",             &runstrings,             {"rg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
+    { "hidden",             "pushdevfundsetting",     &pushdevfundsetting,     {"setting"}},
 };
 // clang-format on
 
