@@ -1,4 +1,14 @@
 
+0.19.1.2
+==============
+
+- Fixed walletsettings stakelimit display.
+- Fixed createwallet not adding new wallet to staking threads.
+- Fixed bug where sending from qt fails from wallet with empty name when multiple wallets are loaded.
+- Fixed inconsistent txn records displayed in qt after loading another wallet
+- Added rpc function to change dev fund settings in regtest.
+- wallet: List locked maprecord txns in ListCoins()
+
 
 0.19.1.1
 ==============
