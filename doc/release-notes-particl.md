@@ -1,6 +1,10 @@
 Next Major Version
 ==============
 
+
+0.20.1.1
+==============
+
 - Added Czech bip39 wordlist.
 - No default account wallet warning is silenced if wallet was intentionally created empty.
 - Enable blockchain pruning.
@@ -11,6 +15,17 @@ Next Major Version
   - New 'blind_watchonly_visible' option for coincontrol on sendtypeto command.
   - When 'blind_watchonly_visible' is set blinded outputs sent to stealth addresses can be uncovered with the scan secret only.
     - Nonce is calculated as ECDH(ephem_secret + tweak, scan_public_key) and recovered with ECDH(scan_secret_key, ephem_public_key + G * tweak)
+
+
+0.19.1.2
+==============
+
+- Fixed walletsettings stakelimit display.
+- Fixed createwallet not adding new wallet to staking threads.
+- Fixed bug where sending from qt fails from wallet with empty name when multiple wallets are loaded.
+- Fixed inconsistent txn records displayed in qt after loading another wallet
+- Added rpc function to change dev fund settings in regtest.
+- wallet: List locked maprecord txns in ListCoins()
 
 
 0.19.1.1
@@ -28,6 +43,16 @@ Next Major Version
 ==============
 
 - rpc: Add coinstakeinfo option to getblock.
+
+
+0.18.1.8
+==============
+
+- Fixed walletsettings stakelimit display.
+- Fixed createwallet not adding new wallet to staking threads.
+- Fixed bug where sending from qt fails from wallet with empty name when multiple wallets are loaded.
+- Fixed inconsistent txn records displayed in qt after loading another wallet
+- Added rpc function to change dev fund settings in regtest.
 
 
 0.18.1.7
