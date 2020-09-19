@@ -121,6 +121,7 @@ PE_ALLOWED_LIBRARIES = {
 'UxTheme.dll',
 'VERSION.dll', # version checking
 'WINMM.dll', # WinMM audio API
+'SETUPAPI.dll', # Particl, usb devices
 }
 
 class CPPFilt(object):
