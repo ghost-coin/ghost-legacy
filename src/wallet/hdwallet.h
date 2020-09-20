@@ -75,7 +75,7 @@ public:
         m_default_address_type = OutputType::LEGACY; // In Particl segwit is enabled for all types
     }
 
-    ~CHDWallet()
+    virtual ~CHDWallet()
     {
         Finalise();
     }
