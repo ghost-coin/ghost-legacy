@@ -70,6 +70,7 @@ class DevFundTest(ParticlTestFramework):
         self.wait_for_height(nodes[0], 12)
 
         base_supply = 125000 * COIN
+
         def get_coinstake_reward(moneysupply):
             target_spacing = 5  # 5 seconds
             coin_year_reward = int(2 * 1e6)  # 2%

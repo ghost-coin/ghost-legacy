@@ -349,7 +349,7 @@ bool SendCoinsDialog::PrepareSendText(QString& question_string, QString& informa
     sCoinControl += "\"replaceable\":" + QString::fromUtf8((ui->optInRBF->isChecked() ? "true" : "false"));
 
     if (m_coin_control->m_feerate) {
-        sCoinControl += ",\"feeRate\":" + QString::fromStdString(m_coin_control->m_feerate->ToString(false));
+        sCoinControl += ",\"feeRate\":" + QString::fromStdString(m_coin_control->m_feerate->ToStringShort());
     } else {
         std::string sFeeMode;
         if (StringFromFeeMode(m_coin_control->m_fee_mode, sFeeMode))
