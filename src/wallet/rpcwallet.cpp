@@ -4639,7 +4639,7 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
             const CEKAKey *pak = nullptr;
             const CEKASCKey *pasc = nullptr;
             CExtKeyAccount *pa = nullptr;
-            bool isInvalid;
+            bool isInvalid = false;
             mine = phdw->IsMine(scriptPubKey, idk, pak, pasc, pa, isInvalid);
 
             if (pa && pak) {
