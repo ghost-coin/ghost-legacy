@@ -131,14 +131,10 @@ int main(int argc, char* argv[])
             std::string sMnemonic, sError;
             std::vector<uint8_t> vEntropy(nBytesEntropy);
 
-            for (uint32_t i = 0; i < MAX_DERIVE_TRIES; ++i) {
-                GetStrongRandBytes2(&vEntropy[0], nBytesEntropy);
-
-                if (0 != mnemonic::Encode(nLanguage, vEntropy, sMnemonic, sError)) {
-                    tfm::format(std::cerr, "Error: MnemonicEncode failed %s.\n", sError);
-                    return EXIT_FAILURE;
-                }
-                break;
+            GetStrongRandBytes2(&vEntropy[0], nBytesEntropy);
+            if (0 != mnemonic::Encode(nLanguage, vEntropy, sMnemonic, sError)) {
+                tfm::format(std::cerr, "Error: MnemonicEncode failed %s.\n", sError);
+                return EXIT_FAILURE;
             }
 
             tfm::format(std::cout, "%s\n", sMnemonic);

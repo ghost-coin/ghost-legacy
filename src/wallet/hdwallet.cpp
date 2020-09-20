@@ -4041,10 +4041,10 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 }
 
                 pDevice->PrepareTransaction(txNew, view, *spk_man, SIGHASH_ALL, hw_change_pos, hw_change_path);
-                if (!pDevice->sError.empty()) {
+                if (!pDevice->m_error.empty()) {
                     pDevice->Close();
                     uiInterface.NotifyWaitingForDevice(true);
-                    return wserrorN(1, sError, __func__, _("PrepareTransaction for device failed: %s").translated, pDevice->sError);
+                    return wserrorN(1, sError, __func__, _("PrepareTransaction for device failed: %s").translated, pDevice->m_error);
                 }
 
                 int nIn = 0;
@@ -4059,14 +4059,14 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     std::vector<uint8_t> vchAmount(8);
                     memcpy(vchAmount.data(), &coin.txout.nValue, 8);
 
-                    pDevice->sError.clear();
+                    pDevice->m_error.clear();
                     SignatureData sigdata;
                     ProduceSignature(*spk_man, usb_device::DeviceSignatureCreator(pDevice, &txNew, nIn, vchAmount, SIGHASH_ALL), scriptPubKey, sigdata);
 
-                    if (!pDevice->sError.empty()) {
+                    if (!pDevice->m_error.empty()) {
                         pDevice->Close();
                         uiInterface.NotifyWaitingForDevice(true);
-                        return wserrorN(1, sError, __func__, _("ProduceSignature from device failed: %s").translated, pDevice->sError);
+                        return wserrorN(1, sError, __func__, _("ProduceSignature from device failed: %s").translated, pDevice->m_error);
                     }
                     UpdateInput(txNew.vin[nIn], sigdata);
 

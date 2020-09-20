@@ -661,10 +661,10 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("PrepareTransaction failed with code %d.", prep));
     }
 
-    if (!pDevice->sError.empty()) {
+    if (!pDevice->m_error.empty()) {
         pDevice->Close();
         UniValue entry(UniValue::VOBJ);
-        entry.pushKV("error", pDevice->sError);
+        entry.pushKV("error", pDevice->m_error);
         vErrors.push_back(entry);
         UniValue result(UniValue::VOBJ);
         result.pushKV("hex", EncodeHexTx(CTransaction(mtx)));
@@ -695,14 +695,14 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
 
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mtx.GetNumVOuts())) {
-            pDevice->sError.clear();
+            pDevice->m_error.clear();
             ProduceSignature(keystore, usb_device::DeviceSignatureCreator(pDevice, &mtx, i, vchAmount, nHashType), prevPubKey, sigdata);
 
-            if (!pDevice->sError.empty()) {
+            if (!pDevice->m_error.empty()) {
                 UniValue entry(UniValue::VOBJ);
-                entry.pushKV("error", pDevice->sError);
+                entry.pushKV("error", pDevice->m_error);
                 vErrors.push_back(entry);
-                pDevice->sError.clear();
+                pDevice->m_error.clear();
             }
         }
 

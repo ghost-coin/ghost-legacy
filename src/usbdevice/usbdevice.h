@@ -146,7 +146,7 @@ public:
     char cPath[512];
     char cSerialNo[128];
     int nInterface;
-    std::string sError;
+    std::string m_error;
 };
 
 

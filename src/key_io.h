@@ -45,7 +45,7 @@ protected:
     //! the actually encoded data
     typedef std::vector<unsigned char, zero_after_free_allocator<unsigned char> > vector_uchar;
     vector_uchar vchData;
-    bool fBech32;
+    bool m_bech32;
 
     CBase58Data();
     void SetData(const std::vector<unsigned char> &vchVersionIn, const void* pdata, size_t nSize);
@@ -63,7 +63,7 @@ public:
     bool operator< (const CBase58Data& b58) const { return CompareTo(b58) <  0; }
     bool operator> (const CBase58Data& b58) const { return CompareTo(b58) >  0; }
 
-    bool IsBech32() const {return fBech32;}
+    bool IsBech32() const {return m_bech32;}
 };
 
 /** base58-encoded Bitcoin addresses.

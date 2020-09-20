@@ -1204,11 +1204,8 @@ static UniValue extkey(const JSONRPCRequest &request)
             nParamOffset++;
         }
 
-        for (; nParamOffset < request.params.size(); nParamOffset++) {
-            std::string strParam = request.params[nParamOffset].get_str();
-            std::transform(strParam.begin(), strParam.end(), strParam.begin(), ::tolower);
-
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", strParam.c_str()));
+        if (nParamOffset < request.params.size()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", request.params[nParamOffset].get_str().c_str()));
         }
 
         CExtKeyAccount *sea = new CExtKeyAccount();
@@ -1590,7 +1587,6 @@ static UniValue extkeyimportmaster(const JSONRPCRequest &request)
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     if (!wallet) return NullUniValue;
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
 
     return extkeyimportinternal(request, false);
 };
@@ -1623,7 +1619,6 @@ static UniValue extkeygenesisimport(const JSONRPCRequest &request)
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     if (!wallet) return NullUniValue;
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
 
     return extkeyimportinternal(request, true);
 }
@@ -5153,7 +5148,6 @@ UniValue sendtypeto(const JSONRPCRequest &request)
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     if (!wallet) return NullUniValue;
-    CHDWallet *const pwallet = GetParticlWallet(wallet.get());
 
     std::string sTypeIn = request.params[0].get_str();
     std::string sTypeOut = request.params[1].get_str();

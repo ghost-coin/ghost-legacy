@@ -284,10 +284,10 @@ BITCOIN_CORE_H = \
   wallet/wallettool.h \
   wallet/walletutil.h \
   wallet/coinselection.h \
-  wallet/rpchdwallet.h \
   wallet/hdwalletdb.h \
   wallet/hdwallettypes.h \
   wallet/hdwallet.h \
+  wallet/rpchdwallet.h \
   warnings.h \
   zmq/zmqabstractnotifier.h \
   zmq/zmqconfig.h\
@@ -432,6 +432,10 @@ libparticl_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libparticl_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libparticl_wallet_a_SOURCES = \
   interfaces/wallet.cpp \
+  wallet/rpchdwallet.cpp \
+  wallet/hdwallet.cpp \
+  wallet/hdwallettypes.cpp \
+  wallet/hdwalletdb.cpp \
   wallet/bdb.cpp \
   wallet/coincontrol.cpp \
   wallet/context.cpp \
@@ -446,10 +450,6 @@ libparticl_wallet_a_SOURCES = \
   wallet/scriptpubkeyman.cpp \
   wallet/wallet.cpp \
   wallet/walletdb.cpp \
-  wallet/hdwallet.cpp \
-  wallet/hdwallettypes.cpp \
-  wallet/hdwalletdb.cpp \
-  wallet/rpchdwallet.cpp \
   blind.cpp \
   key/stealth.cpp \
   pos/miner.cpp \

@@ -239,7 +239,7 @@ bool DeviceSignatureCreator::CreateSig(const SigningProvider &provider, std::vec
             } else {
                 return error("%s: HaveKey error.", __func__);
             }
-            if (0 != pDevice->SignTransaction(vPath, vSharedSecret, txTo, nIn, scriptCode, nHashType, amount, sigversion, vchSig, pDevice->sError)) {
+            if (0 != pDevice->SignTransaction(vPath, vSharedSecret, txTo, nIn, scriptCode, nHashType, amount, sigversion, vchSig, pDevice->m_error)) {
                 return error("%s: SignTransaction failed.", __func__);
             }
             return true;
@@ -254,7 +254,7 @@ bool DeviceSignatureCreator::CreateSig(const SigningProvider &provider, std::vec
         }
 
         std::vector<uint8_t> vSharedSecret;
-        if (0 != pDevice->SignTransaction(pathkey.vPath, vSharedSecret, txTo, nIn, scriptCode, nHashType, amount, sigversion, vchSig, pDevice->sError)) {
+        if (0 != pDevice->SignTransaction(pathkey.vPath, vSharedSecret, txTo, nIn, scriptCode, nHashType, amount, sigversion, vchSig, pDevice->m_error)) {
             return error("%s: SignTransaction failed.", __func__);
         }
         return true;

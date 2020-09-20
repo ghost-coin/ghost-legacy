@@ -272,14 +272,14 @@ CBase58Data::CBase58Data()
 {
     vchVersion.clear();
     vchData.clear();
-    fBech32 = false;
+    m_bech32 = false;
 }
 
 void CBase58Data::SetData(const std::vector<unsigned char>& vchVersionIn, const void* pdata, size_t nSize)
 {
     vchVersion = vchVersionIn;
 
-    fBech32 = pParams() && pParams()->IsBech32Prefix(vchVersionIn);
+    m_bech32 = pParams() && pParams()->IsBech32Prefix(vchVersionIn);
 
     vchData.resize(nSize);
     if (!vchData.empty())
@@ -294,8 +294,8 @@ void CBase58Data::SetData(const std::vector<unsigned char>& vchVersionIn, const 
 bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes)
 {
     CChainParams::Base58Type prefixType = CChainParams::MAX_BASE58_TYPES;
-    fBech32 = pParams() && pParams()->IsBech32Prefix(psz, strlen(psz), prefixType);
-    if (fBech32) {
+    m_bech32 = pParams() && pParams()->IsBech32Prefix(psz, strlen(psz), prefixType);
+    if (m_bech32) {
         vchVersion = Params().Bech32Prefix(prefixType);
         std::string s(psz);
         auto ret = bech32::Decode(s);
@@ -353,7 +353,7 @@ bool CBase58Data::SetString(const std::string& str)
 
 std::string CBase58Data::ToString() const
 {
-    if (fBech32) {
+    if (m_bech32) {
         std::string sHrp(vchVersion.begin(), vchVersion.end());
         std::vector<uint8_t> data;
         data.reserve(32);
@@ -532,7 +532,7 @@ bool CBitcoinAddress::IsValid() const
 
 bool CBitcoinAddress::IsValid(const CChainParams& params) const
 {
-    if (fBech32) {
+    if (m_bech32) {
         CChainParams::Base58Type prefix = CChainParams::MAX_BASE58_TYPES;
         if (!params.IsBech32Prefix(vchVersion, prefix)) {
             return false;
@@ -584,7 +584,7 @@ bool CBitcoinAddress::IsValid(const CChainParams& params) const
 
 bool CBitcoinAddress::IsValid(CChainParams::Base58Type prefix) const
 {
-    if (fBech32) {
+    if (m_bech32) {
         CChainParams::Base58Type prefixOut;
         if (!Params().IsBech32Prefix(vchVersion, prefixOut)
             || prefix != prefixOut) {

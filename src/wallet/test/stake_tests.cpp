@@ -45,7 +45,7 @@ struct StakeTestingSetup: public TestingSetup {
         SetMockTime(0);
     }
 
-    ~StakeTestingSetup()
+    virtual ~StakeTestingSetup()
     {
         RemoveWallet(pwalletMain);
         pwalletMain->Finalise();
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         }
     }
 
-    BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress lblTestKey", context));
+    BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress", context));
     std::string extaddr = part::StripQuotes(rv.write());
 
     BOOST_CHECK(pwallet->GetBalance().m_mine_trusted + pwallet->GetStaked() == 12500000108911);

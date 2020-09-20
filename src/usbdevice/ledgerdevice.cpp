@@ -453,7 +453,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
                                       int change_pos, const std::vector<uint32_t> &change_path)
 {
     if (0 != Open()) {
-        return errorN(1, sError, __func__, "Device not open.");
+        return errorN(1, m_error, __func__, "Device not open.");
     }
     int result, sw;
     uint8_t in[260];
@@ -474,14 +474,14 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
 
     result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
     if (sw != SW_OK) {
-        return errorN(1, sError, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
+        return errorN(1, m_error, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
     }
 
     for (size_t i = 0; i < tx.vin.size(); ++i) {
         const auto &txin = tx.vin[i];
         const Coin &coin = view.AccessCoin(txin.prevout);
         if (coin.IsSpent()) {
-            return errorN(1, sError, __func__, "Input %d not found or already spent", i);
+            return errorN(1, m_error, __func__, "Input %d not found or already spent", i);
         }
 
         const CScript &scriptCode = coin.out.scriptPubKey;
@@ -503,7 +503,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
         apduSize += 4;
 
         if (vchAmount.size() != 8) {
-            return errorN(1, sError, __func__, "amount must be 8 bytes.");
+            return errorN(1, m_error, __func__, "amount must be 8 bytes.");
         }
         memcpy(&in[apduSize], vchAmount.data(), vchAmount.size());
         apduSize += vchAmount.size();
@@ -520,7 +520,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
 
         result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
         if (sw != SW_OK) {
-            return errorN(1, sError, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
+            return errorN(1, m_error, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
         }
 
         size_t offset = 0;
@@ -548,7 +548,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
 
             result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
             if (sw != SW_OK) {
-                return errorN(1, sError, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
+                return errorN(1, m_error, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
             }
 
             offset += dataLength;
@@ -560,7 +560,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
 
     if (change_pos > -1) {
         if (change_path.size() > MAX_BIP32_PATH) {
-            return errorN(1, sError, __func__, "Change path too long %d.", change_path.size());
+            return errorN(1, m_error, __func__, "Change path too long %d.", change_path.size());
         }
         apduSize = 0;
         in[apduSize++] = BTCHIP_CLA;
@@ -575,7 +575,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
 
         result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
         if (sw != SW_OK || result < 0) {
-            return errorN(1, sError, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
+            return errorN(1, m_error, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
         }
     }
 
@@ -597,7 +597,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
         }
 
         if (!txout->IsStandardOutput()) {
-            return errorN(1, sError, __func__, "all outputs must be standard.");
+            return errorN(1, m_error, __func__, "all outputs must be standard.");
         }
         CAmount nValue = txout->GetValue();
         memcpy(&vchAmount[0], &nValue, 8);
@@ -633,7 +633,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
 
         result = sendApduHidHidapi(handle, 1, in, apduSize, out, sizeof(out), &sw);
         if (sw != SW_OK || result < 0) {
-            return errorN(1, sError, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
+            return errorN(1, m_error, __func__, "Dongle error: %.4x %s", sw, GetLedgerString(sw));
         }
 
         offset += dataLength;
