@@ -446,8 +446,13 @@ bool SendCoinsDialog::PrepareSendText(QString& question_string, QString& informa
     } else {
         question_string.append(tr("Please, review your transaction."));
     }
-    question_string.append("</span>%1");
+    question_string.append("</span>");
 
+    question_string.append("<br/><br/><span style='font-size:10pt;'><b>" + sTypeFrom + "</b> to <b>" + sTypeTo + "</b>");
+    if (sTypeFrom.toLower() == "anon") {
+        question_string.append(QString(", %1 ring members, %2 %3 per proof.").arg(nRingSize).arg(nMaxInputs).arg(nMaxInputs == 1 ? "input" : "inputs"));
+    }
+    question_string.append("</span>%1");
     if(txFee > 0)
     {
         // append fee string if a fee is required

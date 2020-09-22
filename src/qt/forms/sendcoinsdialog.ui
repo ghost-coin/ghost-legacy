@@ -727,6 +727,9 @@
           <property name="value">
            <number>4</number>
           </property>
+          <property name="toolTip">
+           <string>Ring size for RCT txns.</string>
+          </property>
          </widget>
         </item>
         <item>
@@ -742,6 +745,9 @@
           </property>
           <property name="value">
            <number>64</number>
+          </property>
+          <property name="toolTip">
+           <string>Inputs per RCT proof.</string>
           </property>
          </widget>
         </item>
