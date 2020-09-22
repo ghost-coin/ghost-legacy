@@ -120,7 +120,7 @@ class TxIndexTest(ParticlTestFramework):
         ro = nodes[2].listcoldstakeunspent(addrStake2_stakeonly, -1, {'show_outpoints': True})
         assert(nodes[2].lockunspent(False, [{'txid': ro[0]['txid'], 'vout': ro[0]['n']}]) == True)
 
-        self.stakeBlocks(1,nStakeNode=2)
+        self.stakeBlocks(1, nStakeNode=2)
         ro = nodes[2].listcoldstakeunspent(addrStake)
         assert(len(ro) == 3)
 
@@ -142,6 +142,7 @@ class TxIndexTest(ParticlTestFramework):
         ro = nodes[1].listcoldstakeunspent(addrStake)
         assert(len(ro) == 3)
 
+
         self.restart_node(1)
 
         ro = nodes[1].listcoldstakeunspent(addrStake)
@@ -149,6 +150,51 @@ class TxIndexTest(ParticlTestFramework):
 
         ro = nodes[1].getblockreward(2)
         assert(ro['stakereward'] < ro['blockreward'])
+
+
+        self.restart_node(0)
+        self.restart_node(2)
+        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes, 0, 2)
+
+        ms_addrs0 = []
+        ms_pubkeys0 = []
+        ms_addrs1 = []
+        ms_pubkeys1 = []
+
+        ms_addrs0.append(nodes[0].getnewaddress())
+        ms_addrs0.append(nodes[1].getnewaddress())
+        ms_pubkeys0.append(nodes[0].getaddressinfo(ms_addrs0[0])['pubkey'])
+        ms_pubkeys0.append(nodes[1].getaddressinfo(ms_addrs0[1])['pubkey'])
+
+        ms_addr0 = nodes[0].addmultisigaddress_part(1, ms_pubkeys0)
+
+        ms_addrs1.append(nodes[0].getnewaddress())
+        ms_addrs1.append(nodes[1].getnewaddress())
+        ms_pubkeys1.append(nodes[0].getaddressinfo(ms_addrs1[0])['pubkey'])
+        ms_pubkeys1.append(nodes[1].getaddressinfo(ms_addrs1[1])['pubkey'])
+
+        ms_addr1 = nodes[0].addmultisigaddress_part(1, ms_pubkeys1, '', False, True)
+
+        script_ms_addr0 = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake, 'addrspend': ms_addr0['address']})
+        script_ms_addr1 = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake, 'addrspend': ms_addr1['address']})
+
+
+        txid = nodes[1].sendtypeto(
+            'part', 'part',
+            [{'address': 'script', 'amount':1, 'script':script_ms_addr0['hex']},
+             {'address': 'script', 'amount':2, 'script':script_ms_addr1['hex']}])
+
+        nodes[0].sendrawtransaction(nodes[1].getrawtransaction(txid))  # Quicker than syncing mempool
+
+        self.stakeBlocks(1)
+        ro = nodes[2].listcoldstakeunspent(addrStake)
+
+        num_found = 0
+        for o in ro:
+            if o['addrspend'] in (ms_addr0['address'], ms_addr1['address']):
+                num_found += 1
+        assert(num_found == 2)
 
 
 if __name__ == '__main__':
