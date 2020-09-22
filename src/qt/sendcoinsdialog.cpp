@@ -451,7 +451,11 @@ void SendCoinsDialog::on_sendButton_clicked()
     QString questionString = tr("Are you sure you want to send?");
     questionString.append("<br /><span style='font-size:10pt;'>");
     questionString.append(tr("Please, review your transaction."));
-    questionString.append("</span><br /><b>" + sTypeFrom + "</b> to <b>" + sTypeTo + "</b><hr />%1");
+    questionString.append("</span><br /><b>" + sTypeFrom + "</b> to <b>" + sTypeTo + "</b>");
+    if (sTypeFrom.toLower() == "anon") {
+        questionString.append(QString(", %1 ring members, %2 %3 per proof.").arg(nRingSize).arg(nMaxInputs).arg(nMaxInputs == 1 ? "input" : "inputs"));
+    }
+    questionString.append("<hr />%1");
 
     if(txFee > 0)
     {

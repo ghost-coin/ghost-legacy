@@ -8,6 +8,8 @@
 - Fixed inconsistent txn records displayed in qt after loading another wallet
 - Added rpc function to change dev fund settings in regtest.
 - wallet: List locked maprecord txns in ListCoins()
+- wallet: p2sh change address works when coldstakingaddress is set.
+- qt: Added tooltips for anon options, display in spend confirm dialog.
 
 
 0.19.1.1

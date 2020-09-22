@@ -109,7 +109,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+177"/>
+        <location line="+1"/>
+        <source>&amp;Verify Address On Hardware Wallet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+204"/>
         <source>Export Address List</source>
         <translation type="unfinished"></translation>
     </message>
@@ -119,7 +124,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+17"/>
         <source>Exporting Failed</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132,13 +137,18 @@
 <context>
     <name>AddressTableModel</name>
     <message>
-        <location filename="../addresstablemodel.cpp" line="+175"/>
+        <location filename="../addresstablemodel.cpp" line="+177"/>
         <source>Label</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3261,7 +3271,7 @@
     <name>SendCoinsDialog</name>
     <message>
         <location filename="../forms/sendcoinsdialog.ui" line="+14"/>
-        <location filename="../sendcoinsdialog.cpp" line="+812"/>
+        <location filename="../sendcoinsdialog.cpp" line="+816"/>
         <source>Send Coins</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3359,7 +3369,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+116"/>
+        <location line="+37"/>
+        <source>Ring size for RCT txns.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>Inputs per RCT proof.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+66"/>
         <source>Transaction Fee:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3486,7 +3506,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sendcoinsdialog.cpp" line="-714"/>
+        <location filename="../sendcoinsdialog.cpp" line="-718"/>
         <source>Copy quantity</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3553,7 +3573,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+11"/>
         <source>Estimated Transaction fee</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4060,7 +4080,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>TrafficGraphWidget</name>
     <message>
-        <location filename="../trafficgraphwidget.cpp" line="+81"/>
+        <location filename="../trafficgraphwidget.cpp" line="+82"/>
         <source>KB/s</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4740,7 +4760,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>WalletModel</name>
     <message>
-        <location filename="../walletmodel.cpp" line="+591"/>
+        <location filename="../walletmodel.cpp" line="+593"/>
         <location line="+4"/>
         <location line="+8"/>
         <source>Wallet Model</source>
