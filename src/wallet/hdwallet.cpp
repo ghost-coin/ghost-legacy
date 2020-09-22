@@ -3541,10 +3541,19 @@ bool CHDWallet::SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r
                 scriptStaking = GetScriptForDestination(idk);
             }
 
-            // Switch to sha256 hash
-            CKeyID256 idChange = r.pkTo.GetID256();
-            r.address = idChange;
-            r.scriptPubKey = GetScriptForDestination(idChange);
+            if (r.address.type() == typeid(ScriptHash) ||
+                r.address.type() == typeid(WitnessV0ScriptHash) ||
+                r.address.type() == typeid(CScriptID256)) {
+                // Pass through p2sh
+            } else {
+                // Switch to sha256 hash
+                if (!r.pkTo.IsValid()) {
+                    return wserrorN(false, sError, __func__, "Change pubkey is unset.");
+                }
+                CKeyID256 idChange = r.pkTo.GetID256();
+                r.address = idChange;
+                r.scriptPubKey = GetScriptForDestination(idChange);
+            }
 
             if (scriptStaking.IsPayToPublicKeyHash()) {
                 CScript script = CScript() << OP_ISCOINSTAKE << OP_IF;

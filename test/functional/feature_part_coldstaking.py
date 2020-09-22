@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2020 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -139,7 +139,7 @@ class ColdStakingTest(ParticlTestFramework):
         ekChange = nodes[0].getnewextaddress()
         assert(ekChange == 'pparszMzzW1247AwkR61QFUH6L8zSJDnRvsS8a2FLwfSsgbeusiLNdBkLRXjFb3E5AXVoR6PJTj9nSEF1feCsCyBdGw165XqVcaWs5HiDmcZrLAX')
 
-        changeaddress = {'coldstakingaddress':coldstakingaddr, 'address_standard':ekChange}
+        changeaddress = {'coldstakingaddress': coldstakingaddr, 'address_standard': ekChange}
         ro = nodes[0].walletsettings('changeaddress', changeaddress)
         assert(ro['changeaddress']['coldstakingaddress'] == coldstakingaddr)
         assert(ro['changeaddress']['address_standard'] == ekChange)
@@ -289,6 +289,46 @@ class ColdStakingTest(ParticlTestFramework):
         self.log.info('Test gettxoutsetinfobyscript')
         ro = nodes[0].gettxoutsetinfobyscript()
         assert(ro['coldstake_paytopubkeyhash']['num_plain'] > 5)
+
+        self.log.info('Test p2sh in changeaddress')
+        ms_addrs0 = []
+        ms_pubkeys0 = []
+        ms_addrs1 = []
+        ms_pubkeys1 = []
+
+        ms_addrs0.append(nodes[0].getnewaddress())
+        ms_addrs0.append(nodes[1].getnewaddress())
+        ms_pubkeys0.append(nodes[0].getaddressinfo(ms_addrs0[0])['pubkey'])
+        ms_pubkeys0.append(nodes[1].getaddressinfo(ms_addrs0[1])['pubkey'])
+
+        ms_addr0 = nodes[0].addmultisigaddress_part(1, ms_pubkeys0)  # ScriptHash
+
+        ms_addrs1.append(nodes[0].getnewaddress())
+        ms_addrs1.append(nodes[1].getnewaddress())
+        ms_pubkeys1.append(nodes[0].getaddressinfo(ms_addrs1[0])['pubkey'])
+        ms_pubkeys1.append(nodes[1].getaddressinfo(ms_addrs1[1])['pubkey'])
+
+        ms_addr1 = nodes[0].addmultisigaddress_part(1, ms_pubkeys1, '', False, True)  # CScriptID256
+
+        coldstakingaddr = nodes[0].validateaddress(nodes[0].getnewaddress(), True)['stakeonly_address']
+        for ms_addr in (ms_addr0['address'], ms_addr1['address']):
+            changeaddress = {'coldstakingaddress': coldstakingaddr, 'address_standard': ms_addr}
+            ro = nodes[0].walletsettings('changeaddress', changeaddress)
+            assert(ro['changeaddress']['coldstakingaddress'] == coldstakingaddr)
+            assert(ro['changeaddress']['address_standard'] == ms_addr)
+
+            addr_to = nodes[0].getnewaddress()
+            rtx = nodes[0].createrawtransaction([], {addr_to: 0.0001})
+            ftx = nodes[0].fundrawtransaction(rtx)
+            dtx = nodes[0].decoderawtransaction(ftx['hex'])
+            n_change = 1 if dtx['vout'][0]['scriptPubKey']['addresses'][0] == addr_to else 0
+            assert(dtx['vout'][n_change]['scriptPubKey']['addresses'][0] == ms_addr)
+            stake_addr = dtx['vout'][n_change]['scriptPubKey']['stakeaddresses'][0]
+            stake_addr_alt = nodes[0].validateaddress(stake_addr, True)['stakeonly_address']
+            print('coldstakingaddr', coldstakingaddr)
+            print('stake_addr_alt', stake_addr_alt)
+            print('stake_addr', stake_addr)
+            assert(stake_addr_alt == coldstakingaddr)
 
 
 if __name__ == '__main__':
