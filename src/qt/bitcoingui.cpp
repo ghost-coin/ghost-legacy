@@ -1110,7 +1110,9 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVer
         if(walletFrame)
         {
             walletFrame->showOutOfSyncWarning(true);
-            modalOverlay->showHide();
+            if (!test_mode) { // QAbstractAnimation::DeleteWhenStopped gets missed
+                modalOverlay->showHide();
+            }
         }
 #endif // ENABLE_WALLET
 

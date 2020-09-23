@@ -243,6 +243,8 @@ public:
         purpose = data.purpose;
         if (m_label.empty() && data.purpose == "unknown") {
             m_change = true;
+        } else {
+            m_change = false;
         }
         vPath = data.vPath;
         fBech32 = data.fBech32;
