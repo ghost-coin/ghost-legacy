@@ -104,19 +104,19 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
     SyncWithValidationInterfaceQueue();
 };
 
-static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amount)
+static void AddAnonTxn(CHDWallet *pwallet, CTxDestination &dest, CAmount amount)
 {
     {
     LOCK(pwallet->cs_wallet);
 
-    BOOST_REQUIRE(address.IsValid());
+    BOOST_REQUIRE(IsValidDestination(dest));
 
     std::vector<CTempRecipient> vecSend;
     std::string sError;
     CTempRecipient r;
     r.nType = OUTPUT_RINGCT;
     r.SetAmount(amount);
-    r.address = address.Get();
+    r.address = dest;
     vecSend.push_back(r);
 
     CTransactionRef tx_new;
@@ -169,9 +169,8 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     {
         LOCK(pwallet->cs_wallet);
-        CBitcoinAddress addr("pdtYqn1fBVpgRa6Am6VRRLH8fkrFr1TuDq");
-        CKeyID idk;
-        BOOST_CHECK(addr.GetKeyID(idk));
+        CTxDestination addr = DecodeDestination("pdtYqn1fBVpgRa6Am6VRRLH8fkrFr1TuDq");
+        CKeyID idk = CKeyID(boost::get<PKHash>(addr));
         BOOST_CHECK(pwallet->IsMine(idk) == ISMINE_SPENDABLE);
 
         const CEKAKey *pak = nullptr;
@@ -337,7 +336,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         }
     }
 
-    BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress", context));
+    BOOST_CHECK_NO_THROW(rv = CallRPC("getnewextaddress testLbl", context));
     std::string extaddr = part::StripQuotes(rv.write());
 
     BOOST_CHECK(pwallet->GetBalance().m_mine_trusted + pwallet->GetStaked() == 12500000108911);
@@ -348,7 +347,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
         BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress", context));
         std::string sSxAddr = part::StripQuotes(rv.write());
 
-        CBitcoinAddress address(sSxAddr);
+        CTxDestination address = DecodeDestination(sSxAddr);
 
 
         AddAnonTxn(pwallet, address, 10 * COIN);

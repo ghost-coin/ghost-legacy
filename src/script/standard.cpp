@@ -425,8 +425,8 @@ public:
         return CScript();
     }
 
-    CScript operator()(const CExtKeyPair &ek) const {
-        LogPrintf("CScriptVisitor(CExtKeyPair) TODO\n");
+    CScript operator()(const CExtPubKey &ek) const {
+        LogPrintf("CScriptVisitor(CExtPubKey) TODO\n");
         return CScript();
     }
 

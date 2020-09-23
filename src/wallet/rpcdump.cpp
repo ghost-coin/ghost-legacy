@@ -718,9 +718,9 @@ UniValue dumpprivkey(const JSONRPCRequest& request)
     }
 
     if (IsParticlWallet(pwallet)) {
-        if (dest.type() == typeid(CExtKeyPair)) {
+        if (dest.type() == typeid(CExtPubKey)) {
             CHDWallet *phdw = GetParticlWallet(pwallet);
-            CExtKeyPair ek = boost::get<CExtKeyPair>(dest);
+            CExtPubKey ek = boost::get<CExtPubKey>(dest);
             CKeyID id = ek.GetID();
             CStoredExtKey sek;
             if (!phdw->GetExtKey(id, sek)) {

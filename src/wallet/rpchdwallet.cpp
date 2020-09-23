@@ -1286,7 +1286,7 @@ static UniValue extkey(const JSONRPCRequest &request)
             fAccount = true;
         } else
         if (addr.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
-            CExtKeyPair ek = boost::get<CExtKeyPair>(addr.Get());
+            CExtPubKey ek = boost::get<CExtPubKey>(addr.Get());
 
             id = ek.GetID();
 
@@ -1725,7 +1725,7 @@ static UniValue getnewextaddress(const JSONRPCRequest &request)
     }
 
     // CBitcoinAddress displays public key only
-    return CBitcoinAddress(sek->kp, fBech32).ToString();
+    return CBitcoinAddress(MakeExtPubKey(sek->kp), fBech32).ToString();
 }
 
 static UniValue getnewstealthaddress(const JSONRPCRequest &request)
@@ -4001,7 +4001,7 @@ static UniValue getcoldstakinginfo(const JSONRPCRequest &request)
     obj.pushKV("enabled", fEnabled);
     if (addrColdStaking.IsValid(CChainParams::EXT_PUBLIC_KEY)) {
         CTxDestination dest = addrColdStaking.Get();
-        CExtKeyPair kp = boost::get<CExtKeyPair>(dest);
+        CExtPubKey kp = boost::get<CExtPubKey>(dest);
         CKeyID idk = kp.GetID();
         CBitcoinAddress addr;
         addr.Set(idk, CChainParams::EXT_KEY_HASH);

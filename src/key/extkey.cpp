@@ -12,6 +12,17 @@
 
 RecursiveMutex cs_extKey;
 
+CExtPubKey MakeExtPubKey(const CExtKeyPair &kp)
+{
+    CExtPubKey pk;
+    pk.nDepth = kp.nDepth;
+    memcpy(pk.vchFingerprint, kp.vchFingerprint, sizeof(pk.vchFingerprint));
+    pk.nChild = kp.nChild;
+    memcpy(pk.chaincode, kp.chaincode, sizeof(pk.chaincode));
+    pk.pubkey = kp.pubkey;
+    return pk;
+};
+
 const char *ExtKeyGetString(int ind)
 {
     switch (ind) {

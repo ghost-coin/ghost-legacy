@@ -4466,7 +4466,7 @@ public:
         return obj;
     }
 
-    UniValue operator()(const CExtKeyPair &ekp) const {
+    UniValue operator()(const CExtPubKey &ekp) const {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("isextkey", true);
         return obj;
@@ -4618,8 +4618,8 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
     isminetype mine = ISMINE_NO;
     if (IsParticlWallet(pwallet)) {
         const CHDWallet *phdw = GetParticlWallet(pwallet);
-        if (dest.type() == typeid(CExtKeyPair)) {
-            CExtKeyPair ek = boost::get<CExtKeyPair>(dest);
+        if (dest.type() == typeid(CExtPubKey)) {
+            CExtPubKey ek = boost::get<CExtPubKey>(dest);
             CKeyID id = ek.GetID();
             mine = phdw->HaveExtKey(id);
         } else

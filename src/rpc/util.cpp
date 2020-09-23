@@ -248,7 +248,7 @@ public:
         return obj;
     }
 
-    UniValue operator()(const CExtKeyPair &ekp) const {
+    UniValue operator()(const CExtPubKey &ekp) const {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("isextkey", true);
         return obj;

@@ -81,6 +81,7 @@ public:
     bool Set(const CKeyID &id, CChainParams::Base58Type prefix, bool fBech32 = false);
     bool Set(const CStealthAddress &sx, bool fBech32 = false);
     bool Set(const CExtKeyPair &ek, bool fBech32 = false);
+    bool Set(const CExtPubKey &ek, bool fBech32 = false);
     bool Set(const CTxDestination &dest, bool fBech32 = false);
 
     bool IsValidStealthAddress() const;
@@ -212,8 +213,7 @@ public:
     {
         uint8_t vch[74];
 
-        switch (type)
-        {
+        switch (type) {
             case CChainParams::EXT_SECRET_KEY:
             case CChainParams::EXT_SECRET_KEY_BTC:
                 key.EncodeV(vch);
@@ -223,8 +223,7 @@ public:
             default:
                 key.EncodeP(vch);
                 break;
-        };
-
+        }
         SetData(Params().Base58Prefix(type), vch, vch+74);
     };
 
