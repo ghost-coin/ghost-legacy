@@ -1345,9 +1345,10 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
         return rv;
     }
 
-
-    m_blind_scratch = secp256k1_scratch_space_create(secp256k1_ctx_blind, 1024 * 1024);
-    assert(m_blind_scratch);
+    if (secp256k1_ctx_blind) {
+        m_blind_scratch = secp256k1_scratch_space_create(secp256k1_ctx_blind, 1024 * 1024);
+        assert(m_blind_scratch);
+    }
 
     PostProcessUnloadSpent();
 
