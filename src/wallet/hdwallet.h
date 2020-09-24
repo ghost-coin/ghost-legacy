@@ -117,7 +117,7 @@ public:
 
 
     isminetype HaveAddress(const CTxDestination &dest);
-    isminetype HaveKey(const CKeyID &address, const CEKAKey *&pak, const CEKASCKey *&pasc, CExtKeyAccount *&pa) const;
+    isminetype HaveKey(const CKeyID &address, const CEKAKey *&pak, const CEKASCKey *&pasc, CExtKeyAccount *&pa) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     isminetype IsMine(const CKeyID &address) const override;
     bool HaveKey(const CKeyID &address) const override;
 
@@ -201,7 +201,7 @@ public:
 
     bool IsChange(const CTxOutBase *txout) const override;
 
-    bool GetChangePath(const CScript &script_pubkey, std::vector<uint32_t> &change_path) const;
+    bool GetChangePath(const CScript &script_pubkey, std::vector<uint32_t> &change_path) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     int GetChangeAddress(CPubKey &pk);
 

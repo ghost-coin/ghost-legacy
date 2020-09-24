@@ -1004,7 +1004,6 @@ isminetype CHDWallet::HaveAddress(const CTxDestination &dest)
 isminetype CHDWallet::HaveKey(const CKeyID &address, const CEKAKey *&pak, const CEKASCKey *&pasc, CExtKeyAccount *&pa) const
 {
     AssertLockHeld(cs_wallet);
-    //LOCK(cs_wallet);
 
     pak = nullptr;
     pasc = nullptr;
@@ -1023,6 +1022,13 @@ isminetype CHDWallet::HaveKey(const CKeyID &address, const CEKAKey *&pak, const 
             if (0 != ExtKeySaveKey(pa, address, ak)) {
                 WalletLogPrintf("%s: ExtKeySaveKey failed.\n", __func__);
                 return ISMINE_NO;
+            }
+            // pak moved from mapLookAhead to mapKeys
+            AccKeyMap::const_iterator mi = pa->mapKeys.find(address);
+            if (mi != pa->mapKeys.end()) {
+                pak = &mi->second;
+            } else {
+                WalletLogPrintf("%s: Key not moved.\n", __func__);
             }
         }
         return ismine;
