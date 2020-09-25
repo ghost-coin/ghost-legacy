@@ -163,8 +163,8 @@ public:
     using CWallet::IsMine;
     isminetype IsMine(const CTxIn& txin) const override;
     isminetype IsMine(const CScript &scriptPubKey, CKeyID &keyID,
-        const CEKAKey *&pak, const CEKASCKey *&pasc, CExtKeyAccount *&pa, bool &isInvalid, SigVersion = SigVersion::BASE) const;
-    isminetype IsMineP2SH(const CScript& script) const;
+        const CEKAKey *&pak, const CEKASCKey *&pasc, CExtKeyAccount *&pa, bool &isInvalid, SigVersion = SigVersion::BASE) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    isminetype IsMineP2SH(const CScript& script) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     isminetype IsMine(const CTxOutBase *txout) const override;
     bool IsMine(const CTransaction& tx) const override;
@@ -336,7 +336,7 @@ public:
     int ExtKeyGetDestination(const CExtKeyPair &ek, CPubKey &pkDest, uint32_t &nKey);
     int ExtKeyUpdateLooseKey(const CExtKeyPair &ek, uint32_t nKey, bool fAddToAddressBook) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
-    bool GetFullChainPath(const CExtKeyAccount *pa, size_t nChain, std::vector<uint32_t> &vPath) const;
+    bool GetFullChainPath(const CExtKeyAccount *pa, size_t nChain, std::vector<uint32_t> &vPath) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /**
      * Insert additional inputs into the transaction by
@@ -394,11 +394,11 @@ public:
     int InsertTempTxn(const uint256 &txid, const CTransactionRecord *rtx) const;
     const CWalletTx *GetWalletOrTempTx(const uint256& hash, const CTransactionRecord *rtx) const;
 
-    int OwnStandardOut(const CTxOutStandard *pout, const CTxOutData *pdata, COutputRecord &rout, bool &fUpdated);
+    int OwnStandardOut(const CTxOutStandard *pout, const CTxOutData *pdata, COutputRecord &rout, bool &fUpdated) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     int OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOutCT *pout, const CStoredExtKey *pc, uint32_t &nLastChild,
-        COutputRecord &rout, CStoredTransaction &stx, bool &fUpdated);
+        COutputRecord &rout, CStoredTransaction &stx, bool &fUpdated) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     int OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOutRingCT *pout, const CStoredExtKey *pc, uint32_t &nLastChild,
-        COutputRecord &rout, CStoredTransaction &stx, bool &fUpdated);
+        COutputRecord &rout, CStoredTransaction &stx, bool &fUpdated) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool AddTxinToSpends(const CTxIn &txin, const uint256 &txhash);
 

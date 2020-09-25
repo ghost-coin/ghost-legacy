@@ -430,6 +430,7 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         CTxDestination addr;
         BOOST_CHECK(!ExtractDestination(s, addr));
 
+        LOCK(keystore.cs_wallet);
         BOOST_CHECK(keystore.IsMineP2SH(s));
         BOOST_CHECK(!emptykeystore.IsMine(s));
         BOOST_CHECK(!partialkeystore.IsMine(s));
@@ -447,6 +448,7 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         BOOST_CHECK(addrs[0] == keyaddr[0]);
         BOOST_CHECK(addrs[1] == keyaddr[1]);
         BOOST_CHECK(nRequired == 1);
+        LOCK(keystore.cs_wallet);
         BOOST_CHECK(keystore.IsMineP2SH(s));
         BOOST_CHECK(!emptykeystore.IsMine(s));
         BOOST_CHECK(!partialkeystore.IsMine(s));

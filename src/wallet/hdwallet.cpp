@@ -2700,6 +2700,8 @@ bool CHDWallet::IsChange(const CTxOutBase *txout) const
     }
     const CScript &scriptPubKey = *ps;
 
+    LOCK(cs_wallet);
+
     CKeyID idk;
     const CEKAKey *pak = nullptr;
     const CEKASCKey *pasc = nullptr;
@@ -2792,34 +2794,30 @@ int CHDWallet::GetChangeAddress(CPubKey &pk)
 
 void CHDWallet::ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec)
 {
-    if (addr.type() == typeid(CStealthAddress))
-    {
+    if (addr.type() == typeid(CStealthAddress)) {
         CStealthAddress sx = boost::get<CStealthAddress>(addr);
 
         CStealthAddressIndexed sxi;
         sx.ToRaw(sxi.addrRaw);
         uint32_t sxId;
-        if (GetStealthKeyIndex(sxi, sxId))
-        {
+        if (GetStealthKeyIndex(sxi, sxId)){
             rec.vPath.resize(5);
             rec.vPath[0] = ORA_STEALTH;
             memcpy(&rec.vPath[1], &sxId, 4);
-        };
+        }
     } else
-    if (addr.type() == typeid(CExtPubKey))
-    {
-        CExtPubKey ek = boost::get<CExtPubKey>(addr);
+    if (addr.type() == typeid(CExtPubKey)) {
         /*
+        CExtPubKey ek = boost::get<CExtPubKey>(addr);
         rec.vPath.resize(21);
         rec.vPath[0] = ORA_EXTKEY;
         CKeyID eid = ek.GetID()();
         memcpy(&rec.vPath[1], eid.begin(), 20)
         */
     } else
-    if (addr.type() == typeid(PKHash))
-    {
+    if (addr.type() == typeid(PKHash)) {
         //ORA_STANDARD
-    };
+    }
     return;
 };
 

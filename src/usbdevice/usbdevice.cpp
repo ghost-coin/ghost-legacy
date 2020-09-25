@@ -211,13 +211,17 @@ bool DeviceSignatureCreator::CreateSig(const SigningProvider &provider, std::vec
             const CEKAKey *pak = nullptr;
             const CEKASCKey *pasc = nullptr;
             CExtKeyAccount *pa = nullptr;
-            if (!pw->HaveKey(keyid, pak, pasc, pa) || !pa) {
-                return false;
+            {
+                LOCK(pw->cs_wallet);
+                if (!pw->HaveKey(keyid, pak, pasc, pa) || !pa) {
+                    return false;
+                }
             }
 
             std::vector<uint32_t> vPath;
             std::vector<uint8_t> vSharedSecret;
             if (pak) {
+                LOCK(pw->cs_wallet);
                 if (!pw->GetFullChainPath(pa, pak->nParent, vPath)) {
                     return error("%s: GetFullAccountPath failed.", __func__);
                 }
@@ -229,8 +233,11 @@ bool DeviceSignatureCreator::CreateSig(const SigningProvider &provider, std::vec
                 if (miSk == pa->mapStealthKeys.end()) {
                     return error("%s: CEKASCKey Stealth key not found.", __func__);
                 }
-                if (!pw->GetFullChainPath(pa, miSk->second.akSpend.nParent, vPath)) {
-                    return error("%s: GetFullAccountPath failed.", __func__);
+                {
+                    LOCK(pw->cs_wallet);
+                    if (!pw->GetFullChainPath(pa, miSk->second.akSpend.nParent, vPath)) {
+                        return error("%s: GetFullAccountPath failed.", __func__);
+                    }
                 }
 
                 vPath.push_back(miSk->second.akSpend.nKey);
