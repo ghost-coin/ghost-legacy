@@ -285,7 +285,7 @@ static void SetFeeEstimateMode(const CWallet* pwallet, CCoinControl& cc, const U
         cc.m_feerate = CFeeRate(fee_rate);
 
         // default RBF to true for explicit fee rate modes
-        if (cc.m_signal_bip125_rbf == boost::none) cc.m_signal_bip125_rbf = true;
+        if (cc.m_signal_bip125_rbf == nullopt) cc.m_signal_bip125_rbf = true;
     } else if (!estimate_param.isNull()) {
         cc.m_confirm_target = ParseConfirmTarget(estimate_param, pwallet->chain().estimateMaxBlocks());
     }
@@ -436,7 +436,7 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: This wallet has no available keys");
     }
 
-    OutputType output_type = pwallet->m_default_change_type != OutputType::CHANGE_AUTO ? pwallet->m_default_change_type : pwallet->m_default_address_type;
+    OutputType output_type = pwallet->m_default_change_type.get_value_or(pwallet->m_default_address_type);
     if (!request.params[0].isNull()) {
         if (!ParseOutputType(request.params[0].get_str(), output_type)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Unknown address type '%s'", request.params[0].get_str()));
@@ -489,36 +489,54 @@ static UniValue setlabel(const JSONRPCRequest& request)
     return NullUniValue;
 }
 
+void ParseRecipients(const UniValue& address_amounts, const UniValue& subtract_fee_outputs, std::vector<CRecipient> &recipients) {
+    std::set<CTxDestination> destinations;
+    int i = 0;
+    for (const std::string& address: address_amounts.getKeys()) {
+        CTxDestination dest = DecodeDestination(address);
+        if (!IsValidDestination(dest)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Particl address: ") + address);
+        }
 
-static CTransactionRef SendMoney(CWallet* const pwallet, const CTxDestination& address, CAmount nValue, bool fSubtractFeeFromAmount, const CCoinControl& coin_control, mapValue_t mapValue)
-{
-    CAmount curBalance = pwallet->GetBalance(0, coin_control.m_avoid_address_reuse).m_mine_trusted;
+        if (destinations.count(dest)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated address: ") + address);
+        }
+        destinations.insert(dest);
 
-    // Check amount
-    if (nValue <= 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
+        CScript script_pub_key = GetScriptForDestination(dest);
+        CAmount amount = AmountFromValue(address_amounts[i++]);
 
-    if (nValue > curBalance)
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
+        bool subtract_fee = false;
+        for (unsigned int idx = 0; idx < subtract_fee_outputs.size(); idx++) {
+            const UniValue& addr = subtract_fee_outputs[idx];
+            if (addr.get_str() == address) {
+                subtract_fee = true;
+            }
+        }
 
-    // Parse Bitcoin address
-    CScript scriptPubKey = GetScriptForDestination(address);
-
-    // Create and send the transaction
-    CAmount nFeeRequired = 0;
-    bilingual_str error;
-    std::vector<CRecipient> vecSend;
-    int nChangePosRet = -1;
-    CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
-    vecSend.push_back(recipient);
-    CTransactionRef tx;
-    if (!pwallet->CreateTransaction(vecSend, tx, nFeeRequired, nChangePosRet, error, coin_control)) {
-        if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance)
-            error = strprintf(Untranslated("Error: This transaction requires a transaction fee of at least %s"), FormatMoney(nFeeRequired));
-        throw JSONRPCError(RPC_WALLET_ERROR, error.original);
+        CRecipient recipient = {script_pub_key, amount, subtract_fee};
+        recipients.push_back(recipient);
     }
-    pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */);
-    return tx;
+}
+
+UniValue SendMoney(CWallet* const pwallet, const CCoinControl &coin_control, std::vector<CRecipient> &recipients, mapValue_t map_value)
+{
+    EnsureWalletIsUnlocked(pwallet);
+
+    // Shuffle recipient list
+    std::shuffle(recipients.begin(), recipients.end(), FastRandomContext());
+
+    // Send
+    CAmount nFeeRequired = 0;
+    int nChangePosRet = -1;
+    bilingual_str error;
+    CTransactionRef tx;
+    bool fCreated = pwallet->CreateTransaction(recipients, tx, nFeeRequired, nChangePosRet, error, coin_control, !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
+    if (!fCreated) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, error.original);
+    }
+    pwallet->CommitTransaction(tx, std::move(map_value), {} /* orderForm */);
+    return tx->GetHash().GetHex();
 }
 
 extern UniValue sendtypeto(const JSONRPCRequest &request);
@@ -568,16 +586,6 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
     pwallet->BlockUntilSyncedToCurrentChain();
 
     LOCK(pwallet->cs_wallet);
-
-    CTxDestination dest = DecodeDestination(request.params[0].get_str());
-    if (!IsValidDestination(dest)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
-    }
-
-    // Amount
-    CAmount nAmount = AmountFromValue(request.params[1]);
-    if (nAmount <= 0)
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
 
     // Wallet comments
     mapValue_t mapValue;
@@ -669,8 +677,18 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
 
     EnsureWalletIsUnlocked(pwallet);
 
-    CTransactionRef tx = SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control, std::move(mapValue));
-    return tx->GetHash().GetHex();
+    UniValue address_amounts(UniValue::VOBJ);
+    const std::string address = request.params[0].get_str();
+    address_amounts.pushKV(address, request.params[1]);
+    UniValue subtractFeeFromAmount(UniValue::VARR);
+    if (fSubtractFeeFromAmount) {
+        subtractFeeFromAmount.push_back(address);
+    }
+
+    std::vector<CRecipient> recipients;
+    ParseRecipients(address_amounts, subtractFeeFromAmount, recipients);
+
+    return SendMoney(pwallet, coin_control, recipients, mapValue);
 }
 
 static UniValue listaddressgroupings(const JSONRPCRequest& request)
@@ -803,7 +821,7 @@ static CAmount GetReceived(const CWallet& wallet, const UniValue& params, bool b
         // Get the address
         CTxDestination dest = DecodeDestination(params[0].get_str());
         if (!IsValidDestination(dest)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Particl address");
         }
         CScript script_pub_key = GetScriptForDestination(dest);
         if (!wallet.IsMine(script_pub_key)) {
@@ -1067,7 +1085,6 @@ static UniValue sendmany(const JSONRPCRequest& request)
         coin_control.m_signal_bip125_rbf = request.params[5].get_bool();
     }
 
-
     SetFeeEstimateMode(pwallet, coin_control, request.params[7], request.params[6]);
 
     if (IsParticlWallet(pwallet)) {
@@ -1108,7 +1125,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
         params.push_back(sComment);
         params.push_back(sCommentTo);
 
-        // Add coinstake params
+        // Add coincontrol params
         if (request.params.size() > 5) {
             UniValue uvRingsize(4);
             params.push_back(uvRingsize);
@@ -1170,19 +1187,10 @@ static UniValue sendmany(const JSONRPCRequest& request)
 
     EnsureWalletIsUnlocked(pwallet);
 
-    // Shuffle recipient list
-    std::shuffle(vecSend.begin(), vecSend.end(), FastRandomContext());
+    std::vector<CRecipient> recipients;
+    ParseRecipients(sendTo, subtractFeeFromAmount, recipients);
 
-    // Send
-    CAmount nFeeRequired = 0;
-    int nChangePosRet = -1;
-    bilingual_str error;
-    CTransactionRef tx;
-    bool fCreated = pwallet->CreateTransaction(vecSend, tx, nFeeRequired, nChangePosRet, error, coin_control);
-    if (!fCreated)
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, error.original);
-    pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */);
-    return tx->GetHash().GetHex();
+    return SendMoney(pwallet, coin_control, recipients, std::move(mapValue));
 }
 
 static UniValue addmultisigaddress(const JSONRPCRequest& request)
@@ -3870,10 +3878,11 @@ void FundTransaction(CWallet* const pwallet, CMutableTransaction& tx, CAmount& f
             if (options.exists("changeAddress")) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot specify both changeAddress and address_type options");
             }
-            coinControl.m_change_type = pwallet->m_default_change_type;
-            if (!ParseOutputType(options["change_type"].get_str(), *coinControl.m_change_type)) {
+            OutputType out_type;
+            if (!ParseOutputType(options["change_type"].get_str(), out_type)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Unknown change type '%s'", options["change_type"].get_str()));
             }
+            coinControl.m_change_type.emplace(out_type);
         }
 
         coinControl.fAllowWatchOnly = ParseIncludeWatchonly(options["includeWatching"], *pwallet);
@@ -4018,7 +4027,7 @@ static UniValue fundrawtransaction(const JSONRPCRequest& request)
     CAmount fee;
     int change_position;
     CCoinControl coin_control;
-    // Automatically select (additional) coins. Can be overriden by options.add_inputs.
+    // Automatically select (additional) coins. Can be overridden by options.add_inputs.
     coin_control.m_add_inputs = true;
     FundTransaction(pwallet, tx, fee, change_position, request.params[1], coin_control);
 
@@ -4386,7 +4395,7 @@ public:
     {
         // Always present: script type and redeemscript
         std::vector<std::vector<unsigned char>> solutions_data;
-        txnouttype which_type = Solver(subscript, solutions_data);
+        TxoutType which_type = Solver(subscript, solutions_data);
         obj.pushKV("script", GetTxnOutputType(which_type));
         obj.pushKV("hex", HexStr(subscript));
 
@@ -4403,7 +4412,7 @@ public:
             // Always report the pubkey at the top level, so that `getnewaddress()['pubkey']` always works.
             if (subobj.exists("pubkey")) obj.pushKV("pubkey", subobj["pubkey"]);
             obj.pushKV("embedded", std::move(subobj));
-        } else if (which_type == TX_MULTISIG) {
+        } else if (which_type == TxoutType::MULTISIG) {
             // Also report some information on multisig scripts (which do not have a corresponding address).
             // TODO: abstract out the common functionality between this logic and ExtractDestinations.
             obj.pushKV("sigsrequired", solutions_data[0][0]);
@@ -5081,7 +5090,7 @@ UniValue walletcreatefundedpsbt(const JSONRPCRequest& request)
     CMutableTransaction rawTx = ConstructTransaction(request.params[0], request.params[1], request.params[2], rbf);
     CCoinControl coin_control;
     // Automatically select coins, unless at least one is manually selected. Can
-    // be overriden by options.add_inputs.
+    // be overridden by options.add_inputs.
     coin_control.m_add_inputs = rawTx.vin.size() == 0;
     FundTransaction(pwallet, rawTx, fee, change_position, request.params[3], coin_control);
 

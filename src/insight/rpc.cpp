@@ -754,12 +754,12 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
 
-    if (::BlockIndex().count(hash) == 0) {
+    if (g_chainman.BlockIndex().count(hash) == 0) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
     }
 
     CBlock block;
-    CBlockIndex* pblockindex = ::BlockIndex()[hash];
+    CBlockIndex* pblockindex = g_chainman.BlockIndex()[hash];
 
     if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Block not available (pruned data)");
@@ -882,7 +882,7 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
         pcursor = std::unique_ptr<CCoinsViewCursor>(::ChainstateActive().CoinsDB().Cursor());
         assert(pcursor);
         hashBlock = pcursor->GetBestBlock();
-        nHeight = ::BlockIndex().find(hashBlock)->second->nHeight;
+        nHeight = g_chainman.BlockIndex().find(hashBlock)->second->nHeight;
     }
 
     class PerScriptTypeStats {
@@ -1156,12 +1156,12 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
     ColdStakeIndexLinkKey seek_key;
     CTxDestination stake_dest = DecodeDestination(request.params[0].get_str(), true);
     if (stake_dest.type() == typeid(PKHash)) {
-        seek_key.m_stake_type = TX_PUBKEYHASH;
+        seek_key.m_stake_type = TxoutType::PUBKEYHASH;
         PKHash id = boost::get<PKHash>(stake_dest);
         memcpy(seek_key.m_stake_id.begin(), id.begin(), 20);
     } else
     if (stake_dest.type() == typeid(CKeyID256)) {
-        seek_key.m_stake_type = TX_PUBKEYHASH256;
+        seek_key.m_stake_type = TxoutType::PUBKEYHASH256;
         seek_key.m_stake_id = boost::get<CKeyID256>(stake_dest);
     } else {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unrecognised stake address type.");
@@ -1236,22 +1236,22 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
                     }
 
                     switch (lk.m_spend_type) {
-                        case TX_PUBKEYHASH: {
+                        case TxoutType::PUBKEYHASH: {
                             PKHash idk;
                             memcpy(idk.begin(), lk.m_spend_id.begin(), 20);
                             output.pushKV("addrspend", EncodeDestination(idk));
                             }
                             break;
-                        case TX_PUBKEYHASH256:
+                        case TxoutType::PUBKEYHASH256:
                             output.pushKV("addrspend", EncodeDestination(lk.m_spend_id));
                             break;
-                        case TX_SCRIPTHASH: {
+                        case TxoutType::SCRIPTHASH: {
                             ScriptHash ids;
                             memcpy(ids.begin(), lk.m_spend_id.begin(), 20);
                             output.pushKV("addrspend", EncodeDestination(ids));
                             }
                             break;
-                        case TX_SCRIPTHASH256: {
+                        case TxoutType::SCRIPTHASH256: {
                             CScriptID256 ids;
                             memcpy(ids.begin(), lk.m_spend_id.begin(), 32);
                             output.pushKV("addrspend", EncodeDestination(ids));

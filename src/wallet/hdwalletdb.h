@@ -100,7 +100,7 @@ public:
     {
         pkEphem = pkEphem_;
         pkScan = pkScan_;
-    };
+    }
 
     CPubKey pkEphem;
     CPubKey pkScan;
@@ -209,19 +209,19 @@ public:
 
     bool InTxn()
     {
-        return m_batch.pdb && m_batch.activeTxn;
+        return m_batch && m_batch->pdb && m_batch->activeTxn;
     }
 
     Dbc *GetTxnCursor()
     {
-        if (!m_batch.pdb || !m_batch.activeTxn) {
+        if (!m_batch || !m_batch->pdb || !m_batch->activeTxn) {
             return nullptr;
         }
 
-        DbTxn *ptxnid = m_batch.activeTxn; // call TxnBegin first
+        DbTxn *ptxnid = m_batch->activeTxn; // call TxnBegin first
 
         Dbc *pcursor = nullptr;
-        int ret = m_batch.pdb->cursor(ptxnid, &pcursor, 0);
+        int ret = m_batch->pdb->cursor(ptxnid, &pcursor, 0);
         if (ret != 0) {
             return nullptr;
         }
@@ -230,7 +230,14 @@ public:
 
     Dbc *GetCursor()
     {
-        return m_batch.GetCursor();
+        if (!m_batch || !m_batch->pdb) {
+            return nullptr;
+        }
+        Dbc* pcursor = nullptr;
+        int ret = m_batch->pdb->cursor(nullptr, &pcursor, 0);
+        if (ret != 0)
+            return nullptr;
+        return pcursor;
     }
 
     template< typename T>
@@ -240,7 +247,7 @@ public:
             return false;
         }
 
-        if (m_batch.fReadOnly) {
+        if (m_batch->fReadOnly) {
             assert(!"Replace called on database in read-only mode");
         }
 

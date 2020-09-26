@@ -90,8 +90,10 @@ public:
 /** Get BerkeleyEnvironment and database filename given a wallet path. */
 std::shared_ptr<BerkeleyEnvironment> GetWalletEnv(const fs::path& wallet_path, std::string& database_filename);
 
-/** Return wheter a BDB wallet database is currently loaded. */
+/** Return whether a BDB wallet database is currently loaded. */
 bool IsBDBWalletLoaded(const fs::path& wallet_path);
+
+class BerkeleyBatch;
 
 /** An instance of this class represents one database.
  * For BerkeleyDB this is just a (env, strFile) tuple.
@@ -131,6 +133,9 @@ public:
     /** Make sure all changes are flushed to disk.
      */
     void Flush(bool shutdown);
+    /* flush the wallet passively (TRY_LOCK)
+       ideal to be called periodically */
+    bool PeriodicFlush();
 
     void IncrementUpdateCounter();
 
@@ -140,6 +145,9 @@ public:
     unsigned int nLastSeen;
     unsigned int nLastFlushed;
     int64_t nLastWalletUpdate;
+
+    /** Verifies the environment and database file */
+    bool Verify(bilingual_str& error);
 
     /**
      * Pointer to shared database environment.
@@ -155,6 +163,9 @@ public:
     /** Database pointer. This is initialized lazily and reset during flushes, so it can be null. */
     std::unique_ptr<Db> m_db;
 
+    /** Make a BerkeleyBatch connected to this database */
+    std::unique_ptr<BerkeleyBatch> MakeBatch(const char* mode, bool flush_on_close);
+
 private:
     std::string strFile;
 
@@ -166,7 +177,7 @@ private:
 };
 
 /** RAII class that provides access to a Berkeley database */
-class BerkeleyBatch
+class BerkeleyBatch : public DatabaseBatch
 {
 public:
     /** RAII class that automatically cleanses its data on destruction */
@@ -192,114 +203,38 @@ public:
     };
 
 //private:
-    bool ReadKey(CDataStream& key, CDataStream& value);
-    bool WriteKey(CDataStream& key, CDataStream& value, bool overwrite=true);
-    bool EraseKey(CDataStream& key);
-    bool HasKey(CDataStream& key);
+    bool ReadKey(CDataStream&& key, CDataStream& value, int nFlags=0) override;
+    bool WriteKey(CDataStream&& key, CDataStream&& value, bool overwrite = true) override;
+    bool EraseKey(CDataStream&& key) override;
+    bool HasKey(CDataStream&& key) override;
 
 //protected:
     Db* pdb;
     std::string strFile;
     DbTxn* activeTxn;
+    Dbc* m_cursor;
     bool fReadOnly;
     bool fFlushOnClose;
     BerkeleyEnvironment *env;
 
 public:
     explicit BerkeleyBatch(BerkeleyDatabase& database, const char* pszMode = "r+", bool fFlushOnCloseIn=true);
-    ~BerkeleyBatch() { Close(); }
+    ~BerkeleyBatch() override { Close(); }
 
     BerkeleyBatch(const BerkeleyBatch&) = delete;
     BerkeleyBatch& operator=(const BerkeleyBatch&) = delete;
 
-    void Flush();
-    void Close();
+    void Flush() override;
+    void Close() override;
 
-    /* flush the wallet passively (TRY_LOCK)
-       ideal to be called periodically */
-    static bool PeriodicFlush(BerkeleyDatabase& database);
-    /* verifies the database environment */
-    static bool VerifyEnvironment(const fs::path& file_path, bilingual_str& errorStr);
-    /* verifies the database file */
-    static bool VerifyDatabaseFile(const fs::path& file_path, bilingual_str& errorStr);
+    bool StartCursor() override;
+    bool ReadAtCursor(CDataStream& ssKey, CDataStream& ssValue, bool& complete) override;
+    void CloseCursor() override;
+    bool TxnBegin() override;
+    bool TxnCommit() override;
+    bool TxnAbort() override;
 
-    template <typename K, typename T>
-    bool Read(const K& key, T& value, uint32_t nFlags=0)
-    {
-        if (!pdb)
-            return false;
-
-        // Key
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.reserve(1000);
-        ssKey << key;
-        SafeDbt datKey(ssKey.data(), ssKey.size());
-
-        // Read
-        SafeDbt datValue;
-        int ret = pdb->get(activeTxn, datKey, datValue, nFlags);
-        bool success = false;
-        if (datValue.get_data() != nullptr) {
-            // Unserialize value
-            try {
-                CDataStream ssValue((char*)datValue.get_data(), (char*)datValue.get_data() + datValue.get_size(), SER_DISK, CLIENT_VERSION);
-                ssValue >> value;
-                success = true;
-            } catch (const std::exception&) {
-                // In this case success remains 'false'
-            }
-        }
-        return ret == 0 && success;
-    }
-
-    template <typename K, typename T>
-    bool Write(const K& key, const T& value, bool fOverwrite = true)
-    {
-        // Key
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.reserve(1000);
-        ssKey << key;
-
-        // Value
-        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-        ssValue.reserve(10000);
-        ssValue << value;
-
-        // Write
-        return WriteKey(ssKey, ssValue, fOverwrite);
-    }
-
-    template <typename K>
-    bool Erase(const K& key)
-    {
-        // Key
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.reserve(1000);
-        ssKey << key;
-
-        // Erase
-        return EraseKey(ssKey);
-    }
-
-    template <typename K>
-    bool Exists(const K& key)
-    {
-        // Key
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.reserve(1000);
-        ssKey << key;
-
-        // Exists
-        return HasKey(ssKey);
-    }
-
-    Dbc* GetCursor();
-    int ReadAtCursor(Dbc* pcursor, CDataStream& ssKey, CDataStream& ssValue, bool setRange = false);
-    bool TxnBegin();
-    bool TxnCommit();
-    bool TxnAbort();
-
-    bool static Rewrite(BerkeleyDatabase& database, const char* pszSkip = nullptr);
+    int ReadAtCursor2(Dbc* pcursor, CDataStream& ssKey, CDataStream& ssValue, bool setRange = false);
 };
 
 std::string BerkeleyDatabaseVersion();

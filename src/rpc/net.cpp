@@ -113,7 +113,7 @@ static UniValue getpeerinfo(const JSONRPCRequest& request)
                             {RPCResult::Type::BOOL, "addnode", "Whether connection was due to addnode/-connect or if it was an automatic/inbound connection"},
                             {RPCResult::Type::NUM, "startingheight", "The starting height (block) of the peer"},
                             {RPCResult::Type::NUM, "currentheight", "The current height (block) of the peer"},
-                            {RPCResult::Type::NUM, "banscore", "The ban score"},
+                            {RPCResult::Type::NUM, "banscore", "The ban score (DEPRECATED, returned only if config option -deprecatedrpc=banscore is passed)"},
                             {RPCResult::Type::NUM, "synced_headers", "The last header we have in common with this peer"},
                             {RPCResult::Type::NUM, "synced_blocks", "The last block we have in common with this peer"},
                             {RPCResult::Type::NUM, "duplicate_count", "The number of already received blocks or headers sent by this peer"},
@@ -195,7 +195,10 @@ static UniValue getpeerinfo(const JSONRPCRequest& request)
         obj.pushKV("startingheight", stats.nStartingHeight);
         obj.pushKV("currentheight", stats.nChainHeight);
         if (fStateStats) {
-            obj.pushKV("banscore", statestats.nMisbehavior);
+            //if (IsDeprecatedRPCEnabled("banscore")) {
+                // banscore is deprecated in v0.21 for removal in v0.22
+                obj.pushKV("banscore", statestats.nMisbehavior);
+            //}
             obj.pushKV("synced_headers", statestats.nSyncHeight);
             obj.pushKV("synced_blocks", statestats.nCommonHeight);
             obj.pushKV("duplicate_count", statestats.nDuplicateCount);
@@ -622,12 +625,12 @@ static UniValue setban(const JSONRPCRequest& request)
             absolute = true;
 
         if (isSubnet) {
-            node.banman->Ban(subNet, BanReasonManuallyAdded, banTime, absolute);
+            node.banman->Ban(subNet, banTime, absolute);
             if (node.connman) {
                 node.connman->DisconnectNode(subNet);
             }
         } else {
-            node.banman->Ban(netAddr, BanReasonManuallyAdded, banTime, absolute);
+            node.banman->Ban(netAddr, banTime, absolute);
             if (node.connman) {
                 node.connman->DisconnectNode(netAddr);
             }
@@ -636,7 +639,7 @@ static UniValue setban(const JSONRPCRequest& request)
     else if(strCommand == "remove")
     {
         if (!( isSubnet ? node.banman->Unban(subNet) : node.banman->Unban(netAddr) )) {
-            throw JSONRPCError(RPC_CLIENT_INVALID_IP_OR_SUBNET, "Error: Unban failed. Requested address/subnet was not previously banned.");
+            throw JSONRPCError(RPC_CLIENT_INVALID_IP_OR_SUBNET, "Error: Unban failed. Requested address/subnet was not previously manually banned.");
         }
     }
     return NullUniValue;
@@ -645,7 +648,7 @@ static UniValue setban(const JSONRPCRequest& request)
 static UniValue listbanned(const JSONRPCRequest& request)
 {
             RPCHelpMan{"listbanned",
-                "\nList all banned IPs/Subnets.\n",
+                "\nList all manually banned IPs/Subnets.\n",
                 {},
         RPCResult{RPCResult::Type::ARR, "", "",
             {
@@ -654,7 +657,6 @@ static UniValue listbanned(const JSONRPCRequest& request)
                         {RPCResult::Type::STR, "address", ""},
                         {RPCResult::Type::NUM_TIME, "banned_until", ""},
                         {RPCResult::Type::NUM_TIME, "ban_created", ""},
-                        {RPCResult::Type::STR, "ban_reason", ""},
                     }},
             }},
                 RPCExamples{
@@ -679,7 +681,6 @@ static UniValue listbanned(const JSONRPCRequest& request)
         rec.pushKV("address", entry.first.ToString());
         rec.pushKV("banned_until", banEntry.nBanUntil);
         rec.pushKV("ban_created", banEntry.nCreateTime);
-        rec.pushKV("ban_reason", banEntry.banReasonToString());
 
         bannedAddresses.push_back(rec);
     }

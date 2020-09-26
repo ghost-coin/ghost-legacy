@@ -120,7 +120,7 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
     ECC_Start_Blinding();
 
     std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(test_setup.m_node);
-    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, {});
+    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, *Assert(test_setup.m_node.args), {});
     m_chain_client->registerRpcs();
 
     uint64_t wallet_creation_flags = WALLET_FLAG_BLANK_WALLET;

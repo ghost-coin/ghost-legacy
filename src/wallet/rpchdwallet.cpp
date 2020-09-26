@@ -4485,7 +4485,7 @@ void ReadCoinControlOptions(const UniValue &obj, CHDWallet *pwallet, CCoinContro
             std::vector<uint8_t> vScript = ParseHex(sChangeAddress);
             CScript script(vScript.begin(), vScript.end());
 
-            txnouttype whichType;
+            TxoutType whichType;
             if (IsStandard(script, whichType)) {
                 coin_control.scriptChange = script;
                 fHaveScript = true;
@@ -7978,8 +7978,8 @@ static bool PruneBlockFile(FILE *fp, bool test_only, size_t &num_blocks_in_file,
             nRewind = blkdat.GetPos();
 
             num_blocks_in_file++;
-            BlockMap::iterator mi = ::BlockIndex().find(blockhash);
-            if (mi == ::BlockIndex().end()
+            BlockMap::iterator mi = g_chainman.BlockIndex().find(blockhash);
+            if (mi == g_chainman.BlockIndex().end()
                 || !::ChainActive().Contains(mi->second)) {
                 num_blocks_removed++;
             } else

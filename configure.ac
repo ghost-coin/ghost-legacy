@@ -15,6 +15,12 @@ AC_CONFIG_HEADERS([src/config/bitcoin-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
 
+m4_ifndef([PKG_PROG_PKG_CONFIG], [AC_MSG_ERROR([PKG_PROG_PKG_CONFIG macro not found. Please install pkg-config and re-run autogen.sh])])
+PKG_PROG_PKG_CONFIG
+if test "x$PKG_CONFIG" = x; then
+  AC_MSG_ERROR([pkg-config not found])
+fi
+
 BITCOIN_DAEMON_NAME=particld
 BITCOIN_GUI_NAME=particl-qt
 BITCOIN_CLI_NAME=particl-cli
@@ -237,16 +243,6 @@ AC_ARG_ENABLE([zmq],
   [use_zmq=$enableval],
   [use_zmq=yes])
 
-AC_ARG_ENABLE([bip70],
-  [AS_HELP_STRING([--enable-bip70],
-  [BIP70 (payment protocol) support in the GUI (no longer supported)])],
-  [enable_bip70=$enableval],
-  [enable_bip70=no])
-
-if test x$enable_bip70 != xno; then
-  AC_MSG_ERROR([BIP70 is no longer supported!])
-fi
-
 AC_ARG_WITH([libmultiprocess],
   [AS_HELP_STRING([--with-libmultiprocess=yes|no|auto],
   [Build with libmultiprocess library. (default: auto, i.e. detect with pkg-config)])],
@@ -404,11 +400,11 @@ if test "x$CXXFLAGS_overridden" = "xno"; then
   AX_CHECK_COMPILE_FLAG([-Wall],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wall"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wextra],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wextra"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wgnu],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wgnu"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wformat],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wformat"],,[[$CXXFLAG_WERROR]])
+  dnl some compilers will ignore -Wformat-security without -Wformat, so just combine the two here.
+  AX_CHECK_COMPILE_FLAG([-Wformat -Wformat-security],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wformat -Wformat-security"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wvla],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wvla"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wshadow-field],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wshadow-field"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wswitch],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wswitch"],,[[$CXXFLAG_WERROR]])
-  AX_CHECK_COMPILE_FLAG([-Wformat-security],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wformat-security"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wthread-safety],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wthread-safety"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wrange-loop-analysis],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wrange-loop-analysis"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wredundant-decls],[WARN_CXXFLAGS="$WARN_CXXFLAGS -Wredundant-decls"],,[[$CXXFLAG_WERROR]])
@@ -578,14 +574,8 @@ AC_ARG_WITH([daemon],
   [build_bitcoind=$withval],
   [build_bitcoind=yes])
 
-
-use_pkgconfig=yes
 case $host in
   *mingw*)
-
-     dnl pkgconfig does more harm than good with MinGW
-     use_pkgconfig=no
-
      TARGET_OS=windows
      AC_CHECK_LIB([kernel32], [GetModuleFileNameA],, AC_MSG_ERROR(libkernel32 missing))
      AC_CHECK_LIB([user32],   [main],, AC_MSG_ERROR(libuser32 missing))
@@ -644,9 +634,10 @@ case $host in
 
          bdb_prefix=$($BREW --prefix berkeley-db4 2>/dev/null)
          qt5_prefix=$($BREW --prefix qt5 2>/dev/null)
-         if test x$bdb_prefix != x; then
-           CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
-           LIBS="$LIBS -L$bdb_prefix/lib"
+         if test x$bdb_prefix != x && test "x$BDB_CFLAGS" = "x" && test "x$BDB_LIBS" = "x"; then
+           dnl This must precede the call to BITCOIN_FIND_BDB48 below.
+           BDB_CFLAGS="-I$bdb_prefix/include"
+           BDB_LIBS="-L$bdb_prefix/lib -ldb_cxx-4.8"
          fi
          if test x$qt5_prefix != x; then
            PKG_CONFIG_PATH="$qt5_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
@@ -687,16 +678,6 @@ case $host in
      TARGET_OS=linux
      ;;
 esac
-
-if test x$use_pkgconfig = xyes; then
-  m4_ifndef([PKG_PROG_PKG_CONFIG], [AC_MSG_ERROR(PKG_PROG_PKG_CONFIG macro not found. Please install pkg-config and re-run autogen.sh.)])
-  m4_ifdef([PKG_PROG_PKG_CONFIG], [
-  PKG_PROG_PKG_CONFIG
-  if test x"$PKG_CONFIG" = "x"; then
-    AC_MSG_ERROR(pkg-config not found.)
-  fi
-  ])
-fi
 
 if test x$use_extended_functional_tests != xno; then
   AC_SUBST(EXTENDED_FUNCTIONAL_TESTS, --extended)
@@ -858,7 +839,21 @@ AC_CHECK_DECLS([bswap_16, bswap_32, bswap_64],,,
                  #include <byteswap.h>
                  #endif])
 
-AC_CHECK_DECLS([__builtin_clz, __builtin_clzl, __builtin_clzll])
+AC_MSG_CHECKING(for __builtin_clzl)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+ (void) __builtin_clzl(0);
+  ]])],
+ [ AC_MSG_RESULT(yes); AC_DEFINE(HAVE_BUILTIN_CLZL, 1, [Define this symbol if you have __builtin_clzl])],
+ [ AC_MSG_RESULT(no)]
+)
+
+AC_MSG_CHECKING(for __builtin_clzll)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+  (void) __builtin_clzll(0);
+  ]])],
+ [ AC_MSG_RESULT(yes); AC_DEFINE(HAVE_BUILTIN_CLZLL, 1, [Define this symbol if you have __builtin_clzll])],
+ [ AC_MSG_RESULT(no)]
+)
 
 dnl Check for malloc_info (for memory statistics information in getmemoryinfo)
 AC_MSG_CHECKING(for getmemoryinfo)
@@ -1328,169 +1323,93 @@ if test "x$enable_usbdevice" = "xyes"; then
   fi
 fi
 
-if test x$use_pkgconfig = xyes; then
-  : dnl
-  m4_ifdef(
-    [PKG_CHECK_MODULES],
-    [
-      if test x$use_qr != xno; then
-        BITCOIN_QT_CHECK([PKG_CHECK_MODULES([QR], [libqrencode], [have_qrencode=yes], [have_qrencode=no])])
-      fi
-      if test x$build_bitcoin_cli$build_bitcoind$bitcoin_enable_qt$use_tests$use_bench != xnonononono; then
-        PKG_CHECK_MODULES([EVENT], [libevent >= 2.0.21], [use_libevent=yes], [AC_MSG_ERROR(libevent version 2.0.21 or greater not found.)])
-        if test x$TARGET_OS != xwindows; then
-          PKG_CHECK_MODULES([EVENT_PTHREADS], [libevent_pthreads >= 2.0.21],, [AC_MSG_ERROR(libevent_pthreads version 2.0.21 or greater not found.)])
-        fi
-      fi
+dnl libevent check
 
-      if test "x$use_zmq" = "xyes"; then
-        PKG_CHECK_MODULES([ZMQ],[libzmq >= 4],
-          [AC_DEFINE([ENABLE_ZMQ],[1],[Define to 1 to enable ZMQ functions])],
-          [AC_DEFINE([ENABLE_ZMQ],[0],[Define to 1 to enable ZMQ functions])
-           AC_MSG_WARN([libzmq version 4.x or greater not found, disabling])
-           use_zmq=no])
-      else
-          AC_DEFINE_UNQUOTED([ENABLE_ZMQ],[0],[Define to 1 to enable ZMQ functions])
-      fi
+if test x$build_bitcoin_cli$build_bitcoind$bitcoin_enable_qt$use_tests$use_bench != xnonononono; then
+  PKG_CHECK_MODULES([EVENT], [libevent >= 2.0.21], [use_libevent=yes], [AC_MSG_ERROR([libevent version 2.0.21 or greater not found.])])
+  if test x$TARGET_OS != xwindows; then
+    PKG_CHECK_MODULES([EVENT_PTHREADS], [libevent_pthreads >= 2.0.21],, [AC_MSG_ERROR([libevent_pthreads version 2.0.21 or greater not found.])])
+  fi
+fi
 
-      if test "x$enable_usbdevice" = "xyes"; then
-        if test "x$bitcoin_enable_qt" != "xyes"; then
-            PKG_CHECK_MODULES([PROTOBUF], [protobuf],[have_protobuf=yes],
-            [AC_MSG_WARN(protobuf not found.)
-             enable_usbdevice=no])
-        else
-            BITCOIN_QT_CHECK([PKG_CHECK_MODULES([PROTOBUF], [protobuf], [have_protobuf=yes], [have_protobuf=no])])
-        fi
+dnl QR Code encoding library check
 
-        PKG_CHECK_MODULES([USB], [libusb-1.0 >= 1.0.9],
-          [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
-          [AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
-           AC_MSG_WARN([libusb-1.0 version 1.0.9 or greater not found, disabling])
-           enable_usbdevice=no])
+if test "x$use_qr" != xno; then
+  BITCOIN_QT_CHECK([PKG_CHECK_MODULES([QR], [libqrencode], [have_qrencode=yes], [have_qrencode=no])])
+fi
 
-        PKG_CHECK_MODULES([HIDAPI],[$LIBHIDAPINAME >= 0],
-          [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
-          [AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
-           AC_MSG_WARN([$LIBHIDAPINAME version 0 or greater not found, disabling])
-           enable_usbdevice=no])
-      else
-          AC_DEFINE_UNQUOTED([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
-      fi
-    ]
-  )
+dnl USB Device check
+
+if test "x$enable_usbdevice" = "xyes"; then
+  if test "x$bitcoin_enable_qt" != "xyes"; then
+      PKG_CHECK_MODULES([PROTOBUF], [protobuf],[have_protobuf=yes],
+      [AC_MSG_WARN(protobuf not found.)
+       enable_usbdevice=no])
+  fi
+
+  PKG_CHECK_MODULES([USB], [libusb-1.0 >= 1.0.9],
+    [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
+    [AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
+     AC_MSG_WARN([libusb-1.0 version 1.0.9 or greater not found, disabling])
+     enable_usbdevice=no])
+
+  PKG_CHECK_MODULES([HIDAPI],[$LIBHIDAPINAME >= 0],
+    [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
+    [AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
+     AC_MSG_WARN([$LIBHIDAPINAME version 0 or greater not found, disabling])
+     enable_usbdevice=no])
 else
-
-  if test x$build_bitcoin_cli$build_bitcoind$bitcoin_enable_qt$use_tests$use_bench != xnonononono; then
-    AC_CHECK_HEADER([event2/event.h], [use_libevent=yes], AC_MSG_ERROR(libevent headers missing),)
-    AC_CHECK_LIB([event],[main],EVENT_LIBS=-levent,AC_MSG_ERROR(libevent missing))
-    if test x$TARGET_OS != xwindows; then
-      AC_CHECK_LIB([event_pthreads],[main],EVENT_PTHREADS_LIBS=-levent_pthreads,AC_MSG_ERROR(libevent_pthreads missing))
-    fi
-  fi
-
-  if test "x$use_zmq" = "xyes"; then
-     AC_CHECK_HEADER([zmq.h],
-       [AC_DEFINE([ENABLE_ZMQ],[1],[Define to 1 to enable ZMQ functions])],
-       [AC_MSG_WARN([zmq.h not found, disabling zmq support])
-        use_zmq=no
-        AC_DEFINE([ENABLE_ZMQ],[0],[Define to 1 to enable ZMQ functions])])
-     AC_CHECK_LIB([zmq],[zmq_ctx_shutdown],ZMQ_LIBS=-lzmq,
-       [AC_MSG_WARN([libzmq >= 4.0 not found, disabling zmq support])
-        use_zmq=no
-        AC_DEFINE([ENABLE_ZMQ],[0],[Define to 1 to enable ZMQ functions])])
-  else
-    AC_DEFINE_UNQUOTED([ENABLE_ZMQ],[0],[Define to 1 to enable ZMQ functions])
-  fi
-
-  if test "x$use_zmq" = "xyes"; then
-    dnl Assume libzmq was built for static linking
-    case $host in
-      *mingw*)
-        ZMQ_CFLAGS="$ZMQ_CFLAGS -DZMQ_STATIC"
-      ;;
-    esac
-  fi
-
-  if test "x$enable_usbdevice" = "xyes"; then
-    if test "x$bitcoin_enable_qt" != "xyes"; then
-      AC_CHECK_LIB([protobuf] ,[main],[PROTOBUF_LIBS=-lprotobuf],
-        [AC_MSG_WARN([protobuf not found, disabling usbdevice support])
-         enable_usbdevice=no],)
-    fi
-    AC_CHECK_HEADER([hidapi/hidapi.h],
-       [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
-       [AC_MSG_WARN([hidapi.h not found, disabling usbdevice support])
-        enable_usbdevice=no
-        AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])])
-
-    AC_CHECK_LIB([$LIBHIDAPINAME],[hid_open],HIDAPI_LIBS=$HIDAPILIBS,
-       [AC_MSG_WARN([$LIBHIDAPINAME not found, disabling usbdevice support])
-        enable_usbdevice=no
-        AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])],[-lsetupapi])
-
-    AC_CHECK_HEADER([libusb-1.0/libusb.h],
-       [AC_DEFINE([ENABLE_USBDEVICE],[1],[Define to 1 to enable USBDEVICE functions])],
-       [AC_MSG_WARN([libusb.h not found, disabling usbdevice support])
-        enable_usbdevice=no
-        AC_DEFINE([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])])
-
-    USB_LIBS=" -lusb-1.0"
-  else
     AC_DEFINE_UNQUOTED([ENABLE_USBDEVICE],[0],[Define to 1 to enable USBDEVICE functions])
-  fi
+fi
 
-  if test x$enable_usbdevice != xno; then
-    BITCOIN_QT_CHECK(AC_CHECK_LIB([protobuf] ,[main],[PROTOBUF_LIBS=-lprotobuf], [have_protobuf=no]))
-  fi
 
-  if test x$use_qr != xno; then
-    BITCOIN_QT_CHECK([AC_CHECK_LIB([qrencode], [main],[QR_LIBS=-lqrencode], [have_qrencode=no])])
-    BITCOIN_QT_CHECK([AC_CHECK_HEADER([qrencode.h],, have_qrencode=no)])
-  fi
+if test x$enable_usbdevice != xno; then
+  BITCOIN_QT_CHECK(AC_CHECK_LIB([protobuf] ,[main],[PROTOBUF_LIBS=-lprotobuf], [have_protobuf=no]))
+fi
+
+dnl ZMQ check
+
+if test "x$use_zmq" = xyes; then
+  PKG_CHECK_MODULES([ZMQ], [libzmq >= 4],
+    AC_DEFINE([ENABLE_ZMQ], [1], [Define to 1 to enable ZMQ functions]),
+    [AC_DEFINE([ENABLE_ZMQ], [0], [Define to 1 to enable ZMQ functions])
+    AC_MSG_WARN([libzmq version 4.x or greater not found, disabling])
+    use_zmq=no])
+else
+  AC_DEFINE_UNQUOTED([ENABLE_ZMQ], [0], [Define to 1 to enable ZMQ functions])
+fi
+
+if test "x$use_zmq" = xyes; then
+  dnl Assume libzmq was built for static linking
+  case $host in
+    *mingw*)
+      ZMQ_CFLAGS="$ZMQ_CFLAGS -DZMQ_STATIC"
+    ;;
+  esac
 fi
 
 dnl univalue check
 
 need_bundled_univalue=yes
-
 if test x$build_bitcoin_wallet$build_bitcoin_cli$build_bitcoin_tx$build_bitcoind$bitcoin_enable_qt$use_tests$use_bench = xnonononononono; then
   need_bundled_univalue=no
 else
-
-if test x$system_univalue != xno ; then
-  found_univalue=no
-  if test x$use_pkgconfig = xyes; then
-    : #NOP
-    m4_ifdef(
-      [PKG_CHECK_MODULES],
-      [
-        PKG_CHECK_MODULES([UNIVALUE],[libunivalue >= 1.0.4],[found_univalue=yes],[true])
-      ]
-    )
-  else
-    AC_CHECK_HEADER([univalue.h],[
-      AC_CHECK_LIB([univalue],  [main],[
-        UNIVALUE_LIBS=-lunivalue
-        found_univalue=yes
-      ],[true])
-    ],[true])
+  if test x$system_univalue != xno; then
+    PKG_CHECK_MODULES([UNIVALUE], [libunivalue >= 1.0.4], [found_univalue=yes], [found_univalue=no])
+    if test x$found_univalue = xyes; then
+      system_univalue=yes
+      need_bundled_univalue=no
+    elif test x$system_univalue = xyes; then
+      AC_MSG_ERROR([univalue not found])
+    else
+      system_univalue=no
+    fi
   fi
 
-  if test x$found_univalue = xyes ; then
-    system_univalue=yes
-    need_bundled_univalue=no
-  elif test x$system_univalue = xyes ; then
-    AC_MSG_ERROR([univalue not found])
-  else
-    system_univalue=no
+  if test x$need_bundled_univalue = xyes; then
+    UNIVALUE_CFLAGS='-I$(srcdir)/univalue/include'
+    UNIVALUE_LIBS='univalue/libunivalue.la'
   fi
-fi
-
-if test x$need_bundled_univalue = xyes ; then
-  UNIVALUE_CFLAGS='-I$(srcdir)/univalue/include'
-  UNIVALUE_LIBS='univalue/libunivalue.la'
-fi
-
 fi
 
 AM_CONDITIONAL([EMBEDDED_UNIVALUE],[test x$need_bundled_univalue = xyes])
@@ -1517,12 +1436,10 @@ dnl libmultiprocess library check
 
 libmultiprocess_found=no
 if test "x$with_libmultiprocess" = xyes || test "x$with_libmultiprocess" = xauto; then
-  if test "x$use_pkgconfig" = xyes; then
-    m4_ifdef([PKG_CHECK_MODULES], [PKG_CHECK_MODULES([LIBMULTIPROCESS], [libmultiprocess], [
-       libmultiprocess_found=yes;
-       libmultiprocess_prefix=`$PKG_CONFIG --variable=prefix libmultiprocess`;
-    ], [true])])
-  fi
+  m4_ifdef([PKG_CHECK_MODULES], [PKG_CHECK_MODULES([LIBMULTIPROCESS], [libmultiprocess], [
+     libmultiprocess_found=yes;
+     libmultiprocess_prefix=`$PKG_CONFIG --variable=prefix libmultiprocess`;
+  ], [true])])
 elif test "x$with_libmultiprocess" != xno; then
   AC_MSG_ERROR([--with-libmultiprocess=$with_libmultiprocess value is not yes, auto, or no])
 fi

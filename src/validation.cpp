@@ -20,6 +20,7 @@
 #include <index/txindex.h>
 #include <logging.h>
 #include <logging/timer.h>
+#include <node/ui_interface.h>
 #include <optional.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
@@ -37,9 +38,9 @@
 #include <tinyformat.h>
 #include <txdb.h>
 #include <txmempool.h>
-#include <ui_interface.h>
 #include <uint256.h>
 #include <undo.h>
+#include <util/check.h> // For NDEBUG compile time check
 #include <util/moneystr.h>
 #include <util/rbf.h>
 #include <util/strencodings.h>
@@ -57,10 +58,6 @@
 #include <string>
 
 #include <boost/algorithm/string/replace.hpp>
-
-#if defined(NDEBUG)
-# error "Particl cannot be compiled without assertions."
-#endif
 
 #define MICRO 0.000001
 #define MILLI 0.001
@@ -628,8 +625,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     const Consensus::Params &consensus = Params().GetConsensus();
     state.SetStateInfo(nAcceptTime, ::ChainActive().Height(), consensus, fParticlMode, (fBusyImporting && fSkipRangeproof));
 
-    if (!CheckTransaction(tx, state))
+    if (!CheckTransaction(tx, state)) {
         return false; // state filled in by CheckTransaction
+    }
 
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase())
@@ -764,7 +762,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
 
     CAmount nFees = 0;
     if (!Consensus::CheckTxInputs(tx, state, m_view, GetSpendHeight(m_view), nFees)) {
-        return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), state.ToString());
+        return false; // state filled in by CheckTxInputs
     }
 
     // Check for non-standard pay-to-script-hash in inputs
@@ -1605,12 +1603,6 @@ bool CChainState::IsInitialBlockDownload() const
 
 static CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
 
-BlockMap& BlockIndex()
-{
-    LOCK(::cs_main);
-    return g_chainman.m_blockman.m_block_index;
-}
-
 static void AlertNotify(const std::string& strMessage)
 {
     uiInterface.NotifyAlertChanged();
@@ -1714,12 +1706,12 @@ void static InvalidChainFound(CBlockIndex* pindexNew) EXCLUSIVE_LOCKS_REQUIRED(c
         pindexBestHeader = ::ChainActive().Tip();
     }
 
-    LogPrintf("%s: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n", __func__,
+    LogPrintf("%s: invalid block=%s  height=%d  log2_work=%f  date=%s\n", __func__,
       pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
       log(pindexNew->nChainWork.getdouble())/log(2.0), FormatISO8601DateTime(pindexNew->GetBlockTime()));
     CBlockIndex *tip = ::ChainActive().Tip();
     assert (tip);
-    LogPrintf("%s:  current best=%s  height=%d  log2_work=%.8g  date=%s\n", __func__,
+    LogPrintf("%s:  current best=%s  height=%d  log2_work=%f  date=%s\n", __func__,
       tip->GetBlockHash().ToString(), ::ChainActive().Height(), log(tip->nChainWork.getdouble())/log(2.0),
       FormatISO8601DateTime(tip->GetBlockTime()));
     CheckForkWarningConditions();
@@ -3450,7 +3442,7 @@ void UpdateTip(const CBlockIndex* pindexNew, const CChainParams& chainParams)
         if (nUpgraded > 0)
             AppendWarning(warning_messages, strprintf(_("%d of last 100 blocks have unexpected version"), nUpgraded));
     }
-    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu date='%s' progress=%f cache=%.1fMiB(%utxo)%s\n", __func__,
+    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%f tx=%lu date='%s' progress=%f cache=%.1fMiB(%utxo)%s\n", __func__,
       pindexNew->GetBlockHash().ToString(), pindexNew->nHeight, pindexNew->nVersion,
       log(pindexNew->nChainWork.getdouble())/log(2.0), (unsigned long)pindexNew->nChainTx,
       FormatISO8601DateTime(pindexNew->GetBlockTime()),
@@ -4991,8 +4983,8 @@ void EraseDelayedBlock(std::list<DelayedBlock>::iterator p) EXCLUSIVE_LOCKS_REQU
         Misbehaving(p->m_node_id, 25, "Delayed block");
     }
 
-    auto it = ::BlockIndex().find(p->m_pblock->GetHash());
-    if (it != ::BlockIndex().end()) {
+    auto it = g_chainman.BlockIndex().find(p->m_pblock->GetHash());
+    if (it != g_chainman.BlockIndex().end()) {
         it->second->nFlags &= ~BLOCK_DELAYED;
         setDirtyBlockIndex.insert(it->second);
     }
@@ -5049,11 +5041,11 @@ void CheckDelayedBlocks(const CChainParams& chainparams, const uint256 &block_ha
 
 bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
-    BlockMap::iterator mi = ::BlockIndex().find(hash);
-    if (mi != ::BlockIndex().end() && (mi->second->nFlags & BLOCK_ACCEPTED)) {
+    BlockMap::iterator mi = g_chainman.BlockIndex().find(hash);
+    if (mi != g_chainman.BlockIndex().end() && (mi->second->nFlags & BLOCK_ACCEPTED)) {
         return false;
     }
-    if (mi == ::BlockIndex().end()) {
+    if (mi == g_chainman.BlockIndex().end()) {
         return true; // was already removed, peer misbehaving
     }
 
@@ -5068,8 +5060,8 @@ bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_mai
         last_round[!n].clear();
 
         for (BlockMap::iterator& check_header : last_round[n]) {
-            BlockMap::iterator it = ::BlockIndex().begin();
-            while (it != ::BlockIndex().end()) {
+            BlockMap::iterator it = g_chainman.BlockIndex().begin();
+            while (it != g_chainman.BlockIndex().end()) {
                 if (it->second->pprev == check_header->second) {
                     if ((it->second->nFlags & BLOCK_ACCEPTED)) {
                         LogPrintf("Can't remove header %s, descendant block %s accepted.\n", hash.ToString(), it->second->GetBlockHash().ToString());
@@ -5098,7 +5090,7 @@ bool RemoveUnreceivedHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_mai
         }
         RemoveNonReceivedHeaderFromNodes(entry);
         delete entry->second;
-        ::BlockIndex().erase(entry);
+        g_chainman.BlockIndex().erase(entry);
     }
 
     return true;
@@ -6955,8 +6947,8 @@ bool CoinStakeCache::GetCoinStake(const uint256 &blockHash, CTransactionRef &tx)
         return true;
     }
 
-    BlockMap::iterator mi = ::BlockIndex().find(blockHash);
-    if (mi == ::BlockIndex().end()) {
+    BlockMap::iterator mi = g_chainman.BlockIndex().find(blockHash);
+    if (mi == g_chainman.BlockIndex().end()) {
         return false;
     }
 
@@ -7025,10 +7017,10 @@ CChainState& ChainstateManager::InitializeChainstate(const uint256& snapshot_blo
     return *to_modify;
 }
 
-CChain& ChainstateManager::ActiveChain() const
+CChainState& ChainstateManager::ActiveChainstate() const
 {
     assert(m_active_chainstate);
-    return m_active_chainstate->m_chain;
+    return *m_active_chainstate;
 }
 
 bool ChainstateManager::IsSnapshotActive() const

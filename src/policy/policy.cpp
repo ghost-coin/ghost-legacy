@@ -92,7 +92,7 @@ bool IsDust(const CTxOutBase *txout, const CFeeRate& dustRelayFee)
     return false;
 };
 
-bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType, int64_t time)
+bool IsStandard(const CScript& scriptPubKey, TxoutType& whichType, int64_t time)
 {
     const Consensus::Params& consensusParams = Params().GetConsensus();
 
@@ -110,9 +110,9 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType, int64_t time
     std::vector<std::vector<unsigned char> > vSolutions;
     whichType = Solver(scriptPubKey, vSolutions);
 
-    if (whichType == TX_NONSTANDARD) {
+    if (whichType == TxoutType::NONSTANDARD) {
         return false;
-    } else if (whichType == TX_MULTISIG) {
+    } else if (whichType == TxoutType::MULTISIG) {
         unsigned char m = vSolutions.front()[0];
         unsigned char n = vSolutions.back()[0];
         // Support up to x-of-3 multisig txns as standard
@@ -120,7 +120,7 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType, int64_t time
             return false;
         if (m < 1 || m > n)
             return false;
-    } else if (whichType == TX_NULL_DATA &&
+    } else if (whichType == TxoutType::NULL_DATA &&
                (!fAcceptDatacarrier || scriptPubKey.size() > nMaxDatacarrierBytes)) {
           return false;
     }
@@ -171,17 +171,16 @@ bool IsStandardTx(const CTransaction& tx, bool permit_bare_multisig, const CFeeR
     }
 
     unsigned int nDataOut = 0;
-    txnouttype whichType;
-
+    TxoutType whichType;
     for (const CTxOut& txout : tx.vout) {
         if (!::IsStandard(txout.scriptPubKey, whichType, time)) {
             reason = "scriptpubkey";
             return false;
         }
 
-        if (whichType == TX_NULL_DATA)
+        if (whichType == TxoutType::NULL_DATA)
             nDataOut++;
-        else if ((whichType == TX_MULTISIG) && (!permit_bare_multisig)) {
+        else if ((whichType == TxoutType::MULTISIG) && (!permit_bare_multisig)) {
             reason = "bare-multisig";
             return false;
         } else if (IsDust(txout, dust_relay_fee)) {
@@ -200,9 +199,9 @@ bool IsStandardTx(const CTransaction& tx, bool permit_bare_multisig, const CFeeR
             reason = "scriptpubkey";
             return false;
         }
-        if (whichType == TX_NULL_DATA) {
+        if (whichType == TxoutType::NULL_DATA) {
             nDataOut++;
-        } else if ((whichType == TX_MULTISIG) && (!permit_bare_multisig)) {
+        } else if ((whichType == TxoutType::MULTISIG) && (!permit_bare_multisig)) {
             reason = "bare-multisig";
             return false;
         } else if (IsDust(p, dust_relay_fee)) {
@@ -254,7 +253,7 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs,
                 return false;
             }
 
-            txnouttype whichType;
+            TxoutType whichType;
             // get the scriptPubKey corresponding to this input:
             const CScript& prevScript = prev.scriptPubKey;
 
@@ -263,7 +262,7 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs,
                 return false;
             }
 
-            if (whichType == TX_SCRIPTHASH) {
+            if (whichType == TxoutType::SCRIPTHASH) {
                 if (tx.vin[i].scriptWitness.stack.size() < 1) {
                     return false;
                 }
@@ -289,11 +288,11 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs,
         const CTxOut& prev = mapInputs.AccessCoin(tx.vin[i].prevout).out;
 
         std::vector<std::vector<unsigned char> > vSolutions;
-        txnouttype whichType = Solver(prev.scriptPubKey, vSolutions);
-        if (whichType == TX_NONSTANDARD) {
+        TxoutType whichType = Solver(prev.scriptPubKey, vSolutions);
+        if (whichType == TxoutType::NONSTANDARD) {
             return false;
-        } else if (whichType == TX_SCRIPTHASH
-            || whichType == TX_SCRIPTHASH256) {
+        } else if (whichType == TxoutType::SCRIPTHASH
+            || whichType == TxoutType::SCRIPTHASH256) {
             std::vector<std::vector<unsigned char> > stack;
             // convert the scriptSig into a stack, so we can inspect the redeemScript
             if (!EvalScript(stack, tx.vin[i].scriptSig, SCRIPT_VERIFY_NONE, BaseSignatureChecker(), SigVersion::BASE))

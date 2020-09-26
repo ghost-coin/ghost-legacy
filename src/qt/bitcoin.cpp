@@ -30,11 +30,10 @@
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
 #include <noui.h>
-#include <ui_interface.h>
 #include <uint256.h>
 #include <util/system.h>
-#include <util/translation.h>
 #include <util/threadnames.h>
+#include <util/translation.h>
 #include <validation.h>
 
 #include <memory>
@@ -563,6 +562,8 @@ int GuiMain(int argc, char* argv[])
     /// 9. Main GUI initialization
     // Install global event filter that makes sure that long tooltips can be word-wrapped
     app.installEventFilter(new GUIUtil::ToolTipToRichTextFilter(TOOLTIP_WRAP_THRESHOLD, &app));
+    // Install global event filter that makes sure that out-of-focus labels do not contain text cursor.
+    app.installEventFilter(new GUIUtil::LabelOutOfFocusEventFilter(&app));
 #if defined(Q_OS_WIN)
     // Install global event filter for processing Windows session related Windows messages (WM_QUERYENDSESSION and WM_ENDSESSION)
     qApp->installNativeEventFilter(new WinShutdownMonitor());

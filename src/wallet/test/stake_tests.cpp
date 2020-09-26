@@ -59,7 +59,7 @@ struct StakeTestingSetup: public TestingSetup {
     }
 
     std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(m_node);
-    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, {});
+    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, *Assert(m_node.args), {});
     std::shared_ptr<CHDWallet> pwalletMain;
 };
 

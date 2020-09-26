@@ -103,7 +103,7 @@ bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value)
 
 bool HashOnchainActive(const uint256 &hash)
 {
-    CBlockIndex* pblockindex = ::BlockIndex()[hash];
+    CBlockIndex* pblockindex = g_chainman.BlockIndex()[hash];
 
     if (!::ChainActive().Contains(pblockindex)) {
         return false;

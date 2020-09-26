@@ -77,7 +77,10 @@ CTxMemPool& EnsureMemPool(const util::Ref& context)
 ChainstateManager& EnsureChainman(const util::Ref& context)
 {
     NodeContext& node = EnsureNodeContext(context);
-    return EnsureChainman(node);
+    if (!node.chainman) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Node chainman not found");
+    }
+    return *node.chainman;
 }
 
 /* Calculate the difficulty for a given block index.
@@ -816,10 +819,8 @@ static CBlock GetBlockChecked(const CBlockIndex* pblockindex)
 
     if (!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) {
         // Block not found on disk. This could be because we have the block
-        // header in our index but don't have the block (for example if a
-        // non-whitelisted node sends us an unrequested long chain of valid
-        // blocks, we add the headers to our index, but don't accept the
-        // block).
+        // header in our index but not yet have the block or did not accept the
+        // block.
         throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
     }
 
@@ -999,7 +1000,9 @@ static UniValue gettxoutsetinfo(const JSONRPCRequest& request)
             RPCHelpMan{"gettxoutsetinfo",
                 "\nReturns statistics about the unspent transaction output set.\n"
                 "Note this call may take some time.\n",
-                {},
+                {
+                    {"hash_type", RPCArg::Type::STR, /* default */ "hash_serialized_2", "Which UTXO set hash should be calculated. Options: 'hash_serialized_2' (the legacy algorithm), 'none'."},
+                },
                 RPCResult{
                     RPCResult::Type::OBJ, "", "",
                     {
@@ -1008,7 +1011,7 @@ static UniValue gettxoutsetinfo(const JSONRPCRequest& request)
                         {RPCResult::Type::NUM, "transactions", "The number of transactions with unspent outputs"},
                         {RPCResult::Type::NUM, "txouts", "The number of unspent transaction outputs"},
                         {RPCResult::Type::NUM, "bogosize", "A meaningless metric for UTXO set size"},
-                        {RPCResult::Type::STR_HEX, "hash_serialized_2", "The serialized hash"},
+                        {RPCResult::Type::STR_HEX, "hash_serialized_2", "The serialized hash (only present if 'hash_serialized_2' hash_type is chosen)"},
                         {RPCResult::Type::NUM, "disk_size", "The estimated size of the chainstate on disk"},
                         {RPCResult::Type::STR_AMOUNT, "total_amount", "The total amount"},
                     }},
@@ -1023,8 +1026,11 @@ static UniValue gettxoutsetinfo(const JSONRPCRequest& request)
     CCoinsStats stats;
     ::ChainstateActive().ForceFlushStateToDisk();
 
+    const CoinStatsHashType hash_type = ParseHashType(request.params[0], CoinStatsHashType::HASH_SERIALIZED);
+
     CCoinsView* coins_view = WITH_LOCK(cs_main, return &ChainstateActive().CoinsDB());
-    if (GetUTXOStats(coins_view, stats, RpcInterruptionPoint)) {
+    NodeContext& node = EnsureNodeContext(request.context);
+    if (GetUTXOStats(coins_view, stats, hash_type, node.rpc_interruption_point)) {
         ret.pushKV("height", (int64_t)stats.nHeight);
         ret.pushKV("bestblock", stats.hashBlock.GetHex());
         ret.pushKV("transactions", (int64_t)stats.nTransactions);
@@ -1032,7 +1038,9 @@ static UniValue gettxoutsetinfo(const JSONRPCRequest& request)
         if (fParticlMode)
             ret.pushKV("txouts_blinded", (int64_t)stats.nBlindTransactionOutputs);
         ret.pushKV("bogosize", (int64_t)stats.nBogoSize);
-        ret.pushKV("hash_serialized_2", stats.hashSerialized.GetHex());
+        if (hash_type == CoinStatsHashType::HASH_SERIALIZED) {
+            ret.pushKV("hash_serialized_2", stats.hashSerialized.GetHex());
+        }
         ret.pushKV("disk_size", stats.nDiskSize);
         ret.pushKV("total_amount", ValueFromAmount(stats.nTotalAmount));
     } else {
@@ -1277,7 +1285,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("bestblockhash",         tip->GetBlockHash().GetHex());
     if (fParticlMode) {
         obj.pushKV("moneysupply",           ValueFromAmount(tip->nMoneySupply));
-        obj.pushKV("blockindexsize",        (int)::BlockIndex().size());
+        obj.pushKV("blockindexsize",        (int)g_chainman.BlockIndex().size());
         obj.pushKV("delayedblocks",         (int)CountDelayedBlocks());
     }
     obj.pushKV("difficulty",            (double)GetDifficulty(tip));
@@ -1362,50 +1370,48 @@ static UniValue getchaintips(const JSONRPCRequest& request)
                 },
             }.Check(request);
 
+    ChainstateManager& chainman = EnsureChainman(request.context);
     LOCK(cs_main);
 
     /*
-     * Idea:  the set of chain tips is ::ChainActive().tip, plus orphan blocks which do not have another orphan building off of them.
+     * Idea: The set of chain tips is the active chain tip, plus orphan blocks which do not have another orphan building off of them.
      * Algorithm:
      *  - Make one pass through BlockIndex(), picking out the orphan blocks, and also storing a set of the orphan block's pprev pointers.
      *  - Iterate through the orphan blocks. If the block isn't pointed to by another orphan, it is a chain tip.
-     *  - add ::ChainActive().Tip()
+     *  - Add the active chain tip
      */
     std::set<const CBlockIndex*, CompareBlocksByHeight> setTips;
     std::set<const CBlockIndex*> setOrphans;
     std::set<const CBlockIndex*> setPrevs;
 
-    for (const std::pair<const uint256, CBlockIndex*>& item : ::BlockIndex())
-    {
-        if (!::ChainActive().Contains(item.second)) {
+    for (const std::pair<const uint256, CBlockIndex*>& item : chainman.BlockIndex()) {
+        if (!chainman.ActiveChain().Contains(item.second)) {
             setOrphans.insert(item.second);
             setPrevs.insert(item.second->pprev);
         }
     }
 
-    for (std::set<const CBlockIndex*>::iterator it = setOrphans.begin(); it != setOrphans.end(); ++it)
-    {
+    for (std::set<const CBlockIndex*>::iterator it = setOrphans.begin(); it != setOrphans.end(); ++it) {
         if (setPrevs.erase(*it) == 0) {
             setTips.insert(*it);
         }
     }
 
     // Always report the currently active tip.
-    setTips.insert(::ChainActive().Tip());
+    setTips.insert(chainman.ActiveChain().Tip());
 
     /* Construct the output array.  */
     UniValue res(UniValue::VARR);
-    for (const CBlockIndex* block : setTips)
-    {
+    for (const CBlockIndex* block : setTips) {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("height", block->nHeight);
         obj.pushKV("hash", block->phashBlock->GetHex());
 
-        const int branchLen = block->nHeight - ::ChainActive().FindFork(block)->nHeight;
+        const int branchLen = block->nHeight - chainman.ActiveChain().FindFork(block)->nHeight;
         obj.pushKV("branchlen", branchLen);
 
         std::string status;
-        if (::ChainActive().Contains(block)) {
+        if (chainman.ActiveChain().Contains(block)) {
             // This block is part of the currently active chain.
             status = "active";
         } else if (block->nStatus & BLOCK_FAILED_MASK) {
@@ -2016,8 +2022,10 @@ static UniValue savemempool(const JSONRPCRequest& request)
     return NullUniValue;
 }
 
+namespace {
 //! Search for a given set of pubkey scripts
-bool FindScriptPubKey(std::atomic<int>& scan_progress, const std::atomic<bool>& should_abort, int64_t& count, CCoinsViewCursor* cursor, const std::set<CScript>& needles, std::map<COutPoint, Coin>& out_results) {
+bool FindScriptPubKey(std::atomic<int>& scan_progress, const std::atomic<bool>& should_abort, int64_t& count, CCoinsViewCursor* cursor, const std::set<CScript>& needles, std::map<COutPoint, Coin>& out_results, std::function<void()>& interruption_point)
+{
     scan_progress = 0;
     count = 0;
     while (cursor->Valid()) {
@@ -2025,7 +2033,7 @@ bool FindScriptPubKey(std::atomic<int>& scan_progress, const std::atomic<bool>& 
         Coin coin;
         if (!cursor->GetKey(key) || !cursor->GetValue(coin)) return false;
         if (++count % 8192 == 0) {
-            RpcInterruptionPoint();
+            interruption_point();
             if (should_abort) {
                 // allow to abort the scan via the abort reference
                 return false;
@@ -2044,6 +2052,7 @@ bool FindScriptPubKey(std::atomic<int>& scan_progress, const std::atomic<bool>& 
     scan_progress = 100;
     return true;
 }
+} // namespace
 
 /** RAII object to prevent concurrency issue when scanning the txout set */
 static std::atomic<int> g_scan_progress;
@@ -2192,7 +2201,8 @@ UniValue scantxoutset(const JSONRPCRequest& request)
             tip = ::ChainActive().Tip();
             CHECK_NONFATAL(tip);
         }
-        bool res = FindScriptPubKey(g_scan_progress, g_should_abort_scan, count, pcursor.get(), needles, coins);
+        NodeContext& node = EnsureNodeContext(request.context);
+        bool res = FindScriptPubKey(g_scan_progress, g_should_abort_scan, count, pcursor.get(), needles, coins, node.rpc_interruption_point);
         result.pushKV("success", res);
         result.pushKV("txouts", count);
         result.pushKV("height", tip->nHeight);
@@ -2347,6 +2357,7 @@ UniValue dumptxoutset(const JSONRPCRequest& request)
     std::unique_ptr<CCoinsViewCursor> pcursor;
     CCoinsStats stats;
     CBlockIndex* tip;
+    NodeContext& node = EnsureNodeContext(request.context);
 
     {
         // We need to lock cs_main to ensure that the coinsdb isn't written to
@@ -2365,7 +2376,7 @@ UniValue dumptxoutset(const JSONRPCRequest& request)
 
         ::ChainstateActive().ForceFlushStateToDisk();
 
-        if (!GetUTXOStats(&::ChainstateActive().CoinsDB(), stats, RpcInterruptionPoint)) {
+        if (!GetUTXOStats(&::ChainstateActive().CoinsDB(), stats, CoinStatsHashType::NONE, node.rpc_interruption_point)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
         }
 
@@ -2383,7 +2394,7 @@ UniValue dumptxoutset(const JSONRPCRequest& request)
     unsigned int iter{0};
 
     while (pcursor->Valid()) {
-        if (iter % 5000 == 0) RpcInterruptionPoint();
+        if (iter % 5000 == 0) node.rpc_interruption_point();
         ++iter;
         if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
             afile << key;
@@ -2426,7 +2437,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "getmempoolinfo",         &getmempoolinfo,         {} },
     { "blockchain",         "getrawmempool",          &getrawmempool,          {"verbose"} },
     { "blockchain",         "gettxout",               &gettxout,               {"txid","n","include_mempool"} },
-    { "blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        {} },
+    { "blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        {"hash_type"} },
     { "blockchain",         "pruneblockchain",        &pruneblockchain,        {"height"} },
     { "blockchain",         "savemempool",            &savemempool,            {} },
     { "blockchain",         "verifychain",            &verifychain,            {"checklevel","nblocks"} },

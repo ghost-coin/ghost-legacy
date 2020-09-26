@@ -3493,8 +3493,8 @@ int CSMSG::CheckFundingTx(const Consensus::Params &consensusParams, const Secure
     int64_t nMsgFeePerKPerDay = 0;
     {
         LOCK(cs_main);
-        BlockMap::iterator mi = ::BlockIndex().find(hashBlock);
-        if (mi != ::BlockIndex().end()) {
+        BlockMap::iterator mi = g_chainman.BlockIndex().find(hashBlock);
+        if (mi != g_chainman.BlockIndex().end()) {
             pindex = mi->second;
             if (pindex && ::ChainActive().Contains(pindex)) {
                 blockDepth = ::ChainActive().Height() - pindex->nHeight + 1;

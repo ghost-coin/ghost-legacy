@@ -34,6 +34,7 @@
 #include <util/fees.h>
 #include <util/rbf.h>
 #include <wallet/fees.h>
+#include <node/ui_interface.h>
 
 #if ENABLE_USBDEVICE
 #include <usbdevice/usbdevice.h>
@@ -900,8 +901,12 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
 
         // Need to completely rewrite the wallet file; if we don't, bdb might keep
         // bits of the unencrypted private key in slack space in the database file.
-        BerkeleyBatch::Rewrite(*database);
+        database->Rewrite();
 
+        // BDB seems to have a bad habit of writing old data into
+        // slack space in .dat files; that is bad if the old data is
+        // unencrypted private keys. So:
+        database->ReloadDbEnv();
     }
     NotifyStatusChanged(this);
 
@@ -1880,15 +1885,15 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
     };
 
     std::vector<valtype> vSolutions;
-    txnouttype whichType = Solver(scriptPubKey, vSolutions);
+    TxoutType whichType = Solver(scriptPubKey, vSolutions);
 
     isminetype mine = ISMINE_NO;
     switch (whichType)
     {
-    case TX_NONSTANDARD:
-    case TX_NULL_DATA:
+    case TxoutType::NONSTANDARD:
+    case TxoutType::NULL_DATA:
         break;
-    case TX_PUBKEY:
+    case TxoutType::PUBKEY:
         keyID = CPubKey(vSolutions[0]).GetID();
         if (sigversion != SigVersion::BASE && vSolutions[0].size() != 33) {
             isInvalid = true;
@@ -1897,9 +1902,9 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         if ((mine = HaveKey(keyID, pak, pasc, pa)))
             return mine;
         break;
-    case TX_PUBKEYHASH:
-    case TX_TIMELOCKED_PUBKEYHASH:
-    case TX_PUBKEYHASH256:
+    case TxoutType::PUBKEYHASH:
+    case TxoutType::TIMELOCKED_PUBKEYHASH:
+    case TxoutType::PUBKEYHASH256:
         if (vSolutions[0].size() == 20)
             keyID = CKeyID(uint160(vSolutions[0]));
         else
@@ -1917,9 +1922,9 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         if ((mine = HaveKey(keyID, pak, pasc, pa)))
             return mine;
         break;
-    case TX_SCRIPTHASH:
-    case TX_TIMELOCKED_SCRIPTHASH:
-    case TX_SCRIPTHASH256:
+    case TxoutType::SCRIPTHASH:
+    case TxoutType::TIMELOCKED_SCRIPTHASH:
+    case TxoutType::SCRIPTHASH256:
     {
         CScriptID scriptID;
         if (vSolutions[0].size() == 20)
@@ -1941,13 +1946,13 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         }
         break;
     }
-    case TX_WITNESS_V0_KEYHASH:
-    case TX_WITNESS_V0_SCRIPTHASH:
+    case TxoutType::WITNESS_V0_KEYHASH:
+    case TxoutType::WITNESS_V0_SCRIPTHASH:
         LogPrintf("%s: Ignoring TX_WITNESS script type.\n", __func__); // shouldn't happen
         return ISMINE_NO;
 
-    case TX_MULTISIG:
-    case TX_TIMELOCKED_MULTISIG:
+    case TxoutType::MULTISIG:
+    case TxoutType::TIMELOCKED_MULTISIG:
     {
         // Only consider transactions "mine" if we own ALL the
         // keys involved. Multi-signature transactions that are
@@ -12542,7 +12547,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             CTxOutStandard *kernelOut = (CTxOutStandard*)pcoin.first->tx->vpout[pcoin.second].get();
 
             std::vector<valtype> vSolutions;
-            txnouttype whichType;
+            TxoutType whichType;
 
             const CScript *pscriptPubKey = &kernelOut->scriptPubKey;
             CScript coinstakePath;
@@ -12558,24 +12563,24 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             whichType = Solver(*pscriptPubKey, vSolutions);
 
             if (LogAcceptCategory(BCLog::POS)) {
-                WalletLogPrintf("%s: Parsed kernel type=%d.\n", __func__, whichType);
+                WalletLogPrintf("%s: Parsed kernel type=%d.\n", __func__, FromTxoutType(whichType));
             }
             CKeyID spendId;
-            if (whichType == TX_PUBKEYHASH) {
+            if (whichType == TxoutType::PUBKEYHASH) {
                 spendId = CKeyID(uint160(vSolutions[0]));
             } else
-            if (whichType == TX_PUBKEYHASH256) {
+            if (whichType == TxoutType::PUBKEYHASH256) {
                 spendId = CKeyID(uint256(vSolutions[0]));
             } else {
                 if (LogAcceptCategory(BCLog::POS)) {
-                    WalletLogPrintf("%s: No support for kernel type=%d.\n", __func__, whichType);
+                    WalletLogPrintf("%s: No support for kernel type=%d.\n", __func__, FromTxoutType(whichType));
                 }
                 break;  // only support pay to address (pay to pubkey hash)
             }
 
             if (!GetKey(spendId, key)) {
                 if (LogAcceptCategory(BCLog::POS)) {
-                    WalletLogPrintf("%s: Failed to get key for kernel type=%d.\n", __func__, whichType);
+                    WalletLogPrintf("%s: Failed to get key for kernel type=%d.\n", __func__, FromTxoutType(whichType));
                 }
                 break;  // unable to find corresponding key
             }

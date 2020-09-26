@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <index/txindex.h>
+#include <node/ui_interface.h>
 #include <shutdown.h>
-#include <ui_interface.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -369,26 +369,26 @@ bool TxIndex::IndexCSOutputs(const CBlock& block, const CBlockIndex* pindex)
                 continue;
             }
 
-            if (lk.m_stake_type == TX_PUBKEYHASH) {
+            if (lk.m_stake_type == TxoutType::PUBKEYHASH) {
                 memcpy(lk.m_stake_id.begin(), vSolutions[0].data(), 20);
             } else
-            if (lk.m_stake_type == TX_PUBKEYHASH256) {
+            if (lk.m_stake_type == TxoutType::PUBKEYHASH256) {
                 lk.m_stake_id = CKeyID256(uint256(vSolutions[0]));
             } else {
-                LogPrint(BCLog::COINDB, "%s: Ignoring unexpected stakescript type=%d.\n", __func__, lk.m_stake_type);
+                LogPrint(BCLog::COINDB, "%s: Ignoring unexpected stakescript type=%d.\n", __func__, FromTxoutType(lk.m_stake_type));
                 continue;
             }
 
 
             lk.m_spend_type = Solver(scriptSpend, vSolutions);
 
-            if (lk.m_spend_type == TX_PUBKEYHASH || lk.m_spend_type == TX_SCRIPTHASH) {
+            if (lk.m_spend_type == TxoutType::PUBKEYHASH || lk.m_spend_type == TxoutType::SCRIPTHASH) {
                 memcpy(lk.m_spend_id.begin(), vSolutions[0].data(), 20);
             } else
-            if (lk.m_spend_type == TX_PUBKEYHASH256 || lk.m_spend_type == TX_SCRIPTHASH256) {
+            if (lk.m_spend_type == TxoutType::PUBKEYHASH256 || lk.m_spend_type == TxoutType::SCRIPTHASH256) {
                 lk.m_spend_id = CKeyID256(uint256(vSolutions[0]));
             } else {
-                LogPrint(BCLog::COINDB, "%s: Ignoring unexpected spendscript type=%d.\n", __func__, lk.m_spend_type);
+                LogPrint(BCLog::COINDB, "%s: Ignoring unexpected spendscript type=%d.\n", __func__, FromTxoutType(lk.m_spend_type));
                 continue;
             }
 

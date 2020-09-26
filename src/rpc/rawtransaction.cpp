@@ -332,8 +332,8 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
 
     {
         LOCK(cs_main);
-        BlockMap::iterator mi = ::BlockIndex().find(hash_block);
-        if (mi != ::BlockIndex().end() && mi->second) {
+        BlockMap::iterator mi = g_chainman.BlockIndex().find(hash_block);
+        if (mi != g_chainman.BlockIndex().end() && mi->second) {
             CBlockIndex *pindex = mi->second;
             if (::ChainActive().Contains(pindex)) {
                 nHeight = pindex->nHeight;
@@ -659,12 +659,12 @@ static UniValue decoderawtransaction(const JSONRPCRequest& request)
 
 static std::string GetAllOutputTypes()
 {
-    std::string ret;
-    for (int i = TX_NONSTANDARD; i <= TX_WITNESS_UNKNOWN; ++i) {
-        if (i != TX_NONSTANDARD) ret += ", ";
-        ret += GetTxnOutputType(static_cast<txnouttype>(i));
+    std::vector<std::string> ret;
+    using U = std::underlying_type<TxoutType>::type;
+    for (U i = (U)TxoutType::NONSTANDARD; i <= (U)TxoutType::WITNESS_UNKNOWN; ++i) {
+        ret.emplace_back(GetTxnOutputType(static_cast<TxoutType>(i)));
     }
-    return ret;
+    return Join(ret, ", ");
 }
 
 static UniValue decodescript(const JSONRPCRequest& request)
@@ -729,10 +729,10 @@ static UniValue decodescript(const JSONRPCRequest& request)
         // is a witness program, don't return addresses for a segwit programs.
         if (type.get_str() == "pubkey" || type.get_str() == "pubkeyhash" || type.get_str() == "multisig" || type.get_str() == "nonstandard") {
             std::vector<std::vector<unsigned char>> solutions_data;
-            txnouttype which_type = Solver(script, solutions_data);
+            TxoutType which_type = Solver(script, solutions_data);
             // Uncompressed pubkeys cannot be used with segwit checksigs.
             // If the script contains an uncompressed pubkey, skip encoding of a segwit program.
-            if ((which_type == TX_PUBKEY) || (which_type == TX_MULTISIG)) {
+            if ((which_type == TxoutType::PUBKEY) || (which_type == TxoutType::MULTISIG)) {
                 for (const auto& solution : solutions_data) {
                     if ((solution.size() != 1) && !CPubKey(solution).IsCompressed()) {
                         return r;
@@ -742,9 +742,9 @@ static UniValue decodescript(const JSONRPCRequest& request)
 
             UniValue sr(UniValue::VOBJ);
             CScript segwitScr;
-            if (which_type == TX_PUBKEY) {
+            if (which_type == TxoutType::PUBKEY) {
                 segwitScr = GetScriptForDestination(WitnessV0KeyHash(Hash160(solutions_data[0].begin(), solutions_data[0].end())));
-            } else if (which_type == TX_PUBKEYHASH) {
+            } else if (which_type == TxoutType::PUBKEYHASH) {
                 segwitScr = GetScriptForDestination(WitnessV0KeyHash(uint160{solutions_data[0]}));
             } else {
                 // Scripts that are not fit for P2WPKH are encoded as P2WSH.
@@ -1260,30 +1260,34 @@ UniValue decodepsbt(const JSONRPCRequest& request)
         const PSBTInput& input = psbtx.inputs[i];
         UniValue in(UniValue::VOBJ);
         // UTXOs
+        bool have_a_utxo = false;
+        CTxOut txout;
         if (!input.witness_utxo.IsNull()) {
-            const CTxOut& txout = input.witness_utxo;
-
-            UniValue out(UniValue::VOBJ);
-
-            out.pushKV("amount", ValueFromAmount(txout.nValue));
-            if (MoneyRange(txout.nValue) && MoneyRange(total_in + txout.nValue)) {
-                total_in += txout.nValue;
-            } else {
-                // Hack to just not show fee later
-                have_all_utxos = false;
-            }
+            txout = input.witness_utxo;
 
             UniValue o(UniValue::VOBJ);
             ScriptToUniv(txout.scriptPubKey, o, true);
+
+            UniValue out(UniValue::VOBJ);
+            out.pushKV("amount", ValueFromAmount(txout.nValue));
             out.pushKV("scriptPubKey", o);
+
             in.pushKV("witness_utxo", out);
-        } else if (input.non_witness_utxo) {
+
+            have_a_utxo = true;
+        }
+        if (input.non_witness_utxo) {
+            txout = input.non_witness_utxo->vout[psbtx.tx->vin[i].prevout.n];
+
             UniValue non_wit(UniValue::VOBJ);
             TxToUniv(*input.non_witness_utxo, uint256(), non_wit, false);
             in.pushKV("non_witness_utxo", non_wit);
-            CAmount utxo_val = input.non_witness_utxo->vout[psbtx.tx->vin[i].prevout.n].nValue;
-            if (MoneyRange(utxo_val) && MoneyRange(total_in + utxo_val)) {
-                total_in += utxo_val;
+
+            have_a_utxo = true;
+        }
+        if (have_a_utxo) {
+            if (MoneyRange(txout.nValue) && MoneyRange(total_in + txout.nValue)) {
+                total_in += txout.nValue;
             } else {
                 // Hack to just not show fee later
                 have_all_utxos = false;

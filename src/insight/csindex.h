@@ -62,27 +62,29 @@ public:
 class ColdStakeIndexLinkKey
 {
 public:
-    txnouttype m_stake_type = TX_NONSTANDARD, m_spend_type = TX_NONSTANDARD;
+    TxoutType m_stake_type = TxoutType::NONSTANDARD, m_spend_type = TxoutType::NONSTANDARD;
     CKeyID256 m_stake_id, m_spend_id;
     unsigned int m_height = 0;
 
     template<typename Stream>
     void Serialize(Stream& s) const {
-        ser_writedata8(s, m_stake_type);
-        s.write((char*)m_stake_id.begin(), (m_stake_type == TX_PUBKEYHASH256) ? 32 : 20);
+        ser_writedata8(s, FromTxoutType(m_stake_type));
+        s.write((char*)m_stake_id.begin(), (m_stake_type == TxoutType::PUBKEYHASH256) ? 32 : 20);
         ser_writedata32be(s, m_height);
-        ser_writedata8(s, m_spend_type);
-        s.write((char*)m_spend_id.begin(), (m_spend_type == TX_PUBKEYHASH256 || m_spend_type == TX_SCRIPTHASH256) ? 32 : 20);
+        ser_writedata8(s, FromTxoutType(m_spend_type));
+        s.write((char*)m_spend_id.begin(), (m_spend_type == TxoutType::PUBKEYHASH256 || m_spend_type == TxoutType::SCRIPTHASH256) ? 32 : 20);
     }
     template<typename Stream>
     void Unserialize(Stream& s) {
-        m_stake_type = (txnouttype) ser_readdata8(s);
+        uint8_t stake_type = ser_readdata8(s);
+        m_stake_type = ToTxoutType(stake_type);
         m_stake_id.SetNull();
-        s.read((char*)m_stake_id.begin(), (m_stake_type == TX_PUBKEYHASH256) ? 32 : 20);
+        s.read((char*)m_stake_id.begin(), (m_stake_type == TxoutType::PUBKEYHASH256) ? 32 : 20);
         m_height = ser_readdata32be(s);
-        m_spend_type = (txnouttype) ser_readdata8(s);
+        uint8_t spend_type = ser_readdata8(s);
+        m_spend_type = ToTxoutType(spend_type);
         m_spend_id.SetNull();
-        s.read((char*)m_spend_id.begin(), (m_spend_type == TX_PUBKEYHASH256 || m_spend_type == TX_SCRIPTHASH256) ? 32 : 20);
+        s.read((char*)m_spend_id.begin(), (m_spend_type == TxoutType::PUBKEYHASH256 || m_spend_type == TxoutType::SCRIPTHASH256) ? 32 : 20);
     }
 
     friend bool operator<(const ColdStakeIndexLinkKey& a, const ColdStakeIndexLinkKey& b) {

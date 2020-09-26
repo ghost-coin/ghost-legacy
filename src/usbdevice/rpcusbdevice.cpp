@@ -20,6 +20,7 @@
 #include <script/signingprovider.h>
 #include <script/standard.h>
 #include <txmempool.h>
+#include <node/ui_interface.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>

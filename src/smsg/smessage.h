@@ -9,11 +9,11 @@
 #include <sync.h>
 #include <key_io.h>
 #include <serialize.h>
-#include <ui_interface.h>
 #include <lz4/lz4.h>
 #include <smsg/keystore.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
+#include <util/ui_change_type.h>
 
 #include <atomic>
 #include <condition_variable>

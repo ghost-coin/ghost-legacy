@@ -86,7 +86,7 @@ bool IsDust(const CTxOut& txout, const CFeeRate& dustRelayFee);
 CAmount GetDustThreshold(const CTxOutStandard *txout, const CFeeRate& dustRelayFeeIn);
 bool IsDust(const CTxOutBase *txout, const CFeeRate& dustRelayFee);
 
-bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType, int64_t time=0);
+bool IsStandard(const CScript& scriptPubKey, TxoutType& whichType, int64_t time=0);
     /**
      * Check for standard transaction types
      * @return True if all outputs (scriptPubKeys) use only standard transaction forms

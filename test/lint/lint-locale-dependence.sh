@@ -129,6 +129,7 @@ LOCALE_DEPENDENT_FUNCTIONS=(
     snprintf
     sprintf
     sscanf
+    std::locale::global
     std::to_string
     stod
     stof

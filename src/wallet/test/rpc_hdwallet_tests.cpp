@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     std::vector<uint8_t> vScript = ParseHex(rv["hex"].get_str());
     script = CScript(vScript.begin(), vScript.end());
 
-    txnouttype whichType;
+    TxoutType whichType;
     BOOST_CHECK(IsStandard(script, whichType));
 
     opcodetype opcode;

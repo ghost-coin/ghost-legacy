@@ -193,12 +193,12 @@ private:
     template <typename K, typename T>
     bool WriteIC(const K& key, const T& value, bool fOverwrite = true)
     {
-        if (!m_batch.Write(key, value, fOverwrite)) {
+        if (!m_batch->Write(key, value, fOverwrite)) {
             return false;
         }
         m_database.IncrementUpdateCounter();
         if (m_database.nUpdateCounter % 1000 == 0) {
-            m_batch.Flush();
+            m_batch->Flush();
         }
         return true;
     }
@@ -206,19 +206,19 @@ private:
     template <typename K>
     bool EraseIC(const K& key)
     {
-        if (!m_batch.Erase(key)) {
+        if (!m_batch->Erase(key)) {
             return false;
         }
         m_database.IncrementUpdateCounter();
         if (m_database.nUpdateCounter % 1000 == 0) {
-            m_batch.Flush();
+            m_batch->Flush();
         }
         return true;
     }
 
 public:
     explicit WalletBatch(WalletDatabase& database, const char* pszMode = "r+", bool _fFlushOnClose = true) :
-        m_batch(database, pszMode, _fFlushOnClose),
+        m_batch(database.MakeBatch(pszMode, _fFlushOnClose)),
         m_database(database)
     {
     }
@@ -291,12 +291,13 @@ public:
     //! Abort current transaction
     bool TxnAbort();
 
+    // Particl
     bool WriteLockedUnspentOutput(const COutPoint &o);
     bool EraseLockedUnspentOutput(const COutPoint &o);
     bool EraseAllByPrefix(std::string sPrefix);
 
 //private:
-    BerkeleyBatch m_batch;
+    std::unique_ptr<BerkeleyBatch> m_batch;
     WalletDatabase& m_database;
 };
 

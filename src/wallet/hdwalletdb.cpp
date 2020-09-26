@@ -54,7 +54,7 @@ bool CHDWalletDB::WriteStealthAddress(const CStealthAddress &sxAddr)
 bool CHDWalletDB::ReadStealthAddress(CStealthAddress& sxAddr)
 {
     // Set scan_pubkey before reading
-    return m_batch.Read(std::make_pair(DBKeys::PART_SXADDR, sxAddr.scan_pubkey), sxAddr);
+    return m_batch->Read(std::make_pair(DBKeys::PART_SXADDR, sxAddr.scan_pubkey), sxAddr);
 };
 
 bool CHDWalletDB::EraseStealthAddress(const CStealthAddress& sxAddr)
@@ -65,7 +65,7 @@ bool CHDWalletDB::EraseStealthAddress(const CStealthAddress& sxAddr)
 
 bool CHDWalletDB::ReadNamedExtKeyId(const std::string &name, CKeyID &identifier, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(DBKeys::PART_EXTKEYNAMED, name), identifier, nFlags);
+    return m_batch->Read(std::make_pair(DBKeys::PART_EXTKEYNAMED, name), identifier, nFlags);
 };
 
 bool CHDWalletDB::WriteNamedExtKeyId(const std::string &name, const CKeyID &identifier)
@@ -76,7 +76,7 @@ bool CHDWalletDB::WriteNamedExtKeyId(const std::string &name, const CKeyID &iden
 
 bool CHDWalletDB::ReadExtKey(const CKeyID &identifier, CStoredExtKey &ek32, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(DBKeys::PART_EXTKEY, identifier), ek32, nFlags);
+    return m_batch->Read(std::make_pair(DBKeys::PART_EXTKEY, identifier), ek32, nFlags);
 };
 
 bool CHDWalletDB::WriteExtKey(const CKeyID &identifier, const CStoredExtKey &ek32)
@@ -87,7 +87,7 @@ bool CHDWalletDB::WriteExtKey(const CKeyID &identifier, const CStoredExtKey &ek3
 
 bool CHDWalletDB::ReadExtAccount(const CKeyID &identifier, CExtKeyAccount &ekAcc, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(DBKeys::PART_EXTACC, identifier), ekAcc, nFlags);
+    return m_batch->Read(std::make_pair(DBKeys::PART_EXTACC, identifier), ekAcc, nFlags);
 };
 
 bool CHDWalletDB::WriteExtAccount(const CKeyID &identifier, const CExtKeyAccount &ekAcc)
@@ -98,7 +98,7 @@ bool CHDWalletDB::WriteExtAccount(const CKeyID &identifier, const CExtKeyAccount
 
 bool CHDWalletDB::ReadExtKeyPack(const CKeyID &identifier, const uint32_t nPack, std::vector<CEKAKeyPack> &ekPak, uint32_t nFlags)
 {
-    return m_batch.Read(PackKey("epak", identifier, nPack), ekPak, nFlags);
+    return m_batch->Read(PackKey("epak", identifier, nPack), ekPak, nFlags);
 };
 
 bool CHDWalletDB::WriteExtKeyPack(const CKeyID &identifier, const uint32_t nPack, const std::vector<CEKAKeyPack> &ekPak)
@@ -109,7 +109,7 @@ bool CHDWalletDB::WriteExtKeyPack(const CKeyID &identifier, const uint32_t nPack
 
 bool CHDWalletDB::ReadExtStealthKeyPack(const CKeyID &identifier, const uint32_t nPack, std::vector<CEKAStealthKeyPack> &aksPak, uint32_t nFlags)
 {
-    return m_batch.Read(PackKey(DBKeys::PART_SXADDRKEYPACK, identifier, nPack), aksPak, nFlags);
+    return m_batch->Read(PackKey(DBKeys::PART_SXADDRKEYPACK, identifier, nPack), aksPak, nFlags);
 };
 
 bool CHDWalletDB::WriteExtStealthKeyPack(const CKeyID &identifier, const uint32_t nPack, const std::vector<CEKAStealthKeyPack> &aksPak)
@@ -120,7 +120,7 @@ bool CHDWalletDB::WriteExtStealthKeyPack(const CKeyID &identifier, const uint32_
 
 bool CHDWalletDB::ReadExtStealthKeyChildPack(const CKeyID &identifier, const uint32_t nPack, std::vector<CEKASCKeyPack> &asckPak, uint32_t nFlags)
 {
-    return m_batch.Read(PackKey("ecpk", identifier, nPack), asckPak, nFlags);
+    return m_batch->Read(PackKey("ecpk", identifier, nPack), asckPak, nFlags);
 };
 
 bool CHDWalletDB::WriteExtStealthKeyChildPack(const CKeyID &identifier, const uint32_t nPack, const std::vector<CEKASCKeyPack> &asckPak)
@@ -131,7 +131,7 @@ bool CHDWalletDB::WriteExtStealthKeyChildPack(const CKeyID &identifier, const ui
 
 bool CHDWalletDB::ReadFlag(const std::string &name, int32_t &nValue, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(DBKeys::PART_FLAG, name), nValue, nFlags);
+    return m_batch->Read(std::make_pair(DBKeys::PART_FLAG, name), nValue, nFlags);
 };
 
 bool CHDWalletDB::WriteFlag(const std::string &name, int32_t nValue)
@@ -146,7 +146,7 @@ bool CHDWalletDB::WriteWalletFlags(const uint64_t flags)
 
 bool CHDWalletDB::ReadExtKeyIndex(uint32_t id, CKeyID &identifier, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("ine"), id), identifier, nFlags);
+    return m_batch->Read(std::make_pair(std::string("ine"), id), identifier, nFlags);
 };
 
 bool CHDWalletDB::WriteExtKeyIndex(uint32_t id, const CKeyID &identifier)
@@ -157,7 +157,7 @@ bool CHDWalletDB::WriteExtKeyIndex(uint32_t id, const CKeyID &identifier)
 
 bool CHDWalletDB::ReadStealthAddressIndex(uint32_t id, CStealthAddressIndexed &sxi, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("ins"), id), sxi, nFlags);
+    return m_batch->Read(std::make_pair(std::string("ins"), id), sxi, nFlags);
 };
 
 bool CHDWalletDB::WriteStealthAddressIndex(uint32_t id, const CStealthAddressIndexed &sxi)
@@ -168,7 +168,7 @@ bool CHDWalletDB::WriteStealthAddressIndex(uint32_t id, const CStealthAddressInd
 
 bool CHDWalletDB::ReadStealthAddressIndexReverse(const uint160 &hash, uint32_t &id, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("ris"), hash), id, nFlags);
+    return m_batch->Read(std::make_pair(std::string("ris"), hash), id, nFlags);
 };
 
 bool CHDWalletDB::WriteStealthAddressIndexReverse(const uint160 &hash, uint32_t id)
@@ -179,7 +179,7 @@ bool CHDWalletDB::WriteStealthAddressIndexReverse(const uint160 &hash, uint32_t 
 
 bool CHDWalletDB::ReadStealthAddressLink(const CKeyID &keyId, uint32_t &id, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("lns"), keyId), id, nFlags);
+    return m_batch->Read(std::make_pair(std::string("lns"), keyId), id, nFlags);
 };
 
 bool CHDWalletDB::WriteStealthAddressLink(const CKeyID &keyId, uint32_t id)
@@ -201,7 +201,7 @@ bool CHDWalletDB::EraseAddressBookEntry(const std::string &sKey)
 
 bool CHDWalletDB::ReadVoteTokens(std::vector<CVoteToken> &vVoteTokens, uint32_t nFlags)
 {
-    return m_batch.Read(std::string("votes"), vVoteTokens, nFlags);
+    return m_batch->Read(std::string("votes"), vVoteTokens, nFlags);
 };
 
 bool CHDWalletDB::WriteVoteTokens(const std::vector<CVoteToken> &vVoteTokens)
@@ -223,7 +223,7 @@ bool CHDWalletDB::EraseTxRecord(const uint256 &hash)
 
 bool CHDWalletDB::ReadStoredTx(const uint256 &hash, CStoredTransaction &stx, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("stx"), hash), stx, nFlags);
+    return m_batch->Read(std::make_pair(std::string("stx"), hash), stx, nFlags);
 };
 
 bool CHDWalletDB::WriteStoredTx(const uint256 &hash, const CStoredTransaction &stx)
@@ -239,7 +239,7 @@ bool CHDWalletDB::EraseStoredTx(const uint256 &hash)
 
 bool CHDWalletDB::ReadAnonKeyImage(const CCmpPubKey &ki, COutPoint &op, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(std::string("aki"), ki), op, nFlags);
+    return m_batch->Read(std::make_pair(std::string("aki"), ki), op, nFlags);
 };
 
 bool CHDWalletDB::WriteAnonKeyImage(const CCmpPubKey &ki, const COutPoint &op)
@@ -256,7 +256,7 @@ bool CHDWalletDB::EraseAnonKeyImage(const CCmpPubKey &ki)
 bool CHDWalletDB::HaveLockedAnonOut(const COutPoint &op, uint32_t nFlags)
 {
     char c;
-    return m_batch.Read(std::make_pair(std::string("lao"), op), c, nFlags);
+    return m_batch->Read(std::make_pair(std::string("lao"), op), c, nFlags);
 }
 
 bool CHDWalletDB::WriteLockedAnonOut(const COutPoint &op)
@@ -273,7 +273,7 @@ bool CHDWalletDB::EraseLockedAnonOut(const COutPoint &op)
 
 bool CHDWalletDB::ReadWalletSetting(const std::string &setting, std::string &json, uint32_t nFlags)
 {
-    return m_batch.Read(std::make_pair(DBKeys::PART_WALLETSETTING, setting), json, nFlags);
+    return m_batch->Read(std::make_pair(DBKeys::PART_WALLETSETTING, setting), json, nFlags);
 };
 
 bool CHDWalletDB::WriteWalletSetting(const std::string &setting, const std::string &json)
