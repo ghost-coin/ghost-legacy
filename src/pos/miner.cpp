@@ -275,14 +275,17 @@ void StopThreadStakeMiner()
 void WakeThreadStakeMiner(CHDWallet *pwallet)
 {
     // Call when chain is synced, wallet unlocked or balance changed
+    size_t nStakeThread = 0;
+    {
     LOCK(pwallet->cs_wallet);
-    LogPrint(BCLog::POS, "WakeThreadStakeMiner thread %d\n", pwallet->nStakeThread);
-
-    if (pwallet->nStakeThread >= vStakeThreads.size()) {
+    nStakeThread = pwallet->nStakeThread;
+    pwallet->nLastCoinStakeSearchTime = 0;
+    }
+    LogPrint(BCLog::POS, "WakeThreadStakeMiner thread %d\n", nStakeThread);
+    if (nStakeThread >= vStakeThreads.size()) {
         return; // stake unit test
     }
-    StakeThread *t = vStakeThreads[pwallet->nStakeThread];
-    pwallet->nLastCoinStakeSearchTime = 0;
+    StakeThread *t = vStakeThreads[nStakeThread];
     {
         std::lock_guard<std::mutex> lock(t->mtxMinerProc);
         t->fWakeMinerProc = true;
