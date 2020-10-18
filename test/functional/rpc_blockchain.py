@@ -22,6 +22,17 @@ from decimal import Decimal
 import http.client
 import subprocess
 
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    TIME_GENESIS_BLOCK,
+)
+from test_framework.messages import (
+    CBlockHeader,
+    FromHex,
+    msg_block,
+)
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -31,17 +42,6 @@ from test_framework.util import (
     assert_raises_rpc_error,
     assert_is_hex_string,
     assert_is_hash_string,
-)
-from test_framework.blocktools import (
-    create_block,
-    create_coinbase,
-    TIME_GENESIS_BLOCK,
-)
-from test_framework.messages import (
-    msg_block,
-)
-from test_framework.mininode import (
-    P2PInterface,
 )
 
 
@@ -279,6 +279,14 @@ class BlockchainTest(BitcoinTestFramework):
         assert isinstance(header['version'], int)
         assert isinstance(int(header['versionHex'], 16), int)
         assert isinstance(header['difficulty'], Decimal)
+
+        # Test with verbose=False, which should return the header as hex.
+        header_hex = node.getblockheader(blockhash=besthash, verbose=False)
+        assert_is_hex_string(header_hex)
+
+        header = FromHex(CBlockHeader(), header_hex)
+        header.calc_sha256()
+        assert_equal(header.hash, besthash)
 
     def _test_getdifficulty(self):
         difficulty = self.nodes[0].getdifficulty()

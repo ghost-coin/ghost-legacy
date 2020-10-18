@@ -27,8 +27,11 @@
 #include <qt/walletmodel.h>
 #endif // ENABLE_WALLET
 
+#include <init.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
+#include <node/context.h>
+#include <node/ui_interface.h>
 #include <noui.h>
 #include <uint256.h>
 #include <util/system.h>
@@ -36,6 +39,7 @@
 #include <util/translation.h>
 #include <validation.h>
 
+#include <boost/signals2/connection.hpp>
 #include <memory>
 
 #include <QApplication>
@@ -80,6 +84,7 @@ static void RegisterMetaTypes()
 
     qRegisterMetaType<std::function<void()>>("std::function<void()>");
     qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
+    qRegisterMetaType<interfaces::BlockAndHeaderTipInfo>("interfaces::BlockAndHeaderTipInfo");
 }
 
 static QString GetLangTerritory()
@@ -163,8 +168,9 @@ void BitcoinCore::initialize()
     {
         qDebug() << __func__ << ": Running initialization in thread";
         util::ThreadRename("qt-init");
-        bool rv = m_node.appInitMain();
-        Q_EMIT initializeResult(rv);
+        interfaces::BlockAndHeaderTipInfo tip_info;
+        bool rv = m_node.appInitMain(&tip_info);
+        Q_EMIT initializeResult(rv, tip_info);
     } catch (const std::exception& e) {
         handleRunawayException(&e);
     } catch (...) {
@@ -190,10 +196,9 @@ void BitcoinCore::shutdown()
 static int qt_argc = 1;
 static const char* qt_argv = "bitcoin-qt";
 
-BitcoinApplication::BitcoinApplication(interfaces::Node& node):
+BitcoinApplication::BitcoinApplication():
     QApplication(qt_argc, const_cast<char **>(&qt_argv)),
     coreThread(nullptr),
-    m_node(node),
     optionsModel(nullptr),
     clientModel(nullptr),
     window(nullptr),
@@ -201,6 +206,7 @@ BitcoinApplication::BitcoinApplication(interfaces::Node& node):
     returnValue(0),
     platformStyle(nullptr)
 {
+    // Qt runs setlocale(LC_ALL, "") on initialization.
     RegisterMetaTypes();
     setQuitOnLastWindowClosed(false);
 }
@@ -249,12 +255,12 @@ void BitcoinApplication::createPaymentServer()
 
 void BitcoinApplication::createOptionsModel(bool resetSettings)
 {
-    optionsModel = new OptionsModel(m_node, this, resetSettings);
+    optionsModel = new OptionsModel(this, resetSettings);
 }
 
 void BitcoinApplication::createWindow(const NetworkStyle *networkStyle)
 {
-    window = new BitcoinGUI(m_node, platformStyle, networkStyle, nullptr);
+    window = new BitcoinGUI(node(), platformStyle, networkStyle, nullptr);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, &QTimer::timeout, window, &BitcoinGUI::detectShutdown);
@@ -262,17 +268,27 @@ void BitcoinApplication::createWindow(const NetworkStyle *networkStyle)
 
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle)
 {
-    SplashScreen *splash = new SplashScreen(m_node, nullptr, networkStyle);
+    assert(!m_splash);
+    m_splash = new SplashScreen(nullptr, networkStyle);
     // We don't hold a direct pointer to the splash screen after creation, but the splash
     // screen will take care of deleting itself when finish() happens.
-    splash->show();
-    connect(this, &BitcoinApplication::splashFinished, splash, &SplashScreen::finish);
-    connect(this, &BitcoinApplication::requestedShutdown, splash, &QWidget::close);
+    m_splash->show();
+    connect(this, &BitcoinApplication::requestedInitialize, m_splash, &SplashScreen::handleLoadWallet);
+    connect(this, &BitcoinApplication::splashFinished, m_splash, &SplashScreen::finish);
+    connect(this, &BitcoinApplication::requestedShutdown, m_splash, &QWidget::close);
+}
+
+void BitcoinApplication::setNode(interfaces::Node& node)
+{
+    assert(!m_node);
+    m_node = &node;
+    if (optionsModel) optionsModel->setNode(*m_node);
+    if (m_splash) m_splash->setNode(*m_node);
 }
 
 bool BitcoinApplication::baseInitialize()
 {
-    return m_node.baseInitialize();
+    return node().baseInitialize();
 }
 
 void BitcoinApplication::startThread()
@@ -280,7 +296,7 @@ void BitcoinApplication::startThread()
     if(coreThread)
         return;
     coreThread = new QThread(this);
-    BitcoinCore *executor = new BitcoinCore(m_node);
+    BitcoinCore *executor = new BitcoinCore(node());
     executor->moveToThread(coreThread);
 
     /*  communication to and from thread */
@@ -301,8 +317,8 @@ void BitcoinApplication::parameterSetup()
     // print to the console unnecessarily.
     gArgs.SoftSetBoolArg("-printtoconsole", false);
 
-    m_node.initLogging();
-    m_node.initParameterInteraction();
+    InitLogging(gArgs);
+    InitParameterInteraction(gArgs);
 }
 
 void BitcoinApplication::InitializePruneSetting(bool prune)
@@ -334,7 +350,7 @@ void BitcoinApplication::requestShutdown()
     window->unsubscribeFromCoreSignals();
     // Request node shutdown, which can interrupt long operations, like
     // rescanning a wallet.
-    m_node.startShutdown();
+    node().startShutdown();
     // Unsetting the client model can cause the current thread to wait for node
     // to complete an operation, like wait for a RPC execution to complete.
     window->setClientModel(nullptr);
@@ -347,7 +363,7 @@ void BitcoinApplication::requestShutdown()
     Q_EMIT requestedShutdown();
 }
 
-void BitcoinApplication::initializeResult(bool success)
+void BitcoinApplication::initializeResult(bool success, interfaces::BlockAndHeaderTipInfo tip_info)
 {
     qDebug() << __func__ << ": Initialization result: " << success;
     // Set exit result.
@@ -356,8 +372,8 @@ void BitcoinApplication::initializeResult(bool success)
     {
         // Log this only after AppInitMain finishes, as then logging setup is guaranteed complete
         qInfo() << "Platform customization:" << platformStyle->getName();
-        clientModel = new ClientModel(m_node, optionsModel);
-        window->setClientModel(clientModel);
+        clientModel = new ClientModel(node(), optionsModel);
+        window->setClientModel(clientModel, &tip_info);
 #ifdef ENABLE_WALLET
         if (WalletModel::isWalletEnabled()) {
             m_wallet_controller = new WalletController(*clientModel, platformStyle, this);
@@ -417,14 +433,14 @@ WId BitcoinApplication::getMainWinId() const
     return window->winId();
 }
 
-static void SetupUIArgs()
+static void SetupUIArgs(ArgsManager& argsman)
 {
-    gArgs.AddArg("-choosedatadir", strprintf("Choose data directory on startup (default: %u)", DEFAULT_CHOOSE_DATADIR), ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-lang=<lang>", "Set language, for example \"de_DE\" (default: system locale)", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-min", "Start minimized", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-resetguisettings", "Reset all settings changed in the GUI", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-splash", strprintf("Show splash screen on startup (default: %u)", DEFAULT_SPLASHSCREEN), ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
-    gArgs.AddArg("-uiplatform", strprintf("Select platform to customize UI for (one of windows, macosx, other; default: %s)", BitcoinGUI::DEFAULT_UIPLATFORM), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::GUI);
+    argsman.AddArg("-choosedatadir", strprintf("Choose data directory on startup (default: %u)", DEFAULT_CHOOSE_DATADIR), ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg("-lang=<lang>", "Set language, for example \"de_DE\" (default: system locale)", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg("-min", "Start minimized", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg("-resetguisettings", "Reset all settings changed in the GUI", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg("-splash", strprintf("Show splash screen on startup (default: %u)", DEFAULT_SPLASHSCREEN), ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    argsman.AddArg("-uiplatform", strprintf("Select platform to customize UI for (one of windows, macosx, other; default: %s)", BitcoinGUI::DEFAULT_UIPLATFORM), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::GUI);
 }
 
 int GuiMain(int argc, char* argv[])
@@ -436,12 +452,13 @@ int GuiMain(int argc, char* argv[])
     SetupEnvironment();
     util::ThreadSetInternalName("main");
 
-    std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
+    NodeContext node_context;
+    std::unique_ptr<interfaces::Node> node = interfaces::MakeNode(&node_context);
 
     // Subscribe to global signals from core
-    std::unique_ptr<interfaces::Handler> handler_message_box = node->handleMessageBox(noui_ThreadSafeMessageBox);
-    std::unique_ptr<interfaces::Handler> handler_question = node->handleQuestion(noui_ThreadSafeQuestion);
-    std::unique_ptr<interfaces::Handler> handler_init_message = node->handleInitMessage(noui_InitMessage);
+    boost::signals2::scoped_connection handler_message_box = ::uiInterface.ThreadSafeMessageBox_connect(noui_ThreadSafeMessageBox);
+    boost::signals2::scoped_connection handler_question = ::uiInterface.ThreadSafeQuestion_connect(noui_ThreadSafeQuestion);
+    boost::signals2::scoped_connection handler_init_message = ::uiInterface.InitMessage_connect(noui_InitMessage);
 
     // Do not refer to data directory yet, this can be overridden by Intro::pickDataDirectory
 
@@ -455,15 +472,15 @@ int GuiMain(int argc, char* argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    BitcoinApplication app(*node);
+    BitcoinApplication app;
 
     /// 2. Parse command-line options. We do this after qt in order to show an error if there are problems parsing these
     // Command-line options take precedence:
-    node->setupServerArgs();
-    SetupUIArgs();
+    SetupServerArgs(node_context);
+    SetupUIArgs(gArgs);
     std::string error;
-    if (!node->parseParameters(argc, argv, error)) {
-        node->initError(strprintf(Untranslated("Error parsing command line arguments: %s\n"), error));
+    if (!gArgs.ParseParameters(argc, argv, error)) {
+        InitError(strprintf(Untranslated("Error parsing command line arguments: %s\n"), error));
         // Create a message box, because the gui has neither been created nor has subscribed to core signals
         QMessageBox::critical(nullptr, PACKAGE_NAME,
             // message can not be translated because translations have not been initialized
@@ -489,7 +506,7 @@ int GuiMain(int argc, char* argv[])
     // Show help message immediately after parsing command-line options (for "-lang") and setting locale,
     // but before showing splash screen.
     if (HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
-        HelpMessageDialog help(*node, nullptr, gArgs.IsArgSet("-version"));
+        HelpMessageDialog help(nullptr, gArgs.IsArgSet("-version"));
         help.showOrPrint();
         return EXIT_SUCCESS;
     }
@@ -499,18 +516,18 @@ int GuiMain(int argc, char* argv[])
     bool did_show_intro = false;
     bool prune = false; // Intro dialog prune check box
     // Gracefully exit if the user cancels
-    if (!Intro::showIfNeeded(*node, did_show_intro, prune)) return EXIT_SUCCESS;
+    if (!Intro::showIfNeeded(did_show_intro, prune)) return EXIT_SUCCESS;
 
     /// 6. Determine availability of data directory and parse bitcoin.conf
     /// - Do not call GetDataDir(true) before this step finishes
     if (!CheckDataDirOption()) {
-        node->initError(strprintf(Untranslated("Specified data directory \"%s\" does not exist.\n"), gArgs.GetArg("-datadir", "")));
+        InitError(strprintf(Untranslated("Specified data directory \"%s\" does not exist.\n"), gArgs.GetArg("-datadir", "")));
         QMessageBox::critical(nullptr, PACKAGE_NAME,
             QObject::tr("Error: Specified data directory \"%1\" does not exist.").arg(QString::fromStdString(gArgs.GetArg("-datadir", ""))));
         return EXIT_FAILURE;
     }
-    if (!node->readConfigFiles(error)) {
-        node->initError(strprintf(Untranslated("Error reading configuration file: %s\n"), error));
+    if (!gArgs.ReadConfigFiles(error, true)) {
+        InitError(strprintf(Untranslated("Error reading configuration file: %s\n"), error));
         QMessageBox::critical(nullptr, PACKAGE_NAME,
             QObject::tr("Error: Cannot parse configuration file: %1.").arg(QString::fromStdString(error)));
         return EXIT_FAILURE;
@@ -524,16 +541,21 @@ int GuiMain(int argc, char* argv[])
 
     // Check for -chain, -testnet or -regtest parameter (Params() calls are only valid after this clause)
     try {
-        node->selectParams(gArgs.GetChainName());
+        SelectParams(gArgs.GetChainName());
     } catch(std::exception &e) {
-        node->initError(Untranslated(strprintf("%s\n", e.what())));
+        InitError(Untranslated(strprintf("%s\n", e.what())));
         QMessageBox::critical(nullptr, PACKAGE_NAME, QObject::tr("Error: %1").arg(e.what()));
         return EXIT_FAILURE;
     }
 #ifdef ENABLE_WALLET
     // Parse URIs on command line -- this can affect Params()
-    PaymentServer::ipcParseCommandLine(*node, argc, argv);
+    PaymentServer::ipcParseCommandLine(argc, argv);
 #endif
+    if (!gArgs.InitSettings(error)) {
+        InitError(Untranslated(error));
+        QMessageBox::critical(nullptr, PACKAGE_NAME, QObject::tr("Error initializing settings: %1").arg(QString::fromStdString(error)));
+        return EXIT_FAILURE;
+    }
 
     QScopedPointer<const NetworkStyle> networkStyle(NetworkStyle::instantiate(Params().NetworkIDString()));
     assert(!networkStyle.isNull());
@@ -584,6 +606,8 @@ int GuiMain(int argc, char* argv[])
     if (gArgs.GetBoolArg("-splash", DEFAULT_SPLASHSCREEN) && !gArgs.GetBoolArg("-min", false))
         app.createSplashScreen(networkStyle.data());
 
+    app.setNode(*node);
+
     int rv = EXIT_SUCCESS;
     try
     {
@@ -606,10 +630,10 @@ int GuiMain(int argc, char* argv[])
         }
     } catch (const std::exception& e) {
         PrintExceptionContinue(&e, "Runaway exception");
-        app.handleRunawayException(QString::fromStdString(node->getWarnings().translated));
+        app.handleRunawayException(QString::fromStdString(app.node().getWarnings().translated));
     } catch (...) {
         PrintExceptionContinue(nullptr, "Runaway exception");
-        app.handleRunawayException(QString::fromStdString(node->getWarnings().translated));
+        app.handleRunawayException(QString::fromStdString(app.node().getWarnings().translated));
     }
     return rv;
 }

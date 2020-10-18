@@ -69,7 +69,9 @@ TEST_EXIT_SKIPPED = 77
 TEST_FRAMEWORK_MODULES = [
     "address",
     "blocktools",
+    "muhash",
     "script",
+    "util",
 ]
 
 EXTENDED_SCRIPTS = [
@@ -109,7 +111,6 @@ BASE_SCRIPTS = [
     'wallet_listtransactions.py',
     # vv Tests less than 60s vv
     'p2p_sendheaders.py',
-    'wallet_zapwallettxes.py',
     'wallet_importmulti.py',
     'mempool_limit.py',
     'rpc_txoutproof.py',
@@ -163,6 +164,7 @@ BASE_SCRIPTS = [
     'rpc_deprecated.py',
     'wallet_disable.py',
     'p2p_addr_relay.py',
+    'p2p_getaddr_caching.py',
     'p2p_getdata.py',
     'rpc_net.py',
     'wallet_keypool.py',
@@ -197,6 +199,7 @@ BASE_SCRIPTS = [
     'p2p_eviction.py',
     'rpc_signmessage.py',
     'rpc_generateblock.py',
+    'rpc_generate.py',
     'wallet_balance.py',
     'feature_nulldummy.py',
     'mempool_accept.py',
@@ -226,6 +229,7 @@ BASE_SCRIPTS = [
     'rpc_estimatefee.py',
     'rpc_getblockstats.py',
     'wallet_create_tx.py',
+    'wallet_send.py',
     'p2p_fingerprint.py',
     'feature_uacomment.py',
     'wallet_coinbase_category.py',
@@ -246,12 +250,15 @@ BASE_SCRIPTS = [
     'p2p_node_network_limited.py',
     'p2p_permissions.py',
     'feature_blocksdir.py',
+    'wallet_startup.py',
     'feature_config_args.py',
+    'feature_settings.py',
     'rpc_getdescriptorinfo.py',
     'rpc_getpeerinfo_banscore_deprecation.py',
     'rpc_help.py',
     'feature_help.py',
     'feature_shutdown.py',
+    'p2p_ibd_txrelay.py',
     # Don't append tests at the end to avoid merge conflicts
     # Put them in a random line within the section that fits their approximate run-time
 ]
@@ -779,14 +786,16 @@ class RPCCoverage():
         Return a set of currently untested RPC commands.
 
         """
-        # This is shared from `test/functional/test-framework/coverage.py`
+        # This is shared from `test/functional/test_framework/coverage.py`
         reference_filename = 'rpc_interface.txt'
         coverage_file_prefix = 'coverage.'
 
         coverage_ref_filename = os.path.join(self.dir, reference_filename)
         coverage_filenames = set()
         all_cmds = set()
-        covered_cmds = set()
+        # Consider RPC generate covered, because it is overloaded in
+        # test_framework/test_node.py and not seen by the coverage check.
+        covered_cmds = set({'generate'})
 
         if not os.path.isfile(coverage_ref_filename):
             raise RuntimeError("No coverage reference found")

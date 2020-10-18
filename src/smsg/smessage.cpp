@@ -404,16 +404,16 @@ void ThreadSecureMsgPow()
     return;
 };
 
-void AddOptions()
+void AddOptions(ArgsManager& argsman)
 {
-    gArgs.AddArg("-smsg", "Enable secure messaging. (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgscanchain", "Scan the block chain for public key addresses on startup. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgscanincoming", "Scan incoming blocks for public key addresses. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgnotify=<cmd>", "Execute command when a message is received. (%s in cmd is replaced by receiving address)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgsaddnewkeys", "Scan for incoming messages on new wallet keys. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgbantime=<n>", strprintf("Number of seconds to ignore misbehaving peers for (default: %u)", SMSG_DEFAULT_BANTIME), ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgmaxreceive=<n>", strprintf("Max number of data messages to tolerate from peers, counter decreases over time (default: %u)", SMSG_DEFAULT_MAXRCV), ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
-    gArgs.AddArg("-smsgsregtestadjust", "Adjust durations in regtest (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
+    argsman.AddArg("-smsg", "Enable secure messaging. (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
+    argsman.AddArg("-smsgscanchain", "Scan the block chain for public key addresses on startup. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
+    argsman.AddArg("-smsgscanincoming", "Scan incoming blocks for public key addresses. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
+    argsman.AddArg("-smsgnotify=<cmd>", "Execute command when a message is received. (%s in cmd is replaced by receiving address)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
+    argsman.AddArg("-smsgsaddnewkeys", "Scan for incoming messages on new wallet keys. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
+    argsman.AddArg("-smsgbantime=<n>", strprintf("Number of seconds to ignore misbehaving peers for (default: %u)", SMSG_DEFAULT_BANTIME), ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
+    argsman.AddArg("-smsgmaxreceive=<n>", strprintf("Max number of data messages to tolerate from peers, counter decreases over time (default: %u)", SMSG_DEFAULT_MAXRCV), ArgsManager::ALLOW_ANY, OptionsCategory::SMSG);
+    argsman.AddArg("-smsgsregtestadjust", "Adjust durations in regtest (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
     return;
 };
 

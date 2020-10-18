@@ -4,11 +4,12 @@
 
 DIST_SUBDIRS = secp256k1 univalue
 
-AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS) $(GPROF_LDFLAGS) $(SANITIZER_LDFLAGS)
+AM_LDFLAGS = $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS) $(GPROF_LDFLAGS) $(SANITIZER_LDFLAGS)
 AM_CXXFLAGS = $(DEBUG_CXXFLAGS) $(HARDENED_CXXFLAGS) $(WARN_CXXFLAGS) $(NOWARN_CXXFLAGS) $(ERROR_CXXFLAGS) $(GPROF_CXXFLAGS) $(SANITIZER_CXXFLAGS)
 AM_CPPFLAGS = $(DEBUG_CPPFLAGS) $(HARDENED_CPPFLAGS)
 AM_CFLAGS = $(AM_CXXFLAGS)
 AM_LIBTOOLFLAGS = --preserve-dup-deps
+PTHREAD_FLAGS = $(PTHREAD_CFLAGS) $(PTHREAD_LIBS)
 EXTRA_LIBRARIES =
 
 if EMBEDDED_UNIVALUE
@@ -151,6 +152,7 @@ BITCOIN_CORE_H = \
   httpserver.h \
   index/base.h \
   index/blockfilterindex.h \
+  index/disktxpos.h \
   index/txindex.h \
   indirectmap.h \
   init.h \
@@ -489,6 +491,8 @@ crypto_libparticl_crypto_base_a_SOURCES = \
   crypto/sha1.h \
   crypto/sha256.cpp \
   crypto/sha256.h \
+  crypto/sha3.cpp \
+  crypto/sha3.h \
   crypto/sha512.cpp \
   crypto/sha512.h \
   crypto/siphash.cpp \
@@ -695,7 +699,7 @@ nodist_libparticl_util_a_SOURCES = $(srcdir)/obj/build.h
 particl_daemon_sources = bitcoind.cpp
 particl_bin_cppflags = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 particl_bin_cxxflags = $(AM_CXXFLAGS) $(PIE_FLAGS)
-particl_bin_ldflags = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+particl_bin_ldflags = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 
 if TARGET_WINDOWS
 particl_daemon_sources += bitcoind-res.rc
@@ -735,11 +739,10 @@ particl_node_LDFLAGS = $(particl_bin_ldflags)
 particl_node_LDADD = $(LIBPARTICL_SERVER) $(particl_bin_ldadd)
 
 # bitcoin-cli binary #
-#$(BITCOIN_CLI_NAME)_SOURCES = bitcoin-cli.cpp
 particl_cli_SOURCES = bitcoin-cli.cpp
 particl_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
 particl_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-particl_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+particl_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 
 if TARGET_WINDOWS
 particl_cli_SOURCES += bitcoin-cli-res.rc
@@ -758,7 +761,7 @@ particl_cli_LDADD += $(BOOST_LIBS) $(EVENT_LIBS)
 particl_tx_SOURCES = bitcoin-tx.cpp
 particl_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 particl_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-particl_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+particl_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 
 if TARGET_WINDOWS
 particl_tx_SOURCES += bitcoin-tx-res.rc
@@ -836,12 +839,18 @@ CLEANFILES = $(EXTRA_LIBRARIES)
 CLEANFILES += *.gcda *.gcno
 CLEANFILES += compat/*.gcda compat/*.gcno
 CLEANFILES += consensus/*.gcda consensus/*.gcno
+CLEANFILES += crc32c/src/*.gcda crc32c/src/*.gcno
 CLEANFILES += crypto/*.gcda crypto/*.gcno
+CLEANFILES += index/*.gcda index/*.gcno
+CLEANFILES += interfaces/*.gcda interfaces/*.gcno
+CLEANFILES += node/*.gcda node/*.gcno
 CLEANFILES += policy/*.gcda policy/*.gcno
 CLEANFILES += primitives/*.gcda primitives/*.gcno
+CLEANFILES += rpc/*.gcda rpc/*.gcno
 CLEANFILES += script/*.gcda script/*.gcno
 CLEANFILES += support/*.gcda support/*.gcno
 CLEANFILES += univalue/*.gcda univalue/*.gcno
+CLEANFILES += util/*.gcda util/*.gcno
 CLEANFILES += wallet/*.gcda wallet/*.gcno
 CLEANFILES += wallet/test/*.gcda wallet/test/*.gcno
 CLEANFILES += zmq/*.gcda zmq/*.gcno

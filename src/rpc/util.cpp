@@ -261,7 +261,7 @@ public:
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("iswitness", true);
         obj.pushKV("witness_version", (int)id.version);
-        obj.pushKV("witness_program", HexStr(id.program, id.program + id.length));
+        obj.pushKV("witness_program", HexStr(Span<const unsigned char>(id.program, id.length)));
         return obj;
     }
 
@@ -547,7 +547,7 @@ std::string RPCHelpMan::ToString() const
     ret += m_name;
     bool was_optional{false};
     for (const auto& arg : m_args) {
-        if (arg.m_hidden) continue;
+        if (arg.m_hidden) break; // Any arg that follows is also hidden
         const bool optional = arg.IsOptional();
         ret += " ";
         if (optional) {
@@ -569,7 +569,7 @@ std::string RPCHelpMan::ToString() const
     Sections sections;
     for (size_t i{0}; i < m_args.size(); ++i) {
         const auto& arg = m_args.at(i);
-        if (arg.m_hidden) continue;
+        if (arg.m_hidden) break; // Any arg that follows is also hidden
 
         if (i == 0) ret += "\nArguments:\n";
 

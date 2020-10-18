@@ -1,6 +1,6 @@
 # Block and Transaction Broadcasting with ZeroMQ
 
-[ZeroMQ](http://zeromq.org/) is a lightweight wrapper around TCP
+[ZeroMQ](https://zeromq.org/) is a lightweight wrapper around TCP
 connections, inter-process communication, and shared-memory,
 providing various message-oriented semantics such as publish/subscribe,
 request/reply, and push/pull.
@@ -39,8 +39,9 @@ For version information, see [dependencies.md](dependencies.md).
 Typically, it is packaged by distributions as something like
 *libzmq3-dev*. The C++ wrapper for ZeroMQ is *not* needed.
 
-In order to run the example Python client scripts in contrib/ one must
-also install *python3-zmq*, though this is not necessary for daemon
+In order to run the example Python client scripts in the `contrib/zmq/`
+directory, one must also install [PyZMQ](https://github.com/zeromq/pyzmq)
+(generally with `pip install pyzmq`), though this is not necessary for daemon
 operation.
 
 ## Enabling
@@ -97,6 +98,20 @@ Client side, then, the ZeroMQ subscriber socket must have the
 ZMQ_SUBSCRIBE option set to one or either of these prefixes (for
 instance, just `hash`); without doing so will result in no messages
 arriving. Please see [`contrib/zmq/zmq_sub.py`](/contrib/zmq/zmq_sub.py) for a working example.
+
+The ZMQ_PUB socket's ZMQ_TCP_KEEPALIVE option is enabled. This means that
+the underlying SO_KEEPALIVE option is enabled when using a TCP transport.
+The effective TCP keepalive values are managed through the underlying
+operating system configuration and must be configured prior to connection establishment.
+
+For example, when running on GNU/Linux, one might use the following
+to lower the keepalive setting to 10 minutes:
+
+sudo sysctl -w net.ipv4.tcp_keepalive_time=600
+
+Setting the keepalive values appropriately for your operating environment may
+improve connectivity in situations where long-lived connections are silently
+dropped by network middle boxes.
 
 ## Remarks
 

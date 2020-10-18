@@ -134,6 +134,9 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "lockunspent", 0, "unlock" },
     { "lockunspent", 1, "transactions" },
     { "lockunspent", 2, "permanent" },
+    { "send", 0, "outputs" },
+    { "send", 1, "conf_target" },
+    { "send", 3, "options" },
     { "importprivkey", 2, "rescan" },
     { "importaddress", 2, "rescan" },
     { "importaddress", 3, "p2sh" },
@@ -172,6 +175,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "listcoldstakeunspent", 2, "options"},
     { "getblockreward", 0, "height"},
     { "bumpfee", 1, "options" },
+    { "psbtbumpfee", 1, "options" },
 
 
     { "reservebalance", 0, "enabled" },
@@ -311,7 +315,11 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "createwallet", 2, "blank"},
     { "createwallet", 4, "avoid_reuse"},
     { "createwallet", 5, "descriptors"},
+    { "createwallet", 6, "load_on_startup"},
+    { "loadwallet", 1, "load_on_startup"},
+    { "unloadwallet", 1, "load_on_startup"},
     { "getnodeaddresses", 0, "count"},
+    { "addpeeraddress", 1, "port"},
     { "stop", 0, "wait" },
 };
 // clang-format on

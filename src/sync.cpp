@@ -149,12 +149,17 @@ static void push_lock(void* c, const CLockLocation& locklocation)
         const LockPair p1 = std::make_pair(i.first, c);
         if (lockdata.lockorders.count(p1))
             continue;
-        lockdata.lockorders.emplace(p1, lock_stack);
 
         const LockPair p2 = std::make_pair(c, i.first);
+        if (lockdata.lockorders.count(p2)) {
+            auto lock_stack_copy = lock_stack;
+            lock_stack.pop_back();
+            potential_deadlock_detected(p1, lockdata.lockorders[p2], lock_stack_copy);
+            // potential_deadlock_detected() does not return.
+        }
+
+        lockdata.lockorders.emplace(p1, lock_stack);
         lockdata.invlockorders.insert(p2);
-        if (lockdata.lockorders.count(p2))
-            potential_deadlock_detected(p1, lockdata.lockorders[p2], lockdata.lockorders[p1]);
     }
 }
 
@@ -233,12 +238,15 @@ void AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine,
 template void AssertLockHeldInternal(const char*, const char*, int, Mutex*);
 template void AssertLockHeldInternal(const char*, const char*, int, RecursiveMutex*);
 
-void AssertLockNotHeldInternal(const char* pszName, const char* pszFile, int nLine, void* cs)
+template <typename MutexType>
+void AssertLockNotHeldInternal(const char* pszName, const char* pszFile, int nLine, MutexType* cs)
 {
     if (!LockHeld(cs)) return;
     tfm::format(std::cerr, "Assertion failed: lock %s held in %s:%i; locks held:\n%s", pszName, pszFile, nLine, LocksHeld());
     abort();
 }
+template void AssertLockNotHeldInternal(const char*, const char*, int, Mutex*);
+template void AssertLockNotHeldInternal(const char*, const char*, int, RecursiveMutex*);
 
 void DeleteLock(void* cs)
 {
@@ -257,6 +265,17 @@ void DeleteLock(void* cs)
         lockdata.lockorders.erase(invinvitem);
         lockdata.invlockorders.erase(invit++);
     }
+}
+
+bool LockStackEmpty()
+{
+    LockData& lockdata = GetLockData();
+    std::lock_guard<std::mutex> lock(lockdata.dd_mutex);
+    const auto it = lockdata.m_lock_stacks.find(std::this_thread::get_id());
+    if (it == lockdata.m_lock_stacks.end()) {
+        return true;
+    }
+    return it->second.empty();
 }
 
 bool g_debug_lockorder_abort = true;

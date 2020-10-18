@@ -9,7 +9,7 @@ src/particl-gui
 src/particl-node
 src/particl-tx
 src/particl-wallet
-src/test/fuzz
+src/test/fuzz/*
 !src/test/fuzz/*.*
 src/test/test_particl
 src/qt/test/test_particl-qt
@@ -126,7 +126,10 @@ releases
 /*.info
 test_particl.coverage/
 total.coverage/
+fuzz.coverage/
 coverage_percent.txt
+/cov_tool_wrapper.sh
+qa-assets/
 
 #build tests
 linux-coverage-build

@@ -15,6 +15,7 @@ import os
 import random
 import re
 import time
+import unittest
 
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException
@@ -225,7 +226,15 @@ def satoshi_round(amount):
     return Decimal(amount).quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
 
 
-def wait_until(predicate, *, attempts=float('inf'), timeout=float('inf'), lock=None, timeout_factor=1.0):
+def wait_until_helper(predicate, *, attempts=float('inf'), timeout=float('inf'), lock=None, timeout_factor=1.0):
+    """Sleep until the predicate resolves to be True.
+
+    Warning: Note that this method is not recommended to be used in tests as it is
+    not aware of the context of the test framework. Using the `wait_until()` members
+    from `BitcoinTestFramework` or `P2PInterface` class ensures the timeout is
+    properly scaled. Furthermore, `wait_until()` from `P2PInterface` class in
+    `p2p.py` has a preset lock.
+    """
     if attempts == float('inf') and timeout == float('inf'):
         timeout = 60
     timeout = timeout * timeout_factor
@@ -429,7 +438,7 @@ def disconnect_nodes(from_connection, node_num):
                 raise
 
     # wait to disconnect
-    wait_until(lambda: not get_peer_ids(), timeout=5)
+    wait_until_helper(lambda: not get_peer_ids(), timeout=5)
 
 
 def connect_nodes(from_connection, node_num):
@@ -440,8 +449,8 @@ def connect_nodes(from_connection, node_num):
     # See comments in net_processing:
     # * Must have a version message before anything else
     # * Must have a verack message before anything else
-    wait_until(lambda: all(peer['version'] != 0 for peer in from_connection.getpeerinfo()))
-    wait_until(lambda: all(peer['bytesrecv_per_msg'].pop('verack', 0) == 24 for peer in from_connection.getpeerinfo()))
+    wait_until_helper(lambda: all(peer['version'] != 0 for peer in from_connection.getpeerinfo()))
+    wait_until_helper(lambda: all(peer['bytesrecv_per_msg'].pop('verack', 0) == 24 for peer in from_connection.getpeerinfo()))
 
 
 # Transaction/Block functions
@@ -529,7 +538,7 @@ def create_confirmed_utxos(fee, node, count):
     addr2 = node.getnewaddress()
     if iterations <= 0:
         return utxos
-    for i in range(iterations):
+    for _ in range(iterations):
         t = utxos.pop()
         inputs = []
         inputs.append({"txid": t["txid"], "vout": t["vout"]})
@@ -556,7 +565,7 @@ def gen_return_txouts():
     # So we have big transactions (and therefore can't fit very many into each block)
     # create one script_pubkey
     script_pubkey = "6a4d0200"  # OP_RETURN OP_PUSH2 512 bytes
-    for i in range(512):
+    for _ in range(512):
         script_pubkey = script_pubkey + "01"
     # concatenate 128 txouts of above script_pubkey which we'll insert before the txout for change
     txouts = []
@@ -564,7 +573,7 @@ def gen_return_txouts():
     txout = CTxOut()
     txout.nValue = 0
     txout.scriptPubKey = hex_str_to_bytes(script_pubkey)
-    for k in range(128):
+    for _ in range(128):
         txouts.append(txout)
     return txouts
 
@@ -617,3 +626,33 @@ def find_vout_for_address(node, txid, addr):
         if any([addr == a for a in tx["vout"][i]["scriptPubKey"]["addresses"]]):
             return i
     raise RuntimeError("Vout not found for address: txid=%s, addr=%s" % (txid, addr))
+
+def modinv(a, n):
+    """Compute the modular inverse of a modulo n using the extended Euclidean
+    Algorithm. See https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm#Modular_integers.
+    """
+    # TODO: Change to pow(a, -1, n) available in Python 3.8
+    t1, t2 = 0, 1
+    r1, r2 = n, a
+    while r2 != 0:
+        q = r1 // r2
+        t1, t2 = t2, t1 - q * t2
+        r1, r2 = r2, r1 - q * r2
+    if r1 > 1:
+        return None
+    if t1 < 0:
+        t1 += n
+    return t1
+
+class TestFrameworkUtil(unittest.TestCase):
+    def test_modinv(self):
+        test_vectors = [
+            [7, 11],
+            [11, 29],
+            [90, 13],
+            [1891, 3797],
+            [6003722857, 77695236973],
+        ]
+
+        for a, n in test_vectors:
+            self.assertEqual(modinv(a, n), pow(a, n-2, n))

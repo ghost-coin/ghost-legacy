@@ -18,10 +18,11 @@ BOOST_FIXTURE_TEST_SUITE(validation_flush_tests, BasicTestingSetup)
 //!
 BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
 {
+    CTxMemPool mempool;
     BlockManager blockman{};
-    CChainState chainstate{blockman};
+    CChainState chainstate{mempool, blockman};
     chainstate.InitCoinsDB(/*cache_size_bytes*/ 1 << 10, /*in_memory*/ true, /*should_wipe*/ false);
-    WITH_LOCK(::cs_main, chainstate.InitCoinsCache());
+    WITH_LOCK(::cs_main, chainstate.InitCoinsCache(1 << 10));
     CTxMemPool tx_pool{};
 
     constexpr bool is_64_bit = sizeof(void*) == 8;
@@ -56,7 +57,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
 
     // Without any coins in the cache, we shouldn't need to flush.
     BOOST_CHECK_EQUAL(
-        chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
+        chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
         CoinsCacheSizeState::OK);
 
     // If the initial memory allocations of cacheCoins don't match these common
@@ -71,7 +72,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
         }
 
         BOOST_CHECK_EQUAL(
-            chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
+            chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
             CoinsCacheSizeState::CRITICAL);
 
         BOOST_TEST_MESSAGE("Exiting cache flush tests early due to unsupported arch");
@@ -98,7 +99,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
         print_view_mem_usage(view);
         BOOST_CHECK_EQUAL(view.AccessCoin(res).DynamicMemoryUsage(), COIN_SIZE);
         BOOST_CHECK_EQUAL(
-            chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
+            chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
             CoinsCacheSizeState::OK);
     }
 
@@ -106,14 +107,14 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
     for (int i{0}; i < 4; ++i) {
         add_coin(view);
         print_view_mem_usage(view);
-        if (chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0) ==
+        if (chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0) ==
             CoinsCacheSizeState::CRITICAL) {
             break;
         }
     }
 
     BOOST_CHECK_EQUAL(
-        chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
+        chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
         CoinsCacheSizeState::CRITICAL);
 
     // COutpoint can take up to 288 bytes, to test the CoinsCacheSizeState::LARGE
@@ -123,25 +124,31 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
 
     // Passing non-zero max mempool usage should allow us more headroom.
     BOOST_CHECK_EQUAL(
-        chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ EXPAND_COINS_CACHE_BY_MEMPOOL),
+        chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 1 << 10),
         CoinsCacheSizeState::OK);
 
     for (int i{0}; i < 2; ++i) {
         add_coin(view);
         print_view_mem_usage(view);
         BOOST_CHECK_EQUAL(
-            chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ EXPAND_COINS_CACHE_BY_MEMPOOL),
+            chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 1 << 10),
             CoinsCacheSizeState::OK);
     }
 
-    // Adding some additional coins will push us over the edge to LARGE.
-    for (int i{0}; i < 10; ++i) {
-        add_coin(view);
-        print_view_mem_usage(view);
-        if (chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ EXPAND_COINS_CACHE_BY_MEMPOOL) ==
-            CoinsCacheSizeState::LARGE) {
-            break;
-        }
+    // Adding another coin with the additional mempool room will put us >90%
+    // but not yet critical.
+    add_coin(view);
+    print_view_mem_usage(view);
+
+    // Only perform these checks on 64 bit hosts; I haven't done the math for 32.
+    if (is_64_bit) {
+        float usage_percentage = (float)view.DynamicMemoryUsage() / (MAX_COINS_CACHE_BYTES + (1 << 10));
+        BOOST_TEST_MESSAGE("CoinsTip usage percentage: " << usage_percentage);
+        BOOST_CHECK(usage_percentage >= 0.9);
+        BOOST_CHECK(usage_percentage < 1);
+        BOOST_CHECK_EQUAL(
+            chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, 1 << 10),
+            CoinsCacheSizeState::LARGE);
     }
 
     float usage_percentage = (float)view.DynamicMemoryUsage() / (MAX_COINS_CACHE_BYTES + EXPAND_COINS_CACHE_BY_MEMPOOL);
@@ -156,7 +163,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
     for (int i{0}; i < 1000; ++i) {
         add_coin(view);
         BOOST_CHECK_EQUAL(
-            chainstate.GetCoinsCacheSizeState(tx_pool),
+            chainstate.GetCoinsCacheSizeState(&tx_pool),
             CoinsCacheSizeState::OK);
     }
 
@@ -164,7 +171,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
     // preallocated memory that doesn't get reclaimed even after flush.
 
     BOOST_CHECK_EQUAL(
-        chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, 0),
+        chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, 0),
         CoinsCacheSizeState::CRITICAL);
 
     view.SetBestBlock(InsecureRand256(), 5);
@@ -172,7 +179,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
     print_view_mem_usage(view);
 
     BOOST_CHECK_EQUAL(
-        chainstate.GetCoinsCacheSizeState(tx_pool, MAX_COINS_CACHE_BYTES, 0),
+        chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, 0),
         CoinsCacheSizeState::CRITICAL);
 }
 

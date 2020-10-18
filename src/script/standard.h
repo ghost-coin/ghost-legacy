@@ -81,6 +81,9 @@ public:
     {
         return m_hash.size();
     }
+
+    unsigned char* data() { return m_hash.data(); }
+    const unsigned char* data() const { return m_hash.data(); }
 };
 
 /** A reference to a CScript: the Hash160 of its serialization (see script.h) */
@@ -284,19 +287,8 @@ CScript GetScriptForRawPubKey(const CPubKey& pubkey);
 /** Generate a multisig script. */
 CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
 
-/**
- * Generate a pay-to-witness script for the given redeem script. If the redeem
- * script is P2PK or P2PKH, this returns a P2WPKH script, otherwise it returns a
- * P2WSH script.
- *
- * TODO: replace calls to GetScriptForWitness with GetScriptForDestination using
- * the various witness-specific CTxDestination subtypes.
- */
-CScript GetScriptForWitness(const CScript& redeemscript);
-
 // Particl
 TxoutType ToTxoutType(uint8_t type_byte);
 uint8_t FromTxoutType(TxoutType type_class);
-
 
 #endif // BITCOIN_SCRIPT_STANDARD_H

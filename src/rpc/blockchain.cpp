@@ -482,9 +482,9 @@ static void entryToJSON(const CTxMemPool& pool, UniValue& info, const CTxMemPool
 
     UniValue spent(UniValue::VARR);
     const CTxMemPool::txiter& it = pool.mapTx.find(tx.GetHash());
-    const CTxMemPool::setEntries& setChildren = pool.GetMemPoolChildren(it);
-    for (CTxMemPool::txiter childiter : setChildren) {
-        spent.push_back(childiter->GetTx().GetHash().ToString());
+    const CTxMemPoolEntry::Children& children = it->GetMemPoolChildrenConst();
+    for (const CTxMemPoolEntry& child : children) {
+        spent.push_back(child.GetTx().GetHash().ToString());
     }
 
     info.pushKV("spentby", spent);
@@ -544,9 +544,9 @@ static UniValue getrawmempool(const JSONRPCRequest& request)
                             {RPCResult::Type::STR_HEX, "", "The transaction id"},
                         }},
                     RPCResult{"for verbose = true",
-                        RPCResult::Type::OBJ, "", "",
+                        RPCResult::Type::OBJ_DYN, "", "",
                         {
-                            {RPCResult::Type::OBJ_DYN, "transactionid", "", MempoolEntryDescription()},
+                            {RPCResult::Type::OBJ, "transactionid", "", MempoolEntryDescription()},
                         }},
                 },
                 RPCExamples{
@@ -575,7 +575,10 @@ static UniValue getmempoolancestors(const JSONRPCRequest& request)
                         RPCResult::Type::ARR, "", "",
                         {{RPCResult::Type::STR_HEX, "", "The transaction id of an in-mempool ancestor transaction"}}},
                     RPCResult{"for verbose = true",
-                        RPCResult::Type::OBJ_DYN, "transactionid", "", MempoolEntryDescription()},
+                        RPCResult::Type::OBJ_DYN, "", "",
+                        {
+                            {RPCResult::Type::OBJ, "transactionid", "", MempoolEntryDescription()},
+                        }},
                 },
                 RPCExamples{
                     HelpExampleCli("getmempoolancestors", "\"mytxid\"")
@@ -607,7 +610,6 @@ static UniValue getmempoolancestors(const JSONRPCRequest& request)
         for (CTxMemPool::txiter ancestorIt : setAncestors) {
             o.push_back(ancestorIt->GetTx().GetHash().ToString());
         }
-
         return o;
     } else {
         UniValue o(UniValue::VOBJ);
@@ -635,9 +637,9 @@ static UniValue getmempooldescendants(const JSONRPCRequest& request)
                         RPCResult::Type::ARR, "", "",
                         {{RPCResult::Type::STR_HEX, "", "The transaction id of an in-mempool descendant transaction"}}},
                     RPCResult{"for verbose = true",
-                        RPCResult::Type::OBJ, "", "",
+                        RPCResult::Type::OBJ_DYN, "", "",
                         {
-                            {RPCResult::Type::OBJ_DYN, "transactionid", "", MempoolEntryDescription()},
+                            {RPCResult::Type::OBJ, "transactionid", "", MempoolEntryDescription()},
                         }},
                 },
                 RPCExamples{
@@ -693,7 +695,7 @@ static UniValue getmempoolentry(const JSONRPCRequest& request)
                     {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id (must be in mempool)"},
                 },
                 RPCResult{
-                    RPCResult::Type::OBJ_DYN, "", "", MempoolEntryDescription()},
+                    RPCResult::Type::OBJ, "", "", MempoolEntryDescription()},
                 RPCExamples{
                     HelpExampleCli("getmempoolentry", "\"mytxid\"")
             + HelpExampleRpc("getmempoolentry", "\"mytxid\"")
@@ -1776,7 +1778,7 @@ static UniValue getblockstats(const JSONRPCRequest& request)
                 {RPCResult::Type::NUM, "total_size", "Total size of all non-coinbase transactions"},
                 {RPCResult::Type::NUM, "total_weight", "Total weight of all non-coinbase transactions divided by segwit scale factor (4)"},
                 {RPCResult::Type::NUM, "totalfee", "The fee total"},
-                {RPCResult::Type::NUM, "txs", "The number of transactions (excluding coinbase)"},
+                {RPCResult::Type::NUM, "txs", "The number of transactions (including coinbase)"},
                 {RPCResult::Type::NUM, "utxo_increase", "The increase/decrease in the number of unspent outputs"},
                 {RPCResult::Type::NUM, "utxo_size_inc", "The increase/decrease in size for the utxo index (not discounting op_return and similar)"},
             }},
@@ -2456,7 +2458,7 @@ static const CRPCCommand commands[] =
     { "hidden",             "dumptxoutset",           &dumptxoutset,           {"path"} },
 };
 // clang-format on
-
-    for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
-        t.appendCommand(commands[vcidx].name, &commands[vcidx]);
+    for (const auto& c : commands) {
+        t.appendCommand(c.name, &c);
+    }
 }

@@ -4,10 +4,14 @@
 # Copyright (c) 2010-2020 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Bitcoin P2P network half-a-node.
+"""Test objects for interacting with a bitcoind node over the p2p protocol.
 
-This python code was modified from ArtForz' public domain half-a-node, as
-found in the mini-node branch of http://github.com/jgarzik/pynode.
+The P2PInterface objects interact with the bitcoind nodes under test using the
+node's p2p interface. They can be used to send messages to the node, and
+callbacks can be registered that execute when messages are received from the
+node. Messages are sent to/received from the node on an asyncio event loop.
+State held inside the objects must be guarded by the p2p_lock to avoid data
+races between the main testing thread and the event loop.
 
 P2PConnection: A low-level connection object to a node's P2P interface
 P2PInterface: A high-level interface object for communicating to a node over P2P
@@ -59,13 +63,15 @@ from test_framework.messages import (
     MSG_TYPE_MASK,
     msg_verack,
     msg_version,
+    MSG_WTX,
+    msg_wtxidrelay,
     NODE_NETWORK,
     NODE_WITNESS,
     sha256,
 )
-from test_framework.util import wait_until
+from test_framework.util import wait_until_helper
 
-logger = logging.getLogger("TestFramework.mininode")
+logger = logging.getLogger("TestFramework.p2p")
 
 MESSAGEMAP = {
     b"addr": msg_addr,
@@ -96,6 +102,7 @@ MESSAGEMAP = {
     b"tx": msg_tx,
     b"verack": msg_verack,
     b"version": msg_version,
+    b"wtxidrelay": msg_wtxidrelay,
 }
 
 MAGIC_BYTES = {
@@ -283,9 +290,13 @@ class P2PInterface(P2PConnection):
     def __init__(self):
         super().__init__()
 
-        # Track number of messages of each type received and the most recent
-        # message of each type
+        # Track number of messages of each type received.
+        # Should be read-only in a test.
         self.message_count = defaultdict(int)
+
+        # Track the most recent message of each type.
+        # To wait for a message to be received, pop that message from
+        # this and use self.wait_until.
         self.last_message = {}
 
         # A count of the number of ping messages we've sent to the node
@@ -316,7 +327,7 @@ class P2PInterface(P2PConnection):
 
         We keep a count of how many of each message type has been received
         and the most recent message of each type."""
-        with mininode_lock:
+        with p2p_lock:
             try:
                 msgtype = message.msgtype.decode('ascii')
                 self.message_count[msgtype] += 1
@@ -359,6 +370,7 @@ class P2PInterface(P2PConnection):
     def on_sendcmpct(self, message): pass
     def on_sendheaders(self, message): pass
     def on_tx(self, message): pass
+    def on_wtxidrelay(self, message): pass
 
     def on_inv(self, message):
         want = msg_getdata()
@@ -376,23 +388,29 @@ class P2PInterface(P2PConnection):
 
     def on_version(self, message):
         assert message.nVersion >= MIN_VERSION_SUPPORTED, "Version {} received. Test framework only supports versions greater than {}".format(message.nVersion, MIN_VERSION_SUPPORTED)
+        if message.nVersion >= 70016:
+            self.send_message(msg_wtxidrelay())
         self.send_message(msg_verack())
         self.nServices = message.nServices
 
     # Connection helper methods
 
-    def wait_until(self, test_function, timeout=60):
-        wait_until(test_function, timeout=timeout, lock=mininode_lock, timeout_factor=self.timeout_factor)
+    def wait_until(self, test_function_in, *, timeout=60, check_connected=True):
+        def test_function():
+            if check_connected:
+                assert self.is_connected
+            return test_function_in()
+
+        wait_until_helper(test_function, timeout=timeout, lock=p2p_lock, timeout_factor=self.timeout_factor)
 
     def wait_for_disconnect(self, timeout=60):
         test_function = lambda: not self.is_connected
-        self.wait_until(test_function, timeout=timeout)
+        self.wait_until(test_function, timeout=timeout, check_connected=False)
 
     # Message receiving helper methods
 
     def wait_for_tx(self, txid, timeout=60):
         def test_function():
-            assert self.is_connected
             if not self.last_message.get('tx'):
                 return False
             return self.last_message['tx'].tx.rehash() == txid
@@ -401,14 +419,12 @@ class P2PInterface(P2PConnection):
 
     def wait_for_block(self, blockhash, timeout=60):
         def test_function():
-            assert self.is_connected
             return self.last_message.get("block") and self.last_message["block"].block.rehash() == blockhash
 
         self.wait_until(test_function, timeout=timeout)
 
     def wait_for_header(self, blockhash, timeout=60):
         def test_function():
-            assert self.is_connected
             last_headers = self.last_message.get('headers')
             if not last_headers:
                 return False
@@ -418,7 +434,6 @@ class P2PInterface(P2PConnection):
 
     def wait_for_merkleblock(self, blockhash, timeout=60):
         def test_function():
-            assert self.is_connected
             last_filtered_block = self.last_message.get('merkleblock')
             if not last_filtered_block:
                 return False
@@ -430,9 +445,7 @@ class P2PInterface(P2PConnection):
         """Waits for a getdata message.
 
         The object hashes in the inventory vector must match the provided hash_list."""
-
         def test_function():
-            assert self.is_connected
             last_data = self.last_message.get("getdata")
             if not last_data:
                 return False
@@ -447,9 +460,7 @@ class P2PInterface(P2PConnection):
         value must be explicitly cleared before calling this method, or this will return
         immediately with success. TODO: change this method to take a hash value and only
         return true if the correct block header has been requested."""
-
         def test_function():
-            assert self.is_connected
             return self.last_message.get("getheaders")
 
         self.wait_until(test_function, timeout=timeout)
@@ -460,7 +471,6 @@ class P2PInterface(P2PConnection):
             raise NotImplementedError("wait_for_inv() will only verify the first inv object")
 
         def test_function():
-            assert self.is_connected
             return self.last_message.get("inv") and \
                                 self.last_message["inv"].inv[0].type == expected_inv[0].type and \
                                 self.last_message["inv"].inv[0].hash == expected_inv[0].hash
@@ -469,7 +479,7 @@ class P2PInterface(P2PConnection):
 
     def wait_for_verack(self, timeout=60):
         def test_function():
-            return self.message_count["verack"]
+            return "verack" in self.last_message
 
         self.wait_until(test_function, timeout=timeout)
 
@@ -484,7 +494,6 @@ class P2PInterface(P2PConnection):
         self.send_message(msg_ping(nonce=self.ping_counter, height=0))
 
         def test_function():
-            assert self.is_connected
             return self.last_message.get("pong") and self.last_message["pong"].nonce == self.ping_counter
 
         self.wait_until(test_function, timeout=timeout)
@@ -496,7 +505,7 @@ class P2PInterface(P2PConnection):
 # P2PConnection acquires this lock whenever delivering a message to a P2PInterface.
 # This lock should be acquired in the thread running the test logic to synchronize
 # access to any data shared with the P2PInterface or P2PConnection.
-mininode_lock = threading.Lock()
+p2p_lock = threading.Lock()
 
 
 class NetworkThread(threading.Thread):
@@ -516,7 +525,7 @@ class NetworkThread(threading.Thread):
     def close(self, timeout=10):
         """Close the connections and network event loop."""
         self.network_event_loop.call_soon_threadsafe(self.network_event_loop.stop)
-        wait_until(lambda: not self.network_event_loop.is_running(), timeout=timeout)
+        wait_until_helper(lambda: not self.network_event_loop.is_running(), timeout=timeout)
         self.network_event_loop.close()
         self.join(timeout)
         # Safe to remove event loop.
@@ -590,7 +599,7 @@ class P2PDataStore(P2PInterface):
          - if success is False: assert that the node's tip doesn't advance
          - if reject_reason is set: assert that the correct reject message is logged"""
 
-        with mininode_lock:
+        with p2p_lock:
             for block in blocks:
                 self.block_store[block.sha256] = block
                 self.last_block_hash = block.sha256
@@ -602,7 +611,11 @@ class P2PDataStore(P2PInterface):
                     self.send_message(msg_block(block=b))
             else:
                 self.send_message(msg_headers([CBlockHeader(block) for block in blocks]))
-                self.wait_until(lambda: blocks[-1].sha256 in self.getdata_requests, timeout=timeout)
+                self.wait_until(
+                    lambda: blocks[-1].sha256 in self.getdata_requests,
+                    timeout=timeout,
+                    check_connected=success,
+                )
 
             if expect_disconnect:
                 self.wait_for_disconnect(timeout=timeout)
@@ -623,7 +636,7 @@ class P2PDataStore(P2PInterface):
          - if expect_disconnect is True: Skip the sync with ping
          - if reject_reason is set: assert that the correct reject message is logged."""
 
-        with mininode_lock:
+        with p2p_lock:
             for tx in txs:
                 self.tx_store[tx.sha256] = tx
 
@@ -657,12 +670,12 @@ class P2PTxInvStore(P2PInterface):
         super().on_inv(message) # Send getdata in response.
         # Store how many times invs have been received for each tx.
         for i in message.inv:
-            if i.type == MSG_TX:
+            if (i.type == MSG_TX) or (i.type == MSG_WTX):
                 # save txid
                 self.tx_invs_received[i.hash] += 1
 
     def get_invs(self):
-        with mininode_lock:
+        with p2p_lock:
             return list(self.tx_invs_received.keys())
 
     def wait_for_broadcast(self, txns, timeout=60):
@@ -670,6 +683,6 @@ class P2PTxInvStore(P2PInterface):
         The mempool should mark unbroadcast=False for these transactions.
         """
         # Wait until invs have been received (and getdatas sent) for each txid.
-        self.wait_until(lambda: set(self.tx_invs_received.keys()) == set([int(tx, 16) for tx in txns]), timeout)
+        self.wait_until(lambda: set(self.tx_invs_received.keys()) == set([int(tx, 16) for tx in txns]), timeout=timeout)
         # Flush messages and wait for the getdatas to be processed
         self.sync_with_ping()

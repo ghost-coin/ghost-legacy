@@ -30,18 +30,6 @@
 #include <string>
 #include <vector>
 
-void ProcessMessage(
-    CNode& pfrom,
-    const std::string& msg_type,
-    CDataStream& vRecv,
-    const std::chrono::microseconds time_received,
-    const CChainParams& chainparams,
-    ChainstateManager& chainman,
-    CTxMemPool& mempool,
-    CConnman* connman,
-    BanMan* banman,
-    const std::atomic<bool>& interruptMsgProc);
-
 namespace {
 
 #ifdef MESSAGE_TYPE
@@ -80,17 +68,15 @@ void test_one_input(const std::vector<uint8_t>& buffer)
         return;
     }
     CDataStream random_bytes_data_stream{fuzzed_data_provider.ConsumeRemainingBytes<unsigned char>(), SER_NETWORK, PROTOCOL_VERSION};
-    CNode& p2p_node = *MakeUnique<CNode>(0, ServiceFlags(NODE_NETWORK | NODE_WITNESS | NODE_BLOOM), 0, INVALID_SOCKET, CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0, 0, CAddress{}, std::string{}, false).release();
+    CNode& p2p_node = *MakeUnique<CNode>(0, ServiceFlags(NODE_NETWORK | NODE_WITNESS | NODE_BLOOM), 0, INVALID_SOCKET, CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0, 0, CAddress{}, std::string{}, ConnectionType::OUTBOUND_FULL_RELAY).release();
     p2p_node.fSuccessfullyConnected = true;
     p2p_node.nVersion = PROTOCOL_VERSION;
     p2p_node.SetSendVersion(PROTOCOL_VERSION);
     connman.AddTestNode(p2p_node);
-    g_setup->m_node.peer_logic->InitializeNode(&p2p_node);
+    g_setup->m_node.peerman->InitializeNode(&p2p_node);
     try {
-        ProcessMessage(p2p_node, random_message_type, random_bytes_data_stream, GetTime<std::chrono::microseconds>(),
-            Params(), *g_setup->m_node.chainman, *g_setup->m_node.mempool,
-            g_setup->m_node.connman.get(), g_setup->m_node.banman.get(),
-            std::atomic<bool>{false});
+        g_setup->m_node.peerman->ProcessMessage(p2p_node, random_message_type, random_bytes_data_stream,
+                                                   GetTime<std::chrono::microseconds>(), std::atomic<bool>{false});
     } catch (const std::ios_base::failure&) {
     }
     SyncWithValidationInterfaceQueue();

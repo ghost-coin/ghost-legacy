@@ -33,6 +33,8 @@ bench_bench_particl_SOURCES = \
   bench/merkle_root.cpp \
   bench/mempool_eviction.cpp \
   bench/mempool_stress.cpp \
+  bench/nanobench.h \
+  bench/nanobench.cpp \
   bench/rpc_blockchain.cpp \
   bench/rpc_mempool.cpp \
   bench/util_time.cpp \
@@ -83,7 +85,7 @@ bench_bench_particl_SOURCES += bench/particl_add_tx.cpp
 endif
 
 bench_bench_particl_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(MINIUPNPC_LIBS)
-bench_bench_particl_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+bench_bench_particl_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(PTHREAD_FLAGS)
 
 CLEAN_BITCOIN_BENCH = bench/*.gcda bench/*.gcno $(GENERATED_BENCH_FILES)
 

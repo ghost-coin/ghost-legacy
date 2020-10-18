@@ -8,10 +8,6 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 
-#ifndef WIN32
-# include <arpa/inet.h>
-#endif
-
 static std::atomic<bool> g_initial_block_download_completed(false);
 
 namespace NetMsgType {
@@ -46,6 +42,7 @@ const char *GETCFHEADERS="getcfheaders";
 const char *CFHEADERS="cfheaders";
 const char *GETCFCHECKPT="getcfcheckpt";
 const char *CFCHECKPT="cfcheckpt";
+const char *WTXIDRELAY="wtxidrelay";
 } // namespace NetMsgType
 
 /** All known message types. Keep this in the same order as the list of
@@ -83,6 +80,7 @@ const static std::string allNetMessageTypes[] = {
     NetMsgType::CFHEADERS,
     NetMsgType::GETCFCHECKPT,
     NetMsgType::CFCHECKPT,
+    NetMsgType::WTXIDRELAY,
 };
 const static std::vector<std::string> allNetMessageTypesVec(allNetMessageTypes, allNetMessageTypes+ARRAYLEN(allNetMessageTypes));
 
@@ -161,7 +159,7 @@ CInv::CInv()
     hash.SetNull();
 }
 
-CInv::CInv(int typeIn, const uint256& hashIn) : type(typeIn), hash(hashIn) {}
+CInv::CInv(uint32_t typeIn, const uint256& hashIn) : type(typeIn), hash(hashIn) {}
 
 bool operator<(const CInv& a, const CInv& b)
 {
@@ -177,6 +175,8 @@ std::string CInv::GetCommand() const
     switch (masked)
     {
     case MSG_TX:             return cmd.append(NetMsgType::TX);
+    // WTX is not a message type, just an inv type
+    case MSG_WTX:            return cmd.append("wtx");
     case MSG_BLOCK:          return cmd.append(NetMsgType::BLOCK);
     case MSG_FILTERED_BLOCK: return cmd.append(NetMsgType::MERKLEBLOCK);
     case MSG_CMPCT_BLOCK:    return cmd.append(NetMsgType::CMPCTBLOCK);
@@ -213,6 +213,7 @@ static std::string serviceFlagToStr(size_t bit)
     case NODE_GETUTXO:         return "GETUTXO";
     case NODE_BLOOM:           return "BLOOM";
     case NODE_WITNESS:         return "WITNESS";
+    case NODE_COMPACT_FILTERS: return "COMPACT_FILTERS";
     case NODE_NETWORK_LIMITED: return "NETWORK_LIMITED";
     case NODE_SMSG:            return "SMSG";
     // Not using default, so we get warned when a case is missing
@@ -237,4 +238,10 @@ std::vector<std::string> serviceFlagsToStr(uint64_t flags)
     }
 
     return str_flags;
+}
+
+GenTxid ToGenTxid(const CInv& inv)
+{
+    assert(inv.IsGenTxMsg());
+    return {inv.IsMsgWtx(), inv.hash};
 }

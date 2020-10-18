@@ -5,6 +5,7 @@
 
 #include <wallet/load.h>
 
+#include <fs.h>
 #include <interfaces/chain.h>
 #include <scheduler.h>
 #include <util/string.h>
@@ -14,6 +15,8 @@
 #include <wallet/walletdb.h>
 #include <wallet/hdwallet.h>
 
+
+#include <univalue.h>
 
 bool VerifyWallets(interfaces::Chain& chain, const std::vector<std::string>& wallet_files)
 {
@@ -44,18 +47,18 @@ bool VerifyWallets(interfaces::Chain& chain, const std::vector<std::string>& wal
     std::set<fs::path> wallet_paths;
 
     for (const auto& wallet_file : wallet_files) {
-        WalletLocation location(wallet_file);
+        const fs::path path = fs::absolute(wallet_file, GetWalletDir());
 
-        if (!wallet_paths.insert(location.GetPath()).second) {
+        if (!wallet_paths.insert(path).second) {
             chain.initError(strprintf(_("Error loading wallet %s. Duplicate -wallet filename specified."), wallet_file));
             return false;
         }
 
+        DatabaseOptions options;
+        DatabaseStatus status;
+        options.verify = true;
         bilingual_str error_string;
-        std::vector<bilingual_str> warnings;
-        bool verify_success = CWallet::Verify(chain, location, error_string, warnings);
-        if (!warnings.empty()) chain.initWarning(Join(warnings, Untranslated("\n")));
-        if (!verify_success) {
+        if (!MakeWalletDatabase(wallet_file, options, status, error_string)) {
             chain.initError(error_string);
             return false;
         }
@@ -67,10 +70,14 @@ bool VerifyWallets(interfaces::Chain& chain, const std::vector<std::string>& wal
 bool LoadWallets(interfaces::Chain& chain, const std::vector<std::string>& wallet_files)
 {
     try {
-        for (const std::string& walletFile : wallet_files) {
+        for (const std::string& name : wallet_files) {
+            DatabaseOptions options;
+            DatabaseStatus status;
+            options.verify = false; // No need to verify, assuming verified earlier in VerifyWallets()
             bilingual_str error;
             std::vector<bilingual_str> warnings;
-            std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(chain, WalletLocation(walletFile), error, warnings);
+            std::unique_ptr<WalletDatabase> database = MakeWalletDatabase(name, options, status, error);
+            std::shared_ptr<CWallet> pwallet = database ? CWallet::Create(chain, name, std::move(database), options.create_flags, error, warnings) : nullptr;
             if (!warnings.empty()) chain.initWarning(Join(warnings, Untranslated("\n")));
             if (!pwallet) {
                 chain.initError(error);
@@ -101,14 +108,14 @@ void StartWallets(CScheduler& scheduler, const ArgsManager& args)
 void FlushWallets()
 {
     for (const std::shared_ptr<CWallet>& pwallet : GetWallets()) {
-        pwallet->Flush(false);
+        pwallet->Flush();
     }
 }
 
 void StopWallets()
 {
     for (const std::shared_ptr<CWallet>& pwallet : GetWallets()) {
-        pwallet->Flush(true);
+        pwallet->Close();
     }
 }
 
@@ -118,7 +125,8 @@ void UnloadWallets()
     while (!wallets.empty()) {
         auto wallet = wallets.back();
         wallets.pop_back();
-        RemoveWallet(wallet);
+        std::vector<bilingual_str> warnings;
+        RemoveWallet(wallet, nullopt, warnings);
         UnloadWallet(std::move(wallet));
     }
 }

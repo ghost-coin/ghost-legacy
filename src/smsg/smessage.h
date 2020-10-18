@@ -388,7 +388,7 @@ public:
     };
 };
 
-void AddOptions();
+void AddOptions(ArgsManager& argsman);
 const char *GetString(size_t errorCode);
 
 extern std::atomic<bool> fSecMsgEnabled;

@@ -5,7 +5,7 @@
 """Test p2p blocksonly"""
 
 from test_framework.messages import msg_tx, CTransaction, FromHex
-from test_framework.mininode import P2PInterface
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -52,7 +52,7 @@ class P2PBlocksOnly(BitcoinTestFramework):
         self.log.info('Check that txs from rpc are not rejected and relayed to other peers')
         assert_equal(self.nodes[0].getpeerinfo()[0]['relaytxes'], True)
         txid = self.nodes[0].testmempoolaccept([sigtx])[0]['txid']
-        with self.nodes[0].assert_debug_log(['received getdata for: tx {} peer=1'.format(txid)]):
+        with self.nodes[0].assert_debug_log(['received getdata for: wtx {} peer=1'.format(txid)]):
             self.nodes[0].sendrawtransaction(sigtx)
             self.nodes[0].p2p.wait_for_tx(txid)
             assert_equal(self.nodes[0].getmempoolinfo()['size'], 1)

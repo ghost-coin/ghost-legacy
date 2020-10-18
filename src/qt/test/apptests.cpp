@@ -67,6 +67,7 @@ void AppTests::appTests()
         return GetDataDir() / "blocks";
     }());
 
+    qRegisterMetaType<interfaces::BlockAndHeaderTipInfo>("interfaces::BlockAndHeaderTipInfo");
     m_app.parameterSetup();
     m_app.createOptionsModel(true /* reset settings */);
     QScopedPointer<const NetworkStyle> style(NetworkStyle::instantiate(Params().NetworkIDString()));
@@ -84,7 +85,7 @@ void AppTests::appTests()
     // Reset global state to avoid interfering with later tests.
     LogInstance().DisconnectTestLogger();
     AbortShutdown();
-    UnloadBlockIndex();
+    UnloadBlockIndex(/* mempool */ nullptr);
     WITH_LOCK(::cs_main, g_chainman.Reset());
 }
 

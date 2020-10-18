@@ -138,6 +138,14 @@ BOOST_AUTO_TEST_CASE(onioncat_test)
 
 }
 
+BOOST_AUTO_TEST_CASE(embedded_test)
+{
+    CNetAddr addr1(ResolveIP("1.2.3.4"));
+    CNetAddr addr2(ResolveIP("::FFFF:0102:0304"));
+    BOOST_CHECK(addr2.IsIPv4());
+    BOOST_CHECK_EQUAL(addr1.ToString(), addr2.ToString());
+}
+
 BOOST_AUTO_TEST_CASE(subnet_test)
 {
 
@@ -158,12 +166,13 @@ BOOST_AUTO_TEST_CASE(subnet_test)
     BOOST_CHECK(ResolveSubNet("1.2.2.1/24").Match(ResolveIP("1.2.2.4")));
     BOOST_CHECK(ResolveSubNet("1.2.2.110/31").Match(ResolveIP("1.2.2.111")));
     BOOST_CHECK(ResolveSubNet("1.2.2.20/26").Match(ResolveIP("1.2.2.63")));
-    // All-Matching IPv6 Matches arbitrary IPv4 and IPv6
+    // All-Matching IPv6 Matches arbitrary IPv6
     BOOST_CHECK(ResolveSubNet("::/0").Match(ResolveIP("1:2:3:4:5:6:7:1234")));
     // But not `::` or `0.0.0.0` because they are considered invalid addresses
     BOOST_CHECK(!ResolveSubNet("::/0").Match(ResolveIP("::")));
     BOOST_CHECK(!ResolveSubNet("::/0").Match(ResolveIP("0.0.0.0")));
-    BOOST_CHECK(ResolveSubNet("::/0").Match(ResolveIP("1.2.3.4")));
+    // Addresses from one network (IPv4) don't belong to subnets of another network (IPv6)
+    BOOST_CHECK(!ResolveSubNet("::/0").Match(ResolveIP("1.2.3.4")));
     // All-Matching IPv4 does not Match IPv6
     BOOST_CHECK(!ResolveSubNet("0.0.0.0/0").Match(ResolveIP("1:2:3:4:5:6:7:1234")));
     // Invalid subnets Match nothing (not even invalid addresses)
@@ -176,6 +185,7 @@ BOOST_AUTO_TEST_CASE(subnet_test)
     BOOST_CHECK(!ResolveSubNet("1.2.3.0/-1").IsValid());
     BOOST_CHECK(ResolveSubNet("1.2.3.0/32").IsValid());
     BOOST_CHECK(!ResolveSubNet("1.2.3.0/33").IsValid());
+    BOOST_CHECK(!ResolveSubNet("1.2.3.0/300").IsValid());
     BOOST_CHECK(ResolveSubNet("1:2:3:4:5:6:7:8/0").IsValid());
     BOOST_CHECK(ResolveSubNet("1:2:3:4:5:6:7:8/33").IsValid());
     BOOST_CHECK(!ResolveSubNet("1:2:3:4:5:6:7:8/-1").IsValid());
@@ -207,6 +217,11 @@ BOOST_AUTO_TEST_CASE(subnet_test)
     BOOST_CHECK(CSubNet(ResolveIP("1:2:3:4:5:6:7:8")).Match(ResolveIP("1:2:3:4:5:6:7:8")));
     BOOST_CHECK(!CSubNet(ResolveIP("1:2:3:4:5:6:7:8")).Match(ResolveIP("1:2:3:4:5:6:7:9")));
     BOOST_CHECK(CSubNet(ResolveIP("1:2:3:4:5:6:7:8")).ToString() == "1:2:3:4:5:6:7:8/128");
+    // IPv4 address with IPv6 netmask or the other way around.
+    BOOST_CHECK(!CSubNet(ResolveIP("1.1.1.1"), ResolveIP("ffff::")).IsValid());
+    BOOST_CHECK(!CSubNet(ResolveIP("::1"), ResolveIP("255.0.0.0")).IsValid());
+    // Can't subnet TOR (or any other non-IPv4 and non-IPv6 network).
+    BOOST_CHECK(!CSubNet(ResolveIP("5wyqrzbvrdsumnok.onion"), ResolveIP("255.0.0.0")).IsValid());
 
     subnet = ResolveSubNet("1.2.3.4/255.255.255.255");
     BOOST_CHECK_EQUAL(subnet.ToString(), "1.2.3.4/32");
@@ -281,11 +296,13 @@ BOOST_AUTO_TEST_CASE(subnet_test)
     BOOST_CHECK_EQUAL(subnet.ToString(), "1::/16");
     subnet = ResolveSubNet("1:2:3:4:5:6:7:8/0000:0000:0000:0000:0000:0000:0000:0000");
     BOOST_CHECK_EQUAL(subnet.ToString(), "::/0");
+    // Invalid netmasks (with 1-bits after 0-bits)
     subnet = ResolveSubNet("1.2.3.4/255.255.232.0");
-    BOOST_CHECK_EQUAL(subnet.ToString(), "1.2.0.0/255.255.232.0");
+    BOOST_CHECK(!subnet.IsValid());
+    subnet = ResolveSubNet("1.2.3.4/255.0.255.255");
+    BOOST_CHECK(!subnet.IsValid());
     subnet = ResolveSubNet("1:2:3:4:5:6:7:8/ffff:ffff:ffff:fffe:ffff:ffff:ffff:ff0f");
-    BOOST_CHECK_EQUAL(subnet.ToString(), "1:2:3:4:5:6:7:8/ffff:ffff:ffff:fffe:ffff:ffff:ffff:ff0f");
-
+    BOOST_CHECK(!subnet.IsValid());
 }
 
 BOOST_AUTO_TEST_CASE(netbase_getgroup)
@@ -397,13 +414,14 @@ BOOST_AUTO_TEST_CASE(netpermissions_test)
     BOOST_CHECK(NetWhitelistPermissions::TryParse("bloom,forcerelay,noban,relay,mempool@1.2.3.4/32", whitelistPermissions, error));
 
     const auto strings = NetPermissions::ToStrings(PF_ALL);
-    BOOST_CHECK_EQUAL(strings.size(), 6U);
+    BOOST_CHECK_EQUAL(strings.size(), 7U);
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "bloomfilter") != strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "forcerelay") != strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "relay") != strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "noban") != strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "mempool") != strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "download") != strings.end());
+    BOOST_CHECK(std::find(strings.begin(), strings.end(), "addr") != strings.end());
 }
 
 BOOST_AUTO_TEST_CASE(netbase_dont_resolve_strings_with_embedded_nul_characters)
@@ -418,7 +436,8 @@ BOOST_AUTO_TEST_CASE(netbase_dont_resolve_strings_with_embedded_nul_characters)
     BOOST_CHECK(!LookupSubNet(std::string("1.2.3.0/24\0", 11), ret));
     BOOST_CHECK(!LookupSubNet(std::string("1.2.3.0/24\0example.com", 22), ret));
     BOOST_CHECK(!LookupSubNet(std::string("1.2.3.0/24\0example.com\0", 23), ret));
-    BOOST_CHECK(LookupSubNet(std::string("5wyqrzbvrdsumnok.onion", 22), ret));
+    // We only do subnetting for IPv4 and IPv6
+    BOOST_CHECK(!LookupSubNet(std::string("5wyqrzbvrdsumnok.onion", 22), ret));
     BOOST_CHECK(!LookupSubNet(std::string("5wyqrzbvrdsumnok.onion\0", 23), ret));
     BOOST_CHECK(!LookupSubNet(std::string("5wyqrzbvrdsumnok.onion\0example.com", 34), ret));
     BOOST_CHECK(!LookupSubNet(std::string("5wyqrzbvrdsumnok.onion\0example.com\0", 35), ret));

@@ -20,9 +20,9 @@ int GetNewZMQKeypair(char *server_public_key, char *server_secret_key)
 
 namespace {
 
-UniValue getzmqnotifications(const JSONRPCRequest& request)
+static RPCHelpMan getzmqnotifications()
 {
-            RPCHelpMan{"getzmqnotifications",
+    return RPCHelpMan{"getzmqnotifications",
                 "\nReturns information about the active ZeroMQ notifications.\n",
                 {},
                 RPCResult{
@@ -40,8 +40,8 @@ UniValue getzmqnotifications(const JSONRPCRequest& request)
                     HelpExampleCli("getzmqnotifications", "")
             + HelpExampleRpc("getzmqnotifications", "")
                 },
-            }.Check(request);
-
+        [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
+{
     UniValue result(UniValue::VARR);
     if (g_zmq_notification_interface != nullptr) {
         for (const auto* n : g_zmq_notification_interface->GetActiveNotifiers()) {
@@ -54,6 +54,8 @@ UniValue getzmqnotifications(const JSONRPCRequest& request)
     }
 
     return result;
+},
+    };
 }
 
 UniValue getnewzmqserverkeypair(const JSONRPCRequest& request)
@@ -74,7 +76,7 @@ UniValue getnewzmqserverkeypair(const JSONRPCRequest& request)
     obj.pushKV("server_secret_key", server_secret_key);
     obj.pushKV("server_public_key", server_public_key);
 
-    std::string sBase64 = EncodeBase64((uint8_t*)server_secret_key, 40);
+    std::string sBase64 = EncodeBase64(MakeUCharSpan(server_secret_key));
     obj.pushKV("server_secret_key_b64", sBase64);
 
     return obj;

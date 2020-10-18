@@ -94,6 +94,9 @@ class PSBTTest(BitcoinTestFramework):
         psbtx1 = self.nodes[0].walletcreatefundedpsbt([{"txid": utxo1['txid'], "vout": utxo1['vout']}], {self.nodes[2].getnewaddress():90}, 0, {"add_inputs": True})['psbt']
         assert_equal(len(self.nodes[0].decodepsbt(psbtx1)['tx']['vin']), 2)
 
+        # Inputs argument can be null
+        self.nodes[0].walletcreatefundedpsbt(None, {self.nodes[2].getnewaddress():10})
+
         # Node 1 should not be able to add anything to it but still return the psbtx same as before
         psbtx = self.nodes[1].walletprocesspsbt(psbtx1)['psbt']
         assert_equal(psbtx1, psbtx)
@@ -103,7 +106,16 @@ class PSBTTest(BitcoinTestFramework):
         final_tx = self.nodes[0].finalizepsbt(signed_tx)['hex']
         self.nodes[0].sendrawtransaction(final_tx)
 
-        # Get pubkeys
+        # Manually selected inputs can be locked:
+        assert_equal(len(self.nodes[0].listlockunspent()), 0)
+        utxo1 = self.nodes[0].listunspent()[0]
+        psbtx1 = self.nodes[0].walletcreatefundedpsbt([{"txid": utxo1['txid'], "vout": utxo1['vout']}], {self.nodes[2].getnewaddress():1}, 0,{"lockUnspents": True})["psbt"]
+        assert_equal(len(self.nodes[0].listlockunspent()), 1)
+
+        # Locks are ignored for manually selected inputs
+        self.nodes[0].walletcreatefundedpsbt([{"txid": utxo1['txid'], "vout": utxo1['vout']}], {self.nodes[2].getnewaddress():1}, 0)
+
+        # Create p2sh, p2wpkh, and p2wsh addresses
         pubkey0 = self.nodes[0].getaddressinfo(self.nodes[0].getnewaddress())['pubkey']
         pubkey1 = self.nodes[1].getaddressinfo(self.nodes[1].getnewaddress())['pubkey']
         pubkey2 = self.nodes[2].getaddressinfo(self.nodes[2].getnewaddress())['pubkey']
@@ -155,12 +167,14 @@ class PSBTTest(BitcoinTestFramework):
                 p2pkh_pos = out['n']
 
         # spend single key from node 1
-        rawtx = self.nodes[1].walletcreatefundedpsbt([{"txid":txid,"vout":p2wpkh_pos},{"txid":txid,"vout":p2sh_p2wpkh_pos},{"txid":txid,"vout":p2pkh_pos}], {self.nodes[1].getnewaddress():29.99})['psbt']
-        walletprocesspsbt_out = self.nodes[1].walletprocesspsbt(rawtx)
+        created_psbt = self.nodes[1].walletcreatefundedpsbt([{"txid":txid,"vout":p2wpkh_pos},{"txid":txid,"vout":p2sh_p2wpkh_pos},{"txid":txid,"vout":p2pkh_pos}], {self.nodes[1].getnewaddress():29.99})
+        walletprocesspsbt_out = self.nodes[1].walletprocesspsbt(created_psbt['psbt'])
         # Make sure it has both types of UTXOs
         decoded = self.nodes[1].decodepsbt(walletprocesspsbt_out['psbt'])
         assert 'non_witness_utxo' in decoded['inputs'][0]
         assert 'witness_utxo' in decoded['inputs'][0]
+        # Check decodepsbt fee calculation (input values shall only be counted once per UTXO)
+        assert_equal(decoded['fee'], created_psbt['fee'])
         assert_equal(walletprocesspsbt_out['complete'], True)
         self.nodes[1].sendrawtransaction(self.nodes[1].finalizepsbt(walletprocesspsbt_out['psbt'])['hex'])
 
@@ -428,7 +442,7 @@ class PSBTTest(BitcoinTestFramework):
         # Check that joining shuffles the inputs and outputs
         # 10 attempts should be enough to get a shuffled join
         shuffled = False
-        for i in range(0, 10):
+        for _ in range(10):
             shuffled_joined = self.nodes[0].joinpsbts([psbt, psbt2])
             shuffled |= joined != shuffled_joined
             if shuffled:

@@ -87,7 +87,7 @@ public:
     int Finalise();
     int FreeExtKeyMaps();
 
-    static void AddOptions();
+    static void AddOptions(ArgsManager& argsman);
 
     bool ShouldRescan() override;
 
