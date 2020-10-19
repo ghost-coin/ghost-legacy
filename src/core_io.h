@@ -53,6 +53,4 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
 void AddRangeproof(const std::vector<uint8_t> &vRangeproof, UniValue &entry);
 void OutputToJSON(uint256 &txid, int i, const CTxOutBase *baseOut, UniValue &entry);
 
-void SetCoreWriteGetSpentIndex(bool (*function)(CSpentIndexKey&, CSpentIndexValue&));
-
 #endif // BITCOIN_CORE_IO_H

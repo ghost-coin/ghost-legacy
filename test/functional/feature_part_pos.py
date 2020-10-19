@@ -70,7 +70,7 @@ class PosTest(ParticlTestFramework):
             if txl['address'] == addrTo and txl['amount'] == -10 and txl['category'] == 'send':
                 fPass = True
                 break
-        assert(fPass), "node0, listtransactions failed."
+        assert(fPass), 'node0, listtransactions failed.'
 
 
         assert(self.wait_for_mempool(nodes[1], txnHash))
@@ -132,7 +132,7 @@ class PosTest(ParticlTestFramework):
         ro = nodes[0].getrawtransaction(coinstakehash, True)
 
         fFound = False
-        for vout in ro["vout"]:
+        for vout in ro['vout']:
             try:
                 addr0 = vout['scriptPubKey']['addresses'][0]
                 ro = nodes[0].getaddressinfo(addr0)

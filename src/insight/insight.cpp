@@ -86,12 +86,12 @@ bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const 
     return true;
 };
 
-bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value)
+bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value, const CTxMemPool *pmempool)
 {
     if (!fSpentIndex) {
         return false;
     }
-    if (mempool.getSpentIndex(key, value)) {
+    if (pmempool && pmempool->getSpentIndex(key, value)) {
         return true;
     }
     if (!pblocktree->ReadSpentIndex(key, value)) {

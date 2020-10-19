@@ -71,7 +71,7 @@ public:
 class CHDWallet : public CWallet
 {
 public:
-    CHDWallet(interfaces::Chain* chain, const WalletLocation& location, std::unique_ptr<WalletDatabase> dbw_in) : CWallet(chain, location, std::move(dbw_in))
+    CHDWallet(interfaces::Chain* chain, const std::string& name, std::unique_ptr<WalletDatabase> database) : CWallet(chain, name, std::move(database))
     {
         m_default_address_type = OutputType::LEGACY; // In Particl segwit is enabled for all types
         m_fallback_fee = CFeeRate(DEFAULT_FALLBACK_FEE_PART);
@@ -119,6 +119,7 @@ public:
     bool IsLocked() const override;
     bool EncryptWallet(const SecureString &strWalletPassphrase) override;
     bool Lock() override;
+    using CWallet::Unlock;
     bool Unlock(const SecureString &strWalletPassphrase, bool accept_no_keys = false) override;
     size_t CountKeys() const;
 
@@ -183,8 +184,8 @@ public:
     /** Returns whether all of the inputs match the filter */
     bool IsAllFromMe(const CTransaction& tx, const isminefilter& filter) const override;
 
-    CAmount GetCredit(const CTxOutBase *txout, const isminefilter &filter) const override;
-    CAmount GetCredit(const CTransaction &tx, const isminefilter &filter) const override;
+    CAmount GetCredit(const CTxOutBase *txout, const isminefilter &filter) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    CAmount GetCredit(const CTransaction &tx, const isminefilter &filter) const override EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     void GetCredit(const CTransaction &tx, CAmount &nSpendable, CAmount &nWatchOnly) const;
 
@@ -468,6 +469,7 @@ public:
     bool SelectCoinsForStaking(int64_t nTargetValue, int64_t nTime, int nHeight, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
     bool CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHeight, int64_t nFees, CMutableTransaction &txNew, CKey &key);
     bool SignBlock(CBlockTemplate *pblocktemplate, int nHeight, int64_t nSearchTime);
+    std::unique_ptr<CBlockTemplate> CreateNewBlock();
 
     boost::signals2::signal<void (CAmount nReservedBalance)> NotifyReservedBalanceChanged;
 

@@ -16,7 +16,7 @@
 #include <secp256k1_rangeproof.h>
 #include <secp256k1_mlsag.h>
 
-static void Mlsag(benchmark::State& state)
+static void Mlsag(benchmark::Bench& bench)
 {
     TestingSetup test_setup{CBaseChainParams::REGTEST, {}, true};
 
@@ -105,13 +105,13 @@ static void Mlsag(benchmark::State& state)
         pkeys, m));
 
 
-    while (state.KeepRunning()) {
+    bench.run([&] {
         assert(0 == secp256k1_verify_mlsag(secp256k1_ctx_blind,
             preimage, nCols, nRows,
             m, ki, pc, ss));
-    }
+    });
 
     ECC_Stop_Blinding();
 }
 
-BENCHMARK(Mlsag, 10);
+BENCHMARK(Mlsag);

@@ -27,7 +27,7 @@ static void WalletCreate(CWallet* wallet_instance)
     LOCK(wallet_instance->cs_wallet);
 
     if (fParticlMode) {
-        return wallet_instance;
+        return;
     }
 
     wallet_instance->SetMinVersion(FEATURE_HD_SPLIT);

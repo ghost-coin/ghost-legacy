@@ -385,9 +385,9 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
     // one key that would satisfy an (a|b) or 2-of-3 keys needed
     // to spend an escrow transaction.
     //
-    CHDWallet keystore(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
-    CHDWallet emptykeystore(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
-    CHDWallet partialkeystore(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
+    CHDWallet keystore(m_chain.get(), "", CreateDummyWalletDatabase());
+    CHDWallet emptykeystore(m_chain.get(), "", CreateDummyWalletDatabase());
+    CHDWallet partialkeystore(m_chain.get(), "", CreateDummyWalletDatabase());
     CKey key[3];
     std::vector<CTxDestination> keyaddr(3); // Wmaybe-uninitialized
     for (int i = 0; i < 3; i++) {
@@ -406,8 +406,14 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         CTxDestination addr;
         BOOST_CHECK(ExtractDestination(s, addr));
         BOOST_CHECK(addr == keyaddr[0]);
-        BOOST_CHECK(keystore.IsMine(s));
-        BOOST_CHECK(!emptykeystore.IsMine(s));
+        {
+            LOCK(keystore.cs_wallet);
+            BOOST_CHECK(keystore.IsMine(s));
+        }
+        {
+            LOCK(emptykeystore.cs_wallet);
+            BOOST_CHECK(!emptykeystore.IsMine(s));
+        }
     }
     {
         std::vector<valtype> solutions;
@@ -418,8 +424,14 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         CTxDestination addr;
         BOOST_CHECK(ExtractDestination(s, addr));
         BOOST_CHECK(addr == keyaddr[0]);
-        BOOST_CHECK(keystore.IsMine(s));
-        BOOST_CHECK(!emptykeystore.IsMine(s));
+        {
+            LOCK(keystore.cs_wallet);
+            BOOST_CHECK(keystore.IsMine(s));
+        }
+        {
+            LOCK(emptykeystore.cs_wallet);
+            BOOST_CHECK(!emptykeystore.IsMine(s));
+        }
     }
     {
         std::vector<valtype> solutions;
@@ -430,10 +442,18 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         CTxDestination addr;
         BOOST_CHECK(!ExtractDestination(s, addr));
 
-        LOCK(keystore.cs_wallet);
-        BOOST_CHECK(keystore.IsMineP2SH(s));
-        BOOST_CHECK(!emptykeystore.IsMine(s));
-        BOOST_CHECK(!partialkeystore.IsMine(s));
+        {
+            LOCK(keystore.cs_wallet);
+            BOOST_CHECK(keystore.IsMineP2SH(s));
+        }
+        {
+            LOCK(emptykeystore.cs_wallet);
+            BOOST_CHECK(!emptykeystore.IsMine(s));
+        }
+        {
+            LOCK(partialkeystore.cs_wallet);
+            BOOST_CHECK(!partialkeystore.IsMine(s));
+        }
     }
     {
         std::vector<valtype> solutions;
@@ -448,10 +468,18 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
         BOOST_CHECK(addrs[0] == keyaddr[0]);
         BOOST_CHECK(addrs[1] == keyaddr[1]);
         BOOST_CHECK(nRequired == 1);
-        LOCK(keystore.cs_wallet);
-        BOOST_CHECK(keystore.IsMineP2SH(s));
-        BOOST_CHECK(!emptykeystore.IsMine(s));
-        BOOST_CHECK(!partialkeystore.IsMine(s));
+        {
+            LOCK(keystore.cs_wallet);
+            BOOST_CHECK(keystore.IsMineP2SH(s));
+        }
+        {
+            LOCK(emptykeystore.cs_wallet);
+            BOOST_CHECK(!emptykeystore.IsMine(s));
+        }
+        {
+            LOCK(partialkeystore.cs_wallet);
+            BOOST_CHECK(!partialkeystore.IsMine(s));
+        }
     }
     {
         std::vector<valtype> solutions;
@@ -465,8 +493,8 @@ BOOST_AUTO_TEST_CASE(multisig_Solver1)
 BOOST_AUTO_TEST_CASE(opiscoinstake_test)
 {
     SeedInsecureRand();
-    CHDWallet keystoreA(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
-    CHDWallet keystoreB(m_chain.get(), WalletLocation(), CreateDummyWalletDatabase());
+    CHDWallet keystoreA(m_chain.get(), "", CreateDummyWalletDatabase());
+    CHDWallet keystoreB(m_chain.get(), "", CreateDummyWalletDatabase());
 
     CKey kA, kB;
     InsecureNewKey(kA, true);
@@ -524,9 +552,14 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     // IsStandard should fail until chain time is >= OpIsCoinstakeTime
     BOOST_CHECK(!IsStandard(script, whichType));
 
-
-    BOOST_CHECK(keystoreA.IsMine(script));
-    BOOST_CHECK(keystoreB.IsMine(script));
+    {
+        LOCK(keystoreA.cs_wallet);
+        BOOST_CHECK(keystoreA.IsMine(script));
+    }
+    {
+        LOCK(keystoreB.cs_wallet);
+        BOOST_CHECK(keystoreB.IsMine(script));
+    }
 
 
     CAmount nValue = 100000;

@@ -19,9 +19,9 @@ base_blob<BITS>::base_blob(const std::vector<unsigned char>& vch)
 template <unsigned int BITS>
 base_blob<BITS>::base_blob(const uint8_t *p, size_t l)
 {
-    assert(sizeof(data) >= l);
-    memset(data, 0, sizeof(data));
-    memcpy(data, p, l);
+    assert(sizeof(m_data) >= l);
+    memset(m_data, 0, sizeof(m_data));
+    memcpy(m_data, p, l);
 };
 
 template <unsigned int BITS>

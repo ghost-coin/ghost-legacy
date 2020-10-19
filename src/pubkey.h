@@ -261,6 +261,10 @@ public:
     void Set(const T pbegin, const T pend)
     {
         int len = pend == pbegin ? 0 : GetLen(pbegin[0]);
+        if (len > 33) {
+            Invalidate();
+            return;
+        }
         if (len && len == (pend - pbegin))
             memcpy(vch, (unsigned char*)&pbegin[0], len);
         else
@@ -286,7 +290,8 @@ public:
     }
 
     //! Simple read-only vector-like interface to the pubkey data.
-    unsigned int size() const { return GetLen(vch[0]); }
+    unsigned int size() const { return std::min(GetLen(vch[0]), (unsigned int)33); }
+    const unsigned char* data() const { return vch; }
     const unsigned char* begin() const { return vch; }
     unsigned char* ncbegin() { return vch; }
     const unsigned char* end() const { return vch + size(); }

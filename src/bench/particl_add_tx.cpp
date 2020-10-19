@@ -90,8 +90,7 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
             continue;
         }
 
-        CScript coinbaseScript;
-        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(mempool, Params()).CreateNewBlock(coinbaseScript, false));
+        std::unique_ptr<CBlockTemplate> pblocktemplate = pwallet->CreateNewBlock();
         assert(pblocktemplate.get());
 
         if (pwallet->SignBlock(pblocktemplate.get(), nBestHeight+1, nSearchTime)) {
@@ -111,7 +110,20 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
     SyncWithValidationInterfaceQueue();
 };
 
-static void AddTx(benchmark::State& state, const std::string from, const std::string to, const bool owned)
+static std::shared_ptr<CHDWallet> CreateTestWallet(interfaces::Chain& chain, std::string wallet_name)
+{
+    DatabaseOptions options;
+    DatabaseStatus status;
+    bilingual_str error;
+    std::vector<bilingual_str> warnings;
+    options.create_flags = WALLET_FLAG_BLANK_WALLET;
+    auto database = MakeWalletDatabase(wallet_name, options, status, error);
+    auto wallet = CWallet::Create(chain, wallet_name, std::move(database), options.create_flags, error, warnings);
+
+    return std::static_pointer_cast<CHDWallet>(wallet);
+}
+
+static void AddTx(benchmark::Bench& bench, const std::string from, const std::string to, const bool owned)
 {
     TestingSetup test_setup{CBaseChainParams::REGTEST, {}, true};
     util::Ref context{test_setup.m_node};
@@ -123,18 +135,11 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
     std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, *Assert(test_setup.m_node.args), {});
     m_chain_client->registerRpcs();
 
-    uint64_t wallet_creation_flags = WALLET_FLAG_BLANK_WALLET;
-    SecureString passphrase;
-    bilingual_str error;
-    std::vector<bilingual_str> warnings;
-
-    WalletLocation location_a("a");
-    std::shared_ptr<CHDWallet> pwallet_a = std::static_pointer_cast<CHDWallet>(CWallet::CreateWalletFromFile(*m_chain.get(), location_a, error, warnings, wallet_creation_flags));
+    std::shared_ptr<CHDWallet> pwallet_a = CreateTestWallet(*m_chain.get(), "a");
     assert(pwallet_a.get());
     AddWallet(pwallet_a);
 
-    WalletLocation location_b("b");
-    std::shared_ptr<CHDWallet> pwallet_b = std::static_pointer_cast<CHDWallet>(CWallet::CreateWalletFromFile(*m_chain.get(), location_b, error, warnings, wallet_creation_flags));
+    std::shared_ptr<CHDWallet> pwallet_b = CreateTestWallet(*m_chain.get(), "b");
     assert(pwallet_b.get());
     AddWallet(pwallet_b);
 
@@ -207,59 +212,59 @@ static void AddTx(benchmark::State& state, const std::string from, const std::st
     {
     LOCK(pwallet_b.get()->cs_wallet);
 
-    while (state.KeepRunning()) {
+    bench.run([&] {
         pwallet_b.get()->AddToWalletIfInvolvingMe(tx, confirm, true);
-    }
+    });
     }
 
-    RemoveWallet(pwallet_a);
+    RemoveWallet(pwallet_a, nullopt);
     pwallet_a.reset();
 
-    RemoveWallet(pwallet_b);
+    RemoveWallet(pwallet_b, nullopt);
     pwallet_b.reset();
 
     ECC_Stop_Stealth();
     ECC_Stop_Blinding();
 }
 
-static void ParticlAddTxPlainPlainNotOwned(benchmark::State& state) { AddTx(state, "plain", "plain", false); }
-static void ParticlAddTxPlainPlainOwned(benchmark::State& state) { AddTx(state, "plain", "plain", true); }
-static void ParticlAddTxPlainBlindNotOwned(benchmark::State& state) { AddTx(state, "plain", "blind", false); }
-static void ParticlAddTxPlainBlindOwned(benchmark::State& state) { AddTx(state, "plain", "blind", true); }
-// static void ParticlAddTxPlainAnonNotOwned(benchmark::State& state) { AddTx(state, "plain", "anon", false); }
-// static void ParticlAddTxPlainAnonOwned(benchmark::State& state) { AddTx(state, "plain", "anon", true); }
+static void ParticlAddTxPlainPlainNotOwned(benchmark::Bench& bench) { AddTx(bench, "plain", "plain", false); }
+static void ParticlAddTxPlainPlainOwned(benchmark::Bench& bench) { AddTx(bench, "plain", "plain", true); }
+static void ParticlAddTxPlainBlindNotOwned(benchmark::Bench& bench) { AddTx(bench, "plain", "blind", false); }
+static void ParticlAddTxPlainBlindOwned(benchmark::Bench& bench) { AddTx(bench, "plain", "blind", true); }
+// static void ParticlAddTxPlainAnonNotOwned(benchmark::Bench& bench) { AddTx(bench, "plain", "anon", false); }
+// static void ParticlAddTxPlainAnonOwned(benchmark::Bench& bench) { AddTx(bench, "plain", "anon", true); }
 
-static void ParticlAddTxBlindPlainNotOwned(benchmark::State& state) { AddTx(state, "blind", "plain", false); }
-static void ParticlAddTxBlindPlainOwned(benchmark::State& state) { AddTx(state, "blind", "plain", true); }
-static void ParticlAddTxBlindBlindNotOwned(benchmark::State& state) { AddTx(state, "blind", "blind", false); }
-static void ParticlAddTxBlindBlindOwned(benchmark::State& state) { AddTx(state, "blind", "blind", true); }
-static void ParticlAddTxBlindAnonNotOwned(benchmark::State& state) { AddTx(state, "blind", "anon", false); }
-static void ParticlAddTxBlindAnonOwned(benchmark::State& state) { AddTx(state, "blind", "anon", true); }
+static void ParticlAddTxBlindPlainNotOwned(benchmark::Bench& bench) { AddTx(bench, "blind", "plain", false); }
+static void ParticlAddTxBlindPlainOwned(benchmark::Bench& bench) { AddTx(bench, "blind", "plain", true); }
+static void ParticlAddTxBlindBlindNotOwned(benchmark::Bench& bench) { AddTx(bench, "blind", "blind", false); }
+static void ParticlAddTxBlindBlindOwned(benchmark::Bench& bench) { AddTx(bench, "blind", "blind", true); }
+static void ParticlAddTxBlindAnonNotOwned(benchmark::Bench& bench) { AddTx(bench, "blind", "anon", false); }
+static void ParticlAddTxBlindAnonOwned(benchmark::Bench& bench) { AddTx(bench, "blind", "anon", true); }
 
-static void ParticlAddTxAnonPlainNotOwned(benchmark::State& state) { AddTx(state, "anon", "plain", false); }
-static void ParticlAddTxAnonPlainOwned(benchmark::State& state) { AddTx(state, "anon", "plain", true); }
-static void ParticlAddTxAnonBlindNotOwned(benchmark::State& state) { AddTx(state, "anon", "blind", false); }
-static void ParticlAddTxAnonBlindOwned(benchmark::State& state) { AddTx(state, "anon", "blind", true); }
-static void ParticlAddTxAnonAnonNotOwned(benchmark::State& state) { AddTx(state, "anon", "anon", false); }
-static void ParticlAddTxAnonAnonOwned(benchmark::State& state) { AddTx(state, "anon", "anon", true); }
+static void ParticlAddTxAnonPlainNotOwned(benchmark::Bench& bench) { AddTx(bench, "anon", "plain", false); }
+static void ParticlAddTxAnonPlainOwned(benchmark::Bench& bench) { AddTx(bench, "anon", "plain", true); }
+static void ParticlAddTxAnonBlindNotOwned(benchmark::Bench& bench) { AddTx(bench, "anon", "blind", false); }
+static void ParticlAddTxAnonBlindOwned(benchmark::Bench& bench) { AddTx(bench, "anon", "blind", true); }
+static void ParticlAddTxAnonAnonNotOwned(benchmark::Bench& bench) { AddTx(bench, "anon", "anon", false); }
+static void ParticlAddTxAnonAnonOwned(benchmark::Bench& bench) { AddTx(bench, "anon", "anon", true); }
 
-BENCHMARK(ParticlAddTxPlainPlainNotOwned, 100);
-BENCHMARK(ParticlAddTxPlainPlainOwned, 100);
-BENCHMARK(ParticlAddTxPlainBlindNotOwned, 100);
-BENCHMARK(ParticlAddTxPlainBlindOwned, 100);
-// BENCHMARK(ParticlAddTxPlainAnonNotOwned, 100);
-// BENCHMARK(ParticlAddTxPlainAnonOwned, 100);
+BENCHMARK(ParticlAddTxPlainPlainNotOwned);
+BENCHMARK(ParticlAddTxPlainPlainOwned);
+BENCHMARK(ParticlAddTxPlainBlindNotOwned);
+BENCHMARK(ParticlAddTxPlainBlindOwned);
+// BENCHMARK(ParticlAddTxPlainAnonNotOwned);
+// BENCHMARK(ParticlAddTxPlainAnonOwned);
 
-BENCHMARK(ParticlAddTxBlindPlainNotOwned, 100);
-BENCHMARK(ParticlAddTxBlindPlainOwned, 100);
-BENCHMARK(ParticlAddTxBlindBlindNotOwned, 100);
-BENCHMARK(ParticlAddTxBlindBlindOwned, 100);
-BENCHMARK(ParticlAddTxBlindAnonNotOwned, 100);
-BENCHMARK(ParticlAddTxBlindAnonOwned, 100);
+BENCHMARK(ParticlAddTxBlindPlainNotOwned);
+BENCHMARK(ParticlAddTxBlindPlainOwned);
+BENCHMARK(ParticlAddTxBlindBlindNotOwned);
+BENCHMARK(ParticlAddTxBlindBlindOwned);
+BENCHMARK(ParticlAddTxBlindAnonNotOwned);
+BENCHMARK(ParticlAddTxBlindAnonOwned);
 
-BENCHMARK(ParticlAddTxAnonPlainNotOwned, 100);
-BENCHMARK(ParticlAddTxAnonPlainOwned, 100);
-BENCHMARK(ParticlAddTxAnonBlindNotOwned, 100);
-BENCHMARK(ParticlAddTxAnonBlindOwned, 100);
-BENCHMARK(ParticlAddTxAnonAnonNotOwned, 100);
-BENCHMARK(ParticlAddTxAnonAnonOwned, 100);
+BENCHMARK(ParticlAddTxAnonPlainNotOwned);
+BENCHMARK(ParticlAddTxAnonPlainOwned);
+BENCHMARK(ParticlAddTxAnonBlindNotOwned);
+BENCHMARK(ParticlAddTxAnonBlindOwned);
+BENCHMARK(ParticlAddTxAnonAnonNotOwned);
+BENCHMARK(ParticlAddTxAnonAnonOwned);

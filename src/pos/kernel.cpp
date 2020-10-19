@@ -33,7 +33,7 @@ uint256 ComputeStakeModifierV2(const CBlockIndex *pindexPrev, const uint256 &ker
 
     CDataStream ss(SER_GETHASH, 0);
     ss << kernel << pindexPrev->bnStakeModifier;
-    return Hash(ss.begin(), ss.end());
+    return Hash(ss);
 }
 
 /**
@@ -92,7 +92,7 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
     CDataStream ss(SER_GETHASH, 0);
     ss << bnStakeModifier;
     ss << nBlockFromTime << prevout.hash << prevout.n << nTime;
-    hashProofOfStake = Hash(ss.begin(), ss.end());
+    hashProofOfStake = Hash(ss);
 
     if (fPrintProofOfStake) {
         LogPrintf("%s: using modifier=%s at height=%d timestamp=%s\n",
@@ -150,35 +150,10 @@ bool GetKernelInfo(const CBlockIndex *blockindex, const CTransaction &tx, uint25
     CDataStream ss(SER_GETHASH, 0);
     ss << blockindex->pprev->bnStakeModifier;
     ss << nBlockFromTime << prevout.hash << prevout.n << nTime;
-    hash = Hash(ss.begin(), ss.end());
+    hash = Hash(ss);
 
     return true;
 };
-
-bool IsConfirmedInNPrevBlocks(const uint256 &hashBlock, const CBlockIndex *pindexFrom, int nMaxDepth, int &nActualDepth)
-{
-    for (const CBlockIndex *pindex = pindexFrom; pindex && pindexFrom->nHeight - pindex->nHeight < nMaxDepth; pindex = pindex->pprev) {
-        if (hashBlock == pindex->GetBlockHash()) {
-            nActualDepth = pindexFrom->nHeight - pindex->nHeight;
-            return true;
-        }
-    }
-    return false;
-}
-
-
-static bool CheckAge(const CBlockIndex *pindexTip, const uint256 &hashKernelBlock, int &nDepth)
-{
-    // pindexTip is the current tip of the chain
-    // hashKernelBlock is the hash of the block containing the kernel transaction
-
-    int nRequiredDepth = std::min((int)(Params().GetStakeMinConfirmations()-1), (int)(pindexTip->nHeight / 2));
-
-    if (IsConfirmedInNPrevBlocks(hashKernelBlock, pindexTip, nRequiredDepth, nDepth)) {
-        return false;
-    }
-    return true;
-}
 
 // Check kernel hash target and coinstake signature
 bool CheckProofOfStake(BlockValidationState &state, const CBlockIndex *pindexPrev, const CTransaction &tx, int64_t nTime, unsigned int nBits, uint256 &hashProofOfStake, uint256 &targetProofOfStake)

@@ -43,7 +43,7 @@
 
 #include <univalue.h>
 
-void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue& entry,
+void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, const CTxMemPool *pmempool, UniValue& entry,
                       int nHeight = 0, int nConfirmations = 0, int nBlockTime = 0)
 {
     uint256 txid = tx.GetHash();
@@ -58,7 +58,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
     for (const auto &txin : tx.vin) {
         UniValue in(UniValue::VOBJ);
         if (tx.IsCoinBase()) {
-            in.pushKV("coinbase", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
+            in.pushKV("coinbase", HexStr(txin.scriptSig));
         } else
         if (txin.IsAnonInput()) {
             in.pushKV("type", "anon");
@@ -92,12 +92,12 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             in.pushKV("vout", (int64_t)txin.prevout.n);
             UniValue o(UniValue::VOBJ);
             o.pushKV("asm", ScriptToAsmStr(txin.scriptSig, true));
-            o.pushKV("hex", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
+            o.pushKV("hex", HexStr(txin.scriptSig));
             in.pushKV("scriptSig", o);
             // Add address and value info if spentindex enabled
             CSpentIndexValue spentInfo;
             CSpentIndexKey spentKey(txin.prevout.hash, txin.prevout.n);
-            if (GetSpentIndex(spentKey, spentInfo)) {
+            if (GetSpentIndex(spentKey, spentInfo, pmempool)) {
                 in.pushKV("type", spentInfo.satoshis == -1 ? "blind" : "standard");
                 in.pushKV("value", ValueFromAmount(spentInfo.satoshis));
                 in.pushKV("valueSat", spentInfo.satoshis);
@@ -113,7 +113,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             UniValue scriptdata(UniValue::VARR);
             for (unsigned int j = 0; j < txin.scriptData.stack.size(); j++) {
                 std::vector<unsigned char> item = txin.scriptData.stack[j];
-                scriptdata.push_back(HexStr(item.begin(), item.end()));
+                scriptdata.push_back(HexStr(item));
             }
             in.pushKV("scriptdata", scriptdata);
         }
@@ -123,7 +123,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                 UniValue txinwitness(UniValue::VARR);
                 for (unsigned int j = 0; j < txin.scriptWitness.stack.size(); j++) {
                     std::vector<unsigned char> item = txin.scriptWitness.stack[j];
-                    txinwitness.push_back(HexStr(item.begin(), item.end()));
+                    txinwitness.push_back(HexStr(item));
                 }
                 in.pushKV("txinwitness", txinwitness);
             }
@@ -138,6 +138,16 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
         UniValue out(UniValue::VOBJ);
         out.pushKV("n", (int64_t)i);
         OutputToJSON(txid, i, tx.vpout[i].get(), out);
+        auto txo_type = tx.vpout[i].get()->GetType();
+        if (txo_type == OUTPUT_STANDARD || txo_type == OUTPUT_CT) {
+            CSpentIndexValue spentInfo;
+            CSpentIndexKey spentKey(txid, i);
+            if (GetSpentIndex(spentKey, spentInfo, pmempool)) {
+                out.pushKV("spentTxId", spentInfo.txid.GetHex());
+                out.pushKV("spentIndex", (int)spentInfo.inputIndex);
+                out.pushKV("spentHeight", spentInfo.blockHeight);
+            }
+        }
         vout.push_back(out);
     }
 
@@ -360,7 +370,7 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
     result.pushKV("hex", strHex);
 
     if (fParticlMode) {
-        TxToJSONExpanded(*tx, hash_block, result, nHeight, nConfirmations, nBlockTime);
+        TxToJSONExpanded(*tx, hash_block, node.mempool.get(), result, nHeight, nConfirmations, nBlockTime);
     } else {
         TxToJSON(*tx, hash_block, result);
     }

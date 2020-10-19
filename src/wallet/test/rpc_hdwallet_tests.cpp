@@ -145,9 +145,9 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     sTxn = "[{\"txid\":\""
         + txn.GetHash().ToString() + "\","
         + "\"vout\":0,"
-        + "\"scriptPubKey\":\""+HexStr(script.begin(), script.end())+"\","
+        + "\"scriptPubKey\":\"" + HexStr(script) + "\","
         + "\"amount\":100}]";
-    sCmd = "createrawtransaction " + sTxn + " {\""+EncodeDestination(PKHash(id))+"\":99.99}";
+    sCmd = "createrawtransaction " + sTxn + " {\"" + EncodeDestination(PKHash(id)) + "\":99.99}";
 
 
     BOOST_REQUIRE_NO_THROW(rv = CallRPC(sCmd, context));
@@ -162,9 +162,9 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     sTxn = "[{\"txid\":\""
         + txn.GetHash().ToString() + "\","
         + "\"vout\":0,"
-        + "\"scriptPubKey\":\"" + HexStr(script.begin(), script.end()) + "\","
+        + "\"scriptPubKey\":\"" + HexStr(script) + "\","
         + "\"amount\":100}]";
-    sCmd = "createrawtransaction " + sTxn + " {\""+EncodeDestination(PKHash(id))+"\":99.99}" + " 1487500000";
+    sCmd = "createrawtransaction " + sTxn + " {\"" + EncodeDestination(PKHash(id)) + "\":99.99}" + " 1487500000";
 
     BOOST_REQUIRE_NO_THROW(rv = CallRPC(sCmd, context));
     sResult = part::StripQuotes(rv.write());
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     sTxn = "[{\"txid\":\""
         + txn.GetHash().ToString() + "\","
         + "\"vout\":0,"
-        + "\"scriptPubKey\":\"" + HexStr(script.begin(), script.end()) + "\","
+        + "\"scriptPubKey\":\"" + HexStr(script) + "\","
         + "\"amount\":100}]";
     sCmd = "createrawtransaction " + sTxn + " {\"" + CBitcoinAddress(vAddresses[0]).ToString() + "\":99.99}";
 
@@ -207,7 +207,7 @@ BOOST_AUTO_TEST_CASE(rpc_hdwallet_timelocks)
     sTxn = "[{\"txid\":\""
         + txn.GetHash().ToString() + "\","
         + "\"vout\":0,"
-        + "\"scriptPubKey\":\"" + HexStr(script.begin(), script.end()) + "\","
+        + "\"scriptPubKey\":\"" + HexStr(script) + "\","
         + "\"amount\":100,"
         +"\"sequence\":" + strprintf("%d", nSequence) + "}]";
     sCmd = "createrawtransaction " + sTxn + " {\"" + CBitcoinAddress(vAddresses[0]).ToString() + "\":99.99}";

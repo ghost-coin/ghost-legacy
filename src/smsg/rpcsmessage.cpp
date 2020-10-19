@@ -315,7 +315,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             CPubKey pubKey;
 
             if (0 == smsgModule.GetLocalKey(keyID, pubKey)) {
-                sPublicKey = EncodeBase58(pubKey.begin(), pubKey.end());
+                sPublicKey = EncodeBase58(pubKey);
             }
 
             UniValue objM(UniValue::VOBJ);
@@ -345,7 +345,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
             UniValue objM(UniValue::VOBJ);
             CPubKey pk = key.key.GetPubKey();
             objM.pushKV("address", EncodeDestination(PKHash(p.first)));
-            objM.pushKV("public_key", EncodeBase58(pk.begin(), pk.end()));
+            objM.pushKV("public_key", EncodeBase58(pk));
             objM.pushKV("receive", (key.nFlags & smsg::SMK_RECEIVE_ON ? "1" : "0"));
             objM.pushKV("anon", (key.nFlags & smsg::SMK_RECEIVE_ANON ? "1" : "0"));
             objM.pushKV("label", key.sLabel);
@@ -454,7 +454,7 @@ static UniValue smsglocalkeys(const JSONRPCRequest &request)
                     continue;
                 }
 
-                sPublicKey = EncodeBase58(pubKey.begin(), pubKey.end());
+                sPublicKey = EncodeBase58(pubKey);
                 UniValue objM(UniValue::VOBJ);
 
                 objM.pushKV("key", address);
@@ -740,7 +740,7 @@ static UniValue smsggetpubkey(const JSONRPCRequest &request)
                 || !cpkFromDB.IsCompressed()) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "Invalid public key.");
             } else {
-                publicKey = EncodeBase58(cpkFromDB.begin(), cpkFromDB.end());
+                publicKey = EncodeBase58(cpkFromDB);
 
                 result.pushKV("address", address);
                 result.pushKV("publickey", publicKey);
@@ -942,8 +942,8 @@ static UniValue smsgsend(const JSONRPCRequest &request)
         }
 
         if (!submit_msg) {
-            result.pushKV("msg", HexStr(smsgOut.data(), smsgOut.data() + smsg::SMSG_HDR_LEN) +
-                                 HexStr(smsgOut.pPayload, smsgOut.pPayload + smsgOut.nPayload));
+            result.pushKV("msg", HexStr(Span<const unsigned char>(smsgOut.data(), smsg::SMSG_HDR_LEN)) +
+                                 HexStr(Span<const unsigned char>(smsgOut.pPayload, smsgOut.nPayload)));
         }
 
         if (fPaid) {
@@ -1100,7 +1100,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                 const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) pHeader;
 
                 UniValue objM(UniValue::VOBJ);
-                objM.pushKV("msgid", HexStr(&chKey[2], &chKey[2] + 28)); // timestamp+hash
+                objM.pushKV("msgid", HexStr(Span<const unsigned char>(&chKey[2], 28))); // timestamp+hash
                 objM.pushKV("version", strprintf("%02x%02x", psmsg->version[0], psmsg->version[1]));
 
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
@@ -1262,7 +1262,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                 const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) pHeader;
 
                 UniValue objM(UniValue::VOBJ);
-                objM.pushKV("msgid", HexStr(&chKey[2], &chKey[2] + 28)); // timestamp+hash
+                objM.pushKV("msgid", HexStr(Span<const unsigned char>(&chKey[2], 28))); // timestamp+hash
                 objM.pushKV("version", strprintf("%02x%02x", psmsg->version[0], psmsg->version[1]));
 
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
@@ -1530,7 +1530,7 @@ static UniValue smsgview(const JSONRPCRequest &request)
                                 checkValid.GetKeyID(ki);
                                 vMatchAddress.push_back(ki);
                             } else {
-                                LogPrintf("Warning: matched invalid address: %s\n", checkValid.ToString().c_str());
+                                LogPrintf("Warning: matched invalid address: %s\n", checkValid.ToString());
                             }
                         }
                     }
@@ -1689,7 +1689,7 @@ static UniValue smsgview(const JSONRPCRequest &request)
 
                     vMessages.push_back(std::make_pair(msg.timestamp, objM));
                 } else {
-                    LogPrintf("%s: SecureMsgDecrypt failed, %s.\n", __func__, HexStr(chKey, chKey+18).c_str());
+                    LogPrintf("%s: SecureMsgDecrypt failed, %s.\n", __func__, HexStr(Span<const unsigned char>(chKey, 18)));
                 }
             }
             delete it;

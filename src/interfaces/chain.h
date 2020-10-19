@@ -22,7 +22,9 @@ class CFeeRate;
 class CRPCCommand;
 class CScheduler;
 class Coin;
+class CTxMemPool;
 class uint256;
+class CBlockTemplate;
 enum class MemPoolRemovalReason;
 enum class RBFTransactionState;
 struct bilingual_str;
@@ -292,6 +294,10 @@ public:
     virtual int getHeightInt() = 0;
     virtual size_t getAnonOutputs() = 0;
     virtual int64_t getSmsgFeeRate(const CBlockIndex *pindex, bool reduce_height=false) = 0;
+    virtual bool transactionInMempool(const uint256 &txhash) = 0;
+    virtual CTransactionRef transactionFromMempool(const uint256 &txhash) = 0;
+    virtual std::unique_ptr<CBlockTemplate> createNewBlock() = 0;
+    virtual CTxMemPool* getMempool() = 0;
 };
 
 //! Interface to let node manage chain clients (wallets, or maybe tools for

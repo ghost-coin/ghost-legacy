@@ -1138,8 +1138,8 @@ public:
     isminetype IsMine(const CTxOut& txout) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     CAmount GetCredit(const CTxOut& txout, const isminefilter& filter) const;
 
-    virtual isminetype IsMine(const CTxOutBase *txout) const { assert(false); return ISMINE_NO; } EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    virtual CAmount GetCredit(const CTxOutBase *txout, const isminefilter &filter) const { return 0; } EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    virtual isminetype IsMine(const CTxOutBase *txout) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) { assert(false); return ISMINE_NO; };
+    virtual CAmount GetCredit(const CTxOutBase *txout, const isminefilter &filter) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) { return 0; };
 
     virtual bool IsChange(const CTxOutBase *txout) const { assert(false); return false; };
     bool IsChange(const CTxOut& txout) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

@@ -14,6 +14,7 @@
 #include <txmempool.h>
 #include <key_io.h>
 #include <core_io.h>
+#include <node/context.h>
 #include <script/standard.h>
 #include <shutdown.h>
 
@@ -139,6 +140,8 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
                 },
         }.Check(request);
 
+    const CTxMemPool& mempool = EnsureMemPool(request.context);
+
     if (!fAddressIndex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Address index is not enabled.");
     }
@@ -250,7 +253,7 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
         output.pushKV("address", address);
         output.pushKV("txid", it->first.txhash.GetHex());
         output.pushKV("outputIndex", (int)it->first.index);
-        output.pushKV("script", HexStr(it->second.script.begin(), it->second.script.end()));
+        output.pushKV("script", HexStr(it->second.script));
         output.pushKV("satoshis", it->second.satoshis);
         output.pushKV("height", it->second.blockHeight);
         utxos.push_back(output);
@@ -566,6 +569,8 @@ UniValue getspentinfo(const JSONRPCRequest& request)
                 },
         }.Check(request);
 
+    const CTxMemPool& mempool = EnsureMemPool(request.context);
+
     UniValue txidValue = find_value(request.params[0].get_obj(), "txid");
     UniValue indexValue = find_value(request.params[0].get_obj(), "index");
 
@@ -579,7 +584,7 @@ UniValue getspentinfo(const JSONRPCRequest& request)
     CSpentIndexKey key(txid, outputIndex);
     CSpentIndexValue value;
 
-    if (!GetSpentIndex(key, value)) {
+    if (!GetSpentIndex(key, value, &mempool)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unable to get spent info");
     }
 
@@ -611,7 +616,7 @@ static void AddAddress(CScript *script, UniValue &uv)
     }
 }
 
-static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blockindex)
+static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blockindex, const CTxMemPool *pmempool)
 {
     UniValue result(UniValue::VOBJ);
     result.pushKV("hash", block.GetHash().GetHex());
@@ -651,7 +656,7 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
                 CSpentIndexValue spentInfo;
                 CSpentIndexKey spentKey(input.prevout.hash, input.prevout.n);
 
-                if (GetSpentIndex(spentKey, spentInfo)) {
+                if (GetSpentIndex(spentKey, spentInfo, pmempool)) {
                     std::string address;
                     if (!getAddressFromIndex(spentInfo.addressType, spentInfo.addressHash, address)) {
                         continue;
@@ -694,7 +699,7 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
                     {
                     CTxOutCT *s = (CTxOutCT*) out;
                     delta.pushKV("type", "blind");
-                    delta.pushKV("valueCommitment", HexStr(&s->commitment.data[0], &s->commitment.data[0]+33));
+                    delta.pushKV("valueCommitment", HexStr(Span<const unsigned char>(s->commitment.data, 33)));
                     AddAddress(&s->scriptPubKey, delta);
                     }
                     break;
@@ -702,8 +707,8 @@ static UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blocki
                     {
                     CTxOutRingCT *s = (CTxOutRingCT*) out;
                     delta.pushKV("type", "anon");
-                    delta.pushKV("pubkey", HexStr(s->pk.begin(), s->pk.end()));
-                    delta.pushKV("valueCommitment", HexStr(&s->commitment.data[0], &s->commitment.data[0]+33));
+                    delta.pushKV("pubkey", HexStr(s->pk));
+                    delta.pushKV("valueCommitment", HexStr(Span<const unsigned char>(s->commitment.data, 33)));
                     }
                     break;
                 default:
@@ -751,6 +756,8 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
 
     LOCK(cs_main);
 
+    const CTxMemPool& mempool = EnsureMemPool(request.context);
+
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
 
@@ -769,7 +776,7 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 
-    return blockToDeltasJSON(block, pblockindex);
+    return blockToDeltasJSON(block, pblockindex, &mempool);
 }
 
 static UniValue getblockhashes(const JSONRPCRequest& request)
@@ -954,7 +961,7 @@ static void pushScript(UniValue &uv, const std::string &name, const CScript *scr
     }
 
     UniValue uvs(UniValue::VOBJ);
-    uvs.pushKV("hex", HexStr(script->begin(), script->end()));
+    uvs.pushKV("hex", HexStr(*script));
 
     CTxDestination dest_stake, dest_spend;
     if (script->StartsWithICS()) {
@@ -1014,6 +1021,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
 
     RPCTypeCheck(request.params, {UniValue::VNUM});
 
+    NodeContext& node = EnsureNodeContext(request.context);
     if (!g_txindex) {
         throw JSONRPCError(RPC_MISC_ERROR, "Requires -txindex enabled");
     }
@@ -1075,9 +1083,9 @@ UniValue getblockreward(const JSONRPCRequest& request)
         }
 
         CBlockIndex *blockindex = nullptr;
-        CTransactionRef tx_prev;
-        uint256 hashBlock;
-        if (!GetTransaction(txin.prevout.hash, tx_prev, Params().GetConsensus(), hashBlock, blockindex)) {
+        uint256 hash_block;
+        const CTransactionRef tx_prev = GetTransaction(blockindex, node.mempool.get(), txin.prevout.hash, Params().GetConsensus(), hash_block);
+        if (!tx_prev) {
             throw JSONRPCError(RPC_MISC_ERROR, "Transaction not found on disk");
         }
         if (txin.prevout.n > tx_prev->GetNumVOuts()) {
@@ -1272,31 +1280,31 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
     return rv;
 }
 
-UniValue getindexinfo(const JSONRPCRequest& request)
+UniValue getinsightinfo(const JSONRPCRequest& request)
 {
-            RPCHelpMan{"getindexinfo",
-                "\nReturns an object of enabled indices.\n",
-                {
-                },
-                RPCResult{
-                    RPCResult::Type::OBJ, "", "", {
-                        {RPCResult::Type::BOOL, "txindex", "True if txindex is enabled"},
-                        {RPCResult::Type::BOOL, "addressindex", "True if addressindex is enabled"},
-                        {RPCResult::Type::BOOL, "spentindex", "True if spentindex is enabled"},
-                        {RPCResult::Type::BOOL, "timestampindex", "True if timestampindex is enabled"},
-                        {RPCResult::Type::BOOL, "coldstakeindex", "True if coldstakeindex is enabled"},
-                    }
-                },
-                RPCExamples{
-            HelpExampleCli("getindexinfo", "") +
-            "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("getindexinfo", "")
-                },
-        }.Check(request);
+        RPCHelpMan{"getinsightinfo",
+            "\nReturns an object of enabled indices.\n",
+            {
+            },
+            RPCResult{
+                RPCResult::Type::OBJ, "", "", {
+                    {RPCResult::Type::BOOL, "txindex", "True if txindex is enabled"},
+                    {RPCResult::Type::BOOL, "addressindex", "True if addressindex is enabled"},
+                    {RPCResult::Type::BOOL, "spentindex", "True if spentindex is enabled"},
+                    {RPCResult::Type::BOOL, "timestampindex", "True if timestampindex is enabled"},
+                    {RPCResult::Type::BOOL, "coldstakeindex", "True if coldstakeindex is enabled"},
+                }
+            },
+            RPCExamples{
+        HelpExampleCli("getindexinfo", "") +
+        "\nAs a JSON-RPC call\n"
+        + HelpExampleRpc("getindexinfo", "")
+            },
+    }.Check(request);
 
     UniValue ret(UniValue::VOBJ);
 
-    ret.pushKV("txindex", (bool) g_txindex);
+    ret.pushKV("txindex", (g_txindex ? true : false));
     ret.pushKV("addressindex", fAddressIndex);
     ret.pushKV("spentindex", fSpentIndex);
     ret.pushKV("timestampindex", fTimestampIndex);
@@ -1324,7 +1332,7 @@ static const CRPCCommand commands[] =
 
     { "csindex",            "listcoldstakeunspent",   &listcoldstakeunspent,   {"stakeaddress","height","options"} },
 
-    { "blockchain",         "getindexinfo",           &getindexinfo,           {} },
+    { "blockchain",         "getinsightinfo",           &getinsightinfo,       {} },
 };
 
 void RegisterInsightRPCCommands(CRPCTable &tableRPC)

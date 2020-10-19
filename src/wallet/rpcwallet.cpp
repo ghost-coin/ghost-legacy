@@ -3777,7 +3777,7 @@ static UniValue listunspent(const JSONRPCRequest& request)
                     scriptID.Set(hash);
                     CScript redeemScript;
                     if (provider->GetCScript(scriptID, redeemScript)) {
-                        entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
+                        entry.pushKV("redeemScript", HexStr(redeemScript));
                     }
                 }
             }

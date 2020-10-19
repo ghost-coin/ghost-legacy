@@ -203,7 +203,6 @@ static UniValue getpeerinfo(const JSONRPCRequest& request)
                 // banscore is deprecated in v0.21 for removal in v0.22
                 obj.pushKV("banscore", statestats.m_misbehavior_score);
             //}
-            }
             obj.pushKV("synced_headers", statestats.nSyncHeight);
             obj.pushKV("synced_blocks", statestats.nCommonHeight);
             obj.pushKV("duplicate_count", statestats.nDuplicateCount);

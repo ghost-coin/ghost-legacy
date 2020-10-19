@@ -1034,9 +1034,10 @@ bool WalletBatch::EraseAllByPrefix(std::string sPrefix)
         return error("%s: TxnBegin failed.\n", __func__);
     }
 
+    BerkeleyBatch *bb = static_cast<BerkeleyBatch*>(m_batch.get());
     // Get cursor
     Dbc *pcursor = nullptr;
-    int ret = m_batch->pdb->cursor(m_batch->activeTxn, &pcursor, 0);
+    int ret = bb->pdb->cursor(bb->activeTxn, &pcursor, 0);
     if (ret != 0 || !pcursor) {
         return error("%s: GetCursor failed.\n", __func__);
     }
@@ -1045,7 +1046,7 @@ bool WalletBatch::EraseAllByPrefix(std::string sPrefix)
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
     std::string strType;
     ssKey << sPrefix;
-    while (m_batch->ReadAtCursor2(pcursor, ssKey, ssValue, true) == 0) {
+    while (bb->ReadAtCursor2(pcursor, ssKey, ssValue, true) == 0) {
         ssKey >> strType;
         if (IsKeyType(strType) || strType != sPrefix) {
             break;

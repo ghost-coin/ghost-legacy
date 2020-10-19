@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(mnemonic_test)
     std::string password = "";
     BOOST_CHECK(0 == mnemonic::ToSeed(words, password, vSeed));
 
-    BOOST_CHECK(HexStr(vSeed.begin(), vSeed.end()) == expect_seed);
+    BOOST_CHECK(HexStr(vSeed) == expect_seed);
 }
 
 BOOST_AUTO_TEST_CASE(mnemonic_test_fails)

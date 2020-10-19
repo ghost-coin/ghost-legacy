@@ -40,6 +40,7 @@ Notes:
 #include <chain.h>
 #include <netmessagemaker.h>
 #include <net.h>
+#include <net_processing.h>
 #include <streams.h>
 #include <univalue.h>
 #include <node/context.h>
@@ -64,8 +65,6 @@ Notes:
 #include <xxhash/xxhash.h>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread/thread.hpp>
-
-extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
 
 smsg::CSMSG smsgModule;
 
@@ -1243,7 +1242,7 @@ void CSMSG::ShowFundingTxns(UniValue &result)
 /** Called from ProcessMessage
   * Runs in ThreadMessageHandler2
   */
-int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv)
+int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &strCommand, CDataStream &vRecv)
 {
     /*
         TODO:
@@ -1327,7 +1326,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         vRecv >> vchData;
 
         if (vchData.size() < 4) {
-            Misbehaving(pfrom->GetId(), 1);
+            peerLogic->Misbehaving(pfrom->GetId(), 1, "smsg-format");
             return SMSG_GENERAL_ERROR; // Not enough data received to be a valid smsgInv
         }
 
@@ -1526,7 +1525,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
         }
         if (time > now + SMSG_TIME_LEEWAY) {
             LogPrint(BCLog::SMSG, "Not interested in peer %d bucket %d, in the future.\n", pfrom->GetId(), time);
-            Misbehaving(pfrom->GetId(), 1);
+            peerLogic->Misbehaving(pfrom->GetId(), 1, "smsg-time");
             return SMSG_GENERAL_ERROR;
         }
 
@@ -1670,7 +1669,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
         LogPrint(BCLog::SMSG, "smsgMsg vchData.size() %u.\n", vchData.size());
 
-        Receive(pfrom, vchData);
+        Receive(peerLogic, pfrom, vchData);
     } else
     if (strCommand == SMSGMsgType::PING) {
         // smsgPing is the initial message, send reply
@@ -1718,7 +1717,7 @@ int CSMSG::ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream 
 
         if (vchData.size() < 8) {
             LogPrintf("smsgIgnore, not enough data %u.\n", vchData.size());
-            Misbehaving(pfrom->GetId(), 1);
+            peerLogic->Misbehaving(pfrom->GetId(), 1, "smsg-format");
             return SMSG_GENERAL_ERROR;
         }
 
@@ -2659,7 +2658,7 @@ int CSMSG::GetLocalPublicKey(const std::string &strAddress, std::string &strPubl
         return rv;
     }
 
-    strPublicKey = EncodeBase58(pubKey.begin(), pubKey.end());
+    strPublicKey = EncodeBase58(pubKey);
     return SMSG_NO_ERROR;
 };
 
@@ -3005,7 +3004,7 @@ int CSMSG::SmsgMisbehaving(CNode *pfrom, uint8_t n)
     return 0;
 };
 
-int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
+int CSMSG::Receive(PeerManager *peerLogic, CNode *pfrom, std::vector<uint8_t> &vchData)
 {
     LogPrint(BCLog::SMSG, "%s\n", __func__);
 
@@ -3096,9 +3095,9 @@ int CSMSG::Receive(CNode *pfrom, std::vector<uint8_t> &vchData)
                 SmsgMisbehaving(pfrom, 10);
             } else
             if (rv == SMSG_FUND_FAILED) { // Bad funding tx
-                Misbehaving(pfrom->GetId(), 10);
+                peerLogic->Misbehaving(pfrom->GetId(), 10, "smsg-fundtx");
             } else {
-                Misbehaving(pfrom->GetId(), 1);
+                peerLogic->Misbehaving(pfrom->GetId(), 1, "smsg-format");
             }
             continue;
         }
@@ -3861,7 +3860,7 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
         // Sign the plaintext
         std::vector<uint8_t> vchSignature;
         vchSignature.resize(65);
-        keyFrom.SignCompact(Hash(message.begin(), message.end()), vchSignature);
+        keyFrom.SignCompact(Hash(message), vchSignature);
 
         // Save some bytes by sending address raw
         vchPayload[0] = (static_cast<CBitcoinAddress*>(&coinAddrFrom))->getVersion(); // vchPayload[0] = coinAddrDest.nVersion;
@@ -4349,7 +4348,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     //uint256 P = keyDest.ECDH(R);
     secp256k1_pubkey R;
     if (!secp256k1_ec_pubkey_parse(secp256k1_context_smsg, &R, psmsg->cpkR, 33)) {
-        return errorN(SMSG_GENERAL_ERROR, "%s: secp256k1_ec_pubkey_parse failed: %s.", __func__, HexStr(psmsg->cpkR, psmsg->cpkR+33));
+        return errorN(SMSG_GENERAL_ERROR, "%s: secp256k1_ec_pubkey_parse failed: %s.", __func__, HexStr(Span<const unsigned char>(psmsg->cpkR, 33)));
     }
 
     uint256 P;
@@ -4450,7 +4449,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
         memcpy(&vchSig[0], &vchPayload[1+20], 65);
 
         CPubKey cpkFromSig;
-        cpkFromSig.RecoverCompact(Hash(msg.vchMessage.begin(), msg.vchMessage.end()-1), vchSig);
+        cpkFromSig.RecoverCompact(Hash(Span<const unsigned char>(msg.vchMessage.data(), msg.vchMessage.size() - 1)), vchSig);
         if (!cpkFromSig.IsValid()) {
             return errorN(SMSG_GENERAL_ERROR, "%s: Signature validation failed.", __func__);
         }

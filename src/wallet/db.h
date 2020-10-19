@@ -156,7 +156,7 @@ public:
 class DummyBatch : public DatabaseBatch
 {
 private:
-    bool ReadKey(CDataStream&& key, CDataStream& value) override { return true; }
+    bool ReadKey(CDataStream&& key, CDataStream& value, int nFlags=0) override { return true; }
     bool WriteKey(CDataStream&& key, CDataStream&& value, bool overwrite=true) override { return true; }
     bool EraseKey(CDataStream&& key) override { return true; }
     bool HasKey(CDataStream&& key) override { return true; }

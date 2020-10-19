@@ -17,14 +17,6 @@
 #include <insight/spentindex.h>
 #include <blind.h>
 
-//extern bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
-bool (*pCoreWriteGetSpentIndex)(CSpentIndexKey &key, CSpentIndexValue &value) = nullptr; // HACK, alternative is to move GetSpentIndex into common lib
-
-void SetCoreWriteGetSpentIndex(bool (*function)(CSpentIndexKey&, CSpentIndexValue&))
-{
-    pCoreWriteGetSpentIndex = function;
-};
-
 UniValue ValueFromAmount(const CAmount& amount)
 {
     bool sign = amount < 0;
@@ -201,7 +193,7 @@ void ScriptPubKeyToUniv(const CScript& scriptPubKey,
 
 void AddRangeproof(const std::vector<uint8_t> &vRangeproof, UniValue &entry)
 {
-    entry.pushKV("rangeproof", HexStr(vRangeproof.begin(), vRangeproof.end()));
+    entry.pushKV("rangeproof", HexStr(vRangeproof));
 
     if (vRangeproof.size() > 0) {
         int exponent, mantissa;
@@ -218,11 +210,9 @@ void AddRangeproof(const std::vector<uint8_t> &vRangeproof, UniValue &entry)
 void OutputToJSON(uint256 &txid, int i,
     const CTxOutBase *baseOut, UniValue &entry)
 {
-    bool fCanSpend = false;
     switch (baseOut->GetType()) {
         case OUTPUT_STANDARD:
             {
-            fCanSpend = true;
             entry.pushKV("type", "standard");
             CTxOutStandard *s = (CTxOutStandard*) baseOut;
             entry.pushKV("value", ValueFromAmount(s->nValue));
@@ -236,7 +226,7 @@ void OutputToJSON(uint256 &txid, int i,
             {
             CTxOutData *s = (CTxOutData*) baseOut;
             entry.pushKV("type", "data");
-            entry.pushKV("data_hex", HexStr(s->vData.begin(), s->vData.end()));
+            entry.pushKV("data_hex", HexStr(s->vData));
             CAmount nValue;
             if (s->GetCTFee(nValue)) {
                 entry.pushKV("ct_fee", ValueFromAmount(nValue));
@@ -255,14 +245,13 @@ void OutputToJSON(uint256 &txid, int i,
             break;
         case OUTPUT_CT:
             {
-            fCanSpend = true;
             CTxOutCT *s = (CTxOutCT*) baseOut;
             entry.pushKV("type", "blind");
-            entry.pushKV("valueCommitment", HexStr(&s->commitment.data[0], &s->commitment.data[0]+33));
+            entry.pushKV("valueCommitment", HexStr(Span<const unsigned char>(s->commitment.data, 33)));
             UniValue o(UniValue::VOBJ);
             ScriptPubKeyToUniv(s->scriptPubKey, o, true);
             entry.pushKV("scriptPubKey", o);
-            entry.pushKV("data_hex", HexStr(s->vData.begin(), s->vData.end()));
+            entry.pushKV("data_hex", HexStr(s->vData));
 
             AddRangeproof(s->vRangeproof, entry);
             }
@@ -271,9 +260,9 @@ void OutputToJSON(uint256 &txid, int i,
             {
             CTxOutRingCT *s = (CTxOutRingCT*) baseOut;
             entry.pushKV("type", "anon");
-            entry.pushKV("pubkey", HexStr(s->pk.begin(), s->pk.end()));
-            entry.pushKV("valueCommitment", HexStr(&s->commitment.data[0], &s->commitment.data[0]+33));
-            entry.pushKV("data_hex", HexStr(s->vData.begin(), s->vData.end()));
+            entry.pushKV("pubkey", HexStr(s->pk));
+            entry.pushKV("valueCommitment", HexStr(Span<const unsigned char>(s->commitment.data, 33)));
+            entry.pushKV("data_hex", HexStr(s->vData));
 
             AddRangeproof(s->vRangeproof, entry);
             }
@@ -281,17 +270,6 @@ void OutputToJSON(uint256 &txid, int i,
         default:
             entry.pushKV("type", "unknown");
             break;
-    }
-
-    if (fCanSpend) {
-        // Add spent information if spentindex is enabled
-        CSpentIndexValue spentInfo;
-        CSpentIndexKey spentKey(txid, i);
-        if (pCoreWriteGetSpentIndex && pCoreWriteGetSpentIndex(spentKey, spentInfo)) {
-            entry.pushKV("spentTxId", spentInfo.txid.GetHex());
-            entry.pushKV("spentIndex", (int)spentInfo.inputIndex);
-            entry.pushKV("spentHeight", spentInfo.blockHeight);
-        }
     }
 };
 

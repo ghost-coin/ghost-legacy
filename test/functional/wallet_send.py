@@ -129,7 +129,7 @@ class WalletSendTest(BitcoinTestFramework):
             # Ensure transaction exists in the wallet:
             tx = from_wallet.gettransaction(res["txid"])
             assert tx
-            assert_equal(tx["bip125-replaceable"], "yes" if replaceable else "no")
+            assert_equal(tx["bip125_replaceable"], "yes" if replaceable else "no")
             # Ensure transaction exists in the mempool:
             tx = from_wallet.getrawtransaction(res["txid"],True)
             assert tx
@@ -255,10 +255,10 @@ class WalletSendTest(BitcoinTestFramework):
         # Fee rate of 0.1 satoshi per byte should throw an error
         # TODO: error should say 1.000 sat/b
         self.test_send(from_wallet=w0, to_wallet=w1, amount=1, conf_target=0.1, estimate_mode="sat/b",
-                       expect_error=(-4, "Fee rate (0.00000100 BTC/kB) is lower than the minimum fee rate setting (0.00001000 BTC/kB)"))
+                       expect_error=(-4, "Fee rate (0.00000100 PART/kB) is lower than the minimum fee rate setting (0.00001000 PART/kB)"))
 
-        self.test_send(from_wallet=w0, to_wallet=w1, amount=1, conf_target=0.000001, estimate_mode="BTC/KB",
-                       expect_error=(-4, "Fee rate (0.00000100 BTC/kB) is lower than the minimum fee rate setting (0.00001000 BTC/kB)"))
+        self.test_send(from_wallet=w0, to_wallet=w1, amount=1, conf_target=0.000001, estimate_mode="PART/kB",
+                       expect_error=(-4, "Fee rate (0.00000100 PART/kB) is lower than the minimum fee rate setting (0.00001000 PART/kB)"))
 
         # TODO: Return hex if fee rate is below -maxmempool
         # res = self.test_send(from_wallet=w0, to_wallet=w1, amount=1, conf_target=0.1, estimate_mode="sat/b", add_to_wallet=False)
@@ -283,7 +283,7 @@ class WalletSendTest(BitcoinTestFramework):
 
         self.log.info("Manual change address and position...")
         self.test_send(from_wallet=w0, to_wallet=w1, amount=1, change_address="not an address",
-                       expect_error=(-5, "Change address must be a valid bitcoin address"))
+                       expect_error=(-5, "Change address must be a valid particl address"))
         change_address = w0.getnewaddress()
         self.test_send(from_wallet=w0, to_wallet=w1, amount=1, add_to_wallet=False, change_address=change_address)
         assert res["complete"]

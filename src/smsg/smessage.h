@@ -24,6 +24,7 @@ class CDataStream;
 class CWallet;
 class CCoinControl;
 class CNode;
+class PeerManager;
 typedef int64_t NodeId;
 
 extern RecursiveMutex cs_main;
@@ -420,7 +421,7 @@ public:
     void ClearBanned();
     void ShowFundingTxns(UniValue &result);
 
-    int ReceiveData(CNode *pfrom, const std::string &strCommand, CDataStream &vRecv);
+    int ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &strCommand, CDataStream &vRecv);
     bool SendData(CNode *pto, bool fSendTrickle);
 
     bool ScanBlock(const CBlock &block);
@@ -453,7 +454,7 @@ public:
     int Remove(const SecMsgToken &token);
 
     int SmsgMisbehaving(CNode *pfrom, uint8_t n);
-    int Receive(CNode *pfrom, std::vector<uint8_t> &vchData);
+    int Receive(PeerManager *peerLogic, CNode *pfrom, std::vector<uint8_t> &vchData);
 
     int CheckPurged(const SecureMessage *psmsg, const uint8_t *pPayload);
 

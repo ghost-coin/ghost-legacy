@@ -84,11 +84,11 @@ class MultiSigTest(ParticlTestFramework):
         addrTo = nodes[2].getnewaddress()
 
         inputs = [{
-            "txid":mstxid,
-            "vout":fundoutid,
-            "scriptPubKey":fundscriptpubkey,
-            "redeemScript":redeemScript,
-            "amount":10.0,
+            "txid": mstxid,
+            "vout": fundoutid,
+            "scriptPubKey": fundscriptpubkey,
+            "redeemScript": redeemScript,
+            "amount": 10.0,
             }]
 
         outputs = {addrTo:2, msAddr:7.99}
@@ -144,10 +144,10 @@ class MultiSigTest(ParticlTestFramework):
 
 
         inputs = [{
-            "txid":mstxid2,
-            "vout":fundoutid,
-            "scriptPubKey":fundscriptpubkey,
-            "redeemScript":redeemScript,
+            "txid": mstxid2,
+            "vout": fundoutid,
+            "scriptPubKey": fundscriptpubkey,
+            "redeemScript": redeemScript,
             "amount":9.0, # Must specify amount
             }]
 
@@ -196,11 +196,11 @@ class MultiSigTest(ParticlTestFramework):
 
 
         inputs = [{
-            "txid":mstxid3,
-            "vout":fundoutid,
-            "scriptPubKey":fundscriptpubkey,
-            "redeemScript":redeemScript,
-            "amount":8.0, # Must specify amount
+            "txid": mstxid3,
+            "vout": fundoutid,
+            "scriptPubKey": fundscriptpubkey,
+            "redeemScript": redeemScript,
+            "amount": 8.0, # Must specify amount
             }]
 
         addrTo = nodes[2].getnewaddress()
@@ -236,6 +236,7 @@ class MultiSigTest(ParticlTestFramework):
         outputs = [{ 'address':'script', 'amount':1, 'script':scriptTo }]
         txFundId = nodes[0].sendtypeto('part', 'part', outputs)
         hexfund = nodes[0].gettransaction(txFundId)['hex']
+        self.stakeBlocks(1)
 
         ro = nodes[0].decoderawtransaction(hexfund)
         for vout in ro['vout']:
@@ -301,8 +302,8 @@ class MultiSigTest(ParticlTestFramework):
         txid = nodes[0].sendrawtransaction(hexRawSigned)
 
         self.stakeBlocks(1)
-        block4_hash = nodes[0].getblockhash(4)
-        ro = nodes[0].getblock(block4_hash)
+        block5_hash = nodes[0].getblockhash(5)
+        ro = nodes[0].getblock(block5_hash)
         assert(txid in ro['tx'])
 
 

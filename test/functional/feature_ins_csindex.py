@@ -47,7 +47,7 @@ class TxIndexTest(ParticlTestFramework):
 
         nodes[2].extkeyimportmaster(nodes[2].mnemonic('new')['master'])
 
-        r = nodes[1].getindexinfo()
+        r = nodes[1].getinsightinfo()
         assert(r['txindex'] is True)
         assert(r['coldstakeindex'] is True)
 

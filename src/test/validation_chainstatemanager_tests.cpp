@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager_rebalance_caches)
     {
         LOCK(::cs_main);
         c1.InitCoinsCache(1 << 23);
-        c1.CoinsTip().SetBestBlock(InsecureRand256());
+        c1.CoinsTip().SetBestBlock(InsecureRand256(), InsecureRandRange(100));
         manager.MaybeRebalanceCaches();
     }
 
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager_rebalance_caches)
     {
         LOCK(::cs_main);
         c2.InitCoinsCache(1 << 23);
-        c2.CoinsTip().SetBestBlock(InsecureRand256());
+        c2.CoinsTip().SetBestBlock(InsecureRand256(), InsecureRandRange(100));
         manager.MaybeRebalanceCaches();
     }
 

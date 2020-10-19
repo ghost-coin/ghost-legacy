@@ -664,6 +664,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     for (const CTxIn &txin : tx.vin)
     {
         if (txin.IsAnonInput()) {
+            if (!CheckAnonInputMempoolConflicts(txin, hash, &m_pool, state)) {
+                return false;
+            }
             continue;
         }
         const CTransaction* ptxConflicting = m_pool.GetConflictTx(txin.prevout);
@@ -2811,18 +2814,18 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
 
                     if (nTestExists > pindex->pprev->nAnonOutputs) {
                         // The anon index can diverge from the chain index if shutdown does not complete
-                        LogPrintf("%s: Duplicate anon-output %s, index %d, above last index %d.\n", __func__, HexStr(txout->pk.begin(), txout->pk.end()), nTestExists, pindex->pprev->nAnonOutputs);
+                        LogPrintf("%s: Duplicate anon-output %s, index %d, above last index %d.\n", __func__, HexStr(txout->pk), nTestExists, pindex->pprev->nAnonOutputs);
                         LogPrintf("Attempting to repair anon index.\n");
                         std::set<CCmpPubKey> setKi; // unused
                         RollBackRCTIndex(pindex->pprev->nAnonOutputs, nTestExists, setKi);
                         return false;
                     }
 
-                    return error("%s: Duplicate anon-output (db) %s, index %d.", __func__, HexStr(txout->pk.begin(), txout->pk.end()), nTestExists);
+                    return error("%s: Duplicate anon-output (db) %s, index %d.", __func__, HexStr(txout->pk), nTestExists);
                 }
                 if (!fVerifyingDB && view.ReadRCTOutputLink(txout->pk, nTestExists)) {
                     control.Wait();
-                    return error("%s: Duplicate anon-output (view) %s, index %d.", __func__, HexStr(txout->pk.begin(), txout->pk.end()), nTestExists);
+                    return error("%s: Duplicate anon-output (view) %s, index %d.", __func__, HexStr(txout->pk), nTestExists);
                 }
 
                 op.n = k;
@@ -3420,12 +3423,11 @@ void UpdateTip(CTxMemPool& mempool, const CBlockIndex* pindexNew, const CChainPa
         // Check the version of the last 100 blocks to see if we need to upgrade:
         for (int i = 0; i < 100 && pindex != nullptr; i++)
         {
-            if (fParticlMode)
-            {
-                if (pindex->nVersion > PARTICL_BLOCK_VERSION)
+            if (fParticlMode) {
+                if (pindex->nVersion > PARTICL_BLOCK_VERSION) {
                     ++nUpgraded;
-            } else
-            {
+                }
+            } else {
                 int32_t nExpectedVersion = ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus());
                 if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0)
                     ++nUpgraded;
@@ -4860,6 +4862,7 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
                 }
                 fHaveWitness = true;
             }
+        }
 
         // No witness data is allowed in blocks that don't commit to witness data, as this would otherwise leave room for spam
         if (!fHaveWitness) {
@@ -4970,7 +4973,7 @@ public:
 };
 std::list<DelayedBlock> list_delayed_blocks;
 
-extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
 extern void IncPersistentMisbehaviour(NodeId node_id, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern bool AddNodeHeader(NodeId node_id, const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 extern void RemoveNodeHeader(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -6285,7 +6288,7 @@ bool ShouldAutoReindex()
     return false;
 };
 
-bool RebuildRollingIndices()
+bool RebuildRollingIndices(CTxMemPool* mempool)
 {
     bool nV2 = false;
     if (gArgs.GetBoolArg("-rebuildrollingindices", false)) {
@@ -6297,6 +6300,11 @@ bool RebuildRollingIndices()
         LogPrintf("%s: v2 marker not detected, attempting to rewind chain.\n", __func__);
     }
     uiInterface.InitMessage(_("Rebuilding rolling indices...").translated);
+
+    if (!mempool) {
+        LogPrintf("%s: Requires mempool.\n", __func__);
+        return false;
+    }
 
     int64_t now = GetAdjustedTime();
     int rewound_tip_height, max_height_to_keep = 0;
@@ -6314,7 +6322,7 @@ bool RebuildRollingIndices()
         int num_disconnected = 0;
 
         std::string str_error;
-        if (!RewindToHeight(max_height_to_keep, num_disconnected, str_error)) {
+        if (!RewindToHeight(*mempool, max_height_to_keep, num_disconnected, str_error)) {
             LogPrintf("%s: RewindToHeight failed %s.\n", __func__, str_error);
             return false;
         }

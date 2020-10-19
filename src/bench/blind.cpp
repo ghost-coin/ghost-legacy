@@ -13,7 +13,8 @@
 
 #include <secp256k1_rangeproof.h>
 
-static void Blind(benchmark::State& state)
+
+static void Blind(benchmark::Bench& bench)
 {
     ECC_Start_Blinding();
 
@@ -50,13 +51,14 @@ static void Blind(benchmark::State& state)
 
     uint64_t max_value = 0;
 
-    while (state.KeepRunning()) {
+    bench.run([&] {
         assert(1 == secp256k1_rangeproof_verify(secp256k1_ctx_blind, &min_value, &max_value,
             &commitment, vchRangeproof.data(), vchRangeproof.size(),
             nullptr, 0, secp256k1_generator_h));
-    }
+    });
 
     ECC_Stop_Blinding();
 }
 
-BENCHMARK(Blind, 10);
+BENCHMARK(Blind);
+

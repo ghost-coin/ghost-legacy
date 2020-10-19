@@ -201,7 +201,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* tip, const CBlockIn
         if (GetKernelInfo(blockindex, *block.vtx[0], kernelhash, kernelvalue, kernelscript, kernelblockhash)) {
             result.pushKV("hashproofofstake", kernelhash.GetHex());
             result.pushKV("stakekernelvalue", ValueFromAmount(kernelvalue));
-            result.pushKV("stakekernelscript", HexStr(kernelscript.begin(), kernelscript.end()));
+            result.pushKV("stakekernelscript", HexStr(kernelscript));
             result.pushKV("stakekernelblockhash", kernelblockhash.GetHex());
         }
     }
@@ -1314,8 +1314,9 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
         }
     }
 
-    if (fParticlMode)
+    if (fParticlMode) {
         return obj;
+    }
     const Consensus::Params& consensusParams = Params().GetConsensus();
     UniValue softforks(UniValue::VOBJ);
     BuriedForkDescPushBack(softforks, "bip34", consensusParams.BIP34Height);

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2020 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
@@ -20,6 +20,40 @@
 #include <chainparams.h>
 #include <txmempool.h>
 
+
+bool CheckAnonInputMempoolConflicts(const CTxIn &txin, const uint256 txhash, CTxMemPool *pmempool, TxValidationState &state)
+{
+    uint32_t nInputs, nRingSize;
+    txin.GetAnonInfo(nInputs, nRingSize);
+    if (nInputs < 1 || nInputs > MAX_ANON_INPUTS) { // TODO: Select max inputs size
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anon-num-inputs");
+    }
+    if (nRingSize < MIN_RINGSIZE || nRingSize > MAX_RINGSIZE) {
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anon-ringsize");
+    }
+    if (txin.scriptData.stack.size() != 1) {
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anonin-dstack-size");
+    }
+    const std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
+    if (vKeyImages.size() != nInputs * 33) {
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anonin-keyimages-size");
+    }
+
+    uint256 txhashKI;
+    for (size_t k = 0; k < nInputs; ++k) {
+        const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
+
+        if (pmempool->HaveKeyImage(ki, txhashKI)
+            && txhashKI != txhash) {
+            if (LogAcceptCategory(BCLog::RINGCT)) {
+                LogPrintf("%s: Duplicate keyimage detected in mempool %s, used in %s.\n", __func__,
+                    HexStr(ki), txhashKI.ToString());
+            }
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anonin-dup-ki");
+        }
+    }
+    return true;
+};
 
 bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
 {
@@ -151,17 +185,7 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
 
             if (!setHaveKI.insert(ki).second) {
                 if (LogAcceptCategory(BCLog::RINGCT)) {
-                    LogPrintf("%s: Duplicate keyimage detected in txn %s.\n", __func__,
-                        HexStr(ki.begin(), ki.end()));
-                }
-                return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anonin-dup-ki");
-            }
-
-            if (mempool.HaveKeyImage(ki, txhashKI)
-                && txhashKI != txhash) {
-                if (LogAcceptCategory(BCLog::RINGCT)) {
-                    LogPrintf("%s: Duplicate keyimage detected in mempool %s, used in %s.\n", __func__,
-                        HexStr(ki.begin(), ki.end()), txhashKI.ToString());
+                    LogPrintf("%s: Duplicate keyimage detected in txn %s.\n", __func__, HexStr(ki));
                 }
                 return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anonin-dup-ki");
             }
@@ -170,7 +194,7 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
                 && txhashKI != txhash) {
                 if (LogAcceptCategory(BCLog::RINGCT)) {
                     LogPrintf("%s: Duplicate keyimage detected %s, used in %s.\n", __func__,
-                        HexStr(ki.begin(), ki.end()), txhashKI.ToString());
+                        HexStr(ki), txhashKI.ToString());
                 }
                 return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-anonin-dup-ki");
             }
@@ -279,7 +303,7 @@ bool AllAnonOutputsUnknown(const CTransaction &tx, TxValidationState &state)
             CAnonOutput ao;
             if (!pblocktree->ReadRCTOutput(nTestExists, ao) || ao.outpoint != op) {
                 LogPrintf("ERROR: %s: Duplicate anon-output %s, index %d - existing: %s,%d.\n",
-                          __func__, HexStr(txout->pk.begin(), txout->pk.end()), nTestExists, ao.outpoint.hash.ToString(), ao.outpoint.n);
+                          __func__, HexStr(txout->pk), nTestExists, ao.outpoint.hash.ToString(), ao.outpoint.n);
                 return state.Invalid(TxValidationResult::TX_CONSENSUS, "duplicate-anon-output");
             } else {
                 // Already in the blockchain, containing block could have been received before loose tx
@@ -287,7 +311,7 @@ bool AllAnonOutputsUnknown(const CTransaction &tx, TxValidationState &state)
                 /*
                 return state.DoS(1,
                     error("%s: Duplicate anon-output %s, index %d - existing at same outpoint.",
-                        __func__, HexStr(txout->pk.begin(), txout->pk.end()), nTestExists),
+                        __func__, HexStr(txout->pk), nTestExists),
                     "duplicate-anon-output");
                 */
             }
@@ -337,7 +361,7 @@ bool RollBackRCTIndex(int64_t nLastValidRCTOutput, int64_t nExpectErase, std::se
     return true;
 };
 
-bool RewindToHeight(int nToHeight, int &nBlocks, std::string &sError)
+bool RewindToHeight(CTxMemPool& mempool, int nToHeight, int &nBlocks, std::string &sError)
 {
     LogPrintf("%s: height %d\n", __func__, nToHeight);
     nBlocks = 0;
@@ -371,7 +395,7 @@ bool RewindToHeight(int nToHeight, int &nBlocks, std::string &sError)
         }
 
         ::ChainActive().SetTip(pindex->pprev);
-        UpdateTip(pindex->pprev, chainparams);
+        UpdateTip(mempool, pindex->pprev, chainparams);
         GetMainSignals().BlockDisconnected(pblock, pindex);
     }
     nLastRCTOutput = ::ChainActive().Tip()->nAnonOutputs;

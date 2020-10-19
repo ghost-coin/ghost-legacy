@@ -434,7 +434,6 @@ static RPCHelpMan setmocktime()
     };
 }
 
-<<<<<<< HEAD
 static UniValue pushdevfundsetting(const JSONRPCRequest& request)
 {
     RPCHelpMan{"pushdevfundsetting",
@@ -849,7 +848,7 @@ static const CRPCCommand commands[] =
     { "hidden",             "setmocktime",            &setmocktime,            {"timestamp","is_offset"}},
     { "hidden",             "mockscheduler",          &mockscheduler,          {"delta_time"}},
     { "hidden",             "echo",                   &echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
-    { "hidden",             "echojson",               &echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
+    { "hidden",             "echojson",               &echojson,               {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "runstrings",             &runstrings,             {"rg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "pushdevfundsetting",     &pushdevfundsetting,     {"setting"}},
 };

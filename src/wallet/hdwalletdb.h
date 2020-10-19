@@ -209,19 +209,21 @@ public:
 
     bool InTxn()
     {
-        return m_batch && m_batch->pdb && m_batch->activeTxn;
+        BerkeleyBatch *bb = static_cast<BerkeleyBatch*>(m_batch.get());
+        return bb && bb->pdb && bb->activeTxn;
     }
 
     Dbc *GetTxnCursor()
     {
-        if (!m_batch || !m_batch->pdb || !m_batch->activeTxn) {
+        BerkeleyBatch *bb = static_cast<BerkeleyBatch*>(m_batch.get());
+        if (!bb || !bb->pdb || !bb->activeTxn) {
             return nullptr;
         }
 
-        DbTxn *ptxnid = m_batch->activeTxn; // call TxnBegin first
+        DbTxn *ptxnid = bb->activeTxn; // call TxnBegin first
 
         Dbc *pcursor = nullptr;
-        int ret = m_batch->pdb->cursor(ptxnid, &pcursor, 0);
+        int ret = bb->pdb->cursor(ptxnid, &pcursor, 0);
         if (ret != 0) {
             return nullptr;
         }
@@ -230,11 +232,12 @@ public:
 
     Dbc *GetCursor()
     {
-        if (!m_batch || !m_batch->pdb) {
+        BerkeleyBatch *bb = static_cast<BerkeleyBatch*>(m_batch.get());
+        if (!bb || !bb->pdb) {
             return nullptr;
         }
         Dbc* pcursor = nullptr;
-        int ret = m_batch->pdb->cursor(nullptr, &pcursor, 0);
+        int ret = bb->pdb->cursor(nullptr, &pcursor, 0);
         if (ret != 0)
             return nullptr;
         return pcursor;
@@ -243,11 +246,12 @@ public:
     template< typename T>
     bool Replace(Dbc *pcursor, const T &value)
     {
+        BerkeleyBatch *bb = static_cast<BerkeleyBatch*>(m_batch.get());
         if (!pcursor) {
             return false;
         }
 
-        if (m_batch->fReadOnly) {
+        if (bb->fReadOnly) {
             assert(!"Replace called on database in read-only mode");
         }
 

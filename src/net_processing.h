@@ -136,6 +136,7 @@ private:
     CTxMemPool& m_mempool;
 
     int64_t m_stale_tip_check_time; //!< Next time to check for stale tip
+    int m_banscore = DISCOURAGEMENT_THRESHOLD;
 };
 
 struct CNodeStateStats {
@@ -149,10 +150,9 @@ struct CNodeStateStats {
 
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
-/** Increase a node's misbehavior score. */
-//void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="");
+extern PeerManager *g_peerman;
 /** Decrease a node's misbehavior score. */
-void DecMisbehaving(NodeId nodeid, int howmuch) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+void DecMisbehaving(NodeId nodeid, int howmuch);
 
 NodeId GetBlockSource(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 

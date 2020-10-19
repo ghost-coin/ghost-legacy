@@ -182,3 +182,4 @@ endif
 
 if ENABLE_MODULE_MLSAG
 include src/modules/mlsag/Makefile.am.include
+endif

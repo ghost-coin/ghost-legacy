@@ -132,12 +132,12 @@ int CStealthAddress::SetScanPubKey(CPubKey pk)
 
 CKeyID CStealthAddress::GetSpendKeyID() const
 {
-    return CKeyID(Hash160(spend_pubkey.begin(), spend_pubkey.end()));
+    return CKeyID(Hash160(spend_pubkey));
 };
 
 CKeyID CStealthAddress::GetScanKeyID() const
 {
-    return CKeyID(Hash160(scan_pubkey.begin(), scan_pubkey.end()));
+    return CKeyID(Hash160(scan_pubkey));
 };
 
 int SecretToPublicKey(const CKey &secret, ec_point &out)

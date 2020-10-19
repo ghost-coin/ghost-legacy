@@ -24,6 +24,7 @@ extern bool fTimestampIndex;
 class CTxOutBase;
 class CScript;
 class uint256;
+class CTxMemPool;
 struct CAddressIndexKey;
 struct CAddressUnspentKey;
 struct CAddressUnspentValue;
@@ -35,7 +36,7 @@ bool ExtractIndexInfo(const CTxOutBase *out, int &scriptType, std::vector<uint8_
 
 /** Functions for insight block explorer */
 bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int> > &hashes);
-bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
+bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value, const CTxMemPool *pmempool);
 bool HashOnchainActive(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 bool GetAddressIndex(uint256 addressHash, int type,
                      std::vector<std::pair<CAddressIndexKey, CAmount> > &addressIndex,

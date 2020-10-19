@@ -14,6 +14,8 @@
 #include <policy/policy.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
+#include <rpc/blockchain.h>
+#include <node/context.h>
 #include <rpc/rawtransaction_util.h>
 #include <script/sign.h>
 #include <script/descriptor.h>
@@ -83,8 +85,8 @@ static int ExtractBip32InfoV(const std::vector<uint8_t> &vchKey, UniValue &keyIn
     keyInfo.pushKV("depth", strprintf("%u", vchKey[4]));
     keyInfo.pushKV("parent_fingerprint", strprintf("%08X", reversePlace(&vchKey[5])));
     keyInfo.pushKV("child_index", strprintf("%u", reversePlace(&vchKey[9])));
-    keyInfo.pushKV("chain_code", HexStr(&vchKey[13], &vchKey[13+32]));
-    keyInfo.pushKV("key", HexStr(&vchKey[46], &vchKey[46+32]));
+    keyInfo.pushKV("chain_code", HexStr(Span<const unsigned char>(&vchKey[13], 32)));
+    keyInfo.pushKV("key", HexStr(Span<const unsigned char>(&vchKey[46], 32)));
 
     // don't display raw secret ??
     // TODO: add option
@@ -125,8 +127,8 @@ static int ExtractBip32InfoP(const std::vector<uint8_t> &vchKey, UniValue &keyIn
     keyInfo.pushKV("depth", strprintf("%u", vchKey[4]));
     keyInfo.pushKV("parent_fingerprint", strprintf("%08X", reversePlace(&vchKey[5])));
     keyInfo.pushKV("child_index", strprintf("%u", reversePlace(&vchKey[9])));
-    keyInfo.pushKV("chain_code", HexStr(&vchKey[13], &vchKey[13+32]));
-    keyInfo.pushKV("key", HexStr(&vchKey[45], &vchKey[45+33]));
+    keyInfo.pushKV("chain_code", HexStr(Span<const unsigned char>(&vchKey[13], 32)));
+    keyInfo.pushKV("key", HexStr(Span<const unsigned char>(&vchKey[45], 33)));
 
     CPubKey key;
     key.Set(&vchKey[45], &vchKey[78]);
@@ -538,7 +540,7 @@ public:
         }
     };
 
-    int ProcessKey(CKeyID &id, CStoredExtKey &sek)
+    int ProcessKey(CKeyID &id, CStoredExtKey &sek) override
     {
         nItems++;
         UniValue obj(UniValue::VOBJ);
@@ -551,7 +553,7 @@ public:
         return 0;
     };
 
-    int ProcessAccount(CKeyID &id, CExtKeyAccount &sea)
+    int ProcessAccount(CKeyID &id, CExtKeyAccount &sea) override
     {
         nItems++;
         UniValue obj(UniValue::VOBJ);
@@ -3766,7 +3768,6 @@ static UniValue manageaddressbook(const JSONRPCRequest &request)
     return result;
 }
 
-extern double GetDifficulty(const CBlockIndex* blockindex = nullptr);
 static UniValue getstakinginfo(const JSONRPCRequest &request)
 {
             RPCHelpMan{"getstakinginfo",
@@ -3872,7 +3873,15 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
 
     obj.pushKV("currentblocksize", (uint64_t)nLastBlockSize);
     obj.pushKV("currentblocktx", (uint64_t)nLastBlockTx);
-    obj.pushKV("pooledtx", (uint64_t)mempool.size());
+
+    CTxMemPool *mempool = pwallet->HaveChain() ? pwallet->chain().getMempool() : nullptr;
+    if (mempool) {
+        LOCK(mempool->cs);
+        obj.pushKV("pooledtx", mempool->size());
+    } else {
+        obj.pushKV("pooledtx", "unknown");
+    }
+
 
     obj.pushKV("difficulty", GetDifficulty(::ChainActive().Tip()));
     obj.pushKV("lastsearchtime", (uint64_t)pwallet->nLastCoinStakeSearchTime);
@@ -4416,7 +4425,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 const CScriptID& hash = CScriptID(boost::get<ScriptHash>(address));
                 CScript redeemScript;
                 if (provider->GetCScript(hash, redeemScript))
-                    entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
+                    entry.pushKV("redeemScript", HexStr(redeemScript));
             } else
             if (scriptPubKey->IsPayToScriptHash256()) {
                 const CScriptID256& hash = boost::get<CScriptID256>(address);
@@ -4424,11 +4433,11 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                 scriptID.Set(hash);
                 CScript redeemScript;
                 if (provider->GetCScript(scriptID, redeemScript))
-                    entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
+                    entry.pushKV("redeemScript", HexStr(redeemScript));
             }
         }
 
-        entry.pushKV("scriptPubKey", HexStr(scriptPubKey->begin(), scriptPubKey->end()));
+        entry.pushKV("scriptPubKey", HexStr(*scriptPubKey));
 
         if (fCCFormat) {
             entry.pushKV("time", out.rtx->second.GetTxTime());
@@ -5197,18 +5206,35 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
 
     // Find the prevout if it exists in the wallet or chain
     CTxOutBaseRef txout;
+    CTxMemPool *mempool = nullptr;
     if (pwallet) {
         LOCK(pwallet->cs_wallet);
         pwallet->GetPrevout(prev_out, txout);
+        mempool = pwallet->HaveChain() ? pwallet->chain().getMempool() : nullptr;
+    } else {
+        //auto chain = EnsureChain(request.context);
+        //mempool = chain.getMempool();
     }
     if (!txout.get()) {
-        // TODO: try fetch from utxodb first
+        // Try fetch from utxodb first
         LOCK(cs_main);
-        uint256 hashBlock;
-        CTransactionRef txn;
-        if (GetTransaction(prev_out.hash, txn, Params().GetConsensus(), hashBlock)) {
-            if (txn->GetNumVOuts() > prev_out.n) {
-                txout = txn->vpout[prev_out.n];
+        Coin coin;
+        if (::ChainstateActive().CoinsTip().GetCoin(prev_out, coin)) {
+            if (coin.nType == OUTPUT_STANDARD) {
+                txout = MAKE_OUTPUT<CTxOutStandard>(coin.out.nValue, coin.out.scriptPubKey);
+            } else {
+                txout = MAKE_OUTPUT<CTxOutCT>();
+                CTxOutCT *txoct = (CTxOutCT*)txout.get();
+                txoct->commitment = coin.commitment;
+                txoct->scriptPubKey = coin.out.scriptPubKey;
+            }
+        } else {
+            uint256 hashBlock;
+            CTransactionRef txn = GetTransaction(nullptr, mempool, prev_out.hash, Params().GetConsensus(), hashBlock);
+            if (txn) {
+                if (txn->GetNumVOuts() > prev_out.n) {
+                    txout = txn->vpout[prev_out.n];
+                }
             }
         }
     }
@@ -5251,8 +5277,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
         std::vector<unsigned char> redeemData(ParseHexO(prevOut, "redeemScript"));
         scriptRedeem = CScript(redeemData.begin(), redeemData.end());
     } else
-    if (scriptPubKey.IsPayToScriptHashAny(mtx.IsCoinStake()))
-    {
+    if (scriptPubKey.IsPayToScriptHashAny(mtx.IsCoinStake())) {
         if (pwallet) {
             CTxDestination redeemDest;
             std::unique_ptr<SigningProvider> provider = pwallet->GetSolvingProvider(scriptPubKey);
@@ -6156,7 +6181,7 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
     result.pushKV("pubkey", HexStr(pkDest));
     result.pushKV("ephemeral_pubkey", HexStr(pkEphem));
     if (sEphem.IsValid()) {
-        result.pushKV("ephemeral_privatekey", HexStr(sEphem.begin(), sEphem.end()));
+        result.pushKV("ephemeral_privatekey", HexStr(Span<const unsigned char>(sEphem.begin(), 32)));
     }
     if (sSpendR.IsValid()) {
         result.pushKV("privatekey", CBitcoinSecret(sSpendR).ToString());
@@ -6548,7 +6573,7 @@ static UniValue buildscript(const JSONRPCRequest &request)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Unknown recipe.");
     }
 
-    obj.pushKV("hex", HexStr(scriptOut.begin(), scriptOut.end()));
+    obj.pushKV("hex", HexStr(scriptOut));
     obj.pushKV("asm", ScriptToAsmStr(scriptOut));
 
     return obj;
@@ -7480,7 +7505,7 @@ static UniValue verifycommitment(const JSONRPCRequest &request)
     }
 
     if (memcmp(vchCommitment.data(), commitment.data, 33) != 0) {
-        throw JSONRPCError(RPC_MISC_ERROR, strprintf("Mismatched commitment, expected ") + HexStr(&commitment.data[0], &commitment.data[0]+33));
+        throw JSONRPCError(RPC_MISC_ERROR, strprintf("Mismatched commitment, expected ") + HexStr(Span<const unsigned char>(commitment.data, 32)));
     }
 
     UniValue result(UniValue::VOBJ);
@@ -7770,11 +7795,15 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
     // Fetch previous transactions (inputs):
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
+
     {
-        LOCK2(cs_main, mempool.cs);
+        //CTxMemPool *pmempool = request.context.chain.getMempool();
+        //LOCK2(cs_main, pmempool->cs);
+        LOCK(cs_main);
         CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
-        CCoinsViewMemPool viewMempool(&viewChain, mempool);
-        view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
+        //CCoinsViewMemPool viewMempool(&viewChain, *pmempool);
+        //view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
+        view.SetBackend(viewChain);
 
         for (const CTxIn& txin : mtx.vin) {
             view.AccessCoin(txin.prevout); // Load entries from viewChain into view; can fail.
@@ -8032,8 +8061,14 @@ static UniValue rewindchain(const JSONRPCRequest &request)
     int nToHeight = request.params[0].isNum() ? request.params[0].get_int() : pindexState->nHeight - 1;
     result.pushKV("to_height", nToHeight);
 
+
+    CTxMemPool *mempool = pwallet->HaveChain() ? pwallet->chain().getMempool() : nullptr;
+    if (!mempool) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Unable to get mempool");
+    }
+
     std::string sError;
-    if (!RewindToHeight(nToHeight, nBlocks, sError)) {
+    if (!RewindToHeight(*mempool, nToHeight, nBlocks, sError)) {
         result.pushKV("error", sError);
     }
 
@@ -8207,7 +8242,7 @@ static UniValue rehashblock(const JSONRPCRequest &request)
 
     CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
     ssBlock << block;
-    return HexStr(ssBlock.begin(), ssBlock.end());
+    return HexStr(ssBlock);
 };
 
 Span<const CRPCCommand> GetHDWalletRPCCommands()

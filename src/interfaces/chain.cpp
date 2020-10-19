@@ -31,6 +31,7 @@
 #include <util/system.h>
 #include <validation.h>
 #include <validationinterface.h>
+#include <miner.h>
 
 #include <memory>
 #include <utility>
@@ -424,6 +425,28 @@ public:
     {
         LOCK(::cs_main);
         return GetSmsgFeeRate(pindex, reduce_height);
+    }
+    bool transactionInMempool(const uint256 &txhash) override
+    {
+        if (!m_node.mempool) return false;
+        LOCK(m_node.mempool->cs);
+        return m_node.mempool->exists(txhash);
+    }
+    CTransactionRef transactionFromMempool(const uint256 &txhash) override
+    {
+        if (!m_node.mempool) return nullptr;
+        LOCK(m_node.mempool->cs);
+        return m_node.mempool->get(txhash);
+    }
+    std::unique_ptr<CBlockTemplate> createNewBlock() override
+    {
+        if (!m_node.mempool) return nullptr;
+        CScript coinbaseScript;
+        return BlockAssembler(*m_node.mempool.get(), Params()).CreateNewBlock(coinbaseScript, false);
+    }
+    CTxMemPool *getMempool() override
+    {
+        return m_node.mempool.get();
     }
 };
 } // namespace

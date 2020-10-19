@@ -61,9 +61,9 @@ static uint8_t GetOutputType(const COutPoint &prevout)
         return coin.nType;
     }
 
-    uint256 hashBlock;
-    CTransactionRef tx;
-    if (GetTransaction(prevout.hash, tx, Params().GetConsensus(), hashBlock)) {
+    uint256 hash_block;
+    const CTransactionRef tx = GetTransaction(nullptr, nullptr, prevout.hash, Params().GetConsensus(), hash_block);
+    if (tx) {
         if (tx->vpout.size() > prevout.n) {
             return tx->vpout[prevout.n]->GetType();
         }
@@ -564,7 +564,7 @@ bool CHDWallet::DumpJson(UniValue &rv, std::string &sError)
 
                 std::map<CKeyID, std::pair<CKey, std::string> >::const_iterator mi;
                 if ((mi = mapStealthKeySpend.find(keyPacked.asck.idStealthKey)) == mapStealthKeySpend.end()) {
-                    WalletLogPrintf("%s: ERROR - Unknown stealth key %s\n", __func__, HexStr(keyPacked.asck.idStealthKey.begin(), keyPacked.asck.idStealthKey.end()));
+                    WalletLogPrintf("%s: ERROR - Unknown stealth key %s\n", __func__, HexStr(keyPacked.asck.idStealthKey));
                     acc.pushKV("ERROR", "Unknown stealth key.");
                 } else {
                     obj.pushKV("stealth_address", mi->second.second);
@@ -1508,7 +1508,7 @@ bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address,
 
 bool CHDWallet::SetAddressBook(const CTxDestination &address, const std::string &strName, const std::string &strPurpose, bool fBech32)
 {
-    bool fOwned;
+    isminetype tIsMine;
     ChangeType nMode;
 
     {
@@ -1522,21 +1522,21 @@ bool CHDWallet::SetAddressBook(const CTxDestination &address, const std::string 
 
         CAddressBookData *entry = &ret.first->second;
         entry->SetLabel(strName, strPurpose, vPath, fBech32);
-        fOwned = IsMine(address) == ISMINE_SPENDABLE;
+        tIsMine = IsMine(address);
 
         if (!CHDWalletDB(*database).WriteAddressBookEntry(EncodeDestination(address), *entry)) {
             return false;
         }
     }
 
-    if (fOwned
-        && address.type() == typeid(PKHash)) {
+    if (tIsMine == ISMINE_SPENDABLE &&
+        address.type() == typeid(PKHash)) {
         CKeyID id = ToKeyID(boost::get<PKHash>(address));
         smsgModule.WalletKeyChanged(id, strName, nMode);
     }
 
     std::string str_path;
-    NotifyAddressBookChanged(this, address, strName, IsMine(address) != ISMINE_NO,
+    NotifyAddressBookChanged(this, address, strName, tIsMine != ISMINE_NO,
                              strPurpose, str_path, nMode);
 
     return true;
@@ -2232,9 +2232,9 @@ CAmount CHDWallet::GetOutputValue(const COutPoint &op, bool fAllowTXIndex) const
         return 0;
     }
 
-    uint256 hashBlock;
-    CTransactionRef txOut;
-    if (GetTransaction(op.hash, txOut, Params().GetConsensus(), hashBlock)) {
+    uint256 hash_block;
+    const CTransactionRef txOut = GetTransaction(nullptr, nullptr, op.hash, Params().GetConsensus(), hash_block);
+    if (txOut) {
         if (txOut->GetNumVOuts() > op.n) {
             return txOut->vpout[op.n]->GetValue();
         }
@@ -2274,8 +2274,10 @@ CAmount CHDWallet::GetOwnedOutputValue(const COutPoint &op, isminefilter filter)
 
 bool CHDWallet::InMempool(const uint256 &hash) const
 {
-    LOCK(mempool.cs);
-    return mempool.exists(hash);
+    if (!HaveChain()) {
+        return false;
+    }
+    return chain().transactionInMempool(hash);
 };
 
 bool hashUnset(const uint256 &hash)
@@ -2308,7 +2310,7 @@ bool CHDWallet::IsTrusted(const uint256 &txhash, const CTransactionRecord &rtx, 
     //    return false;
 
     // Don't trust unconfirmed transactions from us unless they are in the mempool.
-    CTransactionRef ptx = mempool.get(txhash);
+    CTransactionRef ptx = chain().transactionFromMempool(txhash);
     if (!ptx)
         return false;
 
@@ -2498,7 +2500,10 @@ CWallet::Balance CHDWallet::GetBalance(const int min_depth, bool avoid_reuse) co
                 }
             }
             if (!is_trusted && tx_depth == 0) {
-                CTransactionRef ptx = mempool.get(txhash);
+                CTransactionRef ptx = nullptr;
+                if (HaveChain()) {
+                    ptx = chain().transactionFromMempool(txhash);
+                }
                 if (!ptx) {
                     continue;
                 }
@@ -2566,7 +2571,10 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse) const
         bool fTrusted = IsTrusted(txhash, rtx, &depth);
         bool fInMempool = false;
         if (!fTrusted) {
-            CTransactionRef ptx = mempool.get(txhash);
+            CTransactionRef ptx = nullptr;
+            if (HaveChain()) {
+                ptx = chain().transactionFromMempool(txhash);
+            }
             fInMempool = !ptx ? false : true;
         }
 
@@ -3612,7 +3620,7 @@ static bool InsertChangeAddress(CTempRecipient &r, std::vector<CTempRecipient> &
     return true;
 };
 
-int PreAcceptMempoolTx(CWalletTx &wtx, std::string &sError)
+int PreAcceptMempoolTx(CHDWallet *wallet, CWalletTx &wtx, std::string &sError)
 {
     // Check if wtx can get into the mempool
 
@@ -3623,16 +3631,7 @@ int PreAcceptMempoolTx(CWalletTx &wtx, std::string &sError)
 
     if (gArgs.GetBoolArg("-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS)) {
         // Lastly, ensure this tx will pass the mempool's chain limits
-        LockPoints lp;
-        CTxMemPoolEntry entry(wtx.tx, 0, 0, 0, false, 0, lp);
-        CTxMemPool::setEntries setAncestors;
-        size_t nLimitAncestors = gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
-        size_t nLimitAncestorSize = gArgs.GetArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT)*1000;
-        size_t nLimitDescendants = gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
-        size_t nLimitDescendantSize = gArgs.GetArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT)*1000;
-        std::string errString;
-        LOCK(::mempool.cs);
-        if (!mempool.CalculateMemPoolAncestors(entry, setAncestors, nLimitAncestors, nLimitAncestorSize, nLimitDescendants, nLimitDescendantSize, errString)) {
+        if (!wallet->chain().checkChainLimits(wtx.tx)) {
             return errorN(1, sError, __func__, _("Transaction has too long of a mempool chain").translated.c_str());
         }
     }
@@ -4120,7 +4119,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         wtx.SetTx(MakeTransactionRef(std::move(txNew)));
     }
 
-    if (0 != PreAcceptMempoolTx(wtx, sError)) {
+    if (0 != PreAcceptMempoolTx(this, wtx, sError)) {
         return 1;
     }
 
@@ -4665,7 +4664,7 @@ int CHDWallet::AddBlindedInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         wtx.SetTx(MakeTransactionRef(std::move(txNew)));
     }
 
-    if (0 != PreAcceptMempoolTx(wtx, sError)) {
+    if (0 != PreAcceptMempoolTx(this, wtx, sError)) {
         return 1;
     }
 
@@ -4782,7 +4781,7 @@ int CHDWallet::PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t 
 
                 int64_t index;
                 if (!pblocktree->ReadRCTOutputLink(pk, index)) {
-                    return wserrorN(1, sError, __func__, _("Anon pubkey not found in db, %s").translated, HexStr(pk.begin(), pk.end()));
+                    return wserrorN(1, sError, __func__, _("Anon pubkey not found in db, %s").translated, HexStr(pk));
                 }
 
                 if (setHave.count(index)) {
@@ -5334,7 +5333,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     CKeyID idk = ao.pubkey.GetID();
                     CKey key;
                     if (!GetKey(idk, key)) {
-                        return wserrorN(1, sError, __func__, _("No key for anonoutput, %s").translated, HexStr(ao.pubkey.begin(), ao.pubkey.end()));
+                        return wserrorN(1, sError, __func__, _("No key for anonoutput, %s").translated, HexStr(ao.pubkey));
                     }
 
                     // Keyimage is required for the tx hash
@@ -5381,7 +5380,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     if (i == vSecretColumns[l]) {
                         CKeyID idk = ao.pubkey.GetID();
                         if (!GetKey(idk, vsk[k])) {
-                            return wserrorN(1, sError, __func__, _("No key for anonoutput, %s").translated, HexStr(ao.pubkey.begin(), ao.pubkey.end()));
+                            return wserrorN(1, sError, __func__, _("No key for anonoutput, %s").translated, HexStr(ao.pubkey));
                         }
                         vpsk[k] = vsk[k].begin();
 
@@ -5477,7 +5476,7 @@ int CHDWallet::AddAnonInputs(CWalletTx &wtx, CTransactionRecord &rtx,
         wtx.SetTx(MakeTransactionRef(std::move(txNew)));
     }
 
-    if (0 != PreAcceptMempoolTx(wtx, sError)) {
+    if (0 != PreAcceptMempoolTx(this, wtx, sError)) {
         return 1;
     }
 
@@ -6617,7 +6616,7 @@ int CHDWallet::ExtKeyUnlock(CStoredExtKey *sek, const CKeyingMaterial &vMKey)
     }
 
     CKeyingMaterial vchSecret;
-    uint256 iv = Hash(sek->kp.pubkey.begin(), sek->kp.pubkey.end());
+    uint256 iv = Hash(sek->kp.pubkey);
     if (!DecryptSecret(vMKey, sek->vchCryptedSecret, iv, vchSecret)
         || vchSecret.size() != 32) {
         return werrorN(1, "%s Failed decrypting ext key %s", __func__, sek->GetIDString58().c_str());
@@ -8649,7 +8648,7 @@ bool CHDWallet::IndexStealthKey(CHDWalletDB *pwdb, uint160 &hash, const CStealth
 bool CHDWallet::GetStealthKeyIndex(const CStealthAddressIndexed &sxi, uint32_t &id)
 {
     LOCK(cs_wallet);
-    uint160 hash = Hash160(sxi.addrRaw.begin(), sxi.addrRaw.end());
+    uint160 hash = Hash160(sxi.addrRaw);
 
     CHDWalletDB wdb(*database, "r+");
     if (wdb.ReadStealthAddressIndexReverse(hash, id)) {
@@ -8664,7 +8663,7 @@ bool CHDWallet::UpdateStealthAddressIndex(const CKeyID &idK, const CStealthAddre
 {
     LOCK(cs_wallet);
 
-    uint160 hash = Hash160(sxi.addrRaw.begin(), sxi.addrRaw.end());
+    uint160 hash = Hash160(sxi.addrRaw);
 
     CHDWalletDB wdb(*database, "r+");
 
@@ -11644,7 +11643,7 @@ bool CHDWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligib
         }
 
         size_t ancestors, descendants;
-        mempool.GetTransactionAncestry(r.txhash, ancestors, descendants);
+        chain().getTransactionAncestry(r.txhash, ancestors, descendants);
         if (ancestors > eligibility_filter.max_ancestors || descendants > eligibility_filter.max_descendants) {
              continue;
         }
@@ -12998,6 +12997,14 @@ bool CHDWallet::SignBlock(CBlockTemplate *pblocktemplate, int nHeight, int64_t n
     nLastCoinStakeSearchTime = nSearchTime;
 
     return false;
+};
+
+std::unique_ptr<CBlockTemplate> CHDWallet::CreateNewBlock()
+{
+    if (!HaveChain()) {
+        return nullptr;
+    }
+    return chain().createNewBlock();
 };
 
 int LoopExtKeysInDB(CHDWallet *pwallet, bool fInactive, bool fInAccount, LoopExtKeyCallback &callback)

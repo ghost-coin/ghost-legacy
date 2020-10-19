@@ -19,17 +19,16 @@ HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
     ECC_Start_Blinding();
 
     bool fFirstRun;
-    pwalletMain = std::make_shared<CHDWallet>(m_chain.get(), WalletLocation(), CreateMockWalletDatabase());
+    pwalletMain = std::make_shared<CHDWallet>(m_chain.get(), "", CreateMockWalletDatabase());
     AddWallet(pwalletMain);
     pwalletMain->LoadWallet(fFirstRun);
-    pwalletMain->m_chain_notifications_handler = m_chain->handleNotifications({ pwalletMain.get(), [](CHDWallet*) {} });
-
-    m_chain_client->registerRpcs();
+    m_chain_notifications_handler = m_chain->handleNotifications({ pwalletMain.get(), [](CHDWallet*) {} });
+    m_wallet_client->registerRpcs();
 }
 
 HDWalletTestingSetup::~HDWalletTestingSetup()
 {
-    RemoveWallet(pwalletMain);
+    RemoveWallet(pwalletMain, nullopt);
     pwalletMain->Finalise();
     pwalletMain.reset();
 

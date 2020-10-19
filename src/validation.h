@@ -186,7 +186,7 @@ bool LoadGenesisBlock(const CChainParams& chainparams);
 /** Returns true if the block index needs to be reindexed. */
 bool ShouldAutoReindex() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 /** Returns true if the block index was rewound to rebuild the temporary indices. */
-bool RebuildRollingIndices();
+bool RebuildRollingIndices(CTxMemPool* mempool);
 /** Unload database information */
 void UnloadBlockIndex(CTxMemPool* mempool);
 /** Run an instance of the script checking thread */
@@ -1060,6 +1060,6 @@ extern CoinStakeCache coinStakeCache;
 DisconnectResult DisconnectBlock(const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view);
 bool FlushStateToDisk(const CChainParams& chainParams, BlockValidationState &state, FlushStateMode mode, int nManualPruneHeight=0);
 bool FlushView(CCoinsViewCache *view, BlockValidationState& state, bool fDisconnecting);
-void UpdateTip(const CBlockIndex *pindexNew, const CChainParams& chainParams);
+void UpdateTip(CTxMemPool& mempool, const CBlockIndex *pindexNew, const CChainParams& chainParams);
 
 #endif // BITCOIN_VALIDATION_H

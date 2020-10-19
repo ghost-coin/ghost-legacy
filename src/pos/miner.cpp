@@ -39,7 +39,7 @@ int nMinStakeInterval = 0;  // min stake interval in seconds
 int nMinerSleep = 500;
 std::atomic<int64_t> nTimeLastStake(0);
 
-extern double GetDifficulty(const CBlockIndex* blockindex = nullptr);
+extern double GetDifficulty(const CBlockIndex* blockindex);
 
 double GetPoSKernelPS()
 {
@@ -323,7 +323,6 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
     size_t stake_thread_cond_delay_ms = gArgs.GetArg("-stakethreadconddelayms", 60000);
     LogPrint(BCLog::POS, "Stake thread conditional delay set to %d.\n", stake_thread_cond_delay_ms);
 
-    CScript coinbaseScript;
     while (!fStopMinerProc) {
         if (fReindex || fImporting || fBusyImporting) {
             fIsStaking = false;
@@ -432,7 +431,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             }
 
             if (!pblocktemplate.get()) {
-                pblocktemplate = BlockAssembler(mempool, Params()).CreateNewBlock(coinbaseScript, false);
+                pblocktemplate = pwallet->CreateNewBlock();
                 if (!pblocktemplate.get()) {
                     fIsStaking = false;
                     nWaitFor = std::min(nWaitFor, (size_t)nMinerSleep);

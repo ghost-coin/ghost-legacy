@@ -56,7 +56,7 @@ class NotificationsTest(BitcoinTestFramework):
         genesishash = self.nodes[1].getblockhash(0)
 
         # wait at most 10 seconds for expected number of files before reading the content
-        self.wait_until(lambda: len(os.listdir(self.blocknotify_dir)) == block_count+1, timeout=10)
+        self.wait_until(lambda: len(os.listdir(self.blocknotify_dir)) == block_count, timeout=10)
 
         # directory content should equal the generated blocks hashes
         assert_equal(sorted(blocks), [x for x in sorted(os.listdir(self.blocknotify_dir)) if x != genesishash])

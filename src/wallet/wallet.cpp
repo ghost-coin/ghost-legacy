@@ -305,7 +305,7 @@ std::shared_ptr<CWallet> CreateWallet(interfaces::Chain& chain, const std::strin
             if (fParticlMode) {
                 if (0 != GetParticlWallet(wallet.get())->MakeDefaultAccount()) {
                     error = Untranslated("Error: MakeDefaultAccount failed");
-                    return WalletCreationStatus::CREATION_FAILED;
+                    return nullptr;
                 }
             } else {
                 LOCK(wallet->cs_wallet);
@@ -1139,7 +1139,6 @@ bool CWallet::AbandonTransaction(const uint256& hashTx)
 
 void CWallet::MarkConflicted(const uint256& hashBlock, int conflicting_height, const uint256& hashTx)
 {
-    // if (!m_chain) return; [rm], necessary?
     LOCK(cs_wallet);
 
     int conflictconfirms = (m_last_block_processed_height - conflicting_height + 1) * -1;
@@ -2201,7 +2200,7 @@ bool CWallet::IsTrusted(const CWalletTx& wtx, std::set<uint256>& trusted_parents
 {
     AssertLockHeld(cs_wallet);
     // Quick answer in most cases
-    if (tx->IsCoinStake() && isAbandoned()) { // Ignore failed stakes
+    if (wtx.tx->IsCoinStake() && wtx.isAbandoned()) { // Ignore failed stakes
         return false;
     }
     if (!chain().checkFinalTx(*wtx.tx)) return false;
@@ -2220,14 +2219,14 @@ bool CWallet::IsTrusted(const CWalletTx& wtx, std::set<uint256>& trusted_parents
         // Transactions not sent by us: not trusted
         const CWalletTx* parent = GetWalletTx(txin.prevout.hash);
         if (parent == nullptr) return false;
-        if (tx->IsParticlVersion()) {
+        if (wtx.tx->IsParticlVersion()) {
             const CTxOutBase *parentOut = parent->tx->vpout[txin.prevout.n].get();
-            if (!(pwallet->IsMine(parentOut) & ISMINE_SPENDABLE)) {
+            if (!(IsMine(parentOut) & ISMINE_SPENDABLE)) {
                 return false;
             }
         } else {
             const CTxOut& parentOut = parent->tx->vout[txin.prevout.n];
-            if (pwallet->IsMine(parentOut) != ISMINE_SPENDABLE)
+            if (IsMine(parentOut) != ISMINE_SPENDABLE)
                 return false;
         }
         // If we've already trusted this parent, continue

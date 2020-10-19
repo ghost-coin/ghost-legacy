@@ -3,8 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <usbdevice/usbdevice.h>
-#include <rpc/server.h>
 #include <rpc/util.h>
+#include <rpc/server.h>
+#include <rpc/blockchain.h>
 #include <rpc/rawtransaction_util.h>
 #include <util/strencodings.h>
 #include <key_io.h>
@@ -21,6 +22,7 @@
 #include <script/standard.h>
 #include <txmempool.h>
 #include <node/ui_interface.h>
+#include <node/context.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
@@ -430,7 +432,7 @@ static UniValue devicesignmessage(const JSONRPCRequest &request)
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("SignMessage failed %s.", sError));
     }
 
-    return EncodeBase64(vchSig.data(), vchSig.size());
+    return EncodeBase64(vchSig);
 };
 
 static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
@@ -518,6 +520,7 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
     {
+        const CTxMemPool& mempool = EnsureMemPool(request.context);
         LOCK2(cs_main, mempool.cs);
         CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
         CCoinsViewMemPool viewMempool(&viewChain, mempool);
