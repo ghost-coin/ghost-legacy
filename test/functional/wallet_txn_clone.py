@@ -25,7 +25,7 @@ class TxnMallTest(BitcoinTestFramework):
         parser.add_argument("--mineblock", dest="mine_block", default=False, action="store_true",
                             help="Test double-spend of 1-confirmed transaction")
         parser.add_argument("--segwit", dest="segwit", default=False, action="store_true",
-                            help="Test behaviour with SegWit txn (which should fail")
+                            help="Test behaviour with SegWit txn (which should fail)")
 
     def setup_network(self):
         # Start with split network:
@@ -46,11 +46,11 @@ class TxnMallTest(BitcoinTestFramework):
 
         self.nodes[0].settxfee(.001)
 
-        node0_address1 = self.nodes[0].getnewaddress(address_type=output_type)
+        node0_address1 = self.nodes[0].getnewaddress('', output_type)
         node0_txid1 = self.nodes[0].sendtoaddress(node0_address1, 1219)
         node0_tx1 = self.nodes[0].gettransaction(node0_txid1)
 
-        node0_address2 = self.nodes[0].getnewaddress(address_type=output_type)
+        node0_address2 = self.nodes[0].getnewaddress('', output_type)
         node0_txid2 = self.nodes[0].sendtoaddress(node0_address2, 29)
         node0_tx2 = self.nodes[0].gettransaction(node0_txid2)
 

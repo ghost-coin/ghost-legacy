@@ -225,7 +225,7 @@ class USBDeviceTest(ParticlTestFramework):
 
         # Ensure account matches after node restarts
         account1 = nodes[1].extkey('account')
-        self.restart_node(1)
+        self.restart_node(1, extra_args=self.extra_args[1] + ['-wallet=default_wallet',])
         account1_r = nodes[1].extkey('account')
         assert(json.dumps(account1) == json.dumps(account1_r))
 

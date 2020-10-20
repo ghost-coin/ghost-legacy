@@ -14,8 +14,6 @@ from test_framework.test_particl import ParticlTestFramework, connect_nodes_bi
 from test_framework.util import assert_equal
 
 
-
-
 class AddressIndexTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True

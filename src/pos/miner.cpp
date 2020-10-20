@@ -121,7 +121,7 @@ bool CheckStake(CBlock *pblock)
     }
 
     std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
-    if (!g_chainman.ProcessNewBlock(Params(), shared_pblock, true, nullptr)) {
+    if (!ChainstateManagerActive().ProcessNewBlock(Params(), shared_pblock, true, nullptr)) {
         return error("%s: Block not accepted.", __func__);
     }
 

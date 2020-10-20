@@ -18,6 +18,12 @@
 
 #include <tuple>
 
+/**
+ * A flag that is ORed into the protocol version to designate that a transaction
+ * should be (un)serialized without witness data.
+ * Make sure that this does not collide with any of the values in `version.h`
+ * or with `ADDRV2_FORMAT`.
+ */
 static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 
 static const uint8_t PARTICL_BLOCK_VERSION = 0xA0;
@@ -538,6 +544,28 @@ public:
     };
 };
 
+class CTxOutSign
+{
+public:
+    CTxOutSign(const std::vector<uint8_t>& valueIn, const CScript &scriptPubKeyIn)
+        : m_is_anon_input(false), amount(valueIn), scriptPubKey(scriptPubKeyIn) {};
+    CTxOutSign()
+        : m_is_anon_input(true) {};
+
+    bool m_is_anon_input;
+    std::vector<uint8_t> amount;
+    CScript scriptPubKey;
+    SERIALIZE_METHODS(CTxOutSign, obj)
+    {
+        if (ser_action.ForRead()) {
+            assert(false);
+        }
+        // Write without length to match serialisation of CAmount
+        s.write((char*)obj.amount.data(), obj.amount.size());
+        READWRITE(obj.scriptPubKey);
+    }
+};
+
 
 /** An output of a transaction.  It contains the public key that the next input
  * must be able to sign with to claim it.
@@ -1015,8 +1043,8 @@ template <typename Tx> static inline CTransactionRef MakeTransactionRef(Tx&& txI
 /** A generic txid reference (txid or wtxid). */
 class GenTxid
 {
-    const bool m_is_wtxid;
-    const uint256 m_hash;
+    bool m_is_wtxid;
+    uint256 m_hash;
 public:
     GenTxid(bool is_wtxid, const uint256& hash) : m_is_wtxid(is_wtxid), m_hash(hash) {}
     bool IsWtxid() const { return m_is_wtxid; }

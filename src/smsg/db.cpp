@@ -69,7 +69,7 @@ public:
 
     SecMsgBatchScanner() : foundEntry(false) {}
 
-    virtual void Put(const leveldb::Slice &key, const leveldb::Slice &value)
+    virtual void Put(const leveldb::Slice &key, const leveldb::Slice &value) override
     {
         if (key.ToString() == needle) {
             foundEntry = true;
@@ -78,7 +78,7 @@ public:
         }
     }
 
-    virtual void Delete(const leveldb::Slice &key)
+    virtual void Delete(const leveldb::Slice &key) override
     {
         if (key.ToString() == needle) {
             foundEntry = true;

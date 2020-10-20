@@ -146,7 +146,19 @@ class BlockchainTest(BitcoinTestFramework):
                         'possible': True,
                     },
                 },
-                'active': False}
+                'active': False
+            },
+            'taproot': {
+                'type': 'bip9',
+                'bip9': {
+                    'status': 'active',
+                    'start_time': -1,
+                    'timeout': 9223372036854775807,
+                    'since': 0
+                },
+                'height': 0,
+                'active': True
+            }
         })
 
     def _test_getchaintxstats(self):
@@ -317,7 +329,7 @@ class BlockchainTest(BitcoinTestFramework):
     def _test_waitforblockheight(self):
         self.log.info("Test waitforblockheight")
         node = self.nodes[0]
-        node.add_p2p_connection(P2PInterface())
+        peer = node.add_p2p_connection(P2PInterface())
 
         current_height = node.getblock(node.getbestblockhash())['height']
 
@@ -334,7 +346,7 @@ class BlockchainTest(BitcoinTestFramework):
         def solve_and_send_block(prevhash, height, time):
             b = create_block(prevhash, create_coinbase(height), time)
             b.solve()
-            node.p2p.send_and_ping(msg_block(b))
+            peer.send_and_ping(msg_block(b))
             return b
 
         b21f = solve_and_send_block(int(b20hash, 16), 21, b20['time'] + 1)

@@ -80,7 +80,7 @@ class DoSTest(ParticlTestFramework):
 
         # Let the test nodes get in sync
         for i in range(dos_nodes):
-            self.nodes[i].p2p.wait_for_verack()
+            self.nodes[i].p2ps[0].wait_for_verack()
 
         MAX_HEADERS = 10
         ITERATIONS = 200
@@ -190,7 +190,7 @@ class DoSTest(ParticlTestFramework):
 
         self.log.info('Restart and check how many block headers were saved to disk')
         self.stop_node(0)
-        self.start_node(0, self.extra_args[0])
+        self.start_node(0, self.extra_args[0] + ['-wallet=default_wallet',])
         time.sleep(2)
         connect_nodes(self.nodes[0], 1)
 
@@ -201,7 +201,7 @@ class DoSTest(ParticlTestFramework):
 
         self.nodes[0].add_p2p_connection(p2p_conns[0], wait_for_verack=False)
         for i in range(dos_nodes):
-            self.nodes[i].p2p.wait_for_verack()
+            self.nodes[i].p2ps[0].wait_for_verack()
 
         self.log.info("Initial blockindexsize: %d\n" % (nodes[0].getblockchaininfo()['blockindexsize']))
 

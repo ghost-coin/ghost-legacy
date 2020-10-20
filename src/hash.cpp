@@ -6,6 +6,7 @@
 #include <crypto/common.h>
 #include <crypto/hmac_sha512.h>
 
+#include <string>
 
 inline uint32_t ROTL32(uint32_t x, int8_t r)
 {
@@ -93,4 +94,13 @@ void BIP32Hash(const unsigned char chainCode[32], unsigned int nChild, unsigned 
     num[2] = (nChild >>  8) & 0xFF;
     num[3] = (nChild >>  0) & 0xFF;
     CHMAC_SHA512(chainCode, 32).Write(&header, 1).Write(data, 32).Write(num, 4).Finalize(output);
+}
+
+CHashWriter TaggedHash(const std::string& tag)
+{
+    CHashWriter writer(SER_GETHASH, 0);
+    uint256 taghash;
+    CSHA256().Write((const unsigned char*)tag.data(), tag.size()).Finalize(taghash.begin());
+    writer << taghash << taghash;
+    return writer;
 }

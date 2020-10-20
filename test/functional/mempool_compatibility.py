@@ -21,6 +21,7 @@ from test_framework.test_framework import BitcoinTestFramework
 class MempoolCompatibilityTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
+        self.wallet_names = [None, self.default_wallet_name]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

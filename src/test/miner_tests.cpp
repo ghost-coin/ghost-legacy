@@ -39,17 +39,6 @@ struct MinerTestingSetup : public TestingSetup {
 
 BOOST_FIXTURE_TEST_SUITE(miner_tests, MinerTestingSetup)
 
-// BOOST_CHECK_EXCEPTION predicates to check the specific validation error
-class HasReason {
-public:
-    explicit HasReason(const std::string& reason) : m_reason(reason) {}
-    bool operator() (const std::runtime_error& e) const {
-        return std::string(e.what()).find(m_reason) != std::string::npos;
-    };
-private:
-    const std::string m_reason;
-};
-
 static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
 
 BlockAssembler MinerTestingSetup::AssemblerForTest(const CChainParams& params)
@@ -212,7 +201,7 @@ void MinerTestingSetup::TestPackageSelection(const CChainParams& chainparams, co
 BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 {
     // Note that by default, these tests run with size accounting enabled.
-    auto chainParams = CreateChainParams(CBaseChainParams::MAIN);
+    auto chainParams = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
     SetOldParams(chainParams);
 
     const CChainParams& chainparams = *chainParams;

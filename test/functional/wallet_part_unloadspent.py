@@ -53,12 +53,11 @@ class WalletParticlUnloadSpentTest(ParticlTestFramework):
 
         self.log.info('Test node restart')
         self.stop_node(0)
-        self.start_node(0, self.extra_args[0])
+        self.start_node(0, self.extra_args[0] + ['-wallet=default_wallet',])
 
         ro = nodes[0].walletsettings('unloadspent')
         assert(ro['unloadspent']['mode'] == 1)
         assert(ro['unloadspent']['mindepth'] == 2)
-
 
 
 if __name__ == '__main__':

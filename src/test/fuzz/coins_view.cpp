@@ -75,7 +75,7 @@ void test_one_input(const std::vector<uint8_t>& buffer)
             break;
         }
         case 2: {
-            coins_view_cache.SetBestBlock(ConsumeUInt256(fuzzed_data_provider));
+            coins_view_cache.SetBestBlock(ConsumeUInt256(fuzzed_data_provider), 10);
             break;
         }
         case 3: {

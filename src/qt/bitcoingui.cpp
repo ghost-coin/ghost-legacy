@@ -677,6 +677,11 @@ void BitcoinGUI::setWalletController(WalletController* wallet_controller)
     }
 }
 
+WalletController* BitcoinGUI::getWalletController()
+{
+    return m_wallet_controller;
+}
+
 void BitcoinGUI::addWallet(WalletModel* walletModel)
 {
     if (!walletFrame) return;

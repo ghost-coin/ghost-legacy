@@ -186,15 +186,15 @@ namespace feebumper {
 bool TransactionCanBeBumped(const CWallet& wallet, const uint256& txid)
 {
     LOCK(wallet.cs_wallet);
-
     if (fParticlMode) {
         const CHDWallet *pw = GetParticlWallet(&wallet);
         if (!pw) {
             return false;
         }
+        LOCK(pw->cs_wallet); // LockAssertion
 
         std::vector<bilingual_str> errors_dummy;
-        const CWalletTx* wtx = wallet.GetWalletTx(txid);
+        const CWalletTx* wtx = pw->GetWalletTx(txid);
         if (wtx != nullptr) {
             feebumper::Result res = PreconditionChecks(wallet, *wtx, errors_dummy);
             return res == feebumper::Result::OK;
@@ -207,6 +207,7 @@ bool TransactionCanBeBumped(const CWallet& wallet, const uint256& txid)
 
         return false;
     }
+
 
     const CWalletTx* wtx = wallet.GetWalletTx(txid);
     if (wtx == nullptr) return false;
@@ -221,18 +222,17 @@ Result CreateTotalBumpTransaction(const CWallet* wallet, const uint256& txid, co
 {
     // Particl TODO: Remove CreateTotalBumpTransaction, convert CreateRateBumpTransaction
     new_fee = 0;
-
-    LOCK(wallet->cs_wallet);
     errors.clear();
 
     if (!IsParticlWallet(wallet)) {
         return Result::WALLET_ERROR;
     }
     const CHDWallet *pw = GetParticlWallet(wallet);
-    auto it = wallet->mapWallet.find(txid);
-    if (it != wallet->mapWallet.end()) {
+    LOCK(pw->cs_wallet);
+    auto it = pw->mapWallet.find(txid);
+    if (it != pw->mapWallet.end()) {
         const CWalletTx& wtx = it->second;
-        Result result = PreconditionChecks(*wallet, wtx, errors);
+        Result result = PreconditionChecks(*pw, wtx, errors);
         if (result != Result::OK) {
             return result;
         }
@@ -288,7 +288,7 @@ Result CreateTotalBumpTransaction(const CWallet* wallet, const uint256& txid, co
         }
 
         // Check that in all cases the new fee doesn't violate maxTxFee
-        const CAmount max_tx_fee = wallet->m_default_max_tx_fee;
+        const CAmount max_tx_fee = pw->m_default_max_tx_fee;
         if (new_fee > max_tx_fee) {
              errors.push_back(strprintf(Untranslated("Specified or calculated fee %s is too high (cannot be higher than maxTxFee %s)"),
                                    FormatMoney(new_fee), FormatMoney(max_tx_fee)));
@@ -415,7 +415,8 @@ Result CreateRateBumpTransaction(CWallet& wallet, const uint256& txid, const CCo
     CAmount fee_ret;
     int change_pos_in_out = -1; // No requested location for change
     bilingual_str fail_reason;
-    if (!wallet.CreateTransaction(recipients, tx_new, fee_ret, change_pos_in_out, fail_reason, new_coin_control, false)) {
+    FeeCalculation fee_calc_out;
+    if (!wallet.CreateTransaction(recipients, tx_new, fee_ret, change_pos_in_out, fail_reason, new_coin_control, fee_calc_out, false)) {
         errors.push_back(Untranslated("Unable to create transaction.") + Untranslated(" ") + fail_reason);
         return Result::WALLET_ERROR;
     }

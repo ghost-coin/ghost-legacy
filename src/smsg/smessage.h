@@ -450,8 +450,8 @@ public:
 
     int ReadSmsgKey(const CKeyID &idk, CKey &key);
 
-    int Retrieve(const SecMsgToken &token, std::vector<uint8_t> &vchData);
-    int Remove(const SecMsgToken &token);
+    int Retrieve(const SecMsgToken &token, std::vector<uint8_t> &vchData) EXCLUSIVE_LOCKS_REQUIRED(cs_smsg);
+    int Remove(const SecMsgToken &token) EXCLUSIVE_LOCKS_REQUIRED(cs_smsg);
 
     int SmsgMisbehaving(CNode *pfrom, uint8_t n);
     int Receive(PeerManager *peerLogic, CNode *pfrom, std::vector<uint8_t> &vchData);
@@ -459,8 +459,8 @@ public:
     int CheckPurged(const SecureMessage *psmsg, const uint8_t *pPayload);
 
     int StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
-    int Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool fHashBucket);
-    int Store(const SecureMessage &smsg, bool fHashBucket);
+    int Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, bool fHashBucket) EXCLUSIVE_LOCKS_REQUIRED(cs_smsg);
+    int Store(const SecureMessage &smsg, bool fHashBucket) EXCLUSIVE_LOCKS_REQUIRED(cs_smsg);
 
     int Purge(std::vector<uint8_t> &vMsgId, std::string &sError);
 

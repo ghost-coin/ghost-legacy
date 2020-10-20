@@ -167,7 +167,6 @@ bool CheckProofOfStake(BlockValidationState &state, const CBlockIndex *pindexPre
         return state.Invalid(BlockValidationResult::DOS_100, "malformed-txn");
     }
 
-    uint256 hashBlock;
     CTransactionRef txPrev;
 
     // Kernel (input 0) must match the stake hash target per coin age (nBits)

@@ -342,8 +342,9 @@ RPCHelpMan importprunedfunds()
     CWallet* const pwallet = wallet.get();
 
     CMutableTransaction tx;
-    if (!DecodeHexTx(tx, request.params[0].get_str()))
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
+    if (!DecodeHexTx(tx, request.params[0].get_str())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed. Make sure the tx has at least one input.");
+    }
     uint256 hashTx = tx.GetHash();
 
     CDataStream ssMB(ParseHexV(request.params[1], "proof"), SER_NETWORK, PROTOCOL_VERSION);
@@ -734,6 +735,7 @@ RPCHelpMan dumpprivkey()
     if (IsParticlWallet(pwallet)) {
         if (dest.type() == typeid(CExtPubKey)) {
             CHDWallet *phdw = GetParticlWallet(pwallet);
+            LOCK_ASSERTION(phdw->cs_wallet);
             CExtPubKey ek = boost::get<CExtPubKey>(dest);
             CKeyID id = ek.GetID();
             CStoredExtKey sek;
@@ -1002,6 +1004,7 @@ static std::string RecurseImportData(const CScript& script, ImportData& import_d
         return "unspendable script";
     case TxoutType::NONSTANDARD:
     case TxoutType::WITNESS_UNKNOWN:
+    case TxoutType::WITNESS_V1_TAPROOT:
     default:
         return "unrecognized script";
     }

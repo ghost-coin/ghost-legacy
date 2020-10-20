@@ -934,7 +934,7 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, std::vector<std::shared_pt
     thread_smsg_pow = std::thread(std::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
 
 #ifdef ENABLE_WALLET
-    m_wallet_load_handler = interfaces::MakeHandler(NotifyWalletAdded.connect(boost::bind(&ListenWalletAdded, this, _1)));
+    m_wallet_load_handler = interfaces::MakeHandler(NotifyWalletAdded.connect(std::bind(&ListenWalletAdded, this, std::placeholders::_1)));
 #endif
 
     return true;
@@ -1084,7 +1084,7 @@ bool CSMSG::LoadWallet(std::shared_ptr<CWallet> pwallet_in)
 #ifdef ENABLE_WALLET
     std::vector<std::shared_ptr<CWallet>>::iterator i = std::find(m_vpwallets.begin(), m_vpwallets.end(), pwallet_in);
     if (i != m_vpwallets.end()) return true;
-    m_wallet_unload_handlers[pwallet_in.get()] = interfaces::MakeHandler(pwallet_in->NotifyUnload.connect(boost::bind(&NotifyUnload, this, pwallet_in.get())));
+    m_wallet_unload_handlers[pwallet_in.get()] = interfaces::MakeHandler(pwallet_in->NotifyUnload.connect(std::bind(&NotifyUnload, this, pwallet_in.get())));
     m_vpwallets.push_back(pwallet_in);
 #endif
     return true;
@@ -1936,7 +1936,7 @@ static int InsertAddress(CKeyID &hashKey, CPubKey &pubKey)
 };
 
 static bool ScanBlock(CSMSG &smsg, const CBlock &block, SecMsgDB &addrpkdb,
-    uint32_t &nTransactions, uint32_t &nElements, uint32_t &nPubkeys, uint32_t &nDuplicates)
+    uint32_t &nTransactions, uint32_t &nElements, uint32_t &nPubkeys, uint32_t &nDuplicates) EXCLUSIVE_LOCKS_REQUIRED(cs_smsgDB)
 {
     AssertLockHeld(cs_smsgDB);
 
@@ -2584,6 +2584,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
             }
         } // cs_smsgDB
 
+#if HAVE_SYSTEM
         if (!fExisted) {
             // notify an external script when a message comes in
             std::string strCmd = gArgs.GetArg("-smsgnotify", "");
@@ -2597,6 +2598,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
 
             GetMainSignals().NewSecureMessage(psmsg, hash);
         }
+#endif
     }
 
     return SMSG_NO_ERROR;

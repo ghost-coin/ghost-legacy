@@ -833,12 +833,11 @@ static UniValue getblockhashes(const JSONRPCRequest& request)
 
     std::vector<std::pair<uint256, unsigned int> > blockHashes;
 
-    if (fActiveOnly) {
+    {
         LOCK(cs_main);
-    }
-
-    if (!GetTimestampIndex(high, low, fActiveOnly, blockHashes)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available for block hashes");
+        if (!GetTimestampIndex(high, low, fActiveOnly, blockHashes)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available for block hashes");
+        }
     }
 
     UniValue result(UniValue::VARR);
@@ -914,21 +913,21 @@ UniValue gettxoutsetinfobyscript(const JSONRPCRequest& request)
     PerScriptTypeStats statsCSSH;
     PerScriptTypeStats statsOther;
 
-    uint256 prevkey;
     while (pcursor->Valid()) {
         if (ShutdownRequested()) return false;
         COutPoint key;
         Coin coin;
         if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
             PerScriptTypeStats *ps = &statsOther;
-            if (coin.out.scriptPubKey.IsPayToPublicKeyHash())
+            if (coin.out.scriptPubKey.IsPayToPublicKeyHash()) {
                 ps = &statsPKH;
-            else if (coin.out.scriptPubKey.IsPayToScriptHash())
+            } else if (coin.out.scriptPubKey.IsPayToScriptHash()) {
                 ps = &statsSH;
-            else if (coin.out.scriptPubKey.IsPayToPublicKeyHash256_CS())
+            } else if (coin.out.scriptPubKey.IsPayToPublicKeyHash256_CS()) {
                 ps = &statsCSPKH;
-            else if (coin.out.scriptPubKey.IsPayToScriptHash256_CS() || coin.out.scriptPubKey.IsPayToScriptHash_CS() )
+            } else if (coin.out.scriptPubKey.IsPayToScriptHash256_CS() || coin.out.scriptPubKey.IsPayToScriptHash_CS()) {
                 ps = &statsCSSH;
+            }
 
             if (coin.nType == OUTPUT_STANDARD) {
                 ps->nPlain++;

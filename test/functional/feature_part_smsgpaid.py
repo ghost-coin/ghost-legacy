@@ -342,7 +342,7 @@ class SmsgPaidTest(ParticlTestFramework):
         self.log.info('Test smsggetinfo and smsgsetwallet')
         ro = nodes[0].smsggetinfo()
         assert(ro['enabled'] is True)
-        assert(ro['active_wallet'] == '')
+        assert(ro['active_wallet'] == 'default_wallet')
         assert_raises_rpc_error(-1, 'Wallet not found: "abc"', nodes[0].smsgsetwallet, 'abc')
         nodes[0].smsgsetwallet()
         ro = nodes[0].smsggetinfo()

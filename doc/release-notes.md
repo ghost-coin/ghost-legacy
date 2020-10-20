@@ -60,6 +60,14 @@ From Bitcoin Core 0.20.0 onwards, macOS versions earlier than 10.12 are no
 longer supported. Additionally, Bitcoin Core does not yet change appearance
 when macOS "dark mode" is activated.
 
+The node's known peers are persisted to disk in a file called `peers.dat`. The
+format of this file has been changed in a backwards-incompatible way in order to
+accommodate the storage of Tor v3 and other BIP155 addresses. This means that if
+the file is modified by 0.21.0 or newer then older versions will not be able to
+read it. Those old versions, in the event of a downgrade, will log an error
+message that deserialization has failed and will continue normal operation
+as if the file was missing, creating a new empty one. (#19954)
+
 Notable changes
 ===============
 
@@ -74,8 +82,44 @@ P2P and network changes
   node using P2P relay. This version reduces the initial broadcast guarantees
   for wallet transactions submitted via P2P to a node running the wallet. (#18038)
 
+- The size of the set of transactions that peers have announced and we consider
+  for requests has been reduced from 100000 to 5000 (per peer), and further
+  announcements will be ignored when that limit is reached. If you need to dump
+  (very) large batches of transactions, exceptions can be made for trusted
+  peers using the "relay" network permission. For localhost for example it can
+  be enabled using the command line option `-whitelist=relay@127.0.0.1`.
+  (#19988)
+
+- The Tor onion service that is automatically created by setting the
+  `-listenonion` configuration parameter will now be created as a Tor v3 service
+  instead of Tor v2. The private key that was used for Tor v2 (if any) will be
+  left untouched in the `onion_private_key` file in the data directory (see
+  `-datadir`) and can be removed if not needed. Bitcoin Core will no longer
+  attempt to read it. The private key for the Tor v3 service will be saved in a
+  file named `onion_v3_private_key`. To use the deprecated Tor v2 service (not
+  recommended), then `onion_private_key` can be copied over
+  `onion_v3_private_key`, e.g.
+  `cp -f onion_private_key onion_v3_private_key`. (#19954)
+
 Updated RPCs
 ------------
+
+- The `getpeerinfo` RPC now has additional `last_block` and `last_transaction`
+  fields that return the UNIX epoch time of the last block and the last valid
+  transaction received from each peer. (#19731)
+
+- `getnetworkinfo` now returns two new fields, `connections_in` and
+  `connections_out`, that provide the number of inbound and outbound peer
+  connections. These new fields are in addition to the existing `connections`
+  field, which returns the total number of peer connections. (#19405)
+
+- Exposed transaction version numbers are now treated as unsigned 32-bit
+  integers instead of signed 32-bit integers. This matches their treatment in
+  consensus logic. Versions greater than 2 continue to be non-standard
+  (matching previous behavior of smaller than 1 or greater than 2 being
+  non-standard). Note that this includes the joinpsbt command, which combines
+  partially-signed transactions by selecting the highest version number.
+  (#16525)
 
 - `getmempoolinfo` now returns an additional `unbroadcastcount` field. The
   mempool tracks locally submitted transactions until their initial broadcast
@@ -102,6 +146,20 @@ will trigger BIP 125 (replace-by-fee) opt-in. (#11413)
   option `-deprecatedrpc=banscore` is used. The `banscore` field will be fully
   removed in the next major release. (#19469)
 
+- The `testmempoolaccept` RPC returns `vsize` and a `fees` object with the `base` fee
+  if the transaction would pass validation. (#19940)
+
+- The `getpeerinfo` RPC now returns a `connection_type` field. This indicates
+  the type of connection established with the peer. It will return one of six
+  options. For more information, see the `getpeerinfo` help documentation.
+  (#19725)
+
+- The `getpeerinfo` RPC no longer returns the `addnode` field by default. This
+  field will be fully removed in the next major release.  It can be accessed
+  with the configuration option `-deprecatedrpc=getpeerinfo_addnode`. However,
+  it is recommended to instead use the `connection_type` field (it will return
+  `manual` when addnode is true). (#19725)
+
 - The `walletcreatefundedpsbt` RPC call will now fail with
   `Insufficient funds` when inputs are manually selected but are not enough to cover
   the outputs and fee. Additional inputs can automatically be added through the
@@ -125,6 +183,10 @@ Build System
 Updated settings
 ----------------
 
+- The same ZeroMQ notification (e.g. `-zmqpubhashtx=address`) can now be
+  specified multiple times to publish the same notification to different ZeroMQ
+  sockets. (#18309)
+
 - The `-banscore` configuration option, which modified the default threshold for
   disconnecting and discouraging misbehaving peers, has been removed as part of
   changes in 0.20.1 and in this release to the handling of misbehaving peers.
@@ -141,12 +203,17 @@ Updated settings
 
 - Netmasks that contain 1-bits after 0-bits (the 1-bits are not contiguous on
   the left side, e.g. 255.0.255.255) are no longer accepted. They are invalid
-  according to RFC 4632.
+  according to RFC 4632. Netmasks are used in the `-rpcallowip` and `-whitelist`
+  configuration options and in the `setban` RPC. (#19628)
 
 Changes to Wallet or GUI related settings can be found in the GUI or Wallet  section below.
 
 Tools and Utilities
 -------------------
+
+- The `connections` field of `bitcoin-cli -getinfo` is expanded to return a JSON
+  object with `in`, `out` and `total` numbers of peer connections. It previously
+  returned a single integer value for the total number of peer connections. (#19405)
 
 - A new `bitcoin-cli -generate` command, equivalent to RPC `generatenewaddress`
   followed by `generatetoaddress`, can generate blocks for command line testing
@@ -159,6 +226,10 @@ Tools and Utilities
 
 New settings
 ------------
+
+- The `startupnotify` option is used to specify a command to
+  execute when Bitcoin Core has finished with its startup
+  sequence. (#15367)
 
 Wallet
 ------
@@ -176,12 +247,60 @@ Wallet
   introduced unbroadcast set. See the "P2P and network changes" section for
   more information on the unbroadcast set. (#18038)
 
+- The `sendtoaddress` and `sendmany` RPCs accept an optional `verbose=True`
+  argument to also return the fee reason about the sent tx. (#19501)
+
 - The wallet can create a transaction without change even when the keypool is
   empty. Previously it failed. (#17219)
 
 - The `-salvagewallet` startup option has been removed. A new `salvage` command
   has been added to the `bitcoin-wallet` tool which performs the salvage
   operations that `-salvagewallet` did. (#18918)
+
+- A new configuration flag `-maxapsfee` has been added, which sets the max
+  allowed avoid partial spends (APS) fee. It defaults to 0 (i.e. fee is the
+  same with and without APS). Setting it to -1 will disable APS, unless
+  `-avoidpartialspends` is set. (#14582)
+
+- The wallet will now avoid partial spends (APS) by default, if this does not
+  result in a difference in fees compared to the non-APS variant. The allowed
+  fee threshold can be adjusted using the new `-maxapsfee` configuration
+  option. (#14582)
+
+- The `createwallet`, `loadwallet`, and `unloadwallet` RPCs now accept
+  `load_on_startup` options to modify the settings list. Unless these options
+  are explicitly set to true or false, the list is not modified, so the RPC
+  methods remain backwards compatible. (#15937)
+
+- A new `send` RPC with similar syntax to `walletcreatefundedpsbt`, including
+  support for coin selection and a custom fee rate. The `send` RPC is
+  experimental and may change in subsequent releases. Using it is encouraged
+  once it's no longer experimental: `sendmany` and `sendtoaddress` may be
+  deprecated in a future release. (#16378)
+
+- `fundrawtransaction` and `walletcreatefundedpsbt` when used with the
+  `lockUnspents` argument now lock manually selected coins, in addition to
+  automatically selected coins. Note that locked coins are never used in
+  automatic coin selection, but can still be manually selected. (#18244)
+
+- The `-zapwallettxes` startup option has been removed and its functionality
+  removed from the wallet.  This option was originally intended to allow for
+  the fee bumping of transactions that did not signal RBF. This functionality
+  has been superseded with the abandon transaction feature. (#19671)
+
+- The error code when no wallet is loaded, but a wallet RPC is called, has been
+  changed from `-32601` (method not found) to `-18` (wallet not found).
+  (#20101)
+
+### Default Wallet
+
+Bitcoin Core will no longer create an unnamed `""` wallet by default when no
+wallet is specified on the command line or in the configuration files. For
+backwards compatibility, if an unnamed `""` wallet already exists and would
+have been loaded previously, then it will still be loaded. Users without an
+unnamed `""` wallet and without any other wallets to be loaded on startup will
+be prompted to either choose a wallet to load, or to create a new wallet.
+(#15454)
 
 ### Experimental Descriptor Wallets
 
@@ -312,6 +431,14 @@ issue.
 GUI changes
 -----------
 
+- Wallets created or loaded in the GUI will now be automatically loaded on
+  startup, so they don't need to be manually reloaded next time Bitcoin Core is
+  started. The list of wallets to load on startup is stored in
+  `\<datadir\>/settings.json` and augments any command line or `bitcoin.conf`
+  `-wallet=` settings that specify more wallets to load. Wallets that are
+  unloaded in the GUI get removed from the settings list so they won't load
+  again automatically next startup. (#19754)
+
 - The GUI Peers window no longer displays a "Ban Score" field. This is part of
   changes in 0.20.1 and in this release to the handling of misbehaving
   peers. Refer to "Changes regarding misbehaving peers" in the 0.20.1 release
@@ -329,8 +456,22 @@ RPC
   - Fee estimation failed
   - Transaction has too long of a mempool chain
 
+- The `sendrawtransaction` error code for exceeding `maxfeerate` has been changed from
+  `-26` to `-25`. The error string has been changed from "absurdly-high-fee" to
+  "Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)." The
+  `testmempoolaccept` RPC returns `max-fee-exceeded` rather than `absurdly-high-fee`
+  as the `reject-reason`. (#19339)
+
+- To make wallet and rawtransaction RPCs more consistent, the error message for
+  exceeding maximum feerate has been changed to "Fee exceeds maximum configured by user
+  (e.g. -maxtxfee, maxfeerate)." (#19339)
+
 Tests
 -----
+
+- The BIP 325 default signet can be enabled by the `-chain=signet` or `-signet`
+  setting. The settings `-signetchallenge` and `-signetseednode` allow
+  enabling a custom signet.
 
 Credits
 =======

@@ -132,7 +132,7 @@ static void AddTx(benchmark::Bench& bench, const std::string from, const std::st
     ECC_Start_Blinding();
 
     std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(test_setup.m_node);
-    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, *Assert(test_setup.m_node.args), {});
+    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, *Assert(test_setup.m_node.args));
     m_chain_client->registerRpcs();
 
     std::shared_ptr<CHDWallet> pwallet_a = CreateTestWallet(*m_chain.get(), "a");

@@ -35,7 +35,7 @@ bool ExtractIndexInfo(const CScript *pScript, int &scriptType, std::vector<uint8
 bool ExtractIndexInfo(const CTxOutBase *out, int &scriptType, std::vector<uint8_t> &hashBytes, CAmount &nValue, const CScript *&pScript);
 
 /** Functions for insight block explorer */
-bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int> > &hashes);
+bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int> > &hashes) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value, const CTxMemPool *pmempool);
 bool HashOnchainActive(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 bool GetAddressIndex(uint256 addressHash, int type,

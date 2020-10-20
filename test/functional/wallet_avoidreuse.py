@@ -226,7 +226,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         '''
         self.log.info("Test sending from reused {} address fails".format(second_addr_type))
 
-        fundaddr = self.nodes[1].getnewaddress(label="", address_type="legacy")
+        fundaddr = self.nodes[1].getnewaddress("", "legacy") #address_type=
         retaddr = self.nodes[0].getnewaddress()
 
         self.nodes[0].sendtoaddress(fundaddr, 10)

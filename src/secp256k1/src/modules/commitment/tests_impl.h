@@ -23,7 +23,7 @@ static void test_commitment_api(void) {
     unsigned char blind_out[32];
     const unsigned char *blind_ptr = blind;
     unsigned char *blind_out_ptr = blind_out;
-    uint64_t val = secp256k1_rand32();
+    uint64_t val = secp256k1_testrand32();
 
     secp256k1_context *none = secp256k1_context_create(SECP256K1_CONTEXT_NONE);
     secp256k1_context *sign = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
@@ -40,7 +40,7 @@ static void test_commitment_api(void) {
     secp256k1_context_set_illegal_callback(vrfy, counting_illegal_callback_fn, &ecount);
     secp256k1_context_set_illegal_callback(both, counting_illegal_callback_fn, &ecount);
 
-    secp256k1_rand256(blind);
+    secp256k1_testrand256(blind);
     CHECK(secp256k1_pedersen_commit(none, &commit, blind, val, &secp256k1_generator_const_h, &secp256k1_generator_const_g) == 0);
     CHECK(ecount == 1);
     CHECK(secp256k1_pedersen_commit(vrfy, &commit, blind, val, &secp256k1_generator_const_h, &secp256k1_generator_const_g) == 0);
@@ -110,8 +110,8 @@ static void test_pedersen(void) {
     int inputs;
     int outputs;
     int total;
-    inputs = (secp256k1_rand32() & 7) + 1;
-    outputs = (secp256k1_rand32() & 7) + 2;
+    inputs = (secp256k1_testrand32() & 7) + 1;
+    outputs = (secp256k1_testrand32() & 7) + 2;
     total = inputs + outputs;
     for (i = 0; i < 19; i++) {
         cptr[i] = &commits[i];
@@ -157,8 +157,8 @@ static void test_pedersen(void) {
 
 #define MAX_N_GENS	30
 void test_multiple_generators(void) {
-    const size_t n_inputs = (secp256k1_rand32() % (MAX_N_GENS / 2)) + 1;
-    const size_t n_outputs = (secp256k1_rand32() % (MAX_N_GENS / 2)) + 1;
+    const size_t n_inputs = (secp256k1_testrand32() % (MAX_N_GENS / 2)) + 1;
+    const size_t n_outputs = (secp256k1_testrand32() % (MAX_N_GENS / 2)) + 1;
     const size_t n_generators = n_inputs + n_outputs;
     unsigned char *generator_blind[MAX_N_GENS];
     unsigned char *pedersen_blind[MAX_N_GENS];

@@ -74,7 +74,7 @@ jobs:
         - echo "End"
 
     - stage: test
-      name: 'ARM  [GOAL: install]  [buster]  [unit tests, functional tests]'
+      name: 'ARM  [GOAL: install]  [buster]  [unit tests, no functional tests]'
       arch: arm64  # Can disable QEMU_USER_CMD and run the tests natively without qemu
       env: >-
         FILE_ENV="./ci/test/00_setup_env_arm.sh"
@@ -144,6 +144,7 @@ jobs:
           - berkeley-db4
           - miniupnpc
           - qrencode
+          - sqlite
           - ccache
           - zeromq
       env: >-

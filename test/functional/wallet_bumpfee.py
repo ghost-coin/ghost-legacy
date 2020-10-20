@@ -184,7 +184,8 @@ def test_segwit_bumpfee_succeeds(self, rbf_node, dest_address):
     # which spends it, and make sure bumpfee can be called on it.
 
     segwit_in = next(u for u in rbf_node.listunspent() if u["amount"] == Decimal("0.001"))
-    segwit_out = rbf_node.getaddressinfo(rbf_node.getnewaddress(address_type='p2sh-segwit'))
+    #segwit_out = rbf_node.getaddressinfo(rbf_node.getnewaddress(address_type='p2sh-segwit'))
+    segwit_out = rbf_node.getaddressinfo(rbf_node.getnewaddress('', 'p2sh-segwit'))
     segwitid = send_to_witness(
         use_p2wsh=False,
         node=rbf_node,
@@ -348,7 +349,7 @@ def test_maxtxfee_fails(self, rbf_node, dest_address):
     self.restart_node(1, ['-maxtxfee=0.000025'] + self.extra_args[1])
     rbf_node.walletpassphrase(WALLET_PASSPHRASE, WALLET_PASSPHRASE_TIMEOUT)
     rbfid = spend_one_input(rbf_node, dest_address)
-    assert_raises_rpc_error(-4, "Unable to create transaction. Fee exceeds maximum configured by -maxtxfee", rbf_node.bumpfee, rbfid)
+    assert_raises_rpc_error(-4, "Unable to create transaction. Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)", rbf_node.bumpfee, rbfid)
     self.restart_node(1, self.extra_args[1])
     rbf_node.walletpassphrase(WALLET_PASSPHRASE, WALLET_PASSPHRASE_TIMEOUT)
     self.connect_nodes(1, 0)
@@ -403,8 +404,10 @@ def test_watchonly_psbt(self, peer_node, rbf_node, dest_address):
     }])
     assert_equal(result, [{'success': True}, {'success': True}])
 
-    funding_address1 = watcher.getnewaddress(address_type='bech32')
-    funding_address2 = watcher.getnewaddress(address_type='bech32')
+    #funding_address1 = watcher.getnewaddress(address_type='bech32')
+    #funding_address2 = watcher.getnewaddress(address_type='bech32')
+    funding_address1 = watcher.getnewaddress('', 'bech32')
+    funding_address2 = watcher.getnewaddress('', 'bech32')
     peer_node.sendmany("", {funding_address1: 0.001, funding_address2: 0.001})
     peer_node.generate(1)
     self.sync_all()

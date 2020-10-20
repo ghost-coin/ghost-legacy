@@ -97,7 +97,7 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
 
         self.log.info('Verify node settings survive a restart')
         self.stop_node(0)
-        self.start_node(0, self.extra_args[0])
+        self.start_node(0, self.extra_args[0] + ['-wallet=default_wallet',])
         connect_nodes(self.nodes[0], 1)
 
         ro = nodes[0].walletsettings('stakingoptions')

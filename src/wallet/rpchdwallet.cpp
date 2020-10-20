@@ -222,7 +222,7 @@ static int ExtKeyPathP(const std::string &sPath, const std::vector<uint8_t> &vch
     return 0;
 };
 
-static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bool fAllChains, UniValue &obj, std::string &sError)
+static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bool fAllChains, UniValue &obj, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     CExtKey58 eKey58;
 
@@ -395,6 +395,7 @@ static int AccountInfo(CHDWallet *pwallet, CExtKeyAccount *pa, int nShowKeys, bo
 
 static int AccountInfo(CHDWallet *pwallet, CKeyID &keyId, int nShowKeys, bool fAllChains, UniValue &obj, std::string &sError)
 {
+    LOCK(pwallet->cs_wallet);
     // TODO: inactive keys can be in db and not in memory - search db for keyId
     ExtKeyAccountMap::const_iterator mi = pwallet->mapExtAccounts.find(keyId);
     if (mi == pwallet->mapExtAccounts.end()) {
@@ -406,7 +407,7 @@ static int AccountInfo(CHDWallet *pwallet, CKeyID &keyId, int nShowKeys, bool fA
     return AccountInfo(pwallet, pa, nShowKeys, fAllChains, obj, sError);
 };
 
-static int KeyInfo(CHDWallet *pwallet, CKeyID &idMaster, CKeyID &idKey, CStoredExtKey &sek, int nShowKeys, UniValue &obj, std::string &sError)
+static int KeyInfo(CHDWallet *pwallet, CKeyID &idMaster, CKeyID &idKey, CStoredExtKey &sek, int nShowKeys, UniValue &obj, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     CExtKey58 eKey58;
 
@@ -512,14 +513,12 @@ static int KeyInfo(CHDWallet *pwallet, CKeyID &idMaster, CKeyID &idKey, CStoredE
 static int KeyInfo(CHDWallet *pwallet, CKeyID &idMaster, CKeyID &idKey, int nShowKeys, UniValue &obj, std::string &sError)
 {
     CStoredExtKey sek;
-    {
-        LOCK(pwallet->cs_wallet);
-        CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+    LOCK(pwallet->cs_wallet);
+    CHDWalletDB wdb(pwallet->GetDBHandle());
 
-        if (!wdb.ReadExtKey(idKey, sek)) {
-            sError = "Key not found in wallet.";
-            return 1;
-        }
+    if (!wdb.ReadExtKey(idKey, sek)) {
+        sError = "Key not found in wallet.";
+        return 1;
     }
 
     return KeyInfo(pwallet, idMaster, idKey, sek, nShowKeys, obj, sError);
@@ -544,6 +543,7 @@ public:
     {
         nItems++;
         UniValue obj(UniValue::VOBJ);
+        LOCK(pwallet->cs_wallet);
         if (0 != KeyInfo(pwallet, idMaster, id, sek, nShowKeys, obj, sError)) {
             obj.pushKV("id", sek.GetIDString58());
             obj.pushKV("error", sError);
@@ -559,6 +559,7 @@ public:
         UniValue obj(UniValue::VOBJ);
 
         bool fAllChains = nShowKeys > 2 ? true : false;
+        LOCK(pwallet->cs_wallet);
         if (0 != AccountInfo(pwallet, &sea, nShowKeys, fAllChains, obj, sError)) {
             obj.pushKV("id", sea.GetIDString58());
             obj.pushKV("error", sError);
@@ -575,7 +576,7 @@ public:
     UniValue *rvArray;
 };
 
-int ListLooseExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &nKeys)
+int ListLooseExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &nKeys) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     ListExtCallback cbc(pwallet, &ret, nShowKeys);
 
@@ -588,7 +589,7 @@ int ListLooseExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &n
     return 0;
 };
 
-int ListAccountExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &nKeys)
+int ListAccountExtKeys(CHDWallet *pwallet, int nShowKeys, UniValue &ret, size_t &nKeys) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     ListExtCallback cbc(pwallet, &ret, nShowKeys);
 
@@ -992,7 +993,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
         {
             LOCK(pwallet->cs_wallet);
-            CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+            CHDWalletDB wdb(pwallet->GetDBHandle());
             if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
             }
@@ -1082,7 +1083,7 @@ static UniValue extkey(const JSONRPCRequest &request)
             }
 
             LOCK(pwallet->cs_wallet);
-            CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+            CHDWalletDB wdb(pwallet->GetDBHandle());
             if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
             }
@@ -1134,7 +1135,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
         {
             LOCK(pwallet->cs_wallet);
-            CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+            CHDWalletDB wdb(pwallet->GetDBHandle());
             if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
             }
@@ -1174,7 +1175,7 @@ static UniValue extkey(const JSONRPCRequest &request)
         int rv;
         {
             LOCK(pwallet->cs_wallet);
-            CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+            CHDWalletDB wdb(pwallet->GetDBHandle());
 
             if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
@@ -1214,7 +1215,7 @@ static UniValue extkey(const JSONRPCRequest &request)
 
         {
             LOCK(pwallet->cs_wallet);
-            CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+            CHDWalletDB wdb(pwallet->GetDBHandle());
             if (!wdb.TxnBegin()) {
                 delete sea;
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
@@ -1306,7 +1307,7 @@ static UniValue extkey(const JSONRPCRequest &request)
         CExtKeyAccount sea;
         {
             LOCK(pwallet->cs_wallet);
-            CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+            CHDWalletDB wdb(pwallet->GetDBHandle());
             if (!wdb.TxnBegin()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
             }
@@ -1475,7 +1476,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
 
     {
         LOCK(pwallet->cs_wallet);
-        CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+        CHDWalletDB wdb(pwallet->GetDBHandle());
         if (!wdb.TxnBegin()) {
             throw JSONRPCError(RPC_MISC_ERROR, "TxnBegin failed.");
         }
@@ -2356,7 +2357,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
             }
         }
 
-        CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+        CHDWalletDB wdb(pwallet->GetDBHandle());
         CStoredExtKey sekLoose, sekDB;
         if (!sek) {
             CExtKey58 eKey58;
@@ -3517,7 +3518,7 @@ static UniValue filteraddresses(const JSONRPCRequest &request)
     {
         LOCK(pwallet->cs_wallet);
 
-        CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+        CHDWalletDB wdb(pwallet->GetDBHandle());
 
         if (nOffset >= (int)pwallet->m_address_book.size()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("offset is beyond last address (%d).", nOffset));
@@ -3877,7 +3878,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
     CTxMemPool *mempool = pwallet->HaveChain() ? pwallet->chain().getMempool() : nullptr;
     if (mempool) {
         LOCK(mempool->cs);
-        obj.pushKV("pooledtx", mempool->size());
+        obj.pushKV("pooledtx", (int64_t)mempool->size());
     } else {
         obj.pushKV("pooledtx", "unknown");
     }
@@ -5606,7 +5607,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                                 vPath.erase(vPath.begin(), vPath.begin() + 8);
                                 sek->mapValue[EKVT_PATH] = vPath;
 
-                                CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+                                CHDWalletDB wdb(pwallet->GetDBHandle());
                                 if (!wdb.WriteExtKey(idChain, *sek)) {
                                     tmp.pushKV("error", "WriteExtKey failed");
                                 }
@@ -5675,7 +5676,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         }
 
         {
-            CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+            CHDWalletDB wdb(pwallet->GetDBHandle());
             for (const auto &ri : pwallet->mapRecords) {
                 const uint256 &txhash = ri.first;
                 const CTransactionRecord &rtx = ri.second;
@@ -6242,7 +6243,7 @@ static UniValue setvote(const JSONRPCRequest &request)
     {
         LOCK(pwallet->cs_wallet);
 
-        CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+        CHDWalletDB wdb(pwallet->GetDBHandle());
 
         std::vector<CVoteToken> vVoteTokens;
 
@@ -6337,7 +6338,7 @@ static UniValue votehistory(const JSONRPCRequest &request)
     {
         LOCK(pwallet->cs_wallet);
 
-        CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+        CHDWalletDB wdb(pwallet->GetDBHandle());
         wdb.ReadVoteTokens(vVoteTokens);
     }
 

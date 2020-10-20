@@ -185,13 +185,11 @@ public:
 
     SERIALIZE_METHODS(CKey, obj)
     {
-        if (!ser_action.ForRead())
-        {
+        if (!ser_action.ForRead()) {
             s.write((char*)&obj.keydata[0], 32);
-        } else
-        {
+        } else {
             s.read((char*)&obj.keydata[0], 32);
-        };
+        }
         READWRITE(obj.fValid);
         READWRITE(obj.fCompressed);
     };

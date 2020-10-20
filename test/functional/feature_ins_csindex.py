@@ -143,7 +143,7 @@ class TxIndexTest(ParticlTestFramework):
         assert(len(ro) == 3)
 
 
-        self.restart_node(1)
+        self.restart_node(1, extra_args=self.extra_args[1] + ['-wallet=default_wallet',])
 
         ro = nodes[1].listcoldstakeunspent(addrStake)
         assert(len(ro) == 3)
@@ -152,8 +152,8 @@ class TxIndexTest(ParticlTestFramework):
         assert(ro['stakereward'] < ro['blockreward'])
 
 
-        self.restart_node(0)
-        self.restart_node(2)
+        self.restart_node(0, extra_args=self.extra_args[0] + ['-wallet=default_wallet',])
+        self.restart_node(2, extra_args=self.extra_args[2] + ['-wallet=default_wallet',])
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 0, 2)
 

@@ -39,7 +39,7 @@ class MultiWalletTest(ParticlTestFramework):
         nodes[2].createwallet('wallet_2')
         assert(len(nodes[2].listwallets()) == 2)
 
-        w1 = nodes[2].get_wallet_rpc('')
+        w1 = nodes[2].get_wallet_rpc('default_wallet')
         w2 = nodes[2].get_wallet_rpc('wallet_2')
         w2.extkeyimportmaster('sección grito médula hecho pauta posada nueve ebrio bruto buceo baúl mitad')
 
@@ -58,7 +58,7 @@ class MultiWalletTest(ParticlTestFramework):
         self.stakeBlocks(1)
 
         nodes[2].loadwallet('wallet_2')
-        w1 = nodes[2].get_wallet_rpc('')
+        w1 = nodes[2].get_wallet_rpc('default_wallet')
         w2 = nodes[2].get_wallet_rpc('wallet_2')
 
         assert(w1.getwalletinfo()['total_balance'] < 900)

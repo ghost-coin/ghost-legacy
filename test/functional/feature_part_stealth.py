@@ -226,7 +226,7 @@ class StealthTest(ParticlTestFramework):
         w_import.extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
         wi_info = w_import.getwalletinfo()
 
-        w1 = nodes[1].get_wallet_rpc('')
+        w1 = nodes[1].get_wallet_rpc('default_wallet')
         w1_info = w1.getwalletinfo()
 
         # Imported wallet should be missing imported sx addr

@@ -16,9 +16,11 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     b = decimal.Decimal(b)
     return abs(a-b) <= max(decimal.Decimal(rel_tol) * decimal.Decimal(max(abs(a), abs(b))), abs_tol)
 
+
 def connect_nodes_bi(nodes, a, b):
     connect_nodes(nodes[a], b)
     connect_nodes(nodes[b], a)
+
 
 def getIndexAtProperty(arr, name, value):
     for i, o in enumerate(arr):
@@ -39,11 +41,22 @@ class ParticlTestFramework(BitcoinTestFramework):
         """Start multiple bitcoinds"""
         kwargs['btcmode'] = False
         if extra_args is None:
-            extra_args = [None] * self.num_nodes
+            if hasattr(self, "extra_args"):
+                extra_args = self.extra_args
+            else:
+                extra_args = [None] * self.num_nodes
         assert_equal(len(extra_args), self.num_nodes)
         try:
             for i, node in enumerate(self.nodes):
-                node.start(extra_args[i], *args, **kwargs)
+                if self.is_wallet_compiled() and '-disablewallet' not in extra_args[i] \
+                   and len([a for a in extra_args[i] if a is not None and a.startswith('-wallet')]) == 0:
+                    ea = ['-wallet=default_wallet',]
+                    if extra_args[i] is not None:
+                        ea += extra_args[i]
+                else:
+                    ea = extra_args[i]
+
+                node.start(ea, *args, **kwargs)
             for node in self.nodes:
                 node.wait_for_rpc_connection()
         except:

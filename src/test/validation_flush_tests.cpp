@@ -117,11 +117,6 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
         chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 0),
         CoinsCacheSizeState::CRITICAL);
 
-    // COutpoint can take up to 288 bytes, to test the CoinsCacheSizeState::LARGE
-    // reliably, the interval between 90% and 100% must fit atleast one output.
-    // 0.1 * min_size >= 288 bytes results in a minimum size of 2880
-    constexpr size_t EXPAND_COINS_CACHE_BY_MEMPOOL = 2880 - MAX_COINS_CACHE_BYTES;
-
     // Passing non-zero max mempool usage should allow us more headroom.
     BOOST_CHECK_EQUAL(
         chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, /*max_mempool_size_bytes*/ 1 << 10),

@@ -116,7 +116,7 @@ class AnonTest(ParticlTestFramework):
         # Restart node
         self.sync_all()
         self.stop_node(1)
-        self.start_node(1, self.extra_args[1])
+        self.start_node(1, self.extra_args[1] + ['-wallet=default_wallet',])
         connect_nodes_bi(self.nodes, 0, 1)
         assert(len(nodes[1].listlockunspent()) == 2)
         assert(len(nodes[1].listunspentanon()) < len(unspent))

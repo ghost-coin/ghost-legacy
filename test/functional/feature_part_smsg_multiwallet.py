@@ -42,7 +42,7 @@ class SmsgMultiWalletTest(ParticlTestFramework):
         nodes[2].smsgaddaddress(address1, nodes[1].smsglocalkeys()['wallet_keys'][0]['public_key'])
 
         nodes[2].createwallet('wallet_2')
-        w1 = nodes[2].get_wallet_rpc('')
+        w1 = nodes[2].get_wallet_rpc('default_wallet')
         w2 = nodes[2].get_wallet_rpc('wallet_2')
         w2.extkeyimportmaster(nodes[2].mnemonic('new')['master'])
         w2.encryptwallet('qwerty234')

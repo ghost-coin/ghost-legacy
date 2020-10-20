@@ -95,7 +95,7 @@ def read_dump(file_name, addrs, script_addrs, hd_master_addr_old):
 class WalletDumpTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [["-keypool=90", "-addresstype=legacy"]]
+        self.extra_args = [["-keypool=90", "-addresstype=legacy", "-wallet=dump"]]
         self.rpc_timeout = 120
 
     def skip_test_if_missing_module(self):
@@ -117,7 +117,8 @@ class WalletDumpTest(BitcoinTestFramework):
         addrs = []
         for address_type in ['legacy', 'p2sh-segwit', 'bech32']:
             for _ in range(test_addr_count):
-                addr = self.nodes[0].getnewaddress(address_type=address_type)
+                #addr = self.nodes[0].getnewaddress(address_type=address_type)
+                addr = self.nodes[0].getnewaddress('', address_type)
                 vaddr = self.nodes[0].getaddressinfo(addr)  # required to get hd keypath
                 addrs.append(vaddr)
 

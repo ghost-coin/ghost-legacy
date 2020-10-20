@@ -142,6 +142,7 @@ enum class TxoutType {
     NULL_DATA, //!< unspendable OP_RETURN script that carries data
     WITNESS_V0_SCRIPTHASH,
     WITNESS_V0_KEYHASH,
+    WITNESS_V1_TAPROOT,
     WITNESS_UNKNOWN, //!< Only for Witness versions not already defined above
 
     SCRIPTHASH256,
@@ -227,7 +228,8 @@ struct WitnessUnknown
  *  * ScriptHash: TxoutType::SCRIPTHASH destination (P2SH)
  *  * WitnessV0ScriptHash: TxoutType::WITNESS_V0_SCRIPTHASH destination (P2WSH)
  *  * WitnessV0KeyHash: TxoutType::WITNESS_V0_KEYHASH destination (P2WPKH)
- *  * WitnessUnknown: TxoutType::WITNESS_UNKNOWN destination (P2W???)
+ *  * WitnessUnknown: TxoutType::WITNESS_UNKNOWN/WITNESS_V1_TAPROOT destination (P2W???)
+ *    (taproot outputs do not require their own type as long as no wallet support exists)
  *  A CTxDestination is the internal data type encoded in a bitcoin address
  */
 typedef boost::variant<CNoDestination, PKHash, ScriptHash, WitnessV0ScriptHash, WitnessV0KeyHash, WitnessUnknown,

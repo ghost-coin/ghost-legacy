@@ -815,7 +815,7 @@ static UniValue initaccountfromdevice(const JSONRPCRequest &request)
 
     {
         LOCK(pwallet->cs_wallet);
-        CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+        CHDWalletDB wdb(pwallet->GetDBHandle());
 
         CStoredExtKey checkSEA;
         if (wdb.ReadExtKey(idAccount, checkSEA)) {
@@ -1124,7 +1124,7 @@ static UniValue devicegetnewstealthaddress(const JSONRPCRequest &request)
         }
 
         CKeyID idAccount = sea->GetID();
-        CHDWalletDB wdb(pwallet->GetDBHandle(), "r+");
+        CHDWalletDB wdb(pwallet->GetDBHandle());
 
         if (!wdb.TxnBegin()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "TxnBegin failed.");

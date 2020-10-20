@@ -24,7 +24,7 @@ class WalletDescriptorTest(BitcoinTestFramework):
         # Make a descriptor wallet
         self.log.info("Making a descriptor wallet")
         self.nodes[0].createwallet(wallet_name="desc1", descriptors=True)
-        self.nodes[0].unloadwallet("")
+        self.nodes[0].unloadwallet(self.default_wallet_name)
 
         # A descriptor wallet should have 100 addresses * 3 types = 300 keys
         self.log.info("Checking wallet info")
@@ -121,7 +121,8 @@ class WalletDescriptorTest(BitcoinTestFramework):
         send_wrpc.walletlock()
         # Exhaust keypool of 100
         for _ in range(100):
-            send_wrpc.getnewaddress(address_type='bech32')
+            #send_wrpc.getnewaddress(address_type='bech32')
+            send_wrpc.getnewaddress('', 'bech32')
         # This should now error
         assert_raises_rpc_error(-12, "Keypool ran out, please call keypoolrefill first", send_wrpc.getnewaddress, '', 'bech32')
 

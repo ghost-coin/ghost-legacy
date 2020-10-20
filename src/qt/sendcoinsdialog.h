@@ -18,6 +18,7 @@ class PlatformStyle;
 class SendCoinsEntry;
 class SendCoinsRecipient;
 class UniValue;
+enum class SynchronizationState;
 
 namespace Ui {
     class SendCoinsDialog;
@@ -102,6 +103,7 @@ private Q_SLOTS:
     void coinControlClipboardChange();
     void cbxTypeFromChanged(int);
     void updateFeeSectionControls();
+    void updateNumberOfBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool headers, SynchronizationState sync_state);
     void updateSmartFeeLabel();
 
 Q_SIGNALS:

@@ -16,11 +16,11 @@ static int mlsag_count = 32;
 #define MAX_N_COLUMNS 32
 void test_mlsag(void)
 {
-    const size_t n_inputs = (secp256k1_rand32() % (MAX_N_INPUTS))+1;
-    const size_t n_outputs = (secp256k1_rand32() % (MAX_N_OUTPUTS))+1;
-    const size_t n_blinded = (secp256k1_rand32() % (n_outputs))+1;
-    const size_t n_columns = (secp256k1_rand32() % (MAX_N_COLUMNS))+1;
-    const size_t n_real_col = secp256k1_rand32() % (n_columns);
+    const size_t n_inputs = (secp256k1_testrand32() % (MAX_N_INPUTS))+1;
+    const size_t n_outputs = (secp256k1_testrand32() % (MAX_N_OUTPUTS))+1;
+    const size_t n_blinded = (secp256k1_testrand32() % (n_outputs))+1;
+    const size_t n_columns = (secp256k1_testrand32() % (MAX_N_COLUMNS))+1;
+    const size_t n_real_col = secp256k1_testrand32() % (n_columns);
     const size_t n_rows = n_inputs+1;
     uint8_t preimage[32];
     uint8_t tmp32[32];
@@ -42,7 +42,7 @@ void test_mlsag(void)
     uint8_t ki[MAX_N_INPUTS * 33];
     uint8_t ss[(MAX_N_INPUTS+1) * MAX_N_COLUMNS * 33]; /* max_rows * max_cols */
 
-    secp256k1_rand256(preimage);
+    secp256k1_testrand256(preimage);
 
     total_value = 0;
     for (i = 0; i < n_outputs; i++) {
@@ -111,7 +111,7 @@ void test_mlsag(void)
         n_outputs, n_blinded, n_columns, n_inputs+1,
         pcm_in, pcm_out, pblinds));
 
-    secp256k1_rand256(tmp32); /* random seed */
+    secp256k1_testrand256(tmp32); /* random seed */
     CHECK(0 == secp256k1_generate_mlsag(ctx, ki, pc, ss,
         tmp32, preimage, n_columns, n_rows, n_real_col,
         (const uint8_t**)pkeys, m));

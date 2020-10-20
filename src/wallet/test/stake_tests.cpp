@@ -59,7 +59,7 @@ struct StakeTestingSetup: public TestingSetup {
     }
 
     std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(m_node);
-    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, *Assert(m_node.args), {});
+    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, *Assert(m_node.args));
     std::shared_ptr<CHDWallet> pwalletMain;
 };
 
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(stake_test)
     }
     UniValue rv;
 
-    std::unique_ptr<CChainParams> regtestChainParams = CreateChainParams(CBaseChainParams::REGTEST);
+    std::unique_ptr<CChainParams> regtestChainParams = CreateChainParams(gArgs, CBaseChainParams::REGTEST);
     const CChainParams &chainparams = *regtestChainParams;
 
     BOOST_REQUIRE(chainparams.GenesisBlock().GetHash() == ::ChainActive().Tip()->GetBlockHash());
@@ -263,7 +263,8 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     CCoinControl coinControl;
     {
-        BOOST_CHECK(pwallet->CreateTransaction(vecSend, tx_new, nFeeRequired, nChangePosRet, bl_error, coinControl));
+        FeeCalculation fee_calc;
+        BOOST_CHECK(pwallet->CreateTransaction(vecSend, tx_new, nFeeRequired, nChangePosRet, bl_error, coinControl, fee_calc));
     }
     {
         pwallet->SetBroadcastTransactions(true);

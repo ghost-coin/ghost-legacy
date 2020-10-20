@@ -203,7 +203,7 @@ public:
 class CHDWalletDB : public WalletBatch
 {
 public:
-    CHDWalletDB(WalletDatabase& dbw, const char* pszMode = "r+", bool _fFlushOnClose = true) : WalletBatch(dbw, pszMode, _fFlushOnClose)
+    CHDWalletDB(WalletDatabase& dbw, bool _fFlushOnClose = true) : WalletBatch(dbw, _fFlushOnClose)
     {
     };
 

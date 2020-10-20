@@ -265,6 +265,7 @@ const std::list<SectionInfo> ArgsManager::GetUnrecognizedSections() const
     // Section names to be recognized in the config file.
     static const std::set<std::string> available_sections{
         CBaseChainParams::REGTEST,
+        CBaseChainParams::SIGNET,
         CBaseChainParams::TESTNET,
         CBaseChainParams::MAIN
     };
@@ -428,6 +429,14 @@ bool ArgsManager::ReadSettingsFile(std::vector<std::string>* errors)
         SaveErrors(read_errors, errors);
         return false;
     }
+    for (const auto& setting : m_settings.rw_settings) {
+        std::string section;
+        std::string key = setting.first;
+        (void)InterpretOption(section, key, /* value */ {}); // Split setting key into section and argname
+        if (!GetArgFlags('-' + key)) {
+            LogPrintf("Ignoring unknown rw_settings value %s\n", setting.first);
+        }
+    }
     return true;
 }
 
@@ -524,7 +533,7 @@ void ArgsManager::AddHiddenArgs(const std::vector<std::string>& names)
 
 std::string ArgsManager::GetHelpMessage() const
 {
-    const bool show_debug = gArgs.GetBoolArg("-help-debug", false);
+    const bool show_debug = GetBoolArg("-help-debug", false);
 
     std::string usage = "";
     LOCK(cs_args);
@@ -910,7 +919,7 @@ bool ArgsManager::ReadConfigFiles(std::string& error, bool ignore_invalid_keys)
     // If datadir is changed in .conf file:
     ClearDatadirCache();
     if (!CheckDataDirOption()) {
-        error = strprintf("specified data directory \"%s\" does not exist.", gArgs.GetArg("-datadir", ""));
+        error = strprintf("specified data directory \"%s\" does not exist.", GetArg("-datadir", ""));
         return false;
     }
     return true;
@@ -927,16 +936,21 @@ std::string ArgsManager::GetChainName() const
     };
 
     const bool fRegTest = get_net("-regtest");
+    const bool fSigNet  = get_net("-signet");
     const bool fTestNet = get_net("-testnet");
     const bool is_chain_arg_set = IsArgSet("-chain");
 
-    if ((int)is_chain_arg_set + (int)fRegTest + (int)fTestNet > 1) {
-        throw std::runtime_error("Invalid combination of -regtest, -testnet and -chain. Can use at most one.");
+    if ((int)is_chain_arg_set + (int)fRegTest + (int)fSigNet + (int)fTestNet > 1) {
+        throw std::runtime_error("Invalid combination of -regtest, -signet, -testnet and -chain. Can use at most one.");
     }
     if (fRegTest)
         return CBaseChainParams::REGTEST;
+    if (fSigNet) {
+        return CBaseChainParams::SIGNET;
+    }
     if (fTestNet)
         return CBaseChainParams::TESTNET;
+
     return GetArg("-chain", CBaseChainParams::MAIN);
 }
 

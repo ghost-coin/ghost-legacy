@@ -30,7 +30,7 @@ class KeypoolRestoreTest(BitcoinTestFramework):
         self.skip_if_no_wallet()
 
     def run_test(self):
-        wallet_path = os.path.join(self.nodes[1].datadir, self.chain, "wallets", "wallet.dat")
+        wallet_path = os.path.join(self.nodes[1].datadir, self.chain, "wallets", self.default_wallet_name, self.wallet_data_filename)
         wallet_backup_path = os.path.join(self.nodes[1].datadir, "wallet.bak")
         self.nodes[0].generate(101)
 
@@ -47,9 +47,11 @@ class KeypoolRestoreTest(BitcoinTestFramework):
             self.log.info("Generate keys for wallet with address type: {}".format(output_type))
             idx = i+1
             for _ in range(90):
-                addr_oldpool = self.nodes[idx].getnewaddress(address_type=output_type)
+                #addr_oldpool = self.nodes[idx].getnewaddress(address_type=output_type)
+                addr_oldpool = self.nodes[idx].getnewaddress('', output_type)
             for _ in range(20):
-                addr_extpool = self.nodes[idx].getnewaddress(address_type=output_type)
+                #addr_extpool = self.nodes[idx].getnewaddress(address_type=output_type)
+                addr_extpool = self.nodes[idx].getnewaddress('', output_type)
 
             # Make sure we're creating the outputs we expect
             address_details = self.nodes[idx].validateaddress(addr_extpool)
@@ -81,13 +83,13 @@ class KeypoolRestoreTest(BitcoinTestFramework):
             # Check that we have marked all keys up to the used keypool key as used
             if self.options.descriptors:
                 if output_type == 'legacy':
-                    assert_equal(self.nodes[idx].getaddressinfo(self.nodes[idx].getnewaddress(address_type=output_type))['hdkeypath'], "m/44'/1'/0'/0/110")
+                    assert_equal(self.nodes[idx].getaddressinfo(self.nodes[idx].getnewaddress('', output_type))['hdkeypath'], "m/44'/1'/0'/0/110")
                 elif output_type == 'p2sh-segwit':
-                    assert_equal(self.nodes[idx].getaddressinfo(self.nodes[idx].getnewaddress(address_type=output_type))['hdkeypath'], "m/49'/1'/0'/0/110")
+                    assert_equal(self.nodes[idx].getaddressinfo(self.nodes[idx].getnewaddress('', output_type))['hdkeypath'], "m/49'/1'/0'/0/110")
                 elif output_type == 'bech32':
-                    assert_equal(self.nodes[idx].getaddressinfo(self.nodes[idx].getnewaddress(address_type=output_type))['hdkeypath'], "m/84'/1'/0'/0/110")
+                    assert_equal(self.nodes[idx].getaddressinfo(self.nodes[idx].getnewaddress('', output_type))['hdkeypath'], "m/84'/1'/0'/0/110")
             else:
-                assert_equal(self.nodes[idx].getaddressinfo(self.nodes[idx].getnewaddress(address_type=output_type))['hdkeypath'], "m/0'/0'/110'")
+                assert_equal(self.nodes[idx].getaddressinfo(self.nodes[idx].getnewaddress('', output_type))['hdkeypath'], "m/0'/0'/110'")
 
 
 if __name__ == '__main__':

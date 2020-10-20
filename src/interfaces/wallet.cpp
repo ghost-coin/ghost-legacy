@@ -202,6 +202,7 @@ public:
             return false;
         }
         if (m_wallet_part) {
+            LOCK(m_wallet_part->cs_wallet);
             m_wallet_part->fUnlockForStakingOnly = for_staking_only;
         }
         return true;
@@ -341,8 +342,9 @@ public:
     {
         LOCK(m_wallet->cs_wallet);
         CTransactionRef tx;
+        FeeCalculation fee_calc_out;
         if (!m_wallet->CreateTransaction(recipients, tx, fee, change_pos,
-                fail_reason, coin_control, sign)) {
+                fail_reason, coin_control, fee_calc_out, sign)) {
             return {};
         }
         return tx;
@@ -441,8 +443,8 @@ public:
         }
         auto mi = m_wallet->mapWallet.find(txid);
         if (mi == m_wallet->mapWallet.end()) {
-
             if (m_wallet_part) {
+                LOCK_ASSERTION(m_wallet_part->cs_wallet);
                 auto mi = m_wallet_part->mapRecords.find(txid);
                 if (mi != m_wallet_part->mapRecords.end()) {
                     num_blocks = m_wallet_part->chain().getHeight().get_value_or(-1);
@@ -474,6 +476,7 @@ public:
             return MakeWalletTx(*m_wallet, mi->second);
         }
         if (m_wallet_part) {
+            LOCK_ASSERTION(m_wallet_part->cs_wallet);
             auto mi = m_wallet_part->mapRecords.find(txid);
             if (mi != m_wallet_part->mapRecords.end()) {
                 num_blocks = m_wallet_part->chain().getHeight().get_value_or(-1);
@@ -572,11 +575,10 @@ public:
     }
     CoinsList listCoins(OutputTypes nType) override
     {
-        LOCK(m_wallet->cs_wallet);
-
         CoinsList result;
         if (m_wallet_part
             && nType != OUTPUT_STANDARD) {
+            LOCK(m_wallet_part->cs_wallet);
             for (const auto& entry : m_wallet_part->ListCoins(nType)) {
                 auto& group = result[entry.first];
                 for (const auto& coin : entry.second) {
@@ -587,6 +589,7 @@ public:
             return result;
         }
 
+        LOCK(m_wallet->cs_wallet);
         for (const auto& entry : m_wallet->ListCoins()) {
             auto& group = result[entry.first];
             for (const auto& coin : entry.second) {
@@ -611,6 +614,7 @@ public:
                 }
             } else
             if (m_wallet_part) {
+                LOCK_ASSERTION(m_wallet_part->cs_wallet);
                 const auto mi = m_wallet_part->mapRecords.find(output.hash);
                 if (mi != m_wallet_part->mapRecords.end()) {
                     const auto &rtx = mi->second;
@@ -774,6 +778,7 @@ public:
     {
         if (!m_wallet_part)
             return 0;
+        LOCK(m_wallet_part->cs_wallet);
         return m_wallet_part->GetCredit(txout, filter);
     }
 
@@ -781,6 +786,7 @@ public:
     {
         if (!m_wallet_part)
             return ISMINE_NO;
+        LOCK(m_wallet_part->cs_wallet);
         return m_wallet_part->IsMine(txout);
     }
 
@@ -790,8 +796,7 @@ public:
 class WalletClientImpl : public WalletClient
 {
 public:
-    WalletClientImpl(Chain& chain, ArgsManager& args, std::vector<std::string> wallet_filenames)
-        : m_wallet_filenames(std::move(wallet_filenames))
+    WalletClientImpl(Chain& chain, ArgsManager& args)
     {
         m_context.chain = &chain;
         m_context.args = &args;
@@ -814,8 +819,8 @@ public:
             m_rpc_handlers.emplace_back(m_context.chain->handleRpc(m_rpc_commands.back()));
         }
     }
-    bool verify() override { return VerifyWallets(*m_context.chain, m_wallet_filenames); }
-    bool load() override { return LoadWallets(*m_context.chain, m_wallet_filenames); }
+    bool verify() override { return VerifyWallets(*m_context.chain); }
+    bool load() override { return LoadWallets(*m_context.chain); }
     void start(CScheduler& scheduler) override { return StartWallets(scheduler, *Assert(m_context.args)); }
     void flush() override { return FlushWallets(); }
     void stop() override { return StopWallets(); }
@@ -874,9 +879,9 @@ public:
 
 std::unique_ptr<Wallet> MakeWallet(const std::shared_ptr<CWallet>& wallet) { return wallet ? MakeUnique<WalletImpl>(wallet) : nullptr; }
 
-std::unique_ptr<WalletClient> MakeWalletClient(Chain& chain, ArgsManager& args, std::vector<std::string> wallet_filenames)
+std::unique_ptr<WalletClient> MakeWalletClient(Chain& chain, ArgsManager& args)
 {
-    return MakeUnique<WalletClientImpl>(chain, args, std::move(wallet_filenames));
+    return MakeUnique<WalletClientImpl>(chain, args);
 }
 
 } // namespace interfaces

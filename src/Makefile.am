@@ -168,7 +168,6 @@ BITCOIN_CORE_H = \
   key/types.h \
   key/keyutil.h \
   key_io.h \
-  limitedmap.h \
   logging.h \
   logging/timer.h \
   memusage.h \
@@ -223,6 +222,7 @@ BITCOIN_CORE_H = \
   script/standard.h \
   script/ismine.h \
   shutdown.h \
+  signet.h \
   streams.h \
   smsg/db.h \
   smsg/crypter.h \
@@ -240,6 +240,7 @@ BITCOIN_CORE_H = \
   timedata.h \
   torcontrol.h \
   txdb.h \
+  txrequest.h \
   txmempool.h \
   undo.h \
   util/asmap.h \
@@ -282,20 +283,22 @@ BITCOIN_CORE_H = \
   wallet/rpcwallet.h \
   wallet/salvage.h \
   wallet/scriptpubkeyman.h \
+  wallet/sqlite.h \
   wallet/wallet.h \
   wallet/walletdb.h \
   wallet/wallettool.h \
   wallet/walletutil.h \
+  walletinitinterface.h \
   wallet/hdwalletdb.h \
   wallet/hdwallettypes.h \
   wallet/hdwallet.h \
   wallet/rpchdwallet.h \
   warnings.h \
   zmq/zmqabstractnotifier.h \
-  zmq/zmqconfig.h\
   zmq/zmqnotificationinterface.h \
   zmq/zmqpublishnotifier.h \
   zmq/zmqrpc.h \
+  zmq/zmqutil.h \
   usbdevice/usbdevice.h \
   usbdevice/rpcusbdevice.h \
   insight/addressindex.h \
@@ -364,9 +367,11 @@ libparticl_server_a_SOURCES = \
   rpc/util.cpp \
   script/sigcache.cpp \
   shutdown.cpp \
+  signet.cpp \
   timedata.cpp \
   torcontrol.cpp \
   txdb.cpp \
+  txrequest.cpp \
   txmempool.cpp \
   validation.cpp \
   validationinterface.cpp \
@@ -389,7 +394,8 @@ libparticl_zmq_a_SOURCES = \
   zmq/zmqabstractnotifier.cpp \
   zmq/zmqnotificationinterface.cpp \
   zmq/zmqpublishnotifier.cpp \
-  zmq/zmqrpc.cpp
+  zmq/zmqrpc.cpp \
+  zmq/zmqutil.cpp
 endif
 
 if ENABLE_USBDEVICE
@@ -450,6 +456,7 @@ libparticl_wallet_a_SOURCES = \
   wallet/rpcwallet.cpp \
   wallet/salvage.cpp \
   wallet/scriptpubkeyman.cpp \
+  wallet/sqlite.cpp \
   wallet/wallet.cpp \
   wallet/walletdb.cpp \
   blind.cpp \
@@ -721,7 +728,7 @@ particl_bin_ldadd = \
   $(LIBPARTICL_MNEMONIC) \
   $(LIBPARTICL_USBDEVICE)
 
-particl_bin_ldadd += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+particl_bin_ldadd += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(SQLITE_LIBS)
 if ENABLE_USBDEVICE
 particl_bin_ldadd += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif
@@ -801,7 +808,7 @@ particl_wallet_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
   $(LIBUNIVALUE)
-particl_wallet_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(MINIUPNPC_LIBS) $(ZMQ_LIBS)
+particl_wallet_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(MINIUPNPC_LIBS) $(ZMQ_LIBS) $(SQLITE_LIBS)
 if ENABLE_USBDEVICE
 particl_wallet_LDADD += $(USB_LIBS) $(HIDAPI_LIBS) $(PROTOBUF_LIBS)
 endif

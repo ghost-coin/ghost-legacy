@@ -2,16 +2,25 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <zmq/zmqpublishnotifier.h>
+
 #include <chain.h>
 #include <chainparams.h>
-#include <streams.h>
-#include <zmq/zmqpublishnotifier.h>
-#include <validation.h>
-#include <util/system.h>
 #include <rpc/server.h>
+#include <streams.h>
+#include <util/system.h>
 #include <util/strencodings.h>
 #include <smsg/smessage.h>
-#include <compat/byteswap.h>
+#include <validation.h>
+#include <zmq/zmqutil.h>
+
+#include <zmq.h>
+
+#include <cstdarg>
+#include <cstddef>
+#include <map>
+#include <string>
+#include <utility>
 
 static std::multimap<std::string, CZMQAbstractPublishNotifier*> mapPublishNotifiers;
 
@@ -19,6 +28,7 @@ static const char *MSG_HASHBLOCK = "hashblock";
 static const char *MSG_HASHTX    = "hashtx";
 static const char *MSG_RAWBLOCK  = "rawblock";
 static const char *MSG_RAWTX     = "rawtx";
+static const char *MSG_SEQUENCE  = "sequence";
 static const char *MSG_HASHWTX   = "hashwtx";
 static const char *MSG_SMSG      = "smsg";
 
@@ -179,7 +189,7 @@ void CZMQAbstractPublishNotifier::Shutdown()
     psocket = nullptr;
 }
 
-bool CZMQAbstractPublishNotifier::SendMessage(const char *command, const void* data, size_t size)
+bool CZMQAbstractPublishNotifier::SendZmqMessage(const char *command, const void* data, size_t size)
 {
     assert(psocket);
 
@@ -199,26 +209,26 @@ bool CZMQAbstractPublishNotifier::SendMessage(const char *command, const void* d
 bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex)
 {
     uint256 hash = pindex->GetBlockHash();
-    LogPrint(BCLog::ZMQ, "zmq: Publish hashblock %s\n", hash.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish hashblock %s to %s\n", hash.GetHex(), this->address);
     char data[32];
     for (unsigned int i = 0; i < 32; i++)
         data[31 - i] = hash.begin()[i];
-    return SendMessage(MSG_HASHBLOCK, data, 32);
+    return SendZmqMessage(MSG_HASHBLOCK, data, 32);
 }
 
 bool CZMQPublishHashTransactionNotifier::NotifyTransaction(const CTransaction &transaction)
 {
     uint256 hash = transaction.GetHash();
-    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx %s\n", hash.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx %s to %s\n", hash.GetHex(), this->address);
     char data[32];
     for (unsigned int i = 0; i < 32; i++)
         data[31 - i] = hash.begin()[i];
-    return SendMessage(MSG_HASHTX, data, 32);
+    return SendZmqMessage(MSG_HASHTX, data, 32);
 }
 
 bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex)
 {
-    LogPrint(BCLog::ZMQ, "zmq: Publish rawblock %s\n", pindex->GetBlockHash().GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish rawblock %s to %s\n", pindex->GetBlockHash().GetHex(), this->address);
 
     const Consensus::Params& consensusParams = Params().GetConsensus();
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
@@ -234,16 +244,64 @@ bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex)
         ss << block;
     }
 
-    return SendMessage(MSG_RAWBLOCK, &(*ss.begin()), ss.size());
+    return SendZmqMessage(MSG_RAWBLOCK, &(*ss.begin()), ss.size());
 }
 
 bool CZMQPublishRawTransactionNotifier::NotifyTransaction(const CTransaction &transaction)
 {
     uint256 hash = transaction.GetHash();
-    LogPrint(BCLog::ZMQ, "zmq: Publish rawtx %s\n", hash.GetHex());
+    LogPrint(BCLog::ZMQ, "zmq: Publish rawtx %s to %s\n", hash.GetHex(), this->address);
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
     ss << transaction;
-    return SendMessage(MSG_RAWTX, &(*ss.begin()), ss.size());
+    return SendZmqMessage(MSG_RAWTX, &(*ss.begin()), ss.size());
+}
+
+
+// TODO: Dedup this code to take label char, log string
+bool CZMQPublishSequenceNotifier::NotifyBlockConnect(const CBlockIndex *pindex)
+{
+    uint256 hash = pindex->GetBlockHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish sequence block connect %s to %s\n", hash.GetHex(), this->address);
+    char data[sizeof(uint256)+1];
+    for (unsigned int i = 0; i < sizeof(uint256); i++)
+        data[sizeof(uint256) - 1 - i] = hash.begin()[i];
+    data[sizeof(data) - 1] = 'C'; // Block (C)onnect
+    return SendZmqMessage(MSG_SEQUENCE, data, sizeof(data));
+}
+
+bool CZMQPublishSequenceNotifier::NotifyBlockDisconnect(const CBlockIndex *pindex)
+{
+    uint256 hash = pindex->GetBlockHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish sequence block disconnect %s to %s\n", hash.GetHex(), this->address);
+    char data[sizeof(uint256)+1];
+    for (unsigned int i = 0; i < sizeof(uint256); i++)
+        data[sizeof(uint256) - 1 - i] = hash.begin()[i];
+    data[sizeof(data) - 1] = 'D'; // Block (D)isconnect
+    return SendZmqMessage(MSG_SEQUENCE, data, sizeof(data));
+}
+
+bool CZMQPublishSequenceNotifier::NotifyTransactionAcceptance(const CTransaction &transaction, uint64_t mempool_sequence)
+{
+    uint256 hash = transaction.GetHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx mempool acceptance %s to %s\n", hash.GetHex(), this->address);
+    unsigned char data[sizeof(uint256)+sizeof(mempool_sequence)+1];
+    for (unsigned int i = 0; i < sizeof(uint256); i++)
+        data[sizeof(uint256) - 1 - i] = hash.begin()[i];
+    data[sizeof(uint256)] = 'A'; // Mempool (A)cceptance
+    WriteLE64(data+sizeof(uint256)+1, mempool_sequence);
+    return SendZmqMessage(MSG_SEQUENCE, data, sizeof(data));
+}
+
+bool CZMQPublishSequenceNotifier::NotifyTransactionRemoval(const CTransaction &transaction, uint64_t mempool_sequence)
+{
+    uint256 hash = transaction.GetHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish hashtx mempool removal %s to %s\n", hash.GetHex(), this->address);
+    unsigned char data[sizeof(uint256)+sizeof(mempool_sequence)+1];
+    for (unsigned int i = 0; i < sizeof(uint256); i++)
+        data[sizeof(uint256) - 1 - i] = hash.begin()[i];
+    data[sizeof(uint256)] = 'R'; // Mempool (R)emoval
+    WriteLE64(data+sizeof(uint256)+1, mempool_sequence);
+    return SendZmqMessage(MSG_SEQUENCE, data, sizeof(data));
 }
 
 bool CZMQPublishHashWalletTransactionNotifier::NotifyTransaction(const std::string &sWalletName, const CTransaction &transaction)
@@ -258,7 +316,7 @@ bool CZMQPublishHashWalletTransactionNotifier::NotifyTransaction(const std::stri
     if (nName > sizeof(data) - 32)
         nName = 0;
     memcpy(&data[32], sWalletName.c_str(), nName);
-    return SendMessage(MSG_HASHWTX, data, 32 + nName);
+    return SendZmqMessage(MSG_HASHWTX, data, 32 + nName);
 }
 
 bool CZMQPublishSMSGNotifier::NotifySecureMessage(const smsg::SecureMessage *psmsg, const uint160 &hash)
@@ -270,5 +328,5 @@ bool CZMQPublishSMSGNotifier::NotifySecureMessage(const smsg::SecureMessage *psm
     int64_t timestamp_be = bswap_64(psmsg->timestamp);
     ss << timestamp_be;
     ss << hash;
-    return SendMessage(MSG_SMSG, &(*ss.begin()), ss.size());
+    return SendZmqMessage(MSG_SMSG, &(*ss.begin()), ss.size());
 }

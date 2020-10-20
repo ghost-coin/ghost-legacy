@@ -160,8 +160,7 @@ class ImportRescanTest(BitcoinTestFramework):
 
         # Import keys with pruning disabled
         self.start_nodes(extra_args=[[]] * self.num_nodes)
-        for n in self.nodes:
-            n.importprivkey(privkey=n.get_deterministic_priv_key().key, label='coinbase')
+        self.import_deterministic_coinbase_privkeys()
         self.stop_nodes()
 
         self.start_nodes()
@@ -174,8 +173,10 @@ class ImportRescanTest(BitcoinTestFramework):
         for i, variant in enumerate(IMPORT_VARIANTS):
             variant.label = "label {} {}".format(i, variant)
             variant.address = self.nodes[1].getaddressinfo(self.nodes[1].getnewaddress(
-                label=variant.label,
-                address_type=variant.address_type.value,
+                variant.label,
+                variant.address_type.value,
+                #label=variant.label,
+                #address_type=variant.address_type.value,
             ))
             variant.key = self.nodes[1].dumpprivkey(variant.address["address"])
             variant.initial_amount = get_rand_amount()
@@ -183,6 +184,7 @@ class ImportRescanTest(BitcoinTestFramework):
             self.nodes[0].generate(1)  # Generate one block for each send
             variant.confirmation_height = self.nodes[0].getblockcount()
             variant.timestamp = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())["time"]
+        self.sync_all() # Conclude sync before calling setmocktime to avoid timeouts
 
         # Generate a block further in the future (past the rescan window).
         assert_equal(self.nodes[0].getrawmempool(), [])

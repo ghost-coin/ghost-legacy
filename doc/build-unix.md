@@ -46,6 +46,7 @@ Optional dependencies:
  libqrencode | QR codes in GUI  | Optional for generating QR codes (only needed when GUI enabled)
  univalue    | Utility          | JSON parsing and encoding (bundled version will be used unless --with-system-univalue passed to configure)
  libzmq3     | ZMQ notification | Optional, allows generating ZMQ notifications (requires ZMQ version >= 4.0.0)
+ sqlite3     | SQLite DB       | Wallet storage (only needed when wallet enabled)
  protobuf    | USB Devices      | Data interchange format (only needed when usbdevice enabled)
  hidapi      | USB Devices      | USB interface wrapper (only needed when usbdevice enabled)
 
@@ -92,6 +93,10 @@ are based on BerkeleyDB 4.8. If you do not care about wallet compatibility,
 pass `--with-incompatible-bdb` to configure.
 
 Otherwise, you can build from self-compiled `depends` (see above).
+
+SQLite is required for the wallet:
+
+    sudo apt install libsqlite3-dev
 
 To build Particl Core without wallet, see [*Disable-wallet mode*](/doc/build-unix.md#disable-wallet-mode)
 
@@ -151,6 +156,10 @@ To build with Qt 5 you need the following:
 libqrencode (optional) can be installed with:
 
     sudo dnf install qrencode-devel
+
+SQLite can be installed with:
+
+    sudo dnf install sqlite-devel
 
 protobuf (optional) can be installed with:
 
@@ -250,7 +259,7 @@ disable-wallet mode with:
 
     ./configure --disable-wallet
 
-In this case there is no dependency on Berkeley DB 4.8.
+In this case there is no dependency on Berkeley DB 4.8 and SQLite.
 
 Mining is also possible in disable-wallet mode using the `getblocktemplate` RPC call.
 
