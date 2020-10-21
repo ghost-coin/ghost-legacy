@@ -27,40 +27,12 @@
 #include <boost/test/unit_test.hpp>
 
 
-struct StakeTestingSetup: public TestingSetup {
+struct StakeTestingSetup: public HDWalletTestingSetup {
     StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
-        TestingSetup(chainName, {}, /* fParticlMode */ true)
+        HDWalletTestingSetup(chainName)
     {
-        ECC_Start_Stealth();
-        ECC_Start_Blinding();
-
-        bool fFirstRun;
-        pwalletMain = std::make_shared<CHDWallet>(m_chain.get(), "", CreateMockWalletDatabase());
-        AddWallet(pwalletMain);
-        pwalletMain->LoadWallet(fFirstRun);
-        pwalletMain->m_chain_notifications_handler = m_chain->handleNotifications({ pwalletMain.get(), [](CHDWallet*) {} });
-
-        m_chain_client->registerRpcs();
-
         SetMockTime(0);
     }
-
-    virtual ~StakeTestingSetup()
-    {
-        RemoveWallet(pwalletMain, nullopt);
-        pwalletMain->Finalise();
-        pwalletMain.reset();
-
-        mapStakeSeen.clear();
-        listStakeSeen.clear();
-
-        ECC_Stop_Stealth();
-        ECC_Stop_Blinding();
-    }
-
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain(m_node);
-    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, *Assert(m_node.args));
-    std::shared_ptr<CHDWallet> pwalletMain;
 };
 
 BOOST_FIXTURE_TEST_SUITE(stake_tests, StakeTestingSetup)

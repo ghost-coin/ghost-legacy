@@ -496,7 +496,6 @@ public:
     {
         CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
 
-        gArgs.ForceSetArg("-btcmode", "1");
         wallet = MakeUnique<CWallet>(m_chain.get(), "", CreateMockWalletDatabase());
         {
             LOCK2(wallet->cs_wallet, ::cs_main);

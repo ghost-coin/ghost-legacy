@@ -455,6 +455,7 @@ const char *GetString(size_t errorCode)
     return "No Error";
 };
 
+#ifdef ENABLE_WALLET
 static void NotifyUnload(CSMSG *ps, CWallet *pw)
 {
     LogPrintf("SMSG NotifyUnload\n");
@@ -463,11 +464,10 @@ static void NotifyUnload(CSMSG *ps, CWallet *pw)
 
 static void ListenWalletAdded(CSMSG *ps, const std::shared_ptr<CWallet>& wallet)
 {
-#ifdef ENABLE_WALLET
     LogPrintf("SMSG NotifyWalletAdded: %s\n", wallet->GetName());
     ps->LoadWallet(wallet);
-#endif
 };
+#endif
 
 /* Build the bucket set by scanning the files in the smsgstore dir.
  * buckets should be empty
