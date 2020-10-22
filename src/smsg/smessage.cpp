@@ -164,7 +164,7 @@ size_t SecMsgBucket::CountActive() const
 
 /** Bucket management thread
   */
-void ThreadSecureMsg()
+void ThreadSecureMsg(smsg::CSMSG *smsg_module)
 {
     int64_t nLastPrunedFundingTxns = 0;
     uint32_t nLoop = 0;
@@ -176,8 +176,8 @@ void ThreadSecureMsg()
         vTimedOutLocks.resize(0);
         int64_t cutoffTime = now - SMSG_RETENTION;
         {
-            LOCK(smsgModule.cs_smsg);
-            for (std::map<int64_t, SecMsgBucket>::iterator it(smsgModule.buckets.begin()); it != smsgModule.buckets.end(); ) {
+            LOCK(smsg_module->cs_smsg);
+            for (std::map<int64_t, SecMsgBucket>::iterator it(smsg_module->buckets.begin()); it != smsg_module->buckets.end(); ) {
                 bool fErase = it->first < cutoffTime;
 
                 if (!fErase
@@ -214,7 +214,7 @@ void ThreadSecureMsg()
                         }
                     }
 
-                    smsgModule.buckets.erase(it++);
+                    smsg_module->buckets.erase(it++);
                 } else {
                     if (it->second.nLockCount > 0) { // Tick down nLockCount, to eventually expire if peer never sends data
                         it->second.nLockCount--;
@@ -228,16 +228,16 @@ void ThreadSecureMsg()
                 }
             }
 
-            if (smsgModule.nLastProcessedPurged + SMSG_SECONDS_IN_DAY < now) {
-                smsgModule.BuildPurgedSets();
+            if (smsg_module->nLastProcessedPurged + SMSG_SECONDS_IN_DAY < now) {
+                smsg_module->BuildPurgedSets();
             }
 
             if (nLoop % 20 == 0) {
                 // Erase any unreceived show_requests
                 int64_t local_time = GetTime();
-                for (auto it = smsgModule.m_show_requests.begin(); it != smsgModule.m_show_requests.end(); ) {
+                for (auto it = smsg_module->m_show_requests.begin(); it != smsg_module->m_show_requests.end(); ) {
                     if (it->second < local_time) {
-                        it = smsgModule.m_show_requests.erase(it);
+                        it = smsg_module->m_show_requests.erase(it);
                     } else {
                         ++it;
                     }
@@ -246,8 +246,8 @@ void ThreadSecureMsg()
         } // cs_smsg
 
         if (nLoop % 20 == 0) {
-            LOCK(smsgModule.m_node->connman->cs_vNodes);
-            for (auto *pnode : smsgModule.m_node->connman->vNodes) {
+            LOCK(smsg_module->m_node->connman->cs_vNodes);
+            for (auto *pnode : smsg_module->m_node->connman->vNodes) {
                 LOCK(pnode->smsgData.cs_smsg_net);
                 int64_t cutoffTime = now - SMSG_SECONDS_IN_DAY;
                 for (auto it = pnode->smsgData.m_buckets_last_shown.begin(); it != pnode->smsgData.m_buckets_last_shown.end(); ) {
@@ -267,8 +267,8 @@ void ThreadSecureMsg()
             // Look through the nodes for the peer that locked this bucket
 
             {
-                LOCK(smsgModule.m_node->connman->cs_vNodes);
-                for (auto *pnode : smsgModule.m_node->connman->vNodes) {
+                LOCK(smsg_module->m_node->connman->cs_vNodes);
+                for (auto *pnode : smsg_module->m_node->connman->vNodes) {
                     if (pnode->GetId() != nPeerId) {
                         continue;
                     }
@@ -281,7 +281,7 @@ void ThreadSecureMsg()
                     std::vector<uint8_t> vchData;
                     vchData.resize(8);
                     memcpy(&vchData[0], &ignoreUntil, 8);
-                    smsgModule.m_node->connman->PushMessage(pnode,
+                    smsg_module->m_node->connman->PushMessage(pnode,
                         CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::IGNORING, vchData));
 
                     LogPrint(BCLog::SMSG, "This node will ignore peer %d until %d.\n", nPeerId, ignoreUntil);
@@ -291,20 +291,19 @@ void ThreadSecureMsg()
         }
 
         if (now > nLastPrunedFundingTxns + PRUNE_FUNDING_TX_DATA) {
-            smsgModule.PruneFundingTxData();
+            smsg_module->PruneFundingTxData();
             nLastPrunedFundingTxns = now;
         }
 
         // Check every SMSG_THREAD_DELAY seconds
-        std::unique_lock<std::mutex> lock(smsgModule.mtx_threads);
-        smsgModule.cv_ending.wait_for(lock, std::chrono::milliseconds(SMSG_THREAD_DELAY * 1000), [] { return smsgModule.wake_threads; });
+        smsg_module->m_thread_interrupt.sleep_for(std::chrono::milliseconds(SMSG_THREAD_DELAY * 1000));
     }
     return;
 };
 
 /** Proof of work thread
   */
-void ThreadSecureMsgPow()
+void ThreadSecureMsgPow(smsg::CSMSG *smsg_module)
 {
     int rv;
     std::vector<uint8_t> vchKey;
@@ -381,8 +380,8 @@ void ThreadSecureMsgPow()
 
             // Add to message store
             {
-                LOCK(smsgModule.cs_smsg);
-                if (smsgModule.Store(pHeader, pPayload, psmsg->nPayload, true) != 0) {
+                LOCK(smsg_module->cs_smsg);
+                if (smsg_module->Store(pHeader, pPayload, psmsg->nPayload, true) != 0) {
                     LogPrintf("SecMsgPow: Could not place message in buckets, message removed.\n");
                     continue;
                 }
@@ -390,15 +389,14 @@ void ThreadSecureMsgPow()
 
             // Test if message was sent to self
             bool fOwnMessage;
-            if (smsgModule.ScanMessage(pHeader, pPayload, psmsg->nPayload, true, fOwnMessage) != 0) {
+            if (smsg_module->ScanMessage(pHeader, pPayload, psmsg->nPayload, true, fOwnMessage) != 0) {
                 // Message recipient is not this node (or failed)
             }
         }
 
         delete it;
 
-        std::unique_lock<std::mutex> lock(smsgModule.mtx_threads);
-        smsgModule.cv_ending.wait_for(lock, std::chrono::milliseconds(2000), [] { return smsgModule.wake_threads; });
+        smsg_module->m_thread_interrupt.sleep_for(std::chrono::milliseconds(2000));
     }
     return;
 };
@@ -930,8 +928,9 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, std::vector<std::shared_pt
 
     start_time = GetAdjustedTime();
 
-    thread_smsg = std::thread(std::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
-    thread_smsg_pow = std::thread(std::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
+    m_thread_interrupt.reset();
+    thread_smsg = std::thread(&TraceThread<std::function<void()> >, "smsg", std::function<void()>(std::bind(&ThreadSecureMsg, this)));
+    thread_smsg_pow = std::thread(&TraceThread<std::function<void()> >, "smsg-pow", std::function<void()>(std::bind(&ThreadSecureMsgPow, this)));
 
 #ifdef ENABLE_WALLET
     m_wallet_load_handler = interfaces::MakeHandler(NotifyWalletAdded.connect(std::bind(&ListenWalletAdded, this, std::placeholders::_1)));
@@ -955,12 +954,7 @@ bool CSMSG::Shutdown()
     fSecMsgEnabled = false;
     m_node->connman->SetLocalServices(ServiceFlags(m_node->connman->GetLocalServices() & ~NODE_SMSG));
 
-    {
-        std::lock_guard<std::mutex> lock(mtx_threads);
-        wake_threads = true;
-    }
-    cv_ending.notify_all();
-
+    m_thread_interrupt();
     thread_smsg.join();
     thread_smsg_pow.join();
 

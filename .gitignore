@@ -159,3 +159,4 @@ dist/
 *.background.tiff
 
 sanitizer-output
+ci/scratch

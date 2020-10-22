@@ -7,6 +7,7 @@
 #define PARTICL_SMSG_SMESSAGE_H
 
 #include <sync.h>
+#include <threadinterrupt.h>
 #include <key_io.h>
 #include <serialize.h>
 #include <lz4/lz4.h>
@@ -16,7 +17,6 @@
 #include <util/ui_change_type.h>
 
 #include <atomic>
-#include <condition_variable>
 #include <boost/signals2/signal.hpp>
 
 class UniValue;
@@ -515,11 +515,9 @@ public:
 
     std::map<int64_t, int64_t> m_show_requests;
 
+    CThreadInterrupt m_thread_interrupt;
     std::thread thread_smsg;
     std::thread thread_smsg_pow;
-    std::condition_variable cv_ending;
-    std::mutex mtx_threads;
-    bool wake_threads = false;
 
     NodeContext *m_node = nullptr;
 };

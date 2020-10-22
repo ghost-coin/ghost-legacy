@@ -13,6 +13,7 @@ mutex:CConnman::SocketHandler
 mutex:UpdateTip
 mutex:PeerManager::UpdatedBlockTip
 mutex:g_best_block_mutex
+mutex:smsgModule
 # race (TODO fix)
 race:CConnman::WakeMessageHandler
 race:CConnman::ThreadMessageHandler

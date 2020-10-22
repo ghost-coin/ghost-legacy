@@ -88,3 +88,4 @@ implicit-integer-sign-change:crc32c/*
 unsigned-integer-overflow:xxhash/xxhash.c
 implicit-signed-integer-truncation:unilib/*
 implicit-integer-sign-change:unilib/*
+misaligned-pointer-use:smsg/smessage.cpp

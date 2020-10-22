@@ -16,6 +16,7 @@
 
 static void Blind(benchmark::Bench& bench)
 {
+    ECC_Start();
     ECC_Start_Blinding();
 
     secp256k1_pedersen_commitment commitment;
@@ -58,6 +59,7 @@ static void Blind(benchmark::Bench& bench)
     });
 
     ECC_Stop_Blinding();
+    ECC_Stop();
 }
 
 BENCHMARK(Blind);
