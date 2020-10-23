@@ -292,6 +292,8 @@ public:
     virtual secp256k1_pedersen_commitment *GetPCommitment() { return nullptr; };
     virtual std::vector<uint8_t> *GetPRangeproof() { return nullptr; };
     virtual std::vector<uint8_t> *GetPData() { return nullptr; };
+    virtual const std::vector<uint8_t> *GetPRangeproof() const { return nullptr; };
+    virtual const std::vector<uint8_t> *GetPData() const { return nullptr; };
 
 
     virtual bool GetCTFee(CAmount &nFee) const { return false; };
@@ -423,8 +425,16 @@ public:
     {
         return &vRangeproof;
     };
+    const std::vector<uint8_t> *GetPRangeproof() const override
+    {
+        return &vRangeproof;
+    };
 
     std::vector<uint8_t> *GetPData() override
+    {
+        return &vData;
+    };
+    const std::vector<uint8_t> *GetPData() const override
     {
         return &vData;
     };
@@ -479,8 +489,16 @@ public:
     {
         return &vRangeproof;
     };
+    const std::vector<uint8_t> *GetPRangeproof() const override
+    {
+        return &vRangeproof;
+    };
 
     std::vector<uint8_t> *GetPData() override
+    {
+        return &vData;
+    };
+    const std::vector<uint8_t> *GetPData() const override
     {
         return &vData;
     };
@@ -542,6 +560,10 @@ public:
     {
         return &vData;
     };
+    const std::vector<uint8_t> *GetPData() const override
+    {
+        return &vData;
+    };
 };
 
 class CTxOutSign
@@ -560,8 +582,11 @@ public:
         if (ser_action.ForRead()) {
             assert(false);
         }
-        // Write without length to match serialisation of CAmount
-        s.write((char*)obj.amount.data(), obj.amount.size());
+        if (obj.amount.size() == 8) { // Match << CAmount when amount.size() == 8
+            ser_writedata64(s, *((uint64_t*) obj.amount.data()));
+        } else {
+            s.write((const char*)obj.amount.data(), obj.amount.size());
+        }
         READWRITE(obj.scriptPubKey);
     }
 };

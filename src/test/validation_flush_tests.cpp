@@ -86,15 +86,9 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
     // This is contingent not only on the dynamic memory usage of the Coins
     // that we're adding (COIN_SIZE bytes per), but also on how much memory the
     // cacheCoins (unordered_map) preallocates.
-    //
-    // I came up with the count by examining the printed memory usage of the
-    // CCoinsCacheView, so it's sort of arbitrary - but it shouldn't change
-    // unless we somehow change the way the cacheCoins map allocates memory.
-    //
-    constexpr int COINS_UNTIL_CRITICAL = is_64_bit ? 3 : 3;
+    constexpr int COINS_UNTIL_CRITICAL{2};
 
     for (int i{0}; i < COINS_UNTIL_CRITICAL; ++i) {
-        continue; // TODO
         COutPoint res = add_coin(view);
         print_view_mem_usage(view);
         BOOST_CHECK_EQUAL(view.AccessCoin(res).DynamicMemoryUsage(), COIN_SIZE);

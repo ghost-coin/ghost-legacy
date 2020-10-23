@@ -22,7 +22,7 @@ static uint64_t GetBogoSize(const CScript& scriptPubKey)
            8 /* amount */ +
            2 /* scriptPubKey len */ +
            scriptPubKey.size() /* scriptPubKey */ +
-           (fParticlMode ? 1 /* nType */ + 33 /* commitment */ : 0);
+           (fParticlMode ? 1 /* nType */ + 64 /* commitment */ : 0);
 }
 
 static void ApplyStats(CCoinsStats& stats, CHashWriter& ss, const uint256& hash, const std::map<uint32_t, Coin>& outputs)

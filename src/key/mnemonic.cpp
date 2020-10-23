@@ -236,7 +236,8 @@ int DetectLanguage(const std::string &sWordList)
     // Try detect the language
     // Tolerate spelling mistakes, will be reported in other functions
     char tmp[2048];
-    if (sWordList.size() >= 2048) {
+    memset(tmp, 0, sizeof(tmp)); // msan
+    if (sWordList.size() >= sizeof(tmp)) {
         return errorN(-1, "%s: Word List too long.", __func__);
     }
 

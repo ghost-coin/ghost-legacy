@@ -22,6 +22,10 @@ static inline size_t RecursiveDynamicUsage(const CTxIn& in) {
     for (std::vector<std::vector<unsigned char> >::const_iterator it = in.scriptWitness.stack.begin(); it != in.scriptWitness.stack.end(); it++) {
          mem += memusage::DynamicUsage(*it);
     }
+    mem += memusage::DynamicUsage(in.scriptData.stack);
+    for (std::vector<std::vector<unsigned char> >::const_iterator itd = in.scriptData.stack.begin(); itd != in.scriptData.stack.end(); itd++) {
+         mem += memusage::DynamicUsage(*itd);
+    }
     return mem;
 }
 
@@ -31,7 +35,13 @@ static inline size_t RecursiveDynamicUsage(const CTxOut& out) {
 
 static inline size_t RecursiveDynamicUsage(const CTxOutBase *out) {
     switch (out->GetType()) {
+        case OUTPUT_RINGCT:
+            return memusage::DynamicUsage(*out->GetPData()) +
+                   memusage::DynamicUsage(*out->GetPRangeproof());
         case OUTPUT_CT:
+            return memusage::DynamicUsage(*out->GetPData()) +
+                   memusage::DynamicUsage(*out->GetPRangeproof()) +
+                   RecursiveDynamicUsage(*out->GetPScriptPubKey());
         case OUTPUT_STANDARD:
             return RecursiveDynamicUsage(*out->GetPScriptPubKey());
         default:
@@ -48,6 +58,7 @@ static inline size_t RecursiveDynamicUsage(const CTransaction& tx) {
     for (std::vector<CTxOut>::const_iterator it = tx.vout.begin(); it != tx.vout.end(); it++) {
         mem += RecursiveDynamicUsage(*it) + 34;
     }
+    mem += memusage::DynamicUsage(tx.vpout);
     for (const auto &txout : tx.vpout) {
         mem += RecursiveDynamicUsage(txout.get()) + 34;
     }
@@ -62,6 +73,7 @@ static inline size_t RecursiveDynamicUsage(const CMutableTransaction& tx) {
     for (std::vector<CTxOut>::const_iterator it = tx.vout.begin(); it != tx.vout.end(); it++) {
         mem += RecursiveDynamicUsage(*it);
     }
+    mem += memusage::DynamicUsage(tx.vpout);
     for (const auto &txout : tx.vpout) {
         mem += RecursiveDynamicUsage(txout.get());
     }
