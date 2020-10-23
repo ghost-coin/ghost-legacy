@@ -6,7 +6,7 @@
 import json
 import re
 
-from test_framework.test_particl import ParticlTestFramework, connect_nodes_bi
+from test_framework.test_particl import ParticlTestFramework
 from test_framework.authproxy import JSONRPCException
 
 
@@ -26,8 +26,8 @@ class TxIndexTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 0, 2)
+        self.connect_nodes_bi(0, 1)
+        self.connect_nodes_bi(0, 2)
 
         self.sync_all()
 
@@ -154,8 +154,8 @@ class TxIndexTest(ParticlTestFramework):
 
         self.restart_node(0, extra_args=self.extra_args[0] + ['-wallet=default_wallet',])
         self.restart_node(2, extra_args=self.extra_args[2] + ['-wallet=default_wallet',])
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 0, 2)
+        self.connect_nodes_bi(0, 1)
+        self.connect_nodes_bi(0, 2)
 
         ms_addrs0 = []
         ms_pubkeys0 = []

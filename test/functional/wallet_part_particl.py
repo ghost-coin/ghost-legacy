@@ -699,6 +699,9 @@ class WalletParticlTest(ParticlTestFramework):
         out = textwrap.dedent('''\
             Wallet info
             ===========
+            Name: w_created
+            Format: bdb
+            Descriptors: no
             Encrypted: no
             HD (hd seed available): no
             Keypool Size: 0

@@ -8,18 +8,13 @@ import json
 import decimal
 
 from .test_framework import BitcoinTestFramework
-from .util import assert_equal, coverage, connect_nodes
+from .util import assert_equal, coverage
 
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     a = decimal.Decimal(a)
     b = decimal.Decimal(b)
     return abs(a-b) <= max(decimal.Decimal(rel_tol) * decimal.Decimal(max(abs(a), abs(b))), abs_tol)
-
-
-def connect_nodes_bi(nodes, a, b):
-    connect_nodes(nodes[a], b)
-    connect_nodes(nodes[b], a)
 
 
 def getIndexAtProperty(arr, name, value):
@@ -139,3 +134,7 @@ class ParticlTestFramework(BitcoinTestFramework):
     def run_test(self):
         """Tests must override this method to define test logic"""
         raise NotImplementedError
+
+    def connect_nodes_bi(self, a, b):
+        self.connect_nodes(a, b)
+        self.connect_nodes(b, a)

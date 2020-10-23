@@ -7,7 +7,6 @@ from test_framework.test_particl import (
     ParticlTestFramework,
     isclose,
 )
-from test_framework.util import connect_nodes
 from test_framework.messages import COIN
 
 
@@ -23,7 +22,7 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
-        connect_nodes(self.nodes[0], 1)
+        self.connect_nodes(0, 1)
         self.sync_all()
 
     def run_test(self):
@@ -98,7 +97,7 @@ class SmsgPaidFeeExtTest(ParticlTestFramework):
         self.log.info('Verify node settings survive a restart')
         self.stop_node(0)
         self.start_node(0, self.extra_args[0] + ['-wallet=default_wallet',])
-        connect_nodes(self.nodes[0], 1)
+        self.connect_nodes(0, 1)
 
         ro = nodes[0].walletsettings('stakingoptions')
         assert(float(ro['stakingoptions']['smsgfeeratetarget']) == 0.001)

@@ -8,7 +8,7 @@
 #
 
 from test_framework.test_particl import ParticlTestFramework
-from test_framework.util import connect_nodes, assert_equal
+from test_framework.util import assert_equal
 
 
 class SpentIndexTest(ParticlTestFramework):
@@ -30,9 +30,9 @@ class SpentIndexTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-        connect_nodes(self.nodes[0], 1)
-        connect_nodes(self.nodes[0], 2)
-        connect_nodes(self.nodes[0], 3)
+        self.connect_nodes(0, 1)
+        self.connect_nodes(0, 2)
+        self.connect_nodes(0, 3)
 
         self.sync_all()
 

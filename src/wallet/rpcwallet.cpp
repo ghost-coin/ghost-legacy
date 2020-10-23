@@ -3169,6 +3169,7 @@ static RPCHelpMan getwalletinfo()
                         {RPCResult::Type::STR, "walletname", "the wallet name"},
                         {RPCResult::Type::NUM, "walletversion", "the wallet version"},
                         {RPCResult::Type::STR_AMOUNT, "total_balance", "the total balance of the wallet in " + CURRENCY_UNIT},
+                        {RPCResult::Type::STR, "format", "the database format (bdb or sqlite)"},
                         {RPCResult::Type::STR_AMOUNT, "balance", "DEPRECATED. Identical to getbalances().mine.trusted"},
                         {RPCResult::Type::STR_AMOUNT, "blind_balance", "DEPRECATED. Identical to getbalances().mine.blind_trusted"},
                         {RPCResult::Type::STR_AMOUNT, "anon_balance", "DEPRECATED. Identical to getbalances().mine.anon_trusted"},
@@ -3214,6 +3215,7 @@ static RPCHelpMan getwalletinfo()
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("walletname", pwallet->GetName());
     obj.pushKV("walletversion", pwallet->GetVersion());
+    obj.pushKV("format", pwallet->GetDatabase().Format());
 
     if (pwallet->IsParticlWallet()) {
         CHDWalletBalances bal;

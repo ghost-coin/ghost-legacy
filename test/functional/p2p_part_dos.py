@@ -7,7 +7,6 @@ import time
 
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.messages import CBlockHeader, msg_headers
-from test_framework.util import connect_nodes
 
 _compactblocks = __import__('p2p_compactblocks')
 TestP2PConn = _compactblocks.TestP2PConn
@@ -62,7 +61,7 @@ class DoSTest(ParticlTestFramework):
         dos_nodes = 1
 
         nodes = self.nodes
-        connect_nodes(self.nodes[0], 1)
+        self.connect_nodes(0, 1)
 
         p2p_conns = []
         for i in range(dos_nodes):
@@ -192,7 +191,7 @@ class DoSTest(ParticlTestFramework):
         self.stop_node(0)
         self.start_node(0, self.extra_args[0] + ['-wallet=default_wallet',])
         time.sleep(2)
-        connect_nodes(self.nodes[0], 1)
+        self.connect_nodes(0, 1)
 
         self.log.info('After restart blockindexsize: %d' % (nodes[0].getblockchaininfo()['blockindexsize']))
         assert(nodes[0].getblockchaininfo()['blockindexsize'] == 21)

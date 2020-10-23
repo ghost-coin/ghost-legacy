@@ -12,7 +12,7 @@ from test_framework.test_particl import (
     isclose,
     getIndexAtProperty,
 )
-from test_framework.util import assert_raises_rpc_error, connect_nodes
+from test_framework.util import assert_raises_rpc_error
 from test_framework.authproxy import JSONRPCException
 
 
@@ -29,8 +29,8 @@ class SmsgPaidTest(ParticlTestFramework):
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
-        connect_nodes(self.nodes[0], 1)
-        connect_nodes(self.nodes[0], 2)
+        self.connect_nodes(0, 1)
+        self.connect_nodes(0, 2)
 
         self.sync_all()
 

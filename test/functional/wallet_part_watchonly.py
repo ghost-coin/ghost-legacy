@@ -3,7 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_particl import ParticlTestFramework, isclose, connect_nodes_bi
+from test_framework.test_particl import ParticlTestFramework, isclose
 
 
 class WalletParticlWatchOnlyTest(ParticlTestFramework):
@@ -19,8 +19,8 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 0, 2)
+        self.connect_nodes_bi(0, 1)
+        self.connect_nodes_bi(0, 2)
 
     def run_test(self):
         nodes = self.nodes

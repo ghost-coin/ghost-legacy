@@ -3,7 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.test_particl import ParticlTestFramework, connect_nodes_bi
+from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import assert_raises_rpc_error
 
 
@@ -20,8 +20,8 @@ class AnonTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 0, 2)
+        self.connect_nodes_bi(0, 1)
+        self.connect_nodes_bi(0, 2)
         self.sync_all()
 
     def run_test(self):
@@ -117,7 +117,7 @@ class AnonTest(ParticlTestFramework):
         self.sync_all()
         self.stop_node(1)
         self.start_node(1, self.extra_args[1] + ['-wallet=default_wallet',])
-        connect_nodes_bi(self.nodes, 0, 1)
+        self.connect_nodes_bi(0, 1)
         assert(len(nodes[1].listlockunspent()) == 2)
         assert(len(nodes[1].listunspentanon()) < len(unspent))
         assert(nodes[1].lockunspent(True, [unspent[0]]) == True)

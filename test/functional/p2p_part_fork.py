@@ -5,7 +5,7 @@
 
 import time
 
-from test_framework.test_particl import ParticlTestFramework, connect_nodes_bi
+from test_framework.test_particl import ParticlTestFramework
 from test_framework.authproxy import JSONRPCException
 
 
@@ -22,13 +22,13 @@ class ForkTest(ParticlTestFramework):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 0, 2)
-        connect_nodes_bi(self.nodes, 1, 2)
+        self.connect_nodes_bi(0, 1)
+        self.connect_nodes_bi(0, 2)
+        self.connect_nodes_bi(1, 2)
 
-        connect_nodes_bi(self.nodes, 3, 4)
-        connect_nodes_bi(self.nodes, 3, 5)
-        connect_nodes_bi(self.nodes, 4, 5)
+        self.connect_nodes_bi(3, 4)
+        self.connect_nodes_bi(3, 5)
+        self.connect_nodes_bi(4, 5)
 
         self.sync_all()
 
@@ -88,7 +88,7 @@ class ForkTest(ParticlTestFramework):
 
 
         # connect groups
-        connect_nodes_bi(self.nodes, 0, 3)
+        self.connect_nodes_bi(0, 3)
 
         fPass = False
         for i in range(15):

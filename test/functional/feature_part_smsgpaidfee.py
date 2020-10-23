@@ -7,7 +7,7 @@ import struct
 import copy
 
 from test_framework.test_particl import ParticlTestFramework
-from test_framework.util import connect_nodes, assert_raises_rpc_error
+from test_framework.util import assert_raises_rpc_error
 
 
 def getvarint(bb, ofs=0):
@@ -45,7 +45,7 @@ class SmsgPaidFeeTest(ParticlTestFramework):
     def setup_network(self, split=False):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
-        connect_nodes(self.nodes[0], 1)
+        self.connect_nodes(0, 1)
 
         self.sync_all()
 
