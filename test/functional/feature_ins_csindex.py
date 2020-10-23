@@ -64,13 +64,13 @@ class TxIndexTest(ParticlTestFramework):
 
         toScript = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake, 'addrspend': addrSpend})
         nodes[1].sendtypeto('part', 'part',
-                            [{'address': 'script', 'amount':12000, 'script':toScript['hex']},
-                             {'address': 'script', 'amount':12000, 'script':toScript['hex']}])
+                            [{'address': 'script', 'amount': 12000, 'script': toScript['hex']},
+                             {'address': 'script', 'amount': 12000, 'script': toScript['hex']}])
 
         addrStake2_stakeonly = nodes[1].validateaddress(addrStake2, True)['stakeonly_address']
         toScript = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake2_stakeonly, 'addrspend': addrSpend2})
         nodes[1].sendtypeto('part', 'part',
-                            [{'address': 'script', 'amount':12, 'script':toScript['hex']}])
+                            [{'address': 'script', 'amount': 12, 'script':toScript['hex']}])
 
         try:
             nodes[1].sendtoaddress(addrStake2_stakeonly, 12)

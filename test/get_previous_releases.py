@@ -51,7 +51,21 @@ SHA256_SUMS = {
 "10d1e53208aa7603022f4acc084a046299ab4ccf25fe01e81b3fb6f856772589": "bitcoin-0.19.1-i686-pc-linux-gnu.tar.gz",
 "1ae1b87de26487075cd2fd22e0d4ead87d969bd55c44f2f1d873ecdc6147ebb3": "bitcoin-0.19.1-osx64.tar.gz",
 "aa7a9563b48aa79252c8e7b6a41c07a5441bd9f14c5e4562cc72720ea6cb0ee5": "bitcoin-0.19.1-riscv64-linux-gnu.tar.gz",
-"5fcac9416e486d4960e1a946145566350ca670f9aaba99de6542080851122e4c": "bitcoin-0.19.1-x86_64-linux-gnu.tar.gz"
+"5fcac9416e486d4960e1a946145566350ca670f9aaba99de6542080851122e4c": "bitcoin-0.19.1-x86_64-linux-gnu.tar.gz",
+
+"14d967239267b256aec57df819669333c4c580e274b8f8c8d80ba485a15391bd": "particl--aarch64-linux-gnu.tar.gz",
+"070b9a588d586b64bd2f2b54ef3b46c7bd6e92fd5bda193b9ddf3f8e779db51c": "particl-0.19.0.1-arm-linux-gnueabihf.tar.gz",
+"019b70af552388c7ffd4f1bb8ecc9403a7e23c3281e4005bf818eeb99f8e229a": "particl-0.19.0.1-i686-pc-linux-gnu.tar.gz",
+"ef2157fb8323185600822921839eeb09c1f9e4eb20e6a51301447cef88ea4970": "particl-0.19.0.1-riscv64-linux-gnu.tar.gz",
+"255e3fe805382089ec02e9ce36e74f18516dc16b99a15e9f9ebb1d3fd34b0230": "particl-0.19.0.1-x86_64-linux-gnu.tar.gz",
+"524dc863a834150f9ecb77175898c63b82bfc743f7a0e14841b7063931070aee": "particl-0.19.0.1-osx64.tar.gz",
+
+"fc649cb46d9f4ea4919bb87be8b685474f95f89ae82996dd1e36f2089b69f90d": "particl-0.18.1.7-aarch64-linux-gnu.tar.gz",
+"779e57c7e4d680736f972de07276a1037de6c2aa8a2c95c8087c43c56927dc60": "particl-0.18.1.7-arm-linux-gnueabihf.tar.gz",
+"d5a2ac8dac2b3d262a1684c21b444890837ad51f2b93e2372f54fc51d7fccbcd": "particl-0.18.1.7-i686-pc-linux-gnu.tar.gz",
+"f85b7ee98dab3fbccc7a2de0d560c6861df05d7fbb11664f1da1a5f24d4dc58a": "particl-0.18.1.7-riscv64-linux-gnu.tar.gz",
+"e758db39812dd2edf2c4aec215dfce4802c37e3a881d81233d24afff9d61af32": "particl-0.18.1.7-x86_64-linux-gnu.tar.gz",
+"44c9f60a1f5fc8377cc1cef278a99b401a67ef0ff64429ce1aa21ca71bf73c04": "particl-0.18.1.7-osx64.tar.gz"
 }
 
 @contextlib.contextmanager
@@ -71,15 +85,17 @@ def download_binary(tag, args) -> int:
             return 0
         shutil.rmtree(tag)
     Path(tag).mkdir()
-    bin_path = 'bin/bitcoin-core-{}'.format(tag[1:])
+    bin_path = 'bin/particl-core-{}'.format(tag[1:])
     match = re.compile('v(.*)(rc[0-9]+)$').search(tag)
     if match:
-        bin_path = 'bin/bitcoin-core-{}/test.{}'.format(
+        bin_path = 'bin/particl-core-{}/test.{}'.format(
             match.group(1), match.group(2))
-    tarball = 'bitcoin-{tag}-{platform}.tar.gz'.format(
+    tarball = 'particl-{tag}-{platform}.tar.gz'.format(
         tag=tag[1:], platform=args.platform)
-    tarballUrl = 'https://bitcoincore.org/{bin_path}/{tarball}'.format(
-        bin_path=bin_path, tarball=tarball)
+    #tarballUrl = 'https://bitcoincore.org/{bin_path}/{tarball}'.format(
+    #    bin_path=bin_path, tarball=tarball)
+    tarballUrl = 'https://github.com/particl/particl-core/releases/download/v{tag}/{tarball}'.format(
+         tag=tag[1:], tarball=tarball)
 
     print('Fetching: {tarballUrl}'.format(tarballUrl=tarballUrl))
 
@@ -90,7 +106,7 @@ def download_binary(tag, args) -> int:
         return 1
 
     curlCmds = [
-        ['curl', '--remote-name', tarballUrl]
+        ['curl', '-L', '--remote-name', tarballUrl]
     ]
 
     for cmd in curlCmds:
@@ -111,7 +127,7 @@ def download_binary(tag, args) -> int:
     # Extract tarball
     ret = subprocess.run(['tar', '-zxf', tarball, '-C', tag,
                           '--strip-components=1',
-                          'bitcoin-{tag}'.format(tag=tag[1:])]).returncode
+                          'particl-{tag}'.format(tag=tag[1:])]).returncode
     if ret:
         return ret
 
@@ -120,7 +136,7 @@ def download_binary(tag, args) -> int:
 
 
 def build_release(tag, args) -> int:
-    githubUrl = "https://github.com/bitcoin/bitcoin"
+    githubUrl = "https://github.com/particl/particl-core"
     if args.remove_dir:
         if Path(tag).is_dir():
             shutil.rmtree(tag)
@@ -164,7 +180,7 @@ def build_release(tag, args) -> int:
         # Move binaries, so they're in the same place as in the
         # release download
         Path('bin').mkdir(exist_ok=True)
-        files = ['bitcoind', 'bitcoin-cli', 'bitcoin-tx']
+        files = ['particld', 'particl-cli', 'particl-tx']
         for f in files:
             Path('src/'+f).rename('bin/'+f)
     return 0

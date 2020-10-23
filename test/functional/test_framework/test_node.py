@@ -558,7 +558,7 @@ class TestNode():
         wait_until_helper(lambda: self.num_test_p2p_connections() == 0, timeout_factor=self.timeout_factor)
 
     def tx(self, args):
-        binary = self.binary[:-1] + '-tx'
+        binary = 'particl-tx'
         p_args = [binary, '-regtest'] + args
 
         self.log.debug("Running bitcoin-tx command: %s" % ' '.join(args))

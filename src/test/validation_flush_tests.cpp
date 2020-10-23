@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
         BOOST_TEST_MESSAGE("CCoinsViewCache memory usage: " << view.DynamicMemoryUsage());
     };
 
-    constexpr size_t MAX_COINS_CACHE_BYTES = 1024;
+    constexpr size_t MAX_COINS_CACHE_BYTES = 1024 + 64; // Inc for Particl
 
     // Without any coins in the cache, we shouldn't need to flush.
     BOOST_CHECK_EQUAL(
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
     // If the initial memory allocations of cacheCoins don't match these common
     // cases, we can't really continue to make assertions about memory usage.
     // End the test early.
-    if (view.DynamicMemoryUsage() != 32 && view.DynamicMemoryUsage() != 16) {
+    if ((view.DynamicMemoryUsage() != 32 && view.DynamicMemoryUsage() != 16) || sizeof(Coin) != 112) {
         // Add a bunch of coins to see that we at least flip over to CRITICAL.
 
         for (int i{0}; i < 1000; ++i) {
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate)
         float usage_percentage = (float)view.DynamicMemoryUsage() / (MAX_COINS_CACHE_BYTES + (1 << 10));
         BOOST_TEST_MESSAGE("CoinsTip usage percentage: " << usage_percentage);
         BOOST_CHECK(usage_percentage >= 0.9);
-        BOOST_CHECK(usage_percentage < 1);
+        BOOST_CHECK(usage_percentage < 1.0);
         BOOST_CHECK_EQUAL(
             chainstate.GetCoinsCacheSizeState(&tx_pool, MAX_COINS_CACHE_BYTES, 1 << 10),
             CoinsCacheSizeState::LARGE);

@@ -116,7 +116,7 @@ QString TransactionDesc::toHTML(interfaces::Node& node, interfaces::Wallet& wall
         util::Ref context{node};
         JSONRPCRequest request(context);
         QByteArray encodedName = QUrl::toPercentEncoding(QString::fromStdString(wallet.getWalletName()));
-        request.URI = "/wallet/"+std::string(encodedName.constData(), encodedName.length());
+        request.URI = "/wallet/" + std::string(encodedName.constData(), encodedName.length());
         request.fHelp = false;
         request.fSkipBlock = true;
         UniValue params(UniValue::VARR);

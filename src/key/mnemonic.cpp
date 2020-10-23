@@ -391,7 +391,8 @@ int Decode(int &nLanguage, const std::string &sWordListIn, std::vector<uint8_t> 
 
     LogPrint(BCLog::HDWALLET, "%s: Detected language %d.\n", __func__, nLanguage);
 
-    char tmp[2048];
+    char tmp[2048]; // msan
+    memset(tmp, 0, sizeof(tmp));
     if (sWordList.size() >= 2048) {
         sError = "Word List too long.";
         return errorN(2, "%s: %s", __func__, sError.c_str());
@@ -521,11 +522,11 @@ static int mnemonicKdf(const uint8_t *password, size_t lenPassword,
 
     uint8_t r[64];
 
-    int one = 0x01000000;
+    const unsigned char one_be[4] = {0, 0, 0, 1};
     CHMAC_SHA512 ctx(password, lenPassword);
     CHMAC_SHA512 ctx_state = ctx;
     ctx.Write(salt, lenSalt);
-    ctx.Write((uint8_t*)&one, 4);
+    ctx.Write(one_be, 4);
     ctx.Finalize(r);
     memcpy(out, r, 64);
 

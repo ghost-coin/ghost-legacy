@@ -65,7 +65,6 @@ UniValue CallRPC(std::string args, const util::Ref& context, std::string wallet,
     std::string strMethod = vArgs[0];
     vArgs.erase(vArgs.begin());
 
-
     JSONRPCRequest request(context);
     request.strMethod = strMethod;
     request.params = RPCConvertValues(strMethod, vArgs);
@@ -83,7 +82,7 @@ void AddUri(JSONRPCRequest &request, std::string wallet, bool force_wallet)
     if (!wallet.empty() || force_wallet) {
         char *encodedURI = evhttp_uriencode(wallet.c_str(), wallet.size(), false);
         if (encodedURI) {
-            request.URI = "/wallet/"+ std::string(encodedURI);
+            request.URI = "/wallet/" + std::string(encodedURI);
             free(encodedURI);
         } else {
             throw std::runtime_error("uri-encode failed");
@@ -96,7 +95,7 @@ void CallRPC(UniValue &rv, const JSONRPCRequest &request)
 {
     if (RPCIsInWarmup(nullptr)) SetRPCWarmupFinished();
     try {
-        rv= tableRPC.execute(request);
+        rv = tableRPC.execute(request);
     }
     catch (const UniValue& objError) {
         throw std::runtime_error(find_value(objError, "message").get_str());

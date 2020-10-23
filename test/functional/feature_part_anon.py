@@ -163,6 +163,10 @@ class AnonTest(ParticlTestFramework):
         wi_1_3 = w1_3.getwalletinfo()
         assert(wi_1_3['anon_balance'] == wi_1['anon_balance'])
 
+        # Coverage
+        wi_1_3.sendanontoblind(sxAddrTo0_1, 1.0)
+        wi_1_3.sendanontopart(sxAddrTo0_1, 1.0)
+
 
 if __name__ == '__main__':
     AnonTest().main()

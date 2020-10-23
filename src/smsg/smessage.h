@@ -178,6 +178,22 @@ public:
         return &hash[0];
     };
 
+    void set(const uint8_t *data)
+    {
+        size_t ofs = 0;
+        memcpy(hash, data + ofs, 4); ofs += 4;
+        memcpy(nonce, data + ofs, 4); ofs += 4;
+        memcpy(version, data + ofs, 2); ofs += 2;
+        flags = *(data + ofs);  ofs += 1;
+        memcpy(&timestamp, data + ofs, 8); ofs += 8;
+        memcpy(&m_ttl, data + ofs, 4); ofs += 4;
+        memcpy(iv, data + ofs, 16); ofs += 16;
+        memcpy(cpkR, data + ofs, 33); ofs += 33;
+        memcpy(mac, data + ofs, 32); ofs += 32;
+        memcpy(&nPayload, data + ofs, 4); ofs += 4;
+        pPayload = nullptr;
+    };
+
     uint8_t hash[4] = {0, 0, 0, 0};
     uint8_t nonce[4] = {0, 0, 0, 0};
     uint8_t version[2] = {2, 1};
@@ -483,8 +499,8 @@ public:
     int CheckFundingTx(const Consensus::Params &consensus_params, const SecureMessage *psmsg, const uint8_t *pPayload);
     int PruneFundingTxData();
 
-    int Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload);
-    int SetHash (uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);
+    int Validate(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_t nPayload);
+    int SetHash (SecureMessage *psmsg, uint8_t *pPayload, uint32_t nPayload);
 
     int Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID &addressTo, const std::string &message);
 

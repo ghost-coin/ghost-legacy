@@ -45,11 +45,11 @@ void CheckValid(smsg::SecureMessage &smsg, CKeyID &kFrom, CKeyID &kTo, bool expe
 {
     int rv = 0;
     BOOST_CHECK(0 == smsgModule.Encrypt(smsg, kFrom, kTo, sTestMessage));
-    BOOST_CHECK(0 == smsgModule.SetHash((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload));
+    BOOST_CHECK(0 == smsgModule.SetHash(&smsg, smsg.pPayload, smsg.nPayload));
     if (expect_pass) {
-        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Validate((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)), "Validate failed " << rv);
+        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Validate(&smsg, smsg.pPayload, smsg.nPayload)), "Validate failed " << rv);
     } else {
-        BOOST_CHECK_MESSAGE(0 != (rv = smsgModule.Validate((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)), "Validate passed " << rv);
+        BOOST_CHECK_MESSAGE(0 != (rv = smsgModule.Validate(&smsg, smsg.pPayload, smsg.nPayload)), "Validate passed " << rv);
     }
 
     // Reset
@@ -115,9 +115,9 @@ BOOST_AUTO_TEST_CASE(smsg_test)
 
         BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Encrypt(smsg, fSendAnonymous ? idNull : kFrom, kTo, sTestMessage)), "SecureMsgEncrypt " << rv);
 
-        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.SetHash((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)), "SecureMsgSetHash " << rv);
+        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.SetHash(&smsg, smsg.pPayload, smsg.nPayload)), "SecureMsgSetHash " << rv);
 
-        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Validate((uint8_t*)&smsg, smsg.pPayload, smsg.nPayload)), "SecureMsgValidate " << rv);
+        BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Validate(&smsg, smsg.pPayload, smsg.nPayload)), "SecureMsgValidate " << rv);
 
         BOOST_CHECK_MESSAGE(0 == (rv = smsgModule.Decrypt(false, kTo, smsg, msg)), "SecureMsgDecrypt " << rv);
 

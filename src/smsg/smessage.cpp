@@ -341,16 +341,18 @@ void ThreadSecureMsgPow(smsg::CSMSG *smsg_module)
 
             uint8_t *pHeader = &smsgStored.vchMessage[0];
             uint8_t *pPayload = &smsgStored.vchMessage[SMSG_HDR_LEN];
-            SecureMessage *psmsg = (SecureMessage*) pHeader;
+            //SecureMessage *psmsg = (SecureMessage*) pHeader;
+            SecureMessage smsg;
+            smsg.set(pHeader);
 
             const int64_t FUND_TXN_TIMEOUT = 3600 * 48;
             int64_t now = GetTime();
 
-            if (psmsg->IsPaidVersion()) {
-                if (smsgModule.CheckFundingTx(consensus_params, psmsg, pPayload) != SMSG_NO_ERROR) {
-                    if (psmsg->timestamp > now + FUND_TXN_TIMEOUT) {
+            if (smsg.IsPaidVersion()) {
+                if (smsgModule.CheckFundingTx(consensus_params, &smsg, pPayload) != SMSG_NO_ERROR) {
+                    if (smsg.timestamp > now + FUND_TXN_TIMEOUT) {
                         uint160 msgId;
-                        smsgModule.HashMsg(*psmsg, pPayload, psmsg->nPayload-32, msgId);
+                        smsgModule.HashMsg(smsg, pPayload, smsg.nPayload-32, msgId);
                         LogPrintf("%s: Funding txn timeout, dropping message %s\n", __func__, msgId.ToString());
                         LOCK(cs_smsgDB);
                         dbOutbox.EraseSmesg(chKey);
@@ -359,7 +361,7 @@ void ThreadSecureMsgPow(smsg::CSMSG *smsg_module)
                 }
             } else {
                 // Do proof of work
-                rv = smsgModule.SetHash(pHeader, pPayload, psmsg->nPayload);
+                rv = smsgModule.SetHash(&smsg, pPayload, smsg.nPayload);
                 if (rv == SMSG_SHUTDOWN_DETECTED) {
                     break; // Leave message in db when terminated due to shutdown
                 }
@@ -369,6 +371,7 @@ void ThreadSecureMsgPow(smsg::CSMSG *smsg_module)
                     dbOutbox.EraseSmesg(chKey);
                     continue;
                 }
+                memcpy(smsgStored.vchMessage.data(), smsg.data(), SMSG_HDR_LEN);
             }
 
 
@@ -381,7 +384,7 @@ void ThreadSecureMsgPow(smsg::CSMSG *smsg_module)
             // Add to message store
             {
                 LOCK(smsg_module->cs_smsg);
-                if (smsg_module->Store(pHeader, pPayload, psmsg->nPayload, true) != 0) {
+                if (smsg_module->Store(pHeader, pPayload, smsg.nPayload, true) != 0) {
                     LogPrintf("SecMsgPow: Could not place message in buckets, message removed.\n");
                     continue;
                 }
@@ -389,7 +392,7 @@ void ThreadSecureMsgPow(smsg::CSMSG *smsg_module)
 
             // Test if message was sent to self
             bool fOwnMessage;
-            if (smsg_module->ScanMessage(pHeader, pPayload, psmsg->nPayload, true, fOwnMessage) != 0) {
+            if (smsg_module->ScanMessage(pHeader, pPayload, smsg.nPayload, true, fOwnMessage) != 0) {
                 // Message recipient is not this node (or failed)
             }
         }
@@ -2537,13 +2540,15 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
 
     if (fOwnMessage) {
         // Save to inbox
-        SecureMessage *psmsg = (SecureMessage*) pHeader;
+        //SecureMessage *psmsg = (SecureMessage*) pHeader;
+        SecureMessage smsg;
+        smsg.set(pHeader);
 
         uint160 hash;
-        HashMsg(*psmsg, pPayload, nPayload-(psmsg->IsPaidVersion() ? 32 : 0), hash);
+        HashMsg(smsg, pPayload, nPayload-(smsg.IsPaidVersion() ? 32 : 0), hash);
 
         uint8_t chKey[30];
-        int64_t timestamp_be = (int64_t)bswap_64(psmsg->timestamp);
+        int64_t timestamp_be = (int64_t)bswap_64(smsg.timestamp);
         memcpy(&chKey[0], DBK_INBOX.data(), 2);
         memcpy(&chKey[2], &timestamp_be, 8);
         memcpy(&chKey[10], hash.begin(), 20);
@@ -2590,7 +2595,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
                 t.detach(); // thread runs free
             }
 
-            GetMainSignals().NewSecureMessage(psmsg, hash);
+            GetMainSignals().NewSecureMessage(&smsg, hash);
         }
 #endif
     }
@@ -3062,30 +3067,32 @@ int CSMSG::Receive(PeerManager *peerLogic, CNode *pfrom, std::vector<uint8_t> &v
             break;
         }
 
-        const SecureMessage *psmsg = (SecureMessage*) &vchData[n];
+        //const SecureMessage *psmsg = (SecureMessage*) &vchData[n];
+        SecureMessage smsg;
+        smsg.set(&vchData[n]);
         const uint8_t *pPayload = &vchData[n + SMSG_HDR_LEN];
-        if (!psmsg->IsPaidVersion() &&
+        if (!smsg.IsPaidVersion() &&
             now - start_time > SMSG_BUCKET_LEN * 2) { // buckets should be fully matched after time
-            if (psmsg->timestamp < now - SMSG_BUCKET_LEN * 3) {
+            if (smsg.timestamp < now - SMSG_BUCKET_LEN * 3) {
                 // If a free message is backdated, compare the hash to the current difficulty
 
                 uint256 msg_hash;
                 arith_uint256 target;
-                GetPowHash(psmsg, pPayload, psmsg->nPayload, msg_hash);
+                GetPowHash(&smsg, pPayload, smsg.nPayload, msg_hash);
                 {
                 LOCK(cs_main);
                 target.SetCompact(GetSmsgDifficulty(now, true));
                 }
 
                 if (UintToArith256(msg_hash) > target) {
-                    LogPrint(BCLog::SMSG, "Refusing free message %d, in the past.\n", psmsg->timestamp);
+                    LogPrint(BCLog::SMSG, "Refusing free message %d, in the past.\n", smsg.timestamp);
                     continue;
                 }
             }
         }
 
         int rv;
-        if ((rv = Validate(psmsg->data(), pPayload, psmsg->nPayload)) != 0) {
+        if ((rv = Validate(&smsg, pPayload, smsg.nPayload)) != 0) {
             // Message dropped
             if (rv == SMSG_INVALID_HASH) { // Invalid proof of work
                 SmsgMisbehaving(pfrom, 10);
@@ -3101,18 +3108,18 @@ int CSMSG::Receive(PeerManager *peerLogic, CNode *pfrom, std::vector<uint8_t> &v
         {
             LOCK(cs_smsg);
             // Store message, but don't hash bucket
-            if (Store(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload, false) != 0) {
+            if (Store(&vchData[n], &vchData[n + SMSG_HDR_LEN], smsg.nPayload, false) != 0) {
                 // Message dropped
                 break;
             }
 
             bool fOwnMessage;
-            if (ScanMessage(&vchData[n], &vchData[n + SMSG_HDR_LEN], psmsg->nPayload, true, fOwnMessage) != 0) {
+            if (ScanMessage(&vchData[n], &vchData[n + SMSG_HDR_LEN], smsg.nPayload, true, fOwnMessage) != 0) {
                 // message recipient is not this node (or failed)
             }
         } // cs_smsg
 
-        n += SMSG_HDR_LEN + psmsg->nPayload;
+        n += SMSG_HDR_LEN + smsg.nPayload;
     }
 
     {
@@ -3179,9 +3186,11 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
         return errorN(SMSG_GENERAL_ERROR, "%s - Null pointer to header or payload.", __func__);
     }
 
-    SecureMessage *psmsg = (SecureMessage*) pHeader;
+    //SecureMessage *psmsg = (SecureMessage*) pHeader;
+    SecureMessage smsg;
+    smsg.set(pHeader);
 
-    if (SMSG_NO_ERROR != CheckPurged(psmsg, pPayload)) {
+    if (SMSG_NO_ERROR != CheckPurged(&smsg, pPayload)) {
         return errorN(SMSG_PURGED_MSG, "%s: Purged message.", __func__);
     }
 
@@ -3194,14 +3203,14 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
     }
 
     int64_t now = GetAdjustedTime();
-    if (psmsg->timestamp > now + SMSG_TIME_LEEWAY) {
+    if (smsg.timestamp > now + SMSG_TIME_LEEWAY) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Message > now.", __func__);
     }
-    if (psmsg->timestamp < now - SMSG_RETENTION) {
+    if (smsg.timestamp < now - SMSG_RETENTION) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Message < SMSG_RETENTION.", __func__);
     }
 
-    int64_t bucket = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
+    int64_t bucket = smsg.timestamp - (smsg.timestamp % SMSG_BUCKET_LEN);
 
     std::string fileName = ToString(bucket) + "_01_wl.dat";
     fs::path fullpath = pathSmsgDir / fileName;
@@ -3232,9 +3241,11 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
         return errorN(SMSG_GENERAL_ERROR, "Null pointer to header or payload.");
     }
 
-    SecureMessage *psmsg = (SecureMessage*) pHeader;
+    //SecureMessage *psmsg = (SecureMessage*) pHeader;
+    SecureMessage smsg;
+    smsg.set(pHeader);
 
-    if (SMSG_NO_ERROR != CheckPurged(psmsg, pPayload)) {
+    if (SMSG_NO_ERROR != CheckPurged(&smsg, pPayload)) {
         return errorN(SMSG_PURGED_MSG, "%s: Purged message.", __func__);
     }
 
@@ -3248,16 +3259,16 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
     }
 
     int64_t now = GetAdjustedTime();
-    if (psmsg->timestamp > now + SMSG_TIME_LEEWAY) {
+    if (smsg.timestamp > now + SMSG_TIME_LEEWAY) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Message > now.", __func__);
     }
-    if (psmsg->timestamp < now - SMSG_RETENTION) {
+    if (smsg.timestamp < now - SMSG_RETENTION) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Message < SMSG_RETENTION.", __func__);
     }
 
-    int64_t bucketTime = psmsg->timestamp - (psmsg->timestamp % SMSG_BUCKET_LEN);
-    uint32_t nTTL = psmsg->m_ttl;
-    SecMsgToken token(psmsg->timestamp, pPayload, nPayload, 0, nTTL);
+    int64_t bucketTime = smsg.timestamp - (smsg.timestamp % SMSG_BUCKET_LEN);
+    uint32_t nTTL = smsg.m_ttl;
+    SecMsgToken token(smsg.timestamp, pPayload, nPayload, 0, nTTL);
     token.m_changed = now - bucketTime;
 
     SecMsgBucket &bucket = buckets[bucketTime];
@@ -3358,8 +3369,10 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
             continue;
         }
 
-        const SecureMessage *psmsg = (SecureMessage*) vchOne.data();
-        if (GetMsgID(psmsg, vchOne.data() + SMSG_HDR_LEN) != vMsgId) {
+        //const SecureMessage *psmsg = (SecureMessage*) vchOne.data();
+        SecureMessage smsg;
+        smsg.set(vchOne.data());
+        if (GetMsgID(&smsg, vchOne.data() + SMSG_HDR_LEN) != vMsgId) {
             continue;
         }
 
@@ -3578,9 +3591,9 @@ int CSMSG::PruneFundingTxData()
     return 0;
 };
 
-int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload)
+int CSMSG::Validate(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_t nPayload)
 {
-    const SecureMessage *psmsg = (SecureMessage*) pHeader;
+    //const SecureMessage *psmsg = (SecureMessage*) pHeader;
 
     if (psmsg->IsPaidVersion()) {
         if (nPayload > SMSG_MAX_MSG_BYTES_PAID) {
@@ -3663,9 +3676,9 @@ int CSMSG::Validate(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nP
 /** Proof of work and checksum
   * May run in a thread, if shutdown detected, return.
   */
-int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
+int CSMSG::SetHash(SecureMessage *psmsg, uint8_t *pPayload, uint32_t nPayload)
 {
-    SecureMessage *psmsg = (SecureMessage*) pHeader;
+    //SecureMessage *psmsg = (SecureMessage*) pHeader;
 
     int64_t nStart = GetTimeMillis();
     uint8_t civ[32];
@@ -3695,7 +3708,8 @@ int CSMSG::SetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         }
 
         CHMAC_SHA256 ctx(&civ[0], 32);
-        ctx.Write((uint8_t*) pHeader+4, SMSG_HDR_LEN-4);
+        //ctx.Write((uint8_t*) pHeader+4, SMSG_HDR_LEN-4);
+        ctx.Write((uint8_t*) psmsg->data()+4, SMSG_HDR_LEN-4);
         ctx.Write((uint8_t*) pPayload, nPayload);
         ctx.Finalize(msg_hash.begin());
 
@@ -3924,13 +3938,13 @@ int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread, bool 
     }
     LOCK(cs_smsg);
 
-    int rv = SetHash(psmsg->data(), psmsg->pPayload, psmsg->nPayload);
+    int rv = SetHash(psmsg, psmsg->pPayload, psmsg->nPayload);
     if (rv != SMSG_NO_ERROR) {
         sError = "SetHash failed " + std::string(GetString(rv));
         return rv;
     }
 
-    rv = Validate(psmsg->data(), psmsg->pPayload, psmsg->nPayload);
+    rv = Validate(psmsg, psmsg->pPayload, psmsg->nPayload);
     if (rv != SMSG_NO_ERROR) {
         sError = "Validation failed " + std::string(GetString(rv));
         return rv;
@@ -4331,11 +4345,13 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
         return errorN(SMSG_GENERAL_ERROR, "%s: null pointer to header or payload.", __func__);
     }
 
-    SecureMessage *psmsg = (SecureMessage*) pHeader;
-    if (psmsg->IsPaidVersion()) {
+    //SecureMessage *psmsg = (SecureMessage*) pHeader;
+    SecureMessage smsg;
+    smsg.set(pHeader);
+    if (smsg.IsPaidVersion()) {
         nPayload -= 32; // Exclude funding txid
     } else
-    if (psmsg->version[0] != 2) {
+    if (smsg.version[0] != 2) {
         return errorN(SMSG_UNKNOWN_VERSION, "%s: Unknown version number.", __func__);
     }
 
@@ -4343,8 +4359,8 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     //CPubKey R(psmsg->cpkR, psmsg->cpkR+33);
     //uint256 P = keyDest.ECDH(R);
     secp256k1_pubkey R;
-    if (!secp256k1_ec_pubkey_parse(secp256k1_context_smsg, &R, psmsg->cpkR, 33)) {
-        return errorN(SMSG_GENERAL_ERROR, "%s: secp256k1_ec_pubkey_parse failed: %s.", __func__, HexStr(Span<const unsigned char>(psmsg->cpkR, 33)));
+    if (!secp256k1_ec_pubkey_parse(secp256k1_context_smsg, &R, smsg.cpkR, 33)) {
+        return errorN(SMSG_GENERAL_ERROR, "%s: secp256k1_ec_pubkey_parse failed: %s.", __func__, HexStr(Span<const unsigned char>(smsg.cpkR, 33)));
     }
 
     uint256 P;
@@ -4365,12 +4381,12 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     uint8_t MAC[32];
 
     CHMAC_SHA256 ctx(key_m.data(), 32);
-    ctx.Write((uint8_t*) &psmsg->timestamp, sizeof(psmsg->timestamp));
-    ctx.Write((uint8_t*) psmsg->iv, sizeof(psmsg->iv));
+    ctx.Write((uint8_t*) &smsg.timestamp, sizeof(smsg.timestamp));
+    ctx.Write((uint8_t*) smsg.iv, sizeof(smsg.iv));
     ctx.Write((uint8_t*) pPayload, nPayload);
     ctx.Finalize(MAC);
 
-    if (part::memcmp_nta(MAC, psmsg->mac, 32) != 0) {
+    if (part::memcmp_nta(MAC, smsg.mac, 32) != 0) {
         LogPrint(BCLog::SMSG, "MAC does not match.\n"); // expected if message is not to address on node
         return SMSG_MAC_MISMATCH;
     }
@@ -4380,13 +4396,13 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     }
 
     SecMsgCrypter crypter;
-    crypter.SetKey(key_e, psmsg->iv);
+    crypter.SetKey(key_e, smsg.iv);
     std::vector<uint8_t> vchPayload;
     if (!crypter.Decrypt(pPayload, nPayload, vchPayload)) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Decrypt failed.", __func__);
     }
 
-    msg.timestamp = psmsg->timestamp;
+    msg.timestamp = smsg.timestamp;
     uint32_t lenData, lenPlain;
 
     uint8_t *pMsgData;
