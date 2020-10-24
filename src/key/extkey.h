@@ -15,8 +15,8 @@
 #include <script/ismine.h>
 
 static const uint32_t MAX_DERIVE_TRIES = 16;
-static const uint32_t BIP32_KEY_LEN = 82;       // raw, 74 + 4 bytes id + 4 checksum
-static const uint32_t BIP32_KEY_N_BYTES = 74;   // raw without id and checksum
+static const uint32_t BIP32_KEY_LEN = 82;       // Raw, 74 + 4 bytes id + 4 checksum
+static const uint32_t BIP32_KEY_N_BYTES = 74;   // Raw without id and checksum
 
 static const uint32_t MAX_KEY_PACK_SIZE = 128;
 static const uint32_t DEFAULT_LOOKAHEAD_SIZE = 64;
@@ -47,10 +47,10 @@ extern RecursiveMutex cs_extKey;
 enum MainExtKeyTypes
 {
     EKT_MASTER,
-    EKT_BIP44_MASTER, // display with btc prefix (xprv)
+    EKT_BIP44_MASTER, // Display with btc prefix (xprv)
     EKT_INTERNAL,
     EKT_EXTERNAL,
-    EKT_STEALTH,      // legacy v1 stealth addresses
+    EKT_STEALTH,      // Legacy v1 stealth addresses
     EKT_CONFIDENTIAL,
     EKT_STEALTH_SCAN,
     EKT_STEALTH_SPEND,
@@ -101,7 +101,7 @@ struct CExtPubKey {
     {
         s.write((char*)&nDepth, 1);
         s.write((char*)vchFingerprint, 4);
-        s.write((char*)&nChild, 4);
+        ser_writedata32(s, nChild);
         s.write((char*)chaincode, 32);
 
         pubkey.Serialize(s);
@@ -111,7 +111,7 @@ struct CExtPubKey {
     {
         s.read((char*)&nDepth, 1);
         s.read((char*)vchFingerprint, 4);
-        s.read((char*)&nChild, 4);
+        nChild = ser_readdata32(s);
         s.read((char*)chaincode, 32);
 
         pubkey.Unserialize(s);
@@ -149,7 +149,7 @@ struct CExtKey {
     {
         s.write((char*)&nDepth, 1);
         s.write((char*)vchFingerprint, 4);
-        s.write((char*)&nChild, 4);
+        ser_writedata32(s, nChild);
         s.write((char*)chaincode, 32);
 
         char fValid = key.IsValid();
@@ -163,7 +163,7 @@ struct CExtKey {
     {
         s.read((char*)&nDepth, 1);
         s.read((char*)vchFingerprint, 4);
-        s.read((char*)&nChild, 4);
+        nChild = ser_readdata32(s);
         s.read((char*)chaincode, 32);
 
         char tmp[33];
@@ -258,7 +258,7 @@ public:
     {
         s.write((char*)&nDepth, 1);
         s.write((char*)vchFingerprint, 4);
-        s.write((char*)&nChild, 4);
+        ser_writedata32(s, nChild);
         s.write((char*)chaincode, 32);
 
         char fValid = key.IsValid();
@@ -274,7 +274,7 @@ public:
     {
         s.read((char*)&nDepth, 1);
         s.read((char*)vchFingerprint, 4);
-        s.read((char*)&nChild, 4);
+        nChild = ser_readdata32(s);
         s.read((char*)chaincode, 32);
 
         char tmp[33];
@@ -870,7 +870,7 @@ inline int GetNumBytesReqForInt(uint64_t v)
     int n = 0;
     while (v != 0) {
         v >>= 8;
-        n ++;
+        n++;
     }
     return n;
 };

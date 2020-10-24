@@ -127,11 +127,11 @@ inline bool GetFundingTxid(const uint8_t *pPayload, size_t nPayload, uint256 &tx
     return true;
 };
 
-#pragma pack(push, 1)
 class SecureMessage
 {
 public:
     SecureMessage() {};
+    SecureMessage(const unsigned char *bytes) { set(bytes); };
     SecureMessage(bool fPaid, uint32_t ttl)
     {
         if (fPaid) {
@@ -168,31 +168,45 @@ public:
         return smsg::GetFundingTxid(pPayload, nPayload, txid);
     };
 
-    uint8_t *data()
-    {
-        return &hash[0];
-    };
-
-    const uint8_t *data() const
-    {
-        return &hash[0];
-    };
-
     void set(const uint8_t *data)
     {
         size_t ofs = 0;
+        uint64_t tmp64;
+        uint32_t tmp32;
         memcpy(hash, data + ofs, 4); ofs += 4;
         memcpy(nonce, data + ofs, 4); ofs += 4;
         memcpy(version, data + ofs, 2); ofs += 2;
         flags = *(data + ofs);  ofs += 1;
-        memcpy(&timestamp, data + ofs, 8); ofs += 8;
-        memcpy(&m_ttl, data + ofs, 4); ofs += 4;
+        memcpy(&tmp64, data + ofs, 8); ofs += 8;
+        timestamp = le64toh(tmp64);
+        memcpy(&tmp32, data + ofs, 4); ofs += 4;
+        m_ttl = le32toh(tmp32);
         memcpy(iv, data + ofs, 16); ofs += 16;
         memcpy(cpkR, data + ofs, 33); ofs += 33;
         memcpy(mac, data + ofs, 32); ofs += 32;
-        memcpy(&nPayload, data + ofs, 4); ofs += 4;
+        memcpy(&tmp32, data + ofs, 4); ofs += 4;
+        nPayload = le32toh(tmp32);
         pPayload = nullptr;
     };
+
+    void WriteHeader(uint8_t *data) const {
+        size_t ofs = 0;
+        uint64_t tmp64;
+        uint32_t tmp32;
+        memcpy(data + ofs, hash, 4); ofs += 4;
+        memcpy(data + ofs, nonce, 4); ofs += 4;
+        memcpy(data + ofs, version, 2); ofs += 2;
+        *(data + ofs) = flags;  ofs += 1;
+        tmp64 = htole64(timestamp);
+        memcpy(data + ofs, &tmp64, 8); ofs += 8;
+        tmp32 = htole32(m_ttl);
+        memcpy(data + ofs, &tmp32, 4); ofs += 4;
+        memcpy(data + ofs, iv, 16); ofs += 16;
+        memcpy(data + ofs, cpkR, 33); ofs += 33;
+        memcpy(data + ofs, mac, 32); ofs += 32;
+        tmp32 = htole32(nPayload);
+        memcpy(data + ofs, &tmp32, 4); ofs += 4;
+    }
 
     uint8_t hash[4] = {0, 0, 0, 0};
     uint8_t nonce[4] = {0, 0, 0, 0};
@@ -206,7 +220,6 @@ public:
     uint32_t nPayload = 0;
     uint8_t *pPayload = nullptr;
 };
-#pragma pack(pop)
 
 class MessageData
 {

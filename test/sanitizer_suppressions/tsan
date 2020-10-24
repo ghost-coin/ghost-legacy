@@ -14,7 +14,8 @@ mutex:UpdateTip
 mutex:PeerManager::UpdatedBlockTip
 mutex:g_best_block_mutex
 mutex:smsgModule
-mutex:condWaitFor
+mutex:ThreadStakeMiner
+mutex:AddToWalletIfInvolvingMe
 # race (TODO fix)
 race:CConnman::WakeMessageHandler
 race:CConnman::ThreadMessageHandler

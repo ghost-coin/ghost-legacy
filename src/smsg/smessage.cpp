@@ -339,11 +339,9 @@ void ThreadSecureMsgPow(smsg::CSMSG *smsg_module)
                 }
             }
 
-            uint8_t *pHeader = &smsgStored.vchMessage[0];
+            uint8_t *pHeader = smsgStored.vchMessage.data();
             uint8_t *pPayload = &smsgStored.vchMessage[SMSG_HDR_LEN];
-            //SecureMessage *psmsg = (SecureMessage*) pHeader;
-            SecureMessage smsg;
-            smsg.set(pHeader);
+            SecureMessage smsg(pHeader);
 
             const int64_t FUND_TXN_TIMEOUT = 3600 * 48;
             int64_t now = GetTime();
@@ -371,7 +369,7 @@ void ThreadSecureMsgPow(smsg::CSMSG *smsg_module)
                     dbOutbox.EraseSmesg(chKey);
                     continue;
                 }
-                memcpy(smsgStored.vchMessage.data(), smsg.data(), SMSG_HDR_LEN);
+                smsg.WriteHeader(pHeader);
             }
 
 
@@ -480,6 +478,7 @@ int CSMSG::BuildBucketSet()
     int64_t  now            = GetAdjustedTime();
     uint32_t nFiles         = 0;
     uint32_t nMessages      = 0;
+    unsigned char header_buffer[SMSG_HDR_LEN];
 
     fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
     fs::directory_iterator itend;
@@ -554,7 +553,7 @@ int CSMSG::BuildBucketSet()
                 SecMsgToken token;
                 token.offset = ofs;
                 errno = 0;
-                if (fread(smsg.data(), sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
+                if (fread(header_buffer, sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
                     if (errno != 0) {
                         LogPrintf("fread header failed: %s\n", strerror(errno));
                     } else {
@@ -562,6 +561,7 @@ int CSMSG::BuildBucketSet()
                     }
                     break;
                 }
+                smsg.set(header_buffer);
                 token.timestamp = smsg.timestamp;
                 token.ttl = smsg.version[0] == 0 && smsg.version[1] == 0 ? 0  // Purged message header
                     : smsg.m_ttl;
@@ -2106,6 +2106,7 @@ bool CSMSG::ScanBuckets(bool scan_all)
     uint32_t nFiles         = 0;
     uint32_t nMessages      = 0;
     uint32_t nFoundMessages = 0;
+    unsigned char header_buffer[SMSG_HDR_LEN];
 
     fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
     fs::directory_iterator itend;
@@ -2180,7 +2181,7 @@ bool CSMSG::ScanBuckets(bool scan_all)
 
             for (;;) {
                 errno = 0;
-                if (fread(smsg.data(), sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
+                if (fread(header_buffer, sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
                     if (errno != 0) {
                         LogPrintf("fread header failed: %s\n", strerror(errno));
                     } else {
@@ -2188,6 +2189,7 @@ bool CSMSG::ScanBuckets(bool scan_all)
                     }
                     break;
                 }
+                smsg.set(header_buffer);
 
                 try { vchData.resize(smsg.nPayload); } catch (std::exception &e) {
                     LogPrintf("SecureMsgWalletUnlocked(): Could not resize vchData, %u, %s\n", smsg.nPayload, e.what());
@@ -2195,7 +2197,7 @@ bool CSMSG::ScanBuckets(bool scan_all)
                     return false;
                 }
 
-                if (fread(&vchData[0], sizeof(uint8_t), smsg.nPayload, fp) != smsg.nPayload) {
+                if (fread(vchData.data(), sizeof(uint8_t), smsg.nPayload, fp) != smsg.nPayload) {
                     LogPrintf("fread data failed: %s\n", strerror(errno));
                     break;
                 }
@@ -2207,7 +2209,7 @@ bool CSMSG::ScanBuckets(bool scan_all)
                     // Expired message
                 } else {
                     bool fOwnMessage;
-                    int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage);
+                    int rv = ScanMessage(header_buffer, vchData.data(), smsg.nPayload, false, fOwnMessage);
                     if (rv == SMSG_NO_ERROR) {
                         nFoundMessages++;
                     } else {
@@ -2284,6 +2286,7 @@ int CSMSG::WalletUnlocked(CWallet *pwallet)
     uint32_t nFiles         = 0;
     uint32_t nMessages      = 0;
     uint32_t nFoundMessages = 0;
+    unsigned char header_buffer[SMSG_HDR_LEN];
 
     fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
     fs::directory_iterator itend;
@@ -2348,7 +2351,7 @@ int CSMSG::WalletUnlocked(CWallet *pwallet)
 
             for (;;) {
                 errno = 0;
-                if (fread(smsg.data(), sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
+                if (fread(header_buffer, sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
                     if (errno != 0) {
                         LogPrintf("fread header failed: %s\n", strerror(errno));
                     } else {
@@ -2356,6 +2359,7 @@ int CSMSG::WalletUnlocked(CWallet *pwallet)
                     }
                     break;
                 }
+                smsg.set(header_buffer);
 
                 try { vchData.resize(smsg.nPayload); } catch (std::exception &e) {
                     LogPrintf("%s: Could not resize vchData, %u, %s\n", __func__, smsg.nPayload, e.what());
@@ -2375,7 +2379,7 @@ int CSMSG::WalletUnlocked(CWallet *pwallet)
 
                 // Don't report to gui,
                 bool fOwnMessage;
-                int rv = ScanMessage(smsg.data(), &vchData[0], smsg.nPayload, false, fOwnMessage, true);
+                int rv = ScanMessage(header_buffer, &vchData[0], smsg.nPayload, false, fOwnMessage, true);
                 if (rv == 0) {
                     nFoundMessages++;
                 } else
@@ -2548,7 +2552,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
         HashMsg(smsg, pPayload, nPayload-(smsg.IsPaidVersion() ? 32 : 0), hash);
 
         uint8_t chKey[30];
-        int64_t timestamp_be = (int64_t)bswap_64(smsg.timestamp);
+        int64_t timestamp_be = (int64_t)htobe64(smsg.timestamp);
         memcpy(&chKey[0], DBK_INBOX.data(), 2);
         memcpy(&chKey[2], &timestamp_be, 8);
         memcpy(&chKey[10], hash.begin(), 20);
@@ -2912,19 +2916,23 @@ int CSMSG::Retrieve(const SecMsgToken &token, std::vector<uint8_t> &vchData)
         return errorN(SMSG_GENERAL_ERROR, "%s - fseek, strerror: %s.", __func__, strerror(errno));
     }
 
-    SecureMessage smsg;
+
+    try {vchData.resize(SMSG_HDR_LEN);} catch (std::exception &e) {
+        fclose(fp);
+        return errorN(SMSG_ALLOCATE_FAILED, "%s - Could not resize vchData, %u, %s.", __func__, SMSG_HDR_LEN, e.what());
+    }
     errno = 0;
-    if (fread(smsg.data(), sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
+    if (fread(vchData.data(), sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
         fclose(fp);
         return errorN(SMSG_GENERAL_ERROR, "%s - read header failed, strerror: %s.", __func__, strerror(errno));
     }
+    SecureMessage smsg(vchData.data());
 
     try {vchData.resize(SMSG_HDR_LEN + smsg.nPayload);} catch (std::exception &e) {
         fclose(fp);
         return errorN(SMSG_ALLOCATE_FAILED, "%s - Could not resize vchData, %u, %s.", __func__, SMSG_HDR_LEN + smsg.nPayload, e.what());
     }
 
-    memcpy(vchData.data(), smsg.data(), SMSG_HDR_LEN);
     errno = 0;
     if (fread(&vchData[SMSG_HDR_LEN], sizeof(uint8_t), smsg.nPayload, fp) != smsg.nPayload) {
         fclose(fp);
@@ -2939,6 +2947,8 @@ int CSMSG::Remove(const SecMsgToken &token)
 {
     LogPrint(BCLog::SMSG, "%s: %d.\n", __func__, token.timestamp);
     AssertLockHeld(cs_smsg);
+
+    unsigned char header_buffer[SMSG_HDR_LEN];
 
     fs::path pathSmsgDir = GetDataDir() / STORE_DIR;
 
@@ -2958,12 +2968,12 @@ int CSMSG::Remove(const SecMsgToken &token)
         return errorN(SMSG_GENERAL_ERROR, "%s - fseek, strerror: %s.", __func__, strerror(errno));
     }
 
-    SecureMessage smsg;
     errno = 0;
-    if (fread(smsg.data(), sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
+    if (fread(header_buffer, sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN) {
         fclose(fp);
         return errorN(SMSG_GENERAL_ERROR, "%s - read header failed, strerror: %s.", __func__, strerror(errno));
     }
+    SecureMessage smsg(header_buffer);
 
     uint16_t z = 0;
     if (0 != fseek(fp, token.offset + 4, SEEK_SET)
@@ -3186,9 +3196,7 @@ int CSMSG::StoreUnscanned(const uint8_t *pHeader, const uint8_t *pPayload, uint3
         return errorN(SMSG_GENERAL_ERROR, "%s - Null pointer to header or payload.", __func__);
     }
 
-    //SecureMessage *psmsg = (SecureMessage*) pHeader;
-    SecureMessage smsg;
-    smsg.set(pHeader);
+    SecureMessage smsg(pHeader);
 
     if (SMSG_NO_ERROR != CheckPurged(&smsg, pPayload)) {
         return errorN(SMSG_PURGED_MSG, "%s: Purged message.", __func__);
@@ -3241,9 +3249,7 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
         return errorN(SMSG_GENERAL_ERROR, "Null pointer to header or payload.");
     }
 
-    //SecureMessage *psmsg = (SecureMessage*) pHeader;
-    SecureMessage smsg;
-    smsg.set(pHeader);
+    SecureMessage smsg(pHeader);
 
     if (SMSG_NO_ERROR != CheckPurged(&smsg, pPayload)) {
         return errorN(SMSG_PURGED_MSG, "%s: Purged message.", __func__);
@@ -3327,7 +3333,9 @@ int CSMSG::Store(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayl
 
 int CSMSG::Store(const SecureMessage &smsg, bool fHashBucket)
 {
-    return Store(smsg.data(), smsg.pPayload, smsg.nPayload, fHashBucket);
+    unsigned char header_buffer[SMSG_HDR_LEN];
+    smsg.WriteHeader(header_buffer);
+    return Store(header_buffer, smsg.pPayload, smsg.nPayload, fHashBucket);
 };
 
 int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
@@ -3343,7 +3351,7 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
     int64_t now = GetTime();
     int64_t msgtime;
     memcpy(&msgtime, vMsgId.data(), 8);
-    msgtime = (int64_t)bswap_64((uint64_t)msgtime);
+    msgtime = (int64_t)htobe64((uint64_t)msgtime);
     SecMsgPurged purged(msgtime, now);
 
     uint8_t chKey[30];
@@ -3695,6 +3703,9 @@ int CSMSG::SetHash(SecureMessage *psmsg, uint8_t *pPayload, uint32_t nPayload)
     target_difficulty.SetCompact(GetSmsgDifficulty(psmsg->timestamp));
     }
 
+    unsigned char header_buffer[SMSG_HDR_LEN];
+    psmsg->WriteHeader(header_buffer);
+
     // Break for HMAC_CTX_cleanup
     for (;;) {
         if (!fSecMsgEnabled) {
@@ -3702,14 +3713,14 @@ int CSMSG::SetHash(SecureMessage *psmsg, uint8_t *pPayload, uint32_t nPayload)
         }
 
         memcpy(&psmsg->nonce[0], &nonce, 4);
+        memcpy(header_buffer + 4, &nonce, 4);
 
         for (int i = 0; i < 32; i+=4) {
             memcpy(civ+i, &nonce, 4);
         }
 
         CHMAC_SHA256 ctx(&civ[0], 32);
-        //ctx.Write((uint8_t*) pHeader+4, SMSG_HDR_LEN-4);
-        ctx.Write((uint8_t*) psmsg->data()+4, SMSG_HDR_LEN-4);
+        ctx.Write((uint8_t*) header_buffer+4, SMSG_HDR_LEN-4);
         ctx.Write((uint8_t*) pPayload, nPayload);
         ctx.Finalize(msg_hash.begin());
 
@@ -3899,7 +3910,8 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
     // Calculate a 32 byte MAC with HMACSHA256, using key_m as salt
     //  Message authentication code, (hash of timestamp + iv + destination + payload)
     CHMAC_SHA256 ctx(&key_m[0], 32);
-    ctx.Write((uint8_t*) &smsg.timestamp, sizeof(smsg.timestamp));
+    int64_t tmp64 = htole64(smsg.timestamp);
+    ctx.Write((uint8_t*) &tmp64, sizeof(tmp64));
     ctx.Write((uint8_t*) smsg.iv, sizeof(smsg.iv));
     ctx.Write((uint8_t*) vchCiphertext.data(), vchCiphertext.size());
     ctx.Finalize(smsg.mac);
@@ -3923,7 +3935,9 @@ int CSMSG::Import(SecureMessage *psmsg, std::string &sError, bool setread, bool 
     }
 
     bool fOwnMessage;
-    if (ScanMessage(psmsg->data(), psmsg->pPayload, psmsg->nPayload, false, fOwnMessage) != 0) {
+    unsigned char header_buffer[SMSG_HDR_LEN];
+    psmsg->WriteHeader(header_buffer);
+    if (ScanMessage(header_buffer, psmsg->pPayload, psmsg->nPayload, false, fOwnMessage) != 0) {
         // message recipient is not this node (or failed)
         return SMSG_GENERAL_ERROR;
     }
@@ -4046,7 +4060,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
     if (submit_msg) {
         // Place message in send queue, proof of work will happen in a thread.
         uint8_t chKey[30];
-        int64_t timestamp_be = (int64_t)bswap_64(smsg.timestamp);
+        int64_t timestamp_be = (int64_t)htobe64(smsg.timestamp);
         memcpy(&chKey[0], DBK_QUEUED.data(), 2);
         memcpy(&chKey[2], &timestamp_be, 8);
         memcpy(&chKey[10], msgId.begin(), 20);
@@ -4061,7 +4075,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
             return SMSG_ALLOCATE_FAILED;
         }
 
-        memcpy(&smsgSQ.vchMessage[0], smsg.data(), SMSG_HDR_LEN);
+        smsg.WriteHeader(smsgSQ.vchMessage.data());
         memcpy(&smsgSQ.vchMessage[SMSG_HDR_LEN], smsg.pPayload, smsg.nPayload);
 
         {
@@ -4130,7 +4144,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 
             // Save sent message to db
             uint8_t chKey[30];
-            int64_t timestamp_be = (int64_t)bswap_64(smsgForOutbox.timestamp);
+            int64_t timestamp_be = (int64_t)htobe64(smsgForOutbox.timestamp);
             memcpy(&chKey[0], DBK_OUTBOX.data(), 2);
             memcpy(&chKey[2], &timestamp_be, 8);
             memcpy(&chKey[10], msgId.begin(), 20);
@@ -4148,7 +4162,7 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
                 sError = "Could not allocate memory.";
                 return SMSG_ALLOCATE_FAILED;
             }
-            memcpy(&smsgOutbox.vchMessage[0], &smsgForOutbox.hash[0], SMSG_HDR_LEN);
+            smsgForOutbox.WriteHeader(smsgOutbox.vchMessage.data());
             memcpy(&smsgOutbox.vchMessage[SMSG_HDR_LEN], smsgForOutbox.pPayload, smsgForOutbox.nPayload);
 
             {
@@ -4171,13 +4185,15 @@ bool CSMSG::GetPowHash(const SecureMessage *psmsg, const uint8_t *pPayload, uint
     uint8_t civ[32];
     uint32_t nonce;
     memcpy(&nonce, &psmsg->nonce[0], 4);
+    unsigned char header_buffer[SMSG_HDR_LEN];
 
     for (int i = 0; i < 32; i+=4) {
         memcpy(civ+i, &nonce, 4);
     }
 
     CHMAC_SHA256 ctx(&civ[0], 32);
-    ctx.Write(((uint8_t*) psmsg)+4, SMSG_HDR_LEN-4);
+    psmsg->WriteHeader(header_buffer);
+    ctx.Write(header_buffer + 4, SMSG_HDR_LEN - 4);
     ctx.Write((uint8_t*) pPayload, nPayload);
     ctx.Finalize(hash.begin());
 
@@ -4186,12 +4202,14 @@ bool CSMSG::GetPowHash(const SecureMessage *psmsg, const uint8_t *pPayload, uint
 
 int CSMSG::HashMsg(const SecureMessage &smsg, const uint8_t *pPayload, uint32_t nPayload, uint160 &hash)
 {
+    unsigned char header_buffer[SMSG_HDR_LEN];
     if (smsg.nPayload < nPayload) {
         return errorN(SMSG_GENERAL_ERROR, "%s: Data length mismatch.\n", __func__);
     }
 
+    smsg.WriteHeader(header_buffer);
     CRIPEMD160()
-        .Write(smsg.data() + 8, SMSG_HDR_LEN - 8) // MsgId excludes checksum and nonce
+        .Write(header_buffer + 8, SMSG_HDR_LEN - 8) // MsgId excludes checksum and nonce
         .Write(pPayload, nPayload)
         .Finalize(hash.begin());
 
@@ -4301,7 +4319,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
             pw->CommitTransaction(wtx.tx, wtx.mapValue, wtx.vOrderForm);
         }
     }
-    memcpy(smsg.pPayload+(smsg.nPayload-32), txfundId.begin(), 32);
+    memcpy(smsg.pPayload + (smsg.nPayload-32), txfundId.begin(), 32);
 #else
     return SMSG_WALLET_UNSET;
 #endif
@@ -4311,7 +4329,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
 std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage *psmsg, const uint8_t *pPayload)
 {
     std::vector<uint8_t> rv(28);
-    int64_t timestamp_be = (int64_t)bswap_64(psmsg->timestamp);
+    int64_t timestamp_be = (int64_t)htobe64(psmsg->timestamp);
     memcpy(rv.data(), &timestamp_be, 8);
 
     HashMsg(*psmsg, pPayload, psmsg->nPayload-(psmsg->IsPaidVersion() ? 32 : 0), *((uint160*)&rv[8]));
@@ -4322,7 +4340,7 @@ std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage *psmsg, const uint8_t *
 std::vector<uint8_t> CSMSG::GetMsgID(const SecureMessage &smsg)
 {
     std::vector<uint8_t> rv(28);
-    int64_t timestamp_be = (int64_t)bswap_64(smsg.timestamp);
+    int64_t timestamp_be = (int64_t)htobe64(smsg.timestamp);
     memcpy(rv.data(), &timestamp_be, 8);
 
     HashMsg(smsg, smsg.pPayload, smsg.nPayload-(smsg.IsPaidVersion() ? 32 : 0), *((uint160*)&rv[8]));
@@ -4345,9 +4363,7 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
         return errorN(SMSG_GENERAL_ERROR, "%s: null pointer to header or payload.", __func__);
     }
 
-    //SecureMessage *psmsg = (SecureMessage*) pHeader;
-    SecureMessage smsg;
-    smsg.set(pHeader);
+    SecureMessage smsg(pHeader);
     if (smsg.IsPaidVersion()) {
         nPayload -= 32; // Exclude funding txid
     } else
@@ -4381,7 +4397,8 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     uint8_t MAC[32];
 
     CHMAC_SHA256 ctx(key_m.data(), 32);
-    ctx.Write((uint8_t*) &smsg.timestamp, sizeof(smsg.timestamp));
+    int64_t tmp64 = htole64(smsg.timestamp);
+    ctx.Write((uint8_t*) &tmp64, sizeof(tmp64));
     ctx.Write((uint8_t*) smsg.iv, sizeof(smsg.iv));
     ctx.Write((uint8_t*) pPayload, nPayload);
     ctx.Finalize(MAC);
@@ -4502,7 +4519,9 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
 
 int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, const SecureMessage &smsg, MessageData &msg)
 {
-    return CSMSG::Decrypt(fTestOnly, keyDest, address, smsg.data(), smsg.pPayload, smsg.nPayload, msg);
+    unsigned char header_buffer[SMSG_HDR_LEN];
+    smsg.WriteHeader(header_buffer);
+    return CSMSG::Decrypt(fTestOnly, keyDest, address, header_buffer, smsg.pPayload, smsg.nPayload, msg);
 };
 
 int CSMSG::Decrypt(bool fTestOnly, const CKeyID &address, const uint8_t *pHeader, const uint8_t *pPayload, uint32_t nPayload, MessageData &msg)
@@ -4536,7 +4555,9 @@ int CSMSG::Decrypt(bool fTestOnly, const CKeyID &address, const uint8_t *pHeader
 
 int CSMSG::Decrypt(bool fTestOnly, const CKeyID &address, const SecureMessage &smsg, MessageData &msg)
 {
-    return CSMSG::Decrypt(fTestOnly, address, smsg.data(), smsg.pPayload, smsg.nPayload, msg);
+    unsigned char header_buffer[SMSG_HDR_LEN];
+    smsg.WriteHeader(header_buffer);
+    return CSMSG::Decrypt(fTestOnly, address, header_buffer, smsg.pPayload, smsg.nPayload, msg);
 };
 
 double GetDifficulty(uint32_t compact)

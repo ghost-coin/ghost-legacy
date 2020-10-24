@@ -942,7 +942,9 @@ static UniValue smsgsend(const JSONRPCRequest &request)
         }
 
         if (!submit_msg) {
-            result.pushKV("msg", HexStr(Span<const unsigned char>(smsgOut.data(), smsg::SMSG_HDR_LEN)) +
+            unsigned char header_buffer[smsg::SMSG_HDR_LEN];
+            smsgOut.WriteHeader(header_buffer);
+            result.pushKV("msg", HexStr(Span<const unsigned char>(header_buffer, smsg::SMSG_HDR_LEN)) +
                                  HexStr(Span<const unsigned char>(smsgOut.pPayload, smsgOut.nPayload)));
         }
 
@@ -1096,8 +1098,9 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                     && !(smsgStored.status & SMSG_MASK_UNREAD)) {
                     continue;
                 }
-                uint8_t *pHeader = &smsgStored.vchMessage[0];
-                const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) pHeader;
+                const unsigned char *pHeader = smsgStored.vchMessage.data();
+                smsg::SecureMessage smsg(pHeader);
+                const smsg::SecureMessage *psmsg = &smsg;
 
                 UniValue objM(UniValue::VOBJ);
                 objM.pushKV("msgid", HexStr(Span<const unsigned char>(&chKey[2], 28))); // timestamp+hash
@@ -1258,8 +1261,9 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
             UniValue messageList(UniValue::VARR);
 
             while (dbOutbox.NextSmesg(it, db_prefix, chKey, smsgStored)) {
-                uint8_t *pHeader = &smsgStored.vchMessage[0];
-                const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) pHeader;
+                const unsigned char *pHeader = smsgStored.vchMessage.data();
+                smsg::SecureMessage smsg(pHeader);
+                const smsg::SecureMessage *psmsg = &smsg;
 
                 UniValue objM(UniValue::VOBJ);
                 objM.pushKV("msgid", HexStr(Span<const unsigned char>(&chKey[2], 28))); // timestamp+hash
@@ -1624,7 +1628,7 @@ static UniValue smsgview(const JSONRPCRequest &request)
                 uint32_t nPayload = smsgStored.vchMessage.size() - smsg::SMSG_HDR_LEN;
                 int rv;
                 if ((rv = smsgModule.Decrypt(false, fInbox ? smsgStored.addrTo : smsgStored.addrOutbox,
-                    &smsgStored.vchMessage[0], &smsgStored.vchMessage[smsg::SMSG_HDR_LEN], nPayload, msg)) == 0) {
+                    smsgStored.vchMessage.data(), &smsgStored.vchMessage[smsg::SMSG_HDR_LEN], nPayload, msg)) == 0) {
                     if ((tFrom > 0 && msg.timestamp < tFrom)
                         || (tTo > 0 && msg.timestamp > tTo)) {
                         continue;
@@ -1831,7 +1835,8 @@ static UniValue smsgone(const JSONRPCRequest &request)
         }
     }
 
-    const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) &smsgStored.vchMessage[0];
+    smsg::SecureMessage smsg(smsgStored.vchMessage.data());
+    const smsg::SecureMessage *psmsg = &smsg;
 
     result.pushKV("msgid", sMsgId);
     result.pushKV("version", strprintf("%02x%02x", psmsg->version[0], psmsg->version[1]));
@@ -1868,7 +1873,7 @@ static UniValue smsgone(const JSONRPCRequest &request)
 
     int rv;
     if ((rv = smsgModule.Decrypt(false, fInbox ? smsgStored.addrTo : smsgStored.addrOutbox,
-        &smsgStored.vchMessage[0], &smsgStored.vchMessage[smsg::SMSG_HDR_LEN], nPayload, msg)) == 0) {
+        smsgStored.vchMessage.data(), &smsgStored.vchMessage[smsg::SMSG_HDR_LEN], nPayload, msg)) == 0) {
         result.pushKV("from", msg.sFromAddress);
 
         if (sEnc == "none") {
@@ -1935,8 +1940,7 @@ static UniValue smsgimport(const JSONRPCRequest &request)
     }
 
     std::vector<uint8_t> vsmsg = ParseHex(str_msg.c_str());
-    smsg::SecureMessage smsg;
-    memcpy(smsg.data(), vsmsg.data(), smsg::SMSG_HDR_LEN);
+    smsg::SecureMessage smsg(vsmsg.data());
     smsg.pPayload = vsmsg.data() + smsg::SMSG_HDR_LEN;
 
     UniValue result(UniValue::VOBJ);
@@ -2236,8 +2240,8 @@ static UniValue smsgzmqpush(const JSONRPCRequest &request)
                 continue;
             }
 
-            uint8_t *pHeader = &smsgStored.vchMessage[0];
-            const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) pHeader;
+            smsg::SecureMessage smsg(smsgStored.vchMessage.data());
+            const smsg::SecureMessage *psmsg = &smsg;
 
             std::vector<uint8_t> vchUint160;
             vchUint160.resize(20);
@@ -2313,7 +2317,8 @@ static UniValue smsgdebug(const JSONRPCRequest &request)
                     LogPrintf("SecureMsgRetrieve failed %d.\n", token.timestamp);
                     continue;
                 }
-                const smsg::SecureMessage *psmsg = (smsg::SecureMessage*) vch_msg.data();
+                smsg::SecureMessage smsg(vch_msg.data());
+                const smsg::SecureMessage *psmsg = &smsg;
                 if (psmsg->version[0] == 0 && psmsg->version[1] == 0) {
                     continue; // Skip purged
                 }

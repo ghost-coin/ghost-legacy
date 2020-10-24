@@ -46,6 +46,7 @@ const char *ExtKeyGetString(int ind)
 
 std::vector<uint8_t> &SetCompressedInt64(std::vector<uint8_t> &v, uint64_t n)
 {
+    n = htole64(n);
     int b = GetNumBytesReqForInt(n);
     v.resize(b);
     if (b > 0) {
@@ -63,6 +64,7 @@ int64_t GetCompressedInt64(const std::vector<uint8_t> &v, uint64_t &n)
     } else
     if (b < 9) {
         memcpy((uint8_t*) &n, &v[0], b);
+        n = le64toh(n);
     }
     return (int64_t)n;
 };
