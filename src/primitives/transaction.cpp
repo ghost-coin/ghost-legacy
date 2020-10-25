@@ -56,6 +56,7 @@ bool ExtractCoinStakeUint32(const std::vector<uint8_t> &vData, DataOutputTypes g
             }
             if (get_type == current_type) {
                 memcpy(&out, &vData[ofs + 1], 4);
+                out = le32toh(out);
                 return true;
             }
             ofs += 5;
@@ -313,6 +314,7 @@ CAmount CTransaction::GetTotalSMSGFees() const
         for (size_t k = 0; k < n; ++k) {
             uint32_t nAmount;
             memcpy(&nAmount, &txd->vData[1+k*24+20], 4);
+            nAmount = le32toh(nAmount);
             smsg_fees += nAmount;
         }
     }

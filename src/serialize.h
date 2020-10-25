@@ -1173,6 +1173,13 @@ inline int GetVarInt(const std::vector<uint8_t> &v, size_t ofs, uint64_t &i, siz
     }
     return 0; // 0 == success
 };
+
+inline void SetAmount(std::vector<uint8_t> &v, int64_t amount)
+{
+    v.resize(8);
+    amount = (int64_t) htole64((uint64_t)amount);
+    memcpy(v.data(), &amount, 8);
+};
 } // namespace part
 
 #endif // BITCOIN_SERIALIZE_H

@@ -75,7 +75,7 @@ static ScriptError VerifyWithFlag(const CTransaction& output, const CMutableTran
     ScriptError error;
     CTransaction inputi(input);
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &output.vout[0].nValue, 8);
+    part::SetAmount(vchAmount, output.vout[0].nValue);
     bool ret = VerifyScript(inputi.vin[0].scriptSig, output.vout[0].scriptPubKey, &inputi.vin[0].scriptWitness, flags, TransactionSignatureChecker(&inputi, 0, vchAmount), &error);
     BOOST_CHECK((ret == true) == (error == SCRIPT_ERR_OK));
 

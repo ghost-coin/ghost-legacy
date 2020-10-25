@@ -6,7 +6,7 @@
 #define PARTICL_POS_MINER_H
 
 #include <thread>
-#include <condition_variable>
+#include <threadinterrupt.h>
 #include <atomic>
 #include <vector>
 #include <string>
@@ -18,14 +18,10 @@ class CBlock;
 class StakeThread
 {
 public:
-    void condWaitFor(int ms);
-
     StakeThread() {};
     std::thread thread;
-    std::condition_variable condMinerProc;
-    std::mutex mtxMinerProc;
     std::string sName;
-    bool fWakeMinerProc = false;
+    CThreadInterrupt m_thread_interrupt;
 };
 
 extern std::vector<StakeThread*> vStakeThreads;

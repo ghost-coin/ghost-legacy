@@ -25,7 +25,7 @@ sign_multisig(const CScript& scriptPubKey, const std::vector<CKey>& keys, const 
 {
     CAmount amount = 0;
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &amount, 8);
+    part::SetAmount(vchAmount, amount);
     uint256 hash = SignatureHash(scriptPubKey, transaction, whichIn, SIGHASH_ALL, vchAmount, SigVersion::BASE);
 
     CScript result;
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(multisig_verify)
     CKey key[4];
     CAmount amount = 0;
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &amount, 8);
+    part::SetAmount(vchAmount, amount);
 
     for (int i = 0; i < 4; i++)
         key[i].MakeNewKey(true);

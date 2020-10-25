@@ -13,9 +13,17 @@ mutex:CConnman::SocketHandler
 mutex:UpdateTip
 mutex:PeerManager::UpdatedBlockTip
 mutex:g_best_block_mutex
+# condition_variable false positive
 mutex:smsgModule
 mutex:ThreadStakeMiner
-mutex:AddToWalletIfInvolvingMe
+mutex:WakeThreadStakeMiner
+mutex:StopThreadStakeMiner
+mutex:condWaitFor
+deadlock:smsgModule
+deadlock:ThreadSecureMsg
+deadlock:WakeThreadStakeMiner
+deadlock:StopThreadStakeMiner
+deadlock:condWaitFor
 # race (TODO fix)
 race:CConnman::WakeMessageHandler
 race:CConnman::ThreadMessageHandler

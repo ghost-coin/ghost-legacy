@@ -3116,7 +3116,8 @@ void SetCTOutVData(std::vector<uint8_t> &vData, CPubKey &pkEphem, const CTempRec
     memcpy(&vData[0], pkEphem.begin(), 33);
     if (r.nStealthPrefix > 0) {
         vData[33] = DO_STEALTH_PREFIX;
-        memcpy(&vData[34], &r.nStealthPrefix, 4);
+        uint32_t tmp = htole32(r.nStealthPrefix);
+        memcpy(&vData[34], &tmp, 4);
     }
 };
 
@@ -4006,7 +4007,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                 }
 
                 std::vector<uint8_t> vchAmount(8);
-                memcpy(vchAmount.data(), &coin.txout.nValue, 8);
+                part::SetAmount(vchAmount, coin.txout.nValue);
 
                 SignatureData sigdata;
                 auto provider = GetLegacyScriptPubKeyMan();
@@ -4074,7 +4075,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     }
 
                     std::vector<uint8_t> vchAmount(8);
-                    memcpy(vchAmount.data(), &coin.txout.nValue, 8);
+                    part::SetAmount(vchAmount, coin.txout.nValue);
 
                     pDevice->m_error.clear();
                     SignatureData sigdata;
@@ -7600,6 +7601,7 @@ int CHDWallet::NewStealthKeyFromAccount(
         uint8_t tmp32[32];
         CSHA256().Write(kSpend.begin(), 32).Finalize(tmp32);
         memcpy(&nPrefix, tmp32, 4);
+        nPrefix = le32toh(nPrefix);
     }
 
     uint32_t nMask = SetStealthMask(nPrefixBits);
@@ -7902,6 +7904,7 @@ int CHDWallet::NewStealthKeyV2FromAccount(
         uint8_t tmp32[32];
         CSHA256().Write(kScan.begin(), 32).Finalize(tmp32);
         memcpy(&nPrefix, tmp32, 4);
+        nPrefix = le32toh(nPrefix);
     }
 
     uint32_t nMask = SetStealthMask(nPrefixBits);
@@ -8333,7 +8336,7 @@ bool CHDWallet::SignTransaction(CMutableTransaction &tx) const
         SignatureData sigdata;
 
         std::vector<uint8_t> vchAmount(8);
-        memcpy(&vchAmount[0], &amount, 8);
+        part::SetAmount(vchAmount, amount);
         auto provider = GetLegacyScriptPubKeyMan();
         if (!provider) {
             return false;
@@ -9407,6 +9410,7 @@ int CHDWallet::CheckForStealthAndNarration(const CTxOutBase *pb, const CTxOutDat
             && vData[34] == DO_STEALTH_PREFIX) {
             fHavePrefix = true;
             memcpy(&prefix, &vData[35], 4);
+            prefix = le32toh(prefix);
         }
 
         const CTxOutStandard *so = (CTxOutStandard*)pb;
@@ -9525,6 +9529,7 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
                     && ctout->vData[33] == DO_STEALTH_PREFIX) {
                     fHavePrefix = true;
                     memcpy(&prefix, &ctout->vData[34], 4);
+                    prefix = le32toh(prefix);
                 }
             }
 
@@ -9552,6 +9557,7 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
                     && rctout->vData[33] == DO_STEALTH_PREFIX) {
                     fHavePrefix = true;
                     memcpy(&prefix, &rctout->vData[34], 4);
+                    prefix = le32toh(prefix);
                 }
             }
 
@@ -12641,14 +12647,16 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
             OUTPUT_PTR<CTxOutData> out0 = MAKE_OUTPUT<CTxOutData>();
             out0->vData.resize(4);
-            memcpy(&out0->vData[0], &nBlockHeight, 4);
+            uint32_t tmp = htole32(nBlockHeight);
+            memcpy(&out0->vData[0], &tmp, 4);
 
             uint32_t voteToken = 0;
             if (GetVote(nBlockHeight, voteToken)) {
                 size_t origSize = out0->vData.size();
                 out0->vData.resize(origSize + 5);
                 out0->vData[origSize] = DO_VOTE;
-                memcpy(&out0->vData[origSize+1], &voteToken, 4);
+                uint32_t tmp = htole32(voteToken);
+                memcpy(&out0->vData[origSize+1], &tmp, 4);
             }
 
             txNew.vpout.push_back(out0);
@@ -12667,7 +12675,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         }
     }
 
-    if (nCredit == 0 || nCredit > nBalance - nReserveBalance) {
+    if (nCredit == 0 || nCredit > nBalance - WITH_LOCK(cs_wallet, return nReserveBalance)) {
         return false;
     }
 
@@ -12864,7 +12872,8 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
         std::vector<uint8_t> vSmsgDifficulty(5), &vData = *txNew.vpout[0]->GetPData();
         vSmsgDifficulty[0] = DO_SMSG_DIFFICULTY;
-        memcpy(&vSmsgDifficulty[1], &next_compact, 4);
+        uint32_t tmp = htole32(next_compact);
+        memcpy(&vSmsgDifficulty[1], &tmp, 4);
         vData.insert(vData.end(), vSmsgDifficulty.begin(), vSmsgDifficulty.end());
         assert(ExtractCoinStakeUint32(vData, DO_SMSG_DIFFICULTY, test_compact));
         assert(test_compact == next_compact);
@@ -12986,9 +12995,10 @@ bool CHDWallet::SignBlock(CBlockTemplate *pblocktemplate, int nHeight, int64_t n
             return key.Sign(pblock->GetHash(), pblock->vchBlockSig);
         }
     }
-
-    nLastCoinStakeSearchTime = nSearchTime;
-
+    {
+        LOCK(cs_wallet);
+        nLastCoinStakeSearchTime = nSearchTime;
+    }
     return false;
 };
 

@@ -11,6 +11,7 @@
 #include <random.h>
 #include <script/script.h>
 #include <smsg/crypter.h>
+#include <serialize.h>
 
 #include <support/allocators/secure.h>
 
@@ -81,6 +82,7 @@ int CStealthAddress::FromRaw(const uint8_t *p, size_t nSize)
 
     if (nPrefixBytes) {
         memcpy(&prefix.bitfield, p, nPrefixBytes);
+        prefix.bitfield = le32toh(prefix.bitfield);
     }
 
     return 0;
@@ -112,7 +114,8 @@ int CStealthAddress::ToRaw(std::vector<uint8_t> &raw) const
     raw[o] = number_signatures; o++;
     raw[o] = prefix.number_bits; o++;
     if (nPrefixBytes) {
-        memcpy(&raw[o], &prefix.bitfield, nPrefixBytes); o += nPrefixBytes;
+        uint32_t tmp = htole32(prefix.bitfield);
+        memcpy(&raw[o], &tmp, nPrefixBytes); o += nPrefixBytes;
     }
 
     return 0;
@@ -412,7 +415,8 @@ int MakeStealthData(const std::string &sNarration, stealth_prefix prefix, const 
     if (prefix.number_bits > 0) {
         vData[o++] = DO_STEALTH_PREFIX;
         nStealthPrefix = FillStealthPrefix(prefix.number_bits, prefix.bitfield);
-        memcpy(&vData[o], &nStealthPrefix, 4);
+        uint32_t tmp = htole32(nStealthPrefix);
+        memcpy(&vData[o], &tmp, 4);
         o+=4;
     }
 

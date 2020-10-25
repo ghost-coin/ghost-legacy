@@ -46,7 +46,7 @@ void test_one_input(const std::vector<uint8_t>& buffer)
             ds >> prevout;
 
             std::vector<uint8_t> vchAmount(8);
-            memcpy(vchAmount.data(), &prevout.nValue, 8);
+            part::SetAmount(vchAmount, prevout.nValue);
             const TransactionSignatureChecker checker{&tx, i, vchAmount, txdata};
 
             ScriptError serror;

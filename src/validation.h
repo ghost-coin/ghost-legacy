@@ -306,14 +306,14 @@ public:
         ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn), error(SCRIPT_ERR_UNKNOWN_ERROR), txdata(txdataIn)
         {
             vchAmount.resize(8);
-            memcpy(&vchAmount[0], &amountIn, 8);
+            part::SetAmount(vchAmount, amountIn);
         };
     CScriptCheck(): amount(0), ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false), error(SCRIPT_ERR_UNKNOWN_ERROR) {}
     CScriptCheck(const CTxOut& outIn, const CTransaction& txToIn, unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn, PrecomputedTransactionData* txdataIn) :
         m_tx_out(outIn), ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn), error(SCRIPT_ERR_UNKNOWN_ERROR), txdata(txdataIn)
     {
         vchAmount.resize(8);
-        memcpy(&vchAmount[0], &m_tx_out.nValue, 8);
+        part::SetAmount(vchAmount, m_tx_out.nValue);
         scriptPubKey = m_tx_out.scriptPubKey;
     };
     CScriptCheck(const CTxOutSign& outIn, const CTransaction& txToIn, unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn, PrecomputedTransactionData* txdataIn) :

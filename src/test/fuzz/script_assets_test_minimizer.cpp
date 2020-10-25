@@ -74,7 +74,7 @@ std::vector<CTxOutSign> TxOutsFromJSON(const UniValue& univalue)
         }
         //prevouts.push_back(std::move(txout));
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &txout.nValue, sizeof(txout.nValue));
+        part::SetAmount(vchAmount, txout.nValue);
         prevouts.emplace_back(vchAmount, txout.scriptPubKey);
     }
     return prevouts;

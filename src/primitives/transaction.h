@@ -188,6 +188,8 @@ public:
 
     bool SetAnonInfo(uint32_t nInputs, uint32_t nRingSize)
     {
+        nInputs = htole32(nInputs);
+        nRingSize = htole32(nRingSize);
         memcpy(prevout.hash.begin(), &nInputs, 4);
         memcpy(prevout.hash.begin() + 4, &nRingSize, 4);
         return true;
@@ -197,6 +199,8 @@ public:
     {
         memcpy(&nInputs, prevout.hash.begin(), 4);
         memcpy(&nRingSize, prevout.hash.begin() + 4, 4);
+        nInputs = le32toh(nInputs);
+        nRingSize = le32toh(nRingSize);
         return true;
     };
 
@@ -339,8 +343,7 @@ public:
 
     bool PutValue(std::vector<uint8_t> &vchAmount) const override
     {
-        vchAmount.resize(8);
-        memcpy(&vchAmount[0], &nValue, 8);
+        part::SetAmount(vchAmount, nValue);
         return true;
     };
 
@@ -582,11 +585,7 @@ public:
         if (ser_action.ForRead()) {
             assert(false);
         }
-        if (obj.amount.size() == 8) { // Match << CAmount when amount.size() == 8
-            ser_writedata64(s, *((uint64_t*) obj.amount.data()));
-        } else {
-            s.write((const char*)obj.amount.data(), obj.amount.size());
-        }
+        s.write((const char*)obj.amount.data(), obj.amount.size());
         READWRITE(obj.scriptPubKey);
     }
 };
@@ -929,6 +928,7 @@ public:
             return false;
         }
         memcpy(&height, &vData[0], 4);
+        height = le32toh(height);
         return true;
     }
 

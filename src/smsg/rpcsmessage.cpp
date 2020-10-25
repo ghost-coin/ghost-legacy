@@ -1058,7 +1058,6 @@ static UniValue smsginbox(const JSONRPCRequest &request)
     UniValue result(UniValue::VOBJ);
 
     {
-        LOCK(smsg::cs_smsgDB);
 
         smsg::SecMsgDB dbInbox;
         if (!dbInbox.Open("cr+")) {
@@ -1069,6 +1068,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
         uint8_t chKey[30];
 
         if (mode == "clear") {
+            LOCK(smsg::cs_smsgDB);
             dbInbox.TxnBegin();
 
             leveldb::Iterator *it = dbInbox.pdb->NewIterator(leveldb::ReadOptions());

@@ -1948,6 +1948,7 @@ static UniValue importstealthaddress(const JSONRPCRequest &request)
             uint8_t tmp32[32];
             CSHA256().Write(skSpend.begin(), 32).Finalize(tmp32);
             memcpy(&nPrefix, tmp32, 4);
+            nPrefix = le32toh(nPrefix);
         }
 
         uint32_t nMask = SetStealthMask(num_prefix_bits);
@@ -2229,20 +2230,22 @@ static UniValue reservebalance(const JSONRPCRequest &request)
 
     if (request.params.size() > 0) {
         EnsureWalletIsUnlocked(pwallet);
-
-        bool fReserve = request.params[0].get_bool();
-        if (fReserve) {
-            if (request.params.size() == 1)
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "must provide amount to reserve balance.");
-            int64_t nAmount = AmountFromValue(request.params[1]);
-            nAmount = (nAmount / CENT) * CENT;  // round to cent
-            if (nAmount < 0)
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "amount cannot be negative.");
-            pwallet->SetReserveBalance(nAmount);
-        } else {
-            if (request.params.size() > 1)
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "cannot specify amount to turn off reserve.");
-            pwallet->SetReserveBalance(0);
+        {
+            LOCK(pwallet->cs_wallet);
+            bool fReserve = request.params[0].get_bool();
+            if (fReserve) {
+                if (request.params.size() == 1)
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "must provide amount to reserve balance.");
+                int64_t nAmount = AmountFromValue(request.params[1]);
+                nAmount = (nAmount / CENT) * CENT;  // round to cent
+                if (nAmount < 0)
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "amount cannot be negative.");
+                pwallet->SetReserveBalance(nAmount);
+            } else {
+                if (request.params.size() > 1)
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "cannot specify amount to turn off reserve.");
+                pwallet->SetReserveBalance(0);
+            }
         }
         WakeThreadStakeMiner(pwallet);
     }
@@ -5260,7 +5263,7 @@ static UniValue createsignatureinner(const JSONRPCRequest &request, CHDWallet *c
         }
         CAmount nValue = AmountFromValue(prevOut["amount"]);
         vchAmount.resize(8);
-        memcpy(vchAmount.data(), &nValue, 8);
+        part::SetAmount(vchAmount, nValue);
     } else
     if (prevOut.exists("amount_commitment")) {
         std::string s = prevOut["amount_commitment"].get_str();
@@ -6418,6 +6421,7 @@ static UniValue tallyvotes(const JSONRPCRequest &request)
             } else {
                 uint32_t voteToken;
                 memcpy(&voteToken, &vData[5], 4);
+                voteToken = le32toh(voteToken);
                 int option = 0; // default to abstain
 
                 // count only if related to current issue:
@@ -7926,7 +7930,7 @@ static UniValue verifyrawtransaction(const JSONRPCRequest &request)
         std::vector<uint8_t> vchAmount;
         if (coin.nType == OUTPUT_STANDARD) {
             vchAmount.resize(8);
-            memcpy(vchAmount.data(), &coin.out.nValue, 8);
+            part::SetAmount(vchAmount, coin.out.nValue);
         } else
         if (coin.nType == OUTPUT_CT) {
             vchAmount.resize(33);

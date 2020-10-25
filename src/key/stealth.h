@@ -39,7 +39,6 @@ public:
         options = 0;
         number_signatures = 0;
         prefix.number_bits = 0;
-
         //index = 0;
     };
 

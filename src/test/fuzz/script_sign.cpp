@@ -113,7 +113,7 @@ void test_one_input(const std::vector<uint8_t>& buffer)
                 (void)SignSignature(provider, ConsumeScript(fuzzed_data_provider), script_tx_to, n_in, ConsumeMoney(fuzzed_data_provider), fuzzed_data_provider.ConsumeIntegral<int>());
                 CAmount value = ConsumeMoney(fuzzed_data_provider);
                 std::vector<uint8_t> vchAmount(8);
-                memcpy(&vchAmount[0], &value, 8);
+                part::SetAmount(vchAmount, value);
                 MutableTransactionSignatureCreator signature_creator{&tx_to, n_in, vchAmount, fuzzed_data_provider.ConsumeIntegral<int>()};
                 std::vector<unsigned char> vch_sig;
                 CKeyID address;

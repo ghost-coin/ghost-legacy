@@ -49,12 +49,6 @@ script:
   - if [ $CONTINUE = "1" ]; then set -o errexit; source ./ci/test/06_script_b.sh; else set +o errexit; echo "$CACHE_ERR_MSG"; false; fi
 after_script:
   - echo $TRAVIS_COMMIT_RANGE
-after_success:
-  - echo "Uploading"
-  - DOCKER_EXEC make install
-  - COMMIT=$(echo $TRAVIS_COMMIT | head -c 7)
-  - DOCKER_EXEC tar -cjf $OUTDIR/particl_$COMMIT.tar.bz2 -C $OUTDIR/bin/ .
-  - (travis_retry DOCKER_EXEC curl -s --max-time 60 --upload $OUTDIR/particl_$COMMIT.tar.bz2 https://transfer.sh/particl_$COMMIT.tar.bz2 && echo) || true
 jobs:
   include:
 
@@ -70,8 +64,6 @@ jobs:
         - set -o errexit; source ./ci/lint/05_before_script.sh
       script:
         - set -o errexit; source ./ci/lint/06_script.sh
-      after_success:
-        - echo "End"
 
     - stage: test
       name: 'ARM  [GOAL: install]  [buster]  [unit tests, no functional tests]'
@@ -86,8 +78,6 @@ jobs:
       env: >-
         FILE_ENV="./ci/test/00_setup_env_s390x.sh"
         QEMU_USER_CMD=""
-      after_success:
-        - echo "Skipped upload"
 
     - stage: test
       name: 'Win64  [GOAL: deploy]  [unit tests, no gui, no boost::process, no functional tests]'
@@ -123,8 +113,6 @@ jobs:
       name: 'x86_64 Linux  [GOAL: install]  [xenial]  [no wallet]'
       env: >-
         FILE_ENV="./ci/test/00_setup_env_native_nowallet.sh"
-      after_success:
-        - echo "Skipped upload"
 
     - stage: test
       name: 'macOS 10.11  [GOAL: deploy] [no functional tests]'
@@ -151,5 +139,3 @@ jobs:
         DANGER_RUN_CI_ON_HOST=true
         CI_USE_APT_INSTALL=no
         FILE_ENV="./ci/test/00_setup_env_mac_host.sh"
-      after_success:
-        - echo "Skipped upload"

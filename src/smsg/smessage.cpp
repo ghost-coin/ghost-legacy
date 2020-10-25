@@ -1049,10 +1049,10 @@ bool CSMSG::Disable()
     {
         LOCK(m_node->connman->cs_vNodes);
         for (auto *pnode : m_node->connman->vNodes) {
+            LOCK(pnode->smsgData.cs_smsg_net);
             if (!pnode->smsgData.fEnabled) {
                 continue;
             }
-            LOCK(pnode->smsgData.cs_smsg_net);
             m_node->connman->PushMessage(pnode,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::DISABLED));
             pnode->smsgData.fEnabled = false;
@@ -1406,6 +1406,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
                     || it_lb->second.nActive < ncontent
                     || (it_lb->second.nActive == ncontent
                         && it_lb->second.hash != hash)) { // if same amount in buckets check hash
+                        LOCK(pfrom->smsgData.cs_smsg_net);
                         auto nv = PeerBucket(ncontent, hash);
                         auto ret = pfrom->smsgData.m_buckets.insert(std::pair<int64_t, PeerBucket>(time, nv));
                         if (!ret.second) {
@@ -1529,7 +1530,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
         std::vector<uint8_t> vchDataOut;
 
         {
-            LOCK(cs_smsg);
+            LOCK2(cs_smsg, pfrom->smsgData.cs_smsg_net);
             m_show_requests.erase(time);
 
             if (pfrom->smsgData.m_num_want_sent >= MAX_WANT_SENT) {
@@ -1743,36 +1744,38 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         return true;
     }
 
-    LOCK(pto->smsgData.cs_smsg_net);
-
     int64_t now = GetTime();
+    {
+        LOCK(pto->smsgData.cs_smsg_net);
 
-    if (pto->smsgData.lastSeen <= 0) {
-        // First contact
-        LogPrint(BCLog::SMSG, "%s: New node %s, peer id %u.\n", __func__, pto->GetAddrName(), pto->GetId());
-        // Send smsgPing once, do nothing until receive 1st smsgPong (then set fEnabled)
-        m_node->connman->PushMessage(pto,
-            CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PING));
-
-        // Send smsgPong message if received smsgPing from peer while syncing chain
-        if (pto->smsgData.lastSeen < 0) {
+        if (pto->smsgData.lastSeen <= 0) {
+            // First contact
+            LogPrint(BCLog::SMSG, "%s: New node %s, peer id %u.\n", __func__, pto->GetAddrName(), pto->GetId());
+            // Send smsgPing once, do nothing until receive 1st smsgPong (then set fEnabled)
             m_node->connman->PushMessage(pto,
-                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG));
-        }
+                CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PING));
 
-        pto->smsgData.lastSeen = GetTime();
-        return true;
-    } else
-    if (!pto->smsgData.fEnabled
-        || now - pto->smsgData.lastSeen < SMSG_SEND_DELAY
-        || now < pto->smsgData.ignoreUntil) {
-        return true;
+            // Send smsgPong message if received smsgPing from peer while syncing chain
+            if (pto->smsgData.lastSeen < 0) {
+                m_node->connman->PushMessage(pto,
+                    CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::PONG));
+            }
+
+            pto->smsgData.lastSeen = GetTime();
+            return true;
+        } else
+        if (!pto->smsgData.fEnabled
+            || now - pto->smsgData.lastSeen < SMSG_SEND_DELAY
+            || now < pto->smsgData.ignoreUntil) {
+            return true;
+        }
     }
 
     uint32_t nBucketsShown = 0;
+    size_t buckets_to_process = 0;
     std::vector<uint8_t> vchData;
     {
-        LOCK(cs_smsg);
+        LOCK2(cs_smsg, pto->smsgData.cs_smsg_net);
         if (pto->smsgData.lastMatched <= m_last_changed) {
 
             std::map<int64_t, SecMsgBucket>::iterator it;
@@ -1829,8 +1832,10 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                 nBucketsShown++;
             }
         }
+        buckets_to_process = pto->smsgData.m_buckets.size();
     }
     if (nBucketsShown > 0) {
+        LOCK(pto->smsgData.cs_smsg_net);
         memcpy(&vchData[0], &nBucketsShown, 4);
         LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
 
@@ -1843,8 +1848,8 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
     }
 
     size_t nBucketsContestReq = 0;
-    if (pto->smsgData.m_buckets.size() > 0) {
-        LOCK(cs_smsg);
+    if (buckets_to_process > 0) {
+        LOCK2(cs_smsg, pto->smsgData.cs_smsg_net);
         for (auto it = pto->smsgData.m_buckets.begin(); it != pto->smsgData.m_buckets.end();) {
             if (nBucketsContestReq >= SMSG_MAX_SHOW) {
                  break;
@@ -1890,7 +1895,10 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
             CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::SHOW, vchData));
     }
 
-    pto->smsgData.lastSeen = now + GetRandInt(1);
+    {
+        LOCK(pto->smsgData.cs_smsg_net);
+        pto->smsgData.lastSeen = now + GetRandInt(1);
+    }
 
     return true;
 };
@@ -3711,12 +3719,12 @@ int CSMSG::SetHash(SecureMessage *psmsg, uint8_t *pPayload, uint32_t nPayload)
         if (!fSecMsgEnabled) {
            break;
         }
-
-        memcpy(&psmsg->nonce[0], &nonce, 4);
-        memcpy(header_buffer + 4, &nonce, 4);
+        uint32_t tmp_le = htole32(nonce);
+        memcpy(psmsg->nonce, &tmp_le, 4);
+        memcpy(header_buffer + 4, &tmp_le, 4);
 
         for (int i = 0; i < 32; i+=4) {
-            memcpy(civ+i, &nonce, 4);
+            memcpy(civ+i, psmsg->nonce, 4);
         }
 
         CHMAC_SHA256 ctx(&civ[0], 32);
@@ -4183,12 +4191,10 @@ int CSMSG::Send(CKeyID &addressFrom, CKeyID &addressTo, std::string &message,
 bool CSMSG::GetPowHash(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_t nPayload, uint256 &hash)
 {
     uint8_t civ[32];
-    uint32_t nonce;
-    memcpy(&nonce, &psmsg->nonce[0], 4);
     unsigned char header_buffer[SMSG_HDR_LEN];
 
     for (int i = 0; i < 32; i+=4) {
-        memcpy(civ+i, &nonce, 4);
+        memcpy(civ+i, psmsg->nonce, 4);
     }
 
     CHMAC_SHA256 ctx(&civ[0], 32);
@@ -4263,7 +4269,8 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         tr.vData.resize(25); // 4 byte fee, max 42.94967295
         tr.vData[0] = DO_FUND_MSG;
         memcpy(&tr.vData[1], msgId.begin(), 20);
-        memcpy(&tr.vData[21], &msgFee, 4);
+        uint32_t tmp_le = htole32(msgFee);
+        memcpy(&tr.vData[21], &tmp_le, 4);
         vec_send.push_back(tr);
 
         CHDWallet *const pw = GetParticlWallet(pactive_wallet.get());

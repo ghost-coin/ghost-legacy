@@ -496,10 +496,9 @@ int CTrezorDevice::PrepareTransaction(CMutableTransaction& mtx, const CCoinsView
             continue;
         }
 
-        std::vector<uint8_t> vchAmount(8);
         CScript prevPubKey = coin.out.scriptPubKey;
-        CAmount amount = coin.out.nValue;
-        memcpy(vchAmount.data(), &amount, 8);
+        std::vector<uint8_t> vchAmount(8);
+        part::SetAmount(vchAmount, coin.out.nValue);
 
         m_cache[i] = SignData(prevPubKey, nHashType, vchAmount);
         SignatureData sigdata = DataFromTransaction(mtx, i, vchAmount, prevPubKey);

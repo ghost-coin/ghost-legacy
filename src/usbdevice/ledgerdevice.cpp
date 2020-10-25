@@ -486,7 +486,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
 
         const CScript &scriptCode = coin.out.scriptPubKey;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &coin.out.nValue, 8);
+        part::SetAmount(vchAmount, coin.out.nValue);
 
         apduSize = 0;
         in[apduSize++] = BTCHIP_CLA;
@@ -600,7 +600,7 @@ int CLedgerDevice::PrepareTransaction(CMutableTransaction &tx, const CCoinsViewC
             return errorN(1, m_error, __func__, "all outputs must be standard.");
         }
         CAmount nValue = txout->GetValue();
-        memcpy(&vchAmount[0], &nValue, 8);
+        part::SetAmount(vchAmount, nValue);
         vOutputData.insert(vOutputData.end(), vchAmount.begin(), vchAmount.end());
 
         const CScript *pScript = txout->GetPScriptPubKey();

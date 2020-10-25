@@ -798,7 +798,7 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
         }
 
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &amount, 8);
+        part::SetAmount(vchAmount, amount);
         SignatureData sigdata = DataFromTransaction(mergedTx, i, vchAmount, prevPubKey);
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mergedTx.GetNumVOuts()))

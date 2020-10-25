@@ -14,8 +14,6 @@ inline uint32_t &ClearHardenedBit(uint32_t &n)  { return (n &= ~((uint32_t)1 << 
 inline uint32_t WithHardenedBit(uint32_t n)     { return (n |= ((uint32_t)1 << 31)); };
 inline uint32_t WithoutHardenedBit(uint32_t n)  { return (n &= ~((uint32_t)1 << 31)); };
 
-uint32_t BitcoinChecksum(uint8_t *p, uint32_t nBytes);
-void AppendChecksum(std::vector<uint8_t> &data);
 bool VerifyChecksum(const std::vector<uint8_t> &data);
 
 

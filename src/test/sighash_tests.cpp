@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(sighash_test)
 
         CAmount amount = 0;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(&vchAmount[0], &amount, 8);
+        part::SetAmount(vchAmount, amount);
         sh = SignatureHash(scriptCode, txTo, nIn, nHashType, vchAmount, SigVersion::BASE);
         #if defined(PRINT_SIGHASH_JSON)
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
@@ -221,7 +221,7 @@ BOOST_AUTO_TEST_CASE(sighash_from_data)
         }
         CAmount amount = 0;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(&vchAmount[0], &amount, 8);
+        part::SetAmount(vchAmount, amount);
         sh = SignatureHash(scriptCode, *tx, nIn, nHashType, vchAmount, SigVersion::BASE);
         if (!fExpectHashFailure)
             BOOST_CHECK_MESSAGE(sh.GetHex() == sigHashHex, strTest);

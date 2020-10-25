@@ -661,7 +661,7 @@ class WalletParticlTest(ParticlTestFramework):
         assert(len(unspentCheck) == len(unspent))
 
         self.log.info('Test bumpfee')
-        nodes[1].walletpassphrase('changedPass2', 5)
+        nodes[1].walletpassphrase('changedPass2', 20)
         txnid = nodes[1].sendtoaddress(address1, 0.01, "", "", False, "", True)
         assert(len(nodes[1].bumpfee(txnid)['errors']) == 0)
 
@@ -736,7 +736,7 @@ class WalletParticlTest(ParticlTestFramework):
 
         self.log.info('Test walletsettings other')
         nodes[1].walletlock()  # Make sure wallet is unlocked.
-        nodes[1].walletpassphrase('changedPass2', 10)
+        nodes[1].walletpassphrase('changedPass2', 20)
         assert(nodes[1].debugwallet()['m_is_only_instance'] == True)
         nodes[1].walletsettings('other', {'onlyinstance': False})
         assert(nodes[1].debugwallet()['m_is_only_instance'] == False)
@@ -761,7 +761,6 @@ class WalletParticlTest(ParticlTestFramework):
         assert(len(stdout.split(' ')) == 12)
         ro = nodes[0].mnemonic('decode', '', stdout.strip())
         assert(ro['language'] == 'Spanish')
-
 
 
 if __name__ == '__main__':

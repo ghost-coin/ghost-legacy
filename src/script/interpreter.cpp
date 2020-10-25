@@ -1438,11 +1438,7 @@ uint256 GetSpentAmountsSHA256(const std::vector<CTxOutSign>& outputs_spent)
             continue;
         }
         //ss << txout.amount;
-        if (txout.amount.size() == 8) { // Match << CAmount when amount.size() == 8
-            ser_writedata64(ss, *((uint64_t*) txout.amount.data()));
-        } else {
-            ss.write((const char*)txout.amount.data(), txout.amount.size());
-        }
+        ss.write((const char*)txout.amount.data(), txout.amount.size());
     }
     return ss.GetSHA256();
 }
@@ -1663,11 +1659,8 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
         ss << scriptCode;
 
         //ss << amount;
-        if (amount.size() == 8) { // Match << CAmount when amount.size() == 8
-            ser_writedata64(ss, *((uint64_t*) amount.data()));
-        } else {
-            ss.write((const char*)amount.data(), amount.size());
-        }
+        // Match << CAmount when amount.size() == 8
+        ss.write((const char*)amount.data(), amount.size());
 
         ss << txTo.vin[nIn].nSequence;
         // Outputs (none/one/all, depending on flags)

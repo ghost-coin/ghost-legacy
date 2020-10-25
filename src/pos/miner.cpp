@@ -23,13 +23,6 @@
 typedef CWallet* CWalletRef;
 std::vector<StakeThread*> vStakeThreads;
 
-void StakeThread::condWaitFor(int ms)
-{
-    std::unique_lock<std::mutex> lock(mtxMinerProc);
-    fWakeMinerProc = false;
-    condMinerProc.wait_for(lock, std::chrono::milliseconds(ms), [this] { return this->fWakeMinerProc; });
-};
-
 std::atomic<bool> fStopMinerProc(false);
 std::atomic<bool> fTryToSync(false);
 std::atomic<bool> fIsStaking(false);
@@ -261,11 +254,7 @@ void StopThreadStakeMiner()
     fStopMinerProc = true;
 
     for (auto t : vStakeThreads) {
-        {
-            std::lock_guard<std::mutex> lock(t->mtxMinerProc);
-            t->fWakeMinerProc = true;
-        }
-        t->condMinerProc.notify_all();
+        t->m_thread_interrupt();
         t->thread.join();
         delete t;
     }
@@ -286,12 +275,7 @@ void WakeThreadStakeMiner(CHDWallet *pwallet)
         return; // stake unit test
     }
     StakeThread *t = vStakeThreads[nStakeThread];
-    {
-        std::lock_guard<std::mutex> lock(t->mtxMinerProc);
-        t->fWakeMinerProc = true;
-    }
-
-    t->condMinerProc.notify_all();
+    t->m_thread_interrupt();
 };
 
 bool ThreadStakeMinerStopped()
@@ -303,7 +287,8 @@ static inline void condWaitFor(size_t nThreadID, int ms)
 {
     assert(vStakeThreads.size() > nThreadID);
     StakeThread *t = vStakeThreads[nThreadID];
-    t->condWaitFor(ms);
+    t->m_thread_interrupt.reset();
+    t->m_thread_interrupt.sleep_for(std::chrono::milliseconds(ms));
 };
 
 void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &vpwallets, size_t nStart, size_t nEnd)

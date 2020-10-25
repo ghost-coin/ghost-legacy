@@ -139,6 +139,7 @@ BOOST_AUTO_TEST_CASE(stealth)
     BOOST_CHECK(vecSend[1].vData[34] == DO_STEALTH_PREFIX);
     uint32_t prefix, mask = SetStealthMask(sx.prefix.number_bits);
     memcpy(&prefix, &vecSend[1].vData[35], 4);
+    prefix = le32toh(prefix);
 
     BOOST_CHECK((prefix & mask) == (sx.prefix.bitfield & mask));
 
@@ -158,6 +159,7 @@ BOOST_AUTO_TEST_CASE(stealth)
     BOOST_CHECK(vecSend[1].vData[34] == DO_STEALTH_PREFIX);
     mask = SetStealthMask(sx.prefix.number_bits);
     memcpy(&prefix, &vecSend[1].vData[35], 4);
+    prefix = le32toh(prefix);
 
     BOOST_CHECK((prefix & mask) == (sx.prefix.bitfield & mask));
 
@@ -573,7 +575,8 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     int nBlockHeight = 1;
     OUTPUT_PTR<CTxOutData> outData = MAKE_OUTPUT<CTxOutData>();
     outData->vData.resize(4);
-    memcpy(&outData->vData[0], &nBlockHeight, 4);
+    uint32_t tmp32 = htole32(nBlockHeight);
+    memcpy(&outData->vData[0], &tmp32, 4);
     txn.vpout.push_back(outData);
 
 
@@ -585,7 +588,7 @@ BOOST_AUTO_TEST_CASE(opiscoinstake_test)
     BOOST_CHECK(txn.IsCoinStake());
 
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &nValue, 8);
+    part::SetAmount(vchAmount, nValue);
 
 
     BOOST_CHECK(ProduceSignature(*keystoreA.GetLegacyScriptPubKeyMan(), MutableTransactionSignatureCreator(&txn, 0, vchAmount, SIGHASH_ALL), script, sigdataA));

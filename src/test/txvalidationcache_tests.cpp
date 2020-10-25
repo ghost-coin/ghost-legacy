@@ -50,7 +50,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup)
         std::vector<unsigned char> vchSig;
         CAmount amount = 0;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &amount, 8);
+        part::SetAmount(vchAmount, amount);
         uint256 hash = SignatureHash(scriptPubKey, spends[i], 0, SIGHASH_ALL, vchAmount, SigVersion::BASE);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back((unsigned char)SIGHASH_ALL);
@@ -191,7 +191,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup)
         std::vector<unsigned char> vchSig;
         CAmount amount = 0;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &amount, 8);
+        part::SetAmount(vchAmount, amount);
         uint256 hash = SignatureHash(p2pk_scriptPubKey, spend_tx, 0, SIGHASH_ALL, vchAmount, SigVersion::BASE);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back((unsigned char) 0); // padding byte makes this non-DER
@@ -267,7 +267,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup)
         std::vector<unsigned char> vchSig;
         CAmount amount = 0;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &amount, 8);
+        part::SetAmount(vchAmount, amount);
         uint256 hash = SignatureHash(spend_tx.vout[2].scriptPubKey, invalid_with_cltv_tx, 0, SIGHASH_ALL, vchAmount, SigVersion::BASE);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back((unsigned char)SIGHASH_ALL);
@@ -298,7 +298,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup)
         std::vector<unsigned char> vchSig;
         CAmount amount = 0;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &amount, 8);
+        part::SetAmount(vchAmount, amount);
         uint256 hash = SignatureHash(spend_tx.vout[3].scriptPubKey, invalid_with_csv_tx, 0, SIGHASH_ALL, vchAmount, SigVersion::BASE);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back((unsigned char)SIGHASH_ALL);
@@ -331,7 +331,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup)
         SignatureData sigdata;
         CAmount amount = 11*CENT;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &amount, 8);
+        part::SetAmount(vchAmount, amount);
         BOOST_CHECK(ProduceSignature(keystore, MutableTransactionSignatureCreator(&valid_with_witness_tx, 0, vchAmount, SIGHASH_ALL), spend_tx.vout[1].scriptPubKey, sigdata));
         UpdateInput(valid_with_witness_tx.vin[0], sigdata);
 
@@ -362,7 +362,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup)
             SignatureData sigdata;
             CAmount amount = 11*CENT;
             std::vector<uint8_t> vchAmount(8);
-            memcpy(vchAmount.data(), &amount, 8);
+            part::SetAmount(vchAmount, amount);
             BOOST_CHECK(ProduceSignature(keystore, MutableTransactionSignatureCreator(&tx, i, vchAmount, SIGHASH_ALL), spend_tx.vout[i].scriptPubKey, sigdata));
             UpdateInput(tx.vin[i], sigdata);
         }

@@ -691,10 +691,9 @@ static UniValue devicesignrawtransaction(const JSONRPCRequest &request)
             throw JSONRPCError(RPC_MISC_ERROR, strprintf("Bad input type: %d", coin.nType));
         }
 
-        std::vector<uint8_t> vchAmount(8);
         CScript prevPubKey = coin.out.scriptPubKey;
-        CAmount amount = coin.out.nValue;
-        memcpy(vchAmount.data(), &amount, 8);
+        std::vector<uint8_t> vchAmount(8);
+        part::SetAmount(vchAmount, coin.out.nValue);
         SignatureData sigdata = DataFromTransaction(mtx, i, vchAmount, prevPubKey);
 
         // Only sign SIGHASH_SINGLE if there's a corresponding output:

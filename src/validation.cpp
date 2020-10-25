@@ -1856,8 +1856,7 @@ bool CheckInputScripts(const CTransaction& tx, TxValidationState &state, const C
 
             std::vector<uint8_t> vchAmount;
             if (coin.nType == OUTPUT_STANDARD) {
-                vchAmount.resize(8);
-                memcpy(vchAmount.data(), &coin.out.nValue, sizeof(coin.out.nValue));
+                part::SetAmount(vchAmount, coin.out.nValue);
             } else
             if (coin.nType == OUTPUT_CT) {
                 vchAmount.resize(33);
@@ -4768,6 +4767,7 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
             if (vData.size() > 8 && vData[4] == DO_VOTE) {
                 uint32_t voteToken;
                 memcpy(&voteToken, &vData[5], 4);
+                voteToken = le32toh(voteToken);
 
                 LogPrint(BCLog::HDWALLET, _("Block %d casts vote for option %u of proposal %u.\n").translated.c_str(),
                     nHeight, voteToken >> 16, voteToken & 0xFFFF);

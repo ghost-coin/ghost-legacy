@@ -861,7 +861,7 @@ static RPCHelpMan combinerawtransaction()
         const CAmount& amount = coin.out.nValue;
         SignatureData sigdata;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(&vchAmount[0], &amount, 8);
+        part::SetAmount(vchAmount, amount);
 
         // ... and merge in other signatures:
         for (const CMutableTransaction& txv : txVariants) {

@@ -105,7 +105,7 @@ int bitcoinconsensus_verify_script_with_amount(const unsigned char *scriptPubKey
                                     unsigned int nIn, unsigned int flags, bitcoinconsensus_error* err)
 {
     std::vector<uint8_t> am(8);
-    memcpy(&am[0], &amount, 8);
+    part::SetAmount(am, amount);
     return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen, nIn, flags, err);
 }
 

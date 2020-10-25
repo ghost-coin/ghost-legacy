@@ -35,7 +35,7 @@ void test_one_input(const std::vector<uint8_t>& buffer)
     const bool store = fuzzed_data_provider.ConsumeBool();
     PrecomputedTransactionData tx_data;
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &amount, 8);
+    part::SetAmount(vchAmount, amount);
     CachingTransactionSignatureChecker caching_transaction_signature_checker{mutable_transaction ? &tx : nullptr, n_in, vchAmount, store, tx_data};
     if (fuzzed_data_provider.ConsumeBool()) {
         const auto random_bytes = fuzzed_data_provider.ConsumeBytes<unsigned char>(64);

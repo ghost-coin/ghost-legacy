@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(signature_test)
     txn2.vin.push_back(CTxIn(txn.GetHash(), 0));
 
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &out1->nValue, 8);
+    part::SetAmount(vchAmount, out1->nValue);
 
     SignatureData sigdata;
     BOOST_CHECK(ProduceSignature(keystore, MutableTransactionSignatureCreator(&txn2, 0, vchAmount, SIGHASH_ALL), script, sigdata));

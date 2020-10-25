@@ -139,7 +139,7 @@ void DoTest(const CScript& scriptPubKey, const CScript& scriptSig, const CScript
     CMutableTransaction tx = BuildSpendingTransaction(scriptSig, scriptWitness, txCredit);
     CMutableTransaction tx2 = tx;
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &txCredit.vout[0].nValue, 8);
+    part::SetAmount(vchAmount, txCredit.vout[0].nValue);
 
     BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, &scriptWitness, flags, MutableTransactionSignatureChecker(&tx, 0, vchAmount), &err) == expect, message);
     BOOST_CHECK_MESSAGE(err == scriptError, FormatScriptError(err) + " where " + FormatScriptError((ScriptError_t)scriptError) + " expected: " + message);
@@ -152,7 +152,7 @@ void DoTest(const CScript& scriptPubKey, const CScript& scriptSig, const CScript
         if (combined_flags & SCRIPT_VERIFY_CLEANSTACK && ~combined_flags & (SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_WITNESS)) continue;
         if (combined_flags & SCRIPT_VERIFY_WITNESS && ~combined_flags & SCRIPT_VERIFY_P2SH) continue;
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &txCredit.vout[0].nValue, 8);
+        part::SetAmount(vchAmount, txCredit.vout[0].nValue);
         BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, &scriptWitness, combined_flags, MutableTransactionSignatureChecker(&tx, 0, vchAmount), &err) == expect, message + strprintf(" (with flags %x)", combined_flags));
     }
 
@@ -344,7 +344,7 @@ public:
     TestBuilder& PushSig(const CKey& key, int nHashType = SIGHASH_ALL, unsigned int lenR = 32, unsigned int lenS = 32, SigVersion sigversion = SigVersion::BASE, CAmount amount = 0)
     {
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &amount, 8);
+        part::SetAmount(vchAmount, amount);
         uint256 hash = SignatureHash(script, spendTx, 0, nHashType, vchAmount, sigversion);
         std::vector<unsigned char> vchSig, r, s;
         uint32_t iter = 0;
@@ -1039,7 +1039,7 @@ sign_multisig(const CScript& scriptPubKey, const std::vector<CKey>& keys, const 
 {
     CAmount amount = 0;
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &amount, 8);
+    part::SetAmount(vchAmount, amount);
 
     uint256 hash = SignatureHash(scriptPubKey, transaction, 0, SIGHASH_ALL, vchAmount, SigVersion::BASE);
 
@@ -1085,7 +1085,7 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG12)
     CMutableTransaction txTo12 = BuildSpendingTransaction(CScript(), CScriptWitness(), txFrom12);
 
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &txFrom12.vout[0].nValue, 8);
+    part::SetAmount(vchAmount, txFrom12.vout[0].nValue);
 
     CScript goodsig1 = sign_multisig(scriptPubKey12, key1, CTransaction(txTo12));
     BOOST_CHECK(VerifyScript(goodsig1, scriptPubKey12, nullptr, gFlags, MutableTransactionSignatureChecker(&txTo12, 0, vchAmount), &err));
@@ -1119,7 +1119,7 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG23)
     CMutableTransaction txTo23 = BuildSpendingTransaction(CScript(), CScriptWitness(), txFrom23);
 
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &txFrom23.vout[0].nValue, 8);
+    part::SetAmount(vchAmount, txFrom23.vout[0].nValue);
 
     std::vector<CKey> keys;
     keys.push_back(key1); keys.push_back(key2);
@@ -1182,7 +1182,7 @@ SignatureData CombineSignatures(const CTxOut& txout, const CMutableTransaction& 
     data.MergeSignatureData(scriptSig1);
     data.MergeSignatureData(scriptSig2);
     std::vector<uint8_t> vamount(8);
-    memcpy(vamount.data(), &txout.nValue, 8);
+    part::SetAmount(vamount, txout.nValue);
     ProduceSignature(DUMMY_SIGNING_PROVIDER, MutableTransactionSignatureCreator(&tx, 0, vamount), txout.scriptPubKey, data);
     return data;
 }
@@ -1192,7 +1192,7 @@ BOOST_AUTO_TEST_CASE(script_combineSigs)
     // Test the ProduceSignature's ability to combine signatures function
     CAmount amount = 0;
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &amount, 8);
+    part::SetAmount(vchAmount, amount);
 
     FillableSigningProvider keystore;
     std::vector<CKey> keys;
@@ -1514,7 +1514,7 @@ static std::vector<CTxOutSign> TxOutsFromJSON(const UniValue& univalue)
         VectorReader(SER_DISK, 0, ParseHex(univalue[i].get_str()), 0) >> txout;
         //prevouts.push_back(std::move(txout));
         std::vector<uint8_t> vchAmount(8);
-        memcpy(vchAmount.data(), &txout.nValue, sizeof(txout.nValue));
+        part::SetAmount(vchAmount, txout.nValue);
         prevouts.emplace_back(vchAmount, txout.scriptPubKey);
     }
     return prevouts;

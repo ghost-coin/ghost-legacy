@@ -961,11 +961,12 @@ SECP256K1_INLINE static void secp256k1_scalar_mul_shift_var(secp256k1_scalar *r,
   a += b; d = ROTL32(d ^ a, 8); \
   c += d; b = ROTL32(b ^ c, 7);
 
-#ifdef WORDS_BIGENDIAN
-#define LE32(p) ((((p) & 0xFF) << 24) | (((p) & 0xFF00) << 8) | (((p) & 0xFF0000) >> 8) | (((p) & 0xFF000000) >> 24))
+#define SW32(p) ((((p) & 0xFF) << 24) | (((p) & 0xFF00) << 8) | (((p) & 0xFF0000) >> 8) | (((p) & 0xFF000000) >> 24))
+#ifdef SECP256K1_BIG_ENDIAN
+#define LE32(p) SW32(p)
 #define BE32(p) (p)
 #else
-#define BE32(p) ((((p) & 0xFF) << 24) | (((p) & 0xFF00) << 8) | (((p) & 0xFF0000) >> 8) | (((p) & 0xFF000000) >> 24))
+#define BE32(p) SW32(p)
 #define LE32(p) (p)
 #endif
 
@@ -1024,14 +1025,14 @@ static void secp256k1_scalar_chacha20(secp256k1_scalar *r1, secp256k1_scalar *r2
         x14 += 0;
         x15 += over_count;
 
-        r1->d[3] = BE32((uint64_t) x0) << 32 | BE32(x1);
-        r1->d[2] = BE32((uint64_t) x2) << 32 | BE32(x3);
-        r1->d[1] = BE32((uint64_t) x4) << 32 | BE32(x5);
-        r1->d[0] = BE32((uint64_t) x6) << 32 | BE32(x7);
-        r2->d[3] = BE32((uint64_t) x8) << 32 | BE32(x9);
-        r2->d[2] = BE32((uint64_t) x10) << 32 | BE32(x11);
-        r2->d[1] = BE32((uint64_t) x12) << 32 | BE32(x13);
-        r2->d[0] = BE32((uint64_t) x14) << 32 | BE32(x15);
+        r1->d[3] = SW32((uint64_t) x0) << 32 | SW32(x1);
+        r1->d[2] = SW32((uint64_t) x2) << 32 | SW32(x3);
+        r1->d[1] = SW32((uint64_t) x4) << 32 | SW32(x5);
+        r1->d[0] = SW32((uint64_t) x6) << 32 | SW32(x7);
+        r2->d[3] = SW32((uint64_t) x8) << 32 | SW32(x9);
+        r2->d[2] = SW32((uint64_t) x10) << 32 | SW32(x11);
+        r2->d[1] = SW32((uint64_t) x12) << 32 | SW32(x13);
+        r2->d[0] = SW32((uint64_t) x14) << 32 | SW32(x15);
 
         over1 = secp256k1_scalar_check_overflow(r1);
         over2 = secp256k1_scalar_check_overflow(r2);
@@ -1043,6 +1044,7 @@ static void secp256k1_scalar_chacha20(secp256k1_scalar *r1, secp256k1_scalar *r2
 #undef QUARTERROUND
 #undef BE32
 #undef LE32
+#undef SW32
 
 static SECP256K1_INLINE void secp256k1_scalar_cmov(secp256k1_scalar *r, const secp256k1_scalar *a, int flag) {
     uint64_t mask0, mask1;

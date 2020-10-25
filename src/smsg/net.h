@@ -6,6 +6,7 @@
 #define PARTICL_SMSG_NET_H
 
 #include <sync.h>
+#include <threadsafety.h>
 
 const uint32_t SMSG_RCVCOUNT_REDUCE = 200;
 
@@ -42,7 +43,7 @@ public:
     uint16_t m_ignored_counter = 0;
     bool fEnabled = false;
     int m_version = 0;
-    std::map<int64_t, PeerBucket> m_buckets;
+    std::map<int64_t, PeerBucket> m_buckets GUARDED_BY(cs_smsg_net);
     std::map<int64_t, int64_t> m_buckets_last_shown;
 
     void DecSmsgMisbehaving() {

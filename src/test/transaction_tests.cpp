@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_CASE(tx_valid)
                     amount = mapprevOutValues[tx.vin[i].prevout];
                 }
                 std::vector<uint8_t> vchAmount(8);
-                memcpy(&vchAmount[0], &amount, 8);
+                part::SetAmount(vchAmount, amount);
                 unsigned int verify_flags = ParseScriptFlags(test[2].get_str());
                 const CScriptWitness *witness = &tx.vin[i].scriptWitness;
                 BOOST_CHECK_MESSAGE(VerifyScript(tx.vin[i].scriptSig, mapprevOutScriptPubKeys[tx.vin[i].prevout],
@@ -260,7 +260,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid)
                 unsigned int verify_flags = ParseScriptFlags(test[2].get_str());
                 CAmount amount = 0;
                 std::vector<uint8_t> vchAmount(8);
-                memcpy(&vchAmount[0], &amount, 8);
+                part::SetAmount(vchAmount, amount);
                 if (mapprevOutValues.count(tx.vin[i].prevout)) {
                     amount = mapprevOutValues[tx.vin[i].prevout];
                 }
@@ -359,7 +359,7 @@ static void CheckWithFlag(const CTransactionRef& output, const CMutableTransacti
     ScriptError error;
     CTransaction inputi(input);
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &output->vout[0].nValue, 8);
+    part::SetAmount(vchAmount, output->vout[0].nValue);
     bool ret = VerifyScript(inputi.vin[0].scriptSig, output->vout[0].scriptPubKey, &inputi.vin[0].scriptWitness, flags, TransactionSignatureChecker(&inputi, 0, vchAmount), &error);
     assert(ret == success);
 }
@@ -428,7 +428,7 @@ BOOST_AUTO_TEST_CASE(test_big_witness_transaction)
 
     CAmount amount = 1000;
     std::vector<uint8_t> vchAmount(8);
-    memcpy(&vchAmount[0], &amount, 8);
+    part::SetAmount(vchAmount, amount);
     // sign all inputs
     for(uint32_t i = 0; i < mtx.vin.size(); i++) {
         bool hashSigned = SignSignature(keystore, scriptPubKey, mtx, i, vchAmount, sigHashes.at(i % sigHashes.size()));
@@ -480,7 +480,7 @@ SignatureData CombineSignatures(const CMutableTransaction& input1, const CMutabl
     sigdata = DataFromTransaction(input1, 0, tx->vout[0]);
     sigdata.MergeSignatureData(DataFromTransaction(input2, 0, tx->vout[0]));
     std::vector<uint8_t> vamount(8);
-    memcpy(vamount.data(), &tx->vout[0].nValue, 8);
+    part::SetAmount(vamount, tx->vout[0].nValue);
     ProduceSignature(DUMMY_SIGNING_PROVIDER, MutableTransactionSignatureCreator(&input1, 0, vamount), tx->vout[0].scriptPubKey, sigdata);
     return sigdata;
 }

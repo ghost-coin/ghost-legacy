@@ -328,7 +328,7 @@ struct Stacks
 SignatureData DataFromTransaction(const CMutableTransaction& tx, unsigned int nIn, const CTxOut& txout)
 {
     std::vector<uint8_t> amount(8);
-    memcpy(amount.data(), &txout.nValue, 8);
+    part::SetAmount(amount, txout.nValue);
     return DataFromTransaction(tx, nIn, amount,  txout.scriptPubKey);
 };
 SignatureData DataFromTransaction(const CMutableTransaction& tx, unsigned int nIn, const std::vector<uint8_t> &amount, const CScript &scriptPubKey)
@@ -448,7 +448,7 @@ bool SignSignature(const SigningProvider &provider, const CScript& fromPubKey, C
 bool SignSignature(const SigningProvider &provider, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, const CAmount amount, int nHashType)
 {
     std::vector<uint8_t> vamount(8);
-    memcpy(vamount.data(), &amount, 8);
+    part::SetAmount(vamount, amount);
     return SignSignature(provider, fromPubKey, txTo, nIn, vamount, nHashType);
 }
 
@@ -596,7 +596,7 @@ bool SignTransaction(CMutableTransaction& mtx, const SigningProvider* keystore, 
         if (coin->second.nType == OUTPUT_STANDARD) {
             amount = coin->second.out.nValue;
             vchAmount.resize(8);
-            memcpy(vchAmount.data(), &coin->second.out.nValue, 8);
+            part::SetAmount(vchAmount, coin->second.out.nValue);
         } else
         if (coin->second.nType == OUTPUT_CT) {
             amount = 0; // Bypass amount check

@@ -218,7 +218,7 @@ void UpdatePSBTOutput(const SigningProvider& provider, PartiallySignedTransactio
     // Note that ProduceSignature is used to fill in metadata (not actual signatures),
     // so provider does not need to provide any private keys (it can be a HidingSigningProvider).
     std::vector<uint8_t> amount(8);
-    memcpy(amount.data(), &out.nValue, 8);
+    part::SetAmount(amount, out.nValue);
     MutableTransactionSignatureCreator creator(psbt.tx.get_ptr(), /* index */ 0, amount, SIGHASH_ALL);
     ProduceSignature(provider, creator, out.scriptPubKey, sigdata);
 
@@ -270,7 +270,7 @@ bool SignPSBTInput(const SigningProvider& provider, PartiallySignedTransaction& 
         sig_complete = ProduceSignature(provider, DUMMY_SIGNATURE_CREATOR, utxo.scriptPubKey, sigdata);
     } else {
         std::vector<uint8_t> amount(8);
-        memcpy(amount.data(), &utxo.nValue, 8);
+        part::SetAmount(amount, utxo.nValue);
         MutableTransactionSignatureCreator creator(&tx, index, amount, sighash);
         sig_complete = ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);
     }
