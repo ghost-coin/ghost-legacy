@@ -12283,6 +12283,12 @@ bool CHDWallet::SetReserveBalance(CAmount nNewReserveBalance)
     return true;
 };
 
+void CHDWallet::SetStakeLimitHeight(int stake_limit)
+{
+    LOCK(cs_wallet);
+    nStakeLimitHeight = stake_limit;
+};
+
 uint64_t CHDWallet::GetStakeWeight() const
 {
     // Choose coins to use

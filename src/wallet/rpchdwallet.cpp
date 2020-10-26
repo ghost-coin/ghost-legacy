@@ -5806,7 +5806,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
     // Special case for stakelimit. Todo: Merge stakelimit into stakingoptions with option to update only one key
     if (sSetting == "stakelimit") {
         if (request.params.size() == 1) {
-            result.pushKV("height", pwallet->nStakeLimitHeight);
+            result.pushKV("height", WITH_LOCK(pwallet->cs_wallet, return pwallet->nStakeLimitHeight));
             return result;
         }
         if (!request.params[1].isObject()) {
@@ -5815,7 +5815,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
         json = request.params[1].get_obj();
         const std::vector<std::string> &vKeys = json.getKeys();
         if (vKeys.size() < 1) {
-            pwallet->nStakeLimitHeight = 0;
+            pwallet->SetStakeLimitHeight(0);
             result.pushKV(sSetting, "cleared");
         } else {
             for (const auto &sKey : vKeys) {
@@ -5824,8 +5824,9 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                         throw JSONRPCError(RPC_INVALID_PARAMETER, "height must be a number.");
                     }
 
-                    pwallet->nStakeLimitHeight = json["height"].get_int();
-                    result.pushKV(sSetting, pwallet->nStakeLimitHeight);
+                    int stake_limit = json["height"].get_int();
+                    pwallet->SetStakeLimitHeight(stake_limit);
+                    result.pushKV(sSetting, stake_limit);
                 } else {
                     warnings.push_back("Unknown key " + sKey);
                 }
