@@ -114,6 +114,30 @@ std::string SecMsgToken::ToString() const
     return strprintf("%d-%08x", timestamp, *((uint64_t*)sample));
 }
 
+inline static void memput_int64_le(uint8_t *p, int64_t v) {
+    v = (int64_t) htole64((uint64_t) v);
+    memcpy(p, &v, 8);
+}
+
+inline static uint32_t memget_int64_le(uint8_t *p) {
+    int64_t v = 0;
+    memcpy(&v, p, 8);
+    v = (int64_t) le64toh((uint64_t) v);
+    return v;
+}
+
+inline static void memput_uint32_le(uint8_t *p, uint32_t v) {
+    v = htole32((uint32_t) v);
+    memcpy(p, &v, 4);
+}
+
+inline static uint32_t memget_uint32_le(uint8_t *p) {
+    uint32_t v = 0;
+    memcpy(&v, p, 4);
+    v = le32toh(v);
+    return v;
+}
+
 void SecMsgBucket::hashBucket(int64_t bucket_time)
 {
     XXH32_state_t *state = XXH32_createState();
@@ -280,7 +304,7 @@ void ThreadSecureMsg(smsg::CSMSG *smsg_module)
                     // Alert peer that they are being ignored
                     std::vector<uint8_t> vchData;
                     vchData.resize(8);
-                    memcpy(&vchData[0], &ignoreUntil, 8);
+                    memput_int64_le(&vchData[0], ignoreUntil);
                     smsg_module->m_node->connman->PushMessage(pnode,
                         CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::IGNORING, vchData));
 
@@ -1329,7 +1353,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
 
         uint32_t nLocked = 0;           // no. of locked buckets on this node
         uint32_t nInvBuckets;           // no. of bucket headers sent by peer in smsgInv
-        memcpy(&nInvBuckets, &vchData[0], 4);
+        nInvBuckets = memget_uint32_le(&vchData[0]);
         if (LogAcceptCategory(BCLog::SMSG)) {
             LOCK(cs_smsg);
             LogPrintf("Peer %d sent %d bucket headers, this has %d.\n", pfrom->GetId(), nInvBuckets, buckets.size());
@@ -1350,11 +1374,9 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
 
         uint8_t *p = &vchData[4];
         for (uint32_t i = 0; i < nInvBuckets; ++i) {
-            int64_t time;
-            uint32_t ncontent, hash;
-            memcpy(&time, p, 8);
-            memcpy(&ncontent, p+8, 4);
-            memcpy(&hash, p+12, 4);
+            int64_t time = memget_int64_le(p);
+            uint32_t ncontent = memget_uint32_le(p+8);
+            uint32_t hash = memget_uint32_le(p+12);
 
             p += 16;
 
@@ -1424,8 +1446,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
             return SMSG_GENERAL_ERROR;
         }
 
-        uint32_t nBuckets;
-        memcpy(&nBuckets, &vchData[0], 4);
+        uint32_t nBuckets = memget_uint32_le(&vchData[0]);
 
         if (vchData.size() < 4 + nBuckets * 8) {
             return SMSG_GENERAL_ERROR;
@@ -1440,7 +1461,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
         int64_t time;
         uint8_t *pIn = &vchData[4];
         for (uint32_t i = 0; i < nBuckets; ++i, pIn += 8) {
-            memcpy(&time, pIn, 8);
+            time = memget_int64_le(pIn);
 
             int64_t last_shown = 0;
             {
@@ -1466,7 +1487,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
                     LogPrintf("vchDataOut.resize %u threw: %s.\n", 8 + 16 * tokenSet.size(), e.what());
                     continue;
                 }
-                memcpy(&vchDataOut[0], &time, 8);
+                memput_int64_le(&vchDataOut[0], time);
 
                 int64_t now = GetAdjustedTime();
                 size_t nMessages = 0;
@@ -1478,7 +1499,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
                     if (time + it->m_changed < last_shown) {
                         continue;
                     }
-                    memcpy(p, &it->timestamp, 8);
+                    memput_int64_le(p, it->timestamp);
                     memcpy(p+8, &it->sample, 8);
 
                     p += 16;
@@ -1512,8 +1533,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
 
         int n = (vchData.size() - 8) / 16;
 
-        int64_t time;
-        memcpy(&time, &vchData[0], 8);
+        int64_t time = memget_int64_le(&vchData[0]);
 
         // Check time valid:
         int64_t now = GetAdjustedTime();
@@ -1555,11 +1575,11 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
             uint8_t *p = &vchData[8];
 
             for (int i = 0; i < n; ++i, p += 16) {
-                memcpy(&token.timestamp, p, 8);
+                token.timestamp = memget_int64_le(p);
                 memcpy(&token.sample, p+8, 8);
 
                 if (setPurgedTimestamps.find(token.timestamp) != setPurgedTimestamps.end()) {
-                    memcpy(&purgedToken.timestamp, p, 8);
+                    purgedToken.timestamp = memget_int64_le(p);
                     memcpy(&purgedToken.sample, p+8, 8);
                     if (setPurged.find(purgedToken) != setPurged.end()) {
                         continue;
@@ -1608,9 +1628,8 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
 
         int n = (vchData.size() - 8) / 16;
 
-        int64_t time;
+        int64_t time = memget_int64_le(&vchData[0]);
         uint32_t nBunch = 0;
-        memcpy(&time, &vchData[0], 8);
 
         {
             LOCK(cs_smsg);
@@ -1625,7 +1644,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
             SecMsgToken token;
             uint8_t *p = &vchData[8];
             for (int i = 0; i < n; ++i) {
-                memcpy(&token.timestamp, p, 8);
+                token.timestamp = memget_int64_le(p);
                 memcpy(&token.sample, p+8, 8);
 
                 it = tokenSet.find(token);
@@ -1655,8 +1674,8 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
         if (nBunch > 0) {
             LogPrint(BCLog::SMSG, "Sending block of %u messages for bucket %d.\n", nBunch, time);
 
-            memcpy(&vchBunch[0], &nBunch, 4);
-            memcpy(&vchBunch[4], &time, 8);
+            memput_uint32_le(&vchBunch[0], nBunch);
+            memput_int64_le(&vchBunch[4], time);
             m_node->connman->PushMessage(pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::MSG, vchBunch));
         }
@@ -1719,8 +1738,7 @@ int CSMSG::ReceiveData(PeerManager *peerLogic, CNode *pfrom, const std::string &
             return SMSG_GENERAL_ERROR;
         }
 
-        int64_t time;
-        memcpy(&time, &vchData[0], 8);
+        int64_t time = memget_int64_le(&vchData[0]);
 
         {
             LOCK(pfrom->smsgData.cs_smsg_net);
@@ -1825,9 +1843,9 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                 }
 
                 uint8_t *p = &vchData[sz];
-                memcpy(p, &it->first, 8);
-                memcpy(p+8, &nMessages, 4);
-                memcpy(p+12, &hash, 4);
+                memput_int64_le(p, it->first);
+                memput_uint32_le(p+8, nMessages);
+                memput_uint32_le(p+12, hash);
 
                 nBucketsShown++;
             }
@@ -1836,7 +1854,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
     }
     if (nBucketsShown > 0) {
         LOCK(pto->smsgData.cs_smsg_net);
-        memcpy(&vchData[0], &nBucketsShown, 4);
+        memput_uint32_le(&vchData[0], nBucketsShown);
         LogPrint(BCLog::SMSG, "Sending %d bucket headers.\n", nBucketsShown);
 
         m_node->connman->PushMessage(pto,
@@ -1879,7 +1897,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
                     if (sz == 0) {
                         sz = 4;
                     }
-                    memcpy(&vchData[sz], &it->first, 8);
+                    memput_int64_le(&vchData[sz], it->first);
                     nBucketsContestReq++;
                     m_show_requests[it->first] = now + 10;
                 }
@@ -1890,7 +1908,7 @@ bool CSMSG::SendData(CNode *pto, bool fSendTrickle)
         }
     }
     if (nBucketsContestReq > 0) {
-        memcpy(&vchData[0], &nBucketsContestReq, 4);
+        memput_uint32_le(&vchData[0], (uint32_t)nBucketsContestReq);
         m_node->connman->PushMessage(pto,
             CNetMsgMaker(INIT_PROTO_VERSION).Make(SMSGMsgType::SHOW, vchData));
     }
@@ -3031,11 +3049,8 @@ int CSMSG::Receive(PeerManager *peerLogic, CNode *pfrom, std::vector<uint8_t> &v
         return errorN(SMSG_GENERAL_ERROR, "%s - Not enough data.", __func__);
     }
 
-    uint32_t nBunch;
-    int64_t bktTime;
-
-    memcpy(&nBunch, &vchData[0], 4);
-    memcpy(&bktTime, &vchData[4], 8);
+    uint32_t nBunch = memget_uint32_le(&vchData[0]);
+    int64_t bktTime = memget_int64_le(&vchData[4]);
 
     // Check bktTime ()
     // Bucket may not exist yet - will be created when messages are added
@@ -3396,7 +3411,7 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
             LogPrintf("%s: Remove failed, msgid: %s\n", __func__, HexStr(vMsgId));
             break;
         }
-        memcpy(purged.sample, vchOne.data() + SMSG_HDR_LEN, 8);
+        //memcpy(purged.sample, vchOne.data() + SMSG_HDR_LEN, 8);
         it->ttl = 0;
         LogPrint(BCLog::SMSG, "Purged message %s in bucket %d\n", it->ToString(), bucketTime);
         memcpy(purged.sample, it->sample, 8);
@@ -3538,8 +3553,7 @@ int CSMSG::CheckFundingTx(const Consensus::Params &consensusParams, const Secure
     for (size_t k = 0; k < n; ++k) {
         const uint8_t *pMsgIdTxStart = &db_data[32 + k * 24];
         if (memcmp(pMsgIdTxStart, msgId.begin(), 20) == 0) {
-            uint32_t nAmount;
-            memcpy(&nAmount, &db_data[32 + k * 24 + 20], 4);
+            uint32_t nAmount = memget_uint32_le(&db_data[32 + k * 24 + 20]);
 
             if (nAmount < nExpectFee) {
                 LOCK(cs_main);
@@ -3832,15 +3846,13 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
 
     // Use public key P and calculate the SHA512 hash H.
     //   The first 32 bytes of H are called key_e and the last 32 bytes are called key_m.
-    std::vector<uint8_t> vchHashed;
-    vchHashed.resize(64); // 512
+    std::vector<uint8_t> vchHashed(64); // 512
     memset(vchHashed.data(), 0, 64);
     CSHA512().Write(P.begin(), 32).Finalize(&vchHashed[0]);
     std::vector<uint8_t> key_e(&vchHashed[0], &vchHashed[0]+32);
     std::vector<uint8_t> key_m(&vchHashed[32], &vchHashed[32]+32);
 
-    std::vector<uint8_t> vchPayload;
-    std::vector<uint8_t> vchCompressed;
+    std::vector<uint8_t> vchPayload, vchCompressed;
     uint8_t *pMsgData;
     uint32_t lenMsgData;
 
@@ -3874,7 +3886,7 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
 
         vchPayload[0] = 250; // id as anonymous message
         // Next 4 bytes are unused - there to ensure encrypted payload always > 8 bytes
-        memcpy(&vchPayload[5], &lenMsg, 4); // length of uncompressed plain text
+        memput_uint32_le(&vchPayload[5], lenMsg);  // Length of uncompressed plain text
     } else {
         try { vchPayload.resize(SMSG_PL_HDR_LEN + lenMsgData); } catch (std::exception &e) {
             return errorN(SMSG_ALLOCATE_FAILED, "%s: vchPayload.resize %u threw: %s.", __func__, SMSG_PL_HDR_LEN + lenMsgData, e.what());
@@ -3896,7 +3908,7 @@ int CSMSG::Encrypt(SecureMessage &smsg, const CKeyID &addressFrom, const CKeyID 
         memcpy(&vchPayload[1], ckidFrom.begin(), 20); // memcpy(&vchPayload[1], ckidDest.pn, 20);
 
         memcpy(&vchPayload[1+20], &vchSignature[0], vchSignature.size());
-        memcpy(&vchPayload[1+20+65], &lenMsg, 4); // length of uncompressed plain text
+        memput_uint32_le(&vchPayload[1+20+65], lenMsg); // Length of uncompressed plain text
     }
 
     SecMsgCrypter crypter;
@@ -4269,8 +4281,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         tr.vData.resize(25); // 4 byte fee, max 42.94967295
         tr.vData[0] = DO_FUND_MSG;
         memcpy(&tr.vData[1], msgId.begin(), 20);
-        uint32_t tmp_le = htole32(msgFee);
-        memcpy(&tr.vData[21], &tmp_le, 4);
+        memput_uint32_le(&tr.vData[21], msgFee);
         vec_send.push_back(tr);
 
         CHDWallet *const pw = GetParticlWallet(pactive_wallet.get());
@@ -4434,12 +4445,12 @@ int CSMSG::Decrypt(bool fTestOnly, const CKey &keyDest, const CKeyID &address, c
     if ((uint32_t)vchPayload[0] == 250) {
         fFromAnonymous = true;
         lenData = vchPayload.size() - (9);
-        memcpy(&lenPlain, &vchPayload[5], 4);
+        lenPlain = memget_uint32_le(&vchPayload[5]);
         pMsgData = &vchPayload[9];
     } else {
         fFromAnonymous = false;
         lenData = vchPayload.size() - (SMSG_PL_HDR_LEN);
-        memcpy(&lenPlain, &vchPayload[1+20+65], 4);
+        lenPlain = memget_uint32_le(&vchPayload[1+20+65]);
         pMsgData = &vchPayload[SMSG_PL_HDR_LEN];
     }
 

@@ -6,10 +6,10 @@
 
 #include <test/util/setup_common.h>
 #include <net.h>
+#include <xxhash/xxhash.h>
 #ifdef ENABLE_WALLET
 #include <wallet/hdwallet.h>
 #endif
-#include <xxhash/xxhash.h>
 
 #include <boost/test/unit_test.hpp>
 
