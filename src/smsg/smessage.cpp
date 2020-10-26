@@ -2570,9 +2570,7 @@ int CSMSG::ScanMessage(const uint8_t *pHeader, const uint8_t *pPayload, uint32_t
 
     if (fOwnMessage) {
         // Save to inbox
-        //SecureMessage *psmsg = (SecureMessage*) pHeader;
-        SecureMessage smsg;
-        smsg.set(pHeader);
+        SecureMessage smsg(pHeader);
 
         uint160 hash;
         HashMsg(smsg, pPayload, nPayload-(smsg.IsPaidVersion() ? 32 : 0), hash);
@@ -3100,9 +3098,7 @@ int CSMSG::Receive(PeerManager *peerLogic, CNode *pfrom, std::vector<uint8_t> &v
             break;
         }
 
-        //const SecureMessage *psmsg = (SecureMessage*) &vchData[n];
-        SecureMessage smsg;
-        smsg.set(&vchData[n]);
+        SecureMessage smsg(&vchData[n]);
         const uint8_t *pPayload = &vchData[n + SMSG_HDR_LEN];
         if (!smsg.IsPaidVersion() &&
             now - start_time > SMSG_BUCKET_LEN * 2) { // buckets should be fully matched after time
@@ -3400,9 +3396,7 @@ int CSMSG::Purge(std::vector<uint8_t> &vMsgId, std::string &sError)
             continue;
         }
 
-        //const SecureMessage *psmsg = (SecureMessage*) vchOne.data();
-        SecureMessage smsg;
-        smsg.set(vchOne.data());
+        SecureMessage smsg(vchOne.data());
         if (GetMsgID(&smsg, vchOne.data() + SMSG_HDR_LEN) != vMsgId) {
             continue;
         }
@@ -3623,8 +3617,6 @@ int CSMSG::PruneFundingTxData()
 
 int CSMSG::Validate(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_t nPayload)
 {
-    //const SecureMessage *psmsg = (SecureMessage*) pHeader;
-
     if (psmsg->IsPaidVersion()) {
         if (nPayload > SMSG_MAX_MSG_BYTES_PAID) {
             return SMSG_PAYLOAD_OVER_SIZE;
@@ -3708,8 +3700,6 @@ int CSMSG::Validate(const SecureMessage *psmsg, const uint8_t *pPayload, uint32_
   */
 int CSMSG::SetHash(SecureMessage *psmsg, uint8_t *pPayload, uint32_t nPayload)
 {
-    //SecureMessage *psmsg = (SecureMessage*) pHeader;
-
     int64_t nStart = GetTimeMillis();
     uint8_t civ[32];
 

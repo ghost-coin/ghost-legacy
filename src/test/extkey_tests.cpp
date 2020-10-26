@@ -168,7 +168,6 @@ void RunDeriveTest(std::vector<DeriveTestData> &vData)
         evkeyOut = evkey[dt.nDerives % 2];
 
         BOOST_CHECK(CBitcoinExtKey(evkeyOut).ToString().c_str());
-        BOOST_MESSAGE("evkeyOut.nDepth " << (int)evkeyOut.nDepth);
         BOOST_CHECK(evkeyOut.nDepth == dt.nDerives % 256);
 
         BOOST_CHECK(0 == strcmp(CBitcoinExtKey(evkeyOut).ToString().c_str(), dt.vKey58.c_str()));
@@ -227,7 +226,6 @@ void RunDeriveTests()
 
 
     // Switch to testnet
-    BOOST_MESSAGE("Entering Testnet");
     SelectParams(CBaseChainParams::TESTNET);
 
     // Pass testnet key on testnet

@@ -35,7 +35,6 @@ BOOST_AUTO_TEST_CASE(stealth_key_1)
     BOOST_CHECK(HexStr(sxAddr.spend_pubkey) == "02f0e2f682c8a07fdba7a3a97f823261008c7f53156c311d20216af0b6cc8148c3");
 
     BOOST_CHECK(sxAddr.Encoded() == testAddr);
-    BOOST_MESSAGE(sxAddr.Encoded());
 };
 
 BOOST_AUTO_TEST_CASE(stealth_key_serialise)
@@ -151,19 +150,15 @@ BOOST_AUTO_TEST_CASE(stealth_key_address)
     FillableSigningProvider keystore;
     ECC_Start_Stealth();
 
-    for (size_t k = 0; k < 32; ++k)
-    {
+    for (size_t k = 0; k < 32; ++k) {
         CStealthAddress sxAddr;
         makeNewStealthKey(sxAddr, keystore);
         sxAddr.prefix.number_bits = k;
         sxAddr.prefix.bitfield = 0xaaaaaaaa;
-        BOOST_MESSAGE(sxAddr.Encoded());
 
         CBitcoinAddress addrC(sxAddr.Encoded());
         BOOST_CHECK(addrC.IsValid() == true);
-
         BOOST_CHECK(addrC.ToString() == sxAddr.Encoded());
-
 
         CTxDestination dest = addrC.Get();
 
@@ -175,8 +170,7 @@ BOOST_AUTO_TEST_CASE(stealth_key_address)
 
         CBitcoinAddress addrC2(dest);
         BOOST_CHECK(addrC.ToString() == addrC2.ToString());
-
-    };
+    }
 
     ECC_Stop_Stealth();
 }
@@ -188,8 +182,7 @@ BOOST_AUTO_TEST_CASE(stealth_key)
 
     ECC_Start_Stealth();
 
-    for (size_t i = 0; i < 16; ++i)
-    {
+    for (size_t i = 0; i < 16; ++i) {
         CStealthAddress sxAddr;
 
         makeNewStealthKey(sxAddr, keystore);
@@ -201,12 +194,11 @@ BOOST_AUTO_TEST_CASE(stealth_key)
         // Send, secret = ephem_secret, pubkey = scan_pubkey
         // NOTE: StealthSecret can fail if hash is out of range, retry with new ephemeral key
         int k, nTries = 24;
-        for (k = 0; k < nTries; ++k)
-        {
+        for (k = 0; k < nTries; ++k) {
             InsecureNewKey(sEphem, true);
             if (StealthSecret(sEphem, sxAddr.scan_pubkey, sxAddr.spend_pubkey, secretShared, pkSendTo) == 0)
                 break;
-        };
+        }
         BOOST_CHECK_MESSAGE(k < nTries, "StealthSecret failed.");
         BOOST_CHECK(pkSendTo.size() == EC_COMPRESSED_SIZE);
 
@@ -238,7 +230,7 @@ BOOST_AUTO_TEST_CASE(stealth_key)
         BOOST_CHECK(StealthSecretSpend(sxAddr.scan_secret, ephem_pubkey, kSpend, kSpendOut_test2) == 0);
         pkTemp = kSpendOut_test2.GetPubKey();
         BOOST_CHECK(CPubKey(pkSendTo) == pkTemp);
-    };
+    }
 
     ECC_Stop_Stealth();
 }
