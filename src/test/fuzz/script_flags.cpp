@@ -31,7 +31,6 @@ void test_one_input(const std::vector<uint8_t>& buffer)
 
     try {
         const CTransaction tx(deserialize, ds);
-        const PrecomputedTransactionData txdata(tx);
 
         unsigned int verify_flags;
         ds >> verify_flags;
@@ -41,13 +40,21 @@ void test_one_input(const std::vector<uint8_t>& buffer)
         unsigned int fuzzed_flags;
         ds >> fuzzed_flags;
 
+        std::vector<CTxOutSign> spent_outputs;
         for (unsigned i = 0; i < tx.vin.size(); ++i) {
             CTxOut prevout;
             ds >> prevout;
-
+            //spent_outputs.push_back(prevout);
             std::vector<uint8_t> vchAmount(8);
             part::SetAmount(vchAmount, prevout.nValue);
-            const TransactionSignatureChecker checker{&tx, i, vchAmount, txdata};
+            spent_outputs.emplace_back(vchAmount, prevout.scriptPubKey);
+        }
+        PrecomputedTransactionData txdata;
+        txdata.Init(tx, std::move(spent_outputs));
+
+        for (unsigned i = 0; i < tx.vin.size(); ++i) {
+            const CTxOutSign& prevout = txdata.m_spent_outputs.at(i);
+            const TransactionSignatureChecker checker{&tx, i, prevout.amount, txdata};
 
             ScriptError serror;
             const bool ret = VerifyScript(tx.vin.at(i).scriptSig, prevout.scriptPubKey, &tx.vin.at(i).scriptWitness, verify_flags, checker, &serror);

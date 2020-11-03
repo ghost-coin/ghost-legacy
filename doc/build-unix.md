@@ -46,9 +46,9 @@ Optional dependencies:
  libqrencode | QR codes in GUI  | Optional for generating QR codes (only needed when GUI enabled)
  univalue    | Utility          | JSON parsing and encoding (bundled version will be used unless --with-system-univalue passed to configure)
  libzmq3     | ZMQ notification | Optional, allows generating ZMQ notifications (requires ZMQ version >= 4.0.0)
- sqlite3     | SQLite DB       | Wallet storage (only needed when wallet enabled)
- protobuf    | USB Devices      | Data interchange format (only needed when usbdevice enabled)
- hidapi      | USB Devices      | USB interface wrapper (only needed when usbdevice enabled)
+ sqlite3     | SQLite DB        | Optional, wallet storage (only needed when wallet enabled)
+ protobuf    | USB Devices      | Optional, Data interchange format (only needed when usbdevice enabled)
+ hidapi      | USB Devices      | Optional, USB interface wrapper (only needed when usbdevice enabled)
 
 For the versions used, see [dependencies.md](dependencies.md)
 

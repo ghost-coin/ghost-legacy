@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2020 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import time
 import json
 import decimal
+import subprocess
 
 from .test_framework import BitcoinTestFramework
 from .util import assert_equal, coverage
@@ -32,8 +33,16 @@ class ParticlTestFramework(BitcoinTestFramework):
         kwargs['btcmode'] = False
         return super().start_node(i, *args, **kwargs)
 
+    def particl_wallet(self, node, *args):
+        binary = self.config["environment"]["BUILDDIR"] + '/src/particl-wallet' + self.config["environment"]["EXEEXT"]
+        args = ['-datadir={}'.format(node.datadir), '-regtest'] + list(args)
+        p = subprocess.Popen([binary] + args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        stdout, stderr = p.communicate()
+        assert_equal(stderr, '')
+        return p.poll()
+
     def start_nodes(self, extra_args=None, *args, **kwargs):
-        """Start multiple bitcoinds"""
+        """Start multiple particlds"""
         kwargs['btcmode'] = False
         if extra_args is None:
             if hasattr(self, "extra_args"):
@@ -50,6 +59,11 @@ class ParticlTestFramework(BitcoinTestFramework):
                         ea += extra_args[i]
                 else:
                     ea = extra_args[i]
+
+                # Create all specified wallets
+                for a in ea:
+                    if a.startswith('-wallet'):
+                        self.particl_wallet(node, a, 'create')
 
                 node.start(ea, *args, **kwargs)
             for node in self.nodes:

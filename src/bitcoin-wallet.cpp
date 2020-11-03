@@ -33,7 +33,7 @@ static void SetupWalletToolArgs(ArgsManager& argsman)
 
     argsman.AddArg("info", "Get wallet info", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
     argsman.AddArg("create", "Create new wallet file", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
-    argsman.AddArg("salvage", "Attempt to recover private keys from a corrupt wallet", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
+    argsman.AddArg("salvage", "Attempt to recover private keys from a corrupt wallet. Warning: 'salvage' is experimental.", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);
 
     // Particl
     argsman.AddArg("generatemnemonic", "Generate a new mnemonic: <language> <bytes_entropy>", ArgsManager::ALLOW_ANY, OptionsCategory::COMMANDS);

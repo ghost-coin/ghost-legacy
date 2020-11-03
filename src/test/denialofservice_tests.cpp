@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction)
     SetMockTime(0);
 
     bool dummy;
-    peerLogic->FinalizeNode(dummyNode1.GetId(), dummy);
+    peerLogic->FinalizeNode(dummyNode1, dummy);
 }
 
 static void AddRandomOutboundPeer(std::vector<CNode *> &vNodes, PeerManager &peerLogic, CConnmanTest* connman)
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management)
 
     bool dummy;
     for (const CNode *node : vNodes) {
-        peerLogic->FinalizeNode(node->GetId(), dummy);
+        peerLogic->FinalizeNode(*node, dummy);
     }
 
     connman->ClearNodes();
@@ -262,8 +262,8 @@ BOOST_AUTO_TEST_CASE(peer_discouragement)
     BOOST_CHECK(banman->IsDiscouraged(addr2));  // to be discouraged now
 
     bool dummy;
-    peerLogic->FinalizeNode(dummyNode1.GetId(), dummy);
-    peerLogic->FinalizeNode(dummyNode2.GetId(), dummy);
+    peerLogic->FinalizeNode(dummyNode1, dummy);
+    peerLogic->FinalizeNode(dummyNode2, dummy);
 }
 
 BOOST_AUTO_TEST_CASE(DoS_bantime)
@@ -291,9 +291,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime)
     BOOST_CHECK(banman->IsDiscouraged(addr));
 
     bool dummy;
-    peerLogic->FinalizeNode(dummyNode.GetId(), dummy);
-
-    SetMockTime(0);
+    peerLogic->FinalizeNode(dummyNode, dummy);
 }
 
 static CTransactionRef RandomOrphan()
