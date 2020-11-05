@@ -37,20 +37,25 @@ remotes:
   "dir": "particl-core"
 files: []
 script: |
+  set -e -o pipefail
+
   # prepare
   sudo dpkg --add-architecture i386
   sudo apt-get update -y
-  #sudo apt-get install -y --force-yes libudev1:i386
   sudo ln -sf /usr/include/asm-generic /usr/include/asm
   sudo ln -sf /usr/include/x86_64-linux-gnu/asm/byteorder.h /usr/include/asm/byteorder.h
-  set -e -o pipefail
+
+  # ln -s /usr/bin/aarch64-linux-gnu-cpp-8 /usr/bin/aarch64-linux-gnu-cpp
+  for f in /usr/bin/*-8; do
+    sudo ln -s ${f} ${f:0:${#f}-2}
+  done
 
   WRAP_DIR=$HOME/wrapped
   HOSTS="x86_64-linux-gnu arm-linux-gnueabihf aarch64-linux-gnu riscv64-linux-gnu"
   CONFIGFLAGS="--enable-glibc-back-compat --enable-reduce-exports --disable-bench --disable-gui-tests --enable-usbdevice"
   HOSTS_NOUSB="x86_64-linux-gnu"
   CONFIGFLAGS_NOUSB="--enable-glibc-back-compat --enable-reduce-exports --disable-bench --disable-gui-tests --disable-usbdevice"
-  FAKETIME_HOST_PROGS=""
+  FAKETIME_HOST_PROGS="gcc g++"
   FAKETIME_PROGS="date ar ranlib nm"
   HOST_CFLAGS="-O2 -g"
   HOST_CXXFLAGS="-O2 -g"
@@ -80,7 +85,7 @@ script: |
   }
 
   function create_per-host_faketime_wrappers {
-  for i in $HOSTS; do
+  for i in ${HOSTS}; do
     for prog in ${FAKETIME_HOST_PROGS}; do
         if which ${i}-${prog}-8
         then
@@ -104,7 +109,7 @@ script: |
   cd particl-core
   BASEPREFIX="${PWD}/depends"
   # Build dependencies for each host
-  for i in $HOSTS; do
+  for i in ${HOSTS}; do
     case $i in
     i686-pc-linux-gnu)
       sudo apt-get install -y --force-yes libudev-dev:i386
