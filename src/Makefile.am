@@ -139,6 +139,9 @@ BITCOIN_CORE_H = \
   cuckoocache.h \
   flatfile.h \
   fs.h \
+  gvr/payee.h \
+  gvr/monitor.h \
+  gvr/util.h \
   httprpc.h \
   httpserver.h \
   index/base.h \
@@ -312,6 +315,9 @@ libghost_server_a_SOURCES = \
   interfaces/node.cpp \
   init.cpp \
   dbwrapper.cpp \
+  gvr/payee.cpp \
+  gvr/monitor.cpp \
+  gvr/util.cpp \
   miner.cpp \
   net.cpp \
   net_processing.cpp \

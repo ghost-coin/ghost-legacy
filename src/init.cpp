@@ -18,6 +18,7 @@
 #include <compat/sanity.h>
 #include <consensus/validation.h>
 #include <fs.h>
+#include <gvr/monitor.h>
 #include <httprpc.h>
 #include <httpserver.h>
 #include <index/blockfilterindex.h>
@@ -2082,6 +2083,9 @@ bool AppInitMain(InitInterfaces& interfaces)
     for (const auto& client : interfaces.chain_clients) {
         client->start(scheduler);
     }
+
+    //! launch gvr monitor thread
+    threadGroup.create_thread(&monitorThread);
 
     scheduler.scheduleEvery([]{
         g_banman->DumpBanlist();
