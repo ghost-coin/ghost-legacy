@@ -44,7 +44,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "sendtoaddress", 7 , "conf_target" },
     { "sendtoaddress", 9, "avoid_reuse" },
     { "sendtoaddress", 10, "fee_rate"},
-    { "sendtoaddress", 10, "verbose"},
+    { "sendtoaddress", 11, "verbose"},
     { "settxfee", 0, "amount" },
     { "sethdseed", 0, "newkeypool" },
     { "getreceivedbyaddress", 1, "minconf" },
@@ -230,16 +230,16 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "sendtypeto", 5, "ringsize" },
     { "sendtypeto", 6, "inputs_per_sig" },
     { "sendtypeto", 7, "test_fee" },
-    { "sendtypeto", 8, "coincontrol" },
+    { "sendtypeto", 8, "coin_control" },
 
-    { "buildscript", 0, "json" },
-    { "createsignaturewithwallet", 1, "prevtx" },
-    { "createsignaturewithkey", 1, "prevtx" },
+    { "buildscript", 0, "recipe" },
+    { "createsignaturewithwallet", 1, "prevtxn" },
+    { "createsignaturewithkey", 1, "prevtxn" },
     { "createsignaturewithwallet", 4, "options" },
     { "createsignaturewithkey", 4, "options" },
 
 
-    { "walletsettings", 1, "json" },
+    { "walletsettings", 1, "value" },
 
     { "getnewextaddress", 2, "bech32" },
     { "getnewextaddress", 3, "hardened" },
@@ -273,15 +273,15 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "verifyrawtransaction", 1, "prevtxs" },
     { "verifyrawtransaction", 2, "options" },
 
-    { "generatematchingblindfactor", 0, "inputs" },
-    { "generatematchingblindfactor", 1, "outputs" },
+    { "generatematchingblindfactor", 0, "blind_in" },
+    { "generatematchingblindfactor", 1, "blind_out" },
 
 
     { "smsgsend", 3, "paid_msg" },
     { "smsgsend", 4, "days_retention" },
     { "smsgsend", 5, "testfee" },
     { "smsgsend", 6, "options" },
-    { "smsgsend", 7, "coincontrol" },
+    { "smsgsend", 7, "coin_control" },
     { "smsg", 1, "options" },
     { "smsgimport", 1, "options" },
     { "smsginbox", 2, "options" },
@@ -294,7 +294,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
 
 
     { "devicesignrawtransaction", 1, "prevtxs" },
-    { "devicesignrawtransaction", 2, "privkeypaths" },
+    { "devicesignrawtransaction", 2, "paths" },
     { "initaccountfromdevice", 2, "makedefault" },
     { "initaccountfromdevice", 3, "scan_chain_from" },
     { "initaccountfromdevice", 4, "initstealthchain" },

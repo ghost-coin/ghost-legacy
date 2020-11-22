@@ -2343,10 +2343,10 @@ static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
     { "smsg",               "smsgenable",             &smsgenable,             {"walletname"} },
-    { "smsg",               "smsgsetwallet",          &smsgsetwallet,          {"smsgsetwallet"} },
+    { "smsg",               "smsgsetwallet",          &smsgsetwallet,          {"walletname"} },
     { "smsg",               "smsgdisable",            &smsgdisable,            {} },
-    { "smsg",               "smsgoptions",            &smsgoptions,            {} },
-    { "smsg",               "smsglocalkeys",          &smsglocalkeys,          {} },
+    { "smsg",               "smsgoptions",            &smsgoptions,            {"mode","optname","value"} },
+    { "smsg",               "smsglocalkeys",          &smsglocalkeys,          {"mode","optype","address"} },
     { "smsg",               "smsgscanchain",          &smsgscanchain,          {} },
     { "smsg",               "smsgscanbuckets",        &smsgscanbuckets,        {"options"} },
     { "smsg",               "smsgaddaddress",         &smsgaddaddress,         {"address","pubkey"} },
@@ -2354,7 +2354,7 @@ static const CRPCCommand commands[] =
     { "smsg",               "smsgimportprivkey",      &smsgimportprivkey,      {"privkey","label"} },
     { "smsg",               "smsgdumpprivkey",        &smsgdumpprivkey,        {"address"} },
     { "smsg",               "smsggetpubkey",          &smsggetpubkey,          {"address"} },
-    { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","options","coincontrol"} },
+    { "smsg",               "smsgsend",               &smsgsend,               {"address_from","address_to","message","paid_msg","days_retention","testfee","options","coin_control"} },
     { "smsg",               "smsgsendanon",           &smsgsendanon,           {"address_to","message"} },
     { "smsg",               "smsginbox",              &smsginbox,              {"mode","filter","options"} },
     { "smsg",               "smsgoutbox",             &smsgoutbox,             {"mode","filter","options"} },

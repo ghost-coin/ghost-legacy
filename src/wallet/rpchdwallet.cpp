@@ -2213,7 +2213,7 @@ static UniValue reservebalance(const JSONRPCRequest &request)
                 "Wallet must be unlocked to modify." +
                 HELP_REQUIRING_PASSPHRASE,
                 {
-                    {"reserve", RPCArg::Type::BOOL, /* default */ "false", "Turn balance reserve on or off, leave out to display current reserve."},
+                    {"enabled", RPCArg::Type::BOOL, /* default */ "false", "Turn balance reserve on or off, leave out to display current reserve."},
                     {"amount", RPCArg::Type::AMOUNT, /* default */ "", "Amount of coin to reserve."},
                 },
                 RPCResults{},
@@ -4965,7 +4965,8 @@ static std::string SendHelp(OutputTypes typeIn, OutputTypes typeOut)
 
     std::string cmd = std::string("send") + TypeToWord(typeIn) + "to" + TypeToWord(typeOut);
 
-    rv = cmd + " \"address\" amount ( \"comment\" \"comment-to\" subtractfeefromamount \"narration\"";
+    rv = cmd + "DEPRECATED. Will be removed in 0.22\n";
+    rv += " \"address\" amount ( \"comment\" \"comment-to\" subtractfeefromamount \"narration\"";
     if (typeIn == OUTPUT_RINGCT)
         rv += " ringsize inputs_per_sig";
     rv += ")\n";
@@ -8261,7 +8262,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "extkeyimportmaster",               &extkeyimportmaster,            {"source","passphrase","save_bip44_root","master_label","account_label","scan_chain_from"} }, // import, set as master, derive account, set default account, force users to run mnemonic new first make them copy the key
     { "wallet",             "extkeygenesisimport",              &extkeygenesisimport,           {"source","passphrase","save_bip44_root","master_label","account_label","scan_chain_from"} },
     { "wallet",             "extkeyaltversion",                 &extkeyaltversion,              {"ext_key"} },
-    { "wallet",             "getnewextaddress",                 &getnewextaddress,              {"label","childNo","bech32","hardened"} },
+    { "wallet",             "getnewextaddress",                 &getnewextaddress,              {"label","childnum","bech32","hardened"} },
     { "wallet",             "getnewstealthaddress",             &getnewstealthaddress,          {"label","num_prefix_bits","prefix_num","bech32","makeV2"} },
     { "wallet",             "importstealthaddress",             &importstealthaddress,          {"scan_secret","spend_secret","label","num_prefix_bits","prefix_num","bech32"} },
     { "wallet",             "liststealthaddresses",             &liststealthaddresses,          {"show_secrets","options"} },
@@ -8271,7 +8272,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "clearwallettransactions",          &clearwallettransactions,       {"remove_all"} },
 
     { "wallet",             "filtertransactions",               &filtertransactions,            {"options"} },
-    { "wallet",             "filteraddresses",                  &filteraddresses,               {"offset","count","sort_code"} },
+    { "wallet",             "filteraddresses",                  &filteraddresses,               {"offset","count","sort_code","match_str","match_owned","show_path"} },
     { "wallet",             "manageaddressbook",                &manageaddressbook,             {"action","address","label","purpose"} },
 
     { "wallet",             "getstakinginfo",                   &getstakinginfo,                {} },
@@ -8293,35 +8294,35 @@ static const CRPCCommand commands[] =
     { "wallet",             "sendanontoblind",                  &sendanontoblind,               {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
     { "wallet",             "sendanontoanon",                   &sendanontoanon,                {"address","amount","comment","comment_to","subtractfeefromamount","narration","ringsize","inputs_per_sig"} },
 
-    { "wallet",             "sendtypeto",                       &sendtypeto,                    {"typein","typeout","outputs","comment","comment_to","ringsize","inputs_per_sig","test_fee","coincontrol"} },
+    { "wallet",             "sendtypeto",                       &sendtypeto,                    {"typein","typeout","outputs","comment","comment_to","ringsize","inputs_per_sig","test_fee","coin_control"} },
 
 
 
-    { "wallet",             "createsignaturewithwallet",        &createsignaturewithwallet,     {"hexstring","prevtx","address","sighashtype","options"} },
-    { "rawtransactions",    "createsignaturewithkey",           &createsignaturewithkey,        {"hexstring","prevtx","privkey","sighashtype","options"} },
+    { "wallet",             "createsignaturewithwallet",        &createsignaturewithwallet,     {"hexstring","prevtxn","address","sighashtype","options"} },
+    { "rawtransactions",    "createsignaturewithkey",           &createsignaturewithkey,        {"hexstring","prevtxn","privkey","sighashtype","options"} },
 
     { "wallet",             "debugwallet",                      &debugwallet,                   {"attempt_repair","clear_stakes_seen"} },
-    { "wallet",             "walletsettings",                   &walletsettings,                {"setting","json"} },
+    { "wallet",             "walletsettings",                   &walletsettings,                {"setting","value"} },
 
     { "wallet",             "transactionblinds",                &transactionblinds,             {"txnid"} },
-    { "wallet",             "derivefromstealthaddress",         &derivefromstealthaddress,      {"stealthaddress","ephempubkey"} },
+    { "wallet",             "derivefromstealthaddress",         &derivefromstealthaddress,      {"stealthaddress","ephemeralvalue"} },
 
 
     { "governance",         "setvote",                          &setvote,                       {"proposal","option","height_start","height_end"} },
     { "governance",         "votehistory",                      &votehistory,                   {"current_only"} },
     { "governance",         "tallyvotes",                       &tallyvotes,                    {"proposal","height_start","height_end"} },
 
-    { "rawtransactions",    "buildscript",                      &buildscript,                   {"json"} },
+    { "rawtransactions",    "buildscript",                      &buildscript,                   {"recipe"} },
     { "rawtransactions",    "createrawparttransaction",         &createrawparttransaction,      {"inputs","outputs","locktime","replaceable"} },
     { "rawtransactions",    "fundrawtransactionfrom",           &fundrawtransactionfrom,        {"input_type","hexstring","input_amounts","output_amounts","options"} },
     { "rawtransactions",    "verifycommitment",                 &verifycommitment,              {"commitment","blind","amount"} },
     { "rawtransactions",    "rewindrangeproof",                 &rewindrangeproof,              {"rangeproof","commitment","nonce_key","ephemeral_key"} },
-    { "rawtransactions",    "generatematchingblindfactor",      &generatematchingblindfactor,   {"inputs","outputs"} },
+    { "rawtransactions",    "generatematchingblindfactor",      &generatematchingblindfactor,   {"blind_in","blind_out"} },
     { "rawtransactions",    "verifyrawtransaction",             &verifyrawtransaction,          {"hexstring","prevtxs","options"} },
 
     { "blockchain",         "rewindchain",                      &rewindchain,                   {"height"} },
     { "blockchain",         "pruneorphanedblocks",              &pruneorphanedblocks,           {"testonly"} },
-    { "blockchain",         "rehashblock",                      &rehashblock,                   {"hexblock","signwith","addtxns"} },
+    { "blockchain",         "rehashblock",                      &rehashblock,                   {"blockhex","signwith","addtxns"} },
 };
 // clang-format on
     return MakeSpan(commands);

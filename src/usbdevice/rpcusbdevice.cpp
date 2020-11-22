@@ -1159,7 +1159,7 @@ static const CRPCCommand commands[] =
     { "usbdevice",          "getdevicepublickey",           &getdevicepublickey,        {"path","accountpath"} },
     { "usbdevice",          "getdevicexpub",                &getdevicexpub,             {"path","accountpath"} },
     { "usbdevice",          "devicesignmessage",            &devicesignmessage,         {"path","message","accountpath"} },
-    { "usbdevice",          "devicesignrawtransaction",     &devicesignrawtransaction,  {"hexstring","prevtxs","privkeypaths","sighashtype","accountpath"} }, /* uses wallet if enabled */
+    { "usbdevice",          "devicesignrawtransaction",     &devicesignrawtransaction,  {"hexstring","prevtxs","paths","sighashtype","accountpath"} }, /* uses wallet if enabled */
 #ifdef ENABLE_WALLET
     { "usbdevice",          "initaccountfromdevice",        &initaccountfromdevice,     {"label","path","makedefault","scan_chain_from","initstealthchain"} },
     { "usbdevice",          "devicegetnewstealthaddress",   &devicegetnewstealthaddress,{"label","num_prefix_bits","prefix_num","bech32"} },

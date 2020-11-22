@@ -1315,16 +1315,14 @@ UniValue getinsightinfo(const JSONRPCRequest& request)
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
-    /* Address index */
     { "addressindex",       "getaddressmempool",      &getaddressmempool,      {"addresses"} },
-    { "addressindex",       "getaddressutxos",        &getaddressutxos,        {"addresses"} },
-    { "addressindex",       "getaddressdeltas",       &getaddressdeltas,       {"addresses"} },
-    { "addressindex",       "getaddresstxids",        &getaddresstxids,        {"addresses"} },
+    { "addressindex",       "getaddressutxos",        &getaddressutxos,        {"addresses","chainInfo"} },
+    { "addressindex",       "getaddressdeltas",       &getaddressdeltas,       {"addresses","start","end","chainInfo"} },
+    { "addressindex",       "getaddresstxids",        &getaddresstxids,        {"addresses","start","end"} },
     { "addressindex",       "getaddressbalance",      &getaddressbalance,      {"addresses"} },
 
-    /* Blockchain */
     { "blockchain",         "getspentinfo",           &getspentinfo,           {"inputs"} },
-    { "blockchain",         "getblockdeltas",         &getblockdeltas,         {} },
+    { "blockchain",         "getblockdeltas",         &getblockdeltas,         {"blockhash"} },
     { "blockchain",         "getblockhashes",         &getblockhashes,         {"high","low","options"} },
     { "blockchain",         "gettxoutsetinfobyscript",&gettxoutsetinfobyscript,{} },
     { "blockchain",         "getblockreward",         &getblockreward,         {"height"} },
