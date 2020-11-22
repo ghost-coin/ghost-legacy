@@ -11297,7 +11297,7 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
     bool res = nTargetValue <= nValueFromPresetInputs;
     if (!res) {
         if (random_selection) {
-            random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+            std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
 
             CAmount target_val = nTargetValue - nValueFromPresetInputs;
             std::vector<CAmount> coin_values;
@@ -11360,7 +11360,7 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
     // add preset inputs to the total value selected
     nValueRet += nValueFromPresetInputs;
 
-    random_shuffle(setCoinsRet.begin(), setCoinsRet.end(), GetRandInt);
+    std::shuffle(setCoinsRet.begin(), setCoinsRet.end(), FastRandomContext());
 
     return res;
 };
@@ -11451,7 +11451,7 @@ void CHDWallet::AvailableAnonCoins(std::vector<COutputR> &vCoins, bool fOnlySafe
         }
     }
 
-    random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+    std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
     return;
 };
 
@@ -11627,7 +11627,7 @@ bool CHDWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligib
     std::vector<std::pair<CAmount, std::pair<MapRecords_t::const_iterator,unsigned int> > > vValue;
     CAmount nTotalLower = 0;
 
-    random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+    std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
 
     for (const auto &r : vCoins) {
         //if (!r.fSpendable)
@@ -12451,14 +12451,14 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
         }
     }
 
-    random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+    std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
     return;
 };
 
 bool CHDWallet::SelectCoinsForStaking(int64_t nTargetValue, int64_t nTime, int nHeight, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const
 {
     if (m_have_cached_stakeable_coins) {
-        random_shuffle(m_cached_stakeable_coins.begin(), m_cached_stakeable_coins.end(), GetRandInt);
+        std::shuffle(m_cached_stakeable_coins.begin(), m_cached_stakeable_coins.end(), FastRandomContext());
     } else {
         m_cached_stakeable_coins.clear();
         AvailableCoinsForStaking(m_cached_stakeable_coins, nTime, nHeight);
