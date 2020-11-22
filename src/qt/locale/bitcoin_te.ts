@@ -184,7 +184,7 @@
         <translation>Enter the old passphrase and new passphrase for the wallet.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>మీ వాలెట్‌ను గుప్తీకరించడం వల్ల మీ కంప్యూటర్‌కు హాని కలిగించే మాల్వేర్ దొంగిలించకుండా మీ బిట్‌కాయిన్‌లను పూర్తిగా రక్షించలేమని గుర్తుంచుకోండి.</translation>
     </message>
     <message>

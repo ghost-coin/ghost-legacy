@@ -173,7 +173,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Billetera encriptada</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>Recuerda que codificando tu billetera no garantiza mantener a salvo tus particls en caso de tener virus en el computador.</translation>
     </message>
     <message>
@@ -867,7 +867,7 @@ Exportar los datos en la pestaña actual a un archivo</translation>
         <translation>Es posible que las transacciones recientes aún no estén visibles y, por lo tanto, el saldo de su billetera podría ser incorrecto. Esta información será correcta una vez que su billetera haya terminado de sincronizarse con la red particl, como se detalla a continuación.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>La red no aceptará intentar gastar particls que se vean afectados por transacciones aún no mostradas</translation>
     </message>
     <message>

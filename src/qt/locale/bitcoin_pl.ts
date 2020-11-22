@@ -3,7 +3,7 @@
     <name>AddressBookPage</name>
     <message>
         <source>Right-click to edit address or label</source>
-        <translation>Right-click to edit address or label</translation>
+        <translation>Kliknij prawym przyciskiem myszy, aby edytować adres lub etykietę</translation>
     </message>
     <message>
         <source>Create a new address</source>
@@ -67,13 +67,13 @@
     </message>
     <message>
         <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</translation>
+        <translation>To są twoje adresy Particl do wysyłania płatności. Zawsze sprawdź kwotę i adres odbiorcy przed wysłaniem monet.</translation>
     </message>
     <message>
         <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.
 Signing is only possible with addresses of the type 'legacy'.</source>
-        <translation>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.
-Signing is only possible with addresses of the type 'legacy'.</translation>
+        <translation>To są twoje adresy Particl do otrzymywania płatności. Użyj przycisku „Utwórz nowy adres odbiorcy” na karcie odbioru, aby utworzyć nowe adresy.
+Podpisywanie jest możliwe tylko z adresami typu „legacy”.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -89,7 +89,7 @@ Signing is only possible with addresses of the type 'legacy'.</translation>
     </message>
     <message>
         <source>Export Address List</source>
-        <translation>Export Address List</translation>
+        <translation>Eksportuj listę adresów</translation>
     </message>
     <message>
         <source>Comma separated file (*.csv)</source>
@@ -151,7 +151,7 @@ Signing is only possible with addresses of the type 'legacy'.</translation>
     </message>
     <message>
         <source>Unlock wallet</source>
-        <translation>Unlock wallet</translation>
+        <translation>Odblokuj portfel</translation>
     </message>
     <message>
         <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
@@ -190,7 +190,7 @@ Signing is only possible with addresses of the type 'legacy'.</translation>
         <translation>Wprowadź stare i nowe hasło dla portfela.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>Zwróć uwagę, że zaszyfrowanie portfela nie zabezpieczy się w pełni przed kradzieżą przez malware jakie może zainfekować twój komputer.</translation>
     </message>
     <message>
@@ -325,7 +325,7 @@ Signing is only possible with addresses of the type 'legacy'.</translation>
     </message>
     <message>
         <source>Open &amp;URI...</source>
-        <translation>Otwórz URI...</translation>
+        <translation>Otwórz &amp;URI...</translation>
     </message>
     <message>
         <source>Create Wallet...</source>
@@ -488,8 +488,16 @@ Signing is only possible with addresses of the type 'legacy'.</translation>
         <translation>Wczytaj PSBT z p&amp;liku ..</translation>
     </message>
     <message>
+        <source>Load Partially Signed Particl Transaction</source>
+        <translation>Załaduj częściowo podpisaną transakcję Particl</translation>
+    </message>
+    <message>
         <source>Load PSBT from clipboard...</source>
         <translation>Wczytaj PSBT do schowka</translation>
+    </message>
+    <message>
+        <source>Load Partially Signed Particl Transaction from clipboard</source>
+        <translation>Załaduj częściowo podpisaną transakcję Particl ze schowka</translation>
     </message>
     <message>
         <source>Node window</source>
@@ -853,6 +861,10 @@ Signing is only possible with addresses of the type 'legacy'.</translation>
         <translation>Stwórz czysty portfel</translation>
     </message>
     <message>
+        <source>Descriptor Wallet</source>
+        <translation>Portfel deskryptora</translation>
+    </message>
+    <message>
         <source>Create</source>
         <translation>Stwórz</translation>
     </message>
@@ -1044,7 +1056,7 @@ Signing is only possible with addresses of the type 'legacy'.</translation>
         <translation>Świeże transakcje mogą nie być jeszcze widoczne, a zatem saldo portfela może być nieprawidłowe. Te detale będą poprawne, gdy portfel zakończy synchronizację z siecią particl, zgodnie z poniższym opisem.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>Próba wydania particlów które nie są jeszcze wyświetlone jako transakcja zostanie odrzucona przez sieć.</translation>
     </message>
     <message>
@@ -2598,7 +2610,7 @@ Uwaga: Ponieważ opłata jest naliczana za każdy bajt, opłata "100 satoshi za 
         <translation>Kwota do wysłania w wybranej jednostce</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>Opłata zostanie odjęta od kwoty wysyłane.Odbiorca otrzyma mniej niż particls wpisz w polu kwoty. Jeśli wybrano kilku odbiorców, opłata jest podzielona równo.</translation>
     </message>
     <message>
@@ -2660,7 +2672,7 @@ Uwaga: Ponieważ opłata jest naliczana za każdy bajt, opłata "100 satoshi za 
         <translation>Podpi&amp;sz Wiadomość</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>Możesz podpisywać wiadomości swoimi adresami aby udowodnić, że jesteś ich właścicielem. Uważaj, aby nie podpisywać niczego co wzbudza Twoje podejrzenia, ponieważ ktoś może stosować phishing próbując nakłonić Cię do ich podpisania. Akceptuj i podpisuj tylko w pełni zrozumiałe komunikaty i wiadomości.</translation>
     </message>
     <message>
@@ -3275,7 +3287,7 @@ Zwróć uwagę, że poprawnie zweryfikowana wiadomość potwierdza to, że nadaw
     </message>
     <message>
         <source>Closing the wallet for too long can result in having to resync the entire chain if pruning is enabled.</source>
-        <translation>Zamknięcie portfela na zbyt długo może skutkować konieczność ponownego załadowania całego łańcucha, jeżeli jest włączony pruning.</translation>
+        <translation>Zamknięcie portfela na zbyt długo może skutkować koniecznością ponownego załadowania całego łańcucha, jeżeli jest włączony pruning.</translation>
     </message>
     <message>
         <source>Close all wallets</source>
@@ -3558,6 +3570,10 @@ Zwróć uwagę, że poprawnie zweryfikowana wiadomość potwierdza to, że nadaw
         <translation>Nie udało się ponownie przeskanować portfela podczas inicjalizacji.</translation>
     </message>
     <message>
+        <source>Failed to verify database</source>
+        <translation>Nie udało się zweryfikować bazy danych</translation>
+    </message>
+    <message>
         <source>Importing...</source>
         <translation>Importowanie…</translation>
     </message>
@@ -3584,6 +3600,30 @@ Zwróć uwagę, że poprawnie zweryfikowana wiadomość potwierdza to, że nadaw
     <message>
         <source>Invalid amount for -fallbackfee=&lt;amount&gt;: '%s'</source>
         <translation>Nieprawidłowa kwota dla -fallbackfee=&lt;amount&gt;: '%s'</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to execute statement to verify database: %s</source>
+        <translation>SQLiteDatabase: nie powiodło się wykonanie instrukcji weryfikującej bazę danych: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to fetch sqlite wallet schema version: %s</source>
+        <translation>SQLiteDatabase: nie udało się pobrać wersji schematu portfela sqlite: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to fetch the application id: %s</source>
+        <translation>SQLiteDatabase: nie udało się pobrać identyfikatora aplikacji: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to prepare statement to verify database: %s</source>
+        <translation>SQLiteDatabase: nie udało się przygotować instrukcji do weryfikacji bazy danych: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to read database verification error: %s</source>
+        <translation>SQLiteDatabase: nie udało się odczytać błędu weryfikacji bazy danych: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Unexpected application id. Expected %u, got %u</source>
+        <translation>SQLiteDatabase: nieoczekiwany identyfikator aplikacji. Oczekiwano %u, otrzymano %u</translation>
     </message>
     <message>
         <source>Specified blocks directory "%s" does not exist.</source>

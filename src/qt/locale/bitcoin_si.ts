@@ -148,7 +148,7 @@
         <translation>පසුම්බිය සඳහා පැරණි මුරපදය සහ නව මුරපදය ඇතුළත් කරන්න.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>ඔබේ මුදල් පසුම්බිය සංකේතනය කිරීමෙන් ඔබේ පරිගණකයට අනිෂ්ට මෘදුකාංග (malware) ඇතුලු වීමෙන් කෙරෙන බිට්කොයින් සොරකම් කිරීම් වලින් සම්පූර්ණයෙන්ම වැළැක්වීම කළ නොහැකි බව මතක තබා ගන්න.</translation>
     </message>
     <message>

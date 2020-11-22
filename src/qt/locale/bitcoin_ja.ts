@@ -185,7 +185,7 @@
         <translation>ウォレット用の旧パスフレーズと新パスフレーズを入力してください。</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>ウォレットを暗号化しても、コンピュータに感染したマルウェアなどによる Particl の盗難を完全に防ぐことはできないことにご注意ください。</translation>
     </message>
     <message>
@@ -479,6 +479,14 @@
         <translation>ブロックは最新</translation>
     </message>
     <message>
+        <source>Load PSBT from clipboard...</source>
+        <translation>PSBTをクリップボードから読み込み</translation>
+    </message>
+    <message>
+        <source>Load Partially Signed Particl Transaction from clipboard</source>
+        <translation>部分的に署名されたビットコインのトランザクションをクリップボードから読み込み</translation>
+    </message>
+    <message>
         <source>Node window</source>
         <translation>ノードウィンドウ</translation>
     </message>
@@ -513,6 +521,14 @@
     <message>
         <source>Close wallet</source>
         <translation>ウォレットを閉じる</translation>
+    </message>
+    <message>
+        <source>Close All Wallets...</source>
+        <translation>全てのウォレットを閉じる</translation>
+    </message>
+    <message>
+        <source>Close all wallets</source>
+        <translation>全てのウォレットを閉じる</translation>
     </message>
     <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
@@ -625,6 +641,10 @@
     <message>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
         <translation>ウォレットは&lt;b&gt;暗号化済み&lt;/b&gt;・&lt;b&gt;ロック状態&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <source>Original message:</source>
+        <translation>オリジナルメッセージ：</translation>
     </message>
     </context>
 <context>
@@ -1019,7 +1039,7 @@
         <translation>最近の取引がまだ表示されていない可能性があります。そのため、ウォレットの残高が正しく表示されていないかもしれません。この情報は、ウォレットが Particl ネットワークへの同期が完了すると正確なものとなります。詳細は下記を参照してください。</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>まだ表示されていない取引が関係する Particl の使用を試みた場合、ネットワークから認証を受けられません。</translation>
     </message>
     <message>
@@ -1441,6 +1461,34 @@
     </context>
 <context>
     <name>PSBTOperationsDialog</name>
+    <message>
+        <source>Dialog</source>
+        <translation>ダイアログ</translation>
+    </message>
+    <message>
+        <source>Copy to Clipboard</source>
+        <translation>クリップボードにコピー</translation>
+    </message>
+    <message>
+        <source>Save...</source>
+        <translation>保存</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>閉じる</translation>
+    </message>
+    <message>
+        <source>Signed transaction successfully. Transaction is ready to broadcast.</source>
+        <translation>トランザクションへの署名が成功しました。トランザクションのブロードキャストの準備ができています。</translation>
+    </message>
+    <message>
+        <source>Save Transaction Data</source>
+        <translation>トランザクションデータの保存</translation>
+    </message>
+    <message>
+        <source>PSBT saved to disk.</source>
+        <translation>PSBTはディスクに保存されました。</translation>
+    </message>
     <message>
         <source>Total Amount</source>
         <translation>合計</translation>
@@ -2063,6 +2111,10 @@
 <context>
     <name>ReceiveRequestDialog</name>
     <message>
+        <source>Address:</source>
+        <translation>アドレス：</translation>
+    </message>
+    <message>
         <source>Amount:</source>
         <translation>金額:</translation>
     </message>
@@ -2345,6 +2397,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>送金してもよろしいですか？</translation>
     </message>
     <message>
+        <source>Save Transaction Data</source>
+        <translation>トランザクションデータの保存</translation>
+    </message>
+    <message>
         <source>or</source>
         <translation>または</translation>
     </message>
@@ -2488,7 +2544,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>送金する金額の単位を選択</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>手数料は送金する金額から差し引かれます。送金先には金額欄で指定した額よりも少ない Particl が送られます。送金先が複数ある場合は、手数料は均等に分けられます。</translation>
     </message>
     <message>
@@ -2550,7 +2606,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>メッセージの署名(&amp;S)</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>あなたが所有しているアドレスでメッセージや契約書に署名をすることで、それらのアドレスへ送られた Particl を受け取ることができることを証明できます。フィッシング攻撃者があなたを騙して、あなたの身分情報に署名させようとしている可能性があるため、よくわからないものやランダムな文字列に対して署名しないでください。あなたが同意した、よく詳細の記された文言にのみ署名するようにしてください。</translation>
     </message>
     <message>
@@ -3166,7 +3222,15 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <source>Closing the wallet for too long can result in having to resync the entire chain if pruning is enabled.</source>
         <translation>ブロックファイル剪定が有効の場合、長期間ウォレットを起動しないと全チェーンを再度同期させる必要があるかもしれません。</translation>
     </message>
-    </context>
+    <message>
+        <source>Close all wallets</source>
+        <translation>全てのウォレットを閉じる</translation>
+    </message>
+    <message>
+        <source>Are you sure you wish to close all wallets?</source>
+        <translation>本当に全てのウォレットを閉じますか。</translation>
+    </message>
+</context>
 <context>
     <name>WalletFrame</name>
     <message>
@@ -3549,6 +3613,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     <message>
         <source>You need to rebuild the database using -reindex to go back to unpruned mode.  This will redownload the entire blockchain</source>
         <translation>非剪定モードに戻るためには -reindex オプションを指定してデータベースを再構築する必要があります。 ブロックチェーン全体の再ダウンロードが必要となります。</translation>
+    </message>
+    <message>
+        <source>Disk space is too low!</source>
+        <translation>ディスク容量不足!</translation>
     </message>
     <message>
         <source>Error reading from database, shutting down.</source>

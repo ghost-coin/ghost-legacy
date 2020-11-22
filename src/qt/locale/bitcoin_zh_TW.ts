@@ -189,7 +189,7 @@ Signing is only possible with addresses of the type 'legacy'.</source>
         <translation>輸入錢包的密碼短語和新密碼短語。</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>請記得, 即使將錢包加密, 也不能完全防止因惡意軟體入侵, 而導致位元幣被偷.</translation>
     </message>
     <message>
@@ -1051,7 +1051,7 @@ Signing is only possible with addresses of the type 'legacy'.</source>
         <translation>最近的交易可能還看不到，因此錢包餘額可能不正確。在錢包軟體完成跟 particl 網路的同步後，這裡的資訊就會正確。詳情請見下面。</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>使用還沒顯示出來的交易所影響到的 particl 可能會不被網路所接受。</translation>
     </message>
     <message>
@@ -2640,7 +2640,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>以所選單位發送的金額</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>手續費會從要付款出去的金額中扣掉。因此收款人會收到比輸入的金額還要少的 particl。如果有多個收款人的話，手續費會平均分配來扣除。</translation>
     </message>
     <message>
@@ -2702,7 +2702,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>簽署訊息(&amp;S)</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>您可以使用您的地址簽名訊息/協議，以證明您可以接收發送給他們的比特幣。但是請小心，不要簽名語意含糊不清，或隨機產生的內容，因為釣魚式詐騙可能會用騙你簽名的手法來冒充是你。只有簽名您同意的詳細內容。</translation>
     </message>
     <message>

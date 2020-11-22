@@ -9,6 +9,7 @@ from test_framework.blocktools import (
     create_block,
     add_witness_commitment,
     MAX_BLOCK_SIGOPS_WEIGHT,
+    NORMAL_GBT_REQUEST_PARAMS,
     WITNESS_SCALE_FACTOR,
 )
 from test_framework.messages import (
@@ -1199,7 +1200,7 @@ class TaprootTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.setup_clean_chain = True
         # Node 0 has Taproot inactive, Node 1 active.
-        self.extra_args = [["-whitelist=127.0.0.1", "-par=1", "-vbparams=taproot:1:1"], ["-whitelist=127.0.0.1", "-par=1"]]
+        self.extra_args = [["-par=1", "-vbparams=taproot:1:1"], ["-par=1"]]
 
     def block_submit(self, node, txs, msg, err_msg, cb_pubkey=None, fees=0, sigops_weight=0, witness=False, accept=False):
 
@@ -1218,7 +1219,7 @@ class TaprootTest(BitcoinTestFramework):
         witness and add_witness_commitment(block)
         block.rehash()
         block.solve()
-        block_response = node.submitblock(block.serialize(True).hex())
+        block_response = node.submitblock(block.serialize().hex())
         if err_msg is not None:
             assert block_response is not None and err_msg in block_response, "Missing error message '%s' from block response '%s': %s" % (err_msg, "(None)" if block_response is None else block_response, msg)
         if (accept):
@@ -1437,17 +1438,33 @@ class TaprootTest(BitcoinTestFramework):
         self.log.info("  - Done")
 
     def run_test(self):
-        self.connect_nodes(0, 1)
-
         # Post-taproot activation tests go first (pre-taproot tests' blocks are invalid post-taproot).
         self.log.info("Post-activation tests...")
         self.nodes[1].generate(101)
         self.test_spenders(self.nodes[1], spenders_taproot_active(), input_counts=[1, 2, 2, 2, 2, 3])
 
-        # Transfer % of funds to pre-taproot node.
+        # Transfer value of the largest 500 coins to pre-taproot node.
         addr = self.nodes[0].getnewaddress()
-        self.nodes[1].sendtoaddress(address=addr, amount=int(self.nodes[1].getbalance() * 70000000) / 100000000)
-        self.nodes[1].generate(1)
+
+        unsp = self.nodes[1].listunspent()
+        unsp = sorted(unsp, key=lambda i: i['amount'], reverse=True)
+        unsp = unsp[:500]
+
+        rawtx = self.nodes[1].createrawtransaction(
+            inputs=[{
+                'txid': i['txid'],
+                'vout': i['vout']
+            } for i in unsp],
+            outputs={addr: sum(i['amount'] for i in unsp)}
+        )
+        rawtx = self.nodes[1].signrawtransactionwithwallet(rawtx)['hex']
+
+        # Mine a block with the transaction
+        block = create_block(tmpl=self.nodes[1].getblocktemplate(NORMAL_GBT_REQUEST_PARAMS), txlist=[rawtx])
+        add_witness_commitment(block)
+        block.rehash()
+        block.solve()
+        assert_equal(None, self.nodes[1].submitblock(block.serialize().hex()))
         self.sync_blocks()
 
         # Pre-taproot activation tests.

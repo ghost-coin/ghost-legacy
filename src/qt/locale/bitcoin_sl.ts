@@ -190,7 +190,7 @@ Podpisovanje je možno le s podedovanimi ("legacy") naslovi.</translation>
         <translation>Vnesite staro geslo in novo geslo za denarnico.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>Pomnite, da šifriranje denarnice ne more preprečiti kraje particlov preko morebitnih virusov na vašem računalniku.</translation>
     </message>
     <message>
@@ -1072,7 +1072,7 @@ Podpisovanje je možno le s podedovanimi ("legacy") naslovi.</translation>
         <translation>Zadnje transakcije morda še niso vidne, zato je prikazano stanje v denarnici lahko napačno. Pravilni podatki bodo prikazani, ko bo vaša denarnica končala s sinhronizacijo z particl omrežjem; glejte podrobnosti spodaj.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>Poskusa pošiljanja particlov, na katere vplivajo še ne prikazane transakcije, omrežje ne bo sprejelo.</translation>
     </message>
     <message>
@@ -2709,7 +2709,7 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation>Znesek za pošiljanje v izbrani enoti</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>Znesek plačila bo zmanjšan za znesek provizije. Prejemnik bo prejel manjše število kovancev, kot je bil vnešeni znesek. Če je prejemnikov več, bo provizija med njih enakomerno porazdeljena.</translation>
     </message>
     <message>
@@ -2771,7 +2771,7 @@ Opomba: Ker se provizija izračuna na bajt, bi provizija "100 satoshijev na kB" 
         <translation>&amp;Podpiši sporočilo</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>S svojimi naslovi lahko podpisujete sporočila ali dogovore in s tem dokazujete, da na teh naslovih lahko prejemate kovance. Bodite previdni in ne podpisujte ničesar nejasnega ali naključnega, ker vas zlikovci preko ribarjenja (phishing) lahko prelisičijo, da na njih prepišete svojo identiteto. Podpisujte samo podrobno opisane izjave, s katerimi se strinjate.</translation>
     </message>
     <message>
@@ -3580,6 +3580,18 @@ Za odpiranje denarnice kliknite Datoteka &gt; Odpri denarnico
         <translation>Prosimo, prispevajte, če se vam zdi %s uporaben. Za dodatne informacije o programski opremi obiščite %s.</translation>
     </message>
     <message>
+        <source>SQLiteDatabase: Failed to prepare the statement to fetch sqlite wallet schema version: %s</source>
+        <translation>Baza SQLite: priprava stavka za poizvedbo verzije sheme SQLite denarnice je spodletela: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to prepare the statement to fetch the application id: %s</source>
+        <translation>Baza SQLite: priprava stavka za poizvedbo identifikatorja aplikacije je spodletela: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Unknown sqlite wallet schema version %d. Only version %d is supported</source>
+        <translation>Baza SQLite: Neznana verzija sheme SQLite denarnice %d. Podprta je le verzija %d.</translation>
+    </message>
+    <message>
         <source>The block database contains a block which appears to be from the future. This may be due to your computer's date and time being set incorrectly. Only rebuild the block database if you are sure that your computer's date and time are correct</source>
         <translation>Baza podatkov blokov vsebuje blok, za katerega se zdi, da je iz prihodnosti. To je lahko posledica napačnega nastavitve datuma in časa vašega računalnika. Znova zgradite bazo podatkov samo, če ste prepričani, da sta datum in čas računalnika pravilna.</translation>
     </message>
@@ -3684,6 +3696,10 @@ Za odpiranje denarnice kliknite Datoteka &gt; Odpri denarnico
         <translation>Med inicializacijo denarnice ni bilo mogoče preveriti zgodovine (rescan failed).</translation>
     </message>
     <message>
+        <source>Failed to verify database</source>
+        <translation>Preverba podatkovne baze je spodletela.</translation>
+    </message>
+    <message>
         <source>Importing...</source>
         <translation>Uvažam ...</translation>
     </message>
@@ -3710,6 +3726,30 @@ Za odpiranje denarnice kliknite Datoteka &gt; Odpri denarnico
     <message>
         <source>Invalid amount for -fallbackfee=&lt;amount&gt;: '%s'</source>
         <translation>Neveljavna količina za -fallbackfee=&lt;amount&gt;: '%s'</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to execute statement to verify database: %s</source>
+        <translation>Baza SQLite: Izvršitev stavka za preverbo baze je spodletela: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to fetch sqlite wallet schema version: %s</source>
+        <translation>Baza SQLite: pridobitev verzije sheme SQLite denarnice je spodletela: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to fetch the application id: %s</source>
+        <translation>Baza SQLite: pridobitev identifikatorja aplikacije je spodletela: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to prepare statement to verify database: %s</source>
+        <translation>Baza SQLite: priprava stavka za preverbo baze je spodletela: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to read database verification error: %s</source>
+        <translation>Baza SQLite: branje napake pri preverjanje baze je spodletelo: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Unexpected application id. Expected %u, got %u</source>
+        <translation>Baza SQLite: nepričakovan identifikator aplikacije. Pričakovana vrednost je %u, dobljena vrednost je %u.</translation>
     </message>
     <message>
         <source>Specified blocks directory "%s" does not exist.</source>

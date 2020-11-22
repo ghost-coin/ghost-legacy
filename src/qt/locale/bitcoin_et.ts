@@ -184,7 +184,7 @@
         <translation>Sisesta rahakoti vana salafraas ja uus salafraas.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>Pea meeles, et rahakoti krüpteerimine ei välista particlide vargust, kui sinu arvuti on nakatunud pahavaraga.</translation>
     </message>
     <message>

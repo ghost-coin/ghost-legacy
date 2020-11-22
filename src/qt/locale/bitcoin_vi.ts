@@ -184,7 +184,7 @@
         <translation>Nhập cụm mật khẩu cũ và mật khẩu mới cho ví.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>Xin lưu ý rằng mật mã hóa ví của bạn không thể bảo vệ hoàn toàn particl của bạn khỏi đánh cắp bởi các phẩn mềm gián điệp nhiễm vào máy tính của bạn.</translation>
     </message>
     <message>
@@ -1014,7 +1014,7 @@
         <translation>Giao dịch gần đây có thể chưa được hiển thị, và vì vậy số dư wallet của bạn có thể không dúng. Thông tin này sẽ được làm đúng khi wallet hoàn thành đồng bộ với particl network, như chi tiết bên dưới.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>Cố gắng spend các particls bị ảnh hưởng bởi các giao dịch chưa được hiển thị sẽ không được chấp nhận bởi mạng.</translation>
     </message>
     <message>
@@ -2479,7 +2479,7 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Lượng tiền để gửi trong mỗi đơn vị đã chọn</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>The fee sẽ được khấu trừ từ số tiền đang gửi. Người nhận sẽ receive ít particls hơn bạn gõ vào khoảng trống. Nếu nhiều người gửi được chọn, fee sẽ được chia đều.</translation>
     </message>
     <message>
@@ -2541,8 +2541,8 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>&amp;Sign Tin nhắn</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Bạn có thể ký/đồng ý với địa chỉ chứng minh bạn có thể receive particl đã gửi đến chúng. Cẩn thận không ký bất cứ không rõ hay random, như các cuộc tấn công lừa đảo có thể cố lừa bạn ký tên vào danh tính của bạn.. Chỉ ký các bản tuyên bố hoàn chỉnh mà bạn đồng ý.</translation>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <translation>Bạn có thể ký/đồng ý với địa chỉ chứng minh bạn có thể receive particls đã gửi đến chúng. Cẩn thận không ký bất cứ không rõ hay random, như các cuộc tấn công lừa đảo có thể cố lừa bạn ký tên vào danh tính của bạn.. Chỉ ký các bản tuyên bố hoàn chỉnh mà bạn đồng ý.</translation>
     </message>
     <message>
         <source>The Particl address to sign the message with</source>

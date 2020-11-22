@@ -10,6 +10,7 @@ from decimal import Decimal
 from threading import Thread
 import os
 import shutil
+import stat
 import time
 
 from test_framework.authproxy import JSONRPCException
@@ -78,6 +79,11 @@ class MultiWalletTest(BitcoinTestFramework):
         os.mkdir(wallet_dir('w7'))
         os.symlink('w7', wallet_dir('w7_symlink'))
 
+        os.symlink('..', wallet_dir('recursive_dir_symlink'))
+
+        os.mkdir(wallet_dir('self_walletdat_symlink'))
+        os.symlink('wallet.dat', wallet_dir('self_walletdat_symlink/wallet.dat'))
+
         # rename wallet.dat to make sure plain wallet file paths (as opposed to
         # directory paths) can be loaded
         # create another dummy wallet for use in testing backups later
@@ -104,20 +110,29 @@ class MultiWalletTest(BitcoinTestFramework):
         #   w8         - to verify existing wallet file is loaded correctly. Not tested for SQLite wallets as this is a deprecated BDB behavior.
         #   ''         - to verify default wallet file is created correctly
         to_create = ['w1', 'w2', 'w3', 'w', 'sub/w5', 'w7_symlink']
-        in_wallet_dir = to_create.copy() # Wallets in the wallet dir
-        in_wallet_dir.append('w7') # w7 is not loaded or created, but will be listed by listwalletdir because w7_symlink
-        to_create.append(os.path.join(self.options.tmpdir, 'extern/w6')) # External, not in the wallet dir, so we need to avoid adding it to in_wallet_dir
+        in_wallet_dir = [w.replace('/', os.path.sep) for w in to_create]  # Wallets in the wallet dir
+        in_wallet_dir.append('w7')  # w7 is not loaded or created, but will be listed by listwalletdir because w7_symlink
+        to_create.append(os.path.join(self.options.tmpdir, 'extern/w6'))  # External, not in the wallet dir, so we need to avoid adding it to in_wallet_dir
         to_load = [self.default_wallet_name]
         if not self.options.descriptors:
             to_load.append('w8')
-        wallet_names = to_create + to_load # Wallet names loaded in the wallet
-        in_wallet_dir += to_load # The loaded wallets are also in the wallet dir
+        wallet_names = to_create + to_load  # Wallet names loaded in the wallet
+        in_wallet_dir += to_load  # The loaded wallets are also in the wallet dir
         self.start_node(0)
         for wallet_name in to_create:
             self.nodes[0].createwallet(wallet_name)
         for wallet_name in to_load:
             self.nodes[0].loadwallet(wallet_name)
-        assert_equal(sorted(map(lambda w: w['name'], self.nodes[0].listwalletdir()['wallets'])), sorted(in_wallet_dir))
+
+        os.mkdir(wallet_dir('no_access'))
+        os.chmod(wallet_dir('no_access'), 0)
+        try:
+            with self.nodes[0].assert_debug_log(expected_msgs=['Too many levels of symbolic links', 'Error scanning']):
+                walletlist = self.nodes[0].listwalletdir()['wallets']
+        finally:
+            # Need to ensure access is restored for cleanup
+            os.chmod(wallet_dir('no_access'), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+        assert_equal(sorted(map(lambda w: w['name'], walletlist)), sorted(in_wallet_dir))
 
         assert_equal(set(node.listwallets()), set(wallet_names))
 
@@ -155,6 +170,9 @@ class MultiWalletTest(BitcoinTestFramework):
         not_a_dir = wallet_dir('notadir')
         open(not_a_dir, 'a', encoding="utf8").close()
         self.nodes[0].assert_start_raises_init_error(['-walletdir=' + not_a_dir], 'Error: Specified -walletdir "' + not_a_dir + '" is not a directory')
+
+        self.log.info("Do not allow -upgradewallet with multiwallet")
+        self.nodes[0].assert_start_raises_init_error(['-upgradewallet'], "Error: Error parsing command line arguments: Invalid parameter -upgradewallet")
 
         # if wallets/ doesn't exist, datadir should be the default wallet dir
         wallet_dir2 = data_dir('walletdir')
@@ -298,7 +316,6 @@ class MultiWalletTest(BitcoinTestFramework):
             # Fail to load if one wallet is a copy of another, test this twice to make sure that we don't re-introduce #14304
             assert_raises_rpc_error(-4, "BerkeleyDatabase: Can't open database w8_copy (duplicates fileid", self.nodes[0].loadwallet, 'w8_copy')
 
-
         # Fail to load if wallet file is a symlink
         assert_raises_rpc_error(-4, "Wallet file verification failed. Invalid -wallet path 'w8_symlink'", self.nodes[0].loadwallet, 'w8_symlink')
 
@@ -396,6 +413,7 @@ class MultiWalletTest(BitcoinTestFramework):
             assert_raises_rpc_error(-4, "Error initializing wallet database environment", self.nodes[1].loadwallet, wallet)
         self.nodes[0].unloadwallet(wallet)
         self.nodes[1].loadwallet(wallet)
+
 
 if __name__ == '__main__':
     MultiWalletTest().main()

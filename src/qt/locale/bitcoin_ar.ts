@@ -186,7 +186,7 @@ Signing is only possible with addresses of the type 'legacy'.</source>
         <translation>ادخل كملة المرور القديمة وكلمة المرور الجديدة للمحفظة.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>تذكر أن تشفير محفظتك لا يحمي البيتكوين الخاصة بك بشكل كامل من السرقة من قبل البرامج الخبيثةالتي تصيب حاسوبك</translation>
     </message>
     <message>
@@ -1053,7 +1053,7 @@ Signing is only possible with addresses of the type 'legacy'.</source>
         <translation>قد لا تكون المعاملات الأخيرة مرئية بعد، وبالتالي قد يكون رصيد محفظتك غير صحيح. ستكون هذه المعلومات صحيحة بمجرد الانتهاء من محفظتك مع شبكة البيتكوين، كما هو مفصل أدناه.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>لن تقبل الشبكة محاولة إنفاق البتكوين المتأثرة بالمعاملات التي لم يتم عرضها بعد.</translation>
     </message>
     <message>
@@ -2442,7 +2442,7 @@ Signing is only possible with addresses of the type 'legacy'.</source>
         <translation>ازل هذه المداخله</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>سيتم خصم الرسوم من المبلغ الذي يتم إرساله. لذا سوف يتلقى المستلم مبلغ أقل من البتكوين المدخل في حقل المبلغ. في حالة تحديد عدة مستلمين، يتم تقسيم الرسوم بالتساوي.</translation>
     </message>
     <message>

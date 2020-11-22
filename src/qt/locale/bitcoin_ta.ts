@@ -184,7 +184,7 @@
         <translation>பழைய கடவுச்சொல் மற்றும் புதிய கடுவுசொல்லை உள்ளிடுக.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>வாலட்டை குறியாக்கம் செய்தால் மட்டும் உங்கள் பிட்காயினை வைரஸிடம் இருந்து பாதுகாக்க இயலாது.</translation>
     </message>
     <message>
@@ -478,12 +478,24 @@
         <translation>தேதி வரை</translation>
     </message>
     <message>
+        <source>Node window</source>
+        <translation>நோட் விண்டோ</translation>
+    </message>
+    <message>
+        <source>Open node debugging and diagnostic console</source>
+        <translation>திற நோட் பிழைத்திருத்தம் மற்றும் கண்டறியும் பணியகம்</translation>
+    </message>
+    <message>
         <source>&amp;Sending addresses</source>
         <translation>முகவரிகள் அனுப்புகிறது</translation>
     </message>
     <message>
         <source>&amp;Receiving addresses</source>
         <translation>முகவரிகள் பெறுதல்</translation>
+    </message>
+    <message>
+        <source>Open a particl: URI</source>
+        <translation>திற பிட்காயின்: URI</translation>
     </message>
     <message>
         <source>Open Wallet</source>
@@ -1002,7 +1014,7 @@
         <translation>சமீபத்திய பரிவர்த்தனைகள் இன்னும் காணப்படாமல் இருக்கலாம், எனவே உங்கள் பணப்பையின் சமநிலை தவறாக இருக்கலாம். கீழே விவரிக்கப்பட்டுள்ளபடி, உங்கள் பணப்பை பிட்ஃபோனை நெட்வொர்க்குடன் ஒத்திசைக்க முடிந்ததும் இந்த தகவல் சரியாக இருக்கும்.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>இதுவரை காட்டப்படாத பரிவர்த்தனைகளால் பாதிக்கப்படும் பிட்னிக்களை செலவிடுவதற்கு முயற்சி பிணையத்தால் ஏற்கப்படாது.</translation>
     </message>
     <message>
@@ -1440,6 +1452,10 @@
         <translation>'particl: //' சரியான URI அல்ல. அதற்கு பதிலாக 'பிட்கின்:' பயன்படுத்தவும்.</translation>
     </message>
     <message>
+        <source>Cannot process payment request because BIP70 is not supported.</source>
+        <translation>பரிவர்த்தனை வேண்டுதலை ஏற்க இயலாது ஏனென்றால் BIP70  ஆதரவு தரவில்லை</translation>
+    </message>
+    <message>
         <source>Due to widespread security flaws in BIP70 it's strongly recommended that any merchant instructions to switch wallets be ignored.</source>
         <translation>பிப்70 இல் உள்ள பரவலான பாதுகாப்பு குறைபாடுகள் காரணமாக, வாலட்டை மாற்றுவதற்கான எந்தவொரு வணிக அறிவுறுத்தல்களும் புறக்கணிக்கப்பட வேண்டும் என்று கடுமையாக பரிந்துரைக்கப்படுகிறது.</translation>
     </message>
@@ -1722,6 +1738,10 @@
     <message>
         <source>User Agent</source>
         <translation>பயனர் முகவர்</translation>
+    </message>
+    <message>
+        <source>Node window</source>
+        <translation>நோட் விண்டோ</translation>
     </message>
     <message>
         <source>Open the %1 debug log file from the current data directory. This can take a few seconds for large log files.</source>
@@ -2280,6 +2300,14 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>அனுப்பும் பிட்காயின்களை உறுதிப்படுத்தவும்</translation>
     </message>
     <message>
+        <source>Confirm transaction proposal</source>
+        <translation>பரிவர்த்தனை வரைவு உறுதி செய்</translation>
+    </message>
+    <message>
+        <source>Send</source>
+        <translation>அனுப்புவும்</translation>
+    </message>
+    <message>
         <source>The recipient address is not valid. Please recheck.</source>
         <translation>பெறுநரின் முகவரி தவறானது. மீண்டும் சரிபார்க்கவும்.</translation>
     </message>
@@ -2367,7 +2395,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>இந்த உள்ளீட்டை அகற்று</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>அனுப்பப்படும் தொகையிலிருந்து கட்டணம் கழிக்கப்படும். நீங்கள் உள்ளிடும் தொகையை விட பெறுநர் குறைவான பிட்காயின்களைப் பெறுவார். பல பெறுநர்கள் தேர்ந்தெடுக்கப்பட்டால், கட்டணம் சமமாக பிரிக்கப்படும்.</translation>
     </message>
     <message>
@@ -2429,7 +2457,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>&amp;செய்தியை கையொப்பமிடுங்கள்</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>மற்றவர்களுக்கு அனுப்பப்பட்ட பிட்காயின்களைப் நீங்கள் பெறலாம் என்பதை நிரூபிக்க உங்கள் முகவரிகளுடன் செய்திகள் / ஒப்பந்தங்களில் கையொப்பமிடலாம். தெளிவற்ற அல்லது சீரற்ற எதையும் கையொப்பமிடாமல் கவனமாக இருங்கள், ஏனெனில் ஃபிஷிங் தாக்குதல்கள் உங்கள் அடையாளத்தை அவர்களிடம் கையொப்பமிட்டு ஏமாற்ற முயற்சிக்கும். நீங்கள் ஒப்புக்கொள்ளும் முழுமையான மற்றும் விரிவான அறிக்கைகளில் மட்டுமே கையொப்பமிடுங்கள்.</translation>
     </message>
     <message>
@@ -2519,6 +2547,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     <message>
         <source>Wallet unlock was cancelled.</source>
         <translation>வாலட் திறத்தல் ரத்து செய்யப்பட்டது.</translation>
+    </message>
+    <message>
+        <source>No error</source>
+        <translation>தவறு எதுவுமில்லை</translation>
     </message>
     <message>
         <source>Private key for the entered address is not available.</source>
@@ -3046,6 +3078,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     <message>
         <source>Confirm fee bump</source>
         <translation>கட்டண ஏற்றத்தை உறுதிப்படுத்தவும்</translation>
+    </message>
+    <message>
+        <source>Can't draft transaction.</source>
+        <translation>பரிவர்த்தனை செய்ய இயலாது</translation>
     </message>
     <message>
         <source>Can't sign transaction.</source>

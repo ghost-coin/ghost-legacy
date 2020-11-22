@@ -6847,7 +6847,7 @@ bool LoadMempool(CTxMemPool& pool)
             assert(tip);
             const Consensus::Params &consensus = Params().GetConsensus();
             state.SetStateInfo(tip->nTime, tip->nHeight, consensus, fParticlMode, (fBusyImporting && fSkipRangeproof));
-            if (nTime + nExpiryTimeout > nNow) {
+            if (nTime > nNow - nExpiryTimeout) {
                 LOCK(cs_main);
                 AcceptToMemoryPoolWithTime(chainparams, pool, state, tx, nTime,
                                            nullptr /* plTxnReplaced */, false /* bypass_limits */,

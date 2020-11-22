@@ -3,7 +3,7 @@
     <name>AddressBookPage</name>
     <message>
         <source>Right-click to edit address or label</source>
-        <translation>Fai clic con il tasto destro del mouse per modificare l'indirizzo o l'etichetta</translation>
+        <translation>Fai clic con il tasto destro del mouse per modificare l'indirizzo oppure l'etichetta</translation>
     </message>
     <message>
         <source>Create a new address</source>
@@ -15,7 +15,7 @@
     </message>
     <message>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>Copia negli appunti l'indirizzo attualmente selezionato</translation>
+        <translation>Copia negli appunti del sistema l'indirizzo attualmente selezionato</translation>
     </message>
     <message>
         <source>&amp;Copy</source>
@@ -89,11 +89,11 @@ E' possibile firmare solo con indirizzi di tipo "legacy".</translation>
     </message>
     <message>
         <source>Export Address List</source>
-        <translation>Esporta elenco indirizzi</translation>
+        <translation>Esporta elenco degli indirizzi</translation>
     </message>
     <message>
         <source>Comma separated file (*.csv)</source>
-        <translation>Testo CSV (*.csv)</translation>
+        <translation>File diviso da virgole  (*.csv)</translation>
     </message>
     <message>
         <source>Exporting Failed</source>
@@ -171,7 +171,7 @@ E' possibile firmare solo con indirizzi di tipo "legacy".</translation>
     </message>
     <message>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PARTICL&lt;/b&gt;!</source>
-        <translation>Attenzione: Se si cifra il portamonete e si perde la passphrase &lt;b&gt;TUTTI I PROPRI PARTICL ANDRANNO PERSI&lt;/b&gt;!</translation>
+        <translation>Attenzione: Se si cifra il portafoglio e si perde la passphrase &lt;b&gt;TUTTI I PROPRI PARTICL ANDRANNO PERSI&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -190,7 +190,7 @@ E' possibile firmare solo con indirizzi di tipo "legacy".</translation>
         <translation>Inserisci la vecchia passphrase e la nuova passphrase per il portafoglio.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>Ricorda che la cifratura del portamonete non protegge del tutto i tuoi particl dal furto da parte di malware che infettasse il tuo computer.</translation>
     </message>
     <message>
@@ -548,6 +548,14 @@ E' possibile firmare solo con indirizzi di tipo "legacy".</translation>
         <translation>Mostra il messaggio di aiuto di %1 per ottenere una lista di opzioni di comando per Particl</translation>
     </message>
     <message>
+        <source>&amp;Mask values</source>
+        <translation>&amp;Valori della maschera</translation>
+    </message>
+    <message>
+        <source>Mask the values in the Overview tab</source>
+        <translation>Maschera i valori nella sezione "Panoramica"</translation>
+    </message>
+    <message>
         <source>default wallet</source>
         <translation>Portafoglio predefinito:</translation>
     </message>
@@ -869,6 +877,10 @@ E' possibile firmare solo con indirizzi di tipo "legacy".</translation>
         <translation>Usa descriptors per gestione scriptPubKey</translation>
     </message>
     <message>
+        <source>Descriptor Wallet</source>
+        <translation>Descrizione del Portafoglio</translation>
+    </message>
+    <message>
         <source>Create</source>
         <translation>Crea</translation>
     </message>
@@ -1060,7 +1072,7 @@ E' possibile firmare solo con indirizzi di tipo "legacy".</translation>
         <translation>Transazioni recenti potrebbero non essere visibili ancora, perciò il saldo del tuo portafoglio potrebbe non essere corretto. Questa informazione risulterà corretta quando il tuo portafoglio avrà terminato la sincronizzazione con la rete particl, come indicato in dettaglio più sotto.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>Il tentativo di spendere particl legati a transazioni non ancora visualizzate non verrà accettato dalla rete.</translation>
     </message>
     <message>
@@ -1488,7 +1500,11 @@ Per specificare più URL separarli con una barra verticale "|".</translation>
         <source>Current total balance in watch-only addresses</source>
         <translation>Saldo corrente totale negli indirizzi di sola lettura</translation>
     </message>
-    </context>
+    <message>
+        <source>Privacy mode activated for the Overview tab. To unmask the values, uncheck Settings-&gt;Mask values.</source>
+        <translation>Modalità privacy attivata per la scheda "Panoramica". Per smascherare i valori, deseleziona Impostazioni-&gt; Valori maschera.</translation>
+    </message>
+</context>
 <context>
     <name>PSBTOperationsDialog</name>
     <message>
@@ -2694,7 +2710,7 @@ Nota: poiché la commissione è calcolata su base per byte, una commissione di "
         <translation>L'ammontare da inviare nell'unità selezionata</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>La commissione sarà sottratta dall'importo che si sta inviando. Il beneficiario riceverà un totale di particl inferiore al valore digitato. Nel caso in cui siano stati selezionati più beneficiari la commissione sarà suddivisa in parti uguali.</translation>
     </message>
     <message>
@@ -2756,7 +2772,7 @@ Nota: poiché la commissione è calcolata su base per byte, una commissione di "
         <translation>&amp;Firma Messaggio</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>È possibile firmare messaggi/accordi con i propri indirizzi in modo da dimostrare di poter ricevere particl attraverso di essi. Presta attenzione a non firmare dichiarazioni vaghe o casuali, perché attacchi di phishing potrebbero cercare di indurti ad apporre la firma su di esse. Firma esclusivamente dichiarazioni completamente dettagliate e delle quali condividi in pieno il contenuto.</translation>
     </message>
     <message>
@@ -3557,6 +3573,10 @@ Vai su File &gt; Apri Portafoglio per caricare un portafoglio.
         <translation>Errore lettura %s! Tutte le chiavi sono state lette correttamente, ma i dati delle transazioni o della rubrica potrebbero essere mancanti o non corretti.</translation>
     </message>
     <message>
+        <source>More than one onion bind address is provided. Using %s for the automatically created Tor onion service.</source>
+        <translation>Viene fornito più di un indirizzo di associazione onion. L'utilizzo di %s per il servizio Tor onion viene creato automaticamente.</translation>
+    </message>
+    <message>
         <source>Please check that your computer's date and time are correct! If your clock is wrong, %s will not work properly.</source>
         <translation>Per favore controllate che la data del computer e l'ora siano corrette! Se il vostro orologio è sbagliato %s non funzionerà correttamente.</translation>
     </message>
@@ -3669,6 +3689,10 @@ Vai su File &gt; Apri Portafoglio per caricare un portafoglio.
         <translation>Impossibile ripetere la scansione del portafoglio durante l'inizializzazione</translation>
     </message>
     <message>
+        <source>Failed to verify database</source>
+        <translation>Errore nella verifica del database</translation>
+    </message>
+    <message>
         <source>Importing...</source>
         <translation>Importazione...</translation>
     </message>
@@ -3695,6 +3719,22 @@ Vai su File &gt; Apri Portafoglio per caricare un portafoglio.
     <message>
         <source>Invalid amount for -fallbackfee=&lt;amount&gt;: '%s'</source>
         <translation>Importo non valido per -fallbackfee=&lt;amount&gt;: '%s'</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to execute statement to verify database: %s</source>
+        <translation>SQLiteDatabase: Errore nell'eseguire l'operazione di verifica del database: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to prepare statement to verify database: %s</source>
+        <translation>SQLiteDatabase: Errore nel verificare il database: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to read database verification error: %s</source>
+        <translation>SQLiteDatabase: Errore nella lettura della verifica del database: %s</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Unexpected application id. Expected %u, got %u</source>
+        <translation>SQLiteDatabase: Application id non riconosciuto. Mi aspetto un %u, arriva un %u</translation>
     </message>
     <message>
         <source>Specified blocks directory "%s" does not exist.</source>
@@ -3779,6 +3819,14 @@ Vai su File &gt; Apri Portafoglio per caricare un portafoglio.
     <message>
         <source>Error: Listening for incoming connections failed (listen returned error %s)</source>
         <translation>Errore: attesa per connessioni in arrivo fallita (errore riportato %s)</translation>
+    </message>
+    <message>
+        <source>%s corrupt. Try using the wallet tool particl-wallet to salvage or restoring a backup.</source>
+        <translation>%s corrotto. Prova a usare la funzione del portafoglio  particl-wallet per salvare o recuperare il backup</translation>
+    </message>
+    <message>
+        <source>Cannot upgrade a non HD split wallet without upgrading to support pre split keypool. Please use version 169900 or no version specified.</source>
+        <translation>Impossibile aggiornare un portafoglio diviso non HD senza aggiornamento per supportare il keypool pre-split. Si prega di utilizzare -upgradewallet = 169900 o -upgradewallet senza specificare la versione.</translation>
     </message>
     <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)</source>

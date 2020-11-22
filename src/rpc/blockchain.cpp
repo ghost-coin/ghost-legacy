@@ -1136,7 +1136,7 @@ static RPCHelpMan gettxout()
                                 {RPCResult::Type::NUM, "reqSigs", "Number of required signatures"},
                                 {RPCResult::Type::STR_HEX, "type", "The type, eg pubkeyhash"},
                                 {RPCResult::Type::ARR, "addresses", "array of particl addresses",
-                                    {{RPCResult::Type::STR, "address", "bitcoin address"}}},
+                                    {{RPCResult::Type::STR, "address", "particl address"}}},
                             }},
                         {RPCResult::Type::BOOL, "coinbase", "Coinbase or not"},
                     }},

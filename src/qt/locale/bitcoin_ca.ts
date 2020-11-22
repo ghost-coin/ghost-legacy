@@ -23,7 +23,7 @@
     </message>
     <message>
         <source>C&amp;lose</source>
-        <translation>&amp;Tanca</translation>
+        <translation>T&amp;anca</translation>
     </message>
     <message>
         <source>Delete the currently selected address from the list</source>
@@ -190,7 +190,7 @@ Només és possible firmar amb adreces del tipus "legacy".</translation>
         <translation>Introduïu la contrasenya antiga i la contrasenya nova a la cartera.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>Recorda que tot i xifrant la teva cartera, els teus particls no estan completament protegits de robatori a través de programari maliciós que estigui infectant el teu ordinador.</translation>
     </message>
     <message>
@@ -484,6 +484,22 @@ Només és possible firmar amb adreces del tipus "legacy".</translation>
         <translation>Actualitzat</translation>
     </message>
     <message>
+        <source>&amp;Load PSBT from file...</source>
+        <translation>&amp;Carrega el PSBT des del fitxer ...</translation>
+    </message>
+    <message>
+        <source>Load Partially Signed Particl Transaction</source>
+        <translation>Carrega la transacció Particl signada parcialment</translation>
+    </message>
+    <message>
+        <source>Load PSBT from clipboard...</source>
+        <translation>Carrega PSBT des del porta-retalls ...</translation>
+    </message>
+    <message>
+        <source>Load Partially Signed Particl Transaction from clipboard</source>
+        <translation>Carrega la transacció de Particl signada parcialment des del porta-retalls</translation>
+    </message>
+    <message>
         <source>Node window</source>
         <translation>Finestra node</translation>
     </message>
@@ -520,8 +536,24 @@ Només és possible firmar amb adreces del tipus "legacy".</translation>
         <translation>Tanca la cartera</translation>
     </message>
     <message>
+        <source>Close All Wallets...</source>
+        <translation>Tanca totes les carteres ...</translation>
+    </message>
+    <message>
+        <source>Close all wallets</source>
+        <translation>Tanqueu totes les carteres</translation>
+    </message>
+    <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
         <translation>Mostra el missatge d'ajuda del %1 per obtenir una llista amb les possibles opcions de línia d'ordres de Particl</translation>
+    </message>
+    <message>
+        <source>&amp;Mask values</source>
+        <translation>&amp;Emmascara els valors</translation>
+    </message>
+    <message>
+        <source>Mask the values in the Overview tab</source>
+        <translation>Emmascara els valors en la pestanya Visió general</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -631,7 +663,15 @@ Només és possible firmar amb adreces del tipus "legacy".</translation>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
         <translation>La cartera està &lt;b&gt;encriptada&lt;/b&gt; i actualment &lt;b&gt;blocada&lt;/b&gt;</translation>
     </message>
-    </context>
+    <message>
+        <source>Original message:</source>
+        <translation>Missatge original:</translation>
+    </message>
+    <message>
+        <source>A fatal error occurred. %1 can no longer continue safely and will quit.</source>
+        <translation>S'ha produït un error fatal. %1 ja no pot continuar amb seguretat i sortirà.</translation>
+    </message>
+</context>
 <context>
     <name>CoinControlDialog</name>
     <message>
@@ -834,6 +874,14 @@ Això és ideal per a carteres de mode només lectura.</translation>
         <translation>Fes cartera en blanc</translation>
     </message>
     <message>
+        <source>Use descriptors for scriptPubKey management</source>
+        <translation>Utilitzeu descriptors per a la gestió de scriptPubKey</translation>
+    </message>
+    <message>
+        <source>Descriptor Wallet</source>
+        <translation>Cartera del descriptor</translation>
+    </message>
+    <message>
         <source>Create</source>
         <translation>Crear</translation>
     </message>
@@ -1025,7 +1073,7 @@ Això és ideal per a carteres de mode només lectura.</translation>
         <translation>És possible que les transaccions recents encara no siguin visibles i, per tant, el saldo de la vostra cartera podria ser incorrecte. Aquesta informació serà correcta una vegada que la cartera hagi finalitzat la sincronització amb la xarxa particl, tal com es detalla més avall.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>Els intents de gastar particls que es veuen afectats per les transaccions que encara no s'hagin mostrat no seran acceptats per la xarxa.</translation>
     </message>
     <message>
@@ -1310,6 +1358,14 @@ Això és ideal per a carteres de mode només lectura.</translation>
         <translation>Si voleu mostrar les funcions de control de monedes o no.</translation>
     </message>
     <message>
+        <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor onion services.</source>
+        <translation>Connecteu-vos a la xarxa Particl mitjançant un servidor intermediari SOCKS5 separat per als serveis de ceba Tor.</translation>
+    </message>
+    <message>
+        <source>Use separate SOCKS&amp;5 proxy to reach peers via Tor onion services:</source>
+        <translation>Utilitzeu el servidor intermediari SOCKS&amp;5 per arribar als peers mitjançant els serveis d'onion de Tor:</translation>
+    </message>
+    <message>
         <source>&amp;Third party transaction URLs</source>
         <translation>URL de transaccions de tercers</translation>
     </message>
@@ -1444,9 +1500,33 @@ Això és ideal per a carteres de mode només lectura.</translation>
         <source>Current total balance in watch-only addresses</source>
         <translation>Balanç total actual en adreces de només lectura</translation>
     </message>
-    </context>
+    <message>
+        <source>Privacy mode activated for the Overview tab. To unmask the values, uncheck Settings-&gt;Mask values.</source>
+        <translation>El mode de privadesa està activat a la pestanya d'Overview. Per desenmascarar els valors, desmarqueu Configuració-&gt; Valors de màscara.</translation>
+    </message>
+</context>
 <context>
     <name>PSBTOperationsDialog</name>
+    <message>
+        <source>Dialog</source>
+        <translation>Diàleg</translation>
+    </message>
+    <message>
+        <source>Sign Tx</source>
+        <translation>Signa Tx</translation>
+    </message>
+    <message>
+        <source>Broadcast Tx</source>
+        <translation>Emet Tx</translation>
+    </message>
+    <message>
+        <source>Copy to Clipboard</source>
+        <translation>Còpia al Clipboard</translation>
+    </message>
+    <message>
+        <source>Save...</source>
+        <translation>Desa...</translation>
+    </message>
     <message>
         <source>Total Amount</source>
         <translation>Import total</translation>
@@ -2490,7 +2570,7 @@ Nota: Com que la comissió es calcula en funció dels bytes, una comissió de "1
         <translation>L’import a enviar a la unitat seleccionada</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>La comissió es deduirà de l'import que s'enviarà. El destinatari rebrà menys particls que les que introduïu al camp d'import. Si se seleccionen múltiples destinataris, la comissió es dividirà per igual.</translation>
     </message>
     <message>
@@ -2552,7 +2632,7 @@ Nota: Com que la comissió es calcula en funció dels bytes, una comissió de "1
         <translation>&amp;Signa el missatge</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>Podeu signar missatges/acords amb les vostres adreces per provar que rebeu les particls que s'hi envien. Aneu amb compte no signar res que sigui vague o aleatori, perquè en alguns atacs de suplantació es pot provar que hi signeu la vostra identitat. Només signeu aquelles declaracions completament detallades en què hi esteu d'acord. </translation>
     </message>
     <message>
@@ -3167,6 +3247,10 @@ Nota: Com que la comissió es calcula en funció dels bytes, una comissió de "1
     <message>
         <source>Closing the wallet for too long can result in having to resync the entire chain if pruning is enabled.</source>
         <translation>Si tanqueu la cartera durant massa temps, es pot haver de tornar a sincronitzar tota la cadena si teniu el sistema de poda habilitat.</translation>
+    </message>
+    <message>
+        <source>Close all wallets</source>
+        <translation>Tanqueu totes les carteres</translation>
     </message>
     </context>
 <context>

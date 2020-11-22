@@ -877,7 +877,7 @@ bool CHDWallet::EncryptWallet(const SecureString &strWalletPassphrase)
         }
 
         // Encryption was introduced in version 0.4.0
-        SetMinVersion(FEATURE_WALLETCRYPT, encrypted_batch, true);
+        SetMinVersion(FEATURE_WALLETCRYPT, encrypted_batch);
 
         //if (fFileBacked)
         {

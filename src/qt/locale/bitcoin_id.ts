@@ -184,7 +184,7 @@
         <translation>Masukan passphrase lama dan passphrase baru ke dompet</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
         <translation>Mengenkripsi dompet Anda tidak dapat sepenuhnya melindungi particl Anda dari pencurian oleh malware yang menginfeksi komputer Anda.</translation>
     </message>
     <message>
@@ -1018,7 +1018,7 @@
         <translation>Transaksi-transaksi terkini mungkin belum terlihat dan oleh karenanya, saldo dompet Anda mungkin tidak tepat. Informasi ini akan akurat ketika dompet Anda tersinkronisasi dengan jaringan Particl, seperti rincian berikut.</translation>
     </message>
     <message>
-        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>Usaha untuk menggunakan particl yang dipengaruhi oleh transaksi yang belum terlihat tidak akan diterima oleh jaringan.</translation>
     </message>
     <message>
@@ -1776,6 +1776,14 @@
         <translation>Block Yang Telah Sinkron</translation>
     </message>
     <message>
+        <source>The mapped Autonomous System used for diversifying peer selection.</source>
+        <translation>Sistem Otonom yang dipetakan digunakan untuk mendiversifikasi pilihan peer</translation>
+    </message>
+    <message>
+        <source>Mapped AS</source>
+        <translation>AS yang Dipetakan</translation>
+    </message>
+    <message>
         <source>User Agent</source>
         <translation>Agen Pengguna
 
@@ -1983,6 +1991,10 @@
     <message>
         <source>An optional label to associate with the new receiving address (used by you to identify an invoice).  It is also attached to the payment request.</source>
         <translation>Label fakultatif untuk menghubungkan dengan alamat penerima baru (anda menggunakannya untuk mengindetifikasi faktur). Itu juga dilampirkan pada permintaan pembayaran.</translation>
+    </message>
+    <message>
+        <source>An optional message that is attached to the payment request and may be displayed to the sender.</source>
+        <translation>Pesan opsional yang dilampirkan di permintaan pembayaran dan dapat ditampilkan ke pengirim.</translation>
     </message>
     <message>
         <source>&amp;Create new receiving address</source>
@@ -2457,7 +2469,7 @@ Catatan: Karena biaya dihitung berdasarkan per byte, biaya "100 satoshi per kB" 
         <translation>Jumlah yang ingin dikirim dalam unit yang dipilih</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>Biaya akan diambil dari jumlah yang dikirim. Penerima akan menerima particl lebih sedikit daripada yang di masukkan di bidang jumlah. Jika ada beberapa penerima, biaya dibagi rata.</translation>
     </message>
     <message>
@@ -2515,7 +2527,7 @@ Catatan: Karena biaya dihitung berdasarkan per byte, biaya "100 satoshi per kB" 
         <translation>&amp;Tandakan Pesan</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>Anda dapat menandatangani pesan / perjanjian dengan alamat Anda untuk membuktikan bahwa Anda dapat menerima particl yang dikirimkan kepada mereka. Berhati-hatilah untuk tidak menandatangani apa pun yang samar-samar atau acak, karena serangan phishing mungkin mencoba menipu Anda untuk menandatangani identitas Anda kepada mereka. Hanya tandatangani pernyataan terperinci yang Anda setujui.</translation>
     </message>
     <message>

@@ -14,5 +14,6 @@ bool FeeModeFromString(const std::string& mode_string, FeeEstimateMode& fee_esti
 bool StringFromFeeMode(FeeEstimateMode fee_estimate_mode, std::string& mode_string);
 std::string StringForFeeReason(FeeReason reason);
 std::string FeeModes(const std::string& delimiter);
+const std::string InvalidEstimateModeErrorMessage();
 
 #endif // BITCOIN_UTIL_FEES_H
