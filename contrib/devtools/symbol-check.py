@@ -105,7 +105,7 @@ MACHO_ALLOWED_LIBRARIES = {
 
 PE_ALLOWED_LIBRARIES = {
 'ADVAPI32.dll', # security & registry
-'IPHLPAPI.DLL', # IP helper API
+'IPHLPAPI.dll', # IP helper API
 'KERNEL32.dll', # win32 base APIs
 'msvcrt.dll', # C standard library for MSVC
 'SHELL32.dll', # shell API
@@ -250,7 +250,10 @@ def pe_read_libraries(filename) -> List[str]:
     for line in stdout.splitlines():
         if 'DLL Name:' in line:
             tokens = line.split(': ')
-            libraries.append(tokens[1])
+            token = tokens[1]
+            if token.endswith('.DLL'):
+                token = token[:-3] + 'dll'
+            libraries.append(token)
     return libraries
 
 def check_PE_libraries(filename) -> bool:

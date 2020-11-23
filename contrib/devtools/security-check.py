@@ -192,8 +192,16 @@ def check_ELF_separate_code(executable):
                 return False
     return True
 
+def is_PE_dll_32bit(executable) -> bool:
+    stdout = run_command([OBJDUMP_CMD, '-f',  executable])
+    for line in stdout.splitlines():
+        if line.startswith('architecture: i386'):
+            return True
+    return False
+
 def get_PE_dll_characteristics(executable) -> int:
     '''Get PE DllCharacteristics bits'''
+
     stdout = run_command([OBJDUMP_CMD, '-x',  executable])
 
     bits = 0
@@ -216,6 +224,9 @@ def check_PE_DYNAMIC_BASE(executable) -> bool:
 # in addition to DYNAMIC_BASE to have secure ASLR.
 def check_PE_HIGH_ENTROPY_VA(executable) -> bool:
     '''PIE: DllCharacteristics bit 0x20 signifies high-entropy ASLR'''
+    if is_PE_dll_32bit(executable):
+        # HIGHENTROPYVA isn't applicable to 32-bit executable images
+        return True
     bits = get_PE_dll_characteristics(executable)
     return (bits & IMAGE_DLL_CHARACTERISTICS_HIGH_ENTROPY_VA) == IMAGE_DLL_CHARACTERISTICS_HIGH_ENTROPY_VA
 

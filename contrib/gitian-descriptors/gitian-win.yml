@@ -31,7 +31,7 @@ script: |
   set -e -o pipefail
 
   WRAP_DIR=$HOME/wrapped
-  HOSTS="x86_64-w64-mingw32"
+  HOSTS="i686-w64-mingw32 x86_64-w64-mingw32"
   CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests --enable-usbdevice"
   FAKETIME_HOST_PROGS="ar ranlib nm windres strip objcopy"
   FAKETIME_PROGS="date makensis zip"
@@ -137,7 +137,15 @@ script: |
     make ${MAKEOPTS}
     make ${MAKEOPTS} -C src check-security
     make ${MAKEOPTS} -C src check-symbols
-    make deploy BITCOIN_WIN_INSTALLER="${OUTDIR}/${DISTNAME}-win64-setup-unsigned.exe"
+    case $i in
+    i686-w64-mingw32)
+      make deploy BITCOIN_WIN_INSTALLER="${OUTDIR}/${DISTNAME}-win32-setup-unsigned.exe"
+      ;;
+    *)
+      make deploy BITCOIN_WIN_INSTALLER="${OUTDIR}/${DISTNAME}-win64-setup-unsigned.exe"
+      ;;
+    esac
+
     make install DESTDIR=${INSTALLPATH}
 
     cd installed
@@ -148,8 +156,16 @@ script: |
     find ${DISTNAME}/bin -type f -executable -print0 | xargs -0 -n1 -I{} ../contrib/devtools/split-debug.sh {} {} {}.dbg
     find ${DISTNAME}/lib -type f -print0 | xargs -0 -n1 -I{} ../contrib/devtools/split-debug.sh {} {} {}.dbg
     cp ../doc/README_windows.txt ${DISTNAME}/readme.txt
-    find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i//x86_64-w64-mingw32/win64}.zip
-    find ${DISTNAME} -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i//x86_64-w64-mingw32/win64}-debug.zip
+    case $i in
+    i686-w64-mingw32)
+      find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i//i686-w64-mingw32/win32}.zip
+      find ${DISTNAME} -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i//i686-w64-mingw32/win32}-debug.zip
+      ;;
+    *)
+      find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i//x86_64-w64-mingw32/win64}.zip
+      find ${DISTNAME} -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i//x86_64-w64-mingw32/win64}-debug.zip
+      ;;
+    esac
     cd ../../
     rm -rf distsrc-${i}
   done
@@ -157,5 +173,5 @@ script: |
   cp -rf contrib/windeploy $BUILD_DIR
   cd $BUILD_DIR/windeploy
   mkdir unsigned
-  cp ${OUTDIR}/${DISTNAME}-win64-setup-unsigned.exe unsigned/
+  cp ${OUTDIR}/${DISTNAME}-*setup-unsigned.exe unsigned/
   find . | sort | tar --mtime="$REFERENCE_DATETIME" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-win-unsigned.tar.gz
