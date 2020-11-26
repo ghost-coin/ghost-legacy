@@ -1,5 +1,7 @@
-Next Major Version
+0.21.0.1
 ==============
+
+- Fixed gettransaction verbose output missing for wallet record txns.
 
 
 0.20.1.1

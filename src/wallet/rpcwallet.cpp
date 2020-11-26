@@ -2301,6 +2301,12 @@ UniValue gettransaction_inner(JSONRPCRequest const &request)
                 if (CHDWalletDB(phdw->GetDBHandle()).ReadStoredTx(hash, stx)) { // TODO: cache / use mapTempWallet
                     std::string strHex = EncodeHexTx(*(stx.tx.get()), RPCSerializationFlags());
                     entry.pushKV("hex", strHex);
+
+                    if (verbose) {
+                        UniValue decoded(UniValue::VOBJ);
+                        TxToUniv(*(stx.tx.get()), uint256(), decoded, false);
+                        entry.pushKV("decoded", decoded);
+                    }
                 }
 
                 return entry;

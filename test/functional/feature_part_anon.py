@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2020 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import random
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import assert_raises_rpc_error
 
@@ -167,6 +168,28 @@ class AnonTest(ParticlTestFramework):
         w1_3.sendanontoblind(sxAddrTo0_1, 1.0)
         w1_3.sendanontopart(sxAddrTo0_1, 1.0)
 
+        self.log.info('Test sendtypeto coincontrol')
+        w1_inputs = w1_2.listunspentanon()
+        assert(len(w1_inputs) > 1)
+        use_input = w1_inputs[random.randint(0, len(w1_inputs) - 1)]
+
+        coincontrol = {'inputs': [{'tx': use_input['txid'], 'n': use_input['vout']}]}
+        txid = w1_2.sendtypeto('anon', 'anon', [{'address': sxAddrTo0_1, 'amount': 0.01}, ], '', '', 7, 1, False, coincontrol)
+
+        w1_inputs_after = w1_2.listunspentanon()
+        for txin in w1_inputs_after:
+            if txin['txid'] == use_input['txid'] and txin['vout'] == use_input['vout']:
+                raise ValueError('Output should be spent')
+
+        raw_tx = w1_2.getrawtransaction(txid, True)
+        possible_inputs = raw_tx['vin'][0]['ring_row_0'].split(', ')
+        possible_inputs_txids = []
+        for pi in possible_inputs:
+            anonoutput = w1_2.anonoutput(pi)
+            possible_inputs_txids.append(anonoutput['txnhash'] + '.' + str(anonoutput['n']))
+        assert(use_input['txid'] + '.' + str(use_input['vout']) in possible_inputs_txids)
+
 
 if __name__ == '__main__':
     AnonTest().main()
+
