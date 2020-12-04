@@ -2889,11 +2889,28 @@ static void ParseRecords(
             nLockedOutputs++;
         }
 
+        // Skip over watchonly outputs if not requested
+        if (nWatchOnly >= nOwned && !(watchonly_filter & ISMINE_WATCH_ONLY)) {
+            if (!nFrom) {
+                return;
+            }
+            // Check for non-watchonly inputs
+            CAmount nInput = 0;
+            for (const auto &vin : rtx.vin) {
+                if (!vin.IsAnonInput()) {
+                    nInput += pwallet->GetOwnedOutputValue(vin, watchonly_filter);
+                }
+            }
+            if (nInput == 0) {
+                return;
+            }
+        }
+
         CBitcoinAddress addr;
         CTxDestination  dest;
         bool extracted = ExtractDestination(record.scriptPubKey, dest);
 
-        // get account name
+        // Get account name
         if (extracted && !record.scriptPubKey.IsUnspendable()) {
             addr.Set(dest);
             std::map<CTxDestination, CAddressBookData>::iterator mai;
@@ -2903,7 +2920,7 @@ static void ParseRecords(
             }
         }
 
-        // stealth addresses
+        // Stealth addresses
         CStealthAddress sx;
         if (record.vPath.size() > 0) {
             if (record.vPath[0] == ORA_STEALTH) {

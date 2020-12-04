@@ -2,6 +2,7 @@
 ==============
 
 - Fixed gettransaction verbose output missing for wallet record txns.
+- Exclude watchonly records from filtertransactions unless requested.
 
 
 0.20.1.1
