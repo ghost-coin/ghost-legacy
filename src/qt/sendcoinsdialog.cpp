@@ -275,16 +275,7 @@ bool SendCoinsDialog::PrepareSendText(QString& question_string, QString& informa
         return false;
     }
 
-    fNewRecipientAllowed = false;
-    WalletModel::UnlockContext ctx(model->requestUnlock());
-    if(!ctx.isValid())
-    {
-        // Unlock wallet was cancelled
-        fNewRecipientAllowed = true;
-        return false;
-    }
-
-    // prepare transaction for getting txFee earlier
+    // Prepare transaction for getting txFee earlier
     m_current_transaction = MakeUnique<WalletModelTransaction>(recipients);
     WalletModel::SendCoinsReturn prepareStatus;
 
@@ -526,6 +517,13 @@ void SendCoinsDialog::on_sendButton_clicked()
     if(!model || !model->getOptionsModel())
         return;
 
+    fNewRecipientAllowed = false;
+    WalletModel::UnlockContext ctx(model->requestUnlock());
+    if(!ctx.isValid()) {
+        // Unlock wallet was cancelled
+        fNewRecipientAllowed = true;
+        return;
+    }
 
     QString question_string, informative_text, detailed_text, sCommand, sCoinControl;
     if (!PrepareSendText(question_string, informative_text, detailed_text, sCommand, sCoinControl)) return;
