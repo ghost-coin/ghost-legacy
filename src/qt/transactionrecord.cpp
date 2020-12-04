@@ -74,7 +74,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const interface
                 sub.typeOut = 'A';
             }
 
-            if (nFlags & ORF_OWNED) {
+            if (nFlags & ORF_OWNED || nFlags & ORF_OWN_WATCH) {
                 sub.credit += r.nValue;
             }
             if (nFlags & ORF_FROM) {
