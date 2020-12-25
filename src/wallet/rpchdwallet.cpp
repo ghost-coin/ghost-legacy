@@ -5129,7 +5129,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                                     {"narr", RPCArg::Type::STR, /* default */ "", "Up to 24 character narration sent with the transaction."},
                                     {"blindingfactor", RPCArg::Type::STR_HEX, /* default */ "", "The blinding factor, 32 bytes and hex encoded."},
                                     {"subfee", RPCArg::Type::BOOL, /* default */ "", "The fee will be deducted from the amount being sent."},
-                                    {"script", RPCArg::Type::STR_HEX, /* default */ "", "Hex encoded script, will override the address."},
+                                    {"script", RPCArg::Type::STR_HEX, /* default */ "", "Hex encoded script, will override the address. \"address\" must be set to a blank string or placeholder value when \"script\" is used. "},
                                 },
                             },
                         },
