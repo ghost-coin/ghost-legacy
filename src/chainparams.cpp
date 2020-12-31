@@ -62,22 +62,12 @@ int64_t CChainParams::GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const
     return (smsg_fee_prev * consensus.smsg_fee_max_delta_percent) / 1000000;
 };
 
-const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime,int nHeight) const
+const DevFundSettings *CChainParams::GetDevFundSettings(int nHeight) const
 {
-    //TODO akshaynexus cleanup this code
-    if(nHeight >= consensus.nBlockRewardIncreaseHeight){
-        for (auto i = vDevFundSettingsNew.rbegin(); i != vDevFundSettingsNew.rend(); ++i) {
-            if (nTime > i->first) {
-                return &i->second;
-            }
-        }
-    }
-    else{
-        for (auto i = vDevFundSettings.rbegin(); i != vDevFundSettings.rend(); ++i) {
-            if (nTime > i->first) {
-                return &i->second;
-            }
-        }
+    for (auto i = vDevFundSettings.begin(); i != vDevFundSettings.end(); ++i) {
+         if (nHeight >= i->first) {
+             return &i->second;
+         }
     }
 
     return nullptr;
@@ -405,6 +395,7 @@ public:
         consensus.nBlockRewardIncreaseHeight = 40862;
         consensus.nGVRPayOnetimeAmt = 129000 * COIN;
         consensus.nOneTimeGVRPayHeight = 42308;//Approx Tuesday,August 25,2020,Time: 12:50 PM GMT +3
+        consensus.nGVRDevFundAdjustment = 139456;
         nBlockRewardIncrease = 2;       // Times to increase blockreward
         nBlockPerc = {100, 100, 95, 90, 86, 81, 77, 74, 70, 66, 63, 60, 57, 54, 51, 49, 46, 44, 42, 40, 38, 36, 34, 32, 31, 29, 28, 26, 25, 24, 23, 21, 20, 19, 18, 17, 17, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10};
 
@@ -426,13 +417,9 @@ public:
         vSeeds.emplace_back("ghostseeder.coldstake.io");
         vSeeds.emplace_back("ghostseeder.ghostbyjohnmcafee.com");
 
-        //DevFund settings before gvr addition
-        vDevFundSettings.emplace_back(0,
-            DevFundSettings("GQtToV2LnHGhHy4LRVapLDMaukdDgzZZZV", 33.00, 360));//Approx each 12 hr payment to dev fund
-
-        //Dev fee new settings
-        vDevFundSettingsNew.emplace_back(0,
-            DevFundSettings("Ga7ECMeX8QUJTTvf9VUnYgTQUFxPChDqqU", 66.67, 5040));//Approx each week to GVR Funds addr
+        vDevFundSettings.emplace_back(139456, DevFundSettings("GQJ4unJi6hAzd881YM17rEzPNWaWZ4AR3f", 66.67, 5040)); //As above but to a GVR held addr
+        vDevFundSettings.emplace_back(40862,  DevFundSettings("Ga7ECMeX8QUJTTvf9VUnYgTQUFxPChDqqU", 66.67, 5040)); //Approx each week to GVR Funds addr
+        vDevFundSettings.emplace_back(0,      DevFundSettings("GQtToV2LnHGhHy4LRVapLDMaukdDgzZZZV", 33.00, 360));  //Approx each 12 hr payment to dev fund
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x26}; // G
         base58Prefixes[SCRIPT_ADDRESS]     = {0x61}; // g
@@ -603,8 +590,8 @@ public:
         // nodes with support for servicebits filtering should be at the top
         vSeeds.emplace_back("ghost-testnetdns.mineit.io");
 
-        vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 33.00, 1440)));
-        vDevFundSettingsNew.push_back(std::make_pair(0, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 66.67, 100)));
+        vDevFundSettings.push_back(std::make_pair(46863, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 66.67, 100)));
+        vDevFundSettings.push_back(std::make_pair(0,     DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 33.00, 1440)));
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x4B}; // X
         base58Prefixes[SCRIPT_ADDRESS]     = {0x89}; // x
