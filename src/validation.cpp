@@ -2842,7 +2842,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         if (block.IsProofOfStake()) { // Only the genesis block isn't proof of stake
             CTransactionRef txCoinstake = block.vtx[0];
             CTransactionRef txPrevCoinstake = nullptr;
-            const DevFundSettings *pDevFundSettings = chainparams.GetDevFundSettings(block.nTime,pindex->nHeight);
+            const DevFundSettings *pDevFundSettings = chainparams.GetDevFundSettings(pindex->nHeight);
             const CAmount nCalculatedStakeReward = Params().GetProofOfStakeReward(pindex->pprev, nFees); // stake_test
             const float nCalculatedStakeRewardReal = (float) nCalculatedStakeReward / COIN; // stake_test
 
