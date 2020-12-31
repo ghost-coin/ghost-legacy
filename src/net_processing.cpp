@@ -2226,15 +2226,16 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             pfrom->fDisconnect = true;
             return false;
         }
-        int nMinPeerVer = MIN_PEER_PROTO_VERSION;
-        if(pindexBestHeader->nHeight >= Params().GetConsensus().nOneTimeGVRPayHeight)
-            nMinPeerVer = PROTOCOL_VERSION;
-        if (nVersion < nMinPeerVer) {
+
+        //! GVR devFund Adjustment
+        const bool devFundDissociate = pindexBestHeader->nHeight >= chainparams.GetConsensus().nGVRDevFundAdjustment;
+        const int nMinPeerVersion = devFundDissociate ? PROTOCOL_VERSION : MIN_PEER_PROTO_VERSION;
+        if (nVersion < nMinPeerVersion) {
             // disconnect from peers older than this proto version
             LogPrint(BCLog::NET, "peer=%d using obsolete version %i; disconnecting\n", pfrom->GetId(), nVersion);
             if (enable_bip61) {
                 connman->PushMessage(pfrom, CNetMsgMaker(INIT_PROTO_VERSION).Make(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
-                                   strprintf("Version must be %d or greater", nMinPeerVer)));
+                                     strprintf("Version must be %d or greater", nMinPeerVersion)));
             }
             pfrom->fDisconnect = true;
             return false;

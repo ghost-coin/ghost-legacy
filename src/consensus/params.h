@@ -128,6 +128,8 @@ struct Params {
     int nBlockRewardIncreaseHeight;
     //GVR Allocation one time payout params
     int nOneTimeGVRPayHeight;
+    //GVR Devfund Adjustment to a GVR held address
+    int nGVRDevFundAdjustment;
     int64_t nGVRPayOnetimeAmt;
     // Params for Zawy's LWMA difficulty adjustment algorithm.
     int64_t nZawyLwmaAveragingWindow;
