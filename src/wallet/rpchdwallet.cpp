@@ -4023,7 +4023,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
         obj.pushKV("walletfoundationdonationpercent", pwallet->nWalletDevFundCedePercent);
     }
 
-    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTipTime,::ChainActive().Tip()->nHeight);
+    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(::ChainActive().Tip()->nHeight);
     if (pDevFundSettings && pDevFundSettings->nMinDevStakePercent > 0) {
         obj.pushKV("foundationdonationpercent", pDevFundSettings->nMinDevStakePercent);
     }

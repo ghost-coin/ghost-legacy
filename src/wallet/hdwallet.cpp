@@ -12713,7 +12713,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
     // Process development fund
     CTransactionRef txPrevCoinstake = nullptr;
     CAmount nRewardOut;
-    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTime,pindexPrev->nHeight + 1);
+    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(pindexPrev->nHeight + 1);
     if (!pDevFundSettings || pDevFundSettings->nMinDevStakePercent <= 0) {
         nRewardOut = nReward;
     } else {

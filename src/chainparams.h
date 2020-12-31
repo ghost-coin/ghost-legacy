@@ -103,9 +103,8 @@ public:
     uint32_t GetStakeTimestampMask(int /*nHeight*/) const { return nStakeTimestampMask; }
     int64_t GetBaseBlockReward() const;
     int GetCoinYearPercent(int year) const;
-    const DevFundSettings *GetDevFundSettings(int64_t nTime,int nHeight) const;
-    const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const {return vDevFundSettings;};
-    bool PushDevFundSettings(int64_t time_from, DevFundSettings &settings);
+    const DevFundSettings *GetDevFundSettings(int nHeight) const;
+    const std::vector<std::pair<int64_t, DevFundSettings> > &GetDevFundSettings() const { return vDevFundSettings; };
 
     CAmount GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
     CAmount GetProofOfStakeRewardAtYear(int year) const;
@@ -179,8 +178,6 @@ protected:
     uint32_t nLastImportHeight = 0;       // always 0 on ghost
 
     std::vector<std::pair<int64_t, DevFundSettings> > vDevFundSettings;
-    std::vector<std::pair<int64_t, DevFundSettings> > vDevFundSettingsNew;
-
 
     uint64_t nPruneAfterHeight;
     uint64_t m_assumed_blockchain_size;
