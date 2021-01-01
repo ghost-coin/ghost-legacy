@@ -51,3 +51,9 @@ reborn1002 (1):
 ==============
 - Enforce GVR onetime payout on payout height
 - Disconnect old version after payout height
+
+0.19.1.9
+==============
+barrystyle (2):
+- Shift GVT payment address to GVR-operated address, refactor method to do so.
+- Disconnect old version after fork height
