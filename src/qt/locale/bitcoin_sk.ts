@@ -363,7 +363,7 @@
     </message>
     <message>
         <source>Send coins to a Particl address</source>
-        <translation>Poslať particls na adresu</translation>
+        <translation>Poslať particl na adresu</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -2227,7 +2227,7 @@
     <name>SendCoinsDialog</name>
     <message>
         <source>Send Coins</source>
-        <translation>Poslať Particls</translation>
+        <translation>Poslať Particl</translation>
     </message>
     <message>
         <source>Coin Control Features</source>

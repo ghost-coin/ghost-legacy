@@ -264,7 +264,6 @@ void ThreadSecureMsg()
 
         for (std::vector<std::pair<int64_t, NodeId> >::iterator it(vTimedOutLocks.begin()); it != vTimedOutLocks.end(); it++) {
             NodeId nPeerId = it->second;
-            uint32_t fExists = 0;
 
             LogPrint(BCLog::SMSG, "Lock on bucket %d for peer %d timed out.\n", it->first, nPeerId);
 
@@ -276,8 +275,6 @@ void ThreadSecureMsg()
                     if (pnode->GetId() != nPeerId) {
                         continue;
                     }
-
-                    fExists = 1; //found in g_connman->vNodes
 
                     LOCK(pnode->smsgData.cs_smsg_net);
                     int64_t ignoreUntil = GetTime() + SMSG_TIME_IGNORE;
@@ -958,11 +955,11 @@ bool CSMSG::Start(std::shared_ptr<CWallet> pwalletIn, std::vector<std::shared_pt
 
     start_time = GetAdjustedTime();
 
-    threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
-    threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
+    threadGroupSmsg.create_thread(std::bind(&TraceThread<void (*)()>, "smsg", &ThreadSecureMsg));
+    threadGroupSmsg.create_thread(std::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
 
 #ifdef ENABLE_WALLET
-    m_wallet_load_handler = interfaces::MakeHandler(NotifyWalletAdded.connect(boost::bind(&ListenWalletAdded, this, _1)));
+    m_wallet_load_handler = interfaces::MakeHandler(NotifyWalletAdded.connect(std::bind(&ListenWalletAdded, this, std::placeholders::_1)));
 #endif
 
     return true;
@@ -1106,7 +1103,7 @@ bool CSMSG::LoadWallet(std::shared_ptr<CWallet> pwallet_in)
 #ifdef ENABLE_WALLET
     std::vector<std::shared_ptr<CWallet>>::iterator i = std::find(m_vpwallets.begin(), m_vpwallets.end(), pwallet_in);
     if (i != m_vpwallets.end()) return true;
-    m_wallet_unload_handlers[pwallet_in.get()] = interfaces::MakeHandler(pwallet_in->NotifyUnload.connect(boost::bind(&NotifyUnload, this, pwallet_in.get())));
+    m_wallet_unload_handlers[pwallet_in.get()] = interfaces::MakeHandler(pwallet_in->NotifyUnload.connect(std::bind(&NotifyUnload, this, pwallet_in.get())));
     m_vpwallets.push_back(pwallet_in);
 #endif
     return true;
