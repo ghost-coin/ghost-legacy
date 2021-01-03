@@ -185,7 +185,7 @@
         <translation>ウォレット用の旧パスフレーズと新パスフレーズを入力してください。</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
         <translation>ウォレットを暗号化しても、コンピュータに感染したマルウェアなどによる Particl の盗難を完全に防ぐことはできないことにご注意ください。</translation>
     </message>
     <message>
@@ -851,7 +851,7 @@
         <source>Create</source>
         <translation>作成</translation>
     </message>
-</context>
+    </context>
 <context>
     <name>EditAddressDialog</name>
     <message>
@@ -1039,7 +1039,7 @@
         <translation>最近の取引がまだ表示されていない可能性があります。そのため、ウォレットの残高が正しく表示されていないかもしれません。この情報は、ウォレットが Particl ネットワークへの同期が完了すると正確なものとなります。詳細は下記を参照してください。</translation>
     </message>
     <message>
-        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
         <translation>まだ表示されていない取引が関係する Particl の使用を試みた場合、ネットワークから認証を受けられません。</translation>
     </message>
     <message>
@@ -2397,8 +2397,16 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>送金してもよろしいですか？</translation>
     </message>
     <message>
+        <source>Create Unsigned</source>
+        <translation>未署名で作成</translation>
+    </message>
+    <message>
         <source>Save Transaction Data</source>
         <translation>トランザクションデータの保存</translation>
+    </message>
+    <message>
+        <source>PSBT saved</source>
+        <translation>PSBTは保存されました。</translation>
     </message>
     <message>
         <source>or</source>
@@ -2544,7 +2552,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>送金する金額の単位を選択</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
         <translation>手数料は送金する金額から差し引かれます。送金先には金額欄で指定した額よりも少ない Particl が送られます。送金先が複数ある場合は、手数料は均等に分けられます。</translation>
     </message>
     <message>
@@ -2606,7 +2614,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>メッセージの署名(&amp;S)</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>あなたが所有しているアドレスでメッセージや契約書に署名をすることで、それらのアドレスへ送られた Particl を受け取ることができることを証明できます。フィッシング攻撃者があなたを騙して、あなたの身分情報に署名させようとしている可能性があるため、よくわからないものやランダムな文字列に対して署名しないでください。あなたが同意した、よく詳細の記された文言にのみ署名するようにしてください。</translation>
     </message>
     <message>
@@ -3019,7 +3027,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
-        <translation>取引の状況。このフィールドの上にカーソルを置くと承認数が表示されます。</translation>
+        <translation>トランザクションステータス。このフィールドの上にカーソルを合わせると承認数が表示されます。</translation>
     </message>
     <message>
         <source>Date and time that the transaction was received.</source>
@@ -3312,6 +3320,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>エラー</translation>
     </message>
     <message>
+        <source>Load Transaction Data</source>
+        <translation>トランザクションデータのロード</translation>
+    </message>
+    <message>
         <source>Backup Wallet</source>
         <translation>ウォレットのバックアップ</translation>
     </message>
@@ -3489,6 +3501,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     <message>
         <source>Failed to rescan the wallet during initialization</source>
         <translation>初期化中にウォレットの再スキャンに失敗しました</translation>
+    </message>
+    <message>
+        <source>Failed to verify database</source>
+        <translation>データベースの検証に失敗しました</translation>
     </message>
     <message>
         <source>Importing...</source>
@@ -3739,10 +3755,6 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     <message>
         <source>%s is set very high!</source>
         <translation>%s の設定値が高すぎです！</translation>
-    </message>
-    <message>
-        <source>Error loading wallet %s. Duplicate -wallet filename specified.</source>
-        <translation>ウォレット %s の読み込み時にエラーが発生しました。重複する -wallet ファイル名が指定されました。</translation>
     </message>
     <message>
         <source>Starting network threads...</source>

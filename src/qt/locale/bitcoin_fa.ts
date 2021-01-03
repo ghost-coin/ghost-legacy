@@ -3,7 +3,7 @@
     <name>AddressBookPage</name>
     <message>
         <source>Right-click to edit address or label</source>
-        <translation>برای ویرایش آدرس یا برچسب روی آن راست کلیک کنید</translation>
+        <translation>برای ویرایش آدرس یا برچسب‌گذاری راست‌کلیک کنید</translation>
     </message>
     <message>
         <source>Create a new address</source>
@@ -15,7 +15,7 @@
     </message>
     <message>
         <source>Copy the currently selected address to the system clipboard</source>
-        <translation>کپی کردن آدرس  انتخاب شده به حافظه  کلیپ بورد سیستم</translation>
+        <translation>کپی‌کردن آدرس انتخاب‌شده به حافظهٔ کلیپ‌بورد سیستم</translation>
     </message>
     <message>
         <source>&amp;Copy</source>
@@ -110,7 +110,7 @@
     </message>
     <message>
         <source>(no label)</source>
-        <translation>(برچسب ندارد)</translation>
+        <translation>(بدون برچسب)</translation>
     </message>
 </context>
 <context>
@@ -184,7 +184,7 @@
         <translation>رمز عبور قدیمی و رمز عبور جدید کیف پول خود را وارد کنید.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
         <translation>والت رمز بندی شد . 
 یاد داشته باشید که پنجره رمز شده نمی تواند کلا از سرقت نرم افزارهای مخرب محافظ کند</translation>
     </message>
@@ -835,7 +835,7 @@
         <source>Create</source>
         <translation>ایجاد</translation>
     </message>
-</context>
+    </context>
 <context>
     <name>EditAddressDialog</name>
     <message>
@@ -3011,6 +3011,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     <message>
         <source>This is the minimum transaction fee you pay on every transaction.</source>
         <translation>این کمترین فی تراکنش است که در هر تراکنش پرداخت می‌نمایید.</translation>
+    </message>
+    <message>
+        <source>This is the transaction fee you will pay if you send a transaction.</source>
+        <translation>این میزان کارمزد پرداختی شما در صورت ایجاد تراکنش انتقال میباشد.</translation>
     </message>
     <message>
         <source>Transaction amounts must not be negative</source>

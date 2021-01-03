@@ -70,6 +70,12 @@
         <translation>Estes são os seus endereços Particl para enviar pagamentos. Verifique sempre o valor e o endereço de receção antes de enviar moedas.</translation>
     </message>
     <message>
+        <source>These are your Particl addresses for receiving payments. Use the 'Create new receiving address' button in the receive tab to create new addresses.
+Signing is only possible with addresses of the type 'legacy'.</source>
+        <translation>Estes são seus novos endereços Particl para o recebimento de pagamentos. Use o botão "Criar novo endereço de recebimento" na aba "Receber"  para criar novos endereços.
+Assinar só é possível com endereços do tipo "legado".</translation>
+    </message>
+    <message>
         <source>&amp;Copy Address</source>
         <translation>&amp;Copiar Endereço</translation>
     </message>
@@ -184,8 +190,8 @@
         <translation>Insira a password antiga e a nova para a carteira.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
-        <translation>Lembra se que encrostar a sua carteira não o pode defender na totalidade os seus particls de serem roubados por um malware que possa infectar o seu computador.</translation>
+        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation>Lembra se que encrostar a sua carteira não o pode defender na totalidade os seus particl de serem roubados por um malware que possa infectar o seu computador.</translation>
     </message>
     <message>
         <source>Wallet to be encrypted</source>
@@ -478,6 +484,10 @@
         <translation>Atualizado</translation>
     </message>
     <message>
+        <source>&amp;Load PSBT from file...</source>
+        <translation>&amp;Carregar Transação Particl Parcialmente Assinada (TBPA/PSBT) do arquivo...</translation>
+    </message>
+    <message>
         <source>Load Partially Signed Particl Transaction</source>
         <translation>Carregar transação de Particl parcialmente assinada</translation>
     </message>
@@ -536,6 +546,14 @@
     <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
         <translation>Mostrar a mensagem de ajuda %1 para obter uma lista com possíveis opções a usar na linha de comandos.</translation>
+    </message>
+    <message>
+        <source>&amp;Mask values</source>
+        <translation>&amp;Valores de Máscara</translation>
+    </message>
+    <message>
+        <source>Mask the values in the Overview tab</source>
+        <translation>Mascare os valores na aba de visão geral</translation>
     </message>
     <message>
         <source>default wallet</source>
@@ -649,7 +667,11 @@
         <source>Original message:</source>
         <translation>Mensagem original:</translation>
     </message>
-    </context>
+    <message>
+        <source>A fatal error occurred. %1 can no longer continue safely and will quit.</source>
+        <translation>Um erro fatal ocorreu. %1 não pode mais continuar de maneira segura e será terminada.</translation>
+    </message>
+</context>
 <context>
     <name>CoinControlDialog</name>
     <message>
@@ -851,8 +873,20 @@
         <translation>Fazer Carteira em Branco</translation>
     </message>
     <message>
+        <source>Use descriptors for scriptPubKey management</source>
+        <translation>Use descritores para o gerenciamento de chaves públicas de script</translation>
+    </message>
+    <message>
+        <source>Descriptor Wallet</source>
+        <translation>Carteira de descritor</translation>
+    </message>
+    <message>
         <source>Create</source>
         <translation>Criar</translation>
+    </message>
+    <message>
+        <source>Compiled without sqlite support (required for descriptor wallets)</source>
+        <translation>Compilado sem suporte para sqlite (requerido para carteiras de descritor)</translation>
     </message>
 </context>
 <context>
@@ -1042,8 +1076,8 @@
         <translation>Transações recentes podem não ser visíveis por agora, portanto o saldo da sua carteira pode estar incorreto. Esta informação será corrigida quando a sua carteira acabar de sincronizar com a rede, como está explicado em baixo.</translation>
     </message>
     <message>
-        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
-        <translation>Tentar enviar particls que estão afetadas por transações ainda não exibidas não será aceite pela rede.</translation>
+        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <translation>Tentar enviar particl que estão afetadas por transações ainda não exibidas não será aceite pela rede.</translation>
     </message>
     <message>
         <source>Number of blocks left</source>
@@ -1328,6 +1362,10 @@
         <translation>Escolha se deve mostrar as funcionalidades de controlo de moedas ou não.</translation>
     </message>
     <message>
+        <source>Connect to the Particl network through a separate SOCKS5 proxy for Tor onion services.</source>
+        <translation>Conecte-se a rede Particl através de um proxy SOCKS5 separado para serviços Tor Onion</translation>
+    </message>
+    <message>
         <source>&amp;Third party transaction URLs</source>
         <translation>URLs de transação de &amp;terceiros</translation>
     </message>
@@ -1462,7 +1500,11 @@
         <source>Current total balance in watch-only addresses</source>
         <translation>Saldo disponível em endereços de apenas vigiar</translation>
     </message>
-    </context>
+    <message>
+        <source>Privacy mode activated for the Overview tab. To unmask the values, uncheck Settings-&gt;Mask values.</source>
+        <translation>Modo de privacidade ativado para a aba de visão geral. para desmascarar os valores, desmarque nas Configurações -&gt; Valores de máscara</translation>
+    </message>
+</context>
 <context>
     <name>PSBTOperationsDialog</name>
     <message>
@@ -1932,6 +1974,10 @@ ID transação: %1</translation>
     <message>
         <source>Node window</source>
         <translation>Janela do nó</translation>
+    </message>
+    <message>
+        <source>Current block height</source>
+        <translation>Altura atual do bloco</translation>
     </message>
     <message>
         <source>Open the %1 debug log file from the current data directory. This can take a few seconds for large log files.</source>
@@ -2665,8 +2711,8 @@ Nota: como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por u
         <translation>A quantidade para enviar na unidade selecionada</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>A taxa será deduzida ao valor que está a ser enviado. O destinatário irá receber menos particls do que as que inseridas no campo do valor. Se estiverem selecionados múltiplos destinatários, a taxa será repartida equitativamente.</translation>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <translation>A taxa será deduzida ao valor que está a ser enviado. O destinatário irá receber menos particl do que as que inseridas no campo do valor. Se estiverem selecionados múltiplos destinatários, a taxa será repartida equitativamente.</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -2727,7 +2773,7 @@ Nota: como a taxa é calculada por byte, uma taxa de "100 satoshis por kB" por u
         <translation>&amp;Assinar Mensagem</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
         <translation>Pode assinar mensagens com os seus endereços para provar que são seus. Tenha atenção ao assinar mensagens ambíguas, pois ataques de phishing podem tentar enganá-lo de modo a assinar a sua identidade para os atacantes. Apenas assine declarações detalhadas com as quais concorde.</translation>
     </message>
     <message>
@@ -3640,6 +3686,10 @@ Ir para o arquivo &gt; Abrir carteira para carregar a carteira
         <translation>Reexaminação da carteira falhou durante a inicialização</translation>
     </message>
     <message>
+        <source>Failed to verify database</source>
+        <translation>Falha ao verificar base de dados</translation>
+    </message>
+    <message>
         <source>Importing...</source>
         <translation>A importar...</translation>
     </message>
@@ -3666,6 +3716,10 @@ Ir para o arquivo &gt; Abrir carteira para carregar a carteira
     <message>
         <source>Invalid amount for -fallbackfee=&lt;amount&gt;: '%s'</source>
         <translation>Valor inválido para -fallbackfee=&lt;amount&gt;: '%s'</translation>
+    </message>
+    <message>
+        <source>SQLiteDatabase: Failed to read database verification error: %s</source>
+        <translation>SQLiteDatabase: Falha ao ler base de dados erro de verificação %s</translation>
     </message>
     <message>
         <source>Specified blocks directory "%s" does not exist.</source>
@@ -3929,10 +3983,6 @@ A pasta de blocos especificados "%s" não existe.</translation>
     <message>
         <source>%s is set very high!</source>
         <translation>%s está demasiado elevado!</translation>
-    </message>
-    <message>
-        <source>Error loading wallet %s. Duplicate -wallet filename specified.</source>
-        <translation>Erro ao carregar a carteira %s. Especificado nome de fichero -wallet em duplicado.</translation>
     </message>
     <message>
         <source>Starting network threads...</source>

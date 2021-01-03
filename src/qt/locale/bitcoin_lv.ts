@@ -2,6 +2,10 @@
 <context>
     <name>AddressBookPage</name>
     <message>
+        <source>Right-click to edit address or label</source>
+        <translation>Spiediet labo peles klikšķi, lai labotu adresi vai birku</translation>
+    </message>
+    <message>
         <source>Create a new address</source>
         <translation>Izveidot jaunu adresi</translation>
     </message>
@@ -43,11 +47,11 @@
     </message>
     <message>
         <source>Choose the address to send coins to</source>
-        <translation>Izvēlies adresi uz kuru sūtīt particls</translation>
+        <translation>Izvēlies adresi uz kuru sūtīt particl</translation>
     </message>
     <message>
         <source>Choose the address to receive coins with</source>
-        <translation>Izvēlies adresi ar kuru saņemt particls</translation>
+        <translation>Izvēlies adresi ar kuru saņemt particl</translation>
     </message>
     <message>
         <source>C&amp;hoose</source>
@@ -60,6 +64,10 @@
     <message>
         <source>Receiving addresses</source>
         <translation>Adrešu saņemšana</translation>
+    </message>
+    <message>
+        <source>These are your Particl addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Šīs ir jūsu Particl adreses, kuras izmantojamas maksājumu veikšanai. Vienmēr pārbaudiet summu un saņēmēja adresi pirms monētu nosūtīšanas.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -78,10 +86,18 @@
         <translation>Eksportēt Adrešu Sarakstu</translation>
     </message>
     <message>
+        <source>Comma separated file (*.csv)</source>
+        <translation>Ar komatiem atdalīts fails (*.csv)</translation>
+    </message>
+    <message>
         <source>Exporting Failed</source>
         <translation>Eksportēšana Neizdevās</translation>
     </message>
-    </context>
+    <message>
+        <source>There was an error trying to save the address list to %1. Please try again.</source>
+        <translation>Mēģinot saglabāt adrešu sarakstu %1 radās kļūda. Mēģiniet vēlreiz.</translation>
+    </message>
+</context>
 <context>
     <name>AddressTableModel</name>
     <message>
@@ -124,8 +140,16 @@
         <translation>Šifrēt maciņu</translation>
     </message>
     <message>
+        <source>This operation needs your wallet passphrase to unlock the wallet.</source>
+        <translation>Lai veiktu šo darbību, nepieciešama jūsu maciņa slepenā frāze maciņa atvēršanai.</translation>
+    </message>
+    <message>
         <source>Unlock wallet</source>
         <translation>Atslēgt maciņu</translation>
+    </message>
+    <message>
+        <source>This operation needs your wallet passphrase to decrypt the wallet.</source>
+        <translation>Lai veiktu šo darbību, nepieciešama jūsu maciņa slepenā frāze maciņa dekriptēšanai.</translation>
     </message>
     <message>
         <source>Decrypt wallet</source>
@@ -146,6 +170,10 @@
     <message>
         <source>Wallet encrypted</source>
         <translation>Maciņš šifrēts</translation>
+    </message>
+    <message>
+        <source>Wallet to be encrypted</source>
+        <translation>Maciņu nepieciešams šifrēt.</translation>
     </message>
     <message>
         <source>Your wallet is now encrypted. </source>
@@ -1159,6 +1187,10 @@
     </context>
 <context>
     <name>TransactionView</name>
+    <message>
+        <source>Comma separated file (*.csv)</source>
+        <translation>Ar komatiem atdalīts fails (*.csv)</translation>
+    </message>
     <message>
         <source>Confirmed</source>
         <translation>Apstiprināts</translation>

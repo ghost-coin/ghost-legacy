@@ -184,7 +184,7 @@
         <translation>Nhập cụm mật khẩu cũ và mật khẩu mới cho ví.</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
         <translation>Xin lưu ý rằng mật mã hóa ví của bạn không thể bảo vệ hoàn toàn particl của bạn khỏi đánh cắp bởi các phẩn mềm gián điệp nhiễm vào máy tính của bạn.</translation>
     </message>
     <message>
@@ -514,6 +514,14 @@
         <translation>Đông ví</translation>
     </message>
     <message>
+        <source>Close All Wallets...</source>
+        <translation>Đóng tất cả các ví</translation>
+    </message>
+    <message>
+        <source>Close all wallets</source>
+        <translation>Đóng tất cả ví</translation>
+    </message>
+    <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
         <translation>Hiển thị %1 tin nhắn hỗ trợ để nhận được danh sách Particl command-line khả dụng</translation>
     </message>
@@ -625,7 +633,11 @@
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
         <translation>Ví thì &lt;b&gt;encrypted&lt;/b&gt; và hiện tại &lt;b&gt;locked&lt;/b&gt;</translation>
     </message>
-    </context>
+    <message>
+        <source>A fatal error occurred. %1 can no longer continue safely and will quit.</source>
+        <translation>Lỗi nghiêm trong. %1 không thể tiếp tục và sẽ thoát ra</translation>
+    </message>
+</context>
 <context>
     <name>CoinControlDialog</name>
     <message>
@@ -830,7 +842,7 @@
         <source>Create</source>
         <translation>Tạo</translation>
     </message>
-</context>
+    </context>
 <context>
     <name>EditAddressDialog</name>
     <message>
@@ -1014,8 +1026,8 @@
         <translation>Giao dịch gần đây có thể chưa được hiển thị, và vì vậy số dư wallet của bạn có thể không dúng. Thông tin này sẽ được làm đúng khi wallet hoàn thành đồng bộ với particl network, như chi tiết bên dưới.</translation>
     </message>
     <message>
-        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
-        <translation>Cố gắng spend các particls bị ảnh hưởng bởi các giao dịch chưa được hiển thị sẽ không được chấp nhận bởi mạng.</translation>
+        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <translation>Cố gắng spend các particl bị ảnh hưởng bởi các giao dịch chưa được hiển thị sẽ không được chấp nhận bởi mạng.</translation>
     </message>
     <message>
         <source>Number of blocks left</source>
@@ -1437,12 +1449,60 @@
 <context>
     <name>PSBTOperationsDialog</name>
     <message>
+        <source>Dialog</source>
+        <translation>Bảng thoại</translation>
+    </message>
+    <message>
+        <source>Sign Tx</source>
+        <translation>Đăng ký Tx</translation>
+    </message>
+    <message>
+        <source>Copy to Clipboard</source>
+        <translation>Lưu vào bảng tạm</translation>
+    </message>
+    <message>
+        <source>Save...</source>
+        <translation>Sao lưu</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Đóng</translation>
+    </message>
+    <message>
+        <source>Failed to sign transaction: %1</source>
+        <translation>Đăng ký giao dịch thất bại :%1</translation>
+    </message>
+    <message>
+        <source>Save Transaction Data</source>
+        <translation>Lưu trữ giao dịch</translation>
+    </message>
+    <message>
+        <source> * Sends %1 to %2</source>
+        <translation>*Gửi %1 tới %2</translation>
+    </message>
+    <message>
+        <source>Pays transaction fee: </source>
+        <translation>Trả phí giao dịch</translation>
+    </message>
+    <message>
         <source>Total Amount</source>
         <translation>Tổng số</translation>
     </message>
     <message>
         <source>or</source>
         <translation>hoặc</translation>
+    </message>
+    <message>
+        <source>Transaction still needs signature(s).</source>
+        <translation>Giao dịch cần chữ ký</translation>
+    </message>
+    <message>
+        <source>(But this wallet cannot sign transactions.)</source>
+        <translation>(Nhưng ví này không thể đăng ký giao dịch.)</translation>
+    </message>
+    <message>
+        <source>Transaction is fully signed and ready for broadcast.</source>
+        <translation>Giao dịch đã được đăng ký và chuẩn bị để phát lên</translation>
     </message>
     </context>
 <context>
@@ -1800,6 +1860,10 @@
         <translation>Tăng font size</translation>
     </message>
     <message>
+        <source>Permissions</source>
+        <translation>Cho phép</translation>
+    </message>
+    <message>
         <source>Services</source>
         <translation>Dịch vụ</translation>
     </message>
@@ -2054,12 +2118,24 @@
         <source>Could not unlock wallet.</source>
         <translation>Không thể unlock wallet.</translation>
     </message>
-    </context>
+    <message>
+        <source>Could not generate new %1 address</source>
+        <translation>Không thể tạo ra %1 địa chỉ mới</translation>
+    </message>
+</context>
 <context>
     <name>ReceiveRequestDialog</name>
     <message>
+        <source>Address:</source>
+        <translation>Địa chỉ</translation>
+    </message>
+    <message>
         <source>Amount:</source>
         <translation>Số lượng:</translation>
+    </message>
+    <message>
+        <source>Label:</source>
+        <translation>Nhãn</translation>
     </message>
     <message>
         <source>Message:</source>
@@ -2336,6 +2412,14 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Bạn chắc chắn muốn gửi chứ?</translation>
     </message>
     <message>
+        <source>Save Transaction Data</source>
+        <translation>Lưu trữ giao dịch</translation>
+    </message>
+    <message>
+        <source>PSBT saved</source>
+        <translation>PSBT đã lưu</translation>
+    </message>
+    <message>
         <source>or</source>
         <translation>hoặc</translation>
     </message>
@@ -2479,8 +2563,8 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Lượng tiền để gửi trong mỗi đơn vị đã chọn</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>The fee sẽ được khấu trừ từ số tiền đang gửi. Người nhận sẽ receive ít particls hơn bạn gõ vào khoảng trống. Nếu nhiều người gửi được chọn, fee sẽ được chia đều.</translation>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <translation>The fee sẽ được khấu trừ từ số tiền đang gửi. Người nhận sẽ receive ít particl hơn bạn gõ vào khoảng trống. Nếu nhiều người gửi được chọn, fee sẽ được chia đều.</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -2541,8 +2625,8 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>&amp;Sign Tin nhắn</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Bạn có thể ký/đồng ý với địa chỉ chứng minh bạn có thể receive particls đã gửi đến chúng. Cẩn thận không ký bất cứ không rõ hay random, như các cuộc tấn công lừa đảo có thể cố lừa bạn ký tên vào danh tính của bạn.. Chỉ ký các bản tuyên bố hoàn chỉnh mà bạn đồng ý.</translation>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <translation>Bạn có thể ký/đồng ý với địa chỉ chứng minh bạn có thể receive particl đã gửi đến chúng. Cẩn thận không ký bất cứ không rõ hay random, như các cuộc tấn công lừa đảo có thể cố lừa bạn ký tên vào danh tính của bạn.. Chỉ ký các bản tuyên bố hoàn chỉnh mà bạn đồng ý.</translation>
     </message>
     <message>
         <source>The Particl address to sign the message with</source>
@@ -3157,7 +3241,15 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <source>Closing the wallet for too long can result in having to resync the entire chain if pruning is enabled.</source>
         <translation>Đóng ví thời gian dài sẽ dẫn đến phải đồng bộ hóa lại cả chuỗi nếu cắt tỉa pruning được kích hoạt</translation>
     </message>
-    </context>
+    <message>
+        <source>Close all wallets</source>
+        <translation>Đóng tất cả ví</translation>
+    </message>
+    <message>
+        <source>Are you sure you wish to close all wallets?</source>
+        <translation>Bạn có chắc chắn muốn đóng tất cả ví không?</translation>
+    </message>
+</context>
 <context>
     <name>WalletFrame</name>
     <message>
@@ -3237,6 +3329,14 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
     <message>
         <source>Error</source>
         <translation>Lỗi</translation>
+    </message>
+    <message>
+        <source>Load Transaction Data</source>
+        <translation>Tải thông tin giao dịch</translation>
+    </message>
+    <message>
+        <source>Partially Signed Transaction (*.psbt)</source>
+        <translation>Giao dịch được đăng ký một phần (*.psbt)</translation>
     </message>
     <message>
         <source>Backup Wallet</source>
@@ -3418,6 +3518,10 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>Lỗi quét lại ví trong xuất quá trình khởi tạo</translation>
     </message>
     <message>
+        <source>Failed to verify database</source>
+        <translation>Lỗi xác nhận dữ liệu</translation>
+    </message>
+    <message>
         <source>Importing...</source>
         <translation>Importing...</translation>
     </message>
@@ -3542,6 +3646,14 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
         <translation>You need to rebuild the database using -reindex to go back to unpruned mode.  This will redownload the entire blockchain</translation>
     </message>
     <message>
+        <source>A fatal internal error occurred, see debug.log for details</source>
+        <translation>Lỗi nghiêm trọng xảy ra, xem debug.log để biết chi tiết</translation>
+    </message>
+    <message>
+        <source>Disk space is too low!</source>
+        <translation>Ổ đĩa còn quá ít</translation>
+    </message>
+    <message>
         <source>Error reading from database, shutting down.</source>
         <translation>Error reading from database, shutting down.</translation>
     </message>
@@ -3662,10 +3774,6 @@ Lưu ý: Vì phí được tính trên cơ sở mỗi byte, nên phí "100 satos
     <message>
         <source>%s is set very high!</source>
         <translation>%s is set very high!</translation>
-    </message>
-    <message>
-        <source>Error loading wallet %s. Duplicate -wallet filename specified.</source>
-        <translation>Error loading wallet %s. Duplicate -wallet filename specified.</translation>
     </message>
     <message>
         <source>Starting network threads...</source>

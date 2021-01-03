@@ -3405,7 +3405,7 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
     <name>SendCoinsDialog</name>
     <message>
         <location filename="../forms/sendcoinsdialog.ui" line="+14"/>
-        <location filename="../sendcoinsdialog.cpp" line="+915"/>
+        <location filename="../sendcoinsdialog.cpp" line="+913"/>
         <source>Send Coins</source>
         <translation>Send Coins</translation>
     </message>
@@ -3640,7 +3640,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation>S&amp;end</translation>
     </message>
     <message>
-        <location filename="../sendcoinsdialog.cpp" line="-813"/>
+        <location filename="../sendcoinsdialog.cpp" line="-811"/>
         <source>Copy quantity</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3685,7 +3685,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+191"/>
+        <location line="+1"/>
+        <source>Creates a Partially Signed Bitcoin Transaction (PSBT) for use with e.g. an offline %1 wallet, or a PSBT-compatible hardware wallet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+181"/>
         <source> from wallet &apos;%1&apos;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3710,12 +3715,12 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+95"/>
+        <location line="+102"/>
         <source>Create Unsigned</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30"/>
+        <location line="-37"/>
         <source>or</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3730,12 +3735,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-231"/>
-        <source>Creates a Partially Signed Bitcoin Transaction (PSBT) for use with e.g. an offline %1 wallet, or a PSBT-compatible hardware wallet.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+229"/>
+        <location line="-2"/>
         <source>Private keys disabled.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3775,7 +3775,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+24"/>
         <source>Confirm send coins</source>
         <translation type="unfinished"></translation>
     </message>

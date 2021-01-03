@@ -184,8 +184,8 @@
         <translation>Πληκτρολόγησε τον παλιό κωδικό πρόσβασής σου και τον νέο κωδικό πρόσβασής σου για το πορτοφόλι</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
-        <translation>Θυμίσου ότι το να κρυπτογραφείς το πορτοφόλι σου δεν μπορεί να προστατέψει πλήρως τα particls σου από κλοπή από  κακόβουλο λογισμικό που έχει μολύνει τον υπολογιστή σου</translation>
+        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
+        <translation>Θυμίσου ότι το να κρυπτογραφείς το πορτοφόλι σου δεν μπορεί να προστατέψει πλήρως τα particl σου από κλοπή από  κακόβουλο λογισμικό που έχει μολύνει τον υπολογιστή σου</translation>
     </message>
     <message>
         <source>Wallet to be encrypted</source>
@@ -514,6 +514,14 @@
         <translation>Κλείσιμο πορτοφολιού</translation>
     </message>
     <message>
+        <source>Close All Wallets...</source>
+        <translation>Κλείσιμο όλων των πορτοφολιών...</translation>
+    </message>
+    <message>
+        <source>Close all wallets</source>
+        <translation>Κλείσιμο όλων των πορτοφολιών</translation>
+    </message>
+    <message>
         <source>Show the %1 help message to get a list with possible Particl command-line options</source>
         <translation>Εμφάνισε το %1 βοηθητικό μήνυμα για λήψη μιας λίστας με διαθέσιμες επιλογές για Particl εντολές </translation>
     </message>
@@ -624,6 +632,10 @@
     <message>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
         <translation>Το πορτοφόλι είναι &lt;b&gt;κρυπτογραφημένο&lt;/b&gt; και &lt;b&gt;κλειδωμένο&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <source>Original message:</source>
+        <translation>Αρχικό Μήνυμα:</translation>
     </message>
     </context>
 <context>
@@ -830,7 +842,7 @@
         <source>Create</source>
         <translation>Δημιουργία</translation>
     </message>
-</context>
+    </context>
 <context>
     <name>EditAddressDialog</name>
     <message>
@@ -935,10 +947,6 @@
         <translation>Καλωσήρθες στο %1.</translation>
     </message>
     <message>
-        <source>When you click OK, %1 will begin to download and process the full %4 block chain (%2GB) starting with the earliest transactions in %3 when %4 initially launched.</source>
-        <translation>Όταν κάνετε κλικ στο OK, το %1 θα ξεκινήσει τη λήψη και την επεξεργασία της πλήρους αλυσίδας μπλοκ% 4 (%2GB) αρχίζοντας από τις πρώτες συναλλαγές στο %3 όταν αρχικά ξεκίνησε το %4.</translation>
-    </message>
-    <message>
         <source>Reverting this setting requires re-downloading the entire blockchain. It is faster to download the full chain first and prune it later. Disables some advanced features.</source>
         <translation>Η επαναφορά αυτής της ρύθμισης απαιτεί εκ νέου λήψη ολόκληρου του μπλοκ αλυσίδας. Είναι πιο γρήγορο να κατεβάσετε πρώτα την πλήρη αλυσίδα και να την κλαδέψετε αργότερα. Απενεργοποιεί ορισμένες προηγμένες λειτουργίες.</translation>
     </message>
@@ -1010,8 +1018,8 @@
         <translation>Οι πρόσφατες συναλλαγές ενδέχεται να μην είναι ακόμα ορατές και επομένως η ισορροπία του πορτοφολιού σας μπορεί να είναι εσφαλμένη. Αυτές οι πληροφορίες θα είναι σωστές όταν ολοκληρωθεί το συγχρονισμό του πορτοφολιού σας με το δίκτυο Particl, όπως περιγράφεται παρακάτω.</translation>
     </message>
     <message>
-        <source>Attempting to spend particls that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
-        <translation>Η προσπάθεια να δαπανήσετε particls που επηρεάζονται από τις μη εμφανιζόμενες ακόμη συναλλαγές δεν θα γίνει αποδεκτή από το δίκτυο.</translation>
+        <source>Attempting to spend particl that are affected by not-yet-displayed transactions will not be accepted by the network.</source>
+        <translation>Η προσπάθεια να δαπανήσετε particl που επηρεάζονται από τις μη εμφανιζόμενες ακόμη συναλλαγές δεν θα γίνει αποδεκτή από το δίκτυο.</translation>
     </message>
     <message>
         <source>Number of blocks left</source>
@@ -1442,8 +1450,32 @@
         <translation>Αποθήκευση...</translation>
     </message>
     <message>
+        <source>Failed to load transaction: %1</source>
+        <translation>Αποτυχία φόρτωσης μεταφοράς: %1</translation>
+    </message>
+    <message>
+        <source>Unknown error processing transaction.</source>
+        <translation>Άγνωστο λάθος  επεξεργασίας μεταφοράς.</translation>
+    </message>
+    <message>
+        <source>PSBT copied to clipboard.</source>
+        <translation>PSBT αντιγράφηκε στο πρόχειρο.</translation>
+    </message>
+    <message>
         <source>Save Transaction Data</source>
         <translation>Αποθήκευση Δεδομένων Συναλλαγής</translation>
+    </message>
+    <message>
+        <source>PSBT saved to disk.</source>
+        <translation>PSBT αποθηκεύτηκε στο δίσκο.</translation>
+    </message>
+    <message>
+        <source> * Sends %1 to %2</source>
+        <translation>* Στέλνει %1 προς  %2</translation>
+    </message>
+    <message>
+        <source>Pays transaction fee: </source>
+        <translation>Πληρωμή τέλους συναλλαγής:</translation>
     </message>
     <message>
         <source>Total Amount</source>
@@ -1453,7 +1485,11 @@
         <source>or</source>
         <translation>ή</translation>
     </message>
-    </context>
+    <message>
+        <source>Transaction status is unknown.</source>
+        <translation>Η κατάσταση της συναλλαγής είναι άγνωστη.</translation>
+    </message>
+</context>
 <context>
     <name>PaymentServer</name>
     <message>
@@ -1793,6 +1829,10 @@
         <translation>Κόμβος παράθυρο</translation>
     </message>
     <message>
+        <source>Current block height</source>
+        <translation>Τωρινό ύψος block</translation>
+    </message>
+    <message>
         <source>Open the %1 debug log file from the current data directory. This can take a few seconds for large log files.</source>
         <translation>Ανοίξτε το αρχείο καταγραφής εντοπισμού σφαλμάτων %1 από τον τρέχοντα κατάλογο δεδομένων. Αυτό μπορεί να διαρκέσει μερικά δευτερόλεπτα για τα μεγάλα αρχεία καταγραφής.</translation>
     </message>
@@ -1803,6 +1843,10 @@
     <message>
         <source>Increase font size</source>
         <translation>Αύξηση μεγέθους γραμματοσειράς</translation>
+    </message>
+    <message>
+        <source>Permissions</source>
+        <translation>Αδειες</translation>
     </message>
     <message>
         <source>Services</source>
@@ -2063,6 +2107,14 @@
     </context>
 <context>
     <name>ReceiveRequestDialog</name>
+    <message>
+        <source>Request payment to ...</source>
+        <translation>Αίτημα πληρωμής προς ...</translation>
+    </message>
+    <message>
+        <source>Address:</source>
+        <translation>Διεύθυνση:</translation>
+    </message>
     <message>
         <source>Amount:</source>
         <translation>Ποσό:</translation>
@@ -2487,8 +2539,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>Το ποσό που θα αποσταλεί στην επιλεγμένη μονάδα</translation>
     </message>
     <message>
-        <source>The fee will be deducted from the amount being sent. The recipient will receive less particls than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>Το τέλος θα αφαιρεθεί από το ποσό που αποστέλλεται. Ο παραλήπτης θα λάβει λιγότερα particls από ό,τι εισάγετε στο πεδίο ποσό. Εάν επιλεγούν πολλοί παραλήπτες, το έξοδο διαιρείται εξίσου.</translation>
+        <source>The fee will be deducted from the amount being sent. The recipient will receive less particl than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
+        <translation>Το τέλος θα αφαιρεθεί από το ποσό που αποστέλλεται. Ο παραλήπτης θα λάβει λιγότερα particl από ό,τι εισάγετε στο πεδίο ποσό. Εάν επιλεγούν πολλοί παραλήπτες, το έξοδο διαιρείται εξίσου.</translation>
     </message>
     <message>
         <source>Use available balance</source>
@@ -2545,8 +2597,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <translation>&amp;Υπογραφή Μηνύματος</translation>
     </message>
     <message>
-        <source>You can sign messages/agreements with your addresses to prove you can receive particls sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Μπορείτε να υπογράψετε μηνύματα/συμφωνίες με τις διευθύνσεις σας για να αποδείξετε ότι μπορείτε να λάβετε τα particls που τους αποστέλλονται. Προσέξτε να μην υπογράψετε τίποτα ασαφές ή τυχαίο, καθώς οι επιθέσεις ηλεκτρονικού "ψαρέματος" ενδέχεται να σας εξαπατήσουν να υπογράψετε την ταυτότητά σας σε αυτούς. Υπογράψτε μόνο πλήρως λεπτομερείς δηλώσεις που συμφωνείτε.</translation>
+        <source>You can sign messages/agreements with your addresses to prove you can receive particl sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
+        <translation>Μπορείτε να υπογράψετε μηνύματα/συμφωνίες με τις διευθύνσεις σας για να αποδείξετε ότι μπορείτε να λάβετε τα particl που τους αποστέλλονται. Προσέξτε να μην υπογράψετε τίποτα ασαφές ή τυχαίο, καθώς οι επιθέσεις ηλεκτρονικού "ψαρέματος" ενδέχεται να σας εξαπατήσουν να υπογράψετε την ταυτότητά σας σε αυτούς. Υπογράψτε μόνο πλήρως λεπτομερείς δηλώσεις που συμφωνείτε.</translation>
     </message>
     <message>
         <source>The Particl address to sign the message with</source>
@@ -3160,6 +3212,10 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     <message>
         <source>Closing the wallet for too long can result in having to resync the entire chain if pruning is enabled.</source>
         <translation>Το κλείσιμο του πορτοφολιού για πολύ μεγάλο χρονικό διάστημα μπορεί να οδηγήσει στην επανασύνδεση ολόκληρης της αλυσίδας αν είναι ενεργοποιημένη η περικοπή.</translation>
+    </message>
+    <message>
+        <source>Close all wallets</source>
+        <translation>Κλείσιμο όλων των πορτοφολιών</translation>
     </message>
     </context>
 <context>

@@ -184,7 +184,7 @@
         <translation>वॉलेट में पुराना एवं नया सुरक्षा संवाद दर्ज करें ।</translation>
     </message>
     <message>
-        <source>Remember that encrypting your wallet cannot fully protect your particls from being stolen by malware infecting your computer.</source>
+        <source>Remember that encrypting your wallet cannot fully protect your particl from being stolen by malware infecting your computer.</source>
         <translation>याद रखें कि अपने बटुए (वॉलेट) एन्क्रिप्ट करना आपके कंप्यूटर को संक्रमित करने वाले मैलवेयर द्वारा आपके बिटकॉइन को चोरी होने से पूरी तरह से सुरक्षित नहीं कर सकता है।</translation>
     </message>
     <message>
