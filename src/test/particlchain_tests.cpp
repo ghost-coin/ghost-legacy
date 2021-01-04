@@ -234,6 +234,34 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
     }
 }
 
+BOOST_AUTO_TEST_CASE(op_iscoinstake_tests)
+{
+    CKey k1, k2;
+    InsecureNewKey(k1, true);
+    InsecureNewKey(k2, true);
+    CPubKey pk1 = k1.GetPubKey(), pk2 = k2.GetPubKey();
+    CKeyID id1 = pk1.GetID(), id2 = pk2.GetID();
+
+    CScript scriptOutA, scriptOutB;
+    CScript scriptStake = CScript() << OP_DUP << OP_HASH160 << ToByteVector(id1) << OP_EQUALVERIFY << OP_CHECKSIG;
+    CScript scriptSpend = CScript() << OP_DUP << OP_HASH160 << ToByteVector(id2) << OP_EQUALVERIFY << OP_CHECKSIG;
+
+    CScript script = CScript() << OP_ISCOINSTAKE << OP_IF;
+    script.append(scriptStake);
+    script << OP_ELSE;
+    script.append(scriptSpend);
+    script << OP_ENDIF;
+
+    BOOST_CHECK(true == SplitConditionalCoinstakeScript(script, scriptOutA, scriptOutB));
+    BOOST_CHECK(true == SplitConditionalCoinstakeScript(script, scriptOutA, scriptOutB, true));
+
+    script << OP_DROP;
+    script << CScriptNum(123);
+
+    BOOST_CHECK(true == SplitConditionalCoinstakeScript(script, scriptOutA, scriptOutB));
+    BOOST_CHECK(false == SplitConditionalCoinstakeScript(script, scriptOutA, scriptOutB, true));
+}
+
 BOOST_AUTO_TEST_CASE(coin_year_reward)
 {
     BOOST_CHECK(Params().GetCoinYearReward(1529700000) == 5 * CENT);

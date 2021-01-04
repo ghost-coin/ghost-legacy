@@ -88,10 +88,11 @@ CAmount GetDustThreshold(const CTxOutStandard *txout, const CFeeRate& dustRelayF
 
 bool IsDust(const CTxOutBase *txout, const CFeeRate& dustRelayFee)
 {
-    if (txout->IsType(OUTPUT_STANDARD))
+    if (txout->IsType(OUTPUT_STANDARD)) {
         return (((CTxOutStandard*)txout)->nValue < GetDustThreshold((CTxOutStandard*)txout, dustRelayFee));
+    }
     return false;
-};
+}
 
 bool IsStandard(const CScript& scriptPubKey, TxoutType& whichType, int64_t time)
 {
@@ -101,7 +102,7 @@ bool IsStandard(const CScript& scriptPubKey, TxoutType& whichType, int64_t time)
         // TODO: better method
         if (HasIsCoinstakeOp(scriptPubKey)) {
             CScript scriptA, scriptB;
-            if (!SplitConditionalCoinstakeScript(scriptPubKey, scriptA, scriptB)) {
+            if (!SplitConditionalCoinstakeScript(scriptPubKey, scriptA, scriptB, true)) {
                 return false;
             }
             return IsStandard(scriptA, whichType) && IsStandard(scriptB, whichType);

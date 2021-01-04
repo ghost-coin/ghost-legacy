@@ -2198,19 +2198,16 @@ bool IsSpendScriptP2PKH(const CScript &script)
     opcodetype opcode;
     valtype vchPushValue;
 
-    bool fFoundOp = false;
-    while (pc < pend)
-    {
-        if (!script.GetOp(pc, opcode, vchPushValue))
+    while (pc < pend) {
+        if (!script.GetOp(pc, opcode, vchPushValue)) {
             break;
+        }
 
-        if (!fFoundOp
-            && opcode == OP_ELSE)
-        {
+        if (opcode == OP_ELSE) {
             size_t ofs = pc - script.begin();
             return script.MatchPayToPublicKeyHash(ofs);
-        };
-    };
+        }
+    }
 
     return false;
 };
@@ -2225,28 +2222,26 @@ bool GetCoinstakeScriptPath(const CScript &scriptIn, CScript &scriptOut)
     valtype vchPushValue;
 
     bool fFoundOp = false;
-    while (pc < pend)
-    {
-        if (!scriptIn.GetOp(pc, opcode, vchPushValue))
+    while (pc < pend) {
+        if (!scriptIn.GetOp(pc, opcode, vchPushValue)) {
             break;
+        }
 
         if (!fFoundOp
-            && opcode == OP_ISCOINSTAKE)
-        {
+            && opcode == OP_ISCOINSTAKE) {
             pc++; // skip over if
 
             pcStart = pc;
             fFoundOp = true;
             continue;
-        };
+        }
 
-        if (fFoundOp && opcode == OP_ELSE)
-        {
+        if (fFoundOp && opcode == OP_ELSE) {
             pc--;
             scriptOut = CScript(pcStart, pc);
             return true;
-        };
-    };
+        }
+    }
 
     return false;
 };
@@ -2261,31 +2256,29 @@ bool GetNonCoinstakeScriptPath(const CScript &scriptIn, CScript &scriptOut)
     valtype vchPushValue;
 
     bool fFoundOp = false;
-    while (pc < pend)
-    {
-        if (!scriptIn.GetOp(pc, opcode, vchPushValue))
+    while (pc < pend) {
+        if (!scriptIn.GetOp(pc, opcode, vchPushValue)) {
             break;
+        }
 
         if (!fFoundOp
-            && opcode == OP_ELSE)
-        {
+            && opcode == OP_ELSE) {
             pcStart = pc;
             fFoundOp = true;
             continue;
-        };
+        }
 
-        if (fFoundOp && opcode == OP_ENDIF)
-        {
+        if (fFoundOp && opcode == OP_ENDIF) {
             pc--;
             scriptOut = CScript(pcStart, pc);
             return true;
-        };
-    };
+        }
+    }
 
     return false;
 };
 
-bool SplitConditionalCoinstakeScript(const CScript &scriptIn, CScript &scriptOutA, CScript &scriptOutB)
+bool SplitConditionalCoinstakeScript(const CScript &scriptIn, CScript &scriptOutA, CScript &scriptOutB, bool enforce_end)
 {
     CScript::const_iterator pc = scriptIn.begin();
     CScript::const_iterator pend = scriptIn.end();
@@ -2295,35 +2288,37 @@ bool SplitConditionalCoinstakeScript(const CScript &scriptIn, CScript &scriptOut
     valtype vchPushValue;
 
     bool fFoundOp = false, fFoundElse = false;
-    while (pc < pend)
-    {
-        if (!scriptIn.GetOp(pc, opcode, vchPushValue))
+    while (pc < pend) {
+        if (!scriptIn.GetOp(pc, opcode, vchPushValue)) {
             break;
+        }
 
         if (!fFoundOp
-            && opcode == OP_ISCOINSTAKE)
-        {
-            pc++; // skip over if
+            && opcode == OP_ISCOINSTAKE) {
+            CScript::const_iterator pc_test = pc;
+            if (scriptIn.GetOp(pc_test, opcode, vchPushValue) && opcode == OP_IF) {
+                pc = pc_test;
+                pcStart = pc;
+                fFoundOp = true;
+                continue;
+            }
+        }
 
-            pcStart = pc;
-            fFoundOp = true;
-            continue;
-        };
-
-        if (fFoundElse && opcode == OP_ENDIF)
-        {
+        if (fFoundElse && opcode == OP_ENDIF) {
+            if (enforce_end && pc < pend) {
+                return false;
+            }
             pc--;
             scriptOutB = CScript(pcStart, pc);
             return true;
-        };
+        }
 
-        if (fFoundOp && opcode == OP_ELSE)
-        {
+        if (fFoundOp && opcode == OP_ELSE) {
             scriptOutA = CScript(pcStart, pc-1);
             pcStart = pc;
             fFoundElse = true;
-        };
-    };
+        }
+    }
 
     return false;
 };
