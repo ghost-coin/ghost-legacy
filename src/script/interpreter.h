@@ -219,7 +219,7 @@ bool IsSpendScriptP2PKH(const CScript &script);
 
 bool GetCoinstakeScriptPath(const CScript &scriptIn, CScript &scriptOut);
 bool GetNonCoinstakeScriptPath(const CScript &scriptIn, CScript &scriptOut);
-bool SplitConditionalCoinstakeScript(const CScript &scriptIn, CScript &scriptOutA, CScript &scriptOutB);
+bool SplitConditionalCoinstakeScript(const CScript &scriptIn, CScript &scriptOutA, CScript &scriptOutB, bool enforce_end=false);
 bool GetColdStakeScriptPath(bool for_coinstake, const CScript &script_in, CScript &script_out);
 
 #endif // BITCOIN_SCRIPT_INTERPRETER_H
