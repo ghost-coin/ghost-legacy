@@ -1139,7 +1139,7 @@ static UniValue smsginbox(const JSONRPCRequest &request)
                         objM.pushKV("text", sText);
                     } else
                     if (sEnc == "hex") {
-                        objM.pushKV("hex", HexStr(sText));
+                        objM.pushKV("hex", HexStr(msg.vchMessage));
                     } else {
                         objM.pushKV("unknown_encoding", sEnc);
                     }
@@ -1301,7 +1301,7 @@ static UniValue smsgoutbox(const JSONRPCRequest &request)
                         objM.pushKV("text", sText);
                     } else
                     if (sEnc == "hex") {
-                        objM.pushKV("hex", HexStr(sText));
+                        objM.pushKV("hex", HexStr(msg.vchMessage));
                     } else {
                         objM.pushKV("unknown_encoding", sEnc);
                     }
