@@ -1,3 +1,12 @@
+0.19.2.3
+==============
+
+ - Merged Bitcoin 0.19.2 backports.
+ - New checkpoints.
+ - Fix smsginbox hex encoding bug.
+ - Tighten IsStandard() check to fail on trailing script.
+ - Re-enable win32 gitian build.
+
 
 0.19.1.2
 ==============

@@ -1,5 +1,5 @@
 ---
-name: "particl-win-0.19.1.2"
+name: "particl-win-0.19.2.3"
 enable_cache: true
 sudo: true
 distro: "ubuntu"
@@ -32,7 +32,7 @@ script: |
   set -e -o pipefail
 
   WRAP_DIR=$HOME/wrapped
-  HOSTS="x86_64-w64-mingw32"
+  HOSTS="i686-w64-mingw32 x86_64-w64-mingw32"
   CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests --enable-usbdevice"
   FAKETIME_HOST_PROGS="ar ranlib nm windres strip objcopy"
   FAKETIME_PROGS="date makensis zip"
