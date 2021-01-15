@@ -7571,7 +7571,7 @@ int CHDWallet::NewStealthKeyFromAccount(
     uint32_t nChildBkp = sek->nHGenerated;
 
     CKey kScan, kSpend;
-    uint32_t nScanOut, nSpendOut;
+    uint32_t nScanOut = 0, nSpendOut = 0;
     if (pscankey_num) {
         if (0 != sek->DeriveKey(kScan, *pscankey_num, nScanOut, true)) {
             return werrorN(1, "%s Derive failed.", __func__);
@@ -7874,7 +7874,7 @@ int CHDWallet::NewStealthKeyV2FromAccount(
 
     CKey kScan;
     CPubKey pkSpend;
-    uint32_t nScanOut, nSpendGenerated;
+    uint32_t nScanOut = 0, nSpendGenerated = 0;
     if (pscankey_num) {
         assert(pspendkey_num);
         if (0 != sekScan->DeriveKey(kScan, *pscankey_num, nScanOut, true)) {

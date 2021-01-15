@@ -1,0 +1,5 @@
+particl-cli.1 merge=ours
+particl-qt.1 merge=ours
+particl-wallet.1 merge=ours
+particld.1 merge=ours
+particl-tx.1 merge=ours

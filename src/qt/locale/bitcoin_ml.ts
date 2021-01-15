@@ -594,19 +594,19 @@ Signing is only possible with addresses of the type 'legacy'.</source>
     <message>
         <source>Date: %1
 </source>
-        <translation>തീയതി: %1
+        <translation>തീയതി: %1 
 </translation>
     </message>
     <message>
         <source>Amount: %1
 </source>
-        <translation>തുക : %1
+        <translation>തുക : %1 
 </translation>
     </message>
     <message>
         <source>Wallet: %1
 </source>
-        <translation>വാലറ്റ്: %1
+        <translation>വാലറ്റ്: %1 
 </translation>
     </message>
     <message>
@@ -618,13 +618,13 @@ Signing is only possible with addresses of the type 'legacy'.</source>
     <message>
         <source>Label: %1
 </source>
-        <translation>കുറിപ്പ് : %1
+        <translation>കുറിപ്പ് : %1 
 </translation>
     </message>
     <message>
         <source>Address: %1
 </source>
-        <translation>മേൽവിലാസം : %1
+        <translation>മേൽവിലാസം : %1 
 </translation>
     </message>
     <message>

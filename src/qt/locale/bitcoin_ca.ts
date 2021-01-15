@@ -3403,8 +3403,8 @@ Nota: Com que la comissió es calcula en funció dels bytes, una comissió de "1
         <source>No wallet has been loaded.
 Go to File &gt; Open Wallet to load a wallet.
 - OR -</source>
-        <translation>No s'ha carregat cap cartera.
-Ves a Arxiu &gt; Obrir Cartera per a carregar cartera.
+        <translation>No s'ha carregat cap cartera. 
+Ves a Arxiu &gt; Obrir Cartera per a carregar cartera. 
 - O -</translation>
     </message>
     <message>
