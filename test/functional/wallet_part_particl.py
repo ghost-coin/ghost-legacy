@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2020 The Particl Core developers
+# Copyright (c) 2017-2021 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import time
 import json
-import subprocess
+import time
 import textwrap
+import subprocess
 
-from test_framework.test_particl import ParticlTestFramework
-from test_framework.authproxy import JSONRPCException
 from test_framework.util import assert_raises_rpc_error, assert_equal
+from test_framework.authproxy import JSONRPCException
+from test_framework.test_particl import ParticlTestFramework
 
 
 def read_dump(file_name):
@@ -761,6 +761,14 @@ class WalletParticlTest(ParticlTestFramework):
         assert(len(stdout.split(' ')) == 12)
         ro = nodes[0].mnemonic('decode', '', stdout.strip())
         assert(ro['language'] == 'Spanish')
+
+        self.log.info('Test sign and verifymessage')
+        message = 'This is just a test message'
+        sign_address = nodes[2].getnewaddress()
+
+        signature = nodes[2].signmessage(sign_address, message)
+        assert nodes[1].verifymessage(sign_address, signature, message)
+        assert not self.nodes[1].verifymessage(sign_address, signature, message, 'Invalid MM')
 
 
 if __name__ == '__main__':

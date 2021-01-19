@@ -24,7 +24,8 @@ const std::string MESSAGE_MAGIC = "Bitcoin Signed Message:\n";
 MessageVerificationResult MessageVerify(
     const std::string& address,
     const std::string& signature,
-    const std::string& message)
+    const std::string& message,
+    const std::string& message_magic)
 {
     CTxDestination destination = DecodeDestination(address);
     if (!IsValidDestination(destination)) {
@@ -45,7 +46,7 @@ MessageVerificationResult MessageVerify(
     }
 
     CPubKey pubkey;
-    if (!pubkey.RecoverCompact(MessageHash(message), signature_bytes)) {
+    if (!pubkey.RecoverCompact(MessageHash(message, message_magic), signature_bytes)) {
         return MessageVerificationResult::ERR_PUBKEY_NOT_RECOVERED;
     }
 
@@ -78,10 +79,10 @@ bool MessageSign(
     return true;
 }
 
-uint256 MessageHash(const std::string& message)
+uint256 MessageHash(const std::string& message, const std::string& message_magic)
 {
     CHashWriter hasher(SER_GETHASH, 0);
-    hasher << MESSAGE_MAGIC << message;
+    hasher << message_magic << message;
 
     return hasher.GetHash();
 }

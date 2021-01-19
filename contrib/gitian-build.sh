@@ -258,7 +258,7 @@ then
     if [[ -n "$USE_LXC" ]]
     then
         sudo apt-get install lxc
-        bin/make-base-vm --suite bionic --arch amd64 --lxc
+        bin/make-base-vm --suite bionic --arch amd64 --lxc --disksize 20000
     elif [[ -n "$USE_DOCKER" ]]
     then
         sudo apt-get install docker-ce

@@ -53,7 +53,8 @@ enum class SigningResult {
 MessageVerificationResult MessageVerify(
     const std::string& address,
     const std::string& signature,
-    const std::string& message);
+    const std::string& message,
+    const std::string& message_magic = MESSAGE_MAGIC);
 
 /** Sign a message.
  * @param[in] privkey Private key to sign with.
@@ -69,7 +70,7 @@ bool MessageSign(
  * Hashes a message for signing and verification in a manner that prevents
  * inadvertently signing a transaction.
  */
-uint256 MessageHash(const std::string& message);
+uint256 MessageHash(const std::string& message, const std::string& message_magic = MESSAGE_MAGIC);
 
 std::string SigningResultString(const SigningResult res);
 

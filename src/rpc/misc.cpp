@@ -332,7 +332,7 @@ static RPCHelpMan verifymessage()
     std::string strMessage  = request.params[2].get_str();
     std::string message_magic = request.params[3].isNull() ? MESSAGE_MAGIC : request.params[3].get_str();
 
-    switch (MessageVerify(strAddress, strSign, strMessage)) {
+    switch (MessageVerify(strAddress, strSign, strMessage, message_magic)) {
     case MessageVerificationResult::ERR_INVALID_ADDRESS:
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
     case MessageVerificationResult::ERR_ADDRESS_NO_KEY:
