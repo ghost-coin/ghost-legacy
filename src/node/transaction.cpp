@@ -80,7 +80,25 @@ TransactionError BroadcastTransaction(const CTransactionRef tx, std::string& err
     }
 
     if (relay) {
-        RelayTransaction(hashTx, *g_connman);
+        bool result = false;
+        if (gArgs.GetBoolArg("-dandelion", false)) {
+            int64_t nCurrTime = GetTimeMicros();
+            int64_t nEmbargo = 1000000*DANDELION_EMBARGO_MINIMUM+PoissonNextSend(nCurrTime, DANDELION_EMBARGO_AVG_ADD);
+            g_connman->insertDandelionEmbargo(hashTx,nEmbargo);
+            LogPrint(BCLog::DANDELION, "dandeliontx %s embargoed for %d seconds\n", hashTx.ToString(), (nEmbargo-nCurrTime)/1000000);
+            CInv inv(MSG_DANDELION_TX, hashTx);
+            result = g_connman->localDandelionDestinationPushInventory(inv);
+        } else {
+            CInv inv(MSG_TX, hashTx);
+            g_connman->ForEachNode([&inv](CNode* pnode)
+            {
+                pnode->PushInventory(inv);
+            });
+            result = true;
+        }
+        if (result)
+            return TransactionError::OK;
+        return TransactionError::MEMPOOL_ERROR;
     }
 
     return TransactionError::OK;
