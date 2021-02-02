@@ -33,6 +33,10 @@
 #include <utility>
 #include <vector>
 
+#include <boost/bind/bind.hpp>
+
+using namespace boost::placeholders;
+
 class CChainState;
 class CBlockIndex;
 class CBlockTreeDB;
