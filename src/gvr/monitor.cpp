@@ -36,9 +36,25 @@ void monitorThread()
            for (const auto& tx : currentBlock.vtx) {
               int n = 0;
               for (const auto& txout : tx->vpout) {
-                 if (txout->GetType() == OUTPUT_STANDARD) {
-                    COutPoint payee(tx->GetHash(), n);
-                    incomingCandidate(payee, txout->GetValue(), monitor_height);
+                 if (txout->GetType() == OUTPUT_STANDARD)
+                 {
+                     CCoinsView viewDummy;
+                     CCoinsViewCache view(&viewDummy);
+
+                     LOCK(cs_main);
+                     LOCK(mempool.cs);
+                     CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
+                     CCoinsViewMemPool viewMempool(&viewChain, mempool);
+                     view.SetBackend(viewMempool);
+
+                     //! pull candidate details
+                     auto payee = COutPoint(tx->GetHash(), n);
+                     const Coin& coin = view.AccessCoin(payee);
+                     const CScript& payeeScript = coin.out.scriptPubKey;
+                     if (!coin.IsSpent()) {
+                         incomingCandidate(payee, txout->GetValue(), payeeScript, monitor_height);
+                     }
+                     view.SetBackend(viewDummy);
                  }
                  ++n;
               }

@@ -8,6 +8,7 @@
 #include <amount.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <index/txindex.h>
 #include <validation.h>
 
 void monitorThread();

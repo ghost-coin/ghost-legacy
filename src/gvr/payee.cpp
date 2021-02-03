@@ -11,13 +11,13 @@ std::queue<payee> candidates;
 std::list<payee> verified;
 
 //! called whilst iterating txes in block
-void incomingCandidate(COutPoint out, CAmount amount, int height)
+void incomingCandidate(COutPoint out, CAmount amount, CScript address, int height)
 {
     if (!height)
         return;
     if (amount < MINIMUM_GVR_PAYMENT)
         return;
-    payee candidate(out, amount, height);
+    payee candidate(out, amount, address, height);
     candidates.push(candidate);
 }
 
@@ -62,7 +62,13 @@ void printCandidates()
     //! print modified list
     int n = 0;
     for (auto candidate : verified) {
-        LogPrintf("  %02d -  %s (amount: %lld, height: %d)\n",
-                  n++, candidate.GetOutpoint().ToString().c_str(), candidate.GetAmount() / COIN, candidate.GetHeight());
+        CTxDestination dest;
+        ExtractDestination(candidate.GetAddress(), dest);
+        LogPrintf("  %02d -  %s (amount: %lld, address: %s, height: %d)\n",
+                  n++,
+                  candidate.GetOutpoint().ToString(),
+                  candidate.GetAmount() / COIN,
+                  EncodeDestination(dest),
+                  candidate.GetHeight());
     }
 }

@@ -6,6 +6,7 @@
 #define GVR_PAYEE_H
 
 #include <amount.h>
+#include <key_io.h>
 #include <util/system.h>
 #include <validation.h>
 
@@ -16,22 +17,26 @@ class payee {
 private:
     COutPoint out;
     CAmount amount;
+    CScript address;
     int height;
 
 public:
     COutPoint GetOutpoint() const { return out; }
     CAmount GetAmount() const { return amount; }
+    CScript GetAddress() const { return address; }
     int GetHeight() const { return height; }
 
     payee()
         : out()
         , amount()
+        , address()
         , height()
     {
     }
-    payee(COutPoint out, CAmount amount, int height)
+    payee(COutPoint out, CAmount amount, CScript address, int height)
         : out(out)
         , amount(amount)
+        , address(address)
         , height(height)
     {
     }
@@ -40,7 +45,7 @@ public:
 //! configuration
 const CAmount MINIMUM_GVR_PAYMENT = 20000 * COIN;
 
-void incomingCandidate(COutPoint out, CAmount amount, int height);
+void incomingCandidate(COutPoint out, CAmount amount, CScript address, int height);
 void testCandidate(int height);
 void printCandidates();
 
