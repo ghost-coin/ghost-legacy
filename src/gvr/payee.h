@@ -49,4 +49,6 @@ void incomingCandidate(COutPoint out, CAmount amount, CScript address, int heigh
 void testCandidate(int height);
 void printCandidates();
 
+extern std::list<payee> verified;
+
 #endif // GVR_PAYEE_H

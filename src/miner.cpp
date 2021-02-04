@@ -13,6 +13,8 @@
 #include <consensus/merkle.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
+#include <gvr/payee.h>
+#include <gvr/pool.h>
 #include <policy/feerate.h>
 #include <policy/policy.h>
 #include <pow.h>
@@ -26,6 +28,8 @@
 #include <algorithm>
 #include <queue>
 #include <utility>
+
+class payee;
 
 uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
@@ -147,17 +151,30 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     m_last_block_num_txs = nBlockTx;
     m_last_block_weight = nBlockWeight;
 
+    bool gvrActive = gvrPaymentsActive(nHeight);
+    int gvrSplit = gvrPaymentRatioSplit(nHeight);
+
     // Create coinbase transaction.
     CMutableTransaction coinbaseTx;
     if (!fTestBlockValidity) {
         pblock->nVersion = GHOST_BLOCK_VERSION;
         pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     } else {
+        CAmount totalReward = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
         coinbaseTx.vin.resize(1);
         coinbaseTx.vin[0].prevout.SetNull();
-        coinbaseTx.vout.resize(1);
+        coinbaseTx.vout.resize(1+gvrActive);
         coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
-        coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+        coinbaseTx.vout[0].nValue = totalReward * ((gvrActive ? gvrSplit : 100) / 100);
+        if (gvrActive) {
+            payee nextPayee;
+            CTxDestination dest;
+            getGVRPayee(nextPayee);
+            ExtractDestination(nextPayee.GetAddress(), dest);
+            coinbaseTx.vout[1].scriptPubKey = nextPayee.GetAddress();
+            coinbaseTx.vout[1].nValue = totalReward - coinbaseTx.vout[0].nValue;
+            LogPrintf("    - next gvrPayee is %s (%llu GHOST)\n", EncodeDestination(dest), coinbaseTx.vout[1].nValue / COIN);
+        }
         coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
         pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
         pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());

@@ -315,6 +315,7 @@ libghost_server_a_SOURCES = \
   interfaces/node.cpp \
   init.cpp \
   dbwrapper.cpp \
+  gvr/pool.cpp \
   gvr/payee.cpp \
   gvr/monitor.cpp \
   gvr/util.cpp \
