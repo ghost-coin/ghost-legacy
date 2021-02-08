@@ -288,13 +288,13 @@ public:
     CAmount nBlindWatchOnly = 0;
     CAmount nBlindWatchOnlyUnconf = 0;
 
-
     CAmount nAnon = 0;
     CAmount nAnonUnconf = 0;
     CAmount nAnonImmature = 0;
 
-    //CAmount nPartUsed = 0;
-    //CAmount nBlindUsed = 0;
+    CAmount nAnonWatchOnly = 0;
+    CAmount nAnonWatchOnlyUnconf = 0;
+    CAmount nAnonWatchOnlyImmature = 0;
 };
 
 #endif // PARTICL_WALLET_HDWALLETTYPES_H

@@ -1286,7 +1286,11 @@ isminetype CWallet::IsMine(const CKeyID &address) const
     if (spk_man) {
         LOCK(spk_man->cs_KeyStore);
         if (!IsCrypted()) {
-            return spk_man->FillableSigningProvider::IsMine(address);
+            isminetype ismine = spk_man->FillableSigningProvider::IsMine(address);
+            if (ismine == ISMINE_NO && spk_man->mapWatchKeys.count(address) > 0) {
+                return ISMINE_WATCH_ONLY_;
+            }
+            return ismine;
         }
         if (spk_man->mapCryptedKeys.count(address) > 0) {
             return ISMINE_SPENDABLE;

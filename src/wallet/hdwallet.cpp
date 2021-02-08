@@ -1878,7 +1878,7 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
         }
 
         return (isminetype)((int)typeA | (int)typeB);
-    };
+    }
 
     std::vector<valtype> vSolutions;
     TxoutType whichType = Solver(scriptPubKey, vSolutions);
@@ -1915,8 +1915,9 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
                 return ISMINE_NO;
             }
         }
-        if ((mine = HaveKey(keyID, pak, pasc, pa)))
+        if ((mine = HaveKey(keyID, pak, pasc, pa))) {
             return mine;
+        }
         break;
     case TxoutType::SCRIPTHASH:
     case TxoutType::TIMELOCKED_SCRIPTHASH:
@@ -1970,7 +1971,7 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
     }
     default:
         return ISMINE_NO;
-    };
+    }
 
     auto spk_man = GetLegacyScriptPubKeyMan();
     if (spk_man) {
@@ -2582,18 +2583,30 @@ bool CHDWallet::GetBalances(CHDWalletBalances &bal, bool avoid_reuse) const
             }
             switch (r.nType) {
                 case OUTPUT_RINGCT:
-                    if (!(r.nFlags & ORF_OWNED)) {
+                    if (!(r.nFlags & ORF_OWNED || r.nFlags & ORF_OWN_WATCH)) {
                         continue;
                     }
                     if (fTrusted) {
                         if (depth >= consensusParams.nMinRCTOutputDepth) {
-                            bal.nAnon += r.nValue;
+                            if (r.nFlags & ORF_OWN_WATCH) {
+                                bal.nAnonWatchOnly += r.nValue;
+                            } else {
+                                bal.nAnon += r.nValue;
+                            }
                         } else {
-                            bal.nAnonImmature += r.nValue;
+                            if (r.nFlags & ORF_OWN_WATCH) {
+                                bal.nAnonWatchOnlyImmature += r.nValue;
+                            } else {
+                                bal.nAnonImmature += r.nValue;
+                            }
                         }
                     } else
                     if (fInMempool) {
-                        bal.nAnonUnconf += r.nValue;
+                        if (r.nFlags & ORF_OWN_WATCH) {
+                            bal.nAnonWatchOnlyUnconf += r.nValue;
+                        } else {
+                            bal.nAnonUnconf += r.nValue;
+                        }
                     }
                     break;
                 case OUTPUT_CT:
@@ -3192,7 +3205,6 @@ int CHDWallet::AddCTData(const CCoinControl *coinControl, CTxOutBase *txout, CTe
         if (!r.pkTo.IsValid()) {
             return wserrorN(1, sError, __func__, "Invalid recipient pubkey.");
         }
-
         if (coinControl->m_blind_watchonly_visible &&
             r.address.type() == typeid(CStealthAddress)) {
             CStealthAddress sx = boost::get<CStealthAddress>(r.address);
@@ -9221,10 +9233,12 @@ bool CHDWallet::ProcessStealthOutput(const CTxDestination &address,
 
         if (!HaveKey(it->spend_secret_id)) {
             const auto script = GetScriptForDestination(address);
+            const auto pk_script = GetScriptForRawPubKey(pkE);  // LegacyScriptPubKeyMan::AddWatchOnlyInMem needs a pubkey to affect mapWatchKeys
             auto spk_man = GetLegacyScriptPubKeyMan();
             if (spk_man) {
                 LOCK(spk_man->cs_KeyStore);
                 spk_man->AddWatchOnly(script, 0 /* nCreateTime */);
+                spk_man->AddWatchOnly(pk_script, 0 /* nCreateTime */);
             }
             nFoundStealth++;
             return true;
@@ -10068,7 +10082,6 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
         };
     };
     */
-
     rout.nType = OUTPUT_CT;
 
     CKeyID idk;
@@ -10126,7 +10139,7 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
 
     uint64_t min_value, max_value;
     uint8_t blindOut[32];
-    unsigned char msg[256]; // Currently narration is capped at 32 bytes
+    unsigned char msg[256]; // Narration is capped at 32 bytes
     size_t mlen = sizeof(msg);
     memset(msg, 0, mlen);
     uint64_t amountOut = 0;
@@ -10247,9 +10260,6 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
         return 1;
     }
 
-    if (!GetKey(idk, key)) {
-        return werrorN(0, "%s: GetKey failed.", __func__);
-    }
     if (pout->vData.size() < 33) {
         return werrorN(0, "%s: vData.size() < 33.", __func__);
     }
@@ -10258,20 +10268,59 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
     pkEphem.Set(pout->vData.begin(), pout->vData.begin() + 33);
 
     // Regenerate nonce
-    uint256 nonce = key.ECDH(pkEphem);
-    CSHA256().Write(nonce.begin(), 32).Finalize(nonce.begin());
+    uint256 nonce;
+    if (GetKey(idk, key)) {
+        nonce = key.ECDH(pkEphem);
+        CSHA256().Write(nonce.begin(), 32).Finalize(nonce.begin());
+    }
 
     uint64_t min_value, max_value;
     uint8_t blindOut[32];
-    unsigned char msg[256]; // Currently narration is capped at 32 bytes
+    unsigned char msg[256]; // Narration is limited to 32 bytes
     size_t mlen = sizeof(msg);
     memset(msg, 0, mlen);
-    uint64_t amountOut;
+    uint64_t amountOut = 0;
 
     if (pout->vRangeproof.size() < 1000) {
-        if (1 != secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
-            &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
-            0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), nullptr, 0)) {
+        int rewind_rv = 0;
+        if (!nonce.IsNull()) {
+            rewind_rv = secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
+                &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
+                0, &pout->commitment, &secp256k1_generator_const_h, nonce.begin(), nullptr, 0);
+        }
+
+        // Try again with the watch_only_nonce
+        if (rewind_rv < 1) {
+            CStealthAddress sx;
+            CKey scan_secret;
+            if (GetStealthLinked(idk, sx) &&
+                GetStealthSecret(sx, scan_secret)) {
+
+                // pk_tweaked = pkEphem + G * tweak
+                uint256 watch_only_nonce, tweak(uint256S("0x444"));
+                secp256k1_pubkey R;
+                if (!secp256k1_ec_pubkey_parse(secp256k1_ctx_blind, &R, pkEphem.data(), EC_COMPRESSED_SIZE)) {
+                    return werrorN(0, "%s: secp256k1_ec_pubkey_parse R failed.", __func__);
+                }
+                if (!secp256k1_ec_pubkey_tweak_add(secp256k1_ctx_blind, &R, tweak.begin())) {
+                    return werrorN(0, "%s: secp256k1_ec_pubkey_tweak_add failed.", __func__);
+                }
+
+                CPubKey pk_tweaked;
+                unsigned char pub[33];
+                size_t publen = 33;
+                secp256k1_ec_pubkey_serialize(secp256k1_ctx_blind, pub, &publen, &R, SECP256K1_EC_COMPRESSED);
+                pk_tweaked.Set(pub, pub + publen);
+
+                watch_only_nonce = scan_secret.ECDH(pk_tweaked);
+                CSHA256().Write(watch_only_nonce.begin(), 32).Finalize(watch_only_nonce.begin());
+
+                rewind_rv = secp256k1_bulletproof_rangeproof_rewind(secp256k1_ctx_blind, blind_gens,
+                    &amountOut, blindOut, pout->vRangeproof.data(), pout->vRangeproof.size(),
+                    0, &pout->commitment, &secp256k1_generator_const_h, watch_only_nonce.begin(), nullptr, 0);
+            }
+        }
+        if (rewind_rv != 1) {
             return werrorN(0, "%s: secp256k1_bulletproof_rangeproof_rewind failed.", __func__);
         }
 

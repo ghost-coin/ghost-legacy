@@ -83,6 +83,17 @@ class WalletParticlWatchOnlyTest(ParticlTestFramework):
         assert(isclose(w2['mine']['blind_trusted'], 0.0))
         assert(isclose(w2['watchonly']['blind_trusted'], 10.0))
 
+        self.log.info('Test sending anon output to watchonly')
+        coincontrol = {'blind_watchonly_visible': True}
+        outputs = [{'address': sxaddr0, 'amount': 10},]
+        txid = nodes[0].sendtypeto('part', 'anon', outputs, 'comment', 'comment-to', 4, 64, False, coincontrol)
+        self.stakeBlocks(1)
+        w0 = nodes[0].getbalances()
+        w2 = nodes[2].getbalances()
+        assert(isclose(w0['mine']['anon_immature'], 10.0))
+        assert('watchonly' not in w0)
+        assert(isclose(w2['mine']['anon_immature'], 0.0))
+        assert(isclose(w2['watchonly']['anon_immature'], 10.0))
 
         nodes[2].importstealthaddress(scan_vk, spend_vk)
         ro = nodes[2].getaddressinfo(sxaddr0)

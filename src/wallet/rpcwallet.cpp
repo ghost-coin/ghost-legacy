@@ -3077,6 +3077,11 @@ static RPCHelpMan getbalances()
                     {RPCResult::Type::STR_AMOUNT, "untrusted_pending", "untrusted pending balance (outputs created by others that are in the mempool)"},
                     {RPCResult::Type::STR_AMOUNT, "immature", "balance from immature coinbase outputs"},
                     {RPCResult::Type::STR_AMOUNT, "staked", "balance from staked outputs"},
+                    {RPCResult::Type::STR_AMOUNT, "blind_trusted", "trusted blinded balance (outputs created by the wallet or confirmed outputs)"},
+                    {RPCResult::Type::STR_AMOUNT, "blind_untrusted_pending", "untrusted pending blinded balance (outputs created by others that are in the mempool)"},
+                    {RPCResult::Type::STR_AMOUNT, "anon_trusted", "trusted anon balance (outputs created by the wallet or confirmed outputs)"},
+                    {RPCResult::Type::STR_AMOUNT, "anon_immature", "immature anon balance (outputs created by the wallet or confirmed outputs below spendable depth)"},
+                    {RPCResult::Type::STR_AMOUNT, "anon_untrusted_pending", "untrusted pending anon balance (outputs created by others that are in the mempool)"},
                 }},
             }
             },
@@ -3128,7 +3133,8 @@ static RPCHelpMan getbalances()
             balances.pushKV("mine", balances_mine);
         }
         if (bal.nPartWatchOnly > 0 || bal.nPartWatchOnlyUnconf > 0 || bal.nPartWatchOnlyStaked > 0 ||
-            bal.nBlindWatchOnly > 0 || bal.nBlindWatchOnlyUnconf > 0) {
+            bal.nBlindWatchOnly > 0 || bal.nBlindWatchOnlyUnconf > 0 ||
+            bal.nAnonWatchOnly > 0 || bal.nAnonWatchOnlyImmature > 0 || bal.nAnonWatchOnlyUnconf > 0) {
             UniValue balances_watchonly{UniValue::VOBJ};
             balances_watchonly.pushKV("trusted", ValueFromAmount(bal.nPartWatchOnly));
             balances_watchonly.pushKV("untrusted_pending", ValueFromAmount(bal.nPartWatchOnlyUnconf));
@@ -3136,6 +3142,11 @@ static RPCHelpMan getbalances()
             balances_watchonly.pushKV("staked", ValueFromAmount(bal.nPartWatchOnlyStaked));
             balances_watchonly.pushKV("blind_trusted", ValueFromAmount(bal.nBlindWatchOnly));
             balances_watchonly.pushKV("blind_untrusted_pending", ValueFromAmount(bal.nBlindWatchOnlyUnconf));
+
+            balances_watchonly.pushKV("anon_trusted", ValueFromAmount(bal.nAnonWatchOnly));
+            balances_watchonly.pushKV("anon_immature", ValueFromAmount(bal.nAnonWatchOnlyImmature));
+            balances_watchonly.pushKV("anon_untrusted_pending", ValueFromAmount(bal.nAnonWatchOnlyUnconf));
+
             balances.pushKV("watchonly", balances_watchonly);
         }
         return balances;
