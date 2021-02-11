@@ -108,7 +108,7 @@ public:
     bool IsAnonInput() const
     {
         return n == ANON_MARKER;
-    };
+    }
 
     std::string ToString() const;
 };
@@ -184,7 +184,7 @@ public:
     bool IsAnonInput() const
     {
         return prevout.IsAnonInput();
-    };
+    }
 
     bool SetAnonInfo(uint32_t nInputs, uint32_t nRingSize)
     {
@@ -193,7 +193,7 @@ public:
         memcpy(prevout.hash.begin(), &nInputs, 4);
         memcpy(prevout.hash.begin() + 4, &nRingSize, 4);
         return true;
-    };
+    }
 
     bool GetAnonInfo(uint32_t &nInputs, uint32_t &nRingSize) const
     {
@@ -202,7 +202,7 @@ public:
         nInputs = le32toh(nInputs);
         nRingSize = le32toh(nRingSize);
         return true;
-    };
+    }
 
     std::string ToString() const;
 };
@@ -238,7 +238,7 @@ public:
             default:
                 assert(false);
         }
-    };
+    }
 
     template<typename Stream>
     void Unserialize(Stream &s)
@@ -259,28 +259,28 @@ public:
             default:
                 assert(false);
         }
-    };
+    }
 
     uint8_t GetType() const
     {
         return nVersion;
-    };
+    }
 
     bool IsType(uint8_t nType) const
     {
         return nVersion == nType;
-    };
+    }
 
     bool IsStandardOutput() const
     {
         return nVersion == OUTPUT_STANDARD;
-    };
+    }
 
     const CTxOutStandard *GetStandardOutput() const
     {
         assert(nVersion == OUTPUT_STANDARD);
         return (CTxOutStandard*)this;
-    };
+    }
 
     virtual bool IsEmpty() const { return false;}
 
@@ -327,41 +327,41 @@ public:
     {
         s << nValue;
         s << *(CScriptBase*)(&scriptPubKey);
-    };
+    }
 
     template<typename Stream>
     void Unserialize(Stream &s)
     {
         s >> nValue;
         s >> *(CScriptBase*)(&scriptPubKey);
-    };
+    }
 
     bool IsEmpty() const override
     {
         return (nValue == 0 && scriptPubKey.empty());
-    };
+    }
 
     bool PutValue(std::vector<uint8_t> &vchAmount) const override
     {
         part::SetAmount(vchAmount, nValue);
         return true;
-    };
+    }
 
     CAmount GetValue() const override
     {
         return nValue;
-    };
+    }
 
     bool GetScriptPubKey(CScript &scriptPubKey_) const override
     {
         scriptPubKey_ = scriptPubKey;
         return true;
-    };
+    }
 
     virtual const CScript *GetPScriptPubKey() const override
     {
         return &scriptPubKey;
-    };
+    }
 };
 
 class CTxOutCT : public CTxOutBase
@@ -370,7 +370,7 @@ public:
     CTxOutCT() : CTxOutBase(OUTPUT_CT)
     {
         memset(commitment.data, 0, 33);
-    };
+    }
     secp256k1_pedersen_commitment commitment;
     std::vector<uint8_t> vData; // First 33 bytes is always ephemeral pubkey, can contain token for stealth prefix matching
     CScript scriptPubKey;
@@ -380,7 +380,7 @@ public:
     void Serialize(Stream &s) const
     {
         const bool fAllowWitness = !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
-        s.write((char*)&commitment.data[0], 33);
+        s.write((char*)commitment.data, 33);
         s << vData;
         s << *(CScriptBase*)(&scriptPubKey);
 
@@ -389,58 +389,58 @@ public:
         } else {
             WriteCompactSize(s, 0);
         }
-    };
+    }
 
     template<typename Stream>
     void Unserialize(Stream &s)
     {
-        s.read((char*)&commitment.data[0], 33);
+        s.read((char*)commitment.data, 33);
         s >> vData;
         s >> *(CScriptBase*)(&scriptPubKey);
 
         s >> vRangeproof;
-    };
+    }
 
     bool PutValue(std::vector<uint8_t> &vchAmount) const override
     {
         vchAmount.resize(33);
         memcpy(&vchAmount[0], commitment.data, 33);
         return true;
-    };
+    }
 
     bool GetScriptPubKey(CScript &scriptPubKey_) const override
     {
         scriptPubKey_ = scriptPubKey;
         return true;
-    };
+    }
 
     virtual const CScript *GetPScriptPubKey() const override
     {
         return &scriptPubKey;
-    };
+    }
 
     secp256k1_pedersen_commitment *GetPCommitment() override
     {
         return &commitment;
-    };
+    }
 
     std::vector<uint8_t> *GetPRangeproof() override
     {
         return &vRangeproof;
-    };
+    }
     const std::vector<uint8_t> *GetPRangeproof() const override
     {
         return &vRangeproof;
-    };
+    }
 
     std::vector<uint8_t> *GetPData() override
     {
         return &vData;
-    };
+    }
     const std::vector<uint8_t> *GetPData() const override
     {
         return &vData;
-    };
+    }
 };
 
 class CTxOutRingCT : public CTxOutBase
@@ -457,7 +457,7 @@ public:
     {
         const bool fAllowWitness = !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
         s.write((char*)pk.begin(), 33);
-        s.write((char*)&commitment.data[0], 33);
+        s.write((char*)commitment.data, 33);
         s << vData;
 
         if (fAllowWitness) {
@@ -465,46 +465,46 @@ public:
         } else {
             WriteCompactSize(s, 0);
         }
-    };
+    }
 
     template<typename Stream>
     void Unserialize(Stream &s)
     {
         s.read((char*)pk.ncbegin(), 33);
-        s.read((char*)&commitment.data[0], 33);
+        s.read((char*)commitment.data, 33);
         s >> vData;
         s >> vRangeproof;
-    };
+    }
 
     bool PutValue(std::vector<uint8_t> &vchAmount) const override
     {
         vchAmount.resize(33);
         memcpy(&vchAmount[0], commitment.data, 33);
         return true;
-    };
+    }
 
     secp256k1_pedersen_commitment *GetPCommitment() override
     {
         return &commitment;
-    };
+    }
 
     std::vector<uint8_t> *GetPRangeproof() override
     {
         return &vRangeproof;
-    };
+    }
     const std::vector<uint8_t> *GetPRangeproof() const override
     {
         return &vRangeproof;
-    };
+    }
 
     std::vector<uint8_t> *GetPData() override
     {
         return &vData;
-    };
+    }
     const std::vector<uint8_t> *GetPData() const override
     {
         return &vData;
-    };
+    }
 };
 
 class CTxOutData : public CTxOutBase
@@ -519,13 +519,13 @@ public:
     void Serialize(Stream &s) const
     {
         s << vData;
-    };
+    }
 
     template<typename Stream>
     void Unserialize(Stream &s)
     {
         s >> vData;
-    };
+    }
 
     bool GetCTFee(CAmount &nFee) const override
     {
@@ -535,7 +535,7 @@ public:
 
         size_t nb;
         return (0 == part::GetVarInt(vData, 1, (uint64_t&)nFee, nb));
-    };
+    }
 
     bool SetCTFee(CAmount &nFee) override
     {
@@ -547,26 +547,26 @@ public:
     bool GetDevFundCfwd(CAmount &nCfwd) const override
     {
         return ExtractCoinStakeInt64(vData, DO_DEV_FUND_CFWD, nCfwd);
-    };
+    }
 
     bool GetSmsgFeeRate(CAmount &fee_rate) const override
     {
         return ExtractCoinStakeInt64(vData, DO_SMSG_FEE, fee_rate);
-    };
+    }
 
     bool GetSmsgDifficulty(uint32_t &compact) const override
     {
         return ExtractCoinStakeUint32(vData, DO_SMSG_DIFFICULTY, compact);
-    };
+    }
 
     std::vector<uint8_t> *GetPData() override
     {
         return &vData;
-    };
+    }
     const std::vector<uint8_t> *GetPData() const override
     {
         return &vData;
-    };
+    }
 };
 
 class CTxOutSign
@@ -778,7 +778,7 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
             }
         }
         return;
-    };
+    }
 
     s << tx.nVersion;
 

@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2020 The Particl Core developers
+# Copyright (c) 2017-2021 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import random
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import assert_raises_rpc_error
+from test_framework.address import base58_to_byte
+from test_framework.key import SECP256K1, ECPubKey
+from test_framework.messages import sha256
 
 
 class AnonTest(ParticlTestFramework):
@@ -36,6 +39,8 @@ class AnonTest(ParticlTestFramework):
         nodes[1].extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
         sxAddrTo1_1 = nodes[1].getnewstealthaddress('lblsx11')
         assert(sxAddrTo1_1 == 'TetbYTGv5LiqyFiUD3a5HHbpSinQ9KiRYDGAMvRzPfz4RnHMbKGAwDr1fjLGJ5Eqg1XDwpeGyqWMiwdK3qM3zKWjzHNpaatdoHVzzA')
+
+        nodes[2].extkeyimportmaster(nodes[2].mnemonic('new')['master'])
 
         sxAddrTo0_1 = nodes[0].getnewstealthaddress('lblsx01')
 
@@ -188,6 +193,128 @@ class AnonTest(ParticlTestFramework):
             anonoutput = w1_2.anonoutput(pi)
             possible_inputs_txids.append(anonoutput['txnhash'] + '.' + str(anonoutput['n']))
         assert(use_input['txid'] + '.' + str(use_input['vout']) in possible_inputs_txids)
+
+        num_tries = 20
+        for i in range(num_tries):
+            if nodes[0].getbalances()['mine']['anon_immature'] == 0.0:
+                break
+            self.stakeBlocks(1)
+            if i >= num_tries - 1:
+                raise ValueError('anon balance immature')
+
+        assert(nodes[0].getbalances()['mine']['anon_trusted'] > 100.0)
+
+        self.log.info('Test crafting anon transactions.')
+        sxAddr2_1 = nodes[2].getnewstealthaddress('lblsx01')
+
+        ephem = nodes[0].derivefromstealthaddress(sxAddr2_1)
+        blind = bytes(random.getrandbits(8) for i in range(32)).hex()
+        outputs = [{
+            'address': sxAddr2_1,
+            'type': 'anon',
+            'amount': 10.0,
+            'blindingfactor': blind,
+            'ephemeral_key': ephem['ephemeral_privatekey'],
+        },]
+        tx = nodes[0].createrawparttransaction([], outputs)
+
+        options = {'sign_tx': True}
+        tx_signed = nodes[0].fundrawtransactionfrom('anon', tx['hex'], {}, tx['amounts'], options)
+        txid = nodes[0].sendrawtransaction(tx_signed['hex'])
+        self.stakeBlocks(1)
+
+        sx_privkey = nodes[2].dumpprivkey(sxAddr2_1)
+        assert('scan_secret' in sx_privkey)
+        assert('spend_secret' in sx_privkey)
+
+        sx_pubkey = nodes[2].getaddressinfo(sxAddr2_1)
+        assert('scan_public_key' in sx_pubkey)
+        assert('spend_public_key' in sx_pubkey)
+
+        stealth_key = nodes[2].derivefromstealthaddress(sxAddr2_1, ephem['ephemeral_pubkey'])
+
+        prevtx = nodes[2].decoderawtransaction(tx_signed['hex'])
+        found_output = -1
+        for vout in prevtx['vout']:
+            if vout['type'] != 'anon':
+                continue
+            try:
+                ro = nodes[2].verifycommitment(vout['valueCommitment'], blind, 10.0)
+                assert(ro['result'] is True)
+
+                ro = nodes[2].rewindrangeproof(vout['rangeproof'], vout['valueCommitment'], stealth_key['privatekey'], ephem['ephemeral_pubkey'])
+                assert(ro['amount'] == 10.0)
+                found_output = vout['n']
+            except Exception as e:
+                print(e)
+        assert(found_output > -1)
+
+        key_bytes = base58_to_byte(stealth_key['privatekey'])[0][0:32]
+
+        epk = ECPubKey()
+        epk.set(bytes.fromhex(ephem['ephemeral_pubkey']))
+
+        self.log.info('Test rewindrangeproof with final nonce')
+        # ECDH
+        P = SECP256K1.affine(epk.p)
+        M = SECP256K1.affine(SECP256K1.mul([((P[0], P[1], P[2]), int.from_bytes(key_bytes, 'big'))]))
+        eM = bytes([0x02 + (M[1] & 1)]) + M[0].to_bytes(32, 'big')
+        hM = sha256(eM)
+        hhM = sha256(hM)
+
+        # Reverse, SetHex is LE
+        hhM = hhM[::-1]
+
+        vout = prevtx['vout'][found_output]
+        ro = nodes[2].rewindrangeproof(vout['rangeproof'], vout['valueCommitment'], hhM.hex())
+        assert(ro['amount'] == 10.0)
+
+        self.log.info('Test signing for unowned anon input')  # Input not in wallet, must be in chain for pubkey index
+        prev_tx_signed = nodes[0].decoderawtransaction(tx_signed['hex'])
+        prev_commitment = prev_tx_signed['vout'][found_output]['valueCommitment']
+        prev_public_key = prev_tx_signed['vout'][found_output]['pubkey']
+        assert(prev_public_key == stealth_key['pubkey'])
+
+        outputs = [{
+            'address': sxAddr2_1,
+            'type': 'anon',
+            'amount': 10.0,
+        },]
+        tx = nodes[0].createrawparttransaction([], outputs)
+
+        options = {
+            'subtractFeeFromOutputs': [0,],
+            'inputs': [{
+                'tx': txid,
+                'n': found_output,
+                'type': 'anon',
+                'value': 10.0,
+                'commitment': prev_commitment,
+                'pubkey': prev_public_key,
+                'privkey': stealth_key['privatekey'],
+                'blind': blind,
+            }],
+            'feeRate': 0.001,
+            'sign_tx': True,
+        }
+        input_amounts = {
+        }
+
+        tx_signed = nodes[0].fundrawtransactionfrom('anon', tx['hex'], input_amounts, tx['amounts'], options)
+        num_tries = 20
+        for i in range(num_tries):
+            try:
+                txid = nodes[0].sendrawtransaction(tx_signed['hex'])
+                break
+            except Exception:
+                self.stakeBlocks(1)
+            if i >= num_tries - 1:
+                raise ValueError('Can\'t submit txn')
+        assert(self.wait_for_mempool(nodes[2], txid))
+
+        self.stakeBlocks(1)
+        w2b = nodes[2].getbalances()
+        assert(w2b['mine']['anon_immature'] < 10 and w2b['mine']['anon_immature'] > 9)
 
 
 if __name__ == '__main__':

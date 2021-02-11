@@ -29,3 +29,16 @@ void CCoinControl::SetNull()
     m_extrafee = 0;
     m_extra_data0.clear();
 }
+
+bool CCoinControl::SetKeyFromInputData(const CKeyID &idk, CKey &key) const
+{
+    for (const auto &im : m_inputData) {
+        if (idk == im.second.pubkey.GetID()) {
+            key = im.second.privkey;
+            if (key.IsValid()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}

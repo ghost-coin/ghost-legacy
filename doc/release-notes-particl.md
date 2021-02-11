@@ -3,6 +3,14 @@
 ==============
 
 - Wallet tracks anon watchonly transactions.
+- dumpprivkey: Dumps keys for stealth addresses.
+- getaddressinfo: Shows stealth address public keys.
+- fundrawtransactionfrom:
+    - Can add anon inputs.
+    - Can sign txns.
+    - Accepts data for candidate inputs
+        - Anon inputs must exist in the chain as the pubkey index is required by the ringsig.
+- rewindrangeproof: Accepts nonce directly
 
 
 0.21.0.1

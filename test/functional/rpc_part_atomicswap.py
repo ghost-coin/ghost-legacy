@@ -170,11 +170,11 @@ def createRefundTx(node, rawtx, script, lockTime, addrRefundFrom, addrRefundTo):
 
     scripthex = binascii.hexlify(script).decode("utf-8")
     prevtx = {
-        'txid':txnid,
-        'vout':n,
-        'scriptPubKey':scriptPubKey,
-        'redeemScript':scripthex,
-        'amount':amountIn
+        'txid': txnid,
+        'vout': n,
+        'scriptPubKey': scriptPubKey,
+        'redeemScript': scripthex,
+        'amount': amountIn
     }
     refundSig = node.createsignaturewithwallet(rawtxrefund, prevtx, addrRefundFrom)
 
@@ -199,7 +199,7 @@ def createClaimTx(node, rawtx, script, secret, addrClaimFrom, addrClaimTo):
     n = getOutputByAddr(ro, p2sh)
     amountIn = ro['vout'][n]['value']
     scriptPubKey = ro['vout'][n]['scriptPubKey']['hex']
-    inputs = [ {'txid': txnid, 'vout': n}, ]
+    inputs = [{'txid': txnid, 'vout': n},]
     rawtxClaim = node.createrawtransaction(inputs, {addrClaimTo:amountIn})
 
     redeemWeight = estimateRedeemSerializeSize(script, rawtxClaim)
@@ -214,11 +214,11 @@ def createClaimTx(node, rawtx, script, secret, addrClaimFrom, addrClaimTo):
 
     scripthex = binascii.hexlify(script).decode("utf-8")
     prevtx = {
-        'txid':txnid,
-        'vout':n,
-        'scriptPubKey':scriptPubKey,
-        'redeemScript':scripthex,
-        'amount':amountIn
+        'txid': txnid,
+        'vout': n,
+        'scriptPubKey': scriptPubKey,
+        'redeemScript': scripthex,
+        'amount': amountIn
     }
     claimSig = node.createsignaturewithwallet(rawtxClaim, prevtx, addrClaimFrom)
 
@@ -250,12 +250,12 @@ def createRefundTxCT(node, rawtx, output_amounts, script, lockTime, privKeySign,
     amountIn = output_amounts[str(n)]['value']
     blindIn = output_amounts[str(n)]['blind']
 
-    inputs = [{'txid':txnid, 'vout':n}]
+    inputs = [{'txid': txnid, 'vout': n}]
 
-    outputs = [ {
-        'address':addrRefundTo,
-        'type':'blind',
-        'amount':amountIn,
+    outputs = [{
+        'address': addrRefundTo,
+        'type': 'blind',
+        'amount': amountIn,
     }, ]
     ro = node.createrawparttransaction(inputs, outputs, lockTime)
     rawtxrefund = ro['hex']
@@ -264,11 +264,11 @@ def createRefundTxCT(node, rawtx, output_amounts, script, lockTime, privKeySign,
     tempBytes = bytearray(witnessSize) # Needed for fee estimation
 
     # Set fee and commitment sum
-    options = {'subtractFeeFromOutputs':[0,]}
+    options = {'subtractFeeFromOutputs': [0,]}
     input_amounts = {'0': {
-            'value':amountIn,
-            'blind':blindIn,
-            'witness':binascii.hexlify(tempBytes).decode("utf-8")
+            'value': amountIn,
+            'blind': blindIn,
+            'witness': binascii.hexlify(tempBytes).decode("utf-8")
         }
     }
     ro = node.fundrawtransactionfrom('blind', ro['hex'], input_amounts, ro['amounts'], options)
@@ -276,11 +276,11 @@ def createRefundTxCT(node, rawtx, output_amounts, script, lockTime, privKeySign,
 
     scripthex = binascii.hexlify(script).decode("utf-8")
     prevtx = {
-        'txid':txnid,
-        'vout':n,
-        'scriptPubKey':scriptPubKey,
-        'redeemScript':scripthex,
-        'amount_commitment':valueCommitment
+        'txid': txnid,
+        'vout': n,
+        'scriptPubKey': scriptPubKey,
+        'redeemScript': scripthex,
+        'amount_commitment': valueCommitment
     }
     refundSig = node.createsignaturewithkey(rawtxrefund, prevtx, privKeySign)
 
@@ -311,11 +311,11 @@ def createClaimTxCT(node, rawtx, output_amounts, script, secret, privKeySign, pu
     amountIn = output_amounts[str(n)]['value']
     blindIn = output_amounts[str(n)]['blind']
 
-    inputs = [ {'txid': txnid, 'vout': n}, ]
-    outputs = [ {
-        'address':addrClaimTo,
-        'type':'blind',
-        'amount':amountIn,
+    inputs = [{'txid': txnid, 'vout': n},]
+    outputs = [{
+        'address': addrClaimTo,
+        'type': 'blind',
+        'amount': amountIn,
     }, ]
     ro = node.createrawparttransaction(inputs, outputs)
     rawtxClaim = ro['hex']
@@ -327,9 +327,9 @@ def createClaimTxCT(node, rawtx, output_amounts, script, secret, privKeySign, pu
     # Set fee and commitment sum
     options = {'subtractFeeFromOutputs':[0,]}
     input_amounts = {'0': {
-            'value':amountIn,
-            'blind':blindIn,
-            'witness':binascii.hexlify(tempBytes).decode("utf-8")
+            'value': amountIn,
+            'blind': blindIn,
+            'witness': binascii.hexlify(tempBytes).decode("utf-8")
         }
     }
     ro = node.fundrawtransactionfrom('blind', ro['hex'], input_amounts, ro['amounts'], options)
@@ -337,11 +337,11 @@ def createClaimTxCT(node, rawtx, output_amounts, script, secret, privKeySign, pu
 
     scripthex = binascii.hexlify(script).decode("utf-8")
     prevtx = {
-        'txid':txnid,
-        'vout':n,
-        'scriptPubKey':scriptPubKey,
-        'redeemScript':scripthex,
-        'amount_commitment':valueCommitment
+        'txid': txnid,
+        'vout': n,
+        'scriptPubKey': scriptPubKey,
+        'redeemScript': scripthex,
+        'amount_commitment': valueCommitment
     }
     claimSig = node.createsignaturewithkey(rawtxClaim, prevtx, privKeySign)
 
@@ -528,14 +528,14 @@ class AtomicSwapTest(ParticlTestFramework):
         addrA_sx = nodes[0].getnewstealthaddress() # party A
         addrB_sx = nodes[1].getnewstealthaddress() # party B
 
-        outputs = [ {
-            'address':addrA_sx,
-            'type':'blind',
-            'amount':100,
+        outputs = [{
+            'address': addrA_sx,
+            'type': 'blind',
+            'amount': 100,
         }, {
-            'address':addrB_sx,
-            'type':'blind',
-            'amount':100,
+            'address': addrB_sx,
+            'type': 'blind',
+            'amount': 100,
         }, ]
         ro = nodes[0].createrawparttransaction([], outputs)
 
@@ -597,11 +597,11 @@ class AtomicSwapTest(ParticlTestFramework):
         scriptInitiate = CreateAtomicSwapScript(payTo=pkh1_0, refundTo=pkh0_0, lockTime=lockTime, secretHash=secretAHash)
         p2sh_initiate = script_to_p2sh_part(scriptInitiate)
 
-        outputs = [ {
-            'address':p2sh_initiate,
-            'pubkey':destB['pubkey'],
-            'type':'blind',
-            'amount':amountA,
+        outputs = [{
+            'address': p2sh_initiate,
+            'pubkey': destB['pubkey'],
+            'type': 'blind',
+            'amount': amountA,
         }, ]
         ro = nodes[0].createrawparttransaction([], outputs)
         ro = nodes[0].fundrawtransactionfrom('blind', ro['hex'], {}, ro['amounts'])
@@ -644,11 +644,11 @@ class AtomicSwapTest(ParticlTestFramework):
         scriptParticipate = CreateAtomicSwapScript(payTo=pkh0_0, refundTo=pkh1_0, lockTime=lockTimeP, secretHash=secretAHash)
         p2sh_participate = script_to_p2sh_part(scriptParticipate)
 
-        outputs = [ {
-            'address':p2sh_participate,
-            'pubkey':destA['pubkey'],
-            'type':'blind',
-            'amount':amountB,
+        outputs = [{
+            'address': p2sh_participate,
+            'pubkey': destA['pubkey'],
+            'type': 'blind',
+            'amount': amountB,
         }, ]
 
         ro = nodes[1].createrawparttransaction([], outputs)
@@ -696,11 +696,11 @@ class AtomicSwapTest(ParticlTestFramework):
         scriptInitiate = CreateAtomicSwapScript(payTo=pkh1_0, refundTo=pkh0_0, lockTime=lockTime, secretHash=secretAHash)
         p2sh_initiate = script_to_p2sh_part(scriptInitiate)
 
-        outputs = [ {
-            'address':p2sh_initiate,
-            'pubkey':destB['pubkey'],
-            'type':'blind',
-            'amount':amountA,
+        outputs = [{
+            'address': p2sh_initiate,
+            'pubkey': destB['pubkey'],
+            'type': 'blind',
+            'amount': amountA,
         }, ]
         ro = nodes[0].createrawparttransaction([], outputs)
         ro = nodes[0].fundrawtransactionfrom('blind', ro['hex'], {}, ro['amounts'])
@@ -749,15 +749,15 @@ class AtomicSwapTest(ParticlTestFramework):
         addrA_sx = nodes[0].getnewstealthaddress()
         amount = getRandomAmount()
 
-        outputs = [ {
-            'type':'data',
+        outputs = [{
+            'type': 'data',
             'data_ct_fee': amount,
             'amount': 0
-        },{
-            'address':addrA_sx,
-            'type':'blind',
+        }, {
+            'address': addrA_sx,
+            'type': 'blind',
             'amount': amount,
-        }, ]
+        },]
         ro = nodes[0].createrawparttransaction([], outputs)
 
         ro = nodes[1].decoderawtransaction(ro['hex'])
@@ -772,8 +772,8 @@ class AtomicSwapTest(ParticlTestFramework):
         amount = getRandomAmount()
 
         outputs = [{
-            'address':addrA_sx,
-            'type':'blind',
+            'address': addrA_sx,
+            'type': 'blind',
             'amount': amount,
             'rangeproof_params': {
                 'ct_exponent': 2,

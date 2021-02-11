@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -141,8 +141,8 @@ public:
 
     isminetype HaveStealthAddress(const CStealthAddress &sxAddr) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     isminetype IsMine(const CStealthAddress &sxAddr, const CExtKeyAccount *&pa, const CEKAStealthKey *&pask) const EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    bool GetStealthAddressScanKey(CStealthAddress &sxAddr) const;
-    bool GetStealthAddressSpendKey(CStealthAddress &sxAddr, CKey &key) const;
+    bool GetStealthAddressScanKey(CStealthAddress &sxAddr) const;  // Sets scan_secret in sxAddr
+    bool GetStealthAddressSpendKey(const CStealthAddress &sxAddr, CKey &key) const;
 
     bool ImportStealthAddress(const CStealthAddress &sxAddr, const CKey &skSpend);
 
@@ -239,7 +239,7 @@ public:
 
 
     int PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t &nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
-        const std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &vCoins, std::vector<uint8_t> &vInputBlinds, std::string &sError);
+        const std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &vCoins, std::vector<uint8_t> &vInputBlinds, const CCoinControl *coinControl, std::string &sError);
     int PickHidingOutputs(std::vector<std::vector<int64_t> > &vMI, size_t nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
         std::string &sError);
 
@@ -461,6 +461,7 @@ public:
     bool GetPrevout(const COutPoint &prevout, CTxOutBaseRef &txout) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     size_t CountColdstakeOutputs();
+    void ClearMapTempRecords();
 
     /* Return a script for a simple address type (normal/extended) */
     bool GetScriptForAddress(CScript &script, const CBitcoinAddress &addr, bool fUpdate = false, std::vector<uint8_t> *vData = NULL, bool allow_stakeonly = false);

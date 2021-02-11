@@ -754,6 +754,26 @@ RPCHelpMan dumpprivkey()
             eKey58.SetKeyV(sek.kp);
             return eKey58.ToString();
         }
+
+        if (dest.type() == typeid(CStealthAddress)) {
+            CHDWallet *phdw = GetParticlWallet(pwallet);
+            CKey kSpend;
+            CStealthAddress sx = boost::get<CStealthAddress>(dest);
+            bool have_scan = phdw->GetStealthAddressScanKey(sx);
+            bool have_spend = phdw->GetStealthAddressSpendKey(sx, kSpend);
+            if (!have_scan && !have_spend) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "Keys for address " + strAddress + " are not known");
+            }
+
+            UniValue result(UniValue::VOBJ);
+            if (sx.scan_secret.IsValid()) {
+                result.pushKV("scan_secret", EncodeSecret(sx.scan_secret));
+            }
+            if (kSpend.IsValid()) {
+                result.pushKV("spend_secret", EncodeSecret(kSpend));
+            }
+            return result;
+        }
     }
 
     auto keyid = GetKeyForDestination(spk_man, dest);

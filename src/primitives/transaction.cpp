@@ -124,7 +124,7 @@ void CTxOutBase::SetValue(int64_t value)
     // convenience function intended for use with CTxOutStandard only
     assert(nVersion == OUTPUT_STANDARD);
     ((CTxOutStandard*) this)->nValue = value;
-};
+}
 
 CAmount CTxOutBase::GetValue() const
 {
@@ -139,16 +139,15 @@ CAmount CTxOutBase::GetValue() const
         default:
             assert(false);
 
-    };
+    }
     */
     assert(nVersion == OUTPUT_STANDARD);
     return ((CTxOutStandard*) this)->nValue;
-};
+}
 
 std::string CTxOutBase::ToString() const
 {
-    switch (nVersion)
-    {
+    switch (nVersion) {
         case OUTPUT_STANDARD:
             {
             CTxOutStandard *so = (CTxOutStandard*)this;
@@ -171,7 +170,7 @@ std::string CTxOutBase::ToString() const
             }
         default:
             break;
-    };
+    }
     return strprintf("CTxOutBase unknown version %d", nVersion);
 }
 
@@ -179,7 +178,7 @@ CTxOutStandard::CTxOutStandard(const CAmount& nValueIn, CScript scriptPubKeyIn) 
 {
     nValue = nValueIn;
     scriptPubKey = scriptPubKeyIn;
-};
+}
 
 void DeepCopy(CTxOutBaseRef &to, const CTxOutBaseRef &from)
 {

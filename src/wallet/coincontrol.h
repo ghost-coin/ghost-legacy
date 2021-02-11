@@ -11,6 +11,8 @@
 #include <policy/fees.h>
 #include <primitives/transaction.h>
 #include <script/standard.h>
+#include <key.h>
+#include <pubkey.h>
 
 
 class CCoinControlEntry
@@ -30,6 +32,10 @@ public:
     CAmount nValue;
     uint256 blind;
     CScriptWitness scriptWitness;
+    secp256k1_pedersen_commitment commitment;
+    CCmpPubKey pubkey;
+    CKey privkey;
+    OutputTypes nType{OUTPUT_STANDARD};
 };
 
 const int DEFAULT_MIN_DEPTH = 0;
@@ -129,6 +135,8 @@ public:
     {
         return setSelected.size();
     }
+
+    bool SetKeyFromInputData(const CKeyID &idk, CKey &key) const;
 
 //private:
     std::set<COutPoint> setSelected;
