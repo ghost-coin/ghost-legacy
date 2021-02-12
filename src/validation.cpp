@@ -18,6 +18,8 @@
 #include <consensus/validation.h>
 #include <cuckoocache.h>
 #include <flatfile.h>
+#include <gvr/monitor.h>
+#include <gvr/payee.h>
 #include <hash.h>
 #include <index/txindex.h>
 #include <policy/fees.h>
@@ -3047,6 +3049,12 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     assert(pindex->phashBlock);
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash(), pindex->nHeight);
+
+    // take over once index done
+    if (index_ready) {
+        blockWorker(pindex, chainparams.GetConsensus());
+        printCandidates();
+    }
 
     int64_t nTime5 = GetTimeMicros(); nTimeIndex += nTime5 - nTime4;
     LogPrint(BCLog::BENCH, "    - Index writing: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime5 - nTime4), nTimeIndex * MICRO, nTimeIndex * MILLI / nBlocksTotal);

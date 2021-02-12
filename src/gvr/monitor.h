@@ -12,6 +12,8 @@
 #include <validation.h>
 
 void monitorThread();
+extern bool index_ready;
+void blockWorker(CBlockIndex* pindex, const Consensus::Params& consensusParams);
 
 #endif // GVR_MONITOR_H
 
