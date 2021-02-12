@@ -186,6 +186,7 @@ class AnonTest(ParticlTestFramework):
             if txin['txid'] == use_input['txid'] and txin['vout'] == use_input['vout']:
                 raise ValueError('Output should be spent')
 
+        assert(self.wait_for_mempool(nodes[1], txid))
         raw_tx = w1_2.getrawtransaction(txid, True)
         possible_inputs = raw_tx['vin'][0]['ring_row_0'].split(', ')
         possible_inputs_txids = []

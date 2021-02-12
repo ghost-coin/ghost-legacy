@@ -62,6 +62,9 @@ int CStealthAddress::FromRaw(const uint8_t *p, size_t nSize)
     memcpy(&scan_pubkey[0], p, EC_COMPRESSED_SIZE);
     p += EC_COMPRESSED_SIZE;
     uint8_t spend_pubkeys = *p++;
+    if (spend_pubkeys < 1) {
+        return 1;
+    }
 
     if (nSize < MIN_STEALTH_RAW_SIZE + EC_COMPRESSED_SIZE * (spend_pubkeys-1)) {
         return 1;
@@ -480,4 +483,3 @@ void ECC_Stop_Stealth()
         secp256k1_context_destroy(ctx);
     }
 };
-

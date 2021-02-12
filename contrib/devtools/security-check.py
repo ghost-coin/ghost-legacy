@@ -195,6 +195,8 @@ def check_ELF_separate_code(executable):
 def is_PE_dll_32bit(executable) -> bool:
     stdout = run_command([OBJDUMP_CMD, '-f',  executable])
     for line in stdout.splitlines():
+        if line.startswith('architecture: i386:x86-64'):
+            return False
         if line.startswith('architecture: i386'):
             return True
     return False

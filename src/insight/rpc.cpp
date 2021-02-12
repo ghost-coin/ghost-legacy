@@ -22,6 +22,9 @@
 
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
+// Avoid initialization-order-fiasco
+#define _UNIX_EPOCH_TIME "UNIX epoch time"
+
 static bool GetIndexKey(const CTxDestination &dest, uint256 &hashBytes, int &type) {
     if (dest.type() == typeid(PKHash)) {
         const PKHash &id = boost::get<PKHash>(dest);
@@ -992,7 +995,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
                     RPCResult::Type::OBJ, "", "", {
                         {RPCResult::Type::STR_HEX, "blockhash", "The hash of the block"},
                         {RPCResult::Type::STR_HEX, "coinstake", "The hash of the coinstake transaction"},
-                        {RPCResult::Type::NUM_TIME, "blocktime", "The block time expressed in " + UNIX_EPOCH_TIME},
+                        {RPCResult::Type::NUM_TIME, "blocktime", "The block time expressed in " _UNIX_EPOCH_TIME},
                         {RPCResult::Type::STR_AMOUNT, "stakereward", "The stake reward portion, newly minted coin"},
                         {RPCResult::Type::STR_AMOUNT, "blockreward", "The block reward, value paid to staker, including fees"},
                         {RPCResult::Type::STR_AMOUNT, "foundationreward", "The accumulated foundation reward payout, if any"},

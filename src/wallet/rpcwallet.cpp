@@ -532,7 +532,7 @@ UniValue SendMoney(CWallet* const pwallet, const CCoinControl &coin_control, std
     EnsureWalletIsUnlocked(pwallet);
 
     // Shuffle recipient list
-    std::shuffle(recipients.begin(), recipients.end(), FastRandomContext());
+    Shuffle(recipients.begin(), recipients.end(), FastRandomContext());
 
     // Send
     CAmount nFeeRequired = 0;

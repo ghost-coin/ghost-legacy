@@ -4787,6 +4787,7 @@ int CHDWallet::PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t 
                 const uint256 &txhash = coin.first->first;
                 COutPoint op(txhash, coin.second);
                 const CCmpPubKey *pk = nullptr;
+                CStoredTransaction stx;
 
                 std::map<COutPoint, CInputData>::const_iterator it = coinControl->m_inputData.find(op);
                 if (it != coinControl->m_inputData.end()) {
@@ -4800,7 +4801,6 @@ int CHDWallet::PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t 
                     }
                     memcpy(&vInputBlinds[k * 32], it->second.blind.data(), 32);
                 } else {
-                    CStoredTransaction stx;
                     if (!wdb.ReadStoredTx(txhash, stx)) {
                         return wserrorN(1, sError, __func__, "ReadStoredTx failed for %s", txhash.ToString().c_str());
                     }
@@ -11355,7 +11355,7 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
     bool res = nTargetValue <= nValueFromPresetInputs;
     if (!res) {
         if (random_selection) {
-            std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
+            Shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
 
             CAmount target_val = nTargetValue - nValueFromPresetInputs;
             std::vector<CAmount> coin_values;
@@ -11418,7 +11418,7 @@ bool CHDWallet::SelectBlindedCoins(const std::vector<COutputR> &vAvailableCoins,
     // add preset inputs to the total value selected
     nValueRet += nValueFromPresetInputs;
 
-    std::shuffle(setCoinsRet.begin(), setCoinsRet.end(), FastRandomContext());
+    Shuffle(setCoinsRet.begin(), setCoinsRet.end(), FastRandomContext());
 
     return res;
 };
@@ -11509,7 +11509,7 @@ void CHDWallet::AvailableAnonCoins(std::vector<COutputR> &vCoins, bool fOnlySafe
         }
     }
 
-    std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
+    Shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
     return;
 };
 
@@ -11685,7 +11685,7 @@ bool CHDWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligib
     std::vector<std::pair<CAmount, std::pair<MapRecords_t::const_iterator,unsigned int> > > vValue;
     CAmount nTotalLower = 0;
 
-    std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
+    Shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
 
     for (const auto &r : vCoins) {
         //if (!r.fSpendable)
@@ -12514,14 +12514,14 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
         }
     }
 
-    std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
+    Shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
     return;
 };
 
 bool CHDWallet::SelectCoinsForStaking(int64_t nTargetValue, int64_t nTime, int nHeight, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const
 {
     if (m_have_cached_stakeable_coins) {
-        std::shuffle(m_cached_stakeable_coins.begin(), m_cached_stakeable_coins.end(), FastRandomContext());
+        Shuffle(m_cached_stakeable_coins.begin(), m_cached_stakeable_coins.end(), FastRandomContext());
     } else {
         m_cached_stakeable_coins.clear();
         AvailableCoinsForStaking(m_cached_stakeable_coins, nTime, nHeight);
