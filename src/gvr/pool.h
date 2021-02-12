@@ -18,5 +18,6 @@ class payee;
 bool gvrPaymentsActive(int height);
 int gvrPaymentRatioSplit(int height);
 void getGVRPayee(payee& currentPayee);
+bool isGVRPayeeInPool(payee& testPayee);
 
 #endif // GVR_PAYEE_H

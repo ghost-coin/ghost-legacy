@@ -25,3 +25,25 @@ void getGVRPayee(payee& currentPayee)
          break;
     }
 }
+
+static bool arePayeeEqual(payee& payee1, payee& payee2)
+{
+    bool result = (payee1.GetOutpoint() == payee2.GetOutpoint() &&
+                   payee1.GetAmount() == payee2.GetAmount() &&
+                   payee1.GetHeight() == payee2.GetHeight());
+    return result;
+}
+
+bool isGVRPayeeInPool(payee& testPayee)
+{
+    bool found = false;
+    int gvrSkewCount = 0;
+    int gvrSkewTolerance = 3;
+    for (auto candidate : verified) {
+         if (++gvrSkewCount > gvrSkewTolerance)
+             break;
+         if (arePayeeEqual(candidate, testPayee))
+             found = true;
+    }
+    return found;
+}
