@@ -10,7 +10,12 @@ class payee;
 
 bool gvrPaymentsActive(int height)
 {
-    return false;
+    return (Params().NetworkIDString() == "testnet" && height > 500);
+}
+
+bool gvrPaymentsEnforced(int height)
+{
+    return (Params().NetworkIDString() == "testnet" && height > 750);
 }
 
 int gvrPaymentRatioSplit(int height)

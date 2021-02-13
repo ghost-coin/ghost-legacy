@@ -3052,7 +3052,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
 
     // take over once index done
     if (index_ready) {
-        blockWorker(pindex, chainparams.GetConsensus());
+        blockWorker(pindex, chainparams.GetConsensus(), true);
         printCandidates();
     }
 

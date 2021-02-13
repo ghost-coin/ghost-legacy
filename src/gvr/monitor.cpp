@@ -4,18 +4,34 @@
 
 #include <gvr/monitor.h>
 #include <gvr/payee.h>
+#include <gvr/pool.h>
 
 //! internal state
 bool index_ready{false};
 int monitor_height{0};
 int current_height{0};
 
-void blockWorker(CBlockIndex* pindex, const Consensus::Params& consensusParams)
+void consensusWorker(CBlockIndex* pindex, const Consensus::Params& consensusParams)
+{
+    int height = pindex->nHeight;
+
+    if (gvrPaymentsActive(height)) {
+        LogPrintf("%s - gvrPaymentsActive @ height %d\n", __func__, height);
+    }
+
+    if (gvrPaymentsEnforced(height)) {
+        LogPrintf("%s - gvrPaymentsActive @ height %d\n", __func__, height);
+    }
+}
+
+void blockWorker(CBlockIndex* pindex, const Consensus::Params& consensusParams, bool verify)
 {
     CBlock currentBlock;
     bool valid = ReadBlockFromDisk(currentBlock, pindex, consensusParams);
     if (!valid)
         return;
+    if (verify)
+        consensusWorker(pindex, consensusParams);
     for (const auto& tx : currentBlock.vtx) {
         int n = 0;
         for (const auto& txout : tx->vpout) {

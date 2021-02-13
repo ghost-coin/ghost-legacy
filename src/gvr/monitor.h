@@ -13,7 +13,7 @@
 
 void monitorThread();
 extern bool index_ready;
-void blockWorker(CBlockIndex* pindex, const Consensus::Params& consensusParams);
+void blockWorker(CBlockIndex* pindex, const Consensus::Params& consensusParams, bool verify = false);
 
 #endif // GVR_MONITOR_H
 
