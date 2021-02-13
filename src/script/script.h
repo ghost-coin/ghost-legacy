@@ -569,6 +569,8 @@ public:
     /** Check if the script contains valid OP_CODES */
     bool HasValidOps() const;
 
+    std::string ToString() const;
+
     /**
      * Returns whether the script is guaranteed to fail at execution,
      * regardless of the initial stack. This allows outputs to be pruned

@@ -327,6 +327,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             num_blocks_of_peers = GetNumBlocksOfPeers();
             num_nodes = GetNumPeers();
         }
+#if 0
         if(!fShouldBypasspeercheck){
             if (fTryToSync) {
                 fTryToSync = false;
@@ -353,7 +354,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                 continue;
             }
         }
-
+#endif
 
         if (nMinStakeInterval > 0 && nTimeLastStake + (int64_t)nMinStakeInterval > GetTime()) {
             LogPrint(BCLog::POS, "%s: Rate limited to 1 / %d seconds.\n", __func__, nMinStakeInterval);

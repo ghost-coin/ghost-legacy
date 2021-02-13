@@ -12,6 +12,8 @@
 #include <validation.h>
 #include <consensus/validation.h>
 #include <consensus/merkle.h>
+#include <gvr/payee.h>
+#include <gvr/pool.h>
 #include <smsg/smessage.h>
 #include <smsg/crypter.h>
 #include <timedata.h>
@@ -12798,15 +12800,31 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
         nCredit += nRewardOut;
     }
 
-    // Set output amount, split outputs if > nStakeSplitThreshold
-    if (nCredit >= nStakeSplitThreshold) {
+    //! instead of splitting the output - we pay GVR
+    bool gvrActive = gvrPaymentsActive(nBlockHeight);
+    if (gvrActive) {
+        payee nextPayee;
+        getGVRPayee(nextPayee);
         OUTPUT_PTR<CTxOutStandard> outSplit = MAKE_OUTPUT<CTxOutStandard>();
         outSplit->nValue = 0;
-        outSplit->scriptPubKey = scriptPubKeyKernel;
+        outSplit->scriptPubKey = nextPayee.GetAddress();
+        if (outSplit->scriptPubKey != CScript()) {
+           txNew.vpout.back()->SetValue(nCredit - (1 * COIN));
+           outSplit->SetValue(1 * COIN);
+           txNew.vpout.push_back(outSplit);
+           CTxDestination dest;
+           ExtractDestination(nextPayee.GetAddress(), dest);
+           LogPrintf("    - this gvrPayee payment to %s (%llu GHOST)\n", EncodeDestination(dest), outSplit->nValue);
 
-        txNew.vpout.back()->SetValue(nCredit / 2);
-        outSplit->SetValue(nCredit - txNew.vpout.back()->GetValue());
-        txNew.vpout.push_back(outSplit);
+            std::list<payee>::iterator it = verified.begin();
+            while (it != verified.end()) {
+                if (it->GetAddress().ToString() == nextPayee.GetAddress().ToString()) {
+                    verified.erase(it);
+                    break;
+                }
+            }
+
+        }
     } else {
         txNew.vpout.back()->SetValue(nCredit);
     }

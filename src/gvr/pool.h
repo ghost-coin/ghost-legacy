@@ -19,6 +19,7 @@ bool gvrPaymentsActive(int height);
 bool gvrPaymentsEnforced(int height);
 int gvrPaymentRatioSplit(int height);
 void getGVRPayee(payee& currentPayee);
-bool isGVRPayeeInPool(payee& testPayee);
+bool arePayeeEqual(payee& payee1, const CScript& payee2);
+bool isGVRPayeeInPool(const CScript& testPayee);
 
 #endif // GVR_PAYEE_H

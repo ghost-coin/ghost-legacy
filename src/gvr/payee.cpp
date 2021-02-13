@@ -70,6 +70,6 @@ void printCandidates()
                   candidate.GetAmount() / COIN,
                   EncodeDestination(dest),
                   candidate.GetHeight());
-        if (n == 5) break;
+        if (n == 15) break;
     }
 }

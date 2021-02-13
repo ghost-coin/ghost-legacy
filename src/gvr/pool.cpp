@@ -10,12 +10,12 @@ class payee;
 
 bool gvrPaymentsActive(int height)
 {
-    return (Params().NetworkIDString() == CBaseChainParams::TESTNET && height > 25);
+    return height > 25;
 }
 
 bool gvrPaymentsEnforced(int height)
 {
-    return (Params().NetworkIDString() == CBaseChainParams::TESTNET && height > 250);
+    return (Params().NetworkIDString() == CBaseChainParams::TESTNET && height > 85);
 }
 
 int gvrPaymentRatioSplit(int height)
@@ -31,15 +31,13 @@ void getGVRPayee(payee& currentPayee)
     }
 }
 
-static bool arePayeeEqual(payee& payee1, payee& payee2)
+bool arePayeeEqual(payee& payee1, const CScript& payee2)
 {
-    bool result = (payee1.GetOutpoint() == payee2.GetOutpoint() &&
-                   payee1.GetAmount() == payee2.GetAmount() &&
-                   payee1.GetHeight() == payee2.GetHeight());
+    bool result = (payee1.GetAddress().ToString() == payee2.ToString());
     return result;
 }
 
-bool isGVRPayeeInPool(payee& testPayee)
+bool isGVRPayeeInPool(const CScript& testPayee)
 {
     bool found = false;
     int gvrSkewCount = 0;
