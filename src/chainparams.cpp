@@ -197,29 +197,14 @@ const std::pair<const char*, CAmount> genesisOutputs[] = {
 const size_t nGenesisOutputs = sizeof(genesisOutputs) / sizeof(genesisOutputs[0]);
 
 const std::pair<const char*, CAmount> genesisOutputsTestnet[] = {
-    std::make_pair("8ae2036c06028e20ac32e01bd59ed9e09291c6c5", 678670.75 * COIN),//XQ1arJSZbaWqKJFJkuQtuHMbcith7ZMPkS
-    std::make_pair("c7c52417d63147ddd43f9449b19c0a286dad8740", 678670.75 * COIN),//XVZXUv2r3Bwc3TuePGPm19ZoYctXrtYBD4
-    std::make_pair("0affbdd2a3f88716989388397bdce0923e482a23", 678670.75 * COIN),//XCMPyHzZwGoe7YY7xDq6DnQ9uiX5G4fqW9
-    std::make_pair("1ecc333c09a3eaccd0dcd1d57ff6109502b3aa62", 678670.75 * COIN),//XEA5jySRAx4DMcJBttQ19UEbxzpJg7WsZE
-    std::make_pair("1c83b0ea73814a4c06f39680151afb5414f9c2db", 678670.75 * COIN),//XDx1XaAUGLXDTBbXTvc712Jm3S54SrT5qk
-    std::make_pair("501c9c2b742c673b287fd001daab061a9a990287", 678670.75 * COIN),//XJeqBMM3Acqa9VCdbWeNyxUY2Usth73irW
-    std::make_pair("dc618eca61baa03fb2fc780fb02af59d428d52a1", 678670.75 * COIN),//XXSWNnEMaHT6JaAkQbMYUamKFuzXsCWo4o
-    std::make_pair("f0bb2b0e5b978a50103c19d6726ad33fbcf27172", 678670.75 * COIN),//XZJ7Eri4vRhHmFrsdNnxf73U7WtDJa4fx6
-    std::make_pair("91059d85a87905e3aeb5c07526b32d2443ccb169", 678670.75 * COIN),//XQa3Z7tcWSmSWMEdpicKG5Z51KvdPvBJQF
-    std::make_pair("ef901834835e8f51519da5741bd5511dfdff22c6", 678670.75 * COIN),//XZBvxrgAgDUJzeh9Ba7L9ezkNLCxvDEAii
-    std::make_pair("3b5d7439fcca520ad989d49038bc9dc483971060", 678670.75 * COIN),//XGm8fm7HZ58znQTg6XKWs2SSeVQmkKvUj3
-    std::make_pair("1cb113bd0778fa09bbd4927411b7dba0a673f5c9", 678670.75 * COIN),//XDxwu3nuMWddnVSSnfdqj2KisJVtBKe3v4
-    std::make_pair("12e5e9ce93d416d5ec4127f0e1d682972c8e1ddc", 678670.75 * COIN),//XD5ASFiXkRoLD6ecLtXKfmBYHbKtVwRcEz
-    std::make_pair("8848ae9c76af612cd4e41f8e073f47e432c774cb", 678670.75 * COIN),//XPmqpGnKtGHoJHM6zxW8QiXZFBULkcs2hp
-    std::make_pair("5619392124dc6a00243053742f3872fa0da270d9", 678670.75 * COIN),//XKCVBBJ5pHVfgh5nLsB3FRsPt2oqiq4jwK
-    std::make_pair("babfa38ae73de9bb26fa21cf30dc535019e1833e", 678670.75 * COIN),//XUNg78DaeQwXVJ3LmgEaxRsPwFitxbSSXa
-    std::make_pair("14ea24f913c3af99e0d8744dd1405609426277a0", 678670.75 * COIN),//XDFprczaohtkFKkF5uzHcuijWYaMcPuzHc
-    std::make_pair("79f906021c2cbbe1c5405ca8a7f44548ee79a82f", 678670.75 * COIN),//XNUAvoxJta9eTByKUa1orX5DUQ7uB77FXo
-    std::make_pair("aca61ffbf935ec4bc102f6a3765a8e80408c1ecb", 678670.75 * COIN),//XT685hiSm3RqkcKvKnvxWEBgs9vq11ot1R
-    std::make_pair("c19ec5255e21e93347d2704d8430f4f8bdae7dc3", 678670.75 * COIN),//XV11Ti2bhUCSGN5FHG2RvcP9eMXRVuqmiL
+    std::make_pair("cc45a39e11dd491c8c6d5156d87e2b78c7640c2a", 400000 * COIN), //! GcU1gsYEwqGpcrLiA8F1Jke4No7k3THDkX
+    std::make_pair("0a6844ac732c12a3402a60b046d42f16baaaf27b", 400000 * COIN), //! GJnx5jM1oF7EFSWL1JasWPAgaYcGuyWEAH
+    std::make_pair("45f90d80acc42bd5887dfd3653fd39256ad8a6e8", 400000 * COIN), //! GQDuPrLiebvPi6uoSxHeVJJmMegbdfsW9B
+    std::make_pair("9352200a4cafd7426625a7f7d1a216a2d8b31bab", 400000 * COIN), //! GXGt8UvFxEAr1L8bZibFx53UN4EPwc22QN
+    std::make_pair("5f2c9a41d297bf833c6faaaa8ee20f5f2afabecf", 400000 * COIN), //! GSXA3Pfwznp2pSZwiyzwuYZFXo96ZwvmSu
+    std::make_pair("02983145f889ca5ab9db7add77dffb678d7f4dee", 400000 * COIN), //! GJ5e62eismZmjWUQvM3D9kXnXxG4ELEshM
 };
 const size_t nGenesisOutputsTestnet = sizeof(genesisOutputsTestnet) / sizeof(genesisOutputsTestnet[0]);
-
 
 static CBlock CreateGenesisBlockRegTest(uint32_t nTime, uint32_t nNonce, uint32_t nBits)
 {
@@ -536,7 +521,7 @@ public:
         consensus.smsg_min_difficulty = 0x1effffff;
         consensus.smsg_difficulty_max_delta = 0xffff;
 
-        consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = uint256S("00000ffff0000000000000000000000000000000000000000000000000000000");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
@@ -579,11 +564,10 @@ public:
         m_assumed_blockchain_size = 1;
         m_assumed_chain_state_size = 1;
 
-        genesis = CreateGenesisBlockTestNet(1590703697, 13656, 0x1f00ffff);
+        uint32_t nTime{1613183754};
+        uint32_t nNonce{593130};
+        genesis = CreateGenesisBlockTestNet(nTime, nNonce, 0x1e0ffff0);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x00006c035c00b305d0ca5b6e1e167bb3ce71aecb5a9a8db7515458f0090ca3e8"));
-        assert(genesis.hashMerkleRoot == uint256S("0xa4ac827e3f40b55d69013e74f29fac184dbcd4b5e2f726c4273ffbc8c0779475"));
-        assert(genesis.hashWitnessMerkleRoot == uint256S("0x08917a20ac55e83d7d860b7daf0cb3c25114d00338deab02f77af9eea20c06e1"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -593,18 +577,18 @@ public:
         vDevFundSettings.push_back(std::make_pair(46863, DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 66.67, 100)));
         vDevFundSettings.push_back(std::make_pair(0,     DevFundSettings("XHjYLwbVGbhr96HZqhT7j8crjEZJiGdZ1B", 33.00, 1440)));
 
-        base58Prefixes[PUBKEY_ADDRESS]     = {0x4B}; // X
-        base58Prefixes[SCRIPT_ADDRESS]     = {0x89}; // x
-        base58Prefixes[PUBKEY_ADDRESS_256] = {0x77};
-        base58Prefixes[SCRIPT_ADDRESS_256] = {0x7b};
-        base58Prefixes[SECRET_KEY]         = {0x2e};
-        base58Prefixes[EXT_PUBLIC_KEY]     = {0xe1, 0x42, 0x78, 0x00}; // ppar
-        base58Prefixes[EXT_SECRET_KEY]     = {0x04, 0x88, 0x94, 0x78}; // xpar
-        base58Prefixes[STEALTH_ADDRESS]    = {0x15}; // T
-        base58Prefixes[EXT_KEY_HASH]       = {0x89}; // x
-        base58Prefixes[EXT_ACC_HASH]       = {0x53}; // a
-        base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x35, 0x87, 0xCF}; // tpub
-        base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x35, 0x83, 0x94}; // tprv
+        base58Prefixes[PUBKEY_ADDRESS]     = {0x26}; // G
+        base58Prefixes[SCRIPT_ADDRESS]     = {0x61}; // g
+        base58Prefixes[PUBKEY_ADDRESS_256] = {0x39};
+        base58Prefixes[SCRIPT_ADDRESS_256] = {0x3d};
+        base58Prefixes[SECRET_KEY]         = {0xA6}; //PUBKEY_ADDRESS Prefix in int + 128 converted to hexadecimal
+        base58Prefixes[EXT_PUBLIC_KEY]     = {0x68, 0xDF, 0x7C, 0xBD}; // PGHST
+        base58Prefixes[EXT_SECRET_KEY]     = {0x8E, 0x8E, 0xA8, 0xEA}; // XGHST
+        base58Prefixes[STEALTH_ADDRESS]    = {0x14};
+        base58Prefixes[EXT_KEY_HASH]       = {0x4b}; // X
+        base58Prefixes[EXT_ACC_HASH]       = {0x17}; // A
+        base58Prefixes[EXT_PUBLIC_KEY_BTC] = {0x04, 0x88, 0xB2, 0x1E}; // xpub
+        base58Prefixes[EXT_SECRET_KEY_BTC] = {0x04, 0x88, 0xAD, 0xE4}; // xprv
 
         {
             std::map<int, std::string> bech32PrefixesMap{
