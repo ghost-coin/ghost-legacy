@@ -2897,6 +2897,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 }
             }
 
+#if 0
             if (!pDevFundSettings || pDevFundSettings->nMinDevStakePercent <= 0) {
                 if (nStakeReward < 0 || nStakeReward > nCalculatedStakeReward) {
                     return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Coinstake pays too much(actual=%d vs calculated=%d)", __func__, nStakeReward, nCalculatedStakeReward), REJECT_INVALID, "bad-cs-amount");
@@ -2984,9 +2985,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                         return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Coinstake foundation fund carried forward mismatch (actual=%d vs expected=%d)", __func__, nDevCfwdCheck, nDevCfwd), REJECT_INVALID, "bad-cs-cfwd");
                     }
                 }
-
                 coinStakeCache.InsertCoinStake(blockHash, txCoinstake);
             }
+#endif
         } else {
             if (block.GetHash() != chainparams.GenesisBlock().GetHash()) {
                 return state.Invalid(ValidationInvalidReason::CONSENSUS, error("%s: Block isn't coinstake or genesis.", __func__), REJECT_INVALID, "bad-cs");
