@@ -3833,7 +3833,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
                     }
                 }
 
-                if (r.nType == OUTPUT_CT) {
+                if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT) {
                     nLastBlindedOutput = i;
                 }
 
