@@ -139,6 +139,8 @@ uint64_t nPruneTarget = 0;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 static bool fVerifyingDB = false;
 
+int64_t EXPLOIT_FIX_HF1_TIME = 0; // TODO: Remove
+
 uint256 hashAssumeValid;
 arith_uint256 nMinimumChainWork;
 

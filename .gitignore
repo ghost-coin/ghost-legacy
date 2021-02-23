@@ -149,3 +149,4 @@ dist/
 
 sanitizer-output
 ci/scratch
+*~

@@ -1,3 +1,10 @@
+0.19.2.4
+==============
+
+ - Emergency hardfork release
+ - Disables anon and blind transactions
+
+
 0.19.2.3
 ==============
 

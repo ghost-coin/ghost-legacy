@@ -4592,6 +4592,16 @@ void ReadCoinControlOptions(const UniValue &obj, CHDWallet *pwallet, CCoinContro
 
 static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, OutputTypes typeOut)
 {
+    if (!gArgs.GetBoolArg("-acceptanontxn", DEFAULT_ACCEPT_ANON_TX) &&
+        (typeIn == OUTPUT_RINGCT || typeOut == OUTPUT_RINGCT)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Disabled output type.");
+    }
+
+    if (!gArgs.GetBoolArg("-acceptblindtxn", DEFAULT_ACCEPT_BLIND_TX) &&
+        (typeIn == OUTPUT_CT || typeOut == OUTPUT_CT)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Disabled output type.");
+    }
+
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
@@ -5049,7 +5059,6 @@ static UniValue sendparttoanon(const JSONRPCRequest &request)
 
     return SendToInner(request, OUTPUT_STANDARD, OUTPUT_RINGCT);
 };
-
 
 static UniValue sendblindtopart(const JSONRPCRequest &request)
 {

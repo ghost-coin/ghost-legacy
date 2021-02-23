@@ -146,6 +146,8 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     std::unique_ptr<CChainParams> regtestChainParams = CreateChainParams(CBaseChainParams::REGTEST);
     const CChainParams &chainparams = *regtestChainParams;
+    gArgs.ForceSetArg("-acceptanontxn", "1"); // TODO: remove
+    gArgs.ForceSetArg("-acceptblindtxn", "1"); // TODO: remove
 
     BOOST_REQUIRE(chainparams.GenesisBlock().GetHash() == ::ChainActive().Tip()->GetBlockHash());
 

@@ -244,6 +244,7 @@ PARTICL_SCRIPTS = [
     'rpc_part_signmessage.py',
     'wallet_part_avoidreuse.py',
     'wallet_part_segwit_scripts.py',
+    'p2p_part_disable_types.py',
 ]
 
 PARTICL_SCRIPTS_EXT = [
