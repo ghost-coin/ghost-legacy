@@ -4667,6 +4667,15 @@ static int AddOutput(uint8_t nType, std::vector<CTempRecipient> &vecSend, const 
 
 static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, OutputTypes typeOut)
 {
+    if (!gArgs.GetBoolArg("-acceptanontxn", DEFAULT_ACCEPT_ANON_TX) &&
+        (typeIn == OUTPUT_RINGCT || typeOut == OUTPUT_RINGCT)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Disabled output type.");
+    }
+
+    if (!gArgs.GetBoolArg("-acceptblindtxn", DEFAULT_ACCEPT_BLIND_TX) &&
+        (typeIn == OUTPUT_CT || typeOut == OUTPUT_CT)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Disabled output type.");
+    }
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     if (!wallet) return NullUniValue;
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());

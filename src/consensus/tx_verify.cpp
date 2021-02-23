@@ -339,9 +339,22 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
         }
     }
 
-    if ((nCt > 0 || nRingCTOutputs) && nRingCTInputs == 0) {
-        nPlainValueOut += txfee;
+    if ((nCt > 0 || nRingCTOutputs > 0) && nRingCTInputs == 0) {
+        if (state.m_exploit_fix_1 &&
+            nRingCTOutputs > 0 &&
+            !gArgs.GetBoolArg("-acceptanontxn", DEFAULT_ACCEPT_ANON_TX)) {
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-anon-disabled");
+        }
+        if (state.m_exploit_fix_1 &&
+            nCt > 0 &&
+            !gArgs.GetBoolArg("-acceptblindtxn", DEFAULT_ACCEPT_BLIND_TX)) {
+            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-blind-disabled");
+        }
+        if (!state.m_exploit_fix_1 && nCt == 0) {
+            return true;
+        }
 
+        nPlainValueOut += txfee;
         if (!MoneyRange(nPlainValueOut)) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-out-outofrange");
         }
@@ -349,7 +362,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-inputvalues-outofrange");
         }
 
-        // commitments must sum to 0
+        // Commitments must sum to 0
         secp256k1_pedersen_commitment plainInCommitment, plainOutCommitment;
         uint8_t blindPlain[32];
         memset(blindPlain, 0, 32);

@@ -114,6 +114,9 @@ static void DisconnectTip(CTxMemPool& mempool, CBlock &block, CBlockIndex *pinde
 
 BOOST_AUTO_TEST_CASE(stake_test)
 {
+    gArgs.ForceSetArg("-acceptanontxn", "1"); // TODO: remove
+    gArgs.ForceSetArg("-acceptblindtxn", "1"); // TODO: remove
+
     SeedInsecureRand();
     CHDWallet *pwallet = pwalletMain.get();
     util::Ref context{m_node};

@@ -722,9 +722,14 @@ void SetupServerArgs(NodeContext& node)
     argsman.AddArg("-server", "Accept command line and JSON-RPC commands", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-rpccorsdomain=<domain>", "Allow JSON-RPC connections from specified domain (e.g. http://localhost:4200 or \"*\"). This needs to be set if you are using the Particl GUI in a browser.", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
+    // Particl
     argsman.AddArg("-displaylocaltime", "Display human readable time strings in local timezone (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-displayutctime", "Display human readable time strings in UTC (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-rebuildrollingindices", "Force rebuild of rolling indices (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    argsman.AddArg("-acceptanontxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_ANON_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    argsman.AddArg("-acceptblindtxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_BLIND_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    // TODO: Remove
+    argsman.AddArg("-hf1time", strprintf("Emergency hardfork (default: %u)", 1614254400), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
 #if HAVE_DECL_DAEMON
     argsman.AddArg("-daemon", "Run in the background as a daemon and accept commands", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
@@ -1107,10 +1112,10 @@ bool AppInitBasicSetup(ArgsManager& args)
 
 bool AppInitParameterInteraction(const ArgsManager& args)
 {
-    fParticlMode = !gArgs.GetBoolArg("-btcmode", false); // qa tests
+    fParticlMode = !args.GetBoolArg("-btcmode", false); // qa tests
     if (!fParticlMode) {
         WITNESS_SCALE_FACTOR = WITNESS_SCALE_FACTOR_BTC;
-        if (gArgs.GetChainName() == CBaseChainParams::REGTEST) {
+        if (args.GetChainName() == CBaseChainParams::REGTEST) {
             ResetParams(CBaseChainParams::REGTEST, fParticlMode);
         }
     } else {
@@ -1369,6 +1374,9 @@ bool AppInitParameterInteraction(const ArgsManager& args)
     if (args.IsArgSet("-proxy") && args.GetArg("-proxy", "").empty()) {
         return InitError(_("No proxy server specified. Use -proxy=<ip> or -proxy=<ip:port>."));
     }
+
+    // Remove
+    EXPLOIT_FIX_HF1_TIME = args.GetArg("-hf1time", args.GetChainName() == CBaseChainParams::REGTEST ? 0 : 1614254400);
 
     return true;
 }

@@ -13,6 +13,8 @@
 #include <primitives/block.h>
 #include <consensus/params.h>
 
+extern int64_t EXPLOIT_FIX_HF1_TIME; // TODO: Remove
+
 /** Index marker for when no witness commitment is present in a coinbase transaction. */
 static constexpr int NO_WITNESS_COMMITMENT{-1};
 
@@ -164,6 +166,7 @@ public:
     bool m_has_anon_output = false;
     bool m_has_anon_input = false;
     bool m_clamp_tx_version = false;
+    bool m_exploit_fix_1 = false;
 
     void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool particl_mode, bool skip_rangeproof)
     {
@@ -179,6 +182,7 @@ public:
         m_skip_rangeproof = skip_rangeproof;
 
         m_clamp_tx_version = time >= consensusParams.clamp_tx_version_time;
+        m_exploit_fix_1 = time >= EXPLOIT_FIX_HF1_TIME; // TODO: consensusParams.exploit_fix_1_time;
     }
 };
 
