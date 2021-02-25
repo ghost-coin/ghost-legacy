@@ -57,3 +57,9 @@ reborn1002 (1):
 barrystyle (2):
 - Shift GVT payment address to GVR-operated address, refactor method to do so.
 - Disconnect old version after fork height
+
+0.19.1.10
+==============
+barrystyle (backported from particl):
+- Emergency hardfork release
+- Disables anon and blind transactions

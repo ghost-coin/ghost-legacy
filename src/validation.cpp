@@ -211,6 +211,7 @@ CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& loc
 }
 
 std::unique_ptr<CBlockTreeDB> pblocktree;
+int64_t EXPLOIT_FIX_HF1_TIME = 0; // TODO: Remove
 
 // See definition for documentation
 static void FindFilesToPruneManual(std::set<int>& setFilesToPrune, int nManualPruneHeight);

@@ -141,6 +141,9 @@ static void DisconnectTip(CBlock &block, CBlockIndex *pindexDelete, CCoinsViewCa
 
 BOOST_AUTO_TEST_CASE(stake_test)
 {
+    gArgs.ForceSetArg("-acceptanontxn", "1"); // TODO: remove
+    gArgs.ForceSetArg("-acceptblindtxn", "1"); // TODO: remove
+
     SeedInsecureRand();
     CHDWallet *pwallet = pwalletMain.get();
     UniValue rv;
