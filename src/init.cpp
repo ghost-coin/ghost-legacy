@@ -690,7 +690,7 @@ void SetupServerArgs()
     gArgs.AddArg("-displayutctime", "Display human readable time strings in UTC (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-acceptanontxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_ANON_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-acceptblindtxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_BLIND_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-hf1time", strprintf("Emergency hardfork (default: %u)", 1614254400), ArgsManager::ALLOW_ANY, OptionsCategory::RPC); // TODO: Remove
+    gArgs.AddArg("-hf1time", strprintf("Emergency hardfork (default: %u)", 1614698244), ArgsManager::ALLOW_ANY, OptionsCategory::RPC); // TODO: Remove
 
 #if HAVE_DECL_DAEMON
     gArgs.AddArg("-daemon", "Run in the background as a daemon and accept commands", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
@@ -1335,7 +1335,7 @@ bool AppInitParameterInteraction()
     nMaxTipAge = gArgs.GetArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
 
     // Remove
-    EXPLOIT_FIX_HF1_TIME = gArgs.GetArg("-hf1time", gArgs.GetChainName() == CBaseChainParams::REGTEST ? 0 : 1614254400);
+    EXPLOIT_FIX_HF1_TIME = gArgs.GetArg("-hf1time", gArgs.GetChainName() == CBaseChainParams::REGTEST ? 0 : 1614698244);
 
     return true;
 }

@@ -2221,9 +2221,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return false;
         }
 
-        //! GVR devFund Adjustment
-        const bool devFundDissociate = pindexBestHeader->nHeight >= chainparams.GetConsensus().nGVRDevFundAdjustment;
-        const int nMinPeerVersion = devFundDissociate ? PROTOCOL_VERSION : MIN_PEER_PROTO_VERSION;
+        //! hf-emergency
+        const bool hfemergency = GetAdjustedTime() > 1614698244;
+        const int nMinPeerVersion = hfemergency ? PROTOCOL_VERSION : MIN_PEER_PROTO_VERSION;
         if (nVersion < nMinPeerVersion) {
             // disconnect from peers older than this proto version
             LogPrint(BCLog::NET, "peer=%d using obsolete version %i; disconnecting\n", pfrom->GetId(), nVersion);
