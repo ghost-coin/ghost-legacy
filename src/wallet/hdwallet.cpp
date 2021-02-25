@@ -3839,6 +3839,7 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
                         nChangePosInOut = i;
                     }
                 }
+
                 if (r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT) {
                     nLastBlindedOutput = i;
                 }
