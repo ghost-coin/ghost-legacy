@@ -349,7 +349,6 @@ public:
         consensus.m_frozen_anon_index = 27340;
         consensus.m_frozen_blinded_height = 884433;
 
-
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;
         consensus.smsg_fee_msg_per_day_per_k = 50000;

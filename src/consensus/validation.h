@@ -14,6 +14,8 @@
 
 #include <consensus/params.h>
 
+extern int64_t EXPLOIT_FIX_HF1_TIME; // TODO: Remove
+
 /** "reject" message codes */
 static const unsigned char REJECT_MALFORMED = 0x01;
 static const unsigned char REJECT_INVALID = 0x10;

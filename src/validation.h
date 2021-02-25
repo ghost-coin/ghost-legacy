@@ -129,6 +129,9 @@ static const bool DEFAULT_SPENTINDEX = false;
 static const unsigned int DEFAULT_DB_MAX_OPEN_FILES = 64; // set to 1000 for insight
 static const bool DEFAULT_DB_COMPRESSION = false; // set to true for insight
 static const unsigned int DEFAULT_BANSCORE_THRESHOLD = 100;
+static const bool DEFAULT_ACCEPT_ANON_TX = false;
+static const bool DEFAULT_ACCEPT_BLIND_TX = false;
+extern int64_t EXPLOIT_FIX_HF1_TIME; // TODO: Remove
 /** Default for -persistmempool */
 static const bool DEFAULT_PERSIST_MEMPOOL = true;
 /** Default for using fee filter */
