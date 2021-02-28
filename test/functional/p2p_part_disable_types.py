@@ -14,7 +14,7 @@ class DisableTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [['-hf1time=0', '-debug', '-acceptanontxn', '-acceptblindtxn', '-noacceptnonstdtxn', '-reservebalance=10000000', '-stakethreadconddelayms=500', '-txindex=1', '-maxtxfee=1', ] for i in range(self.num_nodes)]
+        self.extra_args = [['-debug', '-acceptanontxn', '-acceptblindtxn', '-noacceptnonstdtxn', '-reservebalance=10000000', '-stakethreadconddelayms=500', '-txindex=1', '-maxtxfee=1', ] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -66,7 +66,7 @@ class DisableTest(ParticlTestFramework):
         self.stakeBlocks(1)
 
         self.stop_node(1)
-        self.start_node(1, ['-noacceptanontxn', '-noacceptblindtxn', '-hf1time=0', '-checklevel=1', '-noacceptnonstdtxn', '-reservebalance=10000000', '-debug'])
+        self.start_node(1, ['-noacceptanontxn', '-noacceptblindtxn', '-checklevel=1', '-noacceptnonstdtxn', '-reservebalance=10000000', '-debug'])
         connect_nodes(self.nodes[1], 0)
         connect_nodes(self.nodes[1], 2)
 

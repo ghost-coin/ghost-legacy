@@ -14,8 +14,6 @@
 
 #include <consensus/params.h>
 
-extern int64_t EXPLOIT_FIX_HF1_TIME; // TODO: Remove
-
 /** "reject" message codes */
 static const unsigned char REJECT_MALFORMED = 0x01;
 static const unsigned char REJECT_INVALID = 0x10;
@@ -184,7 +182,7 @@ public:
             m_spend_height = spend_height; // Pass through connectblock->checkblock
         }
         m_clamp_tx_version = time >= consensusParams.clamp_tx_version_time;
-        m_exploit_fix_1 = time >= EXPLOIT_FIX_HF1_TIME; // TODO: consensusParams.exploit_fix_1_time;
+        m_exploit_fix_1 = time >= consensusParams.exploit_fix_1_time;
     }
 
     int nodeId;

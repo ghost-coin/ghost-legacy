@@ -146,7 +146,6 @@ static const int DEFAULT_STOPATHEIGHT = 0;
 /** Particl */
 static const bool DEFAULT_ACCEPT_ANON_TX = false;
 static const bool DEFAULT_ACCEPT_BLIND_TX = false;
-extern int64_t EXPLOIT_FIX_HF1_TIME; // TODO: Remove
 
 struct BlockHasher
 {
