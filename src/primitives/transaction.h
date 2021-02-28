@@ -34,7 +34,7 @@ static const uint8_t BTC_TXN_VERSION = 0x02;
 
 enum OutputTypes
 {
-    OUTPUT_NULL             = 0, // marker for CCoinsView (0.14)
+    OUTPUT_NULL             = 0, // Marker for CCoinsView (0.14)
     OUTPUT_STANDARD         = 1,
     OUTPUT_CT               = 2,
     OUTPUT_RINGCT           = 3,
@@ -50,7 +50,7 @@ enum TransactionTypes
 
 enum DataOutputTypes
 {
-    DO_NULL                 = 0, // reserved
+    DO_NULL                 = 0, // Reserved
     DO_NARR_PLAIN           = 1,
     DO_NARR_CRYPT           = 2,
     DO_STEALTH              = 3,

@@ -40,14 +40,10 @@ BOOST_FIXTURE_TEST_SUITE(stake_tests, StakeTestingSetup)
 
 void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
 {
-    int nBestHeight;
     size_t nStaked = 0;
     size_t k, nTries = 10000;
     for (k = 0; k < nTries; ++k) {
-        {
-            LOCK(cs_main);
-            nBestHeight = ::ChainActive().Height();
-        }
+        int nBestHeight = WITH_LOCK(cs_main, return ::ChainActive().Height());
 
         int64_t nSearchTime = GetAdjustedTime() & ~Params().GetStakeTimestampMask(nBestHeight+1);
         if (nSearchTime <= pwallet->nLastCoinStakeSearchTime) {
@@ -73,19 +69,18 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
     }
     BOOST_REQUIRE(k < nTries);
     SyncWithValidationInterfaceQueue();
-};
+}
 
-static void AddAnonTxn(CHDWallet *pwallet, CTxDestination &dest, CAmount amount)
+static void AddTxn(CHDWallet *pwallet, CTxDestination &dest, OutputTypes output_type, CAmount amount)
 {
+    BOOST_REQUIRE(IsValidDestination(dest));
     {
     LOCK(pwallet->cs_wallet);
-
-    BOOST_REQUIRE(IsValidDestination(dest));
 
     std::vector<CTempRecipient> vecSend;
     std::string sError;
     CTempRecipient r;
-    r.nType = OUTPUT_RINGCT;
+    r.nType = output_type;
     r.SetAmount(amount);
     r.address = dest;
     vecSend.push_back(r);
@@ -98,7 +93,40 @@ static void AddAnonTxn(CHDWallet *pwallet, CTxDestination &dest, CAmount amount)
     BOOST_CHECK(0 == pwallet->AddStandardInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
 
     BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(sError, true));
-    } // cs_main
+    }
+    SyncWithValidationInterfaceQueue();
+}
+
+static void TryAddBadTxn(CHDWallet *pwallet, CTxDestination &dest, OutputTypes output_type, CAmount amount)
+{
+    BOOST_REQUIRE(IsValidDestination(dest));
+    {
+    LOCK(pwallet->cs_wallet);
+
+    std::vector<CTempRecipient> vecSend;
+    std::string sError;
+    CTempRecipient r;
+    r.nType = output_type;
+    r.SetAmount(amount);
+    r.address = dest;
+    vecSend.push_back(r);
+
+    CTransactionRef tx_new;
+    CWalletTx wtx(pwallet, tx_new);
+    CTransactionRecord rtx;
+    CAmount nFee, nFeeCheck = 0;
+    CCoinControl coinControl;
+    BOOST_CHECK(0 == pwallet->AddStandardInputs(wtx, rtx, vecSend, true, nFee, &coinControl, sError));
+
+    BOOST_REQUIRE(wtx.tx->vpout[0]->nVersion == OUTPUT_DATA);
+    BOOST_REQUIRE(wtx.tx->vpout[0]->GetCTFee(nFeeCheck));
+    BOOST_REQUIRE(nFee == nFeeCheck);
+    nFee -= 1;
+    BOOST_REQUIRE(wtx.tx->vpout[0]->SetCTFee(nFee));
+
+    BOOST_REQUIRE(!wtx.SubmitMemoryPoolAndRelay(sError, true));
+    BOOST_REQUIRE(sError == "bad-commitment-sum");
+    }
     SyncWithValidationInterfaceQueue();
 }
 
@@ -110,7 +138,7 @@ static void DisconnectTip(CTxMemPool& mempool, CBlock &block, CBlockIndex *pinde
     BOOST_REQUIRE(::ChainstateActive().FlushStateToDisk(chainparams, state, FlushStateMode::IF_NEEDED));
     ::ChainActive().SetTip(pindexDelete->pprev);
     UpdateTip(mempool, pindexDelete->pprev, chainparams);
-};
+}
 
 BOOST_AUTO_TEST_CASE(stake_test)
 {
@@ -121,12 +149,9 @@ BOOST_AUTO_TEST_CASE(stake_test)
     CHDWallet *pwallet = pwalletMain.get();
     util::Ref context{m_node};
     {
-        int last_height = ::ChainActive().Height();
-        uint256 last_hash = ::ChainActive().Tip()->GetBlockHash();
-        {
-            LOCK(pwallet->cs_wallet);
-            pwallet->SetLastBlockProcessed(last_height, last_hash);
-        }
+        int last_height = WITH_LOCK(cs_main, return ::ChainActive().Height());
+        uint256 last_hash = WITH_LOCK(cs_main, return ::ChainActive().Tip()->GetBlockHash());
+        WITH_LOCK(pwallet->cs_wallet, pwallet->SetLastBlockProcessed(last_height, last_hash));
     }
     UniValue rv;
 
@@ -291,11 +316,11 @@ BOOST_AUTO_TEST_CASE(stake_test)
             BOOST_CHECK(state.GetRejectReason() == "bad-cs-amount");
             BOOST_CHECK(prevTipHash == ::ChainActive().Tip()->GetBlockHash());
 
-            // restore the reward
+            // Restore the reward
             RegtestParams().SetCoinYearReward(2 * CENT);
             BOOST_CHECK(Params().GetCoinYearReward(0) == 2 * CENT);
 
-            // block should connect now
+            // Block should connect now
             BlockValidationState clearstate;
             CCoinsViewCache &clearview = ::ChainstateActive().CoinsTip();
             BOOST_REQUIRE(ConnectBlock(block, clearstate, pindexDelete, clearview, chainparams, false));
@@ -320,17 +345,19 @@ BOOST_AUTO_TEST_CASE(stake_test)
 
     {
         BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress", context));
-        std::string sSxAddr = part::StripQuotes(rv.write());
+        CTxDestination address = DecodeDestination(part::StripQuotes(rv.write()));
 
-        CTxDestination address = DecodeDestination(sSxAddr);
+        AddTxn(pwallet, address, OUTPUT_RINGCT, 10 * COIN);
+        AddTxn(pwallet, address, OUTPUT_RINGCT, 20 * COIN);
+        AddTxn(pwallet, address, OUTPUT_CT, 30 * COIN);
 
-
-        AddAnonTxn(pwallet, address, 10 * COIN);
-        AddAnonTxn(pwallet, address, 20 * COIN);
+        TryAddBadTxn(pwallet, address, OUTPUT_CT, 11 * COIN);
+        TryAddBadTxn(pwallet, address, OUTPUT_RINGCT, 12 * COIN);
 
         StakeNBlocks(pwallet, 2);
         CCoinControl coinControl;
         BOOST_CHECK(30 * COIN == pwallet->GetAvailableAnonBalance(&coinControl));
+        BOOST_CHECK(30 * COIN == pwallet->GetAvailableBlindBalance(&coinControl));
 
         BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 4);
         BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == base_supply + stake_reward * 5);
