@@ -99,18 +99,17 @@ void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
     BOOST_REQUIRE(k < nTries);
 };
 
-static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amount)
+static void AddTxn(CHDWallet *pwallet, CBitcoinAddress &address, OutputTypes output_type, CAmount amount)
 {
+    BOOST_REQUIRE(address.IsValid());
     {
     auto locked_chain = pwallet->chain().lock();
     LockAssertion lock(::cs_main);
 
-    BOOST_REQUIRE(address.IsValid());
-
     std::vector<CTempRecipient> vecSend;
     std::string sError;
     CTempRecipient r;
-    r.nType = OUTPUT_RINGCT;
+    r.nType = output_type;
     r.SetAmount(amount);
     r.address = address.Get();
     vecSend.push_back(r);
@@ -124,7 +123,42 @@ static void AddAnonTxn(CHDWallet *pwallet, CBitcoinAddress &address, CAmount amo
 
     wtx.BindWallet(pwallet);
     BOOST_REQUIRE(wtx.SubmitMemoryPoolAndRelay(sError, true, *locked_chain));
-    } // cs_main
+    }
+    SyncWithValidationInterfaceQueue();
+}
+
+static void TryAddBadTxn(CHDWallet *pwallet, CBitcoinAddress &address, OutputTypes output_type, CAmount amount)
+{
+    BOOST_REQUIRE(address.IsValid());
+    {
+    auto locked_chain = pwallet->chain().lock();
+    LockAssertion lock(::cs_main);
+
+    std::vector<CTempRecipient> vecSend;
+    std::string sError;
+    CTempRecipient r;
+    r.nType = output_type;
+    r.SetAmount(amount);
+    r.address = address.Get();
+    vecSend.push_back(r);
+
+    CTransactionRef tx_new;
+    CWalletTx wtx(pwallet, tx_new);
+    CTransactionRecord rtx;
+    CAmount nFee, nFeeCheck = 0;
+    CCoinControl coinControl;
+    BOOST_CHECK(0 == pwallet->AddStandardInputs(*locked_chain, wtx, rtx, vecSend, true, nFee, &coinControl, sError));
+
+    BOOST_REQUIRE(wtx.tx->vpout[0]->nVersion == OUTPUT_DATA);
+    BOOST_REQUIRE(wtx.tx->vpout[0]->GetCTFee(nFeeCheck));
+    BOOST_REQUIRE(nFee == nFeeCheck);
+    nFee -= 1;
+    BOOST_REQUIRE(wtx.tx->vpout[0]->SetCTFee(nFee));
+
+    wtx.BindWallet(pwallet);
+    BOOST_REQUIRE(!wtx.SubmitMemoryPoolAndRelay(sError, true, *locked_chain));
+    BOOST_REQUIRE(sError == "bad-commitment-sum (code 16)");
+    }
     SyncWithValidationInterfaceQueue();
 }
 
@@ -339,16 +373,19 @@ BOOST_AUTO_TEST_CASE(stake_test)
     {
         BOOST_CHECK_NO_THROW(rv = CallRPC("getnewstealthaddress"));
         std::string sSxAddr = StripQuotes(rv.write());
-
         CBitcoinAddress address(sSxAddr);
 
+        AddTxn(pwallet, address, OUTPUT_RINGCT, 10 * COIN);
+        AddTxn(pwallet, address, OUTPUT_RINGCT, 20 * COIN);
+        AddTxn(pwallet, address, OUTPUT_CT, 30 * COIN);
 
-        AddAnonTxn(pwallet, address, 10 * COIN);
-        AddAnonTxn(pwallet, address, 20 * COIN);
+        TryAddBadTxn(pwallet, address, OUTPUT_RINGCT, 11 * COIN);
+        TryAddBadTxn(pwallet, address, OUTPUT_CT, 12 * COIN);
 
         StakeNBlocks(pwallet, 2);
         CCoinControl coinControl;
         BOOST_CHECK(30 * COIN == pwallet->GetAvailableAnonBalance(&coinControl));
+        BOOST_CHECK(30 * COIN == pwallet->GetAvailableBlindBalance(&coinControl));
 
         BOOST_CHECK(::ChainActive().Tip()->nAnonOutputs == 4);
         BOOST_CHECK(::ChainActive().Tip()->nMoneySupply == base_supply + stake_reward * 5);
