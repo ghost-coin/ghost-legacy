@@ -728,8 +728,6 @@ void SetupServerArgs(NodeContext& node)
     argsman.AddArg("-rebuildrollingindices", "Force rebuild of rolling indices (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-acceptanontxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_ANON_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-acceptblindtxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_BLIND_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    // TODO: Remove
-    argsman.AddArg("-hf1time", strprintf("Emergency hardfork (default: %u)", 1614268800), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
 #if HAVE_DECL_DAEMON
     argsman.AddArg("-daemon", "Run in the background as a daemon and accept commands", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
@@ -1374,9 +1372,6 @@ bool AppInitParameterInteraction(const ArgsManager& args)
     if (args.IsArgSet("-proxy") && args.GetArg("-proxy", "").empty()) {
         return InitError(_("No proxy server specified. Use -proxy=<ip> or -proxy=<ip:port>."));
     }
-
-    // Remove
-    EXPLOIT_FIX_HF1_TIME = args.GetArg("-hf1time", args.GetChainName() == CBaseChainParams::REGTEST ? 0 : 1614268800);
 
     return true;
 }
