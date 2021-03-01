@@ -1,3 +1,9 @@
+0.19.2.5
+==============
+
+ - Allow anon and blinded transaction on testnet.
+
+
 0.19.2.4
 ==============
 

@@ -3,18 +3,15 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import time
-
 from test_framework.test_particl import ParticlTestFramework, connect_nodes_bi
 from test_framework.util import connect_nodes
-from test_framework.messages import COIN
 
 
 class DisableTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [['-debug', '-acceptanontxn', '-acceptblindtxn', '-noacceptnonstdtxn', '-reservebalance=10000000', '-stakethreadconddelayms=500', '-txindex=1', '-maxtxfee=1', ] for i in range(self.num_nodes)]
+        self.extra_args = [['-debug', '-noacceptnonstdtxn', '-reservebalance=10000000', '-stakethreadconddelayms=500', '-txindex=1', '-maxtxfee=1', ] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -37,9 +34,6 @@ class DisableTest(ParticlTestFramework):
         nodes[1].getnewextaddress('lblExtTest')
         nodes[1].rescanblockchain()
         assert(nodes[1].getwalletinfo()['total_balance'] == 25000)
-
-        #for node in nodes:
-            #node.setmocktime(1614168000)  # 2021-02-24 12:00
 
         sx0 = nodes[0].getnewstealthaddress()
         sx1 = nodes[1].getnewstealthaddress()
