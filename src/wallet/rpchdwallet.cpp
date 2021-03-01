@@ -2996,7 +2996,8 @@ static void ParseRecords(
     const isminefilter         &watchonly_filter,
     const std::string          &search,
     const std::string          &category_filter,
-    int                         type
+    int                         type,
+    bool                        show_blinding_factors
 ) EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)
 {
     std::vector<std::string> addresses, amounts;
@@ -3029,13 +3030,22 @@ static void ParseRecords(
     }
     PushTime(entry, "time", rtx.nTimeReceived);
 
+    bool have_stx = false;
+    CStoredTransaction stx;
+    if (show_blinding_factors) {
+        CHDWalletDB wdb(pwallet->GetDatabase());
+        if (wdb.ReadStoredTx(hash, stx)) {
+            have_stx = true;
+        }
+    }
+
     int nStd = 0, nBlind = 0, nAnon = 0;
     size_t nLockedOutputs = 0;
     for (auto &record : rtx.vout) {
         UniValue output(UniValue::VOBJ);
 
         if (record.nFlags & ORF_CHANGE) {
-            continue ;
+            continue;
         }
         if (record.nFlags & ORF_OWN_ANY) {
             nOwned++;
@@ -3108,7 +3118,8 @@ static void ParseRecords(
 
         if (extracted && dest.type() == typeid(CNoDestination)) {
             output.__pushKV("address", "none");
-        } else if (extracted) {
+        } else
+        if (extracted) {
             output.__pushKV("address", addr.ToString());
             addresses.push_back(addr.ToString());
         }
@@ -3137,6 +3148,13 @@ static void ParseRecords(
         amounts.push_back(ToString(amount));
         output.__pushKV("amount", ValueFromAmount(amount));
         output.__pushKV("vout", record.n);
+
+        if (record.nType == OUTPUT_CT || record.nType == OUTPUT_RINGCT) {
+            uint256 blinding_factor;
+            if (have_stx && stx.GetBlind(record.n, blinding_factor.begin())) {
+                output.__pushKV("blindingfactor", blinding_factor.ToString());
+            }
+        }
         outputs.push_back(output);
     }
 
@@ -3278,9 +3296,10 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
                             {"from", RPCArg::Type::STR, /* default */ "0", "Unix timestamp or string \"yyyy-mm-ddThh:mm:ss\""},
                             {"to", RPCArg::Type::STR, /* default */ "9999", "Unix timestamp or string \"yyyy-mm-ddThh:mm:ss\""},
                             {"collate", RPCArg::Type::BOOL, /* default */ "false", "Display number of records and sum of amount fields"},
-                            {"with_reward", RPCArg::Type::BOOL, /* default */ "false", "Calculate reward explicitly from txindex if necessary."},
+                            {"with_reward", RPCArg::Type::BOOL, /* default */ "false", "Calculate reward explicitly from txindex if necessary"},
                             {"use_bech32", RPCArg::Type::BOOL, /* default */ "false", "Display addresses in bech32 encoding"},
                             {"hide_zero_coinstakes", RPCArg::Type::BOOL, /* default */ "false", "Hide coinstake transactions without a balance change"},
+                            {"show_blinding_factors", RPCArg::Type::BOOL, /* default */ "false", "Display blinding factors for blinded outputs"},
                         },
                         "options"},
                 },
@@ -3319,21 +3338,24 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
     bool fWithReward = false;
     bool fBech32 = false;
     bool hide_zero_coinstakes = false;
+    bool show_blinding_factors = false;
 
     if (!request.params[0].isNull()) {
         const UniValue &options = request.params[0].get_obj();
         RPCTypeCheckObj(options,
             {
-                {"count",             UniValueType(UniValue::VNUM)},
-                {"skip",              UniValueType(UniValue::VNUM)},
-                {"include_watchonly", UniValueType(UniValue::VBOOL)},
-                {"search",            UniValueType(UniValue::VSTR)},
-                {"category",          UniValueType(UniValue::VSTR)},
-                {"type",              UniValueType(UniValue::VSTR)},
-                {"sort",              UniValueType(UniValue::VSTR)},
-                {"collate",           UniValueType(UniValue::VBOOL)},
-                {"with_reward",       UniValueType(UniValue::VBOOL)},
-                {"use_bech32",        UniValueType(UniValue::VBOOL)},
+                {"count",                   UniValueType(UniValue::VNUM)},
+                {"skip",                    UniValueType(UniValue::VNUM)},
+                {"include_watchonly",       UniValueType(UniValue::VBOOL)},
+                {"search",                  UniValueType(UniValue::VSTR)},
+                {"category",                UniValueType(UniValue::VSTR)},
+                {"type",                    UniValueType(UniValue::VSTR)},
+                {"sort",                    UniValueType(UniValue::VSTR)},
+                {"collate",                 UniValueType(UniValue::VBOOL)},
+                {"with_reward",             UniValueType(UniValue::VBOOL)},
+                {"use_bech32",              UniValueType(UniValue::VBOOL)},
+                {"hide_zero_coinstakes",    UniValueType(UniValue::VBOOL)},
+                {"show_blinding_factors",   UniValueType(UniValue::VBOOL)},
             },
             true, // allow null
             false // strict
@@ -3435,6 +3457,9 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
         if (options["hide_zero_coinstakes"].isBool()) {
             hide_zero_coinstakes = options["hide_zero_coinstakes"].get_bool();
         }
+        if (options["show_blinding_factors"].isBool()) {
+            show_blinding_factors = options["show_blinding_factors"].get_bool();
+        }
     }
 
     std::vector<CScript> vDevFundScripts;
@@ -3472,8 +3497,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
                 fWithReward,
                 fBech32,
                 hide_zero_coinstakes,
-                vDevFundScripts
-            );
+                vDevFundScripts);
         tit++;
     }
 
@@ -3498,12 +3522,12 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
                 watchonly,
                 search,
                 category,
-                type_i
-            );
+                type_i,
+                show_blinding_factors);
         rit++;
     }
 
-    // sort
+    // Sort
     std::vector<UniValue> values = transactions.getValues();
     std::sort(values.begin(), values.end(), [sort] (UniValue a, UniValue b) -> bool {
         std::string a_address = getAddress(a);
@@ -3527,7 +3551,7 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
             );
     });
 
-    // filter, skip, count and sum
+    // Filter, skip, count and sum
     CAmount nTotalAmount = 0, nTotalReward = 0;
     UniValue result(UniValue::VARR);
     if (count == 0) {
