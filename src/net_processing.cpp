@@ -2228,7 +2228,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         }
 
         //! hf-emergency
-        const bool hfemergency = GetAdjustedTime() > 1614698244;
+        const bool hfemergency = GetAdjustedTime() > 1614992554;
         const int nMinPeerVersion = hfemergency ? PROTOCOL_VERSION : MIN_PEER_PROTO_VERSION;
         if (nVersion < nMinPeerVersion) {
             // disconnect from peers older than this proto version

@@ -691,7 +691,7 @@ void SetupServerArgs()
     gArgs.AddArg("-displayutctime", "Display human readable time strings in UTC (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-acceptanontxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_ANON_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-acceptblindtxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_BLIND_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-hf1time", strprintf("Emergency hardfork (default: %u)", 1614698244), ArgsManager::ALLOW_ANY, OptionsCategory::RPC); // TODO: Remove
+    gArgs.AddArg("-hf1time", strprintf("Emergency hardfork (default: %u)", 1614992554), ArgsManager::ALLOW_ANY, OptionsCategory::RPC); // TODO: Remove
 
     gArgs.AddArg("-acceptanontxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_ANON_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-acceptblindtxn", strprintf("Relay and mine \"anon\" transactions (default: %u)", DEFAULT_ACCEPT_BLIND_TX), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
