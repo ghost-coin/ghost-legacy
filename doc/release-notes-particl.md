@@ -1,24 +1,26 @@
 0.19.2.5
 ==============
 
- - Allow anon and blinded transaction on testnet.
+- Allow anon and blinded transaction on testnet.
+- filtertransactions can display blinding factors.
+- New mainnet checkpoint.
 
 
 0.19.2.4
 ==============
 
- - Emergency hardfork release
- - Disables anon and blind transactions
+- Emergency hardfork release
+- Disables anon and blind transactions
 
 
 0.19.2.3
 ==============
 
- - Merged Bitcoin 0.19.2 backports.
- - New checkpoints.
- - Fix smsginbox hex encoding bug.
- - Tighten IsStandard() check to fail on trailing script.
- - Re-enable win32 gitian build.
+- Merged Bitcoin 0.19.2 backports.
+- New checkpoints.
+- Fix smsginbox hex encoding bug.
+- Tighten IsStandard() check to fail on trailing script.
+- Re-enable win32 gitian build.
 
 
 0.19.1.2
@@ -37,12 +39,12 @@
 0.19.1.1
 ==============
 
- - Merged Bitcoin 0.19.1 backports.
- - Added generatemnemonic command to particl-wallet.
- - Qt receiving addresses table displays relative paths.
- - Qt receiving addresses page can verify an address on a hardware device.
-    - Window -> Receiving addreses, right click on address -> Verify Address On Hardware Wallet
- - Path of change address is sent to ledger hardware devices.
+- Merged Bitcoin 0.19.1 backports.
+- Added generatemnemonic command to particl-wallet.
+- Qt receiving addresses table displays relative paths.
+- Qt receiving addresses page can verify an address on a hardware device.
+  - Window -> Receiving addreses, right click on address -> Verify Address On Hardware Wallet
+- Path of change address is sent to ledger hardware devices.
 
 
 0.19.0.1
