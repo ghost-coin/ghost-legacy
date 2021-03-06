@@ -1,3 +1,10 @@
+0.19.x.x
+==============
+
+- Add show_anon_spends option to filtertransactions.
+- Remove spurious "ExtractDestination failed" log messages.
+
+
 0.19.2.5
 ==============
 

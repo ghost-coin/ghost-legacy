@@ -1810,8 +1810,7 @@ static void ListRecord(interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, c
 
         std::string sCategory;
         if (r.nFlags & ORF_OWNED && r.nFlags & ORF_FROM) {
-            // sent to self
-            //continue;
+            // Sent to self
             sCategory = "receive";
         } else
         if (r.nFlags & ORF_OWN_ANY) {
