@@ -53,14 +53,14 @@ UniValue anonoutput(const JSONRPCRequest &request)
         }
     } else {
         if (!IsHex(sIn)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, sIn+" is not a hexadecimal or decimal string.");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, sIn + " is not a hexadecimal or decimal string.");
         }
         std::vector<uint8_t> vIn = ParseHex(sIn);
 
         CCmpPubKey pk(vIn.begin(), vIn.end());
 
         if (!pk.IsValid()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, sIn+" is not a valid compressed public key.");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, sIn + " is not a valid compressed public key.");
         }
 
         if (!pblocktree->ReadRCTOutputLink(pk, nIndex)) {

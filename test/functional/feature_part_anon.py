@@ -99,15 +99,23 @@ class AnonTest(ParticlTestFramework):
             assert(self.wait_for_mempool(nodes[0], txhash))
 
         self.log.info('Test filtertransactions with type filter')
-        ro = nodes[1].filtertransactions({ 'type': 'anon', 'count': 20 })
+        ro = nodes[1].filtertransactions({'type': 'anon', 'count': 20, 'show_anon_spends': True})
+
         assert(len(ro) > 2)
+        foundTx = 0
         for t in ro:
-            foundA = False
-            for o in t['outputs']:
-                if 'type' in o and o['type'] == 'anon':
-                    foundA = True
-                    break
-            assert((foundA is True) or (t['type_in'] == 'anon'))
+            if t['txid'] == txnHashes[-1]:
+                foundTx += 1
+                assert('anon_inputs' in t)
+                assert(t['amount'] < -9.9 and t['amount'] > -10.0)
+                assert(t['outputs'][0]['type'] == 'standard')
+                assert(t['type_in'] == 'anon')
+            if t['txid'] == txnHashes[-2]:
+                foundTx += 1
+                assert(t['outputs'][0]['type'] == 'anon')
+            if foundTx > 1:
+                break
+        assert(foundTx > 1)
 
         self.log.info('Test unspent with address filter')
         unspent_filtered = nodes[1].listunspentanon(1, 9999, [sxAddrTo1_1])

@@ -1851,8 +1851,7 @@ static void ListRecord(const CHDWallet *phdw, const uint256 &hash, const CTransa
 
         std::string sCategory;
         if (r.nFlags & ORF_OWNED && r.nFlags & ORF_FROM) {
-            // sent to self
-            //continue;
+            // Sent to self
             sCategory = "receive";
         } else
         if (r.nFlags & ORF_OWN_ANY) {

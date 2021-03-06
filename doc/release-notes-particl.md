@@ -6,10 +6,10 @@
 - dumpprivkey: Dumps keys for stealth addresses.
 - getaddressinfo: Shows stealth address public keys.
 - fundrawtransactionfrom:
-    - Can add anon inputs.
-    - Can sign txns.
-    - Accepts data for candidate inputs
-        - Anon inputs must exist in the chain as the pubkey index is required by the ringsig.
+  - Can add anon inputs.
+  - Can sign txns.
+  - Accepts data for candidate inputs
+    - Anon inputs must exist in the chain as the pubkey index is required by the ringsig.
 - rewindrangeproof: Accepts nonce directly
 
 
@@ -38,18 +38,18 @@
 0.19.2.4
 ==============
 
- - Emergency hardfork release
- - Disables anon and blind transactions
+- Emergency hardfork release
+- Disables anon and blind transactions
 
 
 0.19.2.3
 ==============
 
- - Merged Bitcoin 0.19.2 backports.
- - New checkpoints.
- - Fix smsginbox hex encoding bug.
- - Tighten IsStandard() check to fail on trailing script.
- - Re-enable win32 gitian build.
+- Merged Bitcoin 0.19.2 backports.
+- New checkpoints.
+- Fix smsginbox hex encoding bug.
+- Tighten IsStandard() check to fail on trailing script.
+- Re-enable win32 gitian build.
 
 
 0.19.1.2
