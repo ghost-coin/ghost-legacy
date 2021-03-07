@@ -99,8 +99,7 @@ class AnonTest(ParticlTestFramework):
             assert(self.wait_for_mempool(nodes[0], txhash))
 
         self.log.info('Test filtertransactions with type filter')
-        ro = nodes[1].filtertransactions({'type': 'anon', 'count': 20, 'show_anon_spends': True})
-
+        ro = nodes[1].filtertransactions({'type': 'anon', 'count': 20, 'show_anon_spends': True, 'show_change': True})
         assert(len(ro) > 2)
         foundTx = 0
         for t in ro:
@@ -108,7 +107,16 @@ class AnonTest(ParticlTestFramework):
                 foundTx += 1
                 assert('anon_inputs' in t)
                 assert(t['amount'] < -9.9 and t['amount'] > -10.0)
-                assert(t['outputs'][0]['type'] == 'standard')
+                n_standard = 0
+                n_anon = 0
+                for to in t['outputs']:
+                    if to['type'] == 'standard':
+                        n_standard += 1
+                    elif to['type'] == 'anon':
+                        n_anon += 1
+                        assert(to['is_change'] == 'true')
+                assert(n_standard == 1)
+                assert(n_anon > 0)
                 assert(t['type_in'] == 'anon')
             if t['txid'] == txnHashes[-2]:
                 foundTx += 1
