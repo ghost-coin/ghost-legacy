@@ -4,6 +4,13 @@
 - Add show_anon_spends option to filtertransactions.
 - Remove spurious "ExtractDestination failed" log messages.
 - Add show_change option to filtertransactions.
+- Transaction record format changed.
+  - Owned anon prevouts stored in vin, new vkeyimages attribute.
+  - Breaks backwards compatibility, downgrade requires rescanblockchain.
+- Improved filtertransactions total amount for internal_transfer with anon inputs.
+- Display blocktime if < timereceived.
+- SaveStealthAddress updates counters.
+  - If wallet rescans lookahead removal code would remove existing stealth addresses.
 
 
 0.19.2.5

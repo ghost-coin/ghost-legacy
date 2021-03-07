@@ -136,7 +136,7 @@ WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, CHDWall
     result.block_height = locked_chain.getBlockHeight(rtx.blockHash).get_value_or(std::numeric_limits<int>::max());
     result.blocks_to_maturity = 0;
     result.depth_in_main_chain = wallet.GetDepthInMainChain(locked_chain, rtx.blockHash, rtx.nIndex);
-    result.time_received = rtx.nTimeReceived;
+    result.time_received = rtx.GetTxTime();
     result.lock_time = 0; // TODO
     result.is_final = true; // TODO
     result.is_trusted = wallet.IsTrusted(locked_chain, hash, rtx.blockHash);

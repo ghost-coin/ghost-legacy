@@ -1856,7 +1856,7 @@ static void ListRecord(interfaces::Chain::Lock& locked_chain, CHDWallet *phdw, c
         }
         entry.pushKV("walletconflicts", conflicts);
 
-        PushTime(entry, "time", rtx.nTimeReceived);
+        PushTime(entry, "time", rtx.GetTxTime());
 
         if (!r.sNarration.empty()) {
             entry.pushKV("narration", r.sNarration);

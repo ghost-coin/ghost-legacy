@@ -2880,34 +2880,26 @@ static void ParseRecords(
     if (conflicts.size() > 0) {
         entry.__pushKV("walletconflicts", conflicts);
     }
-    PushTime(entry, "time", rtx.nTimeReceived);
+    PushTime(entry, "time", rtx.GetTxTime());
 
     bool have_stx = false;
     CStoredTransaction stx;
-    if (show_blinding_factors || show_anon_spends) {
+    if (show_blinding_factors) {
         CHDWalletDB wdb(pwallet->GetDBHandle(), "r");
         if (wdb.ReadStoredTx(hash, stx)) {
             have_stx = true;
         }
-        if (show_anon_spends && (rtx.nFlags & ORF_ANON_IN)) {
-            UniValue anon_inputs(UniValue::VARR);
-            CCmpPubKey ki;
-            for (const auto &prevout : rtx.vin) {
-                UniValue anon_prevout(UniValue::VOBJ);
-                memcpy(ki.ncbegin(), prevout.hash.begin(), 32);
-                *(ki.ncbegin() + 32) = prevout.n;
-
-                COutPoint kiPrevout;
-                // TODO: Keep keyimages in memory
-                if (!wdb.ReadAnonKeyImage(ki, kiPrevout)) {
-                    continue;
-                }
-                anon_prevout.__pushKV("txid", kiPrevout.hash.ToString());
-                anon_prevout.__pushKV("n", (int) kiPrevout.n);
-                anon_inputs.push_back(anon_prevout);
-            }
-            entry.__pushKV("anon_inputs", anon_inputs);
+    }
+    if (show_anon_spends && (rtx.nFlags & ORF_ANON_IN)) {
+        UniValue anon_inputs(UniValue::VARR);
+        CCmpPubKey ki;
+        for (const auto &prevout : rtx.vin) {
+            UniValue anon_prevout(UniValue::VOBJ);
+            anon_prevout.__pushKV("txid", prevout.hash.ToString());
+            anon_prevout.__pushKV("n", (int) prevout.n);
+            anon_inputs.push_back(anon_prevout);
         }
+        entry.__pushKV("anon_inputs", anon_inputs);
     }
 
     int nStd = 0, nBlind = 0, nAnon = 0;
@@ -3068,17 +3060,12 @@ static void ParseRecords(
     }
 
     entry.__pushKV("outputs", outputs);
-
-    if (nOwned && nFrom && nOwned != outputs.size()) {
+    if (nOwned && nFrom) {
         // Must check against the owned input value
         CAmount nInput = 0;
         for (const auto &vin : rtx.vin) {
-            if (vin.IsAnonInput()) {
-                continue;
-            }
             nInput += pwallet->GetOwnedOutputValue(vin, watchonly_filter);
         }
-
         CAmount nOutput = 0;
         for (const auto &record : rtx.vout) {
             if ((record.nFlags & ORF_OWNED && watchonly_filter & ISMINE_SPENDABLE)
