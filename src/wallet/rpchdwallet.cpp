@@ -3323,6 +3323,10 @@ static UniValue filtertransactions(const JSONRPCRequest &request)
         }
     }
 
+    if (show_blinding_factors || show_anon_spends) {
+        EnsureWalletIsUnlocked(pwallet);
+    }
+
     std::vector<CScript> vDevFundScripts;
     if (fWithReward) {
         const auto v = Params().GetDevFundSettings();

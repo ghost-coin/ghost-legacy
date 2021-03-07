@@ -153,6 +153,10 @@ class AnonTest(ParticlTestFramework):
         nodes[1].createwallet('test_import_locked')
         w1_3 = nodes[1].get_wallet_rpc('test_import_locked')
         w1_3.encryptwallet('test')
+
+        assert_raises_rpc_error(-13, 'Error: Wallet locked, please enter the wallet passphrase with walletpassphrase first.', w1_3.filtertransactions, {'show_blinding_factors': True})
+        assert_raises_rpc_error(-13, 'Error: Wallet locked, please enter the wallet passphrase with walletpassphrase first.', w1_3.filtertransactions, {'show_anon_spends': True})
+
         w1_3.walletpassphrase('test', 30)
 
         # Skip initial rescan by passing -1 as scan_chain_from
