@@ -749,52 +749,62 @@ bool CHDWallet::LoadTxRecords(CHDWalletDB *pwdb)
         nCount++;
     }
 
-    // Must load all records before marking spent.
+    pcursor->close();
 
-    {
-        MapRecords_t::iterator mri;
-        MapWallet_t::iterator mwi;
-
-        CHDWalletDB wdb(*database);
-        for (const auto &ri : mapRecords) {
+    int32_t flag;
+    if (!pwdb->ReadFlag("anon_vin_v2", flag)) {
+        WalletLogPrintf("Upgrading TransactionRecord format.\n");
+        for (auto &ri : mapRecords) {
             const uint256 &txhash = ri.first;
-            const CTransactionRecord &rtx = ri.second;
+            CTransactionRecord &rtx = ri.second;
 
-            for (const auto &prevout : rtx.vin) {
-                if (rtx.nFlags & ORF_ANON_IN) {
+            std::vector<COutPoint> new_vin;
+            if (rtx.nFlags & ORF_ANON_IN) {
+                for (const auto &prevout : rtx.vin) {
                     CCmpPubKey ki;
                     memcpy(ki.ncbegin(), prevout.hash.begin(), 32);
                     *(ki.ncbegin()+32) = prevout.n;
+                    rtx.vkeyimages.push_back(ki);
 
                     COutPoint kiPrevout;
-                    // TODO: Keep keyimages in memory
-                    if (!wdb.ReadAnonKeyImage(ki, kiPrevout)) {
+                    if (!pwdb->ReadAnonKeyImage(ki, kiPrevout)) {
+                        WalletLogPrintf("Warning: Unknown keyimage %s.\n", HexStr(Span<const unsigned char>(ki.begin(), 33)));
                         continue;
                     }
-                    AddToSpends(kiPrevout, txhash);
-
-                    continue;
+                    new_vin.push_back(kiPrevout);
                 }
+                rtx.vin = new_vin;
+                pwdb->WriteTxRecord(txhash, rtx);
+            }
+        }
+        pwdb->WriteFlag("anon_vin_v2", 1);
+    }
 
-                AddToSpends(prevout, txhash);
+    // Must load all records before marking spent.
 
-                if ((mri = mapRecords.find(prevout.hash)) != mapRecords.end()) {
-                    CTransactionRecord &prevtx = mri->second;
-                    if (prevtx.nIndex == -1 && !prevtx.HashUnset()) {
-                        MarkConflicted(prevtx.blockHash, prevtx.block_height, txhash);
-                    }
-                } else
-                if ((mwi = mapWallet.find(prevout.hash)) != mapWallet.end()) {
-                    CWalletTx &prevtx = mwi->second;
-                    if (prevtx.isConflicted()) {
-                        MarkConflicted(prevtx.m_confirm.hashBlock, prevtx.m_confirm.block_height, txhash);
-                    }
+    MapRecords_t::iterator mri;
+    MapWallet_t::iterator mwi;
+    for (const auto &ri : mapRecords) {
+        const uint256 &txhash = ri.first;
+        const CTransactionRecord &rtx = ri.second;
+
+        for (const auto &prevout : rtx.vin) {
+            AddToSpends(prevout, txhash);
+
+            if ((mri = mapRecords.find(prevout.hash)) != mapRecords.end()) {
+                CTransactionRecord &prevtx = mri->second;
+                if (prevtx.nIndex == -1 && !prevtx.HashUnset()) {
+                    MarkConflicted(prevtx.blockHash, prevtx.block_height, txhash);
+                }
+            } else
+            if ((mwi = mapWallet.find(prevout.hash)) != mapWallet.end()) {
+                CWalletTx &prevtx = mwi->second;
+                if (prevtx.isConflicted()) {
+                    MarkConflicted(prevtx.m_confirm.hashBlock, prevtx.m_confirm.block_height, txhash);
                 }
             }
         }
     }
-
-    pcursor->close();
 
     LogPrint(BCLog::HDWALLET, "Loaded %d records.\n", nCount);
 
@@ -2064,41 +2074,27 @@ CAmount CHDWallet::GetDebit(const CTransaction& tx, const isminefilter& filter) 
     return nDebit;
 };
 
-CAmount CHDWallet::GetDebit(CHDWalletDB *pwdb, const CTransactionRecord &rtx, const isminefilter& filter) const
+CAmount CHDWallet::GetDebit(const CTransactionRecord &rtx, const isminefilter& filter) const
 {
     CAmount nDebit = 0;
 
     LOCK(cs_wallet);
 
-    COutPoint kiPrevout;
     for (const auto &prevout : rtx.vin) {
-        const auto *pPrevout = &prevout;
-        if (rtx.nFlags & ORF_ANON_IN) {
-            CCmpPubKey ki;
-            memcpy(ki.ncbegin(), prevout.hash.begin(), 32);
-            *(ki.ncbegin()+32) = prevout.n;
-
-            // TODO: Keep keyimages in memory
-            if (!pwdb->ReadAnonKeyImage(ki, kiPrevout)) {
-                continue;
-            }
-            pPrevout = &kiPrevout;
-        }
-
-        MapWallet_t::const_iterator mi = mapWallet.find(pPrevout->hash);
+        MapWallet_t::const_iterator mi = mapWallet.find(prevout.hash);
         MapRecords_t::const_iterator mri;
         if (mi != mapWallet.end()) {
-            const CWalletTx &prev = (*mi).second;
-            if (pPrevout->n < prev.tx->vpout.size())
-                if (IsMine(prev.tx->vpout[pPrevout->n].get()) & filter)
-                    nDebit += prev.tx->vpout[pPrevout->n]->GetValue();
+            const CWalletTx &prev = mi->second;
+            if (prevout.n < prev.tx->vpout.size())
+                if (IsMine(prev.tx->vpout[prevout.n].get()) & filter)
+                    nDebit += prev.tx->vpout[prevout.n]->GetValue();
         } else
-        if ((mri = mapRecords.find(pPrevout->hash)) != mapRecords.end()) {
-            const COutputRecord *oR = mri->second.GetOutput(pPrevout->n);
+        if ((mri = mapRecords.find(prevout.hash)) != mapRecords.end()) {
+            const COutputRecord *oR = mri->second.GetOutput(prevout.n);
 
-            if (oR
-                && (filter & ISMINE_SPENDABLE)
-                && (oR->nFlags & ORF_OWNED)) {
+            if (oR &&
+                (filter & ISMINE_SPENDABLE) &&
+                (oR->nFlags & ORF_OWNED)) {
                  nDebit += oR->nValue;
             }
         }
@@ -5860,7 +5856,7 @@ int CHDWallet::ExtKeyNew32(CExtKey &out, const char *sPassPhrase, int32_t nHash,
 
 int CHDWallet::ExtKeyNew32(CExtKey &out, uint8_t *data, uint32_t lenData)
 {
-    LogPrint(BCLog::HDWALLET, "%s\n", __func__);
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     out.SetSeed(data, lenData);
 
@@ -5871,7 +5867,7 @@ int CHDWallet::ExtKeyImportLoose(CHDWalletDB *pwdb, CStoredExtKey &sekIn, CKeyID
 {
     // If fBip44, the bip44 keyid is returned in idDerived
 
-    LogPrint(BCLog::HDWALLET, "%s.\n", __func__);
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
     AssertLockHeld(cs_wallet);
 
     assert(pwdb);
@@ -6951,6 +6947,7 @@ int CHDWallet::ExtKeyLoadAccountPacks()
 
     CKeyID idAccount;
     uint32_t nPack;
+    size_t nKeys = 0, nStealthKeys = 0, nStealthChildKeys = 0;
     std::string strType;
     std::vector<CEKAKeyPack> ekPak;
     std::vector<CEKAStealthKeyPack> aksPak;
@@ -6986,11 +6983,15 @@ int CHDWallet::ExtKeyLoadAccountPacks()
 
         std::vector<CEKAKeyPack>::iterator it;
         for (it = ekPak.begin(); it != ekPak.end(); ++it) {
+            nKeys++;
             sea->mapKeys[it->id] = it->ak;
         }
     }
 
-    size_t nStealthKeys = 0;
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("Loaded %d keys\n", nKeys);
+    }
+
     ssKey.clear();
     ssKey << std::string(DBKeys::PART_SXADDRKEYPACK);
     fFlags = DB_SET_RANGE;
@@ -7064,8 +7065,13 @@ int CHDWallet::ExtKeyLoadAccountPacks()
 
         std::vector<CEKASCKeyPack>::iterator it;
         for (it = asckPak.begin(); it != asckPak.end(); ++it) {
+            nStealthChildKeys++;
             sea->mapStealthChildKeys[it->id] = it->asck;
         }
+    }
+
+    if (LogAcceptCategory(BCLog::HDWALLET)) {
+        WalletLogPrintf("Loaded %d stealth child keys\n", nStealthChildKeys);
     }
 
     pcursor->close();
@@ -7332,7 +7338,7 @@ int CHDWallet::ExtKeySaveKey(CExtKeyAccount *sea, const CKeyID &keyId, const CEK
 int CHDWallet::ExtKeyUpdateStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, CKeyID &sxId, std::string &sLabel)
 {
     AssertLockHeld(cs_wallet);
-    LogPrint(BCLog::HDWALLET, "%s.\n", __func__);
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     AccStealthKeyMap::iterator it = sea->mapStealthKeys.find(sxId);
     if (it == sea->mapStealthKeys.end()) {
@@ -7632,7 +7638,6 @@ int CHDWallet::NewStealthKeyFromAccount(
     CPubKey pkSpend = kSpend.GetPubKey();
     akStealthOut = CEKAStealthKey(nChain, nScanOut, kScan, nChain, nSpendOut, pkSpend, nPrefixBits, nPrefix);
     akStealthOut.sLabel = sLabel;
-
     if (pscankey_num) {
         CKeyID idKey = akStealthOut.GetID();
         auto insert = sea->mapStealthKeys.insert(std::pair<CKeyID, CEKAStealthKey>(idKey, akStealthOut));
@@ -7674,7 +7679,7 @@ int CHDWallet::NewStealthKeyFromAccount(const std::string &sLabel, CEKAStealthKe
 int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea)
 {
     AssertLockHeld(cs_wallet);
-    LogPrint(BCLog::HDWALLET, "%s: %s.\n", __func__, sea->GetIDString58());
+    LogPrint(BCLog::HDWALLET, "%s: %s %s.\n", GetDisplayName(), __func__, sea->GetIDString58());
 
     CStoredExtKey *sekAccount = sea->GetChain(0);
     if (!sekAccount) {
@@ -7758,7 +7763,7 @@ int CHDWallet::InitAccountStealthV2Chains(CHDWalletDB *pwdb, CExtKeyAccount *sea
 
 int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const CEKAStealthKey &akStealth, bool fBech32)
 {
-    LogPrint(BCLog::HDWALLET, "%s.\n", __func__);
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
     assert(sea);
 
     std::vector<CEKAStealthKeyPack> aksPak;
@@ -7776,6 +7781,14 @@ int CHDWallet::SaveStealthAddress(CHDWalletDB *pwdb, CExtKeyAccount *sea, const 
     }
     if (!(sekSpend = sea->GetChain(nSpendChain))) {
         return werrorN(1, "Unknown spend chain.");
+    }
+
+    // Update counters, necessary if stealthkey was lookahead
+    if (sekScan->nHGenerated <= WithoutHardenedBit(akStealth.nScanKey)) {
+        sekScan->nHGenerated = WithoutHardenedBit(akStealth.nScanKey) + 1;
+    }
+    if (sekSpend->nHGenerated <= WithoutHardenedBit(akStealth.akSpend.nKey)) {
+        sekSpend->nHGenerated = WithoutHardenedBit(akStealth.akSpend.nKey) + 1;
     }
 
     sea->mapStealthKeys[idKey] = akStealth;
@@ -8546,7 +8559,7 @@ bool CHDWallet::DummySignTx(CMutableTransaction &txNew, const std::vector<CTxOut
 
 int CHDWallet::LoadStealthAddresses()
 {
-    LogPrint(BCLog::HDWALLET, "%s\n", __func__);
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     LOCK(cs_wallet);
 
@@ -8590,7 +8603,7 @@ int CHDWallet::LoadStealthAddresses()
 
 int CHDWallet::LoadMasterKeys()
 {
-    LogPrint(BCLog::HDWALLET, "%s\n", __func__);
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
 
     LOCK(cs_wallet);
 
@@ -8788,7 +8801,7 @@ bool CHDWallet::GetStealthSecret(const CStealthAddress &sx, CKey &key_out) const
 
 bool CHDWallet::ProcessLockedStealthOutputs()
 {
-    LogPrint(BCLog::HDWALLET, "%s\n", __func__);
+    LogPrint(BCLog::HDWALLET, "%s %s\n", GetDisplayName(), __func__);
     AssertLockHeld(cs_wallet);
 
     CHDWalletDB wdb(*database);
@@ -9023,7 +9036,7 @@ bool CHDWallet::ProcessLockedBlindedOutputs()
         if (fUpdated) {
             // If txn has change, it must have been sent by this wallet
             if (rtx.HaveChange()) {
-                ProcessPlaceholder(&wdb, *stx.tx.get(), rtx);
+                ProcessPlaceholder(*stx.tx.get(), rtx);
             }
 
             if (!wdb.WriteTxRecord(op.hash, rtx)
@@ -9145,7 +9158,7 @@ void CHDWallet::ProcessStealthLookahead(CExtKeyAccount *ea, const CEKAStealthKey
                 WalletLogPrintf("Promoting stealth address %s from lookahead.\n", sxAddr.ToString());
 
                 if (0 != SaveStealthAddress(&wdb, ea, *psx_test, v2)) {
-                    WalletLogPrintf("%s: Warning SetSxAddr failed.\n", __func__);
+                    WalletLogPrintf("%s: Warning SaveStealthAddress failed.\n", __func__);
                 }
                 itd = use_set.erase(itd);
             } else {
@@ -10383,43 +10396,11 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
     return 1;
 };
 
-bool CHDWallet::AddTxinToSpends(const CTxIn &txin, const uint256 &txhash)
-{
-    AssertLockHeld(cs_wallet);
-
-    if (txin.IsAnonInput()) {
-        CHDWalletDB wdb(*database, "r");
-
-        uint32_t nInputs, nRingSize;
-        txin.GetAnonInfo(nInputs, nRingSize);
-
-        const std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
-        if (vKeyImages.size() != nInputs * 33) {
-            return werror("%s: Malformed anon txin, %s.", __func__, txhash.ToString());
-        }
-
-        for (size_t k = 0; k < nInputs; ++k) {
-            const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
-            COutPoint prevout;
-            // TODO: Keep keyimages in memory
-            if (!wdb.ReadAnonKeyImage(ki, prevout)) {
-                continue;
-            }
-            AddToSpends(prevout, txhash);
-        }
-
-        return true;
-    }
-
-    AddToSpends(txin.prevout, txhash);
-    return true;
-};
-
-bool CHDWallet::ProcessPlaceholder(CHDWalletDB *pwdb, const CTransaction &tx, CTransactionRecord &rtx)
+bool CHDWallet::ProcessPlaceholder(const CTransaction &tx, CTransactionRecord &rtx)
 {
     rtx.EraseOutput(OR_PLACEHOLDER_N);
 
-    CAmount nDebit = GetDebit(pwdb, rtx, ISMINE_ALL);
+    CAmount nDebit = GetDebit(rtx, ISMINE_ALL);
     CAmount nCredit = rtx.TotalOutput() + rtx.nFee;
     if (nDebit > 0
         && nDebit != nCredit) {
@@ -10491,7 +10472,33 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
     for (const auto &txin : tx.vin) {
         if (txin.IsAnonInput()) {
             rtx.nFlags |= (int16_t)ORF_ANON_IN;
-            AddTxinToSpends(txin, txhash);
+        }
+    }
+    if (rtx.nFlags & ORF_ANON_IN) {
+        COutPoint op;
+        rtx.vin.clear();
+        rtx.vkeyimages.clear();
+        for (const auto &txin : tx.vin) {
+            if (!txin.IsAnonInput()) {
+                // Should be impossible
+                WalletLogPrintf("Error: Mixed input types %s.\n", txhash.ToString());
+                continue;
+            }
+            uint32_t nInputs, nRingSize;
+            txin.GetAnonInfo(nInputs, nRingSize);
+            const std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
+            assert(vKeyImages.size() == nInputs * 33);
+
+            for (size_t k = 0; k < nInputs; ++k) {
+                const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
+                rtx.vkeyimages.push_back(ki);
+                if (!wdb.ReadAnonKeyImage(ki, op)) {
+                    //WalletLogPrintf("Warning: Unknown keyimage %s.\n", ki.ToString());
+                    continue;
+                }
+                rtx.vin.push_back(op);
+                AddToSpends(op, txhash);
+            }
         }
     }
 
@@ -10502,39 +10509,13 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
         MapRecords_t::iterator mri = ret.first;
         rtxOrdered.insert(std::make_pair(rtx.nTimeReceived, mri));
 
-        for (const auto &txin : tx.vin) {
-            if (!txin.IsAnonInput()) {
-                AddTxinToSpends(txin, txhash);
-            }
-        }
-
         if (rtx.nFlags & ORF_ANON_IN) {
-            COutPoint op;
-            rtx.vin.clear();
-            for (const auto &txin : tx.vin) {
-                if (!txin.IsAnonInput()) {
-                    continue;
-                }
-
-                uint32_t nInputs, nRingSize;
-                txin.GetAnonInfo(nInputs, nRingSize);
-                const std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
-
-                assert(vKeyImages.size() == nInputs * 33);
-
-                for (size_t k = 0; k < nInputs; ++k) {
-                    const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
-                    op.n = 0;
-                    memcpy(op.hash.begin(), ki.begin(), 32);
-                    op.n = *(ki.begin()+32);
-
-                    rtx.vin.push_back(op);
-                }
-            }
+            // Processed above
         } else {
             rtx.vin.resize(tx.vin.size());
             for (size_t k = 0; k < tx.vin.size(); ++k) {
                 rtx.vin[k] = tx.vin[k].prevout;
+                AddToSpends(tx.vin[k].prevout, txhash);
             }
 
             // Lookup 1st input to set type
@@ -10651,7 +10632,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
                 }
             }
 
-            ProcessPlaceholder(&wdb, tx, rtx);
+            ProcessPlaceholder(tx, rtx);
         }
 
         stx.tx = MakeTransactionRef(tx);
@@ -11901,7 +11882,6 @@ std::set<uint256> CHDWallet::GetConflicts(const uint256 &txid) const
         const CTransactionRecord &rtx = mri->second;
         std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range;
 
-        if (!(rtx.nFlags & ORF_ANON_IN))
         for (const auto &prevout : rtx.vin) {
             if (mapTxSpends.count(prevout) <= 1)
                 continue;  // No conflict if zero or one spends

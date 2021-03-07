@@ -139,7 +139,7 @@ WalletTxStatus MakeWalletTxStatus(CHDWallet &wallet, const uint256 &hash, const 
     result.block_height = wallet.chain().getBlockHeight(rtx.blockHash).get_value_or(std::numeric_limits<int>::max());
     result.blocks_to_maturity = 0;
     result.depth_in_main_chain = wallet.GetDepthInMainChain(rtx);
-    result.time_received = rtx.nTimeReceived;
+    result.time_received = rtx.GetTxTime();
     result.lock_time = 0; // TODO
     result.is_final = true; // TODO
     result.is_trusted = wallet.IsTrusted(hash, rtx);

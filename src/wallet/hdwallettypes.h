@@ -108,7 +108,7 @@ class CTransactionRecord
 {
 // Stored by uint256 txnHash;
 public:
-    // Conflicted state is marked by set blockHash and nIndex -1
+    // Conflicted state is marked by setting blockHash and nIndex -1
     uint256 blockHash;
     int block_height = 0;
     int16_t nFlags = 0;
@@ -119,8 +119,9 @@ public:
     CAmount nFee = 0;
     mapRTxValue_t mapValue;
 
-    std::vector<COutPoint> vin;
+    std::vector<COutPoint> vin;  // When inputs are anon vin stores processed prevouts
     std::vector<COutputRecord> vout;
+    std::vector<CCmpPubKey> vkeyimages;
 
     int InsertOutput(COutputRecord &r);
     bool EraseOutput(uint16_t n);
@@ -186,6 +187,9 @@ public:
         READWRITE(obj.nFee);
         READWRITE(obj.vin);
         READWRITE(obj.vout);
+        try { READWRITE(obj.vkeyimages); } catch(std::exception &e) {
+            // old format
+        }
     }
 };
 

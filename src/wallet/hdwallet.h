@@ -178,7 +178,7 @@ public:
      */
     CAmount GetDebit(const CTxIn& txin, const isminefilter& filter) const override;
     CAmount GetDebit(const CTransaction& tx, const isminefilter& filter) const override;
-    CAmount GetDebit(CHDWalletDB *pwdb, const CTransactionRecord &rtx, const isminefilter& filter) const;
+    CAmount GetDebit(const CTransactionRecord &rtx, const isminefilter& filter) const;
 
     /** Returns whether all of the inputs match the filter */
     bool IsAllFromMe(const CTransaction& tx, const isminefilter& filter) const override;
@@ -403,9 +403,7 @@ public:
     int OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOutRingCT *pout, const CStoredExtKey *pc, uint32_t &nLastChild,
         COutputRecord &rout, CStoredTransaction &stx, bool &fUpdated) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
-    bool AddTxinToSpends(const CTxIn &txin, const uint256 &txhash) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-
-    bool ProcessPlaceholder(CHDWalletDB *pwdb, const CTransaction &tx, CTransactionRecord &rtx);
+    bool ProcessPlaceholder(const CTransaction &tx, CTransactionRecord &rtx);
     bool AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, CWalletTx::Confirmation confirm, bool fFlushOnClose=true) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     ScanResult ScanForWalletTransactions(const uint256& start_block, int start_height, Optional<int> max_height, const WalletRescanReserver& reserver, bool fUpdate) override;

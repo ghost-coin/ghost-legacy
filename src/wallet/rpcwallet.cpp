@@ -1897,7 +1897,7 @@ static void ListRecord(const CHDWallet *phdw, const uint256 &hash, const CTransa
         }
         entry.pushKV("walletconflicts", conflicts);
 
-        PushTime(entry, "time", rtx.nTimeReceived);
+        PushTime(entry, "time", rtx.GetTxTime());
 
         if (!r.sNarration.empty()) {
             entry.pushKV("narration", r.sNarration);

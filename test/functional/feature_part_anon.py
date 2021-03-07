@@ -89,11 +89,12 @@ class AnonTest(ParticlTestFramework):
 
         assert(nodes[1].getwalletinfo()['anon_balance'] > 10)
 
-        outputs = [{'address':sxAddrTo0_1, 'amount':10, 'subfee':True},]
+        outputs = [{'address': sxAddrTo0_1, 'amount': 10, 'subfee': True},]
         ro = nodes[1].sendtypeto('anon', 'part', outputs, 'comment_to', 'comment_from', 4, 32, True)
         assert(ro['bytes'] > 0)
 
         txnHashes.append(nodes[1].sendtypeto('anon', 'part', outputs))
+        txnHashes.append(nodes[1].sendtypeto('anon', 'anon', [{'address': sxAddrTo1_1, 'amount': 1},]))
 
         for txhash in txnHashes:
             assert(self.wait_for_mempool(nodes[0], txhash))
@@ -104,6 +105,9 @@ class AnonTest(ParticlTestFramework):
         foundTx = 0
         for t in ro:
             if t['txid'] == txnHashes[-1]:
+                foundTx += 1
+                assert(t['amount'] == t['fee'])
+            elif t['txid'] == txnHashes[-2]:
                 foundTx += 1
                 assert('anon_inputs' in t)
                 assert(t['amount'] < -9.9 and t['amount'] > -10.0)
@@ -118,12 +122,12 @@ class AnonTest(ParticlTestFramework):
                 assert(n_standard == 1)
                 assert(n_anon > 0)
                 assert(t['type_in'] == 'anon')
-            if t['txid'] == txnHashes[-2]:
+            if t['txid'] == txnHashes[-3]:
                 foundTx += 1
                 assert(t['outputs'][0]['type'] == 'anon')
-            if foundTx > 1:
+            if foundTx > 2:
                 break
-        assert(foundTx > 1)
+        assert(foundTx > 2)
 
         self.log.info('Test unspent with address filter')
         unspent_filtered = nodes[1].listunspentanon(1, 9999, [sxAddrTo1_1])
