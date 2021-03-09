@@ -733,7 +733,6 @@ bool CHDWallet::LoadTxRecords(CHDWalletDB *pwdb)
                     CCmpPubKey ki;
                     memcpy(ki.ncbegin(), prevout.hash.begin(), 32);
                     *(ki.ncbegin()+32) = prevout.n;
-                    rtx.vkeyimages.push_back(ki);
 
                     COutPoint kiPrevout;
                     if (!pwdb->ReadAnonKeyImage(ki, kiPrevout)) {
@@ -10255,7 +10254,6 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
     if (rtx.nFlags & ORF_ANON_IN) {
         COutPoint op;
         rtx.vin.clear();
-        rtx.vkeyimages.clear();
         for (const auto &txin : tx.vin) {
             if (!txin.IsAnonInput()) {
                 // Should be impossible
@@ -10269,7 +10267,6 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
 
             for (size_t k = 0; k < nInputs; ++k) {
                 const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
-                rtx.vkeyimages.push_back(ki);
                 if (!wdb.ReadAnonKeyImage(ki, op)) {
                     //WalletLogPrintf("Warning: Unknown keyimage %s.\n", ki.ToString());
                     continue;
