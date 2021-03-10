@@ -5573,8 +5573,13 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 "\nDetect problems in wallet." +
                 HelpRequiringPassphrase(pwallet) + "\n",
                 {
-                    {"attempt_repair", RPCArg::Type::BOOL, /* default */ "false", "Attempt to repair if possible."},
-                    {"clear_stakes_seen", RPCArg::Type::BOOL, /* default */ "false", "Clear seen stakes - for use in regtest networks."},
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
+                        {
+                            {"attempt_repair", RPCArg::Type::BOOL, /* default */ "false", "Attempt to repair if possible."},
+                            {"clear_stakes_seen", RPCArg::Type::BOOL, /* default */ "false", "Clear seen stakes - for use in regtest networks."},\
+                            {"downgrade_wallet", RPCArg::Type::BOOL, /* default */ "false", "Downgrade wallet for older releases."},
+                        },
+                        "options"},
                 },
                 RPCResults{},
                 RPCExamples{""},
@@ -5584,8 +5589,28 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
-    bool attempt_repair = request.params.size() > 0 ? GetBool(request.params[0]) : false;
-    bool clear_stakes_seen = request.params.size() > 1 ? GetBool(request.params[1]) : false;
+    bool attempt_repair = false;
+    bool clear_stakes_seen = false;
+    bool downgrade_wallet = false;
+
+    if (!request.params[0].isNull()) {
+        const UniValue &options = request.params[0].get_obj();
+        RPCTypeCheckObj(options,
+            {
+                {"attempt_repair",               UniValueType(UniValue::VBOOL)},
+                {"clear_stakes_seen",            UniValueType(UniValue::VBOOL)},
+                {"downgrade_wallet",             UniValueType(UniValue::VBOOL)},
+            }, true, false);
+        if (options.exists("attempt_repair")) {
+            attempt_repair = options["attempt_repair"].get_bool();
+        }
+        if (options.exists("clear_stakes_seen")) {
+            clear_stakes_seen = options["clear_stakes_seen"].get_bool();
+        }
+        if (options.exists("downgrade_wallet")) {
+            downgrade_wallet = options["downgrade_wallet"].get_bool();
+        }
+    }
 
     if (clear_stakes_seen) {
         LOCK(cs_main);
@@ -5597,11 +5622,16 @@ static UniValue debugwallet(const JSONRPCRequest &request)
 
     EnsureWalletIsUnlocked(pwallet);
 
+    if (downgrade_wallet) {
+        pwallet->Downgrade();
+        StartShutdown();
+        return "Wallet downgraded - Shutting down.";
+    }
+
     UniValue result(UniValue::VOBJ);
     UniValue errors(UniValue::VARR);
     UniValue warnings(UniValue::VARR);
     result.pushKV("wallet_name", pwallet->GetName());
-
 
     size_t nUnabandonedOrphans = 0;
     size_t nCoinStakes = 0;

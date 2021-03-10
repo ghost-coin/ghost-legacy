@@ -6,11 +6,13 @@
 - Add show_change option to filtertransactions.
 - Transaction record format changed.
   - Owned anon prevouts stored in vin, new vkeyimages attribute.
-  - Breaks backwards compatibility, downgrade requires rescanblockchain.
+  - Breaks backwards compatibility, to downgrade run `debugwallet {\"downgrade_wallet\":true}`.
 - Improved filtertransactions total amount for internal_transfer with anon inputs.
 - Display blocktime if < timereceived.
 - SaveStealthAddress updates counters.
   - If wallet rescans lookahead removal code would remove existing stealth addresses.
+- debugwallet inputs moved to a json object.
+  - New downgrade_wallet option
 
 
 0.19.2.5
