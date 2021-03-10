@@ -1467,6 +1467,50 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
     return DBErrors::LOAD_OK;
 }
 
+void CHDWallet::Downgrade()
+{
+    WalletLogPrintf("Downgrading TransactionRecord format.\n");
+    LOCK(cs_wallet);
+
+    CHDWalletDB wdb(GetDatabase());
+
+    for (auto &ri : mapRecords) {
+        const uint256 &txhash = ri.first;
+        CTransactionRecord &rtx = ri.second;
+
+        if (!(rtx.nFlags & ORF_ANON_IN)) {
+            continue;
+        }
+
+        CStoredTransaction stx;
+        if (!wdb.ReadStoredTx(txhash, stx)) {
+            WalletLogPrintf("Warning: ReadStoredTx failed for: %s.\n", txhash.ToString());
+            continue;
+        }
+
+        COutPoint op;
+        rtx.vin.clear();
+        for (const auto &txin : stx.tx->vin) {
+            if (!txin.IsAnonInput()) {
+                continue;
+            }
+            uint32_t nInputs, nRingSize;
+            txin.GetAnonInfo(nInputs, nRingSize);
+            const std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
+            assert(vKeyImages.size() == nInputs * 33);
+            for (size_t k = 0; k < nInputs; ++k) {
+                const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
+                op.n = 0;
+                memcpy(op.hash.begin(), ki.begin(), 32);
+                op.n = *(ki.begin()+32);
+                rtx.vin.push_back(op);
+            }
+        }
+        wdb.WriteTxRecord(txhash, rtx);
+    }
+    wdb.EraseFlag("anon_vin_v2");
+}
+
 bool CHDWallet::SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address, const std::string &strName,
     const std::string &strPurpose, const std::vector<uint32_t> &vPath, bool fNotifyChanged, bool fBech32)
 {
@@ -10475,7 +10519,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
     }
     if (rtx.nFlags & ORF_ANON_IN) {
         COutPoint op;
-        rtx.vin.clear();
+        std::vector<COutPoint> new_vin;
         for (const auto &txin : tx.vin) {
             if (!txin.IsAnonInput()) {
                 // Should be impossible
@@ -10493,9 +10537,13 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx, C
                     //WalletLogPrintf("Warning: Unknown keyimage %s.\n", ki.ToString());
                     continue;
                 }
-                rtx.vin.push_back(op);
+                new_vin.push_back(op);
                 AddToSpends(op, txhash);
             }
+        }
+        if (rtx.vin != new_vin) {
+            rtx.vin = new_vin;
+            fUpdated = true;
         }
     }
 

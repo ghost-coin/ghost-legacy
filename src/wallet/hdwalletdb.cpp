@@ -139,6 +139,11 @@ bool CHDWalletDB::WriteFlag(const std::string &name, int32_t nValue)
     return WriteIC(std::make_pair(DBKeys::PART_FLAG, name), nValue, true);
 };
 
+bool CHDWalletDB::EraseFlag(const std::string &name)
+{
+    return EraseIC(std::make_pair(DBKeys::PART_FLAG, name));
+};
+
 bool CHDWalletDB::WriteWalletFlags(const uint64_t flags)
 {
     return WriteIC(std::string("flags"), flags);

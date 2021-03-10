@@ -360,6 +360,7 @@ public:
 
     bool ReadFlag(const std::string &name, int32_t &nValue, uint32_t nFlags=DB_READ_UNCOMMITTED);
     bool WriteFlag(const std::string &name, int32_t nValue);
+    bool EraseFlag(const std::string &name);
     bool WriteWalletFlags(const uint64_t flags);
 
 

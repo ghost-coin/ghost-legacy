@@ -147,6 +147,7 @@ public:
     bool ImportStealthAddress(const CStealthAddress &sxAddr, const CKey &skSpend);
 
     DBErrors LoadWallet(bool& fFirstRunRet) override;
+    void Downgrade();
 
     bool AddressBookChangedNotify(const CTxDestination &address, ChangeType nMode);
     bool SetAddressBook(CHDWalletDB *pwdb, const CTxDestination &address, const std::string &strName,
