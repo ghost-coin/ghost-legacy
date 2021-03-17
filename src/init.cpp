@@ -1405,6 +1405,7 @@ bool AppInitSanityChecks()
     ECC_Start();
     ECC_Start_Stealth();
     ECC_Start_Blinding();
+    InitBlinding();
     globalVerifyHandle.reset(new ECCVerifyHandle());
 
     // Sanity check

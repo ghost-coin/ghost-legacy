@@ -19,7 +19,7 @@ public:
     secp256k1_pedersen_commitment commitment;
     COutPoint outpoint;
     int nBlockHeight;
-    uint8_t nCompromised;   // TODO: mark if output can be identified (spent with ringsize 1)
+    uint8_t nCompromised;
 
     SERIALIZE_METHODS(CAnonOutput, obj)
     {

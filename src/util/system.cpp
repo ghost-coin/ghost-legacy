@@ -505,6 +505,11 @@ void ArgsManager::ForceSetArg(const std::string& strArg, const std::string& strV
     LOCK(cs_args);
     m_settings.forced_settings[SettingName(strArg)] = strValue;
 }
+void ArgsManager::ClearForced(const std::string& strArg)
+{
+    LOCK(cs_args);
+    m_settings.forced_settings.erase(SettingName(strArg));
+}
 
 void ArgsManager::AddArg(const std::string& name, const std::string& help, unsigned int flags, const OptionsCategory& cat)
 {

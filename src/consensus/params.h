@@ -79,12 +79,21 @@ struct Params {
     uint32_t rct_time;
     /** Time at which SMSG difficulty tokens are enforced */
     uint32_t smsg_difficulty_time;
-    /** Time of fork to activate more data outputs for blind and anon txns */
-    uint32_t extra_dataoutput_time = 0xffffffff;
-    /** Time of fork to clamp tx version, change sighash, moneysupply and dev fund dest */
+    /** Time of fork to clamp tx version, fix moneysupply and add more data outputs for blind and anon txns */
     uint32_t clamp_tx_version_time = 0xffffffff;
     /** Exploit fix 1 */
     uint32_t exploit_fix_1_time = 0;
+    /** Exploit fix 2 */
+    uint32_t exploit_fix_2_time = 0xffffffff;
+    int64_t m_frozen_anon_index = 0; // Last prefork anonoutput index
+    int m_frozen_blinded_height = 0;
+    int64_t m_max_tainted_value_out = 500LL * 100000000LL /* COIN */; // Maximum value of tainted blinded output that can be spent without being whitelisted
+
+    /** Avoid circular dependency */
+    size_t m_min_ringsize_post_hf2 = 3;
+    size_t m_min_ringsize = 1;
+    size_t m_max_ringsize = 32;
+    size_t m_max_anon_inputs = 32;
 
     uint32_t smsg_fee_period;
     int64_t smsg_fee_funding_tx_per_k;

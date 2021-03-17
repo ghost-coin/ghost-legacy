@@ -87,6 +87,13 @@ const std::vector<UniValue>& UniValue::getValues() const
     return values;
 }
 
+std::vector<UniValue>& UniValue::getValues_nc()
+{
+    if (typ != VOBJ && typ != VARR)
+        throw std::runtime_error("JSON value is not an object or array as expected");
+    return values;
+}
+
 bool UniValue::get_bool() const
 {
     if (typ != VBOOL)

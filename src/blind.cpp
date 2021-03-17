@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,11 +10,23 @@
 #include <support/allocators/secure.h>
 #include <random.h>
 #include <util/system.h>
+#include <serialize.h>
+#include <streams.h>
+#include <version.h>
+
+#include <bloom.h>
+#include <chain/ct_tainted.h>
+#include <chain/tx_whitelist.h>
+#include <set>
 
 
 secp256k1_context *secp256k1_ctx_blind = nullptr;
 secp256k1_scratch_space *blind_scratch = nullptr;
 secp256k1_bulletproof_generators *blind_gens = nullptr;
+
+static CBloomFilter ct_tainted_filter;
+static std::set<uint256> ct_whitelist;
+static std::set<int64_t> rct_whitelist;
 
 static int CountLeadingZeros(uint64_t nValueIn)
 {
@@ -127,6 +139,49 @@ int GetRangeProofInfo(const std::vector<uint8_t> &vRangeproof, int &rexp, int &r
         &vRangeproof[0], vRangeproof.size()) == 1));
 };
 
+void LoadRCTWhitelist(const int64_t indices[], size_t num_indices)
+{
+    rct_whitelist = std::set<int64_t>(indices, indices + num_indices);
+    LogPrintf("RCT whitelist size %d\n", rct_whitelist.size());
+}
+
+void LoadCTWhitelist(const unsigned char *data, size_t data_length)
+{
+    assert(data_length % 32 == 0);
+
+    ct_whitelist.clear();
+    for (size_t i = 0; i < data_length; i += 32) {
+        ct_whitelist.insert(uint256(&data[i], 32));
+    }
+    LogPrintf("CT whitelist size %d\n", ct_whitelist.size());
+}
+
+void LoadCTTaintedFilter(const unsigned char *data, size_t data_length)
+{
+    CDataStream stream((const char*)data, (const char*)(data + data_length), SER_NETWORK, PROTOCOL_VERSION);
+    stream >> ct_tainted_filter;
+}
+
+void InitBlinding()
+{
+    LoadCTTaintedFilter(ct_tainted_filter_data, ct_tainted_filter_data_len);
+    LoadCTWhitelist(tx_whitelist_data, tx_whitelist_data_len);
+    LoadRCTWhitelist(anon_index_whitelist, anon_index_whitelist_size);
+}
+
+bool IsFrozenBlindOutput(const uint256 &txid)
+{
+    if (ct_tainted_filter.contains(txid)) {
+        return !ct_whitelist.count(txid);
+    }
+    return false;
+}
+
+bool IsWhitelistedAnonOutput(int64_t anon_index)
+{
+    return rct_whitelist.count(anon_index);
+}
+
 void ECC_Start_Blinding()
 {
     assert(secp256k1_ctx_blind == nullptr);
@@ -136,7 +191,7 @@ void ECC_Start_Blinding()
 
     {
         // Pass in a random blinding seed to the secp256k1 context.
-        std::vector<unsigned char, secure_allocator<unsigned char>> vseed(32);
+        std::vector<unsigned char, secure_allocator<unsigned char> > vseed(32);
         GetRandBytes(vseed.data(), 32);
         bool ret = secp256k1_context_randomize(ctx, vseed.data());
         assert(ret);
@@ -148,7 +203,7 @@ void ECC_Start_Blinding()
     assert(blind_scratch);
     blind_gens = secp256k1_bulletproof_generators_create(secp256k1_ctx_blind, &secp256k1_generator_const_g, 128);
     assert(blind_gens);
-};
+}
 
 void ECC_Stop_Blinding()
 {
@@ -161,4 +216,4 @@ void ECC_Stop_Blinding()
     if (ctx) {
         secp256k1_context_destroy(ctx);
     }
-};
+}

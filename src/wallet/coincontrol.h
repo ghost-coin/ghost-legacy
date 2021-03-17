@@ -92,6 +92,17 @@ public:
     bool m_blind_watchonly_visible = false;
     //! Appended to ct fee data output
     std::vector<uint8_t> m_extra_data0;
+    //! Allow spending frozen blinded outputs
+    bool m_spend_frozen_blinded = false;
+    //! Include non whitelisted outputs
+    bool m_include_tainted_frozen = false;
+    //! Trigger rct mint exploit for tests, increase by amount
+    CAmount m_debug_exploit_anon = 0;
+    //! Vector of mixins to use
+    std::vector<int64_t> m_use_mixins;
+    //! mixin selection mode to use: 1 select from range, 2 select near real index
+    int m_mixin_selection_mode = 1;
+
 
 
     CCoinControl()

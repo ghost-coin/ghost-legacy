@@ -332,6 +332,11 @@ public:
     void ForceSetArg(const std::string& strArg, const std::string& strValue);
 
     /**
+     * Clear forced value for setting
+     */
+    void ClearForced(const std::string& strArg);
+
+    /**
      * Returns the appropriate chain name from the program arguments.
      * @return CBaseChainParams::MAIN by default; raises runtime error if an invalid combination is given.
      */

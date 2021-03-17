@@ -632,7 +632,7 @@ class WalletParticlTest(ParticlTestFramework):
         assert(scriptHex == 'b86376a914cf3837ef2e493d5b485c7f4536f27415c5cd3b6088ac6776a82064aae0fc202e17e16f708ad811d1bdb9eab37d2911601a428eae3cdbdf57603988ac68')
 
 
-        coincontrol = {'changeaddress': scriptHex,'debug': True}
+        coincontrol = {'changeaddress': scriptHex, 'show_hex': True}
         outputs = [{'address':sAddrSpend, 'amount':1, 'narr':'not change'},]
         ro = nodes[2].sendtypeto('part', 'part', outputs, 'comment', 'comment-to', 4, 32, True, coincontrol)
 

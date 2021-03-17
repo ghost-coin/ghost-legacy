@@ -155,6 +155,7 @@ public:
         assert(strNetworkID == "regtest");
         nCoinYearReward = nCoinYearReward_;
     }
+    Consensus::Params& GetConsensus_nc() { assert(strNetworkID == "regtest"); return consensus; }
 
 protected:
     CChainParams() {}

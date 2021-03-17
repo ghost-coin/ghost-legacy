@@ -174,6 +174,7 @@ public:
     // value is of unexpected type
     const std::vector<std::string>& getKeys() const;
     const std::vector<UniValue>& getValues() const;
+    std::vector<UniValue>& getValues_nc();
     bool get_bool() const;
     const std::string& get_str() const;
     int get_int() const;

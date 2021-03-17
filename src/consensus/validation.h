@@ -153,7 +153,6 @@ public:
     bool fEnforceSmsgFees = false;
     bool fBulletproofsActive = false;
     bool rct_active = false;
-    bool fIncDataOutputs = false;
     int m_spend_height = 0;
     bool m_particl_mode = false;
     bool m_skip_rangeproof = false;
@@ -163,8 +162,10 @@ public:
     bool m_funds_smsg = false;
     bool m_has_anon_output = false;
     bool m_has_anon_input = false;
+    bool m_spends_frozen_blinded = false;
     bool m_clamp_tx_version = false;
     bool m_exploit_fix_1 = false;
+    bool m_exploit_fix_2 = false;
 
     void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool particl_mode, bool skip_rangeproof)
     {
@@ -172,7 +173,6 @@ public:
         fEnforceSmsgFees = time >= consensusParams.nPaidSmsgTime;
         fBulletproofsActive = time >= consensusParams.bulletproof_time;
         rct_active = time >= consensusParams.rct_time;
-        fIncDataOutputs = time >= consensusParams.extra_dataoutput_time;
         if (spend_height > -1) {
             m_spend_height = spend_height; // Pass through connectblock->checkblock
         }
@@ -181,6 +181,7 @@ public:
 
         m_clamp_tx_version = time >= consensusParams.clamp_tx_version_time;
         m_exploit_fix_1 = time >= consensusParams.exploit_fix_1_time;
+        m_exploit_fix_2 = time >= consensusParams.exploit_fix_2_time;
     }
 };
 

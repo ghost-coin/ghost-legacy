@@ -312,7 +312,8 @@ BITCOIN_TESTS += \
   wallet/test/rpc_wallet_tests.cpp \
   wallet/test/hdwallet_tests.cpp \
   wallet/test/rpc_hdwallet_tests.cpp \
-  wallet/test/stake_tests.cpp
+  wallet/test/stake_tests.cpp \
+  wallet/test/frozen_blinded_tests.cpp
 
 BITCOIN_TEST_SUITE += \
   wallet/test/hdwallet_test_fixture.cpp \
