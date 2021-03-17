@@ -4153,7 +4153,7 @@ int CSMSG::FundMsg(SecureMessage &smsg, std::string &sError, bool fTestFee, CAmo
         } else
         if (fund_from == OUTPUT_RINGCT) {
             const Consensus::Params &consensusParams = Params().GetConsensus();
-            if (consensusParams.extra_dataoutput_time > GetAdjustedTime()) {
+            if (consensusParams.clamp_tx_version_time > GetAdjustedTime()) {
                 tr.nType = OUTPUT_STANDARD;
                 tr.fScriptSet = true;
                 tr.scriptPubKey.resize(1);

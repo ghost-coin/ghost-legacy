@@ -186,7 +186,7 @@ public:
 
     int GetDepthInMainChain(interfaces::Chain::Lock& locked_chain, const uint256 &blockhash, int nIndex = 0) const;
     bool InMempool(const uint256 &hash) const;
-    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &hash, const uint256 &blockhash, int nIndex = 0, int *depth_out = nullptr) const;
+    bool IsTrusted(interfaces::Chain::Lock& locked_chain, const uint256 &hash, const CTransactionRecord &rtx, int *depth_out = nullptr) const;
 
     CAmount GetSpendableBalance() const; // Includes watch_only_cs balance
     CAmount GetBlindBalance();
@@ -209,7 +209,7 @@ public:
     void AddOutputRecordMetaData(CTransactionRecord &rtx, std::vector<CTempRecipient> &vecSend);
     int ExpandTempRecipients(std::vector<CTempRecipient> &vecSend, CStoredExtKey *pc, std::string &sError);
 
-    int AddCTData(CTxOutBase *txout, CTempRecipient &r, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    int AddCTData(const CCoinControl *coinControl, CTxOutBase *txout, CTempRecipient &r, std::string &sError) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool SetChangeDest(const CCoinControl *coinControl, CTempRecipient &r, std::string &sError);
 
@@ -232,9 +232,8 @@ public:
 
 
     int PlaceRealOutputs(std::vector<std::vector<int64_t> > &vMI, size_t &nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
-        const std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &vCoins, std::vector<uint8_t> &vInputBlinds, std::string &sError);
-    int PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vector<std::vector<int64_t> > &vMI, size_t nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave,
-        std::string &sError);
+        const std::vector<std::pair<MapRecords_t::const_iterator,unsigned int> > &vCoins, std::vector<uint8_t> &vInputBlinds, const CCoinControl *coinControl, std::string &sError);
+    int PickHidingOutputs(interfaces::Chain::Lock& locked_chain, std::vector<std::vector<int64_t> > &vMI, size_t nSecretColumn, size_t nRingSize, std::set<int64_t> &setHave, const CCoinControl *coinControl, std::string &sError);
 
     int AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &wtx, CTransactionRecord &rtx,
         std::vector<CTempRecipient> &vecSend,
@@ -513,7 +512,7 @@ public:
     int64_t nRCTOutSelectionGroup1 = 5000;
     int64_t nRCTOutSelectionGroup2 = 50000;
     size_t prefer_max_num_anon_inputs = 5; // if > x anon inputs are randomly selected attempt to reduce
-    int m_mixin_selection_mode = 1;
+    int m_mixin_selection_mode_default = 1;
     secp256k1_scratch_space *m_blind_scratch = nullptr;
 
     int m_collapse_spent_mode = 0;

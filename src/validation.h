@@ -270,10 +270,13 @@ void UnloadBlockIndex();
 void ThreadScriptCheck(int worker_num);
 /** Return the median number of blocks that other nodes claim to have */
 int GetNumBlocksOfPeers();
+/** Set the median number of blocks that other nodes claim to have - debug only */
+void SetNumBlocksOfPeers(int num_blocks);
 /** Return the median number of connected nodes */
 int GetNumPeers();
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256 &hash, CTransactionRef &tx, const Consensus::Params& params, uint256 &hashBlock, const CBlockIndex* const block_index = nullptr);
+CAmount GetUTXOSum();
 
 /** Retrieve a transaction and block header from disk */
 bool GetTransaction(const uint256 &hash, CTransactionRef &tx, const Consensus::Params& params, CBlock &block, bool fAllowSlow = false, CBlockIndex* blockIndex = nullptr);

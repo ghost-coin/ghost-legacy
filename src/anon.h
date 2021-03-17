@@ -15,8 +15,9 @@ extern RecursiveMutex cs_main;
 class CTxMemPool;
 class CValidationState;
 
-const size_t MIN_RINGSIZE = 3;
+const size_t MIN_RINGSIZE = 1;
 const size_t MAX_RINGSIZE = 32;
+// const size_t MIN_RINGSIZE_AFTER_FORK = 3; // Moved to consensusParams to avoid circular dependency
 
 const size_t MAX_ANON_INPUTS = 32; // To raise see MLSAG_MAX_ROWS also
 
@@ -40,4 +41,4 @@ bool RewindToCheckpoint(int nCheckPointHeight, int &nBlocks, std::string &sError
 bool RewindRangeProof(const std::vector<uint8_t> &rangeproof, const std::vector<uint8_t> &commitment, const uint256 &nonce,
                       std::vector<uint8_t> &blind_out, CAmount &value_out);
 
-#endif  // PARTICL_ANON_H
+#endif // PARTICL_ANON_H

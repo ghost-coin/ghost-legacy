@@ -758,6 +758,11 @@ void ArgsManager::ForceSetArg(const std::string& strArg, const std::string& strV
     LOCK(cs_args);
     m_override_args[strArg] = {strValue};
 }
+void ArgsManager::ClearForced(const std::string& strArg)
+{
+    LOCK(cs_args);
+    m_override_args.erase(strArg);
+}
 
 void ArgsManager::AddArg(const std::string& name, const std::string& help, unsigned int flags, const OptionsCategory& cat)
 {

@@ -1,6 +1,9 @@
-#ifndef BITCOIN_CHAINPARAMSIMPORT_H
-#define BITCOIN_CHAINPARAMSIMPORT_H
+// Copyright (c) 2017 The Particl Core developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
+#ifndef PARTICL_CHAIN_CHAINPARAMSIMPORT_H
+#define PARTICL_CHAIN_CHAINPARAMSIMPORT_H
 
 void AddImportHashesMain(std::vector<CImportedCoinbaseTxn> &vImportedCoinbaseTxns)
 {
@@ -146,5 +149,4 @@ void AddImportHashesTest(std::vector<CImportedCoinbaseTxn> &vImportedCoinbaseTxn
     vImportedCoinbaseTxns.push_back(CImportedCoinbaseTxn(68, uint256S("c59f05a818bc9bef2a7ba12594a960cf7dd303f541cfffdc4c4d524b4e4091f1")));
 };
 
-
-#endif // BITCOIN_CHAINPARAMSIMPORT_H
+#endif // PARTICL_PARTICL_CHAINPARAMSIMPORT_H

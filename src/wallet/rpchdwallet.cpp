@@ -2867,7 +2867,7 @@ static void ParseRecords(
         entry.__pushKV("blockindex", rtx.nIndex);
         PushTime(entry, "blocktime", rtx.nBlockTime);
     } else {
-        entry.__pushKV("trusted", pwallet->IsTrusted(locked_chain, hash, rtx.blockHash));
+        entry.__pushKV("trusted", pwallet->IsTrusted(locked_chain, hash, rtx));
     }
 
     entry.__pushKV("txid", hash.ToString());
@@ -4132,6 +4132,8 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
                             {"minimumSumAmount", RPCArg::Type::AMOUNT, /* default */ "unlimited", "Minimum sum value of all UTXOs in " + CURRENCY_UNIT + ""},
                             {"cc_format", RPCArg::Type::BOOL, /* default */ "false", "Format output for coincontrol"},
                             {"include_immature", RPCArg::Type::BOOL, /* default */ "false", "Include immature staked outputs"},
+                            {"frozen", RPCArg::Type::BOOL, /* default */ "false", "Show frozen outputs only"},
+                            {"include_tainted_frozen", RPCArg::Type::BOOL, /* default */ "false", "Show tainted frozen outputs"},
                         },
                         "query_options"},
                 },
@@ -4193,6 +4195,7 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
         include_unsafe = request.params[3].get_bool();
     }
 
+    CCoinControl cctl;
     bool fCCFormat = false;
     bool fIncludeImmature = false;
     CAmount nMinimumAmount = 0;
@@ -4207,25 +4210,34 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
             {
                 {"maximumCount",            UniValueType(UniValue::VNUM)},
                 {"cc_format",               UniValueType(UniValue::VBOOL)},
+                {"frozen",                  UniValueType(UniValue::VBOOL)},
+                {"include_tainted_frozen",  UniValueType(UniValue::VBOOL)},
+
             }, true, false);
 
-        if (options.exists("minimumAmount"))
+        if (options.exists("minimumAmount")) {
             nMinimumAmount = AmountFromValue(options["minimumAmount"]);
-
-        if (options.exists("maximumAmount"))
+        }
+        if (options.exists("maximumAmount")) {
             nMaximumAmount = AmountFromValue(options["maximumAmount"]);
-
-        if (options.exists("minimumSumAmount"))
+        }
+        if (options.exists("minimumSumAmount")) {
             nMinimumSumAmount = AmountFromValue(options["minimumSumAmount"]);
-
-        if (options.exists("maximumCount"))
+        }
+        if (options.exists("maximumCount")) {
             nMaximumCount = options["maximumCount"].get_int64();
-
+        }
         if (options.exists("cc_format")) {
             fCCFormat = options["cc_format"].get_bool();
         }
         if (options.exists("include_immature")) {
             fIncludeImmature = options["include_immature"].get_bool();
+        }
+        if (options.exists("frozen")) {
+            cctl.m_spend_frozen_blinded = options["frozen"].get_bool();
+        }
+        if (options.exists("include_tainted_frozen")) {
+            cctl.m_include_tainted_frozen = options["include_tainted_frozen"].get_bool();
         }
     }
 
@@ -4238,7 +4250,6 @@ static UniValue listunspentanon(const JSONRPCRequest &request)
     assert(pwallet != nullptr);
 
     {
-        CCoinControl cctl;
         cctl.m_min_depth = nMinDepth;
         cctl.m_max_depth = nMaxDepth;
         cctl.m_include_immature = fIncludeImmature;
@@ -4345,6 +4356,8 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
                             {"maximumCount", RPCArg::Type::NUM, /* default */ "unlimited", "Maximum number of UTXOs"},
                             {"minimumSumAmount", RPCArg::Type::AMOUNT, /* default */ "unlimited", "Minimum sum value of all UTXOs in " + CURRENCY_UNIT + ""},
                             {"cc_format", RPCArg::Type::BOOL, /* default */ "false", "Format output for coincontrol"},
+                            {"frozen", RPCArg::Type::BOOL, /* default */ "false", "Show frozen outputs only"},
+                            {"include_tainted_frozen", RPCArg::Type::BOOL, /* default */ "false", "Show tainted frozen outputs"},
                         },
                         "query_options"},
                 },
@@ -4392,6 +4405,7 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
         nMaxDepth = request.params[1].get_int();
     }
 
+    CCoinControl cctl;
     bool fCCFormat = false;
     CAmount nMinimumAmount = 0;
     CAmount nMaximumAmount = MAX_MONEY;
@@ -4405,22 +4419,32 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
             {
                 {"maximumCount",            UniValueType(UniValue::VNUM)},
                 {"cc_format",               UniValueType(UniValue::VBOOL)},
+                {"frozen",                  UniValueType(UniValue::VBOOL)},
+                {"include_tainted_frozen",  UniValueType(UniValue::VBOOL)},
+
             }, true, false);
 
-        if (options.exists("minimumAmount"))
+        if (options.exists("minimumAmount")) {
             nMinimumAmount = AmountFromValue(options["minimumAmount"]);
-
-        if (options.exists("maximumAmount"))
+        }
+        if (options.exists("maximumAmount")) {
             nMaximumAmount = AmountFromValue(options["maximumAmount"]);
-
-        if (options.exists("minimumSumAmount"))
+        }
+        if (options.exists("minimumSumAmount")) {
             nMinimumSumAmount = AmountFromValue(options["minimumSumAmount"]);
-
-        if (options.exists("maximumCount"))
+        }
+        if (options.exists("maximumCount")) {
             nMaximumCount = options["maximumCount"].get_int64();
-
-        if (options.exists("cc_format"))
+        }
+        if (options.exists("cc_format")) {
             fCCFormat = options["cc_format"].get_bool();
+        }
+        if (options.exists("frozen")) {
+            cctl.m_spend_frozen_blinded = options["frozen"].get_bool();
+        }
+        if (options.exists("include_tainted_frozen")) {
+            cctl.m_include_tainted_frozen = options["include_tainted_frozen"].get_bool();
+        }
     }
 
     std::set<CBitcoinAddress> setAddress;
@@ -4430,10 +4454,12 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
         for (unsigned int idx = 0; idx < inputs.size(); idx++) {
             const UniValue& input = inputs[idx];
             CBitcoinAddress address(input.get_str());
-            if (!address.IsValidStealthAddress())
+            if (!address.IsValidStealthAddress()) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Particl stealth address: ")+input.get_str());
-            if (setAddress.count(address))
+            }
+            if (setAddress.count(address)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated address: ")+input.get_str());
+            }
            setAddress.insert(address);
         }
     }
@@ -4453,7 +4479,6 @@ static UniValue listunspentblind(const JSONRPCRequest &request)
     assert(pwallet != nullptr);
 
     {
-        CCoinControl cctl;
         cctl.m_min_depth = nMinDepth;
         cctl.m_max_depth = nMaxDepth;
         auto locked_chain = pwallet->chain().lock();
@@ -4652,14 +4677,21 @@ void ReadCoinControlOptions(const UniValue &obj, CHDWallet *pwallet, CCoinContro
 
 static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, OutputTypes typeOut)
 {
-    if (!gArgs.GetBoolArg("-acceptanontxn", DEFAULT_ACCEPT_ANON_TX) &&
+    const Consensus::Params& consensusParams = Params().GetConsensus();
+
+    bool exploit_fix_2_active = GetTime() >= consensusParams.exploit_fix_2_time;
+    bool default_accept_anon = exploit_fix_2_active ? true : DEFAULT_ACCEPT_ANON_TX;
+    bool default_accept_blind = exploit_fix_2_active ? true : DEFAULT_ACCEPT_BLIND_TX;
+    if (!gArgs.GetBoolArg("-acceptanontxn", default_accept_anon) &&
         (typeIn == OUTPUT_RINGCT || typeOut == OUTPUT_RINGCT)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Disabled output type.");
     }
-
-    if (!gArgs.GetBoolArg("-acceptblindtxn", DEFAULT_ACCEPT_BLIND_TX) &&
+    if (!gArgs.GetBoolArg("-acceptblindtxn", default_accept_blind) &&
         (typeIn == OUTPUT_CT || typeOut == OUTPUT_CT)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Disabled output type.");
+    }
+    if (typeOut == OUTPUT_RINGCT && GetTime() < consensusParams.rct_time) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Anon transactions not yet activated.");
     }
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -4678,10 +4710,6 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     if (pwallet->GetBroadcastTransactions() && !g_connman) {
         throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
-    }
-
-    if (typeOut == OUTPUT_RINGCT && GetTime() < Params().GetConsensus().rct_time) {
-        throw std::runtime_error("Anon transactions not yet activated.");
     }
 
     CAmount nTotal = 0;
@@ -4833,11 +4861,8 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     switch (typeIn) {
         case OUTPUT_STANDARD:
-            {
-            const auto bal = pwallet->GetBalance();
-            if (nTotal > bal.m_mine_trusted) {
+            if (nTotal > pwallet->GetBalance().m_mine_trusted) {
                 throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
-            }
             }
             break;
         case OUTPUT_CT:
@@ -4893,7 +4918,11 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     bool fShowHex = false;
     bool fShowFee = false;
+    bool fDebug = false;
     bool fCheckFeeOnly = false;
+    bool fTestMempoolAccept = false;
+    bool fSubmitTx = true;
+
     nv = nTestFeeOfs;
     if (request.params.size() > nv) {
         fCheckFeeOnly = request.params[nv].get_bool();
@@ -4911,11 +4940,42 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
         ReadCoinControlOptions(uvCoinControl, pwallet, coincontrol);
 
-        if (uvCoinControl["debug"].isBool() && uvCoinControl["debug"].get_bool() == true) {
-            fShowHex = true;
+        if (uvCoinControl["debug"].isBool()) {
+            fDebug = uvCoinControl["debug"].get_bool();
         }
-        if (uvCoinControl["show_fee"].isBool() && uvCoinControl["show_fee"].get_bool() == true) {
-            fShowFee = true;
+        if (uvCoinControl["show_hex"].isBool()) {
+            fShowHex = uvCoinControl["show_hex"].get_bool();
+        }
+        if (uvCoinControl["show_fee"].isBool()) {
+            fShowFee = uvCoinControl["show_fee"].get_bool();
+        }
+        if (uvCoinControl["submit_tx"].isBool()) {
+            fSubmitTx = uvCoinControl["submit_tx"].get_bool();
+        }
+
+        if (uvCoinControl["spend_frozen_blinded"].isBool() && uvCoinControl["spend_frozen_blinded"].get_bool() == true) {
+            coincontrol.m_spend_frozen_blinded = true;
+            coincontrol.m_addChangeOutput = false;
+        }
+        if (uvCoinControl["test_mempool_accept"].isBool() && uvCoinControl["test_mempool_accept"].get_bool() == true) {
+            fTestMempoolAccept = true;
+        }
+        const UniValue &uvMixins = uvCoinControl["use_mixins"];
+        if (uvMixins.isArray()) {
+            coincontrol.m_use_mixins.clear();
+            coincontrol.m_use_mixins.reserve(uvMixins.size());
+            for (size_t i = 0; i < uvMixins.size(); ++i) {
+                const UniValue &uvi = uvMixins[i];
+                if (!uvi.isNum()) {
+                    JSONRPCError(RPC_INVALID_PARAMETER, "Mixin index must be an integer.");
+                }
+                coincontrol.m_use_mixins.push_back(uvi.get_int64());
+            }
+        }
+        if (uvCoinControl["mixin_selection_mode"].isNum()) {
+            coincontrol.m_mixin_selection_mode = uvCoinControl["mixin_selection_mode"].get_int();
+        } else {
+            coincontrol.m_mixin_selection_mode = pwallet->m_mixin_selection_mode_default;
         }
     }
     coincontrol.m_avoid_partial_spends |= coincontrol.m_avoid_address_reuse;
@@ -4943,8 +5003,29 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
     }
 
     UniValue result(UniValue::VOBJ);
-    if (fCheckFeeOnly || fShowFee) {
-        result.pushKV("fee", ValueFromAmount(nFeeRet));
+    bool mempool_allowed = false;
+    if (fTestMempoolAccept) {
+        auto locked_chain = pwallet->chain().lock();
+        LockAssertion lock(::cs_main);
+        LOCK(mempool.cs);
+        CValidationState state;
+        CAmount nAbsurdFee{0};
+        bool accept_result = AcceptToMemoryPool(mempool, state, wtx.tx, nullptr, nullptr,
+                                                false /* bypass_limits */, nAbsurdFee, /* test_accept */ true);
+        if (accept_result) {
+            mempool_allowed = true;
+        } else {
+            mempool_allowed = false;
+            result.pushKV("mempool-reject-reason", state.GetRejectReason());
+        }
+        result.pushKV("mempool-allowed", mempool_allowed);
+    }
+    if (fCheckFeeOnly || fShowFee || fTestMempoolAccept || !fSubmitTx) {
+        if (fDebug) {
+            result.pushKV("fee", nFeeRet);
+        } else {
+            result.pushKV("fee", ValueFromAmount(nFeeRet));
+        }
         result.pushKV("bytes", (int)GetVirtualTransactionSize(*(wtx.tx)));
         result.pushKV("need_hwdevice", UniValue(coincontrol.fNeedHardwareKey ? true : false));
 
@@ -4973,7 +5054,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
         }
 
         result.pushKV("outputs_fee", objChangedOutputs);
-        if (fCheckFeeOnly) {
+        if (fCheckFeeOnly || (fTestMempoolAccept && !mempool_allowed) || !fSubmitTx) {
             return result;
         }
     }
@@ -5016,7 +5097,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
 
     pwallet->PostProcessTempRecipients(vecSend);
 
-    if (fShowFee) {
+    if (fShowFee || fTestMempoolAccept) {
         result.pushKV("txid", wtx.GetHash().GetHex());
         return result;
     } else {
@@ -5250,6 +5331,18 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                             {"avoid_reuse", RPCArg::Type::BOOL, /* default */ "true", "(only available if avoid_reuse wallet flag is set) Avoid spending from dirty addresses; addresses are considered\n"
                             "                             dirty if they have previously been used in a transaction."},
                             {"feeRate", RPCArg::Type::AMOUNT, /* default */ "not set: makes wallet determine the fee", "Set a specific fee rate in " + CURRENCY_UNIT + "/kB"},
+                            {"blind_watchonly_visible", RPCArg::Type::BOOL, /* default */ "false", "Reveal amounts of blinded outputs sent to stealth addresses to the scan_secret"},
+                            {"spend_frozen_blinded", RPCArg::Type::BOOL, /* default */ "false", "Enable spending frozen blinded outputs"},
+                            {"test_mempool_accept", RPCArg::Type::BOOL, /* default */ "false", "Test if transaction would be accepted to the mempool, return if not"},
+                            {"use_mixins", RPCArg::Type::ARR, /* default */ "", "A json array of anonoutput indices to use as mixins",
+                                {
+                                    {"ao_index", RPCArg::Type::NUM, /* default */ "", "anonoutput index"},
+                                },
+                            },
+                            {"mixin_selection_mode", RPCArg::Type::NUM, /* default */ "", "Mixin selection mode: 1 select from ranges, 2 select nearby, 3 random full range"},
+                            {"show_hex", RPCArg::Type::BOOL, /* default */ "false", "Display the hex encoded tx"},
+                            {"show_fee", RPCArg::Type::BOOL, /* default */ "false", "Return the fee"},
+                            {"submit_tx", RPCArg::Type::BOOL, /* default */ "true", "Send the tx"},
                         },
                     },
                 },
@@ -5573,10 +5666,12 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 "\nDetect problems in wallet." +
                 HelpRequiringPassphrase(pwallet) + "\n",
                 {
-                    {"options", RPCArg::Type::OBJ, /* default */ "", "",
+                    {"options", RPCArg::Type::OBJ, /* default */ "", "JSON with options",
                         {
+                            {"list_frozen_outputs", RPCArg::Type::BOOL, /* default */ "false", "List frozen anon and blinded outputs."},
+                            {"spend_frozen_output", RPCArg::Type::BOOL, /* default */ "false", "Withdraw one frozen output to plain balance."},
                             {"attempt_repair", RPCArg::Type::BOOL, /* default */ "false", "Attempt to repair if possible."},
-                            {"clear_stakes_seen", RPCArg::Type::BOOL, /* default */ "false", "Clear seen stakes - for use in regtest networks."},\
+                            {"clear_stakes_seen", RPCArg::Type::BOOL, /* default */ "false", "Clear seen stakes - for use in regtest networks."},
                             {"downgrade_wallet", RPCArg::Type::BOOL, /* default */ "false", "Downgrade wallet for older releases."},
                         },
                         "options"},
@@ -5589,6 +5684,8 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
+    bool list_frozen_outputs = false;
+    bool spend_frozen_output = false;
     bool attempt_repair = false;
     bool clear_stakes_seen = false;
     bool downgrade_wallet = false;
@@ -5597,10 +5694,18 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         const UniValue &options = request.params[0].get_obj();
         RPCTypeCheckObj(options,
             {
-                {"attempt_repair",               UniValueType(UniValue::VBOOL)},
-                {"clear_stakes_seen",            UniValueType(UniValue::VBOOL)},
-                {"downgrade_wallet",             UniValueType(UniValue::VBOOL)},
+                {"list_frozen_outputs",                 UniValueType(UniValue::VBOOL)},
+                {"spend_frozen_output",                 UniValueType(UniValue::VBOOL)},
+                {"attempt_repair",                      UniValueType(UniValue::VBOOL)},
+                {"clear_stakes_seen",                   UniValueType(UniValue::VBOOL)},
+                {"downgrade_wallet",                    UniValueType(UniValue::VBOOL)},
             }, true, false);
+        if (options.exists("list_frozen_outputs")) {
+            list_frozen_outputs = options["list_frozen_outputs"].get_bool();
+        }
+        if (options.exists("spend_frozen_output")) {
+            spend_frozen_output = options["spend_frozen_output"].get_bool();
+        }
         if (options.exists("attempt_repair")) {
             attempt_repair = options["attempt_repair"].get_bool();
         }
@@ -5612,6 +5717,173 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         }
     }
 
+    EnsureWalletIsUnlocked(pwallet);
+
+    UniValue result(UniValue::VOBJ);
+    UniValue errors(UniValue::VARR);
+    UniValue warnings(UniValue::VARR);
+
+    CAmount min_value = 10000;
+    if (list_frozen_outputs || spend_frozen_output) {
+        {
+        auto locked_chain = pwallet->chain().lock();
+        LockAssertion lock(::cs_main);
+        LOCK(pwallet->cs_wallet);
+
+        CHDWalletDB wdb(pwallet->GetDBHandle(), "r");
+
+        UniValue blinded_outputs(UniValue::VARR);
+        CAmount total_spendable = 0;
+        CAmount total_unspendable = 0;
+        size_t num_spendable = 0, num_unspendable = 0;
+
+        const Consensus::Params &consensusParams = Params().GetConsensus();
+        bool exploit_fix_2_active = GetTime() >= consensusParams.exploit_fix_2_time;
+        for (MapRecords_t::const_iterator it = pwallet->mapRecords.begin(); it != pwallet->mapRecords.end(); ++it) {
+            const uint256 &txid = it->first;
+            const CTransactionRecord &rtx = it->second;
+
+            int block_height = 0;
+            const Optional<int> height = locked_chain->getBlockHeight(rtx.blockHash);
+            if (height) {
+                block_height = *height;
+            }
+            if (block_height < 1 || // height 0 is mempool
+                block_height > consensusParams.m_frozen_blinded_height) {
+                continue;
+            }
+
+            for (const auto &r : rtx.vout) {
+                if ((r.nType != OUTPUT_RINGCT && r.nType != OUTPUT_CT) ||
+                    !(r.nFlags & ORF_OWNED) ||
+                    r.nValue < min_value ||
+                    pwallet->IsSpent(*locked_chain, txid, r.n)) {
+                    continue;
+                }
+
+                bool is_spendable = true;
+                if (r.nValue > consensusParams.m_max_tainted_value_out) {
+                    // TODO: Store pubkey on COutputRecord - in scriptPubKey
+                    if (r.nType == OUTPUT_RINGCT) {
+                        CStoredTransaction stx;
+                        int64_t index;
+                        if (!wdb.ReadStoredTx(txid, stx) ||
+                            !stx.tx->vpout[r.n]->IsType(OUTPUT_RINGCT) ||
+                            !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, index) ||
+                            !IsWhitelistedAnonOutput(index)) {
+                            is_spendable = false;
+                        }
+                    } else
+                    if (r.nType == OUTPUT_CT) {
+                        if (IsFrozenBlindOutput(txid)) {
+                            is_spendable = false;
+                        }
+                    }
+                }
+                if (is_spendable) {
+                    total_spendable += r.nValue;
+                    num_spendable++;
+                } else {
+                    total_unspendable += r.nValue;
+                    num_unspendable++;
+                }
+                UniValue output(UniValue::VOBJ);
+                output.pushKV("type", r.nType == OUTPUT_RINGCT ? "anon" : "blind");
+                output.pushKV("spendable", is_spendable);
+                output.pushKV("txid", txid.ToString());
+                output.pushKV("n", r.n);
+                output.pushKV("amount", ValueFromAmount(r.nValue));
+                blinded_outputs.push_back(output);
+            }
+        }
+
+        // Sort
+        std::vector<UniValue> &values = blinded_outputs.getValues_nc();
+        std::sort(values.begin(), values.end(), [] (const UniValue &a, const UniValue &b) -> bool {
+            return a["amount"].get_real() > b["amount"].get_real();
+        });
+
+        if (list_frozen_outputs) {
+            result.pushKV("frozen_outputs", blinded_outputs);
+            result.pushKV("num_spendable", (int) num_spendable);
+            result.pushKV("total_spendable", ValueFromAmount(total_spendable));
+            result.pushKV("num_unspendable", (int) num_unspendable);
+            result.pushKV("total_unspendable", ValueFromAmount(total_unspendable));
+            return result;
+        }
+
+        if (!exploit_fix_2_active) {
+            result.pushKV("error", "Exploit repair fork is not active yet.");
+            return result;
+        }
+        if (num_spendable < 1) {
+            result.pushKV("error", "No spendable outputs.");
+            return result;
+        }
+
+        // Withdraw the largest spendable frozen blinded output
+        for (const auto &v : values) {
+            if (!v["spendable"].get_bool()) {
+                continue;
+            }
+            std::string label = "Redeem frozen blinded";
+            CPubKey pubkey;
+            if (0 != pwallet->NewKeyFromAccount(pubkey, false, false, false, false, label.c_str())) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "NewKeyFromAccount failed.");
+            }
+
+            uint256 input_txid = ParseHashO(v, "txid");
+            int rv, input_n = v["n"].get_int();
+            CCoinControl cctl;
+            cctl.m_spend_frozen_blinded = true;
+            cctl.m_addChangeOutput = false;
+            cctl.Select(COutPoint(input_txid, input_n));
+
+            std::vector<CTempRecipient> vec_send;
+            std::string sError;
+            CTempRecipient r;
+            r.nType = OUTPUT_STANDARD;
+            CAmount output_amount = AmountFromValue(v["amount"]);
+            r.SetAmount(output_amount);
+            r.address = GetDestinationForKey(pubkey, OutputType::LEGACY);
+            r.fSubtractFeeFromAmount = true;
+            vec_send.push_back(r);
+
+            CTransactionRef tx_new;
+            CWalletTx wtx(pwallet, tx_new);
+            CTransactionRecord rtx;
+            CAmount nFee;
+
+            if (v["type"].get_str() == "anon") {
+                rv = pwallet->AddAnonInputs(*locked_chain, wtx, rtx, vec_send, true, 1, 1, nFee, &cctl, sError);
+                if (rv != 0) {
+                    throw JSONRPCError(RPC_WALLET_ERROR, "AddAnonInputs failed " + sError);
+                }
+            } else {
+                rv = pwallet->AddBlindedInputs(*locked_chain, wtx, rtx, vec_send, true, nFee, &cctl, sError);
+                if (rv != 0) {
+                    throw JSONRPCError(RPC_WALLET_ERROR, "AddBlindedInputs failed " + sError);
+                }
+            }
+
+            rv = wtx.SubmitMemoryPoolAndRelay(sError, true, *locked_chain);
+            if (rv != 1) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "SubmitMemoryPoolAndRelay failed " + sError);
+            }
+            uint256 txid = wtx.GetHash();
+            result.pushKV("txid", txid.ToString());
+            result.pushKV("spent_txid", input_txid.ToString());
+            result.pushKV("spent_n", input_n);
+            result.pushKV("amount", ValueFromAmount(output_amount));
+            result.pushKV("fee", ValueFromAmount(nFee));
+
+            break;
+        }
+        }
+        SyncWithValidationInterfaceQueue();
+        return result;
+    }
+
     if (clear_stakes_seen) {
         LOCK(cs_main);
         mapStakeConflict.clear();
@@ -5620,17 +5892,12 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         return "Cleared stakes seen.";
     }
 
-    EnsureWalletIsUnlocked(pwallet);
-
     if (downgrade_wallet) {
         pwallet->Downgrade();
         StartShutdown();
         return "Wallet downgraded - Shutting down.";
     }
 
-    UniValue result(UniValue::VOBJ);
-    UniValue errors(UniValue::VARR);
-    UniValue warnings(UniValue::VARR);
     result.pushKV("wallet_name", pwallet->GetName());
 
     size_t nUnabandonedOrphans = 0;
@@ -5800,7 +6067,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 const uint256 &txhash = ri.first;
                 const CTransactionRecord &rtx = ri.second;
 
-                if (!pwallet->IsTrusted(*locked_chain, txhash, rtx.blockHash, rtx.nIndex)) {
+                if (!pwallet->IsTrusted(*locked_chain, txhash, rtx)) {
                     continue;
                 }
 
@@ -6274,7 +6541,7 @@ static UniValue derivefromstealthaddress(const JSONRPCRequest &request)
                 throw JSONRPCError(RPC_WALLET_ERROR, "Spend key not found for stealth address.");
             }
 
-            ec_point pEphem;;
+            ec_point pEphem;
             pEphem.resize(EC_COMPRESSED_SIZE);
             memcpy(&pEphem[0], pkEphem.begin(), pkEphem.size());
 
@@ -7046,7 +7313,8 @@ static UniValue createrawparttransaction(const JSONRPCRequest& request)
             uint256 blind(r.vBlind.data(), 32);
             amount.pushKV("blind", blind.ToString());
 
-            if (0 != pwallet->AddCTData(txbout.get(), r, sError)) {
+            CCoinControl cctl;
+            if (0 != pwallet->AddCTData(&cctl, txbout.get(), r, sError)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, strprintf("AddCTData failed: %s.", sError));
             }
             amount.pushKV("nonce", r.nonce.ToString());

@@ -218,6 +218,12 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
             if (ti < 0)  {
                 CTxIn ai;
                 ai.prevout.n = COutPoint::ANON_MARKER;
+                ai.SetAnonInfo(1, 1);
+
+                std::vector<uint8_t> vpkm;
+                PutVarInt(vpkm, 1);
+                ai.scriptWitness.stack.emplace_back(vpkm);
+
                 txn.vin.push_back(ai);
                 continue;
             }

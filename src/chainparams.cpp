@@ -13,7 +13,7 @@
 #include <util/moneystr.h>
 #include <versionbitsinfo.h>
 
-#include <chainparamsimport.h>
+#include <chain/chainparamsimport.h>
 
 #include <assert.h>
 
@@ -448,6 +448,10 @@ public:
         consensus.rct_time = 0x5D2DBC40;                // 2019-07-16 12:00:00
         consensus.smsg_difficulty_time = 0x5D2DBC40;    // 2019-07-16 12:00:00
         consensus.exploit_fix_1_time = 1614268800;      // 2021-02-25 16:00:00
+
+        consensus.m_frozen_anon_index = 27340;
+        consensus.m_frozen_blinded_height = 884433;
+
 
         consensus.smsg_fee_period = 5040;
         consensus.smsg_fee_funding_tx_per_k = 200000;

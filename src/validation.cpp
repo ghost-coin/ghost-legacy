@@ -300,11 +300,10 @@ bool CheckSequenceLocks(const CTxMemPool& pool, const CTransaction& tx, int flag
         for (size_t txinIndex = 0; txinIndex < tx.vin.size(); txinIndex++) {
             const CTxIn& txin = tx.vin[txinIndex];
 
-            if (txin.IsAnonInput())
-            {
+            if (txin.IsAnonInput()) {
                 prevheights[txinIndex] = tip->nHeight + 1;
                 continue;
-            };
+            }
 
             Coin coin;
             if (!viewMemPool.GetCoin(txin.prevout, coin)) {
@@ -1461,6 +1460,29 @@ int GetNumPeers()
     return nPeers;
 }
 
+CAmount GetUTXOSum()
+{
+    // GetUTXOStats is fragile
+    LOCK(cs_main);
+    ::ChainstateActive().ForceFlushStateToDisk();
+    CCoinsView *coins_view = &::ChainstateActive().CoinsDB();
+    CAmount total = 0;
+    std::unique_ptr<CCoinsViewCursor> pcursor(coins_view->Cursor());
+    while (pcursor->Valid()) {
+        COutPoint key;
+        Coin coin;
+        if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
+            if (coin.nType == OUTPUT_STANDARD) {
+                total += coin.out.nValue;
+            }
+        } else {
+            break;
+        }
+        pcursor->Next();
+    }
+    return total;
+}
+
 void UpdateNumBlocksOfPeers(NodeId id, int height) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     // Select median value. Only one sample per peer. Remove oldest sample.
@@ -1520,6 +1542,12 @@ void UpdateNumBlocksOfPeers(NodeId id, int height) EXCLUSIVE_LOCKS_REQUIRED(cs_m
 int GetNumBlocksOfPeers()
 {
     return nPeerBlocks;
+}
+
+void SetNumBlocksOfPeers(int num_blocks)
+{
+    assert(Params().NetworkID() == CBaseChainParams::REGTEST);
+    nPeerBlocks = num_blocks;
 }
 
 CoinsViews::CoinsViews(
@@ -2623,6 +2651,10 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 }
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), FormatStateMessage(state));
             }
+            if (state.m_exploit_fix_2 && state.m_spends_frozen_blinded) {
+                // Add redeemed frozen blinded value to moneysupply
+                nMoneyCreated += tx.GetValueOut() + txfee;
+            }
             if (tx.IsCoinStake())
             {
                 // Block reward is passed back in txfee (nPlainValueOut - nPlainValueIn)
@@ -2761,7 +2793,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                     const std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
                     for (size_t k = 0; k < nAnonInputs; ++k) {
                         const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
-
                         view.keyImages.push_back(std::make_pair(ki, txhash));
                     }
                 }
@@ -2985,7 +3016,14 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     if (fJustCheck)
         return true;
 
-    pindex->nMoneySupply = (pindex->pprev ? pindex->pprev->nMoneySupply : 0) + nMoneyCreated;
+    if (block.nTime >= consensus.exploit_fix_2_time && pindex->pprev && pindex->pprev->nTime < consensus.exploit_fix_2_time) {
+        // TODO: Set to block height after fork
+        // Set moneysupply to utxoset sum
+        pindex->nMoneySupply = GetUTXOSum() + nMoneyCreated;
+        LogPrintf("RCT mint fix HF2, set nMoneySupply to: %d\n", pindex->nMoneySupply);
+    } else {
+        pindex->nMoneySupply = (pindex->pprev ? pindex->pprev->nMoneySupply : 0) + nMoneyCreated;
+    }
     pindex->nAnonOutputs = view.nLastRCTOutput;
     setDirtyBlockIndex.insert(pindex); // pindex has changed, must save to disk
 

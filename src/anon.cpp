@@ -24,8 +24,9 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
 {
     const Consensus::Params &consensus = Params().GetConsensus();
 
+    bool default_accept_anon = state.m_exploit_fix_2 ? true : DEFAULT_ACCEPT_ANON_TX; // TODO: Remove after fork, set DEFAULT_ACCEPT_ANON_TX to true
     if (state.m_exploit_fix_1 &&
-        !gArgs.GetBoolArg("-acceptanontxn", DEFAULT_ACCEPT_ANON_TX)) {
+        !gArgs.GetBoolArg("-acceptanontxn", default_accept_anon)) {
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-anon-disabled");
     }
 
@@ -97,12 +98,11 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
             return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_MALFORMED, "bad-anonin-sig-size");
         }
 
-        std::vector<uint8_t> vM(nCols * nRows * 33);
-
         std::vector<secp256k1_pedersen_commitment> vCommitments;
         vCommitments.reserve(nCols * nInputs);
         std::vector<const uint8_t*> vpOutCommits;
         std::vector<const uint8_t*> vpInCommits(nCols * nInputs);
+        std::vector<uint8_t> vM(nCols * nRows * 33);
 
         if (fSplitCommitments) {
             vpOutCommits.push_back(&vDL[(1 + (nInputs+1) * nRingSize) * 32]);

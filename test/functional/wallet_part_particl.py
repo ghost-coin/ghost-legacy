@@ -623,15 +623,15 @@ class WalletParticlTest(ParticlTestFramework):
         #sAddrStake = sHardenedAddr
         sAddrStake = 'pomrQeo26xVLV5pnuDYkTUYuABFuP13HHE'
         sAddrSpend = 'tpl1vj4wplpq9ct7zmms3tvpr5dah84txlffz9sp5s5w4c7dhh6hvqus29mjpy'
-        jsonInput = {'recipe':'ifcoinstake', 'addrstake':sAddrStake, 'addrspend':sAddrSpend}
+        jsonInput = {'recipe': 'ifcoinstake', 'addrstake': sAddrStake, 'addrspend': sAddrSpend}
 
         ro = nodes[0].buildscript(jsonInput)
         scriptHex = ro['hex']
         assert(scriptHex == 'b86376a914cf3837ef2e493d5b485c7f4536f27415c5cd3b6088ac6776a82064aae0fc202e17e16f708ad811d1bdb9eab37d2911601a428eae3cdbdf57603988ac68')
 
 
-        coincontrol = {'changeaddress':scriptHex,'debug':True}
-        outputs = [{'address':sAddrSpend, 'amount':1, 'narr':'not change'},]
+        coincontrol = {'changeaddress': scriptHex, 'show_hex': True}
+        outputs = [{'address': sAddrSpend, 'amount': 1, 'narr': 'not change'},]
         ro = nodes[2].sendtypeto('part', 'part', outputs, 'comment', 'comment-to', 4, 32, True, coincontrol)
 
         ro = nodes[2].decoderawtransaction(ro['hex'])

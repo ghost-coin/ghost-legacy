@@ -53,6 +53,7 @@ enum DataOutputTypes
     DO_FUND_MSG             = 8,
     DO_SMSG_FEE             = 9,
     DO_SMSG_DIFFICULTY      = 10,
+    DO_MASK                 = 11,
 };
 
 bool ExtractCoinStakeInt64(const std::vector<uint8_t> &vData, DataOutputTypes get_type, CAmount &out);
@@ -511,7 +512,6 @@ public:
         if (vData.size() < 2 || vData[0] != DO_FEE) {
             return false;
         }
-
         size_t nb;
         return (0 == GetVarInt(vData, 1, (uint64_t&)nFee, nb));
     };

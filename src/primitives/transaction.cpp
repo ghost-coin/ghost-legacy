@@ -44,8 +44,8 @@ bool ExtractCoinStakeUint32(const std::vector<uint8_t> &vData, DataOutputTypes g
     if (vData.size() < 5) { // First 4 bytes will be height
         return false;
     }
-    uint64_t nv;
-    size_t nb;
+    uint64_t nv = 0;
+    size_t nb = 0;
     size_t ofs = 4;
     while (ofs < vData.size()) {
         uint8_t current_type = vData[ofs];

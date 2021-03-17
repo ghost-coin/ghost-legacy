@@ -139,7 +139,7 @@ WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock& locked_chain, CHDWall
     result.time_received = rtx.GetTxTime();
     result.lock_time = 0; // TODO
     result.is_final = true; // TODO
-    result.is_trusted = wallet.IsTrusted(locked_chain, hash, rtx.blockHash);
+    result.is_trusted = wallet.IsTrusted(locked_chain, hash, rtx);
     result.is_abandoned = rtx.IsAbandoned();
     result.is_coinbase = false;
     result.is_in_main_chain = result.depth_in_main_chain > 0;
