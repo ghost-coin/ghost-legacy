@@ -13,7 +13,7 @@ constexpr char DB_TXINDEX_CSBESTBLOCK = 'C';
 
 enum CSIndexFlags
 {
-    CSI_FROM_STAKE              = (1 << 0),
+    CSI_FROM_STAKE = (1 << 0),
 };
 
 class ColdStakeIndexOutputKey

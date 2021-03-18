@@ -35,6 +35,9 @@
 #include <validationinterface.h>
 #include <walletinitinterface.h>
 
+// Particl
+#include <insight/insight.h>
+
 #include <functional>
 
 const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
@@ -99,6 +102,13 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName, const std::ve
         const bool success{m_node.args->ParseParameters(arguments.size(), arguments.data(), error)};
         assert(success);
         assert(error.empty());
+    }
+
+    fBalancesIndex = false;
+    for (const auto &arg : extra_args) {
+        if (strcmp(arg, "-balancesindex") == 0) {
+            fBalancesIndex = true;
+        }
     }
     SelectParams(chainName);
     ResetParams(chainName, fParticlMode);

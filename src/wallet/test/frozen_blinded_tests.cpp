@@ -20,6 +20,7 @@
 #include <net.h>
 #include <validation.h>
 #include <blind.h>
+#include <insight/insight.h>
 #include <rpc/rpcutil.h>
 #include <rpc/util.h>
 #include <util/string.h>
@@ -34,15 +35,15 @@
 #include <boost/test/unit_test.hpp>
 
 
-struct StakeTestingSetup: public HDWalletTestingSetup {
-    StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
+struct FBTestingSetup: public HDWalletTestingSetup {
+    FBTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
         HDWalletTestingSetup(chainName)
     {
         SetMockTime(0);
     }
 };
 
-BOOST_FIXTURE_TEST_SUITE(frozen_blinded_tests, StakeTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(frozen_blinded_tests, FBTestingSetup)
 
 
 void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
@@ -214,6 +215,16 @@ BOOST_AUTO_TEST_CASE(frozen_blinded_test)
 
     StakeNBlocks(pwallet, 2);
 
+    BlockBalances blockbalances;
+    BOOST_CHECK(blockbalances.plain() == 0);
+    BOOST_CHECK(blockbalances.blind() == 0);
+    BOOST_CHECK(blockbalances.anon() == 0);
+    uint256 tip_hash = ::ChainActive().Tip()->GetBlockHash();
+    BOOST_CHECK(GetBlockBalances(tip_hash, blockbalances));
+    BOOST_CHECK(blockbalances.plain() == GetUTXOSum());
+    BOOST_CHECK(blockbalances.blind() == 1111 * COIN);
+    BOOST_CHECK(blockbalances.anon() < -49770 * COIN);
+
     // Enable fix
     RegtestParams().GetConsensus_nc().exploit_fix_1_time = nTime + 1;
     while (GetTime() < nTime + 1) {
@@ -318,6 +329,12 @@ BOOST_AUTO_TEST_CASE(frozen_blinded_test)
     BOOST_REQUIRE(moneysupply_post_fork == balance_before);
     BOOST_REQUIRE(moneysupply_post_fork == utxo_sum_after_fork);
     BOOST_REQUIRE(utxo_sum_before_fork + stake_reward == utxo_sum_after_fork);
+
+    // Test that the balanceindex is reset
+    BOOST_CHECK(GetBlockBalances(::ChainActive().Tip()->GetBlockHash(), blockbalances));
+    BOOST_CHECK(blockbalances.plain() == utxo_sum_after_fork);
+    BOOST_CHECK(blockbalances.blind() == 0);
+    BOOST_CHECK(blockbalances.anon() == 0);
 
     // Spend a large non tainted ct output
     std::string str_cmd;
@@ -480,6 +497,10 @@ BOOST_AUTO_TEST_CASE(frozen_blinded_test)
     BOOST_REQUIRE(moneysupply_before_post_fork_to_blinded == balances.nPart + balances.nPartStaked);
     BOOST_REQUIRE(GetUTXOSum() == moneysupply_before_post_fork_to_blinded);
 
+    BOOST_CHECK(GetBlockBalances(::ChainActive().Tip()->GetBlockHash(), blockbalances));
+    BOOST_CHECK(blockbalances.plain() == moneysupply_before_post_fork_to_blinded);
+    BOOST_CHECK(blockbalances.blind() == 0);
+    BOOST_CHECK(blockbalances.anon() == 0);
 
     // Send some post-fork blinded txns
     str_cmd = strprintf("sendtypeto part blind [{\"address\":\"%s\",\"amount\":1000}] \"\" \"\" 1 1 false {\"test_mempool_accept\":true,\"show_fee\":true}",
@@ -504,9 +525,14 @@ BOOST_AUTO_TEST_CASE(frozen_blinded_test)
 
     pwallet->GetBalances(balances);
     CAmount moneysupply_after_post_fork_to_blinded = WITH_LOCK(cs_main, return ::ChainActive().Tip()->nMoneySupply);
-
-    BOOST_REQUIRE(GetUTXOSum() + 2100 * COIN == moneysupply_after_post_fork_to_blinded);
+    CAmount utxosum = GetUTXOSum();
+    BOOST_REQUIRE(utxosum + 2100 * COIN == moneysupply_after_post_fork_to_blinded);
     BOOST_REQUIRE(balances.nPart + balances.nPartStaked + 2100 * COIN == moneysupply_after_post_fork_to_blinded);
+
+    BOOST_CHECK(GetBlockBalances(::ChainActive().Tip()->GetBlockHash(), blockbalances));
+    BOOST_CHECK(blockbalances.plain() == utxosum);
+    BOOST_CHECK(blockbalances.blind() == 1000 * COIN);
+    BOOST_CHECK(blockbalances.anon() == 1100 * COIN);
 
     // Check that mixing pre and post fork CT fails
     {
@@ -626,6 +652,20 @@ BOOST_AUTO_TEST_CASE(frozen_blinded_test)
     BOOST_CHECK_NO_THROW(rv = CallRPC("debugwallet {\"list_frozen_outputs\":true}", context));
     BOOST_CHECK(rv["num_spendable"].get_int() == 0);
     BOOST_CHECK(rv["num_unspendable"].get_int() > 0);
+
+    // balancesindex tracks the amount of plain coin sent to and from blind to anon.
+    // Coins can move between anon and blind but the sums should match
+    BOOST_CHECK(GetBlockBalances(::ChainActive().Tip()->GetBlockHash(), blockbalances));
+
+    BOOST_CHECK_NO_THROW(rv = CallRPC("getbalances", context));
+    CAmount blind_trusted = AmountFromValue(rv["mine"]["blind_trusted"]);
+    CAmount anon_trusted = AmountFromValue(rv["mine"]["anon_trusted"]);
+    BOOST_CHECK(blind_trusted > blockbalances.blind()); // anon -> blind
+
+    BOOST_CHECK_NO_THROW(rv = CallRPC("debugwallet {\"list_frozen_outputs\":true}", context));
+    CAmount anon_spendable = anon_trusted - AmountFromValue(rv["total_unspendable"]);
+    BOOST_CHECK(anon_spendable < blockbalances.anon()); // anon -> blind
+    BOOST_CHECK(anon_spendable + blind_trusted == blockbalances.blind() + blockbalances.anon());
 
     SetNumBlocksOfPeers(peer_blocks);
 }

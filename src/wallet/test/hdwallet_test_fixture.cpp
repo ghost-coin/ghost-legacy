@@ -13,7 +13,7 @@
 #include <blind.h>
 
 HDWalletTestingSetup::HDWalletTestingSetup(const std::string &chainName):
-    TestingSetup(chainName, {}, true) // fParticlMode = true
+    TestingSetup(chainName, { "-balancesindex" }, true /* fParticlMode */)
 {
     ECC_Start_Stealth();
     ECC_Start_Blinding();

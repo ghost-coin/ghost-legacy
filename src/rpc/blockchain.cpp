@@ -1098,8 +1098,9 @@ static RPCHelpMan gettxoutsetinfo()
         ret.pushKV("bestblock", stats.hashBlock.GetHex());
         ret.pushKV("transactions", (int64_t)stats.nTransactions);
         ret.pushKV("txouts", (int64_t)stats.nTransactionOutputs);
-        if (fParticlMode)
+        if (fParticlMode) {
             ret.pushKV("txouts_blinded", (int64_t)stats.nBlindTransactionOutputs);
+        }
         ret.pushKV("bogosize", (int64_t)stats.nBogoSize);
         if (hash_type == CoinStatsHashType::HASH_SERIALIZED) {
             ret.pushKV("hash_serialized_2", stats.hashSerialized.GetHex());

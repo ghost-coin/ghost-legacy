@@ -166,6 +166,7 @@ public:
     bool m_clamp_tx_version = false;
     bool m_exploit_fix_1 = false;
     bool m_exploit_fix_2 = false;
+    CAmount tx_balances[6] = {0};
 
     void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool particl_mode, bool skip_rangeproof)
     {

@@ -751,9 +751,9 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
         },
         RPCResults{},
         RPCExamples{
-        HelpExampleCli("getblockdeltas", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") +
+        HelpExampleCli("getblockdeltas", "\"fd6c0e5f7444a9e09a5fa1652db73d5b8628aeabe162529a5356be700509aa80\"") +
         "\nAs a JSON-RPC call\n"
-        + HelpExampleRpc("getblockdeltas", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
+        + HelpExampleRpc("getblockdeltas", "\"fd6c0e5f7444a9e09a5fa1652db73d5b8628aeabe162529a5356be700509aa80\"")
         },
     }.Check(request);
 
@@ -761,8 +761,7 @@ static UniValue getblockdeltas(const JSONRPCRequest& request)
 
     const CTxMemPool& mempool = EnsureMemPool(request.context);
 
-    std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    uint256 hash(ParseHashV(request.params[0], "blockhash"));
 
     if (g_chainman.BlockIndex().count(hash) == 0) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
@@ -1123,6 +1122,61 @@ UniValue getblockreward(const JSONRPCRequest& request)
     return rv;
 }
 
+UniValue getblockbalances(const JSONRPCRequest& request)
+{
+    RPCHelpMan{"getblockbalances",
+        "\nReturns block balances.\n",
+        {
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The block hash"},
+            {"options", RPCArg::Type::OBJ, /* default */ "", "",
+                {
+                    {"in_sats", RPCArg::Type::BOOL, /* default */ "false", "Display values in satoshis"},
+                },
+                "options"},
+        },
+        RPCResults{},
+        RPCExamples{
+        HelpExampleCli("getblockbalances", "\"fd6c0e5f7444a9e09a5fa1652db73d5b8628aeabe162529a5356be700509aa80\"") +
+        "\nAs a JSON-RPC call\n"
+        + HelpExampleRpc("getblockbalances", "\"fd6c0e5f7444a9e09a5fa1652db73d5b8628aeabe162529a5356be700509aa80\"")
+        },
+    }.Check(request);
+
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VOBJ}, true);
+
+    LOCK(cs_main);
+
+    if (!fBalancesIndex) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Balances index is not enabled.");
+    }
+    uint256 hash(ParseHashV(request.params[0], "blockhash"));
+
+    bool in_sats = false;
+    if (request.params[1].isObject()) {
+        const UniValue &options = request.params[1];
+        RPCTypeCheckObj(options,
+            {
+                {"in_sats", UniValueType(UniValue::VBOOL)},
+            },
+            true, true);
+        if (options["in_sats"].isBool()) {
+            in_sats = options["in_sats"].get_bool();
+        }
+    }
+
+    BlockBalances balances;
+    if (!GetBlockBalances(hash, balances)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unable to get balances info");
+    }
+
+    UniValue rv(UniValue::VOBJ);
+    rv.pushKV("plain", in_sats ? balances.plain() : ValueFromAmount(balances.plain()));
+    rv.pushKV("blind", in_sats ? balances.blind() : ValueFromAmount(balances.blind()));
+    rv.pushKV("anon",  in_sats ? balances.anon()  : ValueFromAmount(balances.anon()));
+
+    return rv;
+}
+
 UniValue listcoldstakeunspent(const JSONRPCRequest& request)
 {
             RPCHelpMan{"listcoldstakeunspent",
@@ -1191,7 +1245,13 @@ UniValue listcoldstakeunspent(const JSONRPCRequest& request)
     bool show_outpoints = false;
     if (request.params[2].isObject()) {
         const UniValue &options = request.params[2];
-        RPCTypeCheck(options, {UniValue::VBOOL, UniValue::VBOOL}, true);
+        RPCTypeCheckObj(options,
+            {
+                {"mature_only", UniValueType(UniValue::VBOOL)},
+                {"all_staked", UniValueType(UniValue::VBOOL)},
+                {"show_outpoints", UniValueType(UniValue::VBOOL)},
+            },
+            true, true);
         if (options["mature_only"].isBool()) {
             mature_only = options["mature_only"].get_bool();
         }
@@ -1310,6 +1370,7 @@ UniValue getinsightinfo(const JSONRPCRequest& request)
     ret.pushKV("addressindex", fAddressIndex);
     ret.pushKV("spentindex", fSpentIndex);
     ret.pushKV("timestampindex", fTimestampIndex);
+    ret.pushKV("balancesindex", fBalancesIndex);
     ret.pushKV("coldstakeindex", (bool) (g_txindex && g_txindex->m_cs_index));
 
     return ret;
@@ -1329,10 +1390,11 @@ static const CRPCCommand commands[] =
     { "blockchain",         "getblockhashes",         &getblockhashes,         {"high","low","options"} },
     { "blockchain",         "gettxoutsetinfobyscript",&gettxoutsetinfobyscript,{} },
     { "blockchain",         "getblockreward",         &getblockreward,         {"height"} },
+    { "blockchain",         "getblockbalances",       &getblockbalances,       {"options"} },
 
     { "csindex",            "listcoldstakeunspent",   &listcoldstakeunspent,   {"stakeaddress","height","options"} },
 
-    { "blockchain",         "getinsightinfo",           &getinsightinfo,       {} },
+    { "blockchain",         "getinsightinfo",         &getinsightinfo,         {} },
 };
 
 void RegisterInsightRPCCommands(CRPCTable &tableRPC)

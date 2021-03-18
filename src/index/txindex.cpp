@@ -267,7 +267,7 @@ bool TxIndex::DisconnectBlock(const CBlock& block)
 
     std::set<COutPoint> erasedCSOuts;
     CDBBatch batch(*m_db);
-    for (const auto& tx : block.vtx) {
+    for (const auto &tx : block.vtx) {
         int n = -1;
         for (const auto &o : tx->vpout) {
             n++;
@@ -311,7 +311,7 @@ bool TxIndex::IndexCSOutputs(const CBlock& block, const CBlockIndex* pindex)
     std::map<ColdStakeIndexOutputKey, ColdStakeIndexOutputValue> newCSOuts;
     std::map<ColdStakeIndexLinkKey, std::vector<ColdStakeIndexOutputKey> > newCSLinks;
 
-    for (const auto& tx : block.vtx) {
+    for (const auto &tx : block.vtx) {
         int n = -1;
         for (const auto &o : tx->vpout) {
             n++;

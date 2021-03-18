@@ -790,7 +790,7 @@ void ParseCoinControlOptions(const UniValue &obj, CHDWallet *pwallet, CCoinContr
                 {"n", UniValueType(UniValue::VNUM)},
             });
 
-            COutPoint op(uint256S(uvi["tx"].get_str()), uvi["n"].get_int());
+            COutPoint op(ParseHashO(uvi, "tx"), uvi["n"].get_int());
             coin_control.setSelected.insert(op);
 
             bool have_attribute = false;
