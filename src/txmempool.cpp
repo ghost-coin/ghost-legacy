@@ -551,12 +551,10 @@ void CTxMemPool::addSpentIndex(const CTxMemPoolEntry &entry, const CCoinsViewCac
     mapSpentInserted.insert(std::make_pair(txhash, inserted));
 }
 
-bool CTxMemPool::getSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value)
+bool CTxMemPool::getSpentIndex(const CSpentIndexKey &key, CSpentIndexValue &value) const
 {
     LOCK(cs);
-    mapSpentIndex::iterator it;
-
-    it = mapSpent.find(key);
+    mapSpentIndex::const_iterator it = mapSpent.find(key);
     if (it != mapSpent.end()) {
         value = it->second;
         return true;
@@ -564,7 +562,7 @@ bool CTxMemPool::getSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value)
     return false;
 }
 
-bool CTxMemPool::removeSpentIndex(const uint256 txhash)
+bool CTxMemPool::removeSpentIndex(const uint256 &txhash)
 {
     LOCK(cs);
     mapSpentIndexInserted::iterator it = mapSpentInserted.find(txhash);

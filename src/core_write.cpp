@@ -18,9 +18,9 @@
 #include <blind.h>
 
 //extern bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
-bool (*pCoreWriteGetSpentIndex)(CSpentIndexKey &key, CSpentIndexValue &value) = nullptr; // HACK, alternative is to move GetSpentIndex into common lib
+bool (*pCoreWriteGetSpentIndex)(const CSpentIndexKey &key, CSpentIndexValue &value) = nullptr; // HACK, alternative is to move GetSpentIndex into common lib
 
-void SetCoreWriteGetSpentIndex(bool (*function)(CSpentIndexKey&, CSpentIndexValue&))
+void SetCoreWriteGetSpentIndex(bool (*function)(const CSpentIndexKey&, CSpentIndexValue&))
 {
     pCoreWriteGetSpentIndex = function;
 };

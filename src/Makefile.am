@@ -279,6 +279,7 @@ BITCOIN_CORE_H = \
   insight/addressindex.h \
   insight/spentindex.h \
   insight/timestampindex.h \
+  insight/balanceindex.h \
   insight/csindex.h \
   insight/insight.h \
   insight/rpc.h

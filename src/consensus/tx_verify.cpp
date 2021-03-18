@@ -11,10 +11,8 @@
 #include <validation.h>
 #include <chainparams.h>
 
-#include <blind.h>
 #include <timedata.h>
 #include <util/system.h>
-
 
 // TODO remove the following dependencies
 #include <chain.h>
@@ -23,6 +21,10 @@
 
 
 #include <policy/policy.h>
+
+// Particl dependencies
+#include <blind.h>
+#include <insight/balanceindex.h>
 
 
 extern std::atomic_bool fBusyImporting;
@@ -176,8 +178,9 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 
     for (unsigned int i = 0; i < tx.vin.size(); i++)
     {
-        if (tx.vin[i].IsAnonInput())
+        if (tx.vin[i].IsAnonInput()) {
             continue;
+        }
 
         const Coin& coin = inputs.AccessCoin(tx.vin[i].prevout);
         assert(!coin.IsSpent());
@@ -574,7 +577,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "mixed-input-types");
     }
 
-    size_t nCTOutputs = 0, nRingCTOutputs = 0;
+    size_t nCTInputs = nCt, nCTOutputs = 0, nRingCTOutputs = 0;
     // GetPlainValueOut adds to nStandard, nCt, nRingCT
     CAmount nPlainValueOut = tx.GetPlainValueOut(nStandard, nCTOutputs, nRingCTOutputs);
     nCt += nCTOutputs;
@@ -655,6 +658,27 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-frozen-multiple-inputs");
         }
         */
+    }
+
+    // Track blinded balances
+    state.tx_balances[BAL_IND_PLAIN_ADDED] = nPlainValueOut;
+    state.tx_balances[BAL_IND_PLAIN_REMOVED] = nValueIn;
+    if (!state.m_exploit_fix_2 || !state.m_spends_frozen_blinded) {
+        if (nRingCTInputs > 0) { // spending anon
+            state.tx_balances[BAL_IND_ANON_REMOVED] = nPlainValueOut + txfee;
+        } else
+        if (nCTInputs > 0) { // spending blind
+            state.tx_balances[BAL_IND_BLIND_REMOVED] = nPlainValueOut + txfee;
+        }
+    }
+    if (nRingCTOutputs > 0 && nValueIn > 0) {
+        state.tx_balances[BAL_IND_ANON_ADDED] = nValueIn - (nPlainValueOut + txfee);
+    }
+    if (nCTOutputs > 0 && nValueIn > 0) {
+        state.tx_balances[BAL_IND_BLIND_ADDED] = nValueIn - (nPlainValueOut + txfee);
+    }
+    if (state.m_clamp_tx_version && nValueIn > 0 && nRingCTOutputs > 0 && nCTOutputs > 0) {
+        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-plain-in-mixed-out");
     }
 
     if ((nCt > 0 || nRingCTOutputs > 0) && nRingCTInputs == 0) {

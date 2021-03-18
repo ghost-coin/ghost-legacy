@@ -12,6 +12,7 @@
 #include <insight/addressindex.h>
 #include <insight/spentindex.h>
 #include <insight/timestampindex.h>
+#include <insight/balanceindex.h>
 #include <rctindex.h>
 #include <primitives/block.h>
 
@@ -109,7 +110,7 @@ public:
     bool WriteReindexing(bool fReindexing);
     void ReadReindexing(bool &fReindexing);
 
-    bool ReadSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
+    bool ReadSpentIndex(const CSpentIndexKey &key, CSpentIndexValue &value);
     bool UpdateSpentIndex(const std::vector<std::pair<CSpentIndexKey, CSpentIndexValue> >&vect);
     bool UpdateAddressUnspentIndex(const std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue > >&vect);
     bool ReadAddressUnspentIndex(uint256 addressHash, int type,
@@ -123,6 +124,9 @@ public:
     bool ReadTimestampIndex(const unsigned int &high, const unsigned int &low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int> > &vect);
     bool WriteTimestampBlockIndex(const CTimestampBlockIndexKey &blockhashIndex, const CTimestampBlockIndexValue &logicalts);
     bool ReadTimestampBlockIndex(const uint256 &hash, unsigned int &logicalTS);
+
+    bool WriteBlockBalancesIndex(const uint256 &key, const BlockBalances &value);
+    bool ReadBlockBalancesIndex(const uint256 &key, BlockBalances &value);
 
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);

@@ -52,6 +52,7 @@
 #include <anon.h>
 #include <rctindex.h>
 #include <insight/insight.h>
+#include <insight/balanceindex.h>
 
 #include <future>
 #include <sstream>
@@ -2627,14 +2628,21 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     std::vector<PrecomputedTransactionData> txdata;
     txdata.reserve(block.vtx.size()); // Required so that pointers to individual PrecomputedTransactionData don't get invalidated
 
-    // NOTE: Be careful tracking coin created, block reward is based on nMoneySupply
+    // NOTE: Block reward is based on nMoneySupply
     CAmount nMoneyCreated = 0;
+    CAmount block_balances[3] = {0};
+    bool reset_balances = false;
 
     for (unsigned int i = 0; i < block.vtx.size(); i++)
     {
         const CTransaction &tx = *(block.vtx[i]);
         const uint256 txhash = tx.GetHash();
         nInputs += tx.vin.size();
+
+        // Reset balance counters
+        for (size_t ib = 0; ib < 6; ++ib) {
+            state.tx_balances[ib] = 0;
+        }
 
         if (!tx.IsCoinBase())
         {
@@ -2729,6 +2737,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                     }
                 }
             }
+        } else {
+            state.tx_balances[BAL_IND_PLAIN_ADDED] = tx.GetValueOut();
         }
 
         // GetTransactionSigOpCost counts 3 types of sigops:
@@ -2859,6 +2869,10 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
                 view.addressUnspentIndex.push_back(std::make_pair(CAddressUnspentKey(scriptType, uint256(hashBytes.data(), hashBytes.size()), txhash, k), CAddressUnspentValue(nValue, *pScript, pindex->nHeight)));
             }
         }
+
+        block_balances[BAL_IND_PLAIN] += state.tx_balances[BAL_IND_PLAIN_ADDED] - state.tx_balances[BAL_IND_PLAIN_REMOVED];
+        block_balances[BAL_IND_BLIND] += state.tx_balances[BAL_IND_BLIND_ADDED] - state.tx_balances[BAL_IND_BLIND_REMOVED];
+        block_balances[BAL_IND_ANON]  += state.tx_balances[BAL_IND_ANON_ADDED]  - state.tx_balances[BAL_IND_ANON_REMOVED];
     }
 
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
@@ -3021,6 +3035,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         // Set moneysupply to utxoset sum
         pindex->nMoneySupply = GetUTXOSum() + nMoneyCreated;
         LogPrintf("RCT mint fix HF2, set nMoneySupply to: %d\n", pindex->nMoneySupply);
+        reset_balances = true;
+        block_balances[BAL_IND_PLAIN] = pindex->nMoneySupply;
     } else {
         pindex->nMoneySupply = (pindex->pprev ? pindex->pprev->nMoneySupply : 0) + nMoneyCreated;
     }
@@ -3039,26 +3055,27 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
 
     if (fTimestampIndex) {
         unsigned int logicalTS = pindex->nTime;
-        unsigned int prevLogicalTS = 0;
-
-        // Retrieve logical timestamp of the previous block
-        if (pindex->pprev) {
-            if (!pblocktree->ReadTimestampBlockIndex(pindex->pprev->GetBlockHash(), prevLogicalTS)) {
-                LogPrintf("%s: Failed to read previous block's logical timestamp\n", __func__);
-            }
-        }
-
-        if (logicalTS <= prevLogicalTS) {
-            logicalTS = prevLogicalTS + 1;
-            LogPrintf("%s: Previous logical timestamp is newer Actual[%d] prevLogical[%d] Logical[%d]\n", __func__, pindex->nTime, prevLogicalTS, logicalTS);
-        }
-
         if (!pblocktree->WriteTimestampIndex(CTimestampIndexKey(logicalTS, pindex->GetBlockHash()))) {
             return AbortNode(state, "Failed to write timestamp index");
         }
 
         if (!pblocktree->WriteTimestampBlockIndex(CTimestampBlockIndexKey(pindex->GetBlockHash()), CTimestampBlockIndexValue(logicalTS))) {
             return AbortNode(state, "Failed to write blockhash index");
+        }
+    }
+    if (fBalancesIndex) {
+        BlockBalances values(block_balances);
+        if (pindex->pprev && !reset_balances) {
+            BlockBalances prev_balances;
+            if (!pblocktree->ReadBlockBalancesIndex(pindex->pprev->GetBlockHash(), prev_balances)) {
+                return AbortNode(state, "Failed to read previous block's balances");
+            } else {
+                values.sum(prev_balances);
+            }
+        }
+
+        if (!pblocktree->WriteBlockBalancesIndex(block.GetHash(), values)) {
+            return AbortNode(state, "Failed to write balances index");
         }
     }
 
@@ -5754,17 +5771,15 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams) EXCLUSIVE_LOCKS_RE
     pblocktree->ReadReindexing(fReindexing);
     if(fReindexing) fReindex = true;
 
-    // Check whether we have an address index
+    // Check whether we have indices
     pblocktree->ReadFlag("addressindex", fAddressIndex);
     LogPrintf("%s: address index %s\n", __func__, fAddressIndex ? "enabled" : "disabled");
-
-    // Check whether we have a timestamp index
     pblocktree->ReadFlag("timestampindex", fTimestampIndex);
     LogPrintf("%s: timestamp index %s\n", __func__, fTimestampIndex ? "enabled" : "disabled");
-
-    // Check whether we have a spent index
     pblocktree->ReadFlag("spentindex", fSpentIndex);
     LogPrintf("%s: spent index %s\n", __func__, fSpentIndex ? "enabled" : "disabled");
+    pblocktree->ReadFlag("balancesindex", fBalancesIndex);
+    LogPrintf("%s: balances index %s\n", __func__, fBalancesIndex ? "enabled" : "disabled");
 
     return true;
 }
@@ -6208,20 +6223,19 @@ bool LoadBlockIndex(const CChainParams& chainparams)
         LogPrintf("Initializing databases...\n");
         pblocktree->WriteFlag("v1", true);
 
-        // Use the provided setting for -addressindex in the new database
+        // Use the provided setting for indices in the new database
         fAddressIndex = gArgs.GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX);
         pblocktree->WriteFlag("addressindex", fAddressIndex);
         LogPrintf("%s: address index %s\n", __func__, fAddressIndex ? "enabled" : "disabled");
-
-        // Use the provided setting for -timestampindex in the new database
         fTimestampIndex = gArgs.GetBoolArg("-timestampindex", DEFAULT_TIMESTAMPINDEX);
         pblocktree->WriteFlag("timestampindex", fTimestampIndex);
         LogPrintf("%s: timestamp index %s\n", __func__, fTimestampIndex ? "enabled" : "disabled");
-
-        // Use the provided setting for -spentindex in the new database
         fSpentIndex = gArgs.GetBoolArg("-spentindex", DEFAULT_SPENTINDEX);
         pblocktree->WriteFlag("spentindex", fSpentIndex);
         LogPrintf("%s: spent index %s\n", __func__, fSpentIndex ? "enabled" : "disabled");
+        fBalancesIndex = gArgs.GetBoolArg("-balancesindex", DEFAULT_BALANCESINDEX);
+        pblocktree->WriteFlag("balancesindex", fBalancesIndex);
+        LogPrintf("%s: balances index %s\n", __func__, fBalancesIndex ? "enabled" : "disabled");
     }
     return true;
 }
@@ -6266,6 +6280,7 @@ bool LoadExternalBlockFile(const CChainParams& chainparams, FILE* fileIn, FlatFi
     fAddressIndex = gArgs.GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX);
     fTimestampIndex = gArgs.GetBoolArg("-timestampindex", DEFAULT_TIMESTAMPINDEX);
     fSpentIndex = gArgs.GetBoolArg("-spentindex", DEFAULT_SPENTINDEX);
+    fBalancesIndex = gArgs.GetBoolArg("-balancesindex", DEFAULT_BALANCESINDEX);
 
     int nLoaded = 0;
     try {

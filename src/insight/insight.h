@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2015 The Bitcoin Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -20,10 +21,12 @@ extern CCriticalSection cs_main;
 extern bool fAddressIndex;
 extern bool fSpentIndex;
 extern bool fTimestampIndex;
+extern bool fBalancesIndex;
 
 class CTxOutBase;
 class CScript;
 class uint256;
+class BlockBalances;
 struct CAddressIndexKey;
 struct CAddressUnspentKey;
 struct CAddressUnspentValue;
@@ -35,13 +38,14 @@ bool ExtractIndexInfo(const CTxOutBase *out, int &scriptType, std::vector<uint8_
 
 /** Functions for insight block explorer */
 bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const bool fActiveOnly, std::vector<std::pair<uint256, unsigned int> > &hashes);
-bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
+bool GetSpentIndex(const CSpentIndexKey &key, CSpentIndexValue &value);
 bool HashOnchainActive(const uint256 &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-bool GetAddressIndex(uint256 addressHash, int type,
+bool GetAddressIndex(const uint256 &addressHash, int type,
                      std::vector<std::pair<CAddressIndexKey, CAmount> > &addressIndex,
                      int start = 0, int end = 0);
-bool GetAddressUnspent(uint256 addressHash, int type,
+bool GetAddressUnspent(const uint256 &addressHash, int type,
                        std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > &unspentOutputs);
+bool GetBlockBalances(const uint256 &block_hash, BlockBalances &balances);
 
 bool getAddressFromIndex(const int &type, const uint256 &hash, std::string &address);
 

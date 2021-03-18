@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -21,6 +21,7 @@
 bool fAddressIndex = false;
 bool fTimestampIndex = false;
 bool fSpentIndex = false;
+bool fBalancesIndex = false;
 
 bool ExtractIndexInfo(const CScript *pScript, int &scriptType, std::vector<uint8_t> &hashBytes)
 {
@@ -86,7 +87,7 @@ bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, const 
     return true;
 };
 
-bool GetSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value)
+bool GetSpentIndex(const CSpentIndexKey &key, CSpentIndexValue &value)
 {
     if (!fSpentIndex) {
         return false;
@@ -112,7 +113,7 @@ bool HashOnchainActive(const uint256 &hash)
     return true;
 };
 
-bool GetAddressIndex(uint256 addressHash, int type,
+bool GetAddressIndex(const uint256 &addressHash, int type,
                      std::vector<std::pair<CAddressIndexKey, CAmount> > &addressIndex, int start, int end)
 {
     if (!fAddressIndex) {
@@ -125,7 +126,7 @@ bool GetAddressIndex(uint256 addressHash, int type,
     return true;
 };
 
-bool GetAddressUnspent(uint256 addressHash, int type,
+bool GetAddressUnspent(const uint256 &addressHash, int type,
                        std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > &unspentOutputs)
 {
     if (!fAddressIndex) {
@@ -133,6 +134,18 @@ bool GetAddressUnspent(uint256 addressHash, int type,
     }
     if (!pblocktree->ReadAddressUnspentIndex(addressHash, type, unspentOutputs)) {
         return error("Unable to get txids for address");
+    }
+
+    return true;
+};
+
+bool GetBlockBalances(const uint256 &block_hash, BlockBalances &balances)
+{
+    if (!fBalancesIndex) {
+        return error("Balances index not enabled");
+    }
+    if (!pblocktree->ReadBlockBalancesIndex(block_hash, balances)) {
+        return error("Unable to get balances for block %s", block_hash.ToString());
     }
 
     return true;

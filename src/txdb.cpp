@@ -30,6 +30,7 @@ static const char DB_ADDRESSUNSPENTINDEX = 'u';
 static const char DB_TIMESTAMPINDEX = 's';
 static const char DB_BLOCKHASHINDEX = 'z';
 static const char DB_SPENTINDEX = 'p';
+static const char DB_BALANCESINDEX = 'i';
 //static const char DB_TXINDEX_BLOCK = 'T';
 static const char DB_BLOCK_INDEX = 'b';
 
@@ -251,7 +252,7 @@ bool CBlockTreeDB::WriteBatchSync(const std::vector<std::pair<int, const CBlockF
     return WriteBatch(batch, true);
 }
 
-bool CBlockTreeDB::ReadSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value) {
+bool CBlockTreeDB::ReadSpentIndex(const CSpentIndexKey &key, CSpentIndexValue &value) {
     return Read(std::make_pair(DB_SPENTINDEX, key), value);
 }
 
@@ -410,6 +411,18 @@ bool CBlockTreeDB::ReadTimestampBlockIndex(const uint256 &hash, unsigned int &lt
 
     ltimestamp = lts.ltimestamp;
     return true;
+}
+
+bool CBlockTreeDB::WriteBlockBalancesIndex(const uint256 &key, const BlockBalances &value)
+{
+    CDBBatch batch(*this);
+    batch.Write(std::make_pair(DB_BALANCESINDEX, key), value);
+    return WriteBatch(batch);
+}
+
+bool CBlockTreeDB::ReadBlockBalancesIndex(const uint256 &key, BlockBalances &value)
+{
+    return Read(std::make_pair(DB_BALANCESINDEX, key), value);
 }
 
 bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {

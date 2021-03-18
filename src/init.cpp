@@ -513,6 +513,7 @@ void SetupServerArgs()
     gArgs.AddArg("-addressindex", strprintf("Maintain a full address index, used to query for the balance, txids and unspent outputs for addresses (default: %u)", DEFAULT_ADDRESSINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-timestampindex", strprintf("Maintain a timestamp index for block hashes, used to query blocks hashes by a range of timestamps (default: %u)", DEFAULT_TIMESTAMPINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-spentindex", strprintf("Maintain a full spent index, used to query the spending txid and input index for an outpoint (default: %u)", DEFAULT_SPENTINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-balancesindex", strprintf("Maintain a balances index per block (default: %u)", DEFAULT_SPENTINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-csindex", strprintf("Maintain an index of outputs by coldstaking address (default: %u)", DEFAULT_CSINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-cswhitelist", strprintf("Only index coldstaked outputs with matching stake address. Can be specified multiple times."), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 
@@ -1635,14 +1636,12 @@ bool AppInitMain(InitInterfaces& interfaces)
     nTotalCache = std::min(nTotalCache, nMaxDbCache << 20); // total cache cannot be greater than nMaxDbcache
     int64_t nBlockTreeDBCache = nTotalCache / 8;
 
-    if (gArgs.GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX) || gArgs.GetBoolArg("-spentindex", DEFAULT_SPENTINDEX))
-    {
+    if (gArgs.GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX) || gArgs.GetBoolArg("-spentindex", DEFAULT_SPENTINDEX)) {
         // enable 3/4 of the cache if addressindex and/or spentindex is enabled
         nBlockTreeDBCache = nTotalCache * 3 / 4;
-    } else
-    {
+    } else {
         nBlockTreeDBCache = std::min(nBlockTreeDBCache, (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX) ? nMaxTxIndexCache : nMaxBlockDBCache) << 20);
-    };
+    }
 
     //int64_t nBlockTreeDBCache = std::min(nTotalCache / 8, nMaxBlockDBCache << 20);
     nTotalCache -= nBlockTreeDBCache;
@@ -1729,21 +1728,21 @@ bool AppInitMain(InitInterfaces& interfaces)
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?").translated);
                 }
 
-                // Check for changed -addressindex state
+                // Check for changed index states
                 if (fAddressIndex != gArgs.GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -addressindex").translated;
                     break;
                 }
-
-                // Check for changed -spentindex state
                 if (fSpentIndex != gArgs.GetBoolArg("-spentindex", DEFAULT_SPENTINDEX)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -spentindex").translated;
                     break;
                 }
-
-                // Check for changed -timestampindex state
                 if (fTimestampIndex != gArgs.GetBoolArg("-timestampindex", DEFAULT_TIMESTAMPINDEX)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -timestampindex").translated;
+                    break;
+                }
+                if (fBalancesIndex != gArgs.GetBoolArg("-balancesindex", DEFAULT_BALANCESINDEX)) {
+                    strLoadError = _("You need to rebuild the database using -reindex to change -balancesindex").translated;
                     break;
                 }
 
