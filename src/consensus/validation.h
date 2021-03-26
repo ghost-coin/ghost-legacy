@@ -157,6 +157,7 @@ public:
     bool m_particl_mode = false;
     bool m_skip_rangeproof = false;
     const Consensus::Params *m_consensus_params = nullptr;
+    bool m_preserve_state = false; // Don't clear error during ActivateBestChain (debug)
 
     // TxValidationState
     bool m_funds_smsg = false;
@@ -167,6 +168,7 @@ public:
     bool m_exploit_fix_1 = false;
     bool m_exploit_fix_2 = false;
     CAmount tx_balances[6] = {0};
+    std::set<CCmpPubKey> m_setHaveKI;
 
     void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams, bool particl_mode, bool skip_rangeproof)
     {

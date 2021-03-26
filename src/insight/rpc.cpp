@@ -1390,7 +1390,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "getblockhashes",         &getblockhashes,         {"high","low","options"} },
     { "blockchain",         "gettxoutsetinfobyscript",&gettxoutsetinfobyscript,{} },
     { "blockchain",         "getblockreward",         &getblockreward,         {"height"} },
-    { "blockchain",         "getblockbalances",       &getblockbalances,       {"options"} },
+    { "blockchain",         "getblockbalances",       &getblockbalances,       {"blockhash","options"} },
 
     { "csindex",            "listcoldstakeunspent",   &listcoldstakeunspent,   {"stakeaddress","height","options"} },
 

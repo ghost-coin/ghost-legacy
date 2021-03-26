@@ -15,6 +15,7 @@ extern RecursiveMutex cs_main;
 
 class uint256;
 class CTxIn;
+class CKey;
 class CTransaction;
 class CTxMemPool;
 class TxValidationState;
@@ -34,6 +35,7 @@ bool CheckAnonInputMempoolConflicts(const CTxIn &txin, const uint256 txhash, CTx
 
 bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+int GetKeyImage(CCmpPubKey &ki, const CCmpPubKey &pubkey, const CKey &key);
 bool AddKeyImagesToMempool(const CTransaction &tx, CTxMemPool &pool);
 bool RemoveKeyImagesFromMempool(const uint256 &hash, const CTxIn &txin, CTxMemPool &pool);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,6 +12,7 @@
 #include <key/extkey.h>
 #include <pos/kernel.h>
 #include <chainparams.h>
+#include <blind.h>
 
 #include <script/sign.h>
 #include <policy/policy.h>
@@ -238,6 +239,57 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
             BOOST_CHECK(state.GetRejectReason() == "mixed-input-types");
         }
     }
+}
+
+BOOST_AUTO_TEST_CASE(mixed_output_types)
+{
+    ECC_Start_Blinding();
+    // When sending from plain only CT or RCT outputs are valid
+    CAmount txfee = 2000;
+    int nSpendHeight = 1;
+    CCoinsView viewDummy;
+    CCoinsViewCache inputs(&viewDummy);
+
+    CMutableTransaction txnPrev;
+    txnPrev.nVersion = PARTICL_TXN_VERSION;
+    BOOST_CHECK(txnPrev.IsParticlVersion());
+
+    CScript scriptPubKey;
+    txnPrev.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(1 * COIN, scriptPubKey));
+
+    CTransaction txnPrev_c(txnPrev);
+    AddCoins(inputs, txnPrev_c, 1);
+    uint256 prevHash = txnPrev_c.GetHash();
+
+    CMutableTransaction txn;
+    txn.nVersion = PARTICL_TXN_VERSION;
+    BOOST_CHECK(txn.IsParticlVersion());
+    txn.vin.push_back(CTxIn(prevHash, 0));
+
+    OUTPUT_PTR<CTxOutData> out_fee = MAKE_OUTPUT<CTxOutData>();
+    out_fee->vData.push_back(DO_FEE);
+    BOOST_REQUIRE(0 == part::PutVarInt(out_fee->vData, txfee));
+    txn.vpout.push_back(out_fee);
+
+    txn.vpout.push_back(MAKE_OUTPUT<CTxOutStandard>(1 * COIN - txfee, scriptPubKey));
+    txn.vpout.push_back(MAKE_OUTPUT<CTxOutCT>());
+    txn.vpout.push_back(MAKE_OUTPUT<CTxOutRingCT>());
+
+    CTransaction tx_c(txn);
+    TxValidationState state;
+    state.SetStateInfo(GetTime(), nSpendHeight, Params().GetConsensus(), true /* particl_mode */, false /* skip_rangeproof */);
+    state.m_clamp_tx_version = true; // Using mainnet chainparams
+    gArgs.ForceSetArg("-acceptanontxn", "1"); // TODO: remove
+    gArgs.ForceSetArg("-acceptblindtxn", "1"); // TODO: remove
+    BOOST_CHECK(!Consensus::CheckTxInputs(tx_c, state, inputs, nSpendHeight, txfee));
+    BOOST_CHECK(state.GetRejectReason() == "bad-txns-plain-in-mixed-out");
+
+    txn.vpout.pop_back();
+    CTransaction tx_c2(txn);
+    BOOST_CHECK(!Consensus::CheckTxInputs(tx_c2, state, inputs, nSpendHeight, txfee));
+    BOOST_CHECK(state.GetRejectReason() != "bad-txns-plain-in-mixed-out");
+
+    ECC_Stop_Blinding();
 }
 
 BOOST_AUTO_TEST_CASE(op_iscoinstake_tests)

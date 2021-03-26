@@ -9,6 +9,7 @@
 #include <secp256k1_rangeproof.h>
 #include <secp256k1_mlsag.h>
 
+#include <key.h>
 #include <blind.h>
 #include <rctindex.h>
 #include <txdb.h>
@@ -67,7 +68,7 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
 
     int rv;
     std::set<int64_t> setHaveI; // Anon prev-outputs can only be used once per transaction.
-    std::set<CCmpPubKey> setHaveKI;
+    state.m_setHaveKI.clear(); // Pass keyimages through state to add to db
     bool fSplitCommitments = tx.vin.size() > 1;
 
     size_t nStandard = 0, nCt = 0, nRingCT = 0;
@@ -81,8 +82,7 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
     nPlainValueOut += nTxFee;
 
     // Get commitment for unblinded amount
-    uint8_t zeroBlind[32];
-    memset(zeroBlind, 0, 32);
+    uint8_t zeroBlind[32] = {0};
     secp256k1_pedersen_commitment plainCommitment;
     if (nPlainValueOut > 0) {
         if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
@@ -188,7 +188,7 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
         for (size_t k = 0; k < nInputs; ++k) {
             const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
 
-            if (!setHaveKI.insert(ki).second) {
+            if (!state.m_setHaveKI.insert(ki).second) {
                 if (LogAcceptCategory(BCLog::RINGCT)) {
                     LogPrintf("%s: Duplicate keyimage detected in txn %s.\n", __func__, HexStr(ki));
                 }
@@ -239,6 +239,11 @@ bool VerifyMLSAG(const CTransaction &tx, TxValidationState &state)
     }
 
     return true;
+};
+
+int GetKeyImage(CCmpPubKey &ki, const CCmpPubKey &pubkey, const CKey &key)
+{
+    return secp256k1_get_keyimage(secp256k1_ctx_blind, ki.ncbegin(), pubkey.begin(), key.begin());
 };
 
 bool AddKeyImagesToMempool(const CTransaction &tx, CTxMemPool &pool)

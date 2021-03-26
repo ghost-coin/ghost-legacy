@@ -8725,7 +8725,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "createsignaturewithwallet",        &createsignaturewithwallet,     {"hexstring","prevtxn","address","sighashtype","options"} },
     { "rawtransactions",    "createsignaturewithkey",           &createsignaturewithkey,        {"hexstring","prevtxn","privkey","sighashtype","options"} },
 
-    { "wallet",             "debugwallet",                      &debugwallet,                   {"attempt_repair","clear_stakes_seen"} },
+    { "wallet",             "debugwallet",                      &debugwallet,                   {"options"} },
     { "wallet",             "walletsettings",                   &walletsettings,                {"setting","value"} },
 
     { "wallet",             "transactionblinds",                &transactionblinds,             {"txnid"} },

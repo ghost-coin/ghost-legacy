@@ -105,11 +105,8 @@ BOOST_AUTO_TEST_CASE(stealth)
 
     CBitcoinSecret bsecret1;
     BOOST_CHECK(bsecret1.SetString(strSecret1C));
-    //BOOST_CHECK(bsecret2.SetString(strSecret2C));
 
-    CKey sScan = bsecret1.GetKey();
-
-    CKey sShared;
+    CKey sShared, sScan = bsecret1.GetKey();
     ec_point pkExtracted;
     ec_point vchEphemPK(vecSend[1].vData.begin() + 1, vecSend[1].vData.begin() + 34);
     std::vector<uint8_t> vchENarr(vecSend[1].vData.begin() + 35, vecSend[1].vData.end());
