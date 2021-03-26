@@ -8,13 +8,9 @@
 
 #include <wallet/test/hdwallet_test_fixture.h>
 #include <chainparams.h>
-#include <miner.h>
-#include <pos/miner.h>
-#include <timedata.h>
 #include <coins.h>
 #include <net.h>
 #include <validation.h>
-#include <blind.h>
 #include <rpc/rpcutil.h>
 
 #include <consensus/validation.h>
@@ -24,80 +20,9 @@
 
 #include <boost/test/unit_test.hpp>
 
-struct StakeTestingSetup: public TestingSetup {
-    StakeTestingSetup(const std::string& chainName = CBaseChainParams::REGTEST):
-        TestingSetup(chainName, /* fParticlMode */ true)
-    {
-        ECC_Start_Stealth();
-        ECC_Start_Blinding();
-
-        bool fFirstRun;
-        pwalletMain = std::make_shared<CHDWallet>(m_chain.get(), WalletLocation(), WalletDatabase::CreateMock());
-        AddWallet(pwalletMain);
-        pwalletMain->LoadWallet(fFirstRun);
-        pwalletMain->handleNotifications();
-
-        m_chain_client->registerRpcs();
-
-        SetMockTime(0);
-    }
-
-    virtual ~StakeTestingSetup()
-    {
-        RemoveWallet(pwalletMain);
-        pwalletMain.reset();
-
-        mapStakeSeen.clear();
-        listStakeSeen.clear();
-
-        ECC_Stop_Stealth();
-        ECC_Stop_Blinding();
-    }
-
-    std::unique_ptr<interfaces::Chain> m_chain = interfaces::MakeChain();
-    std::unique_ptr<interfaces::ChainClient> m_chain_client = interfaces::MakeWalletClient(*m_chain, {});
-    std::shared_ptr<CHDWallet> pwalletMain;
-};
 
 BOOST_FIXTURE_TEST_SUITE(stake_tests, StakeTestingSetup)
 
-
-void StakeNBlocks(CHDWallet *pwallet, size_t nBlocks)
-{
-    int nBestHeight;
-    size_t nStaked = 0;
-    size_t k, nTries = 10000;
-    for (k = 0; k < nTries; ++k) {
-        {
-            LOCK(cs_main);
-            nBestHeight = ::ChainActive().Height();
-        }
-
-        int64_t nSearchTime = GetAdjustedTime() & ~Params().GetStakeTimestampMask(nBestHeight+1);
-        if (nSearchTime <= pwallet->nLastCoinStakeSearchTime) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(250));
-            continue;
-        }
-
-        CScript coinbaseScript;
-        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript, false));
-        BOOST_REQUIRE(pblocktemplate.get());
-
-        if (pwallet->SignBlock(pblocktemplate.get(), nBestHeight+1, nSearchTime)) {
-            CBlock *pblock = &pblocktemplate->block;
-
-            if (CheckStake(pblock)) {
-                nStaked++;
-            }
-        }
-
-        if (nStaked >= nBlocks) {
-            break;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    }
-    BOOST_REQUIRE(k < nTries);
-};
 
 static void AddTxn(CHDWallet *pwallet, CBitcoinAddress &address, OutputTypes output_type, CAmount amount)
 {

@@ -12,6 +12,7 @@
 
 extern RecursiveMutex cs_main;
 
+class CKey;
 class CTxMemPool;
 class CValidationState;
 
@@ -29,6 +30,7 @@ const size_t DEFAULT_INPUTS_PER_SIG = 1;
 
 bool VerifyMLSAG(const CTransaction &tx, CValidationState &state) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+int GetKeyImage(CCmpPubKey &ki, const CCmpPubKey &pubkey, const CKey &key);
 bool AddKeyImagesToMempool(const CTransaction &tx, CTxMemPool &pool);
 bool RemoveKeyImagesFromMempool(const uint256 &hash, const CTxIn &txin, CTxMemPool &pool);
 

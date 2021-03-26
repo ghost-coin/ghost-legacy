@@ -16,9 +16,10 @@
 #include <util/system.h>
 #include <util/moneystr.h>
 #include <util/time.h>
-#include <insight/insight.h>
 
+#include <insight/insight.h>
 #include <anon.h>
+#include <chainparams.h>
 
 CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef& _tx, const CAmount& _nFee,
                                  int64_t _nTime, unsigned int _entryHeight,
@@ -811,9 +812,15 @@ void CTxMemPool::clear()
 static void CheckInputsAndUpdateCoins(const CTransaction& tx, CCoinsViewCache& mempoolDuplicate, const int64_t spendheight)
 {
     CValidationState state;
+    state.SetStateInfo(GetTime(), spendheight, Params().GetConsensus());
     CAmount txfee = 0;
     bool fCheckResult = tx.IsCoinBase() || Consensus::CheckTxInputs(tx, state, mempoolDuplicate, spendheight, txfee);
-    assert(fCheckResult);
+    //assert(fCheckResult)
+    if (!fCheckResult) {
+        // It's possible for CheckTxInputs to fail if block was disconnected at the same time as a hardfork
+        LogPrintf("ERROR: %s CheckTxInputs failed! Reason: %s.\n", __func__, state.GetRejectReason());
+        return;
+    }
     UpdateCoins(tx, mempoolDuplicate, std::numeric_limits<int>::max());
 }
 
@@ -1124,8 +1131,9 @@ bool CTxMemPool::HasNoInputsOf(const CTransaction &tx) const
 {
     for (unsigned int i = 0; i < tx.vin.size(); i++)
     {
-        if (tx.vin[i].IsAnonInput())
+        if (tx.vin[i].IsAnonInput()) {
             continue;
+        }
         if (exists(tx.vin[i].prevout.hash))
             return false;
     }

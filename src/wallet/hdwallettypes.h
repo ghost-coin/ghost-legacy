@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -70,11 +70,10 @@ enum RTxAddonValueTypes
 class COutputRecord
 {
 public:
-    COutputRecord() : nType(0), nFlags(0), n(0), nValue(-1) {};
-    uint8_t nType;
-    uint8_t nFlags;
-    uint16_t n;
-    CAmount nValue;
+    uint8_t nType = 0;
+    uint8_t nFlags = 0;
+    uint16_t n = 0;
+    CAmount nValue = -1;
     CScript scriptPubKey;
     std::string sNarration;
 
@@ -194,21 +193,9 @@ public:
 class CTempRecipient
 {
 public:
-    CTempRecipient() : nType(0), nAmount(0), nAmountSelected(0), fSubtractFeeFromAmount(false) {SetNull();};
-    CTempRecipient(CAmount nAmount_, bool fSubtractFeeFromAmount_, CScript scriptPubKey_)
-        : nAmount(nAmount_), nAmountSelected(nAmount_), fSubtractFeeFromAmount(fSubtractFeeFromAmount_), scriptPubKey(scriptPubKey_) {SetNull();};
-
-    void SetNull()
-    {
-        fScriptSet = false;
-        fChange = false;
-        fNonceSet = false; // if true use nonce and vData from CTempRecipient
-        nChildKey = 0;
-        nChildKeyColdStaking = 0;
-        nStealthPrefix = 0;
-        fSplitBlindOutput = false;
-        fExemptFeeSub = false;
-    }
+    CTempRecipient() {};
+    CTempRecipient(uint8_t nType_, CAmount nAmount_, CTxDestination &dest)
+        : nType(nType_), nAmount(nAmount_), nAmountSelected(nAmount_), address(dest) {};
 
     void SetAmount(CAmount nValue)
     {
@@ -218,12 +205,12 @@ public:
 
     bool ApplySubFee(CAmount nFee, size_t nSubtractFeeFromAmount, bool &fFirst);
 
-    uint8_t nType;
-    CAmount nAmount;            // If fSubtractFeeFromAmount, nAmount = nAmountSelected - feeForOutput
-    CAmount nAmountSelected;
-    bool fSubtractFeeFromAmount;
-    bool fSplitBlindOutput;
-    bool fExemptFeeSub;         // Value too low to sub fee when blinded value split into two outputs
+    uint8_t nType = 0;
+    CAmount nAmount = 0;                // If fSubtractFeeFromAmount, nAmount = nAmountSelected - feeForOutput
+    CAmount nAmountSelected = 0;
+    bool fSubtractFeeFromAmount = false;
+    bool fSplitBlindOutput = false;
+    bool fExemptFeeSub = false;         // Value too low to sub fee when blinded value split into two outputs
     CTxDestination address;
     CTxDestination addressColdStaking;
     CScript scriptPubKey;
@@ -233,23 +220,22 @@ public:
     secp256k1_pedersen_commitment commitment;
     uint256 nonce;
 
-    // TODO: range proof parameters, try to keep similar for fee
-    // Allow an overwrite of the parameters.
+    // Allow an overwrite of the rangeproof parameters.
     bool fOverwriteRangeProofParams = false;
-    uint64_t min_value;
-    int ct_exponent;
-    int ct_bits;        // set to 0 to mark bulletproof
+    uint64_t min_value = 0;
+    int ct_exponent = 0;
+    int ct_bits = 0;                    // Set to 0 to mark bulletproof
 
     CKey sEphem;
     CPubKey pkTo;
-    int n;
+    int n = 0;
     std::string sNarration;
-    bool fScriptSet;
-    bool fChange;
-    bool fNonceSet;
-    uint32_t nChildKey; // update later
-    uint32_t nChildKeyColdStaking; // update later
-    uint32_t nStealthPrefix;
+    bool fScriptSet = false;
+    bool fChange = false;
+    bool fNonceSet = false;             // If true use nonce and vData from CTempRecipient
+    uint32_t nChildKey = 0;             // Updates wallet after send
+    uint32_t nChildKeyColdStaking = 0;  // Updates wallet after send
+    uint32_t nStealthPrefix = 0;
 };
 
 class COutputR
@@ -264,13 +250,13 @@ public:
 
     uint256 txhash;
     MapRecords_t::const_iterator rtx;
-    int i;
-    int nDepth;
-    bool fSpendable;
-    bool fSolvable;
-    bool fSafe;
-    bool fMature;
-    bool fNeedHardwareKey;
+    int i = 0;
+    int nDepth = 0;
+    bool fSpendable = false;
+    bool fSolvable = false;
+    bool fSafe = false;
+    bool fMature = false;
+    bool fNeedHardwareKey = false;
 };
 
 class CHDWalletBalances

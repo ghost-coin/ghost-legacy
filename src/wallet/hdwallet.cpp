@@ -3197,7 +3197,6 @@ int CHDWallet::AddCTData(const CCoinControl *coinControl, CTxOutBase *txout, CTe
         CSHA256().Write(nonce.begin(), 32).Finalize(nonce.begin());
         r.nonce = nonce;
     }
-
     size_t nRangeProofLen = 5134;
     pvRangeproof->resize(nRangeProofLen);
 
@@ -3822,24 +3821,20 @@ int CHDWallet::AddStandardInputs(interfaces::Chain::Lock& locked_chain, CWalletT
             }
 
             std::vector<uint8_t*> vpBlinds;
-            std::vector<uint8_t> vBlindPlain;
+            uint8_t blind_plain[32] = {0};
+            vpBlinds.push_back(blind_plain);
 
             size_t nBlindedInputs = 1;
-            secp256k1_pedersen_commitment plainCommitment;
-            secp256k1_pedersen_commitment plainInputCommitment;
+            secp256k1_pedersen_commitment plainInputCommitment, plainCommitment;
 
-            vBlindPlain.resize(32);
-            memset(&vBlindPlain[0], 0, 32);
-            vpBlinds.push_back(&vBlindPlain[0]);
             if (nValueIn > 0
-                && !secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainInputCommitment, &vBlindPlain[0], (uint64_t) nValueIn, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
+                && !secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainInputCommitment, blind_plain, (uint64_t) nValueIn, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
                 return wserrorN(1, sError, __func__, "secp256k1_pedersen_commit failed for plain in.");
             }
 
             if (nValueOutPlain > 0) {
-                vpBlinds.push_back(&vBlindPlain[0]);
-
-                if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainCommitment, &vBlindPlain[0], (uint64_t) nValueOutPlain, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
+                vpBlinds.push_back(blind_plain);
+                if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainCommitment, blind_plain, (uint64_t) nValueOutPlain, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
                     return wserrorN(1, sError, __func__, "secp256k1_pedersen_commit failed for plain out.");
                 }
             }
@@ -4554,16 +4549,10 @@ int CHDWallet::AddBlindedInputs(interfaces::Chain::Lock& locked_chain, CWalletTx
 
         size_t nBlindedInputs = vpBlinds.size();
 
-        std::vector<uint8_t> vBlindPlain;
-        vBlindPlain.resize(32);
-        memset(&vBlindPlain[0], 0, 32);
-
-        //secp256k1_pedersen_commitment plainCommitment;
+        uint8_t blind_plain[32] = {0};
         if (nValueOutPlain > 0) {
-            vpBlinds.push_back(&vBlindPlain[0]);
-            //if (!secp256k1_pedersen_commit(secp256k1_ctx_blind, &plainCommitment, &vBlindPlain[0], (uint64_t) nValueOutPlain, &secp256k1_generator_const_h, &secp256k1_generator_const_g))
-            //    return errorN(1, sError, __func__, "secp256k1_pedersen_commit failed for plain out.");
-        };
+            vpBlinds.push_back(blind_plain);
+        }
 
         // Update the change output commitment if it exists, else last blinded
         int nLastBlinded = -1;
@@ -5122,9 +5111,6 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                 nSignSigs++;
             }
 
-            vMI.clear();
-            vInputBlinds.clear();
-            vSecretColumns.clear();
             vMI.resize(nSignSigs);
             vInputBlinds.resize(nSignSigs);
             vSecretColumns.resize(nSignSigs);
@@ -5194,7 +5180,6 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                 }
             }
 
-            // Fill in dummy signatures for fee calculation.
             for (size_t l = 0; l < txNew.vin.size(); ++l) {
                 auto &txin = txNew.vin[l];
                 uint32_t nSigInputs, nSigRingSize;
@@ -5206,12 +5191,12 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                 }
 
                 std::vector<uint8_t> vPubkeyMatrixIndices;
-
                 for (size_t k = 0; k < nSigInputs; ++k)
                 for (size_t i = 0; i < nSigRingSize; ++i) {
                     PutVarInt(vPubkeyMatrixIndices, vMI[l][k][i]);
                 }
 
+                // Fill in dummy signatures for fee calculation.
                 std::vector<uint8_t> vKeyImages(33 * nSigInputs);
                 txin.scriptData.stack.emplace_back(vKeyImages);
                 txin.scriptWitness.stack.emplace_back(vPubkeyMatrixIndices);
@@ -5288,26 +5273,23 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 
         nValueOutPlain += nFeeRet;
 
-        // Remove scriptSigs to eliminate the fee calculation dummy signatures
+        // Remove the fee calculation dummy signatures
         for (auto &txin : txNew.vin) {
             txin.scriptData.stack[0].resize(0);
             txin.scriptWitness.stack[1].resize(0);
         }
 
+        // Add the plain commitment
         std::vector<const uint8_t*> vpOutCommits, vpOutBlinds;
-        std::vector<uint8_t> vBlindPlain;
+        uint8_t blind_plain[32] = {0};
         secp256k1_pedersen_commitment plainCommitment;
-        vBlindPlain.resize(32);
-        memset(&vBlindPlain[0], 0, 32);
-
         if (nValueOutPlain > 0) {
             if (!secp256k1_pedersen_commit(secp256k1_ctx_blind,
-                &plainCommitment, &vBlindPlain[0], (uint64_t) nValueOutPlain, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
+                &plainCommitment, blind_plain, (uint64_t) nValueOutPlain, &secp256k1_generator_const_h, &secp256k1_generator_const_g)) {
                 return wserrorN(1, sError, __func__, "secp256k1_pedersen_commit failed for plain out.");
             }
-
             vpOutCommits.push_back(plainCommitment.data);
-            vpOutBlinds.push_back(&vBlindPlain[0]);
+            vpOutBlinds.push_back(blind_plain);
         }
 
         // Update the change output commitment
@@ -5348,7 +5330,8 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
         }
 
         if (sign) {
-            std::vector<CKey> vSplitCommitBlindingKeys(txNew.vin.size()); // input amount commitment when > 1 mlsag
+            std::vector<CKey> &vSplitCommitBlindingKeys = coinControl->vSplitCommitBlindingKeys;
+            vSplitCommitBlindingKeys.resize(txNew.vin.size());
             int rv;
             size_t nTotalInputs = 0;
 
@@ -5398,7 +5381,9 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 
                 std::vector<CKey> vsk(nSigInputs);
                 std::vector<const uint8_t*> vpsk(nRows), vpBlinds, vpInCommits(nCols * nSigInputs);
-                std::vector<uint8_t> vm(nCols * nRows * 33), &vKeyImages = txin.scriptData.stack[0];
+                std::vector<uint8_t> vm(nCols * nRows * 33);
+                std::vector<uint8_t> &vKeyImages = txin.scriptData.stack[0];
+                std::vector<uint8_t> &vDL = txin.scriptWitness.stack[1];
                 std::vector<secp256k1_pedersen_commitment> vCommitments;
                 vCommitments.reserve(nCols * nSigInputs);
 
@@ -5433,13 +5418,8 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
                     }
                 }
 
-
-                uint8_t blindSum[32];
-                memset(blindSum, 0, 32);
+                uint8_t blindSum[32] = {0};
                 vpsk[nRows-1] = blindSum;
-
-                std::vector<uint8_t> &vDL = txin.scriptWitness.stack[1];
-
                 if (txNew.vin.size() == 1) {
                     vDL.resize((1 + (nSigInputs+1) * nSigRingSize) * 32); // extra element for C, extra row for commitment row
                     vpBlinds.insert(vpBlinds.end(), vpOutBlinds.begin(), vpOutBlinds.end());
@@ -5489,6 +5469,7 @@ int CHDWallet::AddAnonInputs(interfaces::Chain::Lock& locked_chain, CWalletTx &w
 
                     vpBlinds.emplace_back(vSplitCommitBlindingKeys[l].begin());
                     const uint8_t *pSplitCommit = splitInputCommit.data;
+
                     if (0 != (rv = secp256k1_prepare_mlsag(&vm[0], blindSum,
                         1, 1, nCols, nRows,
                         &vpInCommits[0], &pSplitCommit, &vpBlinds[0]))) {
@@ -5853,11 +5834,9 @@ int CHDWallet::ExtKeyNew32(CExtKey &out, const char *sPassPhrase, int32_t nHash,
     // Match keys from http://bip32.org/
     LogPrint(BCLog::HDWALLET, "ExtKeyNew32 from pass phrase.\n");
 
-    uint8_t data[64];
+    uint8_t data[64] = {0};
     int nPhraseLen = strlen(sPassPhrase);
     int nSeedLen = strlen(sSeed);
-
-    memset(data, 0, 64);
 
     CHMAC_SHA256 ctx256((const uint8_t*)sPassPhrase, nPhraseLen);
     for (int i = 0; i < nHash; ++i) {

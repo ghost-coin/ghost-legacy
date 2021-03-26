@@ -88,7 +88,8 @@ public:
     std::vector<int64_t> m_use_mixins;
     //! mixin selection mode to use: 1 select from range, 2 select near real index
     int m_mixin_selection_mode = 1;
-
+    //! Blinding factor for input amount commitment when > 1 mlsag
+    mutable std::vector<CKey> vSplitCommitBlindingKeys;
 
 
     CCoinControl()

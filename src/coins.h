@@ -268,7 +268,7 @@ public:
     mutable int64_t nLastRCTOutput = 0;
     mutable std::vector<std::pair<int64_t, CAnonOutput> > anonOutputs;
     mutable std::map<CCmpPubKey, int64_t> anonOutputLinks;
-    mutable std::vector<std::pair<CCmpPubKey, uint256> > keyImages;
+    mutable std::map<CCmpPubKey, uint256> keyImages;
 
     bool ReadRCTOutputLink(CCmpPubKey &pk, int64_t &index)
     {

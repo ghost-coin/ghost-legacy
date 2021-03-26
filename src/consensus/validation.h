@@ -165,6 +165,7 @@ public:
     bool fBulletproofsActive = false; // per block
     bool rct_active = false; // per block
     int m_spend_height = 0;
+    bool m_preserve_state = false; // Don't clear error during ActivateBestChain (debug)
 
     // TxValidationState
     bool fHasAnonOutput = false; // per tx
@@ -174,6 +175,7 @@ public:
     bool m_exploit_fix_1 = false;
     bool m_exploit_fix_2 = false;
     CAmount tx_balances[6] = {0};
+    std::set<CCmpPubKey> m_setHaveKI;
 
     void SetStateInfo(int64_t time, int spend_height, const Consensus::Params& consensusParams)
     {
