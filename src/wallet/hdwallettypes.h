@@ -284,4 +284,3 @@ public:
 };
 
 #endif // PARTICL_WALLET_HDWALLETTYPES_H
-

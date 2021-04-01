@@ -200,6 +200,36 @@ BOOST_AUTO_TEST_CASE(frozen_blinded_test)
     BOOST_CHECK(rv["error"].get_str() == "No spendable outputs.");
     RegtestParams().GetConsensus_nc().m_max_tainted_value_out = 500 * COIN;
 
+    BOOST_CHECK_NO_THROW(rv = CallRPC("debugwallet {\"list_frozen_outputs\":true}", context));
+    BOOST_CHECK(rv["num_spendable"].get_int() > 0);
+    CAmount unspendable_value = AmountFromValue(rv["total_unspendable"]);
+    // Find a spendable prevout
+    COutPoint prevout_spendable;
+    for (size_t i = 0; i < rv["frozen_outputs"].size(); ++i) {
+        const UniValue &uvo = rv["frozen_outputs"][i];
+        if (uvo["spendable"].get_bool() == true) {
+            prevout_spendable = COutPoint(ParseHashO(uvo, "txid"), uvo["n"].get_int());
+            break;
+        }
+    }
+    BOOST_CHECK(!prevout_spendable.IsNull());
+
+    // Test trace_frozen_outputs
+    BOOST_CHECK_NO_THROW(rv = CallRPC("debugwallet {\"trace_frozen_outputs\":true}", context));
+    BOOST_CHECK(rv["total_traced"].get_int64() == unspendable_value);
+    int last_num_traced = rv["num_traced"].get_int();
+
+    BOOST_CHECK_NO_THROW(rv = CallRPC(strprintf("debugwallet {\"trace_frozen_outputs\":true,\"trace_frozen_extra\":[{\"tx\":\"%s\",\"n\":%d}]}",
+        prevout_spendable.hash.ToString(), prevout_spendable.n), context));
+    BOOST_CHECK(rv["num_traced"].get_int() == last_num_traced + 1);
+    std::string str_rv_check = rv.write();
+    BOOST_CHECK(str_rv_check.find("anon_spend_key") == std::string::npos);
+
+    BOOST_CHECK_NO_THROW(rv = CallRPC("debugwallet {\"trace_frozen_outputs\":true,\"trace_frozen_dump_privkeys\":true}", context));
+    str_rv_check = rv.write();
+    BOOST_CHECK(str_rv_check.find("anon_spend_key") != std::string::npos);
+
+
     // Build and install ct tainted bloom filter
     CBloomFilter tainted_filter(160, 0.004, 0, BLOOM_UPDATE_NONE);
     tainted_filter.insert(txid_ct_anon_small);
