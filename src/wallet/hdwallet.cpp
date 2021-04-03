@@ -11586,16 +11586,15 @@ void CHDWallet::AvailableAnonCoins(std::vector<COutputR> &vCoins, bool fOnlySafe
             }
 
             if (spend_frozen && !include_tainted_frozen) {
-                if (r.nValue > consensusParams.m_max_tainted_value_out) {
-                    // TODO: Store pubkey on COutputRecord - in scriptPubKey
-                    CStoredTransaction stx;
-                    int64_t index;
-                    if (!wdb.ReadStoredTx(txid, stx) ||
-                        !stx.tx->vpout[r.n]->IsType(OUTPUT_RINGCT) ||
-                        !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, index) ||
-                        !IsWhitelistedAnonOutput(index)) {
-                        continue;
-                    }
+                // TODO: Store pubkey on COutputRecord - in scriptPubKey
+                CStoredTransaction stx;
+                int64_t index;
+                if (!wdb.ReadStoredTx(txid, stx) ||
+                    !stx.tx->vpout[r.n]->IsType(OUTPUT_RINGCT) ||
+                    !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, index) ||
+                    IsBlacklistedAnonOutput(index) ||
+                    (!IsWhitelistedAnonOutput(index) && r.nValue > consensusParams.m_max_tainted_value_out)) {
+                    continue;
                 }
             }
 

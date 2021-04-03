@@ -1406,7 +1406,9 @@ bool AppInitSanityChecks()
     ECC_Start();
     ECC_Start_Stealth();
     ECC_Start_Blinding();
-    InitBlinding();
+    if (!Params().IsTestChain()) {
+        LoadBlindedOutputFilters();
+    }
     globalVerifyHandle.reset(new ECCVerifyHandle());
 
     // Sanity check

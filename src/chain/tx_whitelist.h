@@ -20,4 +20,4 @@ int64_t anon_index_whitelist[] = {
 };
 size_t anon_index_whitelist_size = sizeof(anon_index_whitelist) / sizeof(int64_t);
 
-#endif // PARTICL_PARTICL_TX_WHITELIST_H
+#endif // PARTICL_CHAIN_TX_WHITELIST_H

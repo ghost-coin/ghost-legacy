@@ -256,6 +256,9 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
                     if (!IsWhitelistedAnonOutput(nIndex)) {
                         spends_tainted_blinded = true;
                     }
+                    if (IsBlacklistedAnonOutput(nIndex)) {
+                        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-frozen-blinded-blacklisted");
+                    }
                 } else {
                     spends_post_fork_blinded = true;
                 }
