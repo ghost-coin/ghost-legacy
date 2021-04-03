@@ -16,6 +16,7 @@
 
 #include <bloom.h>
 #include <chain/ct_tainted.h>
+#include <chain/tx_blacklist.h>
 #include <chain/tx_whitelist.h>
 #include <set>
 
@@ -27,6 +28,7 @@ secp256k1_bulletproof_generators *blind_gens = nullptr;
 static CBloomFilter ct_tainted_filter;
 static std::set<uint256> ct_whitelist;
 static std::set<int64_t> rct_whitelist;
+static std::set<int64_t> rct_blacklist;
 
 static int CountLeadingZeros(uint64_t nValueIn)
 {
@@ -39,7 +41,7 @@ static int CountLeadingZeros(uint64_t nValueIn)
     }
 
     return nZeros;
-};
+}
 
 static int CountTrailingZeros(uint64_t nValueIn)
 {
@@ -53,7 +55,7 @@ static int CountTrailingZeros(uint64_t nValueIn)
     }
 
     return nZeros;
-};
+}
 
 static int64_t ipow(int64_t base, int exp)
 {
@@ -65,7 +67,7 @@ static int64_t ipow(int64_t base, int exp)
         base *= base;
     }
     return result;
-};
+}
 
 
 int SelectRangeProofParameters(uint64_t nValueIn, uint64_t &minValue, int &exponent, int &nBits)
@@ -119,7 +121,7 @@ int SelectRangeProofParameters(uint64_t nValueIn, uint64_t &minValue, int &expon
     }
 
     return 0;
-};
+}
 
 int GetRangeProofInfo(const std::vector<uint8_t> &vRangeproof, int &rexp, int &rmantissa, CAmount &min_value, CAmount &max_value)
 {
@@ -133,7 +135,13 @@ int GetRangeProofInfo(const std::vector<uint8_t> &vRangeproof, int &rexp, int &r
     return (!(secp256k1_rangeproof_info(secp256k1_ctx_blind,
         &rexp, &rmantissa, (uint64_t*) &min_value, (uint64_t*) &max_value,
         &vRangeproof[0], vRangeproof.size()) == 1));
-};
+}
+
+void LoadRCTBlacklist(const int64_t indices[], size_t num_indices)
+{
+    rct_blacklist = std::set<int64_t>(indices, indices + num_indices);
+    LogPrintf("RCT blacklist size %d\n", rct_blacklist.size());
+}
 
 void LoadRCTWhitelist(const int64_t indices[], size_t num_indices)
 {
@@ -160,7 +168,7 @@ void LoadCTTaintedFilter(const unsigned char *data, size_t data_length)
     ct_tainted_filter.UpdateEmptyFull();
 }
 
-void InitBlinding()
+void LoadBlindedOutputFilters()
 {
     LoadCTTaintedFilter(ct_tainted_filter_data, ct_tainted_filter_data_len);
     LoadCTWhitelist(tx_whitelist_data, tx_whitelist_data_len);
@@ -173,6 +181,11 @@ bool IsFrozenBlindOutput(const uint256 &txid)
         return !ct_whitelist.count(txid);
     }
     return false;
+}
+
+bool IsBlacklistedAnonOutput(int64_t anon_index)
+{
+    return rct_blacklist.count(anon_index);
 }
 
 bool IsWhitelistedAnonOutput(int64_t anon_index)

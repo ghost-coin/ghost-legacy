@@ -415,17 +415,29 @@ BOOST_AUTO_TEST_CASE(frozen_blinded_test)
         BOOST_CHECK_NO_THROW(rv = CallRPC(str_cmd));
         BOOST_REQUIRE(rv["mempool-reject-reason"].get_str() == "bad-txns-frozen-blinded-too-large");
 
-
-        // Whitelist index
+        // Get prevout anon index
         BOOST_CHECK_NO_THROW(rv = CallRPC(strprintf("gettransaction %s true true", spend_txid.ToString())));
         std::string str_ao_pubkey = rv["decoded"]["vout"][output_n]["pubkey"].get_str();
         BOOST_CHECK_NO_THROW(rv = CallRPC(strprintf("anonoutput %s", str_ao_pubkey)));
         int64_t ao_index = rv["index"].get_int64();
 
+        // Whitelist index
         int64_t aoi_whitelist[] = {
             ao_index,
         };
         LoadRCTWhitelist(aoi_whitelist, 1);
+
+        // Test blacklist, should override whitelist
+        int64_t aoi_blacklist[] = {
+            ao_index,
+        };
+        LoadRCTBlacklist(aoi_blacklist, 1);
+        BOOST_CHECK_NO_THROW(rv = CallRPC(str_cmd));
+        BOOST_REQUIRE(rv["mempool-reject-reason"].get_str() == "bad-txns-frozen-blinded-blacklisted");
+        int64_t aoi_reset[] = {
+            0,
+        };
+        LoadRCTBlacklist(aoi_reset, 1);
 
         // Transaction should send
         BOOST_CHECK_NO_THROW(rv = CallRPC(str_cmd));

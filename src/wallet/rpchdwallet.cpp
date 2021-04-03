@@ -5824,6 +5824,7 @@ static void placeTracedInputTxns(const uint256 &spend_txid, const std::vector<CO
 static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &uv_extra_outputs, bool trace_frozen_dump_privkeys)
 {
     // Dump information necessary for an external script to trace blinded amounts back to plain values
+    // Intentionally trace blacklisted anon outputs, will be picked up by the validation script
     UniValue errors(UniValue::VARR);
     UniValue warnings(UniValue::VARR);
 
@@ -6203,22 +6204,22 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 }
 
                 bool is_spendable = true;
-                if (r.nValue > consensusParams.m_max_tainted_value_out) {
-                    // TODO: Store pubkey on COutputRecord - in scriptPubKey
-                    if (r.nType == OUTPUT_RINGCT) {
-                        CStoredTransaction stx;
-                        int64_t index;
-                        if (!wdb.ReadStoredTx(txid, stx) ||
-                            !stx.tx->vpout[r.n]->IsType(OUTPUT_RINGCT) ||
-                            !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, index) ||
-                            !IsWhitelistedAnonOutput(index)) {
-                            is_spendable = false;
-                        }
-                    } else
-                    if (r.nType == OUTPUT_CT) {
-                        if (IsFrozenBlindOutput(txid)) {
-                            is_spendable = false;
-                        }
+                int64_t anon_index = 0;
+                // TODO: Store pubkey on COutputRecord - in scriptPubKey
+                if (r.nType == OUTPUT_RINGCT) {
+                    CStoredTransaction stx;
+
+                    if (!wdb.ReadStoredTx(txid, stx) ||
+                        !stx.tx->vpout[r.n]->IsType(OUTPUT_RINGCT) ||
+                        !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, anon_index) ||
+                        IsBlacklistedAnonOutput(anon_index) ||
+                        (!IsWhitelistedAnonOutput(anon_index) && r.nValue > consensusParams.m_max_tainted_value_out)) {
+                        is_spendable = false;
+                    }
+                } else
+                if (r.nType == OUTPUT_CT) {
+                    if (IsFrozenBlindOutput(txid) && r.nValue > consensusParams.m_max_tainted_value_out) {
+                        is_spendable = false;
                     }
                 }
                 if (is_spendable) {
@@ -6234,6 +6235,12 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 output.pushKV("txid", txid.ToString());
                 output.pushKV("n", r.n);
                 output.pushKV("amount", ValueFromAmount(r.nValue));
+                if (r.nType == OUTPUT_RINGCT) {
+                    output.pushKV("anon_index", (int)anon_index);
+                    if (IsBlacklistedAnonOutput(anon_index)) {
+                        output.pushKV("blacklisted", true);
+                    }
+                }
                 blinded_outputs.push_back(output);
             }
         }

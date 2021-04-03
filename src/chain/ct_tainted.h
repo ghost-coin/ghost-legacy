@@ -202,4 +202,4 @@ unsigned char ct_tainted_filter_data[] = {
 };
 unsigned int ct_tainted_filter_data_len = 2310;
 
-#endif // PARTICL_PARTICL_CT_TAINTED_H
+#endif // PARTICL_CHAIN_CT_TAINTED_H
