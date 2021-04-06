@@ -741,6 +741,7 @@ class WalletParticlTest(ParticlTestFramework):
         nodes[1].walletsettings('other', {'onlyinstance': False})
         assert(nodes[1].debugwallet()['m_is_only_instance'] == False)
 
+        assert_raises_rpc_error(-3, 'Unexpected key foo', nodes[1].debugwallet, {'foo':'bar'})
 
         self.log.info('Test wallet-tool generatemnemonic')
         p = self.particl_wallet_process('-h', 'generatemnemonic')

@@ -5757,6 +5757,23 @@ static void traceFrozenPrevout(const COutPoint &op_trace, const uint256 &txid_sp
         }
         const CTransactionRecord &rtx = mri->second;
 
+        auto ret = traced_txs.insert(std::pair<uint256, TracedTx>(op_trace.hash, TracedTx()));
+        auto &traced_tx = ret.first->second;
+        //if (ret.second)  Always search inputs
+        traced_tx.m_input_type = rtx.nFlags & ORF_ANON_IN ? OUTPUT_RINGCT : rtx.nFlags & ORF_BLIND_IN ? OUTPUT_CT : OUTPUT_STANDARD;
+        std::string wallet_name = pwallet->GetDisplayName();
+        if (traced_tx.m_wallet_name.find(wallet_name) == std::string::npos) {
+            traced_tx.m_wallet_name += (traced_tx.m_wallet_name.empty() ? "" : ", ") + wallet_name;
+        }
+        if (traced_tx.m_input_type != OUTPUT_STANDARD) {
+            for (const auto &op : rtx.vin) {
+                traceFrozenPrevout(op, op_trace.hash, traced_txs, warnings);
+                if (std::find(traced_tx.m_inputs.begin(), traced_tx.m_inputs.end(), op) == traced_tx.m_inputs.end()) {
+                    traced_tx.m_inputs.push_back(op);
+                }
+            }
+        }
+
         const COutputRecord *pout = rtx.GetOutput(op_trace.n);
         if (!pout) {
             continue;
@@ -5770,12 +5787,6 @@ static void traceFrozenPrevout(const COutPoint &op_trace, const uint256 &txid_sp
             continue;
         }
 
-        bool is_spent = pwallet->IsSpent(op_trace.hash, op_trace.n);
-        if (!is_spent) {
-            // Should always be spent
-            warnings.push_back(strprintf("Unspent input %s", op_trace.ToString()));
-        }
-
         int64_t anon_index = 0;
         CCmpPubKey anon_pubkey;
         if (r.nType == OUTPUT_RINGCT) {
@@ -5785,37 +5796,25 @@ static void traceFrozenPrevout(const COutPoint &op_trace, const uint256 &txid_sp
             }
         }
 
-        auto ret = traced_txs.insert(std::pair<uint256, TracedTx>(op_trace.hash, TracedTx()));
-        auto &traced_tx = ret.first->second;
-        if (ret.second) {
-            traced_tx.m_input_type = rtx.nFlags & ORF_ANON_IN ? OUTPUT_RINGCT : rtx.nFlags & ORF_BLIND_IN ? OUTPUT_CT : OUTPUT_STANDARD;
-            traced_tx.m_wallet_name = pwallet->GetDisplayName();
-
-            if (traced_tx.m_input_type != OUTPUT_STANDARD) {
-                for (const auto &op : rtx.vin) {
-                    traceFrozenPrevout(op, op_trace.hash, traced_txs, warnings);
-                    traced_tx.m_inputs.push_back(op);
-                }
-            }
-        }
-
-        TracedOutput traced_output;
+        auto ret_to = traced_tx.m_outputs.insert(std::pair<int, TracedOutput>(r.n, TracedOutput()));
+        auto &traced_output = ret_to.first->second;
         traced_output.m_type = r.nType == OUTPUT_RINGCT ? OUTPUT_RINGCT : OUTPUT_CT;
-        traced_output.m_value = r.nValue;
         traced_output.m_n = r.n;
         traced_output.m_anon_index = anon_index;
-        traced_output.m_is_spent = is_spent;
         traced_output.m_spentby = txid_spentby;
-        if (!stx.GetBlind(r.n, traced_output.m_blinding_factor.begin())) {
-            warnings.push_back(strprintf("GetBlind failed %s", op_trace.ToString()));
+        if (traced_output.m_blinding_factor.IsNull()) {
+            traced_output.m_value = r.nValue;
+            traced_output.m_is_spent = pwallet->IsSpent(op_trace.hash, op_trace.n);
+            if (!stx.GetBlind(r.n, traced_output.m_blinding_factor.begin())) {
+                warnings.push_back(strprintf("GetBlind failed %s", op_trace.ToString()));
+            }
         }
-        if (r.nType == OUTPUT_RINGCT) {
+        if (r.nType == OUTPUT_RINGCT && !traced_output.m_anon_spend_key.IsValid()) {
             CKeyID apkid = anon_pubkey.GetID();
             if (!pwallet->GetKey(apkid, traced_output.m_anon_spend_key)) {
                 warnings.push_back(strprintf("GetKey failed %s", op_trace.ToString()));
             }
         }
-        traced_tx.m_outputs[r.n] = traced_output;
     }
 }
 
@@ -5899,6 +5898,7 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
     std::set<uint256> top_level;
     std::vector<std::shared_ptr<CWallet> > wallets = GetWallets();
     std::set<COutPoint> extra_txouts;  // Trace these outputs even if spent
+    std::set<COutPoint> have_traced;
 
     if (uv_extra_outputs.isArray()) {
         for (size_t i = 0; i < uv_extra_outputs.size(); ++i) {
@@ -5916,7 +5916,10 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
     // Ensure all wallets are unlocked
     for (auto &wallet : wallets) {
         CHDWallet *const pwallet = GetParticlWallet(wallet.get());
-        EnsureWalletIsUnlocked(pwallet);
+        if (pwallet->IsLocked() || pwallet->fUnlockForStakingOnly) {
+            throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED,
+                strprintf("Error: Wallet %s is locked, please unlock all loaded wallets for this command.", pwallet->GetDisplayName()));
+        }
     }
 
     std::map<uint256, TracedTx> traced_txns;
@@ -5934,15 +5937,18 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
             const uint256 &txid = it->first;
             const CTransactionRecord &rtx = it->second;
 
+            bool in_height = true;
             num_searched += 1;
-
             if (rtx.block_height < 1 || // height 0 is mempool
                 rtx.block_height > consensusParams.m_frozen_blinded_height) {
-                continue;
+                in_height = false;
             }
 
             for (const auto &r : rtx.vout) {
                 bool force_include = extra_txouts.count(COutPoint(txid, r.n));
+                if (!in_height && !force_include) {
+                    continue;
+                }
                 if ((r.nType != OUTPUT_RINGCT && r.nType != OUTPUT_CT) ||
                     !(r.nFlags & ORF_OWNED) ||
                     r.nValue < min_value) {
@@ -5980,43 +5986,20 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
                         continue;
                     }
                 }
+                COutPoint op_trace(txid, r.n);
+                if (have_traced.count(op_trace)) {
+                    continue;
+                }
                 total_traced += r.nValue;
                 num_traced++;
 
-                CStoredTransaction stx;
-                if (!wdb.ReadStoredTx(txid, stx)) {
-                    warnings.push_back(strprintf("ReadStoredTx failed %s", txid.ToString()));
-                    continue;
-                }
-
+                uint256 spent_by; // null
+                traceFrozenPrevout(op_trace, spent_by, traced_txns, warnings);
+                have_traced.insert(op_trace);
+                top_level.insert(txid);
                 auto ret = traced_txns.insert(std::pair<uint256, TracedTx>(txid, TracedTx()));
                 auto &traced_tx = ret.first->second;
-                if (ret.second) {
-                    traced_tx.m_input_type = rtx.nFlags & ORF_ANON_IN ? OUTPUT_RINGCT : rtx.nFlags & ORF_BLIND_IN ? OUTPUT_CT : OUTPUT_STANDARD;
-                    traced_tx.m_wallet_name = pwallet->GetDisplayName();
-
-                    if (traced_tx.m_input_type != OUTPUT_STANDARD) {
-                        for (const auto &op : rtx.vin) {
-                            traceFrozenPrevout(op, txid, traced_txns, warnings);
-                            traced_tx.m_inputs.push_back(op);
-                        }
-                    }
-                }
-                top_level.insert(txid);
-                TracedOutput traced_output;
-                traced_output.m_type = r.nType == OUTPUT_RINGCT ? OUTPUT_RINGCT : r.nType == OUTPUT_CT ? OUTPUT_CT : OUTPUT_STANDARD;
-                traced_output.m_value = r.nValue;
-                traced_output.m_n = r.n;
-                traced_output.m_is_spent = is_spent;
-                if (r.nType == OUTPUT_RINGCT &&
-                    !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, traced_output.m_anon_index)) {
-                    warnings.push_back(strprintf("ReadRCTOutputLink failed %s %d", txid.ToString(), r.n));
-                }
-                if (!stx.GetBlind(r.n, traced_output.m_blinding_factor.begin())) {
-                    warnings.push_back(strprintf("GetBlind failed %s %d", txid.ToString(), r.n));
-                }
-                traced_output.m_forced_include = force_include;
-                traced_tx.m_outputs[r.n] = traced_output;
+                traced_tx.m_outputs[r.n].m_forced_include = force_include;
             }
         }
     }
@@ -6170,7 +6153,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 {"attempt_repair",                      UniValueType(UniValue::VBOOL)},
                 {"clear_stakes_seen",                   UniValueType(UniValue::VBOOL)},
                 {"downgrade_wallets",                   UniValueType(UniValue::VBOOL)},
-            }, true, false);
+            }, true, true);
         if (options.exists("list_frozen_outputs")) {
             list_frozen_outputs = options["list_frozen_outputs"].get_bool();
         }
@@ -6217,7 +6200,6 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         std::vector<std::shared_ptr<CWallet> > wallets = GetWallets();
         for (auto &wallet : wallets) {
             CHDWallet *pw = GetParticlWallet(wallet.get());
-            EnsureWalletIsUnlocked(pw);
             pw->Downgrade();
         }
         StartShutdown();
