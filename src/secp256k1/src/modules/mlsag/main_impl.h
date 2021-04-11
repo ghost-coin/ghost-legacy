@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2017 The Particl Core developers                     *
+ * Copyright (c) 2017-2021 The Particl Core developers                *
  * Distributed under the MIT software license, see the accompanying   *
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
  **********************************************************************/
@@ -233,7 +233,7 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
     secp256k1_sha256_write(&sha256_m, preimage, 32);
     sha256_pre = sha256_m;
 
-    for (k = 0; k < dsRows; ++k) {
+    for (k = 0; k < nRows; ++k) {
         do {
             secp256k1_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
             secp256k1_scalar_set_b32(&alpha[k], tmp, &overflow);
@@ -250,6 +250,10 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
 
         secp256k1_sha256_write(&sha256_m, &pk[(index + k*nCols)*33], 33); /* pk_ind[col] */
         secp256k1_sha256_write(&sha256_m, tmp, 33); /* G * alpha[col] */
+
+        if (k >= dsRows) {
+            continue;
+        }
 
         if (0 != hash_to_curve(&ge1, &pk[(index + k*nCols)*33], 33)) { /* H(pk_ind[col]) */
             return 1;
@@ -271,24 +275,6 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
         secp256k1_eckey_pubkey_serialize(&ge1, &ki[k * 33], &clen, 1);
     }
 
-    for (k = dsRows; k < nRows; ++k) {
-        do {
-            secp256k1_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
-            secp256k1_scalar_set_b32(&alpha[k], tmp, &overflow);
-        } while (overflow || secp256k1_scalar_is_zero(&alpha[k]));
-
-        if (!secp256k1_ec_pubkey_create(ctx, &pubkey, tmp)) { /* G * alpha[col] */
-            return 1;
-        }
-        clen = 33; /* must be set */
-        if (!secp256k1_ec_pubkey_serialize(ctx, tmp, &clen, &pubkey, SECP256K1_EC_COMPRESSED)
-            || clen != 33) {
-            return 1;
-        }
-        secp256k1_sha256_write(&sha256_m, &pk[(index + k*nCols)*33], 33); /* pk_ind[col] */
-        secp256k1_sha256_write(&sha256_m, tmp, 33); /* G * alpha[col] */
-    }
-
     secp256k1_sha256_finalize(&sha256_m, tmp);
     secp256k1_scalar_set_b32(&clast, tmp, &overflow);
     if (overflow || secp256k1_scalar_is_zero(&clast)) {
@@ -304,7 +290,7 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
     while (i != index) {
         sha256_m = sha256_pre; /* set to after preimage hashed */
 
-        for (k = 0; k < dsRows; ++k) {
+        for (k = 0; k < nRows; ++k) {
             do {
                 secp256k1_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
                 secp256k1_scalar_set_b32(&ss, tmp, &overflow);
@@ -318,6 +304,14 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
             secp256k1_gej_set_ge(&gej1, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &L, &gej1, &clast, &ss); /* L = G * ss + pk[k][i] * clast */
 
+            secp256k1_sha256_write(&sha256_m, &pk[(i + k*nCols)*33], 33); /* pk[k][i] */
+            secp256k1_ge_set_gej(&ge1, &L);
+            secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
+            secp256k1_sha256_write(&sha256_m, tmp, 33); /* L */
+
+            if (k >= dsRows) {
+                continue;
+            }
 
             /* R = H(pk[k][i]) * ss + ki[k] * clast */
             if (0 != hash_to_curve(&ge1, &pk[(i + k*nCols)*33], 33)) { /* H(pk[k][i]) */
@@ -331,37 +325,12 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
             }
             secp256k1_gej_set_ge(&gej2, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &gej2, &gej2, &clast, &zero); /* gej2 = ki[k] * clast */
-
             secp256k1_gej_add_var(&R, &gej1, &gej2, NULL);  /* R =  gej1 + gej2 */
 
-            secp256k1_sha256_write(&sha256_m, &pk[(i + k*nCols)*33], 33); /* pk[k][i] */
-            secp256k1_ge_set_gej(&ge1, &L);
-            secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
-            secp256k1_sha256_write(&sha256_m, tmp, 33); /* L */
+            /* Hash R */
             secp256k1_ge_set_gej(&ge1, &R);
             secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
             secp256k1_sha256_write(&sha256_m, tmp, 33); /* R */
-        }
-
-        for (k = dsRows; k < nRows; ++k) {
-            do {
-                secp256k1_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
-                secp256k1_scalar_set_b32(&ss, tmp, &overflow);
-            } while (overflow || secp256k1_scalar_is_zero(&ss));
-
-            memcpy(&ps[(i + k*nCols)*32], tmp, 32);
-
-            /* L = G * ss + pk[k][i] * clast */
-            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33)) {
-                return 1;
-            }
-            secp256k1_gej_set_ge(&gej1, &ge1);
-            secp256k1_ecmult(&ctx->ecmult_ctx, &L, &gej1, &clast, &ss);
-
-            secp256k1_sha256_write(&sha256_m, &pk[(i + k*nCols)*33], 33); /* pk[k][i] */
-            secp256k1_ge_set_gej(&ge1, &L);
-            secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
-            secp256k1_sha256_write(&sha256_m, tmp, 33); /* L */
         }
 
         secp256k1_sha256_finalize(&sha256_m, tmp);
@@ -375,7 +344,6 @@ int secp256k1_generate_mlsag(const secp256k1_context *ctx,
             memcpy(pc, tmp, 32); /* *pc = clast */
         }
     }
-
 
     for (k = 0; k < nRows; ++k) {
         /* ss[k][index] = alpha[k] - clast * sk[k] */
@@ -426,7 +394,7 @@ int secp256k1_verify_mlsag(const secp256k1_context *ctx,
     for (i = 0; i < nCols; ++i) {
         sha256_m = sha256_pre; /* Set to after preimage hashed */
 
-        for (k = 0; k < dsRows; ++k) {
+        for (k = 0; k < nRows; ++k) {
             /* L = G * ss + pk[k][i] * clast */
             secp256k1_scalar_set_b32(&ss, &ps[(i + k*nCols)*32], &overflow);
             if (overflow || secp256k1_scalar_is_zero(&ss)) {
@@ -438,6 +406,15 @@ int secp256k1_verify_mlsag(const secp256k1_context *ctx,
             }
             secp256k1_gej_set_ge(&gej1, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &L, &gej1, &clast, &ss);
+
+            secp256k1_sha256_write(&sha256_m, &pk[(i + k*nCols)*33], 33); /* pk[k][i] */
+            secp256k1_ge_set_gej(&ge1, &L);
+            secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
+            secp256k1_sha256_write(&sha256_m, tmp, 33); /* L */
+
+            if (k >= dsRows) {
+                continue;
+            }
 
             /* R = H(pk[k][i]) * ss + ki[k] * clast */
             if (0 != hash_to_curve(&ge1, &pk[(i + k*nCols)*33], 33)) { /* H(pk[k][i]) */
@@ -452,37 +429,13 @@ int secp256k1_verify_mlsag(const secp256k1_context *ctx,
             }
             secp256k1_gej_set_ge(&gej2, &ge1);
             secp256k1_ecmult(&ctx->ecmult_ctx, &gej2, &gej2, &clast, &zero); /* gej2 = ki[k] * clast */
-
             secp256k1_gej_add_var(&R, &gej1, &gej2, NULL);  /* R =  gej1 + gej2 */
 
-            secp256k1_sha256_write(&sha256_m, &pk[(i + k*nCols)*33], 33); /* pk[k][i] */
-            secp256k1_ge_set_gej(&ge1, &L);
-            secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
-            secp256k1_sha256_write(&sha256_m, tmp, 33); /* L */
+            /* Hash R */
             secp256k1_ge_set_gej(&ge1, &R);
             secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
             secp256k1_sha256_write(&sha256_m, tmp, 33); /* R */
         }
-
-        for (k = dsRows; k < nRows; ++k) {
-            /* L = G * ss + pk[k][i] * clast */
-            secp256k1_scalar_set_b32(&ss, &ps[(i + k*nCols)*32], &overflow);
-            if (overflow || secp256k1_scalar_is_zero(&ss)) {
-                return 1;
-            }
-            if (!secp256k1_eckey_pubkey_parse(&ge1, &pk[(i + k*nCols)*33], 33) ||
-                secp256k1_ge_is_infinity(&ge1)) {
-                return 1;
-            }
-
-            secp256k1_gej_set_ge(&gej1, &ge1);
-            secp256k1_ecmult(&ctx->ecmult_ctx, &L, &gej1, &clast, &ss);
-
-            secp256k1_sha256_write(&sha256_m, &pk[(i + k*nCols)*33], 33); /* pk[k][i] */
-            secp256k1_ge_set_gej(&ge1, &L);
-            secp256k1_eckey_pubkey_serialize(&ge1, tmp, &clen, 1);
-            secp256k1_sha256_write(&sha256_m, tmp, 33); /* L */
-        };
 
         secp256k1_sha256_finalize(&sha256_m, tmp);
         secp256k1_scalar_set_b32(&clast, tmp, &overflow);
