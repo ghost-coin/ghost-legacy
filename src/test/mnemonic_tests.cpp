@@ -2,22 +2,21 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <key/mnemonic.h>
-
+#include <test/util/setup_common.h>
 #include <test/data/bip39_vectors_english.json.h>
 #include <test/data/bip39_vectors_japanese.json.h>
 
-#include <test/util/setup_common.h>
-
+#include <key/mnemonic.h>
 #include <key/extkey.h>
 #include <key_io.h>
 #include <util/system.h>
 #include <util/strencodings.h>
 
 #include <string>
+#include <univalue.h>
+
 #include <boost/test/unit_test.hpp>
 
-#include <univalue.h>
 
 extern UniValue read_json(const std::string& jsondata);
 
@@ -71,12 +70,11 @@ BOOST_AUTO_TEST_CASE(mnemonic_addchecksum)
     BOOST_CHECK(sWordsOut == "zoologie ficeler xénon voyelle village viande vignette sécréter séduire torpille remède abolir");
 }
 
-
-void runTests(int nLanguage, UniValue &tests)
+static void runTests(int nLanguage, UniValue &tests)
 {
     std::string sError;
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
-        UniValue test = tests[idx];
+        const UniValue &test = tests[idx];
 
         assert(test.size() > 2);
 
@@ -84,8 +82,7 @@ void runTests(int nLanguage, UniValue &tests)
         std::string sWords = test[1].get_str();
         std::string sSeed;
         std::string sPassphrase;
-        if (test.size() > 3)
-        {
+        if (test.size() > 3) {
             sPassphrase = test[2].get_str();
             sSeed = test[3].get_str();
         } else {

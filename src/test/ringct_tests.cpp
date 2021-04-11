@@ -1,18 +1,23 @@
-// Copyright (c) 2017-2020 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <test/util/setup_common.h>
+#include <test/data/ringct.json.h>
 
 #include <crypto/sha256.h>
 #include <key/stealth.h>
+#include <util/strencodings.h>
 
 #include <secp256k1.h>
 #include <secp256k1_rangeproof.h>
 #include <secp256k1_mlsag.h>
 #include <stdint.h>
+#include <univalue.h>
 
 #include <boost/test/unit_test.hpp>
+
+extern UniValue read_json(const std::string& jsondata);
 
 BOOST_FIXTURE_TEST_SUITE(ringct_tests, BasicTestingSetup)
 
@@ -24,6 +29,10 @@ public:
     secp256k1_pedersen_commitment commitment;
     std::vector<unsigned char> vchRangeproof;
     std::vector<unsigned char> vchNonceCommitment;
+};
+
+struct S32Bytes {
+  uint8_t d[32];
 };
 
 static int memncmp(uint8_t *p, uint8_t c, size_t len)
@@ -39,11 +48,7 @@ static int memncmp(uint8_t *p, uint8_t c, size_t len)
     return 0;
 }
 
-struct S32Bytes {
-  uint8_t d[32];
-};
-
-int testCommitmentSum(secp256k1_context *ctx, CAmount nValueIn,
+static int testCommitmentSum(secp256k1_context *ctx, CAmount nValueIn,
     std::vector<CAmount> &amountsOut, CAmount nValueOutPlain, size_t nCols,
     bool fPass, bool fUnblindedOutputs=false, bool fUnblindedInputs=false)
 {
@@ -450,7 +455,7 @@ static int GetDeterministicBytes(uint8_t *p, size_t len)
         *(p+k) = rand() % 256;
     }
     return 0;
-};
+}
 
 static int GetBytes(uint8_t *p, size_t len, bool fDeterministic)
 {
@@ -460,7 +465,7 @@ static int GetBytes(uint8_t *p, size_t len, bool fDeterministic)
         GetStrongRandBytes(p, len);
     }
     return 0;
-};
+}
 
 int doTest(secp256k1_context *ctx, size_t nInputs, size_t nOutputs, CAmount nFee, bool fDeterministic)
 {
@@ -709,5 +714,51 @@ BOOST_AUTO_TEST_CASE(ringct_test_set_have)
     BOOST_CHECK(setHaveI.insert(2).second == true);
 }
 
+
+BOOST_AUTO_TEST_CASE(ringct_test_deterministic)
+{
+    // See github.com/tecnovert/particl_debug_scripts/mlsag_deterministic.py
+    secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
+
+    UniValue tests_vectors = read_json(
+        std::string(json_tests::ringct,
+        json_tests::ringct + sizeof(json_tests::ringct)));
+
+    for (unsigned int idx = 0; idx < tests_vectors.size(); idx++) {
+        const UniValue &test = tests_vectors[idx];
+        size_t rows = test[0].get_int();
+        size_t cols = test[1].get_int();
+        size_t real_column = test[2].get_int();
+
+        std::vector<uint8_t> nonce = ParseHex(test[3].get_str());
+        std::vector<uint8_t> preimage = ParseHex(test[4].get_str());
+        std::vector<uint8_t> secret_keys = ParseHex(test[5].get_str());
+        std::vector<uint8_t> pubkey_matrix = ParseHex(test[6].get_str());
+        std::vector<uint8_t> expect_hash = ParseHex(test[7].get_str());
+
+        std::vector<uint8_t> ki(33 * (rows - 1));
+        uint8_t sigc[32], result_hash[32];
+        std::vector<uint8_t> sigs(cols * rows * 32);
+
+        std::vector<const uint8_t*> sk(rows);
+        for (size_t k = 0; k < rows; ++k) {
+            sk[k] = &secret_keys[k * 32];
+        }
+
+        BOOST_CHECK(0 == secp256k1_generate_mlsag(ctx, ki.data(), sigc, sigs.data(),
+            nonce.data(), preimage.data(), cols, rows, real_column,
+            &sk[0], pubkey_matrix.data()));
+
+
+        CSHA256().Write(ki.data(), ki.size())
+                 .Write(sigc, 32)
+                 .Write(sigs.data(), sigs.size())
+                 .Finalize(result_hash);
+
+        BOOST_CHECK(memcmp(expect_hash.data(), result_hash, 32) == 0);
+    }
+
+    secp256k1_context_destroy(ctx);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

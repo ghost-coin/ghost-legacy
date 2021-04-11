@@ -171,15 +171,16 @@ TEST_BINARY = test/test_particl$(EXEEXT)
 JSON_TEST_FILES = \
   test/data/script_tests.json \
   test/data/base58_encode_decode.json \
-  test/data/bip39_vectors_english.json \
-  test/data/bip39_vectors_japanese.json \
   test/data/blockfilters.json \
   test/data/key_io_valid.json \
   test/data/key_io_invalid.json \
   test/data/script_tests.json \
   test/data/sighash.json \
   test/data/tx_invalid.json \
-  test/data/tx_valid.json
+  test/data/tx_valid.json \
+  test/data/bip39_vectors_english.json \
+  test/data/bip39_vectors_japanese.json \
+  test/data/ringct.json
 
 RAW_TEST_FILES = \
   test/data/asmap.raw
