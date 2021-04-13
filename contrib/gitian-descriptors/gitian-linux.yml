@@ -1,5 +1,5 @@
 ---
-name: "particl-linux-0.19.2.5"
+name: "particl-linux-0.19.2.6"
 enable_cache: true
 sudo: true
 distro: "ubuntu"
