@@ -1359,7 +1359,9 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
     }
 
     if (rv != DBErrors::LOAD_OK) {
-        return rv;
+        if (rv != DBErrors::NONCRITICAL_ERROR) {
+            return rv;
+        }
     }
 
     if (secp256k1_ctx_blind) {
@@ -1410,7 +1412,7 @@ DBErrors CHDWallet::LoadWallet(bool& fFirstRunRet)
 #endif
         LogPrintf("%s\n", sWarning);
     }
-    return DBErrors::LOAD_OK;
+    return rv;
 }
 
 void CHDWallet::Downgrade()
