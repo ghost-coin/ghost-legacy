@@ -5749,13 +5749,16 @@ static void traceFrozenPrevout(const COutPoint &op_trace, const uint256 &txid_sp
     std::vector<std::shared_ptr<CWallet> > wallets = GetWallets();
     for (auto &wallet : wallets) {
         CHDWallet *pwallet = GetParticlWallet(wallet.get());
+        CTransactionRecord rtx;
+        {
         LOCK(pwallet->cs_wallet);
 
         MapRecords_t::const_iterator mri = pwallet->mapRecords.find(op_trace.hash);
         if (mri == pwallet->mapRecords.end()) {
             continue;
         }
-        const CTransactionRecord &rtx = mri->second;
+        rtx = mri->second;
+        }
 
         auto ret = traced_txs.insert(std::pair<uint256, TracedTx>(op_trace.hash, TracedTx()));
         auto &traced_tx = ret.first->second;
@@ -5780,6 +5783,8 @@ static void traceFrozenPrevout(const COutPoint &op_trace, const uint256 &txid_sp
         }
         const auto &r = *pout;
 
+        {
+        LOCK(pwallet->cs_wallet);
         CHDWalletDB wdb(pwallet->GetDatabase());
         CStoredTransaction stx;
         if (!wdb.ReadStoredTx(op_trace.hash, stx)) {
@@ -5815,6 +5820,7 @@ static void traceFrozenPrevout(const COutPoint &op_trace, const uint256 &txid_sp
                 warnings.push_back(strprintf("GetKey failed %s", op_trace.ToString()));
             }
         }
+    }
     }
 }
 
@@ -5887,7 +5893,7 @@ static void placeTracedInputTxns(const uint256 &spend_txid, const std::vector<CO
     }
 }
 
-static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &uv_extra_outputs, bool trace_frozen_dump_privkeys)
+static void traceFrozenOutputs(UniValue &rv, CAmount min_value, CAmount max_frozen_output_spendable, const UniValue &uv_extra_outputs, bool trace_frozen_dump_privkeys)
 {
     // Dump information necessary for an external script to trace blinded amounts back to plain values
     // Intentionally trace blacklisted anon outputs, will be picked up by the validation script
@@ -5895,10 +5901,9 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
     UniValue warnings(UniValue::VARR);
 
     std::map<uint256, TracedTx> traced_txs;
-    std::set<uint256> top_level;
     std::vector<std::shared_ptr<CWallet> > wallets = GetWallets();
     std::set<COutPoint> extra_txouts;  // Trace these outputs even if spent
-    std::set<COutPoint> have_traced;
+    std::set<COutPoint> top_level, set_forced;
 
     if (uv_extra_outputs.isArray()) {
         for (size_t i = 0; i < uv_extra_outputs.size(); ++i) {
@@ -5963,7 +5968,7 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
                 }
 
                 bool is_spendable = true;
-                if (r.nValue > consensusParams.m_max_tainted_value_out) {
+                if (r.nValue > max_frozen_output_spendable) {
                     // TODO: Store pubkey on COutputRecord - in scriptPubKey
                     if (r.nType == OUTPUT_RINGCT) {
                         int64_t anon_index = -1;
@@ -5987,20 +5992,28 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
                     }
                 }
                 COutPoint op_trace(txid, r.n);
-                if (have_traced.count(op_trace)) {
+                if (top_level.count(op_trace)) {
                     continue;
                 }
                 total_traced += r.nValue;
                 num_traced++;
 
-                uint256 spent_by; // null
-                traceFrozenPrevout(op_trace, spent_by, traced_txns, warnings);
-                have_traced.insert(op_trace);
-                top_level.insert(txid);
-                auto ret = traced_txns.insert(std::pair<uint256, TracedTx>(txid, TracedTx()));
-                auto &traced_tx = ret.first->second;
-                traced_tx.m_outputs[r.n].m_forced_include = force_include;
+                top_level.insert(op_trace);
+                if (force_include) {
+                    set_forced.insert(op_trace);
+                }
             }
+        }
+    }
+
+    for (const auto &op : top_level) {
+        uint256 spent_by; // null
+        traceFrozenPrevout(op, spent_by, traced_txns, warnings);
+        auto ret = traced_txns.insert(std::pair<uint256, TracedTx>(op.hash, TracedTx()));
+        auto &traced_tx = ret.first->second;
+
+        if (set_forced.count(op)) {
+            traced_tx.m_outputs[op.n].m_forced_include = true;
         }
     }
 
@@ -6051,11 +6064,16 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
     }
 
     UniValue rv_txns(UniValue::VARR);
-    for (const auto &txid : top_level) {
+    std::set<uint256> set_added;
+    for (const auto &op : top_level) {
+        if (set_added.count(op.hash)) {
+            continue;
+        }
+        set_added.insert(op.hash);
         UniValue rv_tx(UniValue::VOBJ);
-        rv_tx.pushKV("txid", txid.ToString());
+        rv_tx.pushKV("txid", op.hash.ToString());
 
-        const auto &tx = traced_txns[txid];
+        const auto &tx = traced_txns[op.hash];
         UniValue uv_outputs(UniValue::VARR);
         for (const auto &itxo : tx.m_outputs) {
             const auto &txo = itxo.second;
@@ -6068,7 +6086,7 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, const UniValue &
         rv_tx.pushKV("wallet", tx.m_wallet_name);
 
         UniValue uv_inputs(UniValue::VARR);
-        placeTracedInputTxns(txid, tx.m_inputs, traced_txns, trace_frozen_dump_privkeys, uv_inputs);
+        placeTracedInputTxns(op.hash, tx.m_inputs, traced_txns, trace_frozen_dump_privkeys, uv_inputs);
         if (uv_inputs.size() > 0) {
             rv_tx.pushKV("inputs", uv_inputs);
         }
@@ -6114,7 +6132,8 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                                 },
                             },
                             {"trace_frozen_dump_privkeys", RPCArg::Type::BOOL, /* default */ "false", "Dump anon spending keys, use with trace_frozen_outputs."},
-                            {"attempt_repair", RPCArg::Type::BOOL, /* default */ "false", "Attempt to repair if possible."},
+                            {"max_frozen_output_spendable", RPCArg::Type::AMOUNT, /* default */ "unset", "Override the default value over which frozen outputs need to be explicitly whitelisted."},
+                            {"attempt_repair", RPCArg::Type::BOOL, /* default */ "", "Attempt to repair if possible."},
                             {"clear_stakes_seen", RPCArg::Type::BOOL, /* default */ "false", "Clear seen stakes - for use in regtest networks."},
                             {"downgrade_wallets", RPCArg::Type::BOOL, /* default */ "false", "Downgrade all loaded wallets for older releases then shutdown.\n"
                                                                                              "All loaded wallets must be unlocked."},
@@ -6140,6 +6159,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     bool attempt_repair = false;
     bool clear_stakes_seen = false;
     bool downgrade_wallets = false;
+    CAmount max_frozen_output_spendable = Params().GetConsensus().m_max_tainted_value_out;
 
     if (!request.params[0].isNull()) {
         const UniValue &options = request.params[0].get_obj();
@@ -6153,6 +6173,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 {"attempt_repair",                      UniValueType(UniValue::VBOOL)},
                 {"clear_stakes_seen",                   UniValueType(UniValue::VBOOL)},
                 {"downgrade_wallets",                   UniValueType(UniValue::VBOOL)},
+                {"max_frozen_output_spendable",         UniValueType()},
             }, true, true);
         if (options.exists("list_frozen_outputs")) {
             list_frozen_outputs = options["list_frozen_outputs"].get_bool();
@@ -6175,6 +6196,9 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         if (options.exists("downgrade_wallets")) {
             downgrade_wallets = options["downgrade_wallets"].get_bool();
         }
+        if (options.exists("max_frozen_output_spendable")) {
+            max_frozen_output_spendable = AmountFromValue(options["max_frozen_output_spendable"]);
+        }
     }
     if (list_frozen_outputs + spend_frozen_output + trace_frozen_outputs > 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Multiple frozen blinded methods selected.");
@@ -6192,7 +6216,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         const UniValue &options = request.params[0].get_obj();
         UniValue empty_array(UniValue::VARR);
         const UniValue &extra_outputs = options.exists("trace_frozen_extra") ? options["trace_frozen_extra"] : empty_array;
-        traceFrozenOutputs(result, min_frozen_blinded_value, extra_outputs, trace_frozen_dump_privkeys);
+        traceFrozenOutputs(result, min_frozen_blinded_value, max_frozen_output_spendable, extra_outputs, trace_frozen_dump_privkeys);
         return result;
     }
 
@@ -6248,12 +6272,12 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                         !stx.tx->vpout[r.n]->IsType(OUTPUT_RINGCT) ||
                         !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, anon_index) ||
                         IsBlacklistedAnonOutput(anon_index) ||
-                        (!IsWhitelistedAnonOutput(anon_index) && r.nValue > consensusParams.m_max_tainted_value_out)) {
+                        (!IsWhitelistedAnonOutput(anon_index) && r.nValue > max_frozen_output_spendable)) {
                         is_spendable = false;
                     }
                 } else
                 if (r.nType == OUTPUT_CT) {
-                    if (IsFrozenBlindOutput(txid) && r.nValue > consensusParams.m_max_tainted_value_out) {
+                    if (IsFrozenBlindOutput(txid) && r.nValue > max_frozen_output_spendable) {
                         is_spendable = false;
                     }
                 }
