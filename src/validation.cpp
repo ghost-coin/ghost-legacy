@@ -5529,7 +5529,7 @@ bool ChainstateManager::ProcessNewBlock(const CChainParams& chainparams, const s
             return true;
         }
         if (!ret) {
-            if (fParticlMode) {
+            if (fParticlMode && state.GetResult() != BlockValidationResult::BLOCK_MISSING_PREV) {
                 // Mark block as invalid to prevent re-requesting from peer.
                 // Block will have been added to the block index in AcceptBlockHeader
                 CBlockIndex *pindex = ::ChainstateActive().m_blockman.AddToBlockIndex(*pblock);
