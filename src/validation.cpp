@@ -3522,7 +3522,7 @@ bool CChainState::ConnectTip(CValidationState& state, const CChainParams& chainp
             state.nFlags |= BLOCK_FAILED_DUPLICATE_STAKE;
         GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
-            if (state.IsInvalid())
+            if (state.IsInvalid() && state.GetReason() != ValidationInvalidReason::BLOCK_MISSING_PREV)
                 InvalidBlockFound(pindexNew, blockConnecting, state);
             return error("%s: ConnectBlock %s failed, %s", __func__, pindexNew->GetBlockHash().ToString(), FormatStateMessage(state));
         }
