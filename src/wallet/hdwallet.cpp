@@ -589,11 +589,9 @@ bool CHDWallet::LoadAddressBook(CHDWalletDB *pwdb)
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
 
-    std::string sPrefix = "abe";
-    std::string strType;
-    std::string strAddress;
-
+    std::string strType, strAddress, sPrefix = "abe";
     size_t nCount = 0;
+
     unsigned int fFlags = DB_SET_RANGE;
     ssKey << sPrefix;
     while (pwdb->ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
@@ -622,7 +620,7 @@ bool CHDWallet::LoadAddressBook(CHDWalletDB *pwdb)
         }
     }
 
-    LogPrint(BCLog::HDWALLET, "Loaded %d addresses.\n", nCount);
+    LogPrint(BCLog::HDWALLET, "%s Loaded %d addresses.\n", GetDisplayName(), nCount);
     pcursor->close();
 
     return true;
@@ -696,11 +694,9 @@ bool CHDWallet::LoadTxRecords(CHDWalletDB *pwdb)
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
 
-    std::string sPrefix = "rtx";
-    std::string strType;
+    std::string strType, sPrefix = "rtx";
     uint256 txhash;
 
-    size_t nCount = 0;
     unsigned int fFlags = DB_SET_RANGE;
     ssKey << sPrefix;
     while (pwdb->ReadAtCursor(pcursor, ssKey, ssValue, fFlags) == 0) {
@@ -711,11 +707,9 @@ bool CHDWallet::LoadTxRecords(CHDWalletDB *pwdb)
         }
 
         ssKey >> txhash;
-
         CTransactionRecord data;
         ssValue >> data;
         LoadToWallet(txhash, data);
-        nCount++;
     }
 
     pcursor->close();
@@ -776,7 +770,7 @@ bool CHDWallet::LoadTxRecords(CHDWalletDB *pwdb)
         }
     }
 
-    LogPrint(BCLog::HDWALLET, "Loaded %d records.\n", nCount);
+    WalletLogPrintf("mapRecords.size() = %u\n", mapRecords.size());
 
     return true;
 };
@@ -10332,10 +10326,8 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
     }
 
     // Anon input spend info depends on keys in wallet
-    for (const auto &txin : tx.vin) {
-        if (txin.IsAnonInput()) {
-            rtx.nFlags |= ORF_ANON_IN;
-        }
+    if (tx.vin.size() > 0 && tx.vin[0].IsAnonInput()) {  // Only check the first input, input types can't be mixed.
+        rtx.nFlags |= (int16_t)ORF_ANON_IN;
     }
     if (rtx.nFlags & ORF_ANON_IN) {
         COutPoint op;
