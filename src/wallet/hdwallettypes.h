@@ -8,6 +8,7 @@
 #include <key_io.h>
 #include <key/extkey.h>
 #include <key/stealth.h>
+#include <primitives/transaction.h>
 #include <amount.h>
 #include <serialize.h>
 
@@ -281,6 +282,23 @@ public:
     CAmount nAnonWatchOnly = 0;
     CAmount nAnonWatchOnlyUnconf = 0;
     CAmount nAnonWatchOnlyImmature = 0;
+};
+
+class CStoredTransaction
+{
+public:
+    CTransactionRef tx;
+    std::vector<std::pair<int, uint256> > vBlinds;
+
+    bool InsertBlind(int n, const uint8_t *p);
+    bool GetBlind(int n, uint8_t *p) const;
+    bool GetAnonPubkey(int n, CCmpPubKey &anon_pubkey) const;
+
+    SERIALIZE_METHODS(CStoredTransaction, obj)
+    {
+        READWRITE(obj.tx);
+        READWRITE(obj.vBlinds);
+    }
 };
 
 #endif // PARTICL_WALLET_HDWALLETTYPES_H

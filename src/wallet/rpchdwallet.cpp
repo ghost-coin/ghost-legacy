@@ -6607,6 +6607,61 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 warnings.push_back(tmp);
             }
         }
+
+        {
+            pwallet->WalletLogPrintf("Checking for missing anon spends.\n");
+            CHDWalletDB wdb(pwallet->GetDatabase());
+            for (const auto &ri : pwallet->mapRecords) {
+                const uint256 &txid = ri.first;
+                const CTransactionRecord &rtx = ri.second;
+                CStoredTransaction stx;
+
+                for (const auto &r : rtx.vout) {
+                    if (r.nType != OUTPUT_RINGCT ||
+                        !(r.nFlags & ORF_OWNED)) {
+                        continue;
+                    }
+
+                    CCmpPubKey anon_pubkey, ki;
+                    auto add_error = [&] (std::string message) {
+                        UniValue tmp(UniValue::VOBJ);
+                        tmp.pushKV("type", message);
+                        tmp.pushKV("txid", txid.ToString());
+                        tmp.pushKV("n", r.n);
+                        errors.push_back(tmp);
+                    };
+                    if ((!stx.tx || stx.tx->GetHash() != txid)
+                        && !wdb.ReadStoredTx(txid, stx)) {
+                        add_error("Missing stored txn.");
+                        continue;
+                    }
+                    if (!stx.GetAnonPubkey(r.n, anon_pubkey)) {
+                        add_error("Could not get anon pubkey.");
+                        continue;
+                    }
+                    CKey spend_key;
+                    CKeyID apkid = anon_pubkey.GetID();
+                    if (!pwallet->GetKey(apkid, spend_key)) {
+                        add_error("Could not get anon spend key.");
+                        continue;
+                    }
+                    if (0 != GetKeyImage(ki, anon_pubkey, spend_key)) {
+                        add_error("Could not get keyimage.");
+                        continue;
+                    }
+                    uint256 txhashKI;
+                    bool spent_in_chain = pblocktree->ReadRCTKeyImage(ki, txhashKI);
+                    bool spent_in_wallet = pwallet->IsSpent(txid, r.n);
+
+                    if (spent_in_chain && !spent_in_wallet) {
+                        add_error("Spent in chain but not wallet.");
+                    } else
+                    if (!spent_in_chain && spent_in_wallet) {
+                        add_error("Spent in wallet but not chain.");
+                    }
+                }
+            }
+        }
     }
 
     result.pushKV("errors", errors);

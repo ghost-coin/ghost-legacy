@@ -72,3 +72,41 @@ const COutputRecord *CTransactionRecord::GetChangeOutput() const
     }
     return nullptr;
 };
+
+bool CStoredTransaction::InsertBlind(int n, const uint8_t *p)
+{
+    for (auto &bp : vBlinds) {
+        if (bp.first == n) {
+            memcpy(bp.second.begin(), p, 32);
+            return true;
+        }
+    }
+    uint256 insert;
+    memcpy(insert.begin(), p, 32);
+    vBlinds.push_back(std::make_pair(n, insert));
+    return true;
+}
+
+bool CStoredTransaction::GetBlind(int n, uint8_t *p) const
+{
+    for (const auto &bp : vBlinds) {
+        if (bp.first == n) {
+            memcpy(p, bp.second.begin(), 32);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CStoredTransaction::GetAnonPubkey(int n, CCmpPubKey &anon_pubkey) const
+{
+    if (!tx || n >= (int)tx->vpout.size()) {
+        return false;
+    }
+    const CTxOutBase *pout = tx->vpout[n].get();
+    if (pout->GetType() != OUTPUT_RINGCT) {
+        return false;
+    }
+    anon_pubkey = ((CTxOutRingCT*)pout)->pk;
+    return true;
+}

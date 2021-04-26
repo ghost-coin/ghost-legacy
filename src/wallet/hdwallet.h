@@ -30,44 +30,6 @@ typedef struct secp256k1_scratch_space_struct secp256k1_scratch_space;
 struct CBlockTemplate;
 class TxValidationState;
 
-class CStoredTransaction
-{
-public:
-    CTransactionRef tx;
-    std::vector<std::pair<int, uint256> > vBlinds;
-
-    bool InsertBlind(int n, const uint8_t *p)
-    {
-        for (auto &bp : vBlinds) {
-            if (bp.first == n) {
-                memcpy(bp.second.begin(), p, 32);
-                return true;
-            }
-        }
-        uint256 insert;
-        memcpy(insert.begin(), p, 32);
-        vBlinds.push_back(std::make_pair(n, insert));
-        return true;
-    }
-
-    bool GetBlind(int n, uint8_t *p) const
-    {
-        for (auto &bp : vBlinds) {
-            if (bp.first == n) {
-                memcpy(p, bp.second.begin(), 32);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    SERIALIZE_METHODS(CStoredTransaction, obj)
-    {
-        READWRITE(obj.tx);
-        READWRITE(obj.vBlinds);
-    }
-};
-
 class CHDWallet : public CWallet
 {
 public:

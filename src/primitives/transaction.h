@@ -449,7 +449,7 @@ class CTxOutRingCT : public CTxOutBase
 public:
     CTxOutRingCT() : CTxOutBase(OUTPUT_RINGCT) {};
     CCmpPubKey pk;
-    std::vector<uint8_t> vData; // first 33 bytes is always ephemeral pubkey, can contain token for stealth prefix matching
+    std::vector<uint8_t> vData; // First 33 bytes is always ephemeral pubkey, can contain token for stealth prefix matching
     secp256k1_pedersen_commitment commitment;
     std::vector<uint8_t> vRangeproof;
 
