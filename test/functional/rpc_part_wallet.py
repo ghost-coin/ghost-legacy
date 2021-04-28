@@ -25,8 +25,7 @@ class WalletRPCTest(ParticlTestFramework):
     def run_test(self):
         nodes = self.nodes
 
-        nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
-        assert(nodes[0].getwalletinfo()['total_balance'] == 100000)
+        self.import_genesis_coins_a(nodes[0])
 
         nodes[1].extkeyimportmaster(nodes[1].mnemonic('new')['master'])
 

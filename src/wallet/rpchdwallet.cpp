@@ -4027,6 +4027,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
                         {RPCResult::Type::STR_AMOUNT, "reserve", "The reserve balance of the wallet in " + CURRENCY_UNIT},
                         {RPCResult::Type::STR_AMOUNT, "walletfoundationdonationpercent", "User set percentage of the block reward ceded to the foundation"},
                         {RPCResult::Type::STR_AMOUNT, "foundationdonationpercent", "Network enforced percentage of the block reward ceded to the foundation"},
+                        {RPCResult::Type::STR_AMOUNT, "minstakeablevalue", "The minimum value for an output to attempt staking in " + CURRENCY_UNIT},
                         {RPCResult::Type::NUM, "currentblocksize", "The last approximate block size in bytes"},
                         {RPCResult::Type::NUM, "currentblockweight", "The last block weight"},
                         {RPCResult::Type::NUM, "currentblocktx", "The number of transactions in the last block"},
@@ -4111,6 +4112,8 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
     if (pDevFundSettings && pDevFundSettings->nMinDevStakePercent > 0) {
         obj.pushKV("foundationdonationpercent", pDevFundSettings->nMinDevStakePercent);
     }
+
+    obj.pushKV("minstakeablevalue", pwallet->m_min_stakeable_value);
 
     obj.pushKV("currentblocksize", (uint64_t)nLastBlockSize);
     obj.pushKV("currentblocktx", (uint64_t)nLastBlockTx);
@@ -6684,6 +6687,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "  \"enabled\"                   (bool, optional, default=true) Toggle staking enabled on this wallet.\n"
                 "  \"stakecombinethreshold\"     (amount, optional, default=1000) Join outputs below this value.\n"
                 "  \"stakesplitthreshold\"       (amount, optional, default=2000) Split outputs above this value.\n"
+                "  \"minstakeablevalue\"         (amount, optional, default=0.00000001) Won't try stake outputs below this value.\n"
                 "  \"foundationdonationpercent\" (int, optional, default=0) Set the percentage of each block reward to donate to the foundation.\n"
                 "  \"rewardaddress\"             (string, optional, default=none) An address which the user portion of the block reward gets sent to.\n"
                 "  \"smsgfeeratetarget\"         (amount, optional, default=0) If non-zero an amount to move the smsgfeerate towards.\n"
@@ -6704,6 +6708,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "\"other\" {\n"
                 "  \"onlyinstance\"              (bool, optional, default=true) Set to false if other wallets spending from the same keys exist.\n"
                 "  \"smsgenabled\"               (bool, optional, default=true) Set to false to have smsg ignore the wallet.\n"
+                "  \"minownedvalue\"             (amount, optional, default=0.00000001) Will ignore outputs below this value.\n"
                 "}\n"
                 "Omit the json object to print the settings group.\n"
                 "Pass an empty json object to clear the settings group.\n" +
@@ -6868,6 +6873,11 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "stakesplitthreshold can't be negative.");
                 }
             } else
+            if (sKey == "minstakeablevalue") {
+                if (AmountFromValue(json["minstakeablevalue"]) < 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "minstakeablevalue can't be negative.");
+                }
+            } else
             if (sKey == "foundationdonationpercent") {
                 if (!json["foundationdonationpercent"].isNum()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "foundationdonationpercent must be a number.");
@@ -6931,6 +6941,11 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             if (sKey == "smsgenabled") {
                 if (!json["smsgenabled"].isBool()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "smsgenabled must be boolean.");
+                }
+            } else
+            if (sKey == "minownedvalue") {
+                if (AmountFromValue(json["minownedvalue"]) < 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "minownedvalue can't be negative.");
                 }
             } else {
                 warnings.push_back("Unknown key " + sKey);

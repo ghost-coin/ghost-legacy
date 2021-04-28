@@ -47,8 +47,7 @@ class AddressIndexTest(ParticlTestFramework):
         for i in range(len(nodes)):
             nodes[i].reservebalance(True, 10000000)
 
-        nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
-        assert(nodes[0].getwalletinfo()['total_balance'] == 100000)
+        self.import_genesis_coins_a(nodes[0])
 
         nodes[1].extkeyimportmaster('graine article givre hublot encadrer admirer stipuler capsule acajou paisible soutirer organe')
         nodes[2].extkeyimportmaster('sección grito médula hecho pauta posada nueve ebrio bruto buceo baúl mitad')

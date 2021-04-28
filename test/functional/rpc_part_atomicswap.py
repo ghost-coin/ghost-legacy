@@ -793,13 +793,8 @@ class AtomicSwapTest(ParticlTestFramework):
     def run_test(self):
         nodes = self.nodes
 
-        nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
-        assert(nodes[0].getwalletinfo()['total_balance'] == 100000)
-
-        nodes[1].extkeyimportmaster('pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic', '', 'true')
-        nodes[1].getnewextaddress('lblExtTest')
-        nodes[1].rescanblockchain()
-        assert(nodes[1].getwalletinfo()['total_balance'] == 25000)
+        self.import_genesis_coins_a(nodes[0])
+        self.import_genesis_coins_b(nodes[1])
 
         self.test_standardtx()
 

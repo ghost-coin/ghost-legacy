@@ -46,8 +46,7 @@ class TimestampIndexTest(ParticlTestFramework):
         for i in range(len(nodes)):
             nodes[i].reservebalance(True, 10000000)
 
-        nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
-        assert(nodes[0].getwalletinfo()['total_balance'] == 100000)
+        self.import_genesis_coins_a(nodes[0])
 
         blockhashes = []
         self.stakeToHeight(1, False)

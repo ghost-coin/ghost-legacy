@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-# Copyright (c) 2019 The Particl Core developers
+# Copyright (c) 2019-2021 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 from test_framework.test_particl import ParticlTestFramework
-
+import time
 
 class MultiWalletTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [ ['-debug','-noacceptnonstdtxn','-reservebalance=10000000'] for i in range(self.num_nodes)]
+        self.extra_args = [ ['-debug','-noacceptnonstdtxn','-reservebalance=10000000','-stakethreadconddelayms=100'] for i in range(self.num_nodes)]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -26,12 +26,8 @@ class MultiWalletTest(ParticlTestFramework):
     def run_test(self):
         nodes = self.nodes
 
-        nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
-        assert(nodes[0].getwalletinfo()['total_balance'] == 100000)
-        nodes[1].extkeyimportmaster('pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic', '', 'true')
-        nodes[1].getnewextaddress('lblExtTest')
-        nodes[1].rescanblockchain()
-        assert(nodes[1].getwalletinfo()['total_balance'] == 25000)
+        self.import_genesis_coins_a(nodes[0])
+        self.import_genesis_coins_b(nodes[1])
         nodes[2].extkeyimportmaster('sección grito médula hecho pauta posada nueve ebrio bruto buceo baúl mitad')
 
         self.log.info('Check loaded wallets rescan any missed blocks')
@@ -54,6 +50,23 @@ class MultiWalletTest(ParticlTestFramework):
 
         nodes[2].sendtoaddress(nodes[1].getnewaddress(), 100)
 
+        self.log.info('Test threshold values')
+        nodes[2].createwallet('w4')
+        nodes[2].createwallet('w5')
+        nodes[2].createwallet('w6')
+        w4 = nodes[2].get_wallet_rpc('w4')
+        w5 = nodes[2].get_wallet_rpc('w5')
+        w6 = nodes[2].get_wallet_rpc('w6')
+        mnemonic = w4.mnemonic('new')['master']
+        w4.extkeyimportmaster(mnemonic)
+        w5.extkeyimportmaster(mnemonic)
+        w6.extkeyimportmaster(mnemonic)
+        w5.walletsettings('stakingoptions', {'minstakeablevalue' : 1.0})
+        w6.walletsettings('other', {'minownedvalue' : 1.0})
+        w4_addr = w4.getnewaddress()
+        nodes[0].sendtoaddress(w4_addr, 1)
+        nodes[0].sendtoaddress(w4_addr, 0.99)
+
         self.sync_all()
         self.stakeBlocks(1)
 
@@ -74,6 +87,24 @@ class MultiWalletTest(ParticlTestFramework):
         ro = w3.getwalletinfo()
         assert('hdseedid' in ro)
         assert(ro['encryptionstatus'] == 'Locked')
+
+        w4.reservebalance(False)
+        w5.reservebalance(False)
+        w6.reservebalance(False)
+        time.sleep(0.5)
+        assert(float(w4.getbalances()['mine']['trusted']) == 1.99)
+        assert(float(w5.getbalances()['mine']['trusted']) == 1.99)
+        assert(float(w6.getbalances()['mine']['trusted']) == 1.0)
+        w4_stakinginfo = w4.getstakinginfo()
+        w5_stakinginfo = w5.getstakinginfo()
+        w6_stakinginfo = w6.getstakinginfo()
+        assert(w4_stakinginfo['minstakeablevalue'] == 1)
+        assert(w4_stakinginfo['weight'] == 199000000)
+        assert(w5_stakinginfo['minstakeablevalue'] == 100000000)
+        assert(w5_stakinginfo['weight'] == 100000000)
+        assert(w6_stakinginfo['minstakeablevalue'] == 1)
+        assert(w6_stakinginfo['weight'] == 100000000)
+        assert(float(w6.walletsettings('other')['other']['minownedvalue']) == 1.0)
 
 
 if __name__ == '__main__':
