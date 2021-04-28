@@ -50,6 +50,17 @@
 #include <boost/algorithm/string/replace.hpp>
 
 
+static bool ExtractStealthPrefix(const std::vector<uint8_t> &vData, uint32_t &prefix, size_t offset = 33)
+{
+    prefix = 0;
+    if (vData.size() >= offset + 5
+        && vData[offset] == DO_STEALTH_PREFIX) {
+        memcpy(&prefix, &vData[offset + 1], 4);
+        return true;
+    }
+    return false;
+}
+
 int CHDWallet::Finalise()
 {
     LOCK(cs_wallet);
@@ -126,6 +137,7 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
     fStakingEnabled = true;
     nStakeCombineThreshold = 1000 * COIN;
     nStakeSplitThreshold = 2000 * COIN;
+    m_min_stakeable_value = 1;
     nMaxStakeCombine = 3;
     nWalletDevFundCedePercent = gArgs.GetArg("-foundationdonationpercent", 0);
     rewardAddress = CBitcoinAddress();
@@ -152,6 +164,17 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
             try { nStakeSplitThreshold = AmountFromValue(json["stakesplitthreshold"]);
             } catch (std::exception &e) {
                 AppendError(sError, "\"stakesplitthreshold\" not an amount.");
+            }
+        }
+
+        if (!json["minstakeablevalue"].isNull()) {
+            try { m_min_stakeable_value = AmountFromValue(json["minstakeablevalue"]);
+            } catch (std::exception &e) {
+                AppendError(sError, "\"minstakeablevalue\" not an amount.");
+            }
+            if (m_min_stakeable_value < 0) {
+                AppendError(sError, "\"minstakeablevalue\" must be >= 0.");
+                m_min_stakeable_value = 0;
             }
         }
 
@@ -221,6 +244,7 @@ bool CHDWallet::ProcessWalletSettings(std::string &sError)
     m_collapse_spent_mode = 0;
     m_min_collapse_depth = 3;
     m_mixin_selection_mode_default = 1;
+    m_min_owned_value = 0;
 
     UniValue json;
     if (GetSetting("unloadspent", json)) {
@@ -258,6 +282,16 @@ bool CHDWallet::ProcessWalletSettings(std::string &sError)
             try { m_smsg_enabled = json["smsgenabled"].get_bool();
             } catch (std::exception &e) {
                 AppendError(sError, "\"smsgenabled\" not boolean.");
+            }
+        }
+        if (!json["minownedvalue"].isNull()) {
+            try { m_min_owned_value = AmountFromValue(json["minownedvalue"]);
+            } catch (std::exception &e) {
+                AppendError(sError, "\"minownedvalue\" not an amount.");
+            }
+            if (m_min_owned_value < 0) {
+                AppendError(sError, "\"minownedvalue\" must be >= 0.");
+                m_min_owned_value = 0;
             }
         }
     }
@@ -9378,13 +9412,7 @@ int CHDWallet::CheckForStealthAndNarration(const CTxOutBase *pb, const CTxOutDat
         memcpy(&vchEphemPK[0], &vData[1], 33);
 
         uint32_t prefix = 0;
-        bool fHavePrefix = false;
-
-        if (vData.size() >= 34 + 5
-            && vData[34] == DO_STEALTH_PREFIX) {
-            fHavePrefix = true;
-            memcpy(&prefix, &vData[35], 4);
-        }
+        bool fHavePrefix = ExtractStealthPrefix(vData, prefix, 34);
 
         const CTxOutStandard *so = (CTxOutStandard*)pb;
         CTxDestination address;
@@ -9496,14 +9524,7 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
 
             // Uncover stealth
             uint32_t prefix = 0;
-            bool fHavePrefix = false;
-            if (ctout->vData.size() != 33) {
-                if (ctout->vData.size() >= 38 // Have prefix
-                    && ctout->vData[33] == DO_STEALTH_PREFIX) {
-                    fHavePrefix = true;
-                    memcpy(&prefix, &ctout->vData[34], 4);
-                }
-            }
+            bool fHavePrefix = ExtractStealthPrefix(ctout->vData, prefix);
 
             CKey sShared;
             std::vector<uint8_t> vchEphemPK;
@@ -9513,7 +9534,6 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
             if (ProcessStealthOutput(address, vchEphemPK, prefix, fHavePrefix, sShared)) {
                 fIsMine = true;
             }
-            continue;
         } else
         if (txout->IsType(OUTPUT_RINGCT)) {
             nRingCT++;
@@ -9523,14 +9543,7 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
 
             // Uncover stealth
             uint32_t prefix = 0;
-            bool fHavePrefix = false;
-            if (rctout->vData.size() != 33) {
-                if (rctout->vData.size() >= 38 // Have prefix
-                    && rctout->vData[33] == DO_STEALTH_PREFIX) {
-                    fHavePrefix = true;
-                    memcpy(&prefix, &rctout->vData[34], 4);
-                }
-            }
+            bool fHavePrefix = ExtractStealthPrefix(rctout->vData, prefix);
 
             CKey sShared;
             std::vector<uint8_t> vchEphemPK;
@@ -9540,7 +9553,6 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
             if (ProcessStealthOutput(PKHash(idk), vchEphemPK, prefix, fHavePrefix, sShared)) {
                 fIsMine = true;
             }
-            continue;
         } else
         if (txout->IsType(OUTPUT_STANDARD)) {
             if (nOutputId < (int)tx.vpout.size()-1
@@ -9556,6 +9568,9 @@ bool CHDWallet::ScanForOwnedOutputs(const CTransaction &tx, size_t &nCT, size_t 
                     std::string sKey = strprintf("n%d", nOutputId);
                     mapNarr[sKey] = sNarr;
                 }
+            }
+            if (txout->GetValue() < m_min_owned_value) {
+                continue;
             }
 
             if (IsMine(txout.get())) {
@@ -9938,6 +9953,9 @@ const CWalletTx *CHDWallet::GetWalletOrTempTx(const uint256& hash, const CTransa
 
 int CHDWallet::OwnStandardOut(const CTxOutStandard *pout, const CTxOutData *pdata, COutputRecord &rout, bool &fUpdated)
 {
+    if (pout->nValue < m_min_owned_value) {
+        return 0;
+    }
     if (pdata) {
         std::string sNarr;
         if (CheckForStealthAndNarration((CTxOutBase*)pout, pdata, sNarr) < 0) {
@@ -10052,17 +10070,14 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
     if (!(mine & ISMINE_ALL)) {
         return 0;
     }
-
     if (pa && pak && pa->nActiveInternal == pak->nParent) {
         rout.nFlags |= ORF_CHANGE | ORF_FROM;
     }
-
     if (mine & ISMINE_SPENDABLE) {
         rout.nFlags |= ORF_OWNED;
     } else {
         rout.nFlags |= ORF_WATCHONLY;
     }
-
     if (mine & ISMINE_HARDWARE_DEVICE) {
         rout.nFlags |= ORF_HARDWARE_DEVICE;
     }
@@ -10120,9 +10135,11 @@ int CHDWallet::OwnBlindOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOu
         secp256k1_generator_h)) {
         return werrorN(0, "%s: secp256k1_rangeproof_rewind failed.", __func__);
     }
+    if ((CAmount)amountOut < m_min_owned_value) {
+        return 0;
+    }
 
     msg[mlen-1] = '\0';
-
     size_t nNarr = strlen((const char*)msg);
     if (nNarr > 0) {
         rout.sNarration.assign((const char*)msg, nNarr);
@@ -10153,17 +10170,14 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
     if (!(mine & ISMINE_ALL)) {
         return 0;
     }
-
     if (pa && pak && pa->nActiveInternal == pak->nParent) {
         rout.nFlags |= ORF_CHANGE | ORF_FROM;
     }
-
     if (mine & ISMINE_SPENDABLE) {
         rout.nFlags |= ORF_OWNED;
     } else {
         rout.nFlags |= ORF_WATCHONLY;
     }
-
     if (mine & ISMINE_HARDWARE_DEVICE) {
         rout.nFlags |= ORF_HARDWARE_DEVICE;
     }
@@ -10219,6 +10233,9 @@ int CHDWallet::OwnAnonOut(CHDWalletDB *pwdb, const uint256 &txhash, const CTxOut
         nullptr, 0,
         secp256k1_generator_h)) {
         return werrorN(0, "%s: secp256k1_rangeproof_rewind failed.", __func__);
+    }
+    if ((CAmount)amountOut < m_min_owned_value) {
+        return 0;
     }
 
     msg[mlen-1] = '\0';
@@ -10304,7 +10321,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
     AssertLockHeld(cs_wallet);
     CHDWalletDB wdb(*database, "r+", fFlushOnClose);
 
-    uint256 txhash = tx.GetHash();
+    const uint256 &txhash = tx.GetHash();
 
     // Inserts only if not exists, returns tx inserted or tx found
     std::pair<MapRecords_t::iterator, bool> ret = mapRecords.insert(std::make_pair(txhash, rtxIn));
@@ -10344,7 +10361,7 @@ bool CHDWallet::AddToRecord(CTransactionRecord &rtxIn, const CTransaction &tx,
             assert(vKeyImages.size() == nInputs * 33);
 
             for (size_t k = 0; k < nInputs; ++k) {
-                const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
+                const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k * 33]);
                 if (!wdb.ReadAnonKeyImage(ki, op)) {
                     //WalletLogPrintf("Warning: Unknown keyimage %s.\n", ki.ToString());
                     continue;
@@ -12253,7 +12270,6 @@ uint64_t CHDWallet::GetStakeWeight() const
 void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t nTime, int nHeight) const
 {
     vCoins.clear();
-
     m_greatest_txn_depth = 0;
 
     {
@@ -12269,15 +12285,12 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
             CTransactionRef tx = pcoin->tx;
 
             int nDepth = pcoin->GetDepthInMainChain(*locked_chain);
-
             if (nDepth > m_greatest_txn_depth) {
                 m_greatest_txn_depth = nDepth;
             }
-
             if (nDepth < nRequiredDepth) {
                 continue;
             }
-
             if (pcoin->IsCoinStake() && min_stake_confirmations < COINBASE_MATURITY) {
                 // min_stake_confirmations is only less than COINBASE_MATURITY in regtest mode
                 if (nDepth < std::min(COINBASE_MATURITY, (int)(nHeight / 2))) {
@@ -12291,7 +12304,9 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
                 if (!txout->IsType(OUTPUT_STANDARD)) {
                     continue;
                 }
-
+                if (txout->GetValue() < m_min_stakeable_value) {
+                    continue;
+                }
                 COutPoint kernel(wtxid, i);
                 if (!CheckStakeUnused(kernel)
                      || IsSpent(*locked_chain, wtxid, i)
@@ -12313,7 +12328,6 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
                 bool fSpendableIn = true;
                 bool fSolvableIn = true;
                 bool fNeedHardwareKey = (mine & ISMINE_HARDWARE_DEVICE);
-
                 if (fNeedHardwareKey) {
                     continue;
                 }
@@ -12340,12 +12354,15 @@ void CHDWallet::AvailableCoinsForStaking(std::vector<COutput> &vCoins, int64_t n
                 if (r.nType != OUTPUT_STANDARD) {
                     continue;
                 }
-
+                if (r.nValue < m_min_stakeable_value) {
+                    continue;
+                }
                 if (!(r.nFlags & ORF_OWNED || r.nFlags & ORF_STAKEONLY)) {
                     continue;
                 }
-
-                if (IsSpent(*locked_chain, txid, r.n)
+                COutPoint kernel(txid, r.n);
+                if (!CheckStakeUnused(kernel)
+                    || IsSpent(*locked_chain, txid, r.n)
                     || IsLockedCoin(txid, r.n)) {
                     continue;
                 }

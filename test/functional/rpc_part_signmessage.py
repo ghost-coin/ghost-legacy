@@ -21,7 +21,7 @@ class SignMessagesTest(ParticlTestFramework):
         self.start_nodes()
 
     def run_test(self):
-        self.nodes[0].extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
+        self.import_genesis_coins_a(self.nodes[0])
 
         message = 'This is just a test message'
 

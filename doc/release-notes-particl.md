@@ -11,8 +11,20 @@
 - Display blocktime if < timereceived.
 - SaveStealthAddress updates counters.
   - If wallet rescans lookahead removal code would remove existing stealth addresses.
-- debugwallet inputs moved to a json object.
-  - New downgrade_wallet option
+- debugwallet inputs moved to a json object, new options:
+  - downgrade_wallets: Downgrade wallet formatfor previous releases.
+  - list_frozen_outputs: List all spendable and unspendable frozen blinded outputs.
+  - spend_frozen_output: Spends the largest spendable frozen blinded output, after next hard fork.
+  - trace_frozen_outputs: Dumps amounts, blinding values and optionally spent anon keys to aid in validating frozen outputs.
+    - See: https://github.com/tecnovert/particl_debug_scripts/blob/main/trace_frozen.py
+- New insight -balancesindex
+  - New rpc command: getblockbalances
+  - balancesindex tracks the amount of plain coin sent to and from blind and anon.
+  - Coins can move between anon and blind but the sums should match.
+- New walletsettings stakingoptions minstakeablevalue option.
+  - Wallet won't try stake outputs with values lower than.
+- New walletsettings other minownedvalue option.
+  - Wallet won't track outputs with values lower than.
 
 
 0.19.2.5

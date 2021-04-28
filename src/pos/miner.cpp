@@ -35,8 +35,8 @@ std::atomic<bool> fTryToSync(false);
 std::atomic<bool> fIsStaking(false);
 
 
-int nMinStakeInterval = 0;  // min stake interval in seconds
-int nMinerSleep = 500;
+int nMinStakeInterval = 0;  // Minimum stake interval in seconds
+int nMinerSleep = 500;  // In milliseconds
 std::atomic<int64_t> nTimeLastStake(0);
 
 extern double GetDifficulty(const CBlockIndex* blockindex = nullptr);
