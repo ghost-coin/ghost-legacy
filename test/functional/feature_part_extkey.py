@@ -29,9 +29,7 @@ class ExtKeyTest(ParticlTestFramework):
         node = self.nodes[0]
         node1 = self.nodes[1]
 
-        ro = node.extkeyimportmaster('abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb')
-        assert(ro['account_id'] == 'aaaZf2qnNr5T7PWRmqgmusuu5ACnBcX2ev')
-        assert(node.getwalletinfo()['total_balance'] == 100000)
+        self.import_genesis_coins_a(node)
 
         # Start staking
         node.walletsettings('stakelimit', {'height':1})

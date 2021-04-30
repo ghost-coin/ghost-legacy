@@ -3870,6 +3870,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
             "  \"reserve\": xxxxxxx,            (numeric) the reserve balance of the wallet in " + CURRENCY_UNIT + "\n"
             "  \"walletfoundationdonationpercent\": xxxxxxx,\n    (numeric) user set percentage of the block reward ceded to the foundation\n"
             "  \"foundationdonationpercent\": xxxxxxx,\n    (numeric) network enforced percentage of the block reward ceded to the foundation\n"
+            "  \"minstakeablevalue\": xxxxxxx,\n            (numeric) the minimum value for an output to attempt staking in " + CURRENCY_UNIT + "\n"
             "  \"currentblocksize\": nnn,       (numeric) the last approximate block size in bytes\n"
             "  \"currentblockweight\": nnn,     (numeric) the last block weight\n"
             "  \"currentblocktx\": nnn,         (numeric) the number of transactions in the last block\n"
@@ -3951,6 +3952,8 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
     if (pDevFundSettings && pDevFundSettings->nMinDevStakePercent > 0) {
         obj.pushKV("foundationdonationpercent", pDevFundSettings->nMinDevStakePercent);
     }
+
+    obj.pushKV("minstakeablevalue", pwallet->m_min_stakeable_value);
 
     obj.pushKV("currentblocksize", (uint64_t)nLastBlockSize);
     obj.pushKV("currentblocktx", (uint64_t)nLastBlockTx);
@@ -5678,6 +5681,15 @@ struct TracedTx {
 
 static void traceFrozenPrevout(const COutPoint &op_trace, const uint256 &txid_spentby, std::map<uint256, TracedTx> &traced_txs, UniValue &warnings)
 {
+    auto mi_tx = traced_txs.find(op_trace.hash);
+    if (mi_tx != traced_txs.end()) {
+        auto mi_o = mi_tx->second.m_outputs.find(op_trace.n);
+        if (mi_o != mi_tx->second.m_outputs.end()) {
+            LogPrintf("traceFrozenPrevout: Skipping %s, %d, already have.\n", op_trace.hash.ToString(), op_trace.n);
+            return;
+        }
+    }
+
     std::vector<std::shared_ptr<CWallet> > wallets = GetWallets();
     for (auto &wallet : wallets) {
         CHDWallet *pwallet = GetParticlWallet(wallet.get());
@@ -5780,6 +5792,7 @@ static void placeTracedPrevout(const TracedOutput &txo, bool trace_frozen_dump_p
     }
 }
 
+static std::set<std::pair<uint256, uint256> > set_placed;
 static void placeTracedInputTxns(const uint256 &spend_txid, const std::vector<COutPoint> &inputs, const std::map<uint256, TracedTx> &traced_txs, bool trace_frozen_dump_privkeys, UniValue &rv)
 {
     std::set<uint256> added_txids;
@@ -5816,7 +5829,13 @@ static void placeTracedInputTxns(const uint256 &spend_txid, const std::vector<CO
         uvtx.pushKV("wallet", tx.m_wallet_name);
 
         UniValue uv_inputs(UniValue::VARR);
-        placeTracedInputTxns(op.hash, tx.m_inputs, traced_txs, trace_frozen_dump_privkeys, uv_inputs);
+        auto placed_pair = std::make_pair(op.hash, spend_txid);
+        if (set_placed.count(placed_pair)) {
+            uvtx.pushKV("inputs", "repeat");
+        } else {
+            placeTracedInputTxns(op.hash, tx.m_inputs, traced_txs, trace_frozen_dump_privkeys, uv_inputs);
+            set_placed.insert(placed_pair);
+        }
         if (uv_inputs.size() > 0) {
             uvtx.pushKV("inputs", uv_inputs);
         }
@@ -6034,6 +6053,7 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, CAmount max_froz
 
         rv_txns.push_back(rv_tx);
     }
+    set_placed.clear();
 
     LogPrintf("traceFrozenOutputs() searched %d transactions.\n", num_searched);
 
@@ -6557,6 +6577,61 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 warnings.push_back(tmp);
             }
         }
+
+        {
+            pwallet->WalletLogPrintf("Checking for missing anon spends.\n");
+            CHDWalletDB wdb(pwallet->GetDBHandle(), "r");
+            for (const auto &ri : pwallet->mapRecords) {
+                const uint256 &txid = ri.first;
+                const CTransactionRecord &rtx = ri.second;
+                CStoredTransaction stx;
+
+                for (const auto &r : rtx.vout) {
+                    if (r.nType != OUTPUT_RINGCT ||
+                        !(r.nFlags & ORF_OWNED)) {
+                        continue;
+                    }
+
+                    CCmpPubKey anon_pubkey, ki;
+                    auto add_error = [&] (std::string message) {
+                        UniValue tmp(UniValue::VOBJ);
+                        tmp.pushKV("type", message);
+                        tmp.pushKV("txid", txid.ToString());
+                        tmp.pushKV("n", r.n);
+                        errors.push_back(tmp);
+                    };
+                    if ((!stx.tx || stx.tx->GetHash() != txid)
+                        && !wdb.ReadStoredTx(txid, stx)) {
+                        add_error("Missing stored txn.");
+                        continue;
+                    }
+                    if (!stx.GetAnonPubkey(r.n, anon_pubkey)) {
+                        add_error("Could not get anon pubkey.");
+                        continue;
+                    }
+                    CKey spend_key;
+                    CKeyID apkid = anon_pubkey.GetID();
+                    if (!pwallet->GetKey(apkid, spend_key)) {
+                        add_error("Could not get anon spend key.");
+                        continue;
+                    }
+                    if (0 != GetKeyImage(ki, anon_pubkey, spend_key)) {
+                        add_error("Could not get keyimage.");
+                        continue;
+                    }
+                    uint256 txhashKI;
+                    bool spent_in_chain = pblocktree->ReadRCTKeyImage(ki, txhashKI);
+                    bool spent_in_wallet = pwallet->IsSpent(*locked_chain, txid, r.n);
+
+                    if (spent_in_chain && !spent_in_wallet) {
+                        add_error("Spent in chain but not wallet.");
+                    } else
+                    if (!spent_in_chain && spent_in_wallet) {
+                        add_error("Spent in wallet but not chain.");
+                    }
+                }
+            }
+        }
     }
 
     result.pushKV("errors", errors);
@@ -6584,6 +6659,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "  \"enabled\"                   (bool, optional, default=true) Toggle staking enabled on this wallet.\n"
                 "  \"stakecombinethreshold\"     (amount, optional, default=1000) Join outputs below this value.\n"
                 "  \"stakesplitthreshold\"       (amount, optional, default=2000) Split outputs above this value.\n"
+                "  \"minstakeablevalue\"         (amount, optional, default=0.00000001) Won't try stake outputs below this value.\n"
                 "  \"foundationdonationpercent\" (int, optional, default=0) Set the percentage of each block reward to donate to the foundation.\n"
                 "  \"rewardaddress\"             (string, optional, default=none) An address which the user portion of the block reward gets sent to.\n"
                 "  \"smsgfeeratetarget\"         (amount, optional, default=0) If non-zero an amount to move the smsgfeerate towards.\n"
@@ -6604,6 +6680,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "\"other\" {\n"
                 "  \"onlyinstance\"              (bool, optional, default=true) Set to false if other wallets spending from the same keys exist.\n"
                 "  \"smsgenabled\"               (bool, optional, default=true) Set to false to have smsg ignore the wallet.\n"
+                "  \"minownedvalue\"             (amount, optional, default=0.00000001) Will ignore outputs below this value.\n"
                 "}\n"
                 "Omit the json object to print the settings group.\n"
                 "Pass an empty json object to clear the settings group.\n" +
@@ -6763,6 +6840,11 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "stakesplitthreshold can't be negative.");
                 }
             } else
+            if (sKey == "minstakeablevalue") {
+                if (AmountFromValue(json["minstakeablevalue"]) < 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "minstakeablevalue can't be negative.");
+                }
+            } else
             if (sKey == "foundationdonationpercent") {
                 if (!json["foundationdonationpercent"].isNum()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "foundationdonationpercent must be a number.");
@@ -6826,6 +6908,11 @@ static UniValue walletsettings(const JSONRPCRequest &request)
             if (sKey == "smsgenabled") {
                 if (!json["smsgenabled"].isBool()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "smsgenabled must be boolean.");
+                }
+            } else
+            if (sKey == "minownedvalue") {
+                if (AmountFromValue(json["minownedvalue"]) < 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "minownedvalue can't be negative.");
                 }
             } else {
                 warnings.push_back("Unknown key " + sKey);

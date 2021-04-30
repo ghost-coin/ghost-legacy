@@ -1,3 +1,14 @@
+0.19.2.7
+==============
+
+- New walletsettings stakingoptions minstakeablevalue option.
+  - Wallet won't try stake outputs with values lower than.
+- New walletsettings other minownedvalue option.
+  - Wallet won't track outputs with values lower than.
+- Fixed bug where trace_frozen_outputs enters an infinite loop in rare cases.
+- debugwallet detects missing anon spends.
+
+
 0.19.2.6
 ==============
 

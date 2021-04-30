@@ -26,47 +26,6 @@ typedef struct secp256k1_scratch_space_struct secp256k1_scratch_space;
 
 struct CBlockTemplate;
 
-class CStoredTransaction
-{
-public:
-    CTransactionRef tx;
-    std::vector<std::pair<int, uint256> > vBlinds;
-
-    bool InsertBlind(int n, const uint8_t *p)
-    {
-        for (auto &bp : vBlinds) {
-            if (bp.first == n) {
-                memcpy(bp.second.begin(), p, 32);
-                return true;
-            }
-        }
-        uint256 insert;
-        memcpy(insert.begin(), p, 32);
-        vBlinds.push_back(std::make_pair(n, insert));
-        return true;
-    }
-
-    bool GetBlind(int n, uint8_t *p) const
-    {
-        for (auto &bp : vBlinds) {
-            if (bp.first == n) {
-                memcpy(p, bp.second.begin(), 32);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
-    {
-        READWRITE(tx);
-        READWRITE(vBlinds);
-    }
-};
-
 class CHDWallet : public CWallet
 {
 public:
@@ -529,6 +488,8 @@ public:
     size_t m_rescan_stealth_v2_lookahead = DEFAULT_STEALTH_LOOKAHEAD_SIZE;
 
     bool m_smsg_enabled = true;
+    CAmount m_min_stakeable_value = 1;  // Wallet will not try to stake outputs below this value
+    CAmount m_min_owned_value = 0;      // Wallet will ignore outputs below this value
 
 private:
     void ParseAddressForMetaData(const CTxDestination &addr, COutputRecord &rec);
