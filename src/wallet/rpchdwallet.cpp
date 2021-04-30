@@ -5749,6 +5749,15 @@ struct TracedTx {
 
 static void traceFrozenPrevout(const COutPoint &op_trace, const uint256 &txid_spentby, std::map<uint256, TracedTx> &traced_txs, UniValue &warnings)
 {
+    auto mi_tx = traced_txs.find(op_trace.hash);
+    if (mi_tx != traced_txs.end()) {
+        auto mi_o = mi_tx->second.m_outputs.find(op_trace.n);
+        if (mi_o != mi_tx->second.m_outputs.end()) {
+            LogPrintf("traceFrozenPrevout: Skipping %s, %d, already have.\n", op_trace.hash.ToString(), op_trace.n);
+            return;
+        }
+    }
+
     std::vector<std::shared_ptr<CWallet> > wallets = GetWallets();
     for (auto &wallet : wallets) {
         CHDWallet *pwallet = GetParticlWallet(wallet.get());
@@ -5849,6 +5858,7 @@ static void placeTracedPrevout(const TracedOutput &txo, bool trace_frozen_dump_p
     }
 }
 
+static std::set<std::pair<uint256, uint256> > set_placed;
 static void placeTracedInputTxns(const uint256 &spend_txid, const std::vector<COutPoint> &inputs, const std::map<uint256, TracedTx> &traced_txs, bool trace_frozen_dump_privkeys, UniValue &rv)
 {
     std::set<uint256> added_txids;
@@ -5885,7 +5895,13 @@ static void placeTracedInputTxns(const uint256 &spend_txid, const std::vector<CO
         uvtx.pushKV("wallet", tx.m_wallet_name);
 
         UniValue uv_inputs(UniValue::VARR);
-        placeTracedInputTxns(op.hash, tx.m_inputs, traced_txs, trace_frozen_dump_privkeys, uv_inputs);
+        auto placed_pair = std::make_pair(op.hash, spend_txid);
+        if (set_placed.count(placed_pair)) {
+            uvtx.pushKV("inputs", "repeat");
+        } else {
+            placeTracedInputTxns(op.hash, tx.m_inputs, traced_txs, trace_frozen_dump_privkeys, uv_inputs);
+            set_placed.insert(placed_pair);
+        }
         if (uv_inputs.size() > 0) {
             uvtx.pushKV("inputs", uv_inputs);
         }
@@ -6096,6 +6112,7 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, CAmount max_froz
 
         rv_txns.push_back(rv_tx);
     }
+    set_placed.clear();
 
     LogPrintf("traceFrozenOutputs() searched %d transactions.\n", num_searched);
 
