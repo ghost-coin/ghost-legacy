@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -384,6 +384,7 @@ public:
 
     bool ReadVoteTokens(std::vector<CVoteToken> &vVoteTokens, uint32_t nFlags=DB_READ_UNCOMMITTED);
     bool WriteVoteTokens(const std::vector<CVoteToken> &vVoteTokens);
+    bool EraseVoteTokens();
 
     bool WriteTxRecord(const uint256 &hash, const CTransactionRecord &rtx);
     bool EraseTxRecord(const uint256 &hash);

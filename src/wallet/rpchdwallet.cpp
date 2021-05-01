@@ -7173,6 +7173,7 @@ static UniValue setvote(const JSONRPCRequest &request)
                 "\nSet voting token.\n"
                 "Wallet will include this token in staked blocks from height_start to height_end.\n"
                 "Set proposal and/or option to 0 to stop voting.\n"
+                "Set all parameters to 0 to clear all vote settings.\n"
                 "The last added option valid for the current chain height will be applied." +
                 HELP_REQUIRING_PASSPHRASE,
                 {
@@ -7202,25 +7203,36 @@ static UniValue setvote(const JSONRPCRequest &request)
     uint32_t issue = request.params[0].get_int();
     uint32_t option = request.params[1].get_int();
 
-    if (issue > 0xFFFF)
+    if (issue > 0xFFFF) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Proposal out of range.");
-    if (option > 0xFFFF)
+    }
+    if (option > 0xFFFF) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Option out of range.");
+    }
 
     int nStartHeight = request.params[2].get_int();
     int nEndHeight = request.params[3].get_int();
 
-    if (nEndHeight < nStartHeight)
+    if (nEndHeight < nStartHeight && !(nEndHeight + nStartHeight + issue + option)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "height_end must be after height_start.");
+    }
 
+    UniValue result(UniValue::VOBJ);
     uint32_t voteToken = issue | (option << 16);
 
     {
         LOCK(pwallet->cs_wallet);
-
         CHDWalletDB wdb(pwallet->GetDBHandle());
-
         std::vector<CVoteToken> vVoteTokens;
+
+        if (!(nEndHeight + nStartHeight + issue + option)) {
+            if (!wdb.EraseVoteTokens()) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "EraseVoteTokens failed.");
+            }
+            pwallet->LoadVoteTokens(&wdb);
+            result.pushKV("result", "Erased all vote tokens.");
+            return result;
+        }
 
         wdb.ReadVoteTokens(vVoteTokens);
 
@@ -7233,8 +7245,6 @@ static UniValue setvote(const JSONRPCRequest &request)
 
         pwallet->LoadVoteTokens(&wdb);
     }
-
-    UniValue result(UniValue::VOBJ);
 
     if (issue < 1) {
         result.pushKV("result", "Cleared vote token.");
@@ -7253,7 +7263,8 @@ static UniValue votehistory(const JSONRPCRequest &request)
             RPCHelpMan{"votehistory",
                 "\nDisplay voting history of wallet.\n",
                 {
-                    {"current_only", RPCArg::Type::BOOL, /* default */ "false", "how only the currently active vote."},
+                    {"current_only", RPCArg::Type::BOOL, /* default */ "false", "Show only the currently active vote."},
+                    {"include_future", RPCArg::Type::BOOL, /* default */ "false", "Show future scheduled votes with \"current_only\"."},
                 },
                 RPCResult{
                     RPCResult::Type::ARR, "", "", {
@@ -7276,45 +7287,83 @@ static UniValue votehistory(const JSONRPCRequest &request)
     if (!wallet) return NullUniValue;
     CHDWallet *const pwallet = GetParticlWallet(wallet.get());
 
+    std::vector<CVoteToken> vVoteTokens;
+    {
+        LOCK(pwallet->cs_wallet);
+        CHDWalletDB wdb(pwallet->GetDatabase());
+        wdb.ReadVoteTokens(vVoteTokens);
+    }
+
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
+    bool current_only = request.params.size() > 0 ? GetBool(request.params[0]) : false;
+    bool include_future = request.params.size() > 1 ? GetBool(request.params[1]) : false;
+
     UniValue result(UniValue::VARR);
 
-    if (request.params.size() > 0) {
-        if (GetBool(request.params[0])) {
+    if (current_only) {
+        int nNextHeight = ::ChainActive().Height() + 1;
+
+        for (size_t i = vVoteTokens.size(); i-- > 0; ) {
+            const auto &v = vVoteTokens[i];
+
+            int vote_start = v.nStart;
+            int vote_end = v.nEnd;
+            if (include_future) {
+                if (v.nEnd < nNextHeight) {
+                    continue;
+                }
+
+                // Check if occluded, result is ordered by start_height ASC
+                for (size_t ir = 0; ir < result.size(); ++ir) {
+                    int rs = result[ir]["from_height"].get_int();
+                    int re = result[ir]["to_height"].get_int();
+
+                    if (rs <= vote_start && vote_end >= re) {
+                        vote_start = re;
+                    }
+                    if (rs <= vote_end && re >= vote_end) {
+                        vote_end = rs;
+                    }
+                }
+                if (vote_end <= vote_start) {
+                    continue;
+                }
+            } else {
+                if (vote_end < nNextHeight
+                    || vote_start > nNextHeight) {
+                    continue;
+                }
+            }
+
+            if ((v.nToken >> 16) < 1
+                || (v.nToken & 0xFFFF) < 1) {
+                continue;
+            }
             UniValue vote(UniValue::VOBJ);
+            vote.pushKV("proposal", (int)(v.nToken & 0xFFFF));
+            vote.pushKV("option", (int)(v.nToken >> 16));
+            vote.pushKV("from_height", vote_start);
+            vote.pushKV("to_height", vote_end);
 
-            int nNextHeight = ::ChainActive().Height() + 1;
-
-            for (auto i = pwallet->vVoteTokens.crbegin(); i != pwallet->vVoteTokens.crend(); ++i) {
-                const auto &v = *i;
-                if (v.nEnd < nNextHeight
-                    || v.nStart > nNextHeight) {
-                    continue;
+            size_t k = 0;
+            for (k = 0; k < result.size(); k++) {
+                if (v.nStart < result[k]["from_height"].get_int()) {
+                    result.insert(k, vote);
+                    break;
                 }
-                if ((v.nToken >> 16) < 1
-                    || (v.nToken & 0xFFFF) < 1) {
-                    continue;
-                }
-                UniValue vote(UniValue::VOBJ);
-                vote.pushKV("proposal", (int)(v.nToken & 0xFFFF));
-                vote.pushKV("option", (int)(v.nToken >> 16));
-                vote.pushKV("from_height", v.nStart);
-                vote.pushKV("to_height", v.nEnd);
+            }
+            if (k >= result.size()) {
                 result.push_back(vote);
             }
-            return result;
+
+            if (!include_future) {
+                break;
+            }
         }
-    }
-
-    std::vector<CVoteToken> vVoteTokens;
-    {
-        LOCK(pwallet->cs_wallet);
-
-        CHDWalletDB wdb(pwallet->GetDBHandle());
-        wdb.ReadVoteTokens(vVoteTokens);
+        return result;
     }
 
     for (auto i = vVoteTokens.crbegin(); i != vVoteTokens.crend(); ++i) {

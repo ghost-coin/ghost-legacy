@@ -294,6 +294,9 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "smsgpeers", 0, "index" },
     { "smsgzmqpush", 0, "options" },
 
+    { "votehistory", 0, "current_only" },
+    { "votehistory", 1, "include_future" },
+
 
     { "devicesignrawtransaction", 1, "prevtxs" },
     { "devicesignrawtransaction", 2, "paths" },

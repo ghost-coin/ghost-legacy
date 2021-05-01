@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -212,6 +212,11 @@ bool CHDWalletDB::ReadVoteTokens(std::vector<CVoteToken> &vVoteTokens, uint32_t 
 bool CHDWalletDB::WriteVoteTokens(const std::vector<CVoteToken> &vVoteTokens)
 {
     return WriteIC(std::string("votes"), vVoteTokens, true);
+};
+
+bool CHDWalletDB::EraseVoteTokens()
+{
+    return EraseIC(std::string("votes"));
 };
 
 
