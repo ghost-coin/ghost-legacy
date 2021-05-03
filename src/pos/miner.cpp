@@ -343,7 +343,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
             continue;
         }
 
-        if (nBestHeight < num_blocks_of_peers - 1) {
+        if (nBestHeight < num_blocks_of_peers - 1 && gArgs.GetBoolArg("-checkpeerheight", true)) {
             fIsStaking = false;
             LogPrint(BCLog::POS, "%s: nBestHeight < GetNumBlocksOfPeers(), %d, %d\n", __func__, nBestHeight, num_blocks_of_peers);
             condWaitFor(nThreadID, nMinerSleep * 4);

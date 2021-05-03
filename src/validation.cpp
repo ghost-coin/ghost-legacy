@@ -1615,6 +1615,8 @@ bool CChainState::IsInitialBlockDownload() const
     if (m_cached_finished_ibd.load(std::memory_order_relaxed))
         return false;
 
+    static bool check_peer_height = gArgs.GetBoolArg("-checkpeerheight", true);
+
     LOCK(cs_main);
     if (m_cached_finished_ibd.load(std::memory_order_relaxed))
         return false;
@@ -1627,7 +1629,7 @@ bool CChainState::IsInitialBlockDownload() const
     if (m_chain.Tip()->nHeight > COINBASE_MATURITY
         && m_chain.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge))
         return true;
-    if (fParticlMode
+    if (fParticlMode && check_peer_height
         && (GetNumPeers() < 1
             || m_chain.Tip()->nHeight < GetNumBlocksOfPeers()-10))
         return true;

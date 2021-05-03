@@ -67,16 +67,18 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
 {
     // CheckStakeKernelHashV2
 
-    if (nTime < nBlockFromTime)  // Transaction timestamp violation
+    if (nTime < nBlockFromTime) {  // Transaction timestamp violation
         return error("%s: nTime violation", __func__);
+    }
 
     arith_uint256 bnTarget;
     bool fNegative;
     bool fOverflow;
 
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-    if (fNegative || fOverflow || bnTarget == 0)
+    if (fNegative || fOverflow || bnTarget == 0) {
         return error("%s: SetCompact failed.", __func__);
+    }
 
     // Weighted target
     int64_t nValueIn = prevOutAmount;
@@ -105,8 +107,9 @@ bool CheckStakeKernelHash(const CBlockIndex *pindexPrev,
     }
 
     // Now check if proof-of-stake hash meets target protocol
-    if (UintToArith256(hashProofOfStake) > bnTarget)
+    if (UintToArith256(hashProofOfStake) > bnTarget) {
         return false;
+    }
 
     if (LogAcceptCategory(BCLog::POS) && !fPrintProofOfStake) {
         LogPrintf("%s: using modifier=%s at height=%d timestamp=%s\n",
