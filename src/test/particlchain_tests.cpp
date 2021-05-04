@@ -195,8 +195,7 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
 
     uint256 prevHash = txnPrev_c.GetHash();
 
-    std::vector<std::pair<std::vector<int>, bool> > tests =
-    {
+    std::vector<std::pair<std::vector<int>, bool> > tests = {
         std::make_pair( (std::vector<int>) {0 }, true),
         std::make_pair( (std::vector<int>) {0, 1}, true),
         std::make_pair( (std::vector<int>) {0, 2}, false),
@@ -221,10 +220,10 @@ BOOST_AUTO_TEST_CASE(mixed_input_types)
                 ai.prevout.n = COutPoint::ANON_MARKER;
                 ai.SetAnonInfo(1, 1);
 
-                std::vector<uint8_t> vpkm;
+                std::vector<uint8_t> vpkm, vki(33, 0);
                 PutVarInt(vpkm, 1);
                 ai.scriptWitness.stack.emplace_back(vpkm);
-
+                ai.scriptData.stack.emplace_back(vki);
                 txn.vin.push_back(ai);
                 continue;
             }
