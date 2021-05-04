@@ -308,7 +308,8 @@ BOOST_AUTO_TEST_CASE(rct_test)
 
     // Should fail verification
     CTransaction ctx(mtx);
-    BOOST_REQUIRE(Consensus::CheckTxInputs(ctx, state, view, nSpendHeight, txfee));
+    BOOST_REQUIRE(!Consensus::CheckTxInputs(ctx, state, view, nSpendHeight, txfee));
+    BOOST_REQUIRE(state.GetRejectReason() == "bad-anonin-dup-ki");
     BOOST_REQUIRE(!VerifyMLSAG(ctx, state));
     BOOST_REQUIRE(state.GetRejectReason() == "bad-anonin-dup-ki");
     }

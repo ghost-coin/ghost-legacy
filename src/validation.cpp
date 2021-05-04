@@ -2847,6 +2847,9 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
         // Index rct outputs and keyimages
         if (tx_state.m_has_anon_output || tx_state.m_has_anon_input) {
             COutPoint op(txhash, 0);
+            if (tx_state.m_has_anon_input) {
+                assert(tx_state.m_setHaveKI.size());
+            }
             for (const auto &ki : tx_state.m_setHaveKI) {
                 // Test for duplicate keyimage used in block
                 if (!view.keyImages.insert(std::make_pair(ki, txhash)).second) {
