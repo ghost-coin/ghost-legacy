@@ -441,6 +441,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     state.fHasAnonOutput = false;
     state.fHasAnonInput = false;
     state.m_spends_frozen_blinded = false;
+    state.m_setHaveKI.clear();  // Pass keyimages through state to add to db
     bool spends_tainted_blinded = false;  // If true limit max plain output
     bool spends_post_fork_blinded = false;
 
@@ -470,6 +471,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             state.fHasAnonInput = true;
             nRingCTInputs++;
 
+            const std::vector<uint8_t> &vKeyImages = tx.vin[i].scriptData.stack[0];
             const std::vector<uint8_t> &vMI = tx.vin[i].scriptWitness.stack[0];
             uint32_t nInputs, nRingSize;
             tx.vin[i].GetAnonInfo(nInputs, nRingSize);
@@ -487,24 +489,33 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             }
 
             size_t ofs = 0, nB = 0;
-            for (size_t k = 0; k < nInputs; ++k)
-            for (size_t i = 0; i < nRingSize; ++i) {
-                nRCTPrevouts++;
-                int64_t nIndex = 0;
-                if (0 != GetVarInt(vMI, ofs, (uint64_t&)nIndex, nB)) {
-                    return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-anonin-extract-i");
+            for (size_t k = 0; k < nInputs; ++k) {
+                const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
+                if (!state.m_setHaveKI.insert(ki).second) {
+                    if (LogAcceptCategory(BCLog::RINGCT)) {
+                        LogPrintf("%s: Duplicate keyimage detected in txn %s.\n", __func__,
+                            HexStr(ki.begin(), ki.end()));
+                    }
+                    return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-anonin-dup-ki");
                 }
-                ofs += nB;
-                if (nIndex <= consensusParams.m_frozen_anon_index) {
-                    state.m_spends_frozen_blinded = true;
-                    if (!IsWhitelistedAnonOutput(nIndex)) {
-                        spends_tainted_blinded = true;
+                for (size_t i = 0; i < nRingSize; ++i) {
+                    nRCTPrevouts++;
+                    int64_t nIndex = 0;
+                    if (0 != GetVarInt(vMI, ofs, (uint64_t&)nIndex, nB)) {
+                        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-anonin-extract-i");
                     }
-                    if (IsBlacklistedAnonOutput(nIndex)) {
-                        return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-frozen-blinded-blacklisted");
+                    ofs += nB;
+                    if (nIndex <= consensusParams.m_frozen_anon_index) {
+                        state.m_spends_frozen_blinded = true;
+                        if (!IsWhitelistedAnonOutput(nIndex)) {
+                            spends_tainted_blinded = true;
+                        }
+                        if (IsBlacklistedAnonOutput(nIndex)) {
+                            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-frozen-blinded-blacklisted");
+                        }
+                    } else {
+                        spends_post_fork_blinded = true;
                     }
-                } else {
-                    spends_post_fork_blinded = true;
                 }
             }
             continue;

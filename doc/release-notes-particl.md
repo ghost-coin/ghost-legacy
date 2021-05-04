@@ -1,3 +1,13 @@
+
+0.19.2.8
+==============
+
+- setvote will clear all vote settings when all parameters are set to 0.
+- votehistory, new include_future parameter.
+  - If current_only and include_future are true, future scheduled votes will be displayed.
+- Fixed issue syncing testnet chain.
+
+
 0.19.2.7
 ==============
 

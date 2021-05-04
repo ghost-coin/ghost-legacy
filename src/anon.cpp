@@ -33,7 +33,7 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
 
     int rv;
     std::set<int64_t> setHaveI; // Anon prev-outputs can only be used once per transaction.
-    state.m_setHaveKI.clear(); // Pass keyimages through state to add to db
+    std::set<CCmpPubKey> setHaveKI;
     bool fSplitCommitments = tx.vin.size() > 1;
 
     size_t nStandard = 0, nCt = 0, nRingCT = 0;
@@ -152,7 +152,7 @@ bool VerifyMLSAG(const CTransaction &tx, CValidationState &state)
         for (size_t k = 0; k < nInputs; ++k) {
             const CCmpPubKey &ki = *((CCmpPubKey*)&vKeyImages[k*33]);
 
-            if (!state.m_setHaveKI.insert(ki).second) {
+            if (!setHaveKI.insert(ki).second) {
                 if (LogAcceptCategory(BCLog::RINGCT)) {
                     LogPrintf("%s: Duplicate keyimage detected in txn %s.\n", __func__,
                         HexStr(ki.begin(), ki.end()));

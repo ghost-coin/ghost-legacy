@@ -1,5 +1,5 @@
 ---
-name: "particl-win-0.19.2.7"
+name: "particl-win-0.19.2.8"
 enable_cache: true
 sudo: true
 distro: "ubuntu"
