@@ -7262,7 +7262,7 @@ static UniValue votehistory(const JSONRPCRequest &request)
     if (current_only) {
         int nNextHeight = ::ChainActive().Height() + 1;
 
-        for (size_t i = vVoteTokens.size(); i-- > 0; ) {
+        for (int i = (int) vVoteTokens.size(); i-- > 0; ) {
             const auto &v = vVoteTokens[i];
 
             int vote_start = v.nStart;
@@ -7281,7 +7281,7 @@ static UniValue votehistory(const JSONRPCRequest &request)
                         vote_start = re;
                     }
                     if (rs <= vote_end && re >= vote_end) {
-                        vote_end = rs;
+                        vote_end = rs;  // -1
                     }
                 }
                 if (vote_end <= vote_start) {
