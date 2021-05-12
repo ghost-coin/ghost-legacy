@@ -90,8 +90,9 @@ static bool MatchPayToPubkeyHash(const CScript& script, valtype& pubkeyhash)
 
 static bool MatchPayToPubkeyHash256(const CScript& script, valtype& pubkeyhash)
 {
-    if (!script.IsPayToPublicKeyHash256())
+    if (!script.IsPayToPublicKeyHash256()) {
         return false;
+    }
     pubkeyhash = valtype(script.begin () + 3, script.begin() + 35);
     return true;
 }

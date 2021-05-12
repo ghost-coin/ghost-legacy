@@ -9817,7 +9817,9 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::
             if (fExisted || fIsMine || fIsFromMe) {
                 CTransactionRecord rtx;
                 bool rv = AddToRecord(rtx, tx, block_hash, posInBlock, false);
-                WakeThreadStakeMiner(this); // wallet balance may have changed
+                if (!block_hash.IsNull()) {
+                    WakeThreadStakeMiner(this);
+                }
                 return rv;
             }
             return false;
@@ -9851,7 +9853,9 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::
             wtx.SetConf(status, block_hash, posInBlock);
 
             bool rv = AddToWallet(wtx, false);
-            WakeThreadStakeMiner(this); // wallet balance may have changed
+            if (!block_hash.IsNull()) {
+                WakeThreadStakeMiner(this);
+            }
             return rv;
         }
     }
