@@ -268,11 +268,11 @@ void WakeThreadStakeMiner(CHDWallet *pwallet)
     {
     LOCK(pwallet->cs_wallet);
     nStakeThread = pwallet->nStakeThread;
-    pwallet->nLastCoinStakeSearchTime = 0;
+    if (nStakeThread >= vStakeThreads.size() || pwallet->IsScanning()) {
+        return;
     }
-    LogPrint(BCLog::POS, "WakeThreadStakeMiner thread %d\n", nStakeThread);
-    if (nStakeThread >= vStakeThreads.size()) {
-        return; // stake unit test
+    pwallet->nLastCoinStakeSearchTime = 0;
+    LogPrint(BCLog::POS, "WakeThreadStakeMiner: wallet %s, thread %d\n", pwallet->GetName(), nStakeThread);
     }
     StakeThread *t = vStakeThreads[nStakeThread];
     t->m_thread_interrupt();
@@ -411,7 +411,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                 pwallet->m_is_staking = CHDWallet::NOT_STAKING_BALANCE;
                 nWaitFor = std::min(nWaitFor, (size_t)60000);
                 pwallet->nLastCoinStakeSearchTime = nSearchTime + stake_thread_cond_delay_ms / 1000;
-                LogPrint(BCLog::POS, "%s: Wallet %d, low balance.\n", __func__, i);
+                LogPrint(BCLog::POS, "%s: %s, low balance.\n", __func__, pwallet->GetName());
                 continue;
             }
 
@@ -450,7 +450,7 @@ void ThreadStakeMiner(size_t nThreadID, std::vector<std::shared_ptr<CWallet>> &v
                     size_t nSleep = (nRequiredDepth - pwallet->m_greatest_txn_depth) / 4;
                     nWaitFor = std::min(nWaitFor, (size_t)(nSleep * 1000));
                     pwallet->nLastCoinStakeSearchTime = nSearchTime + nSleep;
-                    LogPrint(BCLog::POS, "%s: Wallet %d, no outputs with required depth, sleeping for %ds.\n", __func__, i, nSleep);
+                    LogPrint(BCLog::POS, "%s: %s, no outputs with required depth. Sleeping for %ds.\n", __func__, pwallet->GetName(), nSleep);
                     continue;
                 }
             }

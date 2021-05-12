@@ -9958,8 +9958,9 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::
                 CTransactionRecord rtx;
                 bool rv = AddToRecord(rtx, tx, confirm, false);
 
-                // Wallet balance may have changed
-                WakeThreadStakeMiner(this);
+                if (!confirm.hashBlock.IsNull()) {
+                    WakeThreadStakeMiner(this);
+                }
                 return rv;
             }
             return false;
@@ -9991,8 +9992,9 @@ bool CHDWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, CWalletTx::
                 wtx.mapValue.insert(mapNarr.begin(), mapNarr.end());
             }
 
-            // Wallet balance may have changed
-            WakeThreadStakeMiner(this);
+            if (!confirm.hashBlock.IsNull()) {
+                WakeThreadStakeMiner(this);
+            }
             return true;
         }
     }
