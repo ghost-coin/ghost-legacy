@@ -1433,7 +1433,7 @@ static UniValue extkeyimportinternal(const JSONRPCRequest &request, bool fGenesi
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unknown parameter '%s'", request.params[6].get_str()));
     }
 
-    LogPrintf("Importing master key and account with labels '%s', '%s'.\n", sLblMaster.c_str(), sLblAccount.c_str());
+    LogPrintf("%s Importing master key and account with labels '%s', '%s'.\n", pwallet->GetDisplayName(), sLblMaster.c_str(), sLblAccount.c_str());
 
     WalletRescanReserver reserver(pwallet);
     if (!reserver.reserve()) {

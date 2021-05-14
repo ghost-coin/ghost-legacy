@@ -417,13 +417,11 @@ public:
 
     bool operator()(const CStealthAddress &ek) const {
         script->clear();
-        LogPrintf("CScriptVisitor(CStealthAddress) TODO\n");
         return false;
     }
 
     bool operator()(const CExtKeyPair &ek) const {
         script->clear();
-        LogPrintf("CScriptVisitor(CExtKeyPair) TODO\n");
         return false;
     }
 
