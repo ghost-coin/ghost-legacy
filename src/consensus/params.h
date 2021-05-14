@@ -87,7 +87,7 @@ struct Params {
     uint32_t exploit_fix_2_time = 0xffffffff;
     int64_t m_frozen_anon_index = 0; // Last prefork anonoutput index
     int m_frozen_blinded_height = 0;
-    int64_t m_max_tainted_value_out = 500LL * 100000000LL /* COIN */; // Maximum value of tainted blinded output that can be spent without being whitelisted
+    int64_t m_max_tainted_value_out = 200LL * 100000000LL /* COIN */;  // Maximum value of tainted blinded output that can be spent without being whitelisted
 
     /** Avoid circular dependency */
     size_t m_min_ringsize_post_hf2 = 3;
