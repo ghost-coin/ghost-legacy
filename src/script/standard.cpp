@@ -427,12 +427,10 @@ public:
     }
 
     CScript operator()(const CStealthAddress &ek) const {
-        LogPrintf("CScriptVisitor(CStealthAddress) TODO\n");
         return CScript();
     }
 
     CScript operator()(const CExtPubKey &ek) const {
-        LogPrintf("CScriptVisitor(CExtPubKey) TODO\n");
         return CScript();
     }
 
