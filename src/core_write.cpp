@@ -249,6 +249,14 @@ void OutputToJSON(uint256 &txid, int i,
             if (s->GetSmsgDifficulty(difficulty)) {
                 entry.pushKV("smsgdifficulty", strprintf("%08x", difficulty));
             }
+            if (s->vData.size() >= 9 && s->vData[4] == DO_VOTE) {
+                uint32_t voteToken;
+                memcpy(&voteToken, &s->vData[5], 4);
+                voteToken = le32toh(voteToken);
+                int issue = (int) (voteToken & 0xFFFF);
+                int option = (int) (voteToken >> 16) & 0xFFFF;
+                entry.pushKV("vote", strprintf("%d, %d", issue, option));
+            }
             }
             break;
         case OUTPUT_CT:

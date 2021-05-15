@@ -90,8 +90,9 @@ static bool MatchPayToPubkeyHash(const CScript& script, valtype& pubkeyhash)
 
 static bool MatchPayToPubkeyHash256(const CScript& script, valtype& pubkeyhash)
 {
-    if (!script.IsPayToPublicKeyHash256())
+    if (!script.IsPayToPublicKeyHash256()) {
         return false;
+    }
     pubkeyhash = valtype(script.begin () + 3, script.begin() + 35);
     return true;
 }
@@ -416,13 +417,11 @@ public:
 
     bool operator()(const CStealthAddress &ek) const {
         script->clear();
-        LogPrintf("CScriptVisitor(CStealthAddress) TODO\n");
         return false;
     }
 
     bool operator()(const CExtKeyPair &ek) const {
         script->clear();
-        LogPrintf("CScriptVisitor(CExtKeyPair) TODO\n");
         return false;
     }
 

@@ -1,4 +1,12 @@
 
+0.19.2.9
+==============
+
+- Reduced the maximum value for spendable frozen blinded outputs to 200 PART.
+- Blacklist anon outputs created in transactions spending to Pjc3TqX23Mb23iw8RS2YuXjNX5s8fgficZ.
+- Fixed bug in wallet stealth address lookahead when rescanning.
+
+
 0.19.2.8
 ==============
 
