@@ -2243,6 +2243,7 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
                     {"options", RPCArg::Type::OBJ, /* default */ "", "JSON with options",
                         {
                             {"bech32", RPCArg::Type::BOOL, /* default */ "false", "Display addresses in bech32 format"},
+                            {"verbose", RPCArg::Type::BOOL, /* default */ "false", "Display extra details"},
                         },
                         "options"},
                 },
@@ -2276,14 +2277,19 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
     bool fShowSecrets = request.params.size() > 0 ? GetBool(request.params[0]) : false;
 
     bool show_in_bech32 = false;
+    bool verbose = false;
     if (!request.params[1].isNull()) {
         const UniValue &options = request.params[1].get_obj();
         RPCTypeCheckObj(options,
             {
                 {"bech32",               UniValueType(UniValue::VBOOL)},
+                {"verbose",              UniValueType(UniValue::VBOOL)},
             }, true, false);
         if (options.exists("bech32")) {
             show_in_bech32 = options["bech32"].get_bool();
+        }
+        if (options.exists("verbose")) {
+            verbose = options["verbose"].get_bool();
         }
     }
 
@@ -2317,7 +2323,47 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
 
             CStealthAddress sxAddr;
             aks.SetSxAddr(sxAddr);
-            objA.pushKV("Address", sxAddr.ToString(show_in_bech32));
+
+            bool is_v2_address = false;
+            if (verbose) {
+                const CExtKeyAccount *pa = nullptr;
+                const CEKAStealthKey *pask = nullptr;
+                bool mine = pwallet->IsMine(sxAddr, pa, pask);
+                if (mine && pa && pask) {
+                    CStoredExtKey *sek = pa->GetChain(pask->nScanParent);
+                    std::string sPath;
+                    if (sek) {
+                        std::vector<uint32_t> vPath;
+                        AppendChainPath(sek, vPath);
+                        vPath.push_back(pask->nScanKey);
+                        PathToString(vPath, sPath);
+                        objA.pushKV("scan_path", sPath);
+                    }
+                    sek = pa->GetChain(pask->akSpend.nParent);
+                    if (sek) {
+                        std::vector<uint32_t> vPath;
+                        AppendChainPath(sek, vPath);
+                        vPath.push_back(pask->akSpend.nKey);
+                        PathToString(vPath, sPath);
+                        objA.pushKV("spend_path", sPath);
+                    }
+
+                    mapEKValue_t::const_iterator it = sek->mapValue.find(EKVT_KEY_TYPE);
+                    if (it != sek->mapValue.end() && it->second.size() > 0 && it->second[0] == EKT_STEALTH_SPEND) {
+                        is_v2_address = true;
+                    }
+                }
+
+                int num_received = 0;
+                CKeyID idStealthKey = aks.GetID();
+                for (const auto &entry : pa->mapStealthChildKeys) {
+                    if (entry.second.idStealthKey == idStealthKey) {
+                        num_received++;
+                    }
+                }
+                objA.pushKV("received_addresses", num_received);
+            }
+            objA.pushKV("Address", sxAddr.ToString(show_in_bech32 || is_v2_address));
 
             if (fShowSecrets) {
                 objA.pushKV("Scan Secret", CBitcoinSecret(aks.skScan).ToString());
@@ -2341,7 +2387,7 @@ static UniValue liststealthaddresses(const JSONRPCRequest &request)
             arrayKeys.push_back(objA);
         }
 
-        if (arrayKeys.size() > 0){
+        if (arrayKeys.size() > 0) {
             rAcc.pushKV("Stealth Addresses", arrayKeys);
             result.push_back(rAcc);
         }

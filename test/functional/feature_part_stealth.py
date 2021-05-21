@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2021 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -225,6 +225,15 @@ class StealthTest(ParticlTestFramework):
 
         w1 = nodes[1].get_wallet_rpc('default_wallet')
         w1_info = w1.getwalletinfo()
+
+        rv = w1.liststealthaddresses(False, {'verbose': True})
+        found = False
+        for sxaddr in rv[0]['Stealth Addresses']:
+            if sxaddr['Address'] == sxAddrV2[1]:
+                assert(sxaddr['received_addresses'] == 1)
+                found = True
+                break
+        assert(found)
 
         # Imported wallet should be missing imported sx addr
         assert(wi_info['txcount'] == w1_info['txcount'] - 1)
