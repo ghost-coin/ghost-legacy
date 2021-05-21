@@ -567,6 +567,55 @@ class WalletParticlTest(ParticlTestFramework):
         assert(len(sExternalChainId) > 0)
         assert(nHardened == '0')
 
+        sInternalChainId = ''
+        for chain in ro['chains']:
+            if chain['function'] == 'active_internal':
+                sInternalChainId = chain['id']
+                break
+        assert(len(sInternalChainId) > 0)
+
+        # Derive addr 130, past lookahead
+        int_addr130 = nodes[0].deriverangekeys(130, 130, sInternalChainId)[0]
+        int_addr130_shortcut = nodes[0].deriverangekeys(130, 130, 'internal')[0]
+        assert(int_addr130 == int_addr130_shortcut)
+
+        addr_info = nodes[0].getaddressinfo(int_addr130)
+        assert(addr_info['ismine'] is False)
+        nodes[0].deriverangekeys(130, 130, 'internal', False, True, True)[0]
+        addr_info = nodes[0].getaddressinfo(int_addr130)
+        assert(addr_info['ismine'] is True)
+
+        ext_addr0 = nodes[0].deriverangekeys(0, 0, sExternalChainId)[0]
+        ext_addr0_shortcut = nodes[0].deriverangekeys(0, 0, 'external')[0]
+        ext_addr0_default = nodes[0].deriverangekeys(0, 0)[0]
+        assert(ext_addr0 == ext_addr0_shortcut)
+        assert(ext_addr0 == ext_addr0_default)
+
+        sxv1addr0_5 = nodes[0].deriverangekeys(0, 5, 'stealthv1')
+        sxv2addr0_5 = nodes[0].deriverangekeys(0, 5, 'stealthv2')
+
+        sxaddr0_v1 = nodes[0].getnewstealthaddress()
+        sxaddr0_v2 = nodes[0].getnewstealthaddress("", 0, "", True, True)
+        assert(sxaddr0_v1 == sxv1addr0_5[0])
+        assert(sxaddr0_v2 == sxv2addr0_5[0])
+
+        sxaddr1_v1 = nodes[0].getnewstealthaddress()
+        sxaddr1_v2 = nodes[0].getnewstealthaddress("", 0, "", True, True)
+        assert(sxaddr1_v1 == sxv1addr0_5[1])
+        assert(sxaddr1_v2 == sxv2addr0_5[1])
+
+        addr_info = nodes[0].getaddressinfo(sxv1addr0_5[2])
+        assert(addr_info['ismine'] is False)
+        addr_info = nodes[0].getaddressinfo(sxv2addr0_5[2])
+        assert(addr_info['ismine'] is False)
+
+        sxv1addr0_5 = nodes[0].deriverangekeys(0, 5, 'stealthv1', False, True)
+        sxv2addr0_5 = nodes[0].deriverangekeys(0, 5, 'stealthv2', False, True)
+
+        addr_info = nodes[0].getaddressinfo(sxv1addr0_5[2])
+        assert(addr_info['ismine'] is True)
+        addr_info = nodes[0].getaddressinfo(sxv2addr0_5[2])
+        assert(addr_info['ismine'] is True)
 
         sCheckAddr = nodes[0].deriverangekeys(0, 0, sExternalChainId, 'true')[0]
         sHardenedAddr = nodes[0].getnewaddress('h1','false','true')
@@ -581,9 +630,7 @@ class WalletParticlTest(ParticlTestFramework):
                 break
         assert(nHardened == '1')
 
-
         ro = nodes[0].filteraddresses()
-
         sPath = ''
         for entry in ro:
             if entry['address'] == sHardenedAddr:
@@ -621,7 +668,6 @@ class WalletParticlTest(ParticlTestFramework):
         ro = nodes[0].getaddressinfo(addr)
         assert(ro['address'] == addr)
 
-
         #sAddrStake = sHardenedAddr
         sAddrStake = 'pomrQeo26xVLV5pnuDYkTUYuABFuP13HHE'
         sAddrSpend = 'tpl1vj4wplpq9ct7zmms3tvpr5dah84txlffz9sp5s5w4c7dhh6hvqus29mjpy'
@@ -630,7 +676,6 @@ class WalletParticlTest(ParticlTestFramework):
         ro = nodes[0].buildscript(jsonInput)
         scriptHex = ro['hex']
         assert(scriptHex == 'b86376a914cf3837ef2e493d5b485c7f4536f27415c5cd3b6088ac6776a82064aae0fc202e17e16f708ad811d1bdb9eab37d2911601a428eae3cdbdf57603988ac68')
-
 
         coincontrol = {'changeaddress': scriptHex, 'show_hex': True}
         outputs = [{'address':sAddrSpend, 'amount':1, 'narr':'not change'},]

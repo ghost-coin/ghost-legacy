@@ -2425,7 +2425,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
                 {
                     {"start", RPCArg::Type::NUM, RPCArg::Optional::NO, "Start from key index."},
                     {"end", RPCArg::Type::NUM, /* default */ "start+1", "Stop deriving after key index."},
-                    {"key/id", RPCArg::Type::NUM, /* default */ "", "Account to derive from, default external chain of current account, set to empty (\"\") for default."},
+                    {"key/id", RPCArg::Type::STR, /* default */ "", "Account to derive from or \"external\",\"internal\",\"stealthv1\",\"stealthv2\". Defaults to external chain of current account. Set to empty (\"\") for default."},
                     {"hardened", RPCArg::Type::BOOL, /* default */ "false", "Derive hardened keys."},
                     {"save", RPCArg::Type::BOOL, /* default */ "false", "Save derived keys to the wallet."},
                     {"add_to_addressbook", RPCArg::Type::BOOL, /* default */ "false", "Add derived keys to address book, only applies when saving keys."},
@@ -2458,13 +2458,10 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
         nEnd = request.params[1].get_int();
     }
     if (nEnd < nStart) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "end can not be before start.");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "\"end\" can not be before start.");
     }
     if (nStart < 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "start can not be negative.");
-    }
-    if (nEnd < 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "end can not be positive.");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "\"start\" can not be negative.");
     }
     if (request.params.size() > 2) {
         sInKey = request.params[2].get_str();
@@ -2476,7 +2473,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
     bool f256bit = request.params.size() > 6 ? GetBool(request.params[6]) : false;
 
     if (!fSave && fAddToAddressBook) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "add_to_addressbook can't be set without save");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "\"add_to_addressbook\" can't be set without save");
     }
     if (fSave || fHardened) {
         EnsureWalletIsUnlocked(pwallet);
@@ -2490,7 +2487,7 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
         CStoredExtKey *sek = nullptr;
         CExtKeyAccount *sea = nullptr;
         uint32_t nChain = 0;
-        if (sInKey.length() == 0) {
+        if (sInKey.length() == 0 || sInKey == "external") {
             if (pwallet->idDefaultAccount.IsNull()) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "No default account set.");
             }
@@ -2503,6 +2500,86 @@ static UniValue deriverangekeys(const JSONRPCRequest &request)
             if (nChain < sea->vExtKeys.size()) {
                 sek = sea->vExtKeys[nChain];
             }
+        } else
+        if (sInKey == "internal") {
+            if (pwallet->idDefaultAccount.IsNull()) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "No default account set.");
+            }
+            ExtKeyAccountMap::iterator mi = pwallet->mapExtAccounts.find(pwallet->idDefaultAccount);
+            if (mi == pwallet->mapExtAccounts.end()) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "Unknown account.");
+            }
+            sea = mi->second;
+            nChain = sea->nActiveInternal;
+            if (nChain < sea->vExtKeys.size()) {
+                sek = sea->vExtKeys[nChain];
+            }
+        } else
+        if (sInKey == "stealthv1" || sInKey == "stealthv2") {
+            bool stealth_v2 = sInKey == "stealthv2";
+            if (fHardened) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "Hardened option is invalid when deriving stealth addresses.");
+            }
+            if (f256bit) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "256bit option is invalid when deriving stealth addresses.");
+            }
+
+            if (pwallet->idDefaultAccount.IsNull()) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "No default account set.");
+            }
+            ExtKeyAccountMap::iterator mi = pwallet->mapExtAccounts.find(pwallet->idDefaultAccount);
+            if (mi == pwallet->mapExtAccounts.end()) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "Unknown account.");
+            }
+            sea = mi->second;
+
+            CHDWalletDB wdb(pwallet->GetDatabase());  // May need to save keys or initialise the stealth v2 chains
+            if (!wdb.TxnBegin()) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "TxnBegin failed.");
+            }
+            size_t num_keys = (nEnd - nStart) + 1;
+            CStealthAddress sxAddr;
+            CEKAStealthKey akStealth;
+            if (!stealth_v2) {
+                uint32_t nChain = sea->nActiveStealth;
+                CStoredExtKey *sek = sea->GetChain(nChain);
+                if (!sek) {
+                    throw JSONRPCError(RPC_WALLET_ERROR, "No active stealth chain found.");
+                }
+                uint32_t nKey = nStart * 2;
+                for (size_t k = 0; k < num_keys; ++k) {
+                    pwallet->NewStealthKeyFromAccount(nullptr, pwallet->idDefaultAccount, "", akStealth, 0, nullptr, false, &nKey, false /* add_to_lookahead */);
+                    nKey += 1;  // NewStealthKeyFromAccount advances nKey
+                    akStealth.SetSxAddr(sxAddr);
+                    result.push_back(sxAddr.ToString());
+
+                    if (fSave
+                        && !pwallet->HaveStealthAddress(sxAddr)
+                        && 0 != pwallet->SaveStealthAddress(&wdb, sea, akStealth, false)) {
+                        throw JSONRPCError(RPC_WALLET_ERROR, "SaveStealthAddress failed.");
+                    }
+                }
+            } else {
+                uint32_t nScanKey = nStart, nSpendKey = nStart;
+                for (size_t k = 0; k < num_keys; ++k) {
+                    pwallet->NewStealthKeyV2FromAccount(&wdb, pwallet->idDefaultAccount, "", akStealth, 0, nullptr, true, &nScanKey, &nSpendKey, false /* add_to_lookahead */);
+                    nScanKey += 1;
+                    nSpendKey += 1;
+                    akStealth.SetSxAddr(sxAddr);
+                    result.push_back(sxAddr.ToString(true));  // V2 stealth addresses are always formatted in bech32
+
+                    if (fSave
+                        && !pwallet->HaveStealthAddress(sxAddr)
+                        && 0 != pwallet->SaveStealthAddress(&wdb, sea, akStealth, true)) {
+                        throw JSONRPCError(RPC_WALLET_ERROR, "SaveStealthAddress failed");
+                    }
+                }
+            }
+            if (!wdb.TxnCommit()) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "TxnCommit failed.");
+            }
+
+            return result;
         } else {
             CKeyID keyId;
             ExtractExtKeyId(sInKey, keyId, CChainParams::EXT_KEY_HASH);
