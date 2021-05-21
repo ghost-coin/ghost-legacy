@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2020 The Particl Core developers
+# Copyright (c) 2017-2021 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -264,8 +264,8 @@ class ColdStakingTest(ParticlTestFramework):
         n1unspent = nodes[1].listunspent()
         addr2_1s = nodes[2].getnewstealthaddress()
 
-        coincontrol = {'inputs':[{'tx':n1unspent[0]['txid'],'n':n1unspent[0]['vout']}]}
-        outputs = [{'address':addr2_1s, 'amount':1, 'narr':'p2b,0->2'},]
+        coincontrol = {'inputs': [{'tx': n1unspent[0]['txid'],'n': n1unspent[0]['vout']}]}
+        outputs = [{'address': addr2_1s, 'amount': 1, 'narr': 'p2b,0->2'},]
         txid = nodes[0].sendtypeto('part', 'blind', outputs, 'comment', 'comment-to', 4, 64, False, coincontrol)
 
         self.sync_all()
@@ -327,6 +327,19 @@ class ColdStakingTest(ParticlTestFramework):
             print('stake_addr_alt', stake_addr_alt)
             print('stake_addr', stake_addr)
             assert(stake_addr_alt == coldstakingaddr)
+
+        # Test sendtypeto shortcut
+        addrSpend = nodes[0].getnewaddress('addrSpend', 'false', 'false', 'true')
+        toScript = nodes[0].buildscript({'recipe': 'ifcoinstake', 'addrstake': coldstakingaddr, 'addrspend': addrSpend})
+        rv = nodes[0].sendtypeto('part', 'part', [{'address': addrSpend, 'amount': 1, 'stakeaddress': coldstakingaddr}], '', '', 5, 1, True, {'show_hex': True})
+        tx = nodes[0].decoderawtransaction(rv['hex'])
+
+        found = False
+        for output in tx['vout']:
+            if output['scriptPubKey']['hex'] == toScript['hex']:
+                found = True
+                break
+        assert(found)
 
 
 if __name__ == '__main__':

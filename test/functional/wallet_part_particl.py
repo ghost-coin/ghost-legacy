@@ -595,12 +595,12 @@ class WalletParticlTest(ParticlTestFramework):
         sxv2addr0_5 = nodes[0].deriverangekeys(0, 5, 'stealthv2')
 
         sxaddr0_v1 = nodes[0].getnewstealthaddress()
-        sxaddr0_v2 = nodes[0].getnewstealthaddress("", 0, "", True, True)
+        sxaddr0_v2 = nodes[0].getnewstealthaddress('', '0', '', True, True)
         assert(sxaddr0_v1 == sxv1addr0_5[0])
         assert(sxaddr0_v2 == sxv2addr0_5[0])
 
         sxaddr1_v1 = nodes[0].getnewstealthaddress()
-        sxaddr1_v2 = nodes[0].getnewstealthaddress("", 0, "", True, True)
+        sxaddr1_v2 = nodes[0].getnewstealthaddress('', '0', '', True, True)
         assert(sxaddr1_v1 == sxv1addr0_5[1])
         assert(sxaddr1_v2 == sxv2addr0_5[1])
 

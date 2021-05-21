@@ -4929,7 +4929,7 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
             }
             const UniValue &obj = outputs[k].get_obj();
 
-            std::string sAddress;
+            std::string sAddress, str_stake_address;;
             CAmount nAmount;
 
             if (obj.exists("address")) {
@@ -4987,12 +4987,48 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 }
                 sBlind = s;
             }
+            if (obj.exists("stakeaddress") && obj.exists("script")) {
+                throw JSONRPCError(RPC_TYPE_ERROR, "\"script\" and \"stakeaddress\" can't be used together.");
+            }
 
             if (0 != AddOutput(typeOut, vecSend, dest, nAmount, fSubtractFeeFromAmount, sNarr, sBlind, sError)) {
                 throw JSONRPCError(RPC_MISC_ERROR, strprintf("AddOutput failed: %s.", sError));
             }
 
+            if (obj.exists("stakeaddress")) {
+                if (typeOut != OUTPUT_STANDARD) {
+                    throw std::runtime_error("\"stakeaddress\" only works for standard outputs.");
+                }
+                CTempRecipient &r = vecSend.back();
+                str_stake_address = obj["stakeaddress"].get_str();
+                if (!IsValidDestinationString(str_stake_address, true)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "\"stakeaddress\" is invalid");
+                }
+                CTxDestination destStake = DecodeDestination(str_stake_address, true);
+                CTxDestination destSpend = address.Get();
+                if (destSpend.type() == typeid(PKHash)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid addrspend, can't be p2pkh.");
+                }
+                CScript scriptTrue = GetScriptForDestination(destStake);
+                CScript scriptFalse = GetScriptForDestination(destSpend);
+                if (scriptTrue.size() == 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid stake destination.");
+                }
+                if (scriptFalse.size() == 0) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid spend destination.");
+                }
+
+                r.scriptPubKey = CScript() << OP_ISCOINSTAKE << OP_IF;
+                r.scriptPubKey.append(scriptTrue);
+                r.scriptPubKey << OP_ELSE;
+                r.scriptPubKey.append(scriptFalse);
+                r.scriptPubKey << OP_ENDIF;
+                r.fScriptSet = true;
+            } else
             if (obj.exists("script")) {
+                if (typeOut != OUTPUT_STANDARD) {
+                    throw std::runtime_error("TODO: Currently setting a script only works for standard outputs.");
+                }
                 CTempRecipient &r = vecSend.back();
 
                 if (sAddress != "script") {
@@ -5003,10 +5039,6 @@ static UniValue SendToInner(const JSONRPCRequest &request, OutputTypes typeIn, O
                 std::vector<uint8_t> scriptData = ParseHex(sScript);
                 r.scriptPubKey = CScript(scriptData.begin(), scriptData.end());
                 r.fScriptSet = true;
-
-                if (typeOut != OUTPUT_STANDARD) {
-                    throw std::runtime_error("TODO: Currently setting a script only works for standard outputs.");
-                }
             }
         }
         nCommentOfs = 1;
@@ -5472,6 +5504,7 @@ UniValue sendtypeto(const JSONRPCRequest &request)
                                     {"blindingfactor", RPCArg::Type::STR_HEX, /* default */ "", "The blinding factor, 32 bytes and hex encoded."},
                                     {"subfee", RPCArg::Type::BOOL, /* default */ "", "The fee will be deducted from the amount being sent."},
                                     {"script", RPCArg::Type::STR_HEX, /* default */ "", "Hex encoded script, will override the address. \"address\" must be set to a blank string or placeholder value when \"script\" is used. "},
+                                    {"stakeaddress", RPCArg::Type::STR, /* default */ "", "If set the output will be sent to a coldstaking script."},
                                 },
                             },
                         },

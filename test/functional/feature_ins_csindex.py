@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# Copyright (c) 2019 The Particl Core developers
+# Copyright (c) 2019-2021 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import json
 import re
+import json
 
 from test_framework.test_particl import ParticlTestFramework
 from test_framework.authproxy import JSONRPCException
@@ -65,7 +65,7 @@ class TxIndexTest(ParticlTestFramework):
         addrStake2_stakeonly = nodes[1].validateaddress(addrStake2, True)['stakeonly_address']
         toScript = nodes[1].buildscript({'recipe': 'ifcoinstake', 'addrstake': addrStake2_stakeonly, 'addrspend': addrSpend2})
         nodes[1].sendtypeto('part', 'part',
-                            [{'address': 'script', 'amount': 12, 'script':toScript['hex']}])
+                            [{'address': 'script', 'amount': 12, 'script': toScript['hex']}])
 
         try:
             nodes[1].sendtoaddress(addrStake2_stakeonly, 12)
@@ -137,7 +137,6 @@ class TxIndexTest(ParticlTestFramework):
         ro = nodes[1].listcoldstakeunspent(addrStake)
         assert(len(ro) == 3)
 
-
         self.restart_node(1, extra_args=self.extra_args[1] + ['-wallet=default_wallet',])
 
         ro = nodes[1].listcoldstakeunspent(addrStake)
@@ -145,7 +144,6 @@ class TxIndexTest(ParticlTestFramework):
 
         ro = nodes[1].getblockreward(2)
         assert(ro['stakereward'] < ro['blockreward'])
-
 
         self.restart_node(0, extra_args=self.extra_args[0] + ['-wallet=default_wallet',])
         self.restart_node(2, extra_args=self.extra_args[2] + ['-wallet=default_wallet',])
@@ -177,8 +175,8 @@ class TxIndexTest(ParticlTestFramework):
 
         txid = nodes[1].sendtypeto(
             'part', 'part',
-            [{'address': 'script', 'amount':1, 'script':script_ms_addr0['hex']},
-             {'address': 'script', 'amount':2, 'script':script_ms_addr1['hex']}])
+            [{'address': 'script', 'amount': 1, 'script': script_ms_addr0['hex']},
+             {'address': 'script', 'amount': 2, 'script': script_ms_addr1['hex']}])
 
         nodes[0].sendrawtransaction(nodes[1].getrawtransaction(txid))  # Quicker than syncing mempool
 
