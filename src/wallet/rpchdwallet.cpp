@@ -6144,15 +6144,23 @@ static void traceFrozenOutputs(UniValue &rv, CAmount min_value, CAmount max_froz
                 }
 
                 bool is_spendable = true;
+                int64_t anon_index = -1;
+                if (r.nType == OUTPUT_RINGCT) {
+                    CStoredTransaction stx;
+                    if (!wdb.ReadStoredTx(txid, stx) ||
+                        !stx.tx->vpout[r.n]->IsType(OUTPUT_RINGCT) ||
+                        !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, anon_index)) {
+                        warnings.push_back(strprintf("Failed to get anon index for %s.%d", txid.ToString(), r.n));
+                        continue;
+                    }
+                    if (IsBlacklistedAnonOutput(anon_index)) {
+                        is_spendable = false;
+                    }
+                }
                 if (r.nValue > max_frozen_output_spendable) {
                     // TODO: Store pubkey on COutputRecord - in scriptPubKey
                     if (r.nType == OUTPUT_RINGCT) {
-                        int64_t anon_index = -1;
-                        CStoredTransaction stx;
-                        if (!wdb.ReadStoredTx(txid, stx) ||
-                            !stx.tx->vpout[r.n]->IsType(OUTPUT_RINGCT) ||
-                            !pblocktree->ReadRCTOutputLink(((CTxOutRingCT*)stx.tx->vpout[r.n].get())->pk, anon_index) ||
-                            !IsWhitelistedAnonOutput(anon_index)) {
+                        if (!IsWhitelistedAnonOutput(anon_index)) {
                             is_spendable = false;
                         }
                     } else

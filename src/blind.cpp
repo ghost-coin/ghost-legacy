@@ -175,6 +175,7 @@ void LoadBlindedOutputFilters()
     LoadCTTaintedFilter(ct_tainted_filter_data, ct_tainted_filter_data_len);
     LoadCTWhitelist(tx_whitelist_data, tx_whitelist_data_len);
     LoadRCTWhitelist(anon_index_whitelist, anon_index_whitelist_size);
+    LoadRCTBlacklist(anon_index_blacklist, anon_index_blacklist_size);
 }
 
 bool IsFrozenBlindOutput(const uint256 &txid)
