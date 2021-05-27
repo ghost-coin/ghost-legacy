@@ -102,7 +102,7 @@ class PosTest(ParticlTestFramework):
         ro = nodes[0].getrawtransaction(coinstakehash, True)
 
         fFound = False
-        for vout in ro["vout"]:
+        for vout in ro['vout']:
             try:
                 addr0 = vout['scriptPubKey']['addresses'][0]
             except:
@@ -169,9 +169,36 @@ class PosTest(ParticlTestFramework):
         self.stakeBlocks(1)
         coinstakehash = nodes[0].getblock(nodes[0].getblockhash(7))['tx'][0]
         ro = nodes[0].getrawtransaction(coinstakehash, True)
+        stake_kernel_txid = ro['vin'][0]['txid']
+        stake_kernel_n = ro['vin'][0]['vout']
+
         for output in ro['vout'][1:]:
             assert(output['type'] == 'standard')
             assert(output['value'] > 1.0)
+
+        unspent = nodes[0].listunspent()
+        for output in unspent:
+            assert(output['txid'] != stake_kernel_txid or output['vout'] != stake_kernel_n)
+
+        self.log.info('Test that orphaned coinstake inputs are abandoned')
+        nodes[0].rewindchain(6)
+        txns = nodes[0].filtertransactions()
+
+        found_orphaned_coinstake = False
+        for tx in txns:
+            if tx['txid'] == coinstakehash:
+                found_orphaned_coinstake = True
+                assert(tx['category'] == 'orphaned_stake')
+                assert(tx['abandoned'] == True)
+        assert(found_orphaned_coinstake)
+
+        unspent = nodes[0].listunspent()
+        found_stake_kernel = False
+        for output in unspent:
+            if output['txid'] == stake_kernel_txid and output['vout'] == stake_kernel_n:
+                found_stake_kernel = True
+                break
+        assert(found_stake_kernel)
 
 
 if __name__ == '__main__':

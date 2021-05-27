@@ -2215,7 +2215,7 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
 
 
         if (fParticlMode) {
-            // restore inputs
+            // Restore inputs
             if (!tx.IsCoinBase()) {
                 if (nVtxundo < 0 || nVtxundo >= (int)blockUndo.vtxundo.size()) {
                     error("DisconnectBlock(): transaction undo data offset out of range.");
@@ -2554,7 +2554,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
     uint256 hashPrevBlock = pindex->pprev == nullptr ? uint256() : pindex->pprev->GetBlockHash();
     assert(hashPrevBlock == view.GetBestBlock());
 
-    uint256 blockHash = block.GetHash();
+    const uint256 blockHash = block.GetHash();
     bool fIsGenesisBlock = blockHash == chainparams.GetConsensus().hashGenesisBlock;
     nBlocksTotal++;
 
@@ -3078,7 +3078,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 coinStakeCache.InsertCoinStake(blockHash, txCoinstake);
             }
         } else {
-            if (block.GetHash() != chainparams.GenesisBlock().GetHash()) {
+            if (blockHash != chainparams.GetConsensus().hashGenesisBlock) {
                 LogPrintf("ERROR: %s: Block isn't coinstake or genesis.\n", __func__);
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs");
             }
@@ -4790,9 +4790,6 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
     }
 
     if (fParticlMode) {
-        // Enforce rule that the coinbase/coinstake ends with serialized block height
-        // genesis block scriptSig size will be different
-
         if (block.IsProofOfStake()) {
             // Limit the number of outputs in a coinstake txn to 6: 1 data + 1 foundation + 4 user
             if (nPrevTime >= consensusParams.OpIsCoinstakeTime) {
@@ -4801,7 +4798,7 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
                 }
             }
 
-            // coinstake output 0 must be data output of blockheight
+            // Coinstake output 0 must be data output of blockheight
             int i;
             if (!block.vtx[0]->GetCoinStakeHeight(i)) {
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-malformed", "coinstake txn is malformed");
@@ -4852,7 +4849,7 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
             if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams, nHeight, Params().GetLastImportHeight()))
                 return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
 
-            // Enforce rule that the coinbase/ ends with serialized block height
+            // Enforce rule that the coinbase ends with serialized block height
             // genesis block scriptSig size will be different
             CScript expect = CScript() << OP_RETURN << nHeight;
             const CScript &scriptSig = block.vtx[0]->vin[0].scriptSig;

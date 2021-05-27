@@ -6353,7 +6353,7 @@ int CHDWallet::ExtKeyCreateAccount(CStoredExtKey *sekAccount, CKeyID &idMaster, 
         ekaOut.nFlags |= EAF_HAVE_SECRET;
     }
 
-    uint32_t nExternal, nInternal, nStealth = 0;
+    uint32_t nExternal = 0, nInternal = 0, nStealth = 0;
     CStoredExtKey *sekExternal = new CStoredExtKey(), *sekInternal = new CStoredExtKey(), *sekStealth = nullptr;
 
     if (sekAccount->kp.IsValidV()) {
