@@ -266,7 +266,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
                         if (!IsWhitelistedAnonOutput(nIndex)) {
                             spends_tainted_blinded = true;
                         }
-                        if (IsBlacklistedAnonOutput(nIndex)) {
+                        if (state.m_exploit_fix_2 && IsBlacklistedAnonOutput(nIndex)) {
                             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-frozen-blinded-blacklisted");
                         }
                     } else {
@@ -468,7 +468,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-blind-disabled");
         }
         if (!state.m_exploit_fix_1 && nCt == 0) {
-            return true;
+            return true;  // Match bugged path to sync early blocks
         }
 
         nPlainValueOut += txfee;
