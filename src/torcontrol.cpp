@@ -203,10 +203,53 @@ bool TorControlConnection::Connect(const std::string& tor_control_center, const 
     // Parse tor_control_center address:port
     struct sockaddr_storage connect_to_addr;
     int connect_to_addrlen = sizeof(connect_to_addr);
-    if (evutil_parse_sockaddr_port(tor_control_center.c_str(),
-        (struct sockaddr*)&connect_to_addr, &connect_to_addrlen)<0) {
-        LogPrintf("tor: Error parsing socket address %s\n", tor_control_center);
-        return false;
+
+    if (gArgs.IsArgSet("-lookuptorcontrolhost")) {
+        std::string lookup_protocol = gArgs.GetArg("-lookuptorcontrolhost", "");
+        int port = -1;
+        char str_port[6];
+        std::string host;
+        SplitHostPort(tor_control_center, port, host);
+        if (port == -1) {
+            LogPrintf("tor: Error parsing socket address %s.  Port must be specified.\n", tor_control_center);
+            return false;
+        }
+        evutil_snprintf(str_port, sizeof(str_port), "%d", (int) port);
+
+        struct addrinfo aiHint;
+        memset(&aiHint, 0, sizeof(struct addrinfo));
+        aiHint.ai_socktype = SOCK_STREAM;
+        aiHint.ai_protocol = IPPROTO_TCP;
+        if (lookup_protocol == "ipv4") {
+            aiHint.ai_family = AF_INET;
+        } else
+        if (lookup_protocol == "ipv6") {
+            aiHint.ai_family = AF_INET6;
+        } else
+        if (lookup_protocol == "any") {
+            aiHint.ai_family = AF_UNSPEC;
+        } else {
+            LogPrintf("tor: Error, unknown -lookuptorcontrolhost option: \"%s\"\n", lookup_protocol);
+            return false;
+        }
+        struct addrinfo *aiRes = nullptr;
+
+        int err = evutil_getaddrinfo(host.c_str(), str_port, &aiHint, &aiRes);
+        if (err != 0 || !aiRes || aiRes->ai_addrlen > sizeof(connect_to_addr)) {
+            LogPrintf("tor: Error parsing socket address %s: %s\n", host, evutil_gai_strerror(err));
+            return false;
+        }
+
+        memcpy((char*)&connect_to_addr, (char*)aiRes->ai_addr, aiRes->ai_addrlen);
+        connect_to_addrlen = aiRes->ai_addrlen;
+
+        evutil_freeaddrinfo(aiRes);
+    } else {
+        if (evutil_parse_sockaddr_port(tor_control_center.c_str(),
+            (struct sockaddr*)&connect_to_addr, &connect_to_addrlen)<0) {
+            LogPrintf("tor: Error parsing socket address %s\n", tor_control_center);
+            return false;
+        }
     }
 
     // Create a new socket, set up callbacks and enable notification bits
