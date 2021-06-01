@@ -252,7 +252,6 @@ CAmount CTransaction::GetValueOut() const
             throw std::runtime_error(std::string(__func__) + ": value out of range");
         }
         nValueOut += tx_out.nValue;
-
     }
 
     for (auto &txout : vpout) {

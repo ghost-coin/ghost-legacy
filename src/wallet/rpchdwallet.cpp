@@ -6569,7 +6569,6 @@ static UniValue debugwallet(const JSONRPCRequest &request)
             result.pushKV("spent_n", input_n);
             result.pushKV("amount", ValueFromAmount(output_amount));
             result.pushKV("fee", ValueFromAmount(nFee));
-
             break;
         }
         }
@@ -6586,6 +6585,7 @@ static UniValue debugwallet(const JSONRPCRequest &request)
     }
 
     result.pushKV("wallet_name", pwallet->GetName());
+    result.pushKV("core_version", CLIENT_VERSION);
 
     size_t nUnabandonedOrphans = 0;
     size_t nCoinStakes = 0;
@@ -6748,6 +6748,16 @@ static UniValue debugwallet(const JSONRPCRequest &request)
         }
 
         {
+            auto add_error = [&] (std::string message, const uint256 &txid, int n=-1) {
+                UniValue tmp(UniValue::VOBJ);
+                tmp.pushKV("type", message);
+                tmp.pushKV("txid", txid.ToString());
+                if (n > -1) {
+                    tmp.pushKV("n", n);
+                }
+                errors.push_back(tmp);
+            };
+            pwallet->WalletLogPrintf("Checking mapRecord plain values, blinding factors and anon spends.\n");
             CHDWalletDB wdb(pwallet->GetDBHandle());
             for (const auto &ri : pwallet->mapRecords) {
                 const uint256 &txhash = ri.first;
@@ -6756,28 +6766,52 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 if (!pwallet->IsTrusted(txhash, rtx)) {
                     continue;
                 }
-
+                CStoredTransaction stx;
+                if (!wdb.ReadStoredTx(txhash, stx)) {
+                    add_error("Missing stored txn.", txhash);
+                    continue;
+                }
                 for (const auto &r : rtx.vout) {
+                    if (r.nType == OUTPUT_STANDARD && r.n != OR_PLACEHOLDER_N) {
+                        if (r.n >= stx.tx->GetNumVOuts() || r.nValue != stx.tx->vpout[r.n]->GetValue()) {
+                            add_error("Plain value mismatch.", txhash, r.n);
+                        }
+                        continue;
+                    }
                     if ((r.nType == OUTPUT_CT || r.nType == OUTPUT_RINGCT)
                         && (r.nFlags & ORF_OWNED || r.nFlags & ORF_STAKEONLY)
                         && !pwallet->IsSpent(txhash, r.n)) {
-                        CStoredTransaction stx;
-                        if (!wdb.ReadStoredTx(txhash, stx)) {
-                            UniValue tmp(UniValue::VOBJ);
-                            tmp.pushKV("type", "Missing stored txn.");
-                            tmp.pushKV("txid", txhash.ToString());
-                            tmp.pushKV("n", r.n);
-                            errors.push_back(tmp);
-                            continue;
-                        }
-
                         uint256 tmp;
                         if (!stx.GetBlind(r.n, tmp.begin())) {
-                            UniValue tmp(UniValue::VOBJ);
-                            tmp.pushKV("type", "Missing blinding factor.");
-                            tmp.pushKV("txid", txhash.ToString());
-                            tmp.pushKV("n", r.n);
-                            errors.push_back(tmp);
+                            add_error("Missing blinding factor.", txhash, r.n);
+                        }
+                    }
+                    if (r.nType == OUTPUT_RINGCT
+                        && (r.nFlags & ORF_OWNED)) {
+                        CCmpPubKey anon_pubkey, ki;
+                        if (!stx.GetAnonPubkey(r.n, anon_pubkey)) {
+                            add_error("Could not get anon pubkey.", txhash, r.n);
+                            continue;
+                        }
+                        CKey spend_key;
+                        CKeyID apkid = anon_pubkey.GetID();
+                        if (!pwallet->GetKey(apkid, spend_key)) {
+                            add_error("Could not get anon spend key.", txhash, r.n);
+                            continue;
+                        }
+                        if (0 != GetKeyImage(ki, anon_pubkey, spend_key)) {
+                            add_error("Could not get keyimage.", txhash, r.n);
+                            continue;
+                        }
+                        uint256 txhashKI;
+                        bool spent_in_chain = pblocktree->ReadRCTKeyImage(ki, txhashKI);
+                        bool spent_in_wallet = pwallet->IsSpent(txhash, r.n);
+
+                        if (spent_in_chain && !spent_in_wallet) {
+                            add_error("Spent in chain but not wallet.", txhash, r.n);
+                        } else
+                        if (!spent_in_chain && spent_in_wallet) {
+                            add_error("Spent in wallet but not chain.", txhash, r.n);
                         }
                     }
                 }
@@ -6790,61 +6824,6 @@ static UniValue debugwallet(const JSONRPCRequest &request)
                 UniValue tmp(UniValue::VOBJ);
                 tmp.pushKV("type", "Wallet has coldstaking outputs with coldstakingaddress unset.");
                 warnings.push_back(tmp);
-            }
-        }
-
-        {
-            pwallet->WalletLogPrintf("Checking for missing anon spends.\n");
-            CHDWalletDB wdb(pwallet->GetDatabase());
-            for (const auto &ri : pwallet->mapRecords) {
-                const uint256 &txid = ri.first;
-                const CTransactionRecord &rtx = ri.second;
-                CStoredTransaction stx;
-
-                for (const auto &r : rtx.vout) {
-                    if (r.nType != OUTPUT_RINGCT ||
-                        !(r.nFlags & ORF_OWNED)) {
-                        continue;
-                    }
-
-                    CCmpPubKey anon_pubkey, ki;
-                    auto add_error = [&] (std::string message) {
-                        UniValue tmp(UniValue::VOBJ);
-                        tmp.pushKV("type", message);
-                        tmp.pushKV("txid", txid.ToString());
-                        tmp.pushKV("n", r.n);
-                        errors.push_back(tmp);
-                    };
-                    if ((!stx.tx || stx.tx->GetHash() != txid)
-                        && !wdb.ReadStoredTx(txid, stx)) {
-                        add_error("Missing stored txn.");
-                        continue;
-                    }
-                    if (!stx.GetAnonPubkey(r.n, anon_pubkey)) {
-                        add_error("Could not get anon pubkey.");
-                        continue;
-                    }
-                    CKey spend_key;
-                    CKeyID apkid = anon_pubkey.GetID();
-                    if (!pwallet->GetKey(apkid, spend_key)) {
-                        add_error("Could not get anon spend key.");
-                        continue;
-                    }
-                    if (0 != GetKeyImage(ki, anon_pubkey, spend_key)) {
-                        add_error("Could not get keyimage.");
-                        continue;
-                    }
-                    uint256 txhashKI;
-                    bool spent_in_chain = pblocktree->ReadRCTKeyImage(ki, txhashKI);
-                    bool spent_in_wallet = pwallet->IsSpent(txid, r.n);
-
-                    if (spent_in_chain && !spent_in_wallet) {
-                        add_error("Spent in chain but not wallet.");
-                    } else
-                    if (!spent_in_chain && spent_in_wallet) {
-                        add_error("Spent in wallet but not chain.");
-                    }
-                }
             }
         }
     }

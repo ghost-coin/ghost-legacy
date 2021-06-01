@@ -2065,8 +2065,7 @@ isminetype CHDWallet::IsMine(const CScript &scriptPubKey, CKeyID &keyID,
 
 isminetype CHDWallet::IsMine(const CTxOutBase *txout) const
 {
-    switch (txout->nVersion)
-    {
+    switch (txout->nVersion) {
         case OUTPUT_STANDARD:
             return IsMine(((CTxOutStandard*)txout)->scriptPubKey);
         case OUTPUT_CT:
@@ -2077,7 +2076,7 @@ isminetype CHDWallet::IsMine(const CTxOutBase *txout) const
             break;
         default:
             return ISMINE_NO;
-    };
+    }
 
     return ISMINE_NO;
 };
@@ -2101,33 +2100,31 @@ bool CHDWallet::IsFromMe(const CTransaction& tx) const
 // and a not-"is mine" (according to the filter) input.
 CAmount CHDWallet::GetDebit(const CTxIn &txin, const isminefilter &filter) const
 {
-    {
-        LOCK(cs_wallet);
-        MapWallet_t::const_iterator mi = mapWallet.find(txin.prevout.hash);
-        if (mi != mapWallet.end()) {
-            const CWalletTx &prev = (*mi).second;
-            if (txin.prevout.n < prev.tx->vpout.size())
-                if (IsMine(prev.tx->vpout[txin.prevout.n].get()) & filter)
-                    return prev.tx->vpout[txin.prevout.n]->GetValue();
-        }
+    LOCK(cs_wallet);
+    MapWallet_t::const_iterator mi = mapWallet.find(txin.prevout.hash);
+    if (mi != mapWallet.end()) {
+        const CWalletTx &prev = (*mi).second;
+        if (txin.prevout.n < prev.tx->vpout.size())
+            if (IsMine(prev.tx->vpout[txin.prevout.n].get()) & filter)
+                return prev.tx->vpout[txin.prevout.n]->GetValue();
+    }
 
-        MapRecords_t::const_iterator mri = mapRecords.find(txin.prevout.hash);
-        if (mri != mapRecords.end()) {
-            const COutputRecord *oR = mri->second.GetOutput(txin.prevout.n);
+    MapRecords_t::const_iterator mri = mapRecords.find(txin.prevout.hash);
+    if (mri != mapRecords.end()) {
+        const COutputRecord *oR = mri->second.GetOutput(txin.prevout.n);
 
-            if (oR)
-            {
-                if ((filter & ISMINE_SPENDABLE)
-                    && (oR->nFlags & ORF_OWNED))
-                    return oR->nValue;
-                /* TODO
-                if ((filter & ISMINE_WATCH_ONLY)
-                    && (oR->nFlags & ORF_WATCH_ONLY))
-                    return oR->nValue;
-                */
+        if (oR) {
+            if ((filter & ISMINE_SPENDABLE)
+                && (oR->nFlags & ORF_OWNED)) {
+                return oR->nValue;
             }
+            /* TODO
+            if ((filter & ISMINE_WATCH_ONLY)
+                && (oR->nFlags & ORF_WATCH_ONLY))
+                return oR->nValue;
+            */
         }
-    } // cs_wallet
+    }
     return 0;
 };
 
