@@ -8,7 +8,9 @@ from test_framework.test_particl import ParticlTestFramework
 from test_framework.util import assert_raises_rpc_error
 from test_framework.address import base58_to_byte
 from test_framework.key import SECP256K1, ECPubKey
+from test_framework.messages import COIN
 from test_framework.messages import sha256
+
 
 
 class AnonTest(ParticlTestFramework):
@@ -269,7 +271,8 @@ class AnonTest(ParticlTestFramework):
                 assert(ro['amount'] == 10.0)
                 found_output = vout['n']
             except Exception as e:
-                print(e)
+                if not str(e).startswith('Mismatched commitment'):
+                    print(e)
         assert(found_output > -1)
 
         key_bytes = base58_to_byte(stealth_key['privatekey'])[0][0:32]
@@ -338,6 +341,17 @@ class AnonTest(ParticlTestFramework):
         self.stakeBlocks(1)
         w2b = nodes[2].getbalances()
         assert(w2b['mine']['anon_immature'] < 10 and w2b['mine']['anon_immature'] > 9)
+
+        self.log.info('Test subfee edge case')
+        unspents = nodes[0].listunspent()
+        total_input = int(unspents[0]['amount'] * COIN) + int(unspents[1]['amount'] * COIN)
+        total_output = total_input - 1
+
+        coincontrol = {'test_mempool_accept': True, 'show_hex': True, 'show_fee': True, 'inputs': [{'tx': unspents[0]['txid'],'n': unspents[0]['vout']}, {'tx': unspents[1]['txid'],'n': unspents[1]['vout']}]}
+        outputs = [{'address': sxAddrTo0_1, 'amount': '%i.%08i' % (total_output // COIN, total_output % COIN), 'narr': '', 'subfee' : True},]
+        tx = nodes[0].sendtypeto('part', 'anon', outputs, 'comment', 'comment-to', 5, 1, False, coincontrol)
+        assert(total_input == int(tx['fee'] * COIN) + int(tx['outputs_fee'][sxAddrTo0_1]))
+        assert(tx['mempool-allowed'] == True)
 
 
 if __name__ == '__main__':
