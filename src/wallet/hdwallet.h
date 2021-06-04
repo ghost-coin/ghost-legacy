@@ -512,6 +512,7 @@ public:
 
     size_t m_rescan_stealth_v1_lookahead = DEFAULT_STEALTH_LOOKAHEAD_SIZE;
     size_t m_rescan_stealth_v2_lookahead = DEFAULT_STEALTH_LOOKAHEAD_SIZE;
+    size_t m_default_lookahead = DEFAULT_LOOKAHEAD_SIZE;
 
     bool m_smsg_enabled = true;
     CAmount m_min_stakeable_value = 1;  // Wallet will not try to stake outputs below this value

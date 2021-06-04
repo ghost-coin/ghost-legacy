@@ -1016,6 +1016,16 @@ int CExtKeyAccount::AddLookAhead(uint32_t nChain, uint32_t nKeys)
     return 0;
 };
 
+int CExtKeyAccount::ClearLookAhead()
+{
+    for (size_t i = 0; i < vExtKeys.size(); ++i) {
+        CStoredExtKey *sek = vExtKeys[i];
+        sek->nLastLookAhead = 0;
+    }
+    mapLookAhead.clear();
+
+    return 0;
+};
 
 int CExtKeyAccount::ExpandStealthChildKey(const CEKAStealthKey *aks, const CKey &sShared, CKey &kOut) const
 {

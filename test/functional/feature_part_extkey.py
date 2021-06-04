@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017-2019 The Particl Core developers
+# Copyright (c) 2017-2021 The Particl Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -31,15 +31,7 @@ class ExtKeyTest(ParticlTestFramework):
 
         self.import_genesis_coins_a(node)
 
-        # Start staking
-        node.walletsettings('stakelimit', {'height':1})
-        node.reservebalance(False)
-
-        assert(self.wait_for_height(node, 1))
-
-        # stop staking
-        node.reservebalance(True, 10000000)
-        node1.reservebalance(True, 10000000)
+        self.stakeBlocks(1)
 
         ro = node1.extkeyimportmaster('drip fog service village program equip minute dentist series hawk crop sphere olympic lazy garbage segment fox library good alley steak jazz force inmate')
         assert(ro['account_id'] == 'ahL1QdHhzNCtZWJzv36ScfPipJP1cUzAD8')
@@ -64,14 +56,7 @@ class ExtKeyTest(ParticlTestFramework):
         ro = node.getmempoolentry(txnHash)
         assert(ro['height'] == 1)
 
-        # start staking
-        node.walletsettings('stakelimit', {'height':2})
-        node.reservebalance(False)
-
-        assert(self.wait_for_height(node, 2))
-
-        # stop staking
-        ro = node.reservebalance(True, 10000000)
+        self.stakeBlocks(1)
 
 
         ro = node1.listtransactions()
@@ -122,19 +107,13 @@ class ExtKeyTest(ParticlTestFramework):
         assert[isclose(ro[23]['amount'], 0.24)]
         assert[ro[23]['address'] == 'pm23xKs3gy6AhZZ7JZe61Rn1m8VB83P49d']
 
-
-        # start staking
-        node.walletsettings('stakelimit', {'height':3})
-        node.reservebalance(False)
-
-        assert(self.wait_for_height(node, 3))
+        self.stakeBlocks(1)
 
         block3_hash = node.getblockhash(3)
         ro = node.getblock(block3_hash)
 
         for txnHash in txnHashes:
             assert(txnHash in ro['tx'])
-
 
         # Test bech32 encoding
         ek_b32 = 'tpep1q3ehtcetqqqqqqesj04mypkmhnly5rktqmcpmjuq09lyevcsjxrgra6x8trd52vp2vpsk6kf86v3npg6x66ymrn5yrqnclxtqrlfdlw3j4f0309dhxct8kc68paxt'

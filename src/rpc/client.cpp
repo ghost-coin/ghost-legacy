@@ -294,6 +294,11 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "smsgpeers", 0, "index" },
     { "smsgzmqpush", 0, "options" },
 
+    { "extkeyimportmaster", 2, "save_bip44_root" },
+    { "extkeyimportmaster", 6, "options" },
+    { "extkeygenesisimport", 2, "save_bip44_root" },
+    { "extkeygenesisimport", 6, "options" },
+
     { "votehistory", 0, "current_only" },
     { "votehistory", 1, "include_future" },
 

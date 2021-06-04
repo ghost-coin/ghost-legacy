@@ -67,6 +67,16 @@ class MultiWalletTest(ParticlTestFramework):
         nodes[0].sendtoaddress(w4_addr, 1)
         nodes[0].sendtoaddress(w4_addr, 0.99)
 
+        # Send to the 6th stealthaddress and 1st address
+        nodes[2].createwallet('w7')
+        w7 = nodes[2].get_wallet_rpc('w7')
+        w7_mnemonic = w7.mnemonic('new')['master']
+        w7.extkeyimportmaster(w7_mnemonic)
+        for k in range(5):
+            w7.getnewstealthaddress()
+        nodes[0].sendtoaddress(w7.getnewstealthaddress(), 1)
+        nodes[0].sendtoaddress(w7.getnewaddress(), 2)
+
         self.sync_all()
         self.stakeBlocks(1)
 
@@ -105,6 +115,18 @@ class MultiWalletTest(ParticlTestFramework):
         assert(w6_stakinginfo['minstakeablevalue'] == 1)
         assert(w6_stakinginfo['weight'] == 100000000)
         assert(float(w6.walletsettings('other')['other']['minownedvalue']) == 1.0)
+
+        nodes[2].createwallet('w8')
+        w8 = nodes[2].get_wallet_rpc('w8')
+        w8.extkeyimportmaster(w7_mnemonic, '', 'false', '', '', 0, {'lookaheadsize': 0, 'stealthv1lookaheadsize': 6})
+        print(w7.getbalances())
+        print(w8.getbalances())
+        assert(float(w8.getbalances()['mine']['trusted']) == 1.0)
+
+        nodes[2].createwallet('w9')
+        w9 = nodes[2].get_wallet_rpc('w9')
+        w9.extkeyimportmaster(w7_mnemonic)
+        assert(float(w9.getbalances()['mine']['trusted']) == 2.0)
 
 
 if __name__ == '__main__':

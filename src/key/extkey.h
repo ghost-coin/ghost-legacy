@@ -783,6 +783,8 @@ public:
         return AddLookAhead(nActiveExternal, nKeys);
     };
 
+    int ClearLookAhead();
+
     int ExpandStealthChildKey(const CEKAStealthKey *aks, const CKey &sShared, CKey &kOut) const;
     int ExpandStealthChildPubKey(const CEKAStealthKey *aks, const CKey &sShared, CPubKey &pkOut) const;
 
