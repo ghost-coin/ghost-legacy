@@ -30,6 +30,7 @@ const DeviceType usbDeviceTypes[] = {
     DeviceType(0x2c97, 0x0001, "Ledger",    "Nano S",       USBDEVICE_LEDGER_NANO_S),
     DeviceType(0x2c97, 0x1015, "Ledger",    "Nano S 1.6",   USBDEVICE_LEDGER_NANO_S),
     DeviceType(0x2c97, 0x0004, "Ledger",    "Nano X",       USBDEVICE_LEDGER_NANO_X),
+    DeviceType(0x2c97, 0x4015, "Ledger",    "Nano X 1.6",   USBDEVICE_LEDGER_NANO_X),
     //DeviceType(0x534c, 0x0001, "Trezor", "One", USBDEVICE_TREZOR_ONE),
 };
 
