@@ -12,7 +12,6 @@ from test_framework.messages import COIN
 from test_framework.messages import sha256
 
 
-
 class AnonTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -325,18 +324,19 @@ class AnonTest(ParticlTestFramework):
         }
         input_amounts = {
         }
+        used_input = (txid, found_output)
 
         tx_signed = nodes[0].fundrawtransactionfrom('anon', tx['hex'], input_amounts, tx['amounts'], options)
         num_tries = 20
         for i in range(num_tries):
             try:
-                txid = nodes[0].sendrawtransaction(tx_signed['hex'])
+                spending_txid = nodes[0].sendrawtransaction(tx_signed['hex'])
                 break
             except Exception:
                 self.stakeBlocks(1)
             if i >= num_tries - 1:
                 raise ValueError('Can\'t submit txn')
-        assert(self.wait_for_mempool(nodes[2], txid))
+        assert(self.wait_for_mempool(nodes[2], spending_txid))
 
         self.stakeBlocks(1)
         w2b = nodes[2].getbalances()
@@ -352,6 +352,20 @@ class AnonTest(ParticlTestFramework):
         tx = nodes[0].sendtypeto('part', 'anon', outputs, 'comment', 'comment-to', 5, 1, False, coincontrol)
         assert(total_input == int(tx['fee'] * COIN) + int(tx['outputs_fee'][sxAddrTo0_1]))
         assert(tx['mempool-allowed'] == True)
+
+        self.log.info('Test checkkeyimage')
+        unspents = nodes[0].listunspentanon(0, 999999, [], True, {'show_pubkeys': True})
+        anon_pubkey = unspents[0]['pubkey']
+        keyimage = nodes[0].getkeyimage(anon_pubkey)['keyimage']
+        spent = nodes[0].checkkeyimage(keyimage)
+        assert(spent['spent'] is False)
+
+        raw_tx = nodes[0].decoderawtransaction(nodes[0].gettransaction(used_input[0])['hex'])
+        used_pubkey = raw_tx['vout'][used_input[1]]['pubkey']
+        used_keyimage = nodes[2].getkeyimage(used_pubkey)['keyimage']
+        spent = nodes[0].checkkeyimage(used_keyimage)
+        assert(spent['spent'] is True)
+        assert(spent['txid'] == spending_txid)
 
 
 if __name__ == '__main__':
