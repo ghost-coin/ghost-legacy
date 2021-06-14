@@ -7469,13 +7469,14 @@ static UniValue setvote(const JSONRPCRequest &request)
                 "Wallet will include this token in staked blocks from height_start to height_end.\n"
                 "Set proposal and/or option to 0 to stop voting.\n"
                 "Set all parameters to 0 to clear all vote settings.\n"
+                "Vote includes the height_start and height_end blocks.\n"
                 "The last added option valid for the current chain height will be applied." +
                 HELP_REQUIRING_PASSPHRASE,
                 {
                     {"proposal", RPCArg::Type::NUM, RPCArg::Optional::NO, "The proposal to vote on."},
                     {"option", RPCArg::Type::NUM, RPCArg::Optional::NO, "The option to vote for."},
-                    {"height_start", RPCArg::Type::NUM, RPCArg::Optional::NO, "Start voting at this block height."},
-                    {"height_end", RPCArg::Type::NUM, RPCArg::Optional::NO, "Stop voting at this block height."},
+                    {"height_start", RPCArg::Type::NUM, RPCArg::Optional::NO, "Start voting from this block height."},
+                    {"height_end", RPCArg::Type::NUM, RPCArg::Optional::NO, "Stop voting after this block height."},
                 },
                 RPCResults{},
                 RPCExamples{
@@ -7678,11 +7679,12 @@ static UniValue votehistory(const JSONRPCRequest &request)
 static UniValue tallyvotes(const JSONRPCRequest &request)
 {
             RPCHelpMan{"tallyvotes",
-                "\nCount votes.\n",
+                "\nCount votes."
+                "\nStart and end blocks are included in the count.\n",
                 {
                     {"proposal", RPCArg::Type::NUM, RPCArg::Optional::NO, "The proposal id."},
-                    {"height_start", RPCArg::Type::NUM, RPCArg::Optional::NO, "The chain starting height."},
-                    {"height_end", RPCArg::Type::NUM, RPCArg::Optional::NO, "The chain ending height."},
+                    {"height_start", RPCArg::Type::NUM, RPCArg::Optional::NO, "The chain starting height, including."},
+                    {"height_end", RPCArg::Type::NUM, RPCArg::Optional::NO, "The chain ending height, including."},
                 },
                 RPCResult{
                     RPCResult::Type::OBJ, "", "", {
