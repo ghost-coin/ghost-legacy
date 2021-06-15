@@ -385,6 +385,9 @@ public:
             return ISMINE_SPENDABLE;
         }
         if ((nFlags & EAF_HARDWARE_DEVICE)) {
+#if !ENABLE_USBDEVICE
+            return (isminetype)((int)ISMINE_WATCH_ONLY_ | (int)ISMINE_HARDWARE_DEVICE);
+#endif
             return (isminetype)((int)ISMINE_SPENDABLE | (int)ISMINE_HARDWARE_DEVICE);
         }
         return ISMINE_WATCH_ONLY_;
