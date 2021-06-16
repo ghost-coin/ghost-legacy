@@ -997,7 +997,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
                         {RPCResult::Type::NUM_TIME, "blocktime", "The block time expressed in " _UNIX_EPOCH_TIME},
                         {RPCResult::Type::STR_AMOUNT, "stakereward", "The stake reward portion, newly minted coin"},
                         {RPCResult::Type::STR_AMOUNT, "blockreward", "The block reward, value paid to staker, including fees"},
-                        {RPCResult::Type::STR_AMOUNT, "foundationreward", "The accumulated foundation reward payout, if any"},
+                        {RPCResult::Type::STR_AMOUNT, "treasuryreward", "The accumulated treasury reward payout, if any"},
                         {RPCResult::Type::OBJ, "kernelscript", "", {
                             {RPCResult::Type::STR_HEX, "hex", "The script from the kernel output"},
                             {RPCResult::Type::STR, "stakeaddr", "The stake address, if output script is coldstake"},
@@ -1056,7 +1056,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
     const auto &tx = block.vtx[0];
 
     UniValue outputs(UniValue::VARR);
-    CAmount value_out = 0, value_in = 0, value_foundation = 0;
+    CAmount value_out = 0, value_in = 0, value_treasury = 0;
     for (const auto &txout : tx->vpout) {
         if (!txout->IsStandardOutput()) {
             continue;
@@ -1068,7 +1068,7 @@ UniValue getblockreward(const JSONRPCRequest& request)
         outputs.push_back(output);
 
         if (devfundconf && *txout->GetPScriptPubKey() == devFundScriptPubKey) {
-            value_foundation += txout->GetValue();
+            value_treasury += txout->GetValue();
             continue;
         }
 
@@ -1110,8 +1110,8 @@ UniValue getblockreward(const JSONRPCRequest& request)
     rv.pushKV("stakereward", ValueFromAmount(stake_reward));
     rv.pushKV("blockreward", ValueFromAmount(block_reward));
 
-    if (value_foundation > 0) {
-        rv.pushKV("foundationreward", ValueFromAmount(value_foundation));
+    if (value_treasury > 0) {
+        rv.pushKV("treasuryreward", ValueFromAmount(value_treasury));
     }
 
     if (tx->IsCoinStake()) {

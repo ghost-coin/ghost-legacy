@@ -3009,7 +3009,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 CAmount nMinDevPart = (nCalculatedStakeReward * pDevFundSettings->nMinDevStakePercent) / 100;
                 CAmount nMaxHolderPart = nCalculatedStakeReward - nMinDevPart;
                 if (nMinDevPart < 0 || nMaxHolderPart < 0) {
-                    LogPrintf("ERROR: %s: Bad coinstake split amount (foundation=%d vs reward=%d)\n", __func__, nMinDevPart, nMaxHolderPart);
+                    LogPrintf("ERROR: %s: Bad coinstake split amount (treasury=%d vs reward=%d)\n", __func__, nMinDevPart, nMaxHolderPart);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount");
                 }
 
@@ -3037,26 +3037,26 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
 
                     CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
                     if (dfDest.type() == typeid(CNoDestination)) {
-                        return error("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
+                        return error("%s: Failed to get treasury fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
                     }
                     CScript devFundScriptPubKey = GetScriptForDestination(dfDest);
 
                     // Output 1 must be to the dev fund
                     const CTxOutStandard *outputDF = txCoinstake->vpout[1]->GetStandardOutput();
                     if (!outputDF) {
-                        LogPrintf("ERROR: %s: Bad foundation fund output.\n", __func__);
+                        LogPrintf("ERROR: %s: Bad treasury fund output.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs");
                     }
                     if (outputDF->scriptPubKey != devFundScriptPubKey) {
-                        LogPrintf("ERROR: %s: Bad foundation fund output script.\n", __func__);
+                        LogPrintf("ERROR: %s: Bad treasury fund output script.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs");
                     }
                     if (outputDF->nValue < nDevBfwd + nMinDevPart) { // Max value is clamped already
-                        LogPrintf("ERROR: %s: Bad foundation-reward (actual=%d vs minfundpart=%d)\n", __func__, nStakeReward, nDevBfwd + nMinDevPart);
+                        LogPrintf("ERROR: %s: Bad treasury-reward (actual=%d vs minfundpart=%d)\n", __func__, nStakeReward, nDevBfwd + nMinDevPart);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-fund-amount");
                     }
                     if (txCoinstake->GetDevFundCfwd(nDevCfwdCheck)) {
-                        LogPrintf("ERROR: %s: Coinstake foundation cfwd must be unset.\n", __func__);
+                        LogPrintf("ERROR: %s: Coinstake treasury cfwd must be unset.\n", __func__);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-cfwd");
                     }
                 } else {
@@ -3070,7 +3070,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     CAmount nDevCfwd = nDevBfwd + nCalculatedStakeReward - nStakeReward;
                     if (!txCoinstake->GetDevFundCfwd(nDevCfwdCheck)
                         || nDevCfwdCheck != nDevCfwd) {
-                        LogPrintf("ERROR: %s: Coinstake foundation fund carried forward mismatch (actual=%d vs expected=%d)\n", __func__, nDevCfwdCheck, nDevCfwd);
+                        LogPrintf("ERROR: %s: Coinstake treasury fund carried forward mismatch (actual=%d vs expected=%d)\n", __func__, nDevCfwdCheck, nDevCfwd);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-cfwd");
                     }
                 }
@@ -4791,7 +4791,7 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
 
     if (fParticlMode) {
         if (block.IsProofOfStake()) {
-            // Limit the number of outputs in a coinstake txn to 6: 1 data + 1 foundation + 4 user
+            // Limit the number of outputs in a coinstake txn to 6: 1 data + 1 treasury + 4 user
             if (nPrevTime >= consensusParams.OpIsCoinstakeTime) {
                 if (block.vtx[0]->vpout.size() > 6) {
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-outputs", "Too many outputs in coinstake");

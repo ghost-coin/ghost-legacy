@@ -134,7 +134,7 @@ void CHDWallet::AddOptions(ArgsManager& argsman)
     argsman.AddArg("-minstakeinterval=<n>", "Minimum time in seconds between successful stakes (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
     argsman.AddArg("-minersleep=<n>", "Milliseconds between stake attempts. Lowering this param will not result in more stakes. (default: 500)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
     argsman.AddArg("-reservebalance=<amount>", "Ensure available balance remains above reservebalance. (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
-    argsman.AddArg("-foundationdonationpercent=<n>", "Percentage of block reward donated to the foundation fund, overridden by system minimum. (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
+    argsman.AddArg("-treasurydonationpercent=<n>", "Percentage of block reward donated to the treasury fund, overridden by system minimum. (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::PART_STAKING);
 
     return;
 };
@@ -162,7 +162,7 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
     nStakeSplitThreshold = 2000 * COIN;
     m_min_stakeable_value = 1;
     nMaxStakeCombine = 3;
-    nWalletDevFundCedePercent = gArgs.GetArg("-foundationdonationpercent", 0);
+    nWalletDevFundCedePercent = gArgs.GetArg("-treasurydonationpercent", 0);
     rewardAddress = CBitcoinAddress();
     m_smsg_fee_rate_target = 0;
     m_smsg_difficulty_target = 0;
@@ -201,10 +201,10 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
             }
         }
 
-        if (!json["foundationdonationpercent"].isNull()) {
-            try { nWalletDevFundCedePercent = json["foundationdonationpercent"].get_int();
+        if (!json["treasurydonationpercent"].isNull()) {
+            try { nWalletDevFundCedePercent = json["treasurydonationpercent"].get_int();
             } catch (std::exception &e) {
-                AppendError(sError, "\"foundationdonationpercent\" not an integer.");
+                AppendError(sError, "\"treasurydonationpercent\" not an integer.");
             }
         }
 
@@ -248,11 +248,11 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
     }
 
     if (nWalletDevFundCedePercent < 0) {
-        WalletLogPrintf("%s: Warning \"foundationdonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 0);
+        WalletLogPrintf("%s: Warning \"treasurydonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 0);
         nWalletDevFundCedePercent = 0;
     } else
     if (nWalletDevFundCedePercent > 100) {
-        WalletLogPrintf("%s: \"Warning foundationdonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 100);
+        WalletLogPrintf("%s: \"Warning treasurydonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 100);
         nWalletDevFundCedePercent = 100;
     }
 
@@ -12995,7 +12995,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
 
             CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
             if (dfDest.type() == typeid(CNoDestination)) {
-                return werror("%s: Failed to get foundation fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
+                return werror("%s: Failed to get treasury fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
             }
             outDevSplit->scriptPubKey = GetScriptForDestination(dfDest);
 
@@ -13013,7 +13013,7 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
             assert(test_cfwd == nDevCfwd);
         }
         if (LogAcceptCategory(BCLog::POS)) {
-            WalletLogPrintf("%s: Coinstake reward split %d%%, foundation %s, reward %s.\n",
+            WalletLogPrintf("%s: Coinstake reward split %d%%, treasury %s, reward %s.\n",
                 __func__, nStakeSplit, FormatMoney(nDevPart), FormatMoney(nRewardOut));
         }
     }

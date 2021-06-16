@@ -27,9 +27,17 @@ int64_t CChainParams::GetCoinYearReward(int64_t nTime) const
     static const int64_t nSecondsInYear = 365 * 24 * 60 * 60;
 
     if (strNetworkID != "regtest") {
+        // After HF2: 8%, 8%, 7%, 7%, 6%
+        if (nTime >= consensus.exploit_fix_2_time) {
+            int64_t nPeriodsSinceHF2 = (nTime - consensus.exploit_fix_2_time) / (nSecondsInYear * 2);
+            if (nPeriodsSinceHF2 >= 0 && nPeriodsSinceHF2 < 2) {
+                return (8 - nPeriodsSinceHF2) * CENT;
+            }
+            return 6 * CENT;
+        }
+
         // Y1 5%, Y2 4%, Y3 3%, Y4 2%, ... YN 2%
         int64_t nYearsSinceGenesis = (nTime - genesis.nTime) / nSecondsInYear;
-
         if (nYearsSinceGenesis >= 0 && nYearsSinceGenesis < 3) {
             return (5 - nYearsSinceGenesis) * CENT;
         }
@@ -445,12 +453,13 @@ public:
 
         consensus.OpIsCoinstakeTime = 0x5A04EC00;       // 2017-11-10 00:00:00 UTC
         consensus.fAllowOpIsCoinstakeWithP2PKH = false;
-        consensus.nPaidSmsgTime = 0x5C791EC0;           // 2019-03-01 12:00:00
-        consensus.smsg_fee_time = 0x5D2DBC40;           // 2019-07-16 12:00:00
-        consensus.bulletproof_time = 0x5D2DBC40;        // 2019-07-16 12:00:00
-        consensus.rct_time = 0x5D2DBC40;                // 2019-07-16 12:00:00
-        consensus.smsg_difficulty_time = 0x5D2DBC40;    // 2019-07-16 12:00:00
-        consensus.exploit_fix_1_time = 1614268800;      // 2021-02-25 16:00:00
+        consensus.nPaidSmsgTime = 0x5C791EC0;           // 2019-03-01 12:00:00 UTC
+        consensus.smsg_fee_time = 0x5D2DBC40;           // 2019-07-16 12:00:00 UTC
+        consensus.bulletproof_time = 0x5D2DBC40;        // 2019-07-16 12:00:00 UTC
+        consensus.rct_time = 0x5D2DBC40;                // 2019-07-16 12:00:00 UTC
+        consensus.smsg_difficulty_time = 0x5D2DBC40;    // 2019-07-16 12:00:00 UTC
+        consensus.exploit_fix_1_time = 1614268800;      // 2021-02-25 16:00:00 UTC
+        consensus.exploit_fix_2_time = 1626109200;      // 2021-07-12 17:00:00 UTC
 
         consensus.m_frozen_anon_index = 27340;
         consensus.m_frozen_blinded_height = 884433;
@@ -534,6 +543,8 @@ public:
             DevFundSettings("RJAPhgckEgRGVPZa9WoGSWW24spskSfLTQ", 10, 60));
         vDevFundSettings.emplace_back(consensus.OpIsCoinstakeTime,
             DevFundSettings("RBiiQBnQsVPPQkUaJVQTjsZM9K2xMKozST", 10, 60));
+        vDevFundSettings.emplace_back(consensus.exploit_fix_2_time,
+            DevFundSettings("RBiiQBnQsVPPQkUaJVQTjsZM9K2xMKozST", 50, 60));
 
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x38}; // P

@@ -4228,8 +4228,8 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
                         {RPCResult::Type::STR_AMOUNT, "percentyearreward", "Current stake reward percentage"},
                         {RPCResult::Type::STR_AMOUNT, "moneysupply", "The total amount of particl in the network"},
                         {RPCResult::Type::STR_AMOUNT, "reserve", "The reserve balance of the wallet in " + CURRENCY_UNIT},
-                        {RPCResult::Type::STR_AMOUNT, "walletfoundationdonationpercent", "User set percentage of the block reward ceded to the foundation"},
-                        {RPCResult::Type::STR_AMOUNT, "foundationdonationpercent", "Network enforced percentage of the block reward ceded to the foundation"},
+                        {RPCResult::Type::STR_AMOUNT, "wallettreasurydonationpercent", "User set percentage of the block reward ceded to the treasury"},
+                        {RPCResult::Type::STR_AMOUNT, "treasurydonationpercent", "Network enforced percentage of the block reward ceded to the treasury"},
                         {RPCResult::Type::STR_AMOUNT, "minstakeablevalue", "The minimum value for an output to attempt staking in " + CURRENCY_UNIT},
                         {RPCResult::Type::NUM, "currentblocksize", "The last approximate block size in bytes"},
                         {RPCResult::Type::NUM, "currentblockweight", "The last block weight"},
@@ -4308,12 +4308,12 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
     }
 
     if (pwallet->nWalletDevFundCedePercent > 0) {
-        obj.pushKV("walletfoundationdonationpercent", pwallet->nWalletDevFundCedePercent);
+        obj.pushKV("wallettreasurydonationpercent", pwallet->nWalletDevFundCedePercent);
     }
 
     const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTipTime);
     if (pDevFundSettings && pDevFundSettings->nMinDevStakePercent > 0) {
-        obj.pushKV("foundationdonationpercent", pDevFundSettings->nMinDevStakePercent);
+        obj.pushKV("treasurydonationpercent", pDevFundSettings->nMinDevStakePercent);
     }
 
     obj.pushKV("minstakeablevalue", pwallet->m_min_stakeable_value);
@@ -6951,7 +6951,7 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                 "  \"stakecombinethreshold\"     (amount, optional, default=1000) Join outputs below this value.\n"
                 "  \"stakesplitthreshold\"       (amount, optional, default=2000) Split outputs above this value.\n"
                 "  \"minstakeablevalue\"         (amount, optional, default=0.00000001) Won't try stake outputs below this value.\n"
-                "  \"foundationdonationpercent\" (int, optional, default=0) Set the percentage of each block reward to donate to the foundation.\n"
+                "  \"treasurydonationpercent\"   (int, optional, default=0) Set the percentage of each block reward to donate to the treasury.\n"
                 "  \"rewardaddress\"             (string, optional, default=none) An address which the user portion of the block reward gets sent to.\n"
                 "  \"smsgfeeratetarget\"         (amount, optional, default=0) If non-zero an amount to move the smsgfeerate towards.\n"
                 "  \"smsgdifficultytarget\"      (string, optional, default=0) A 32 byte hex value to move the smsgdifficulty towards.\n"
@@ -7141,9 +7141,9 @@ static UniValue walletsettings(const JSONRPCRequest &request)
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "minstakeablevalue can't be negative.");
                 }
             } else
-            if (sKey == "foundationdonationpercent") {
-                if (!json["foundationdonationpercent"].isNum()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, "foundationdonationpercent must be a number.");
+            if (sKey == "treasurydonationpercent") {
+                if (!json["treasurydonationpercent"].isNum()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "treasurydonationpercent must be a number.");
                 }
             } else
             if (sKey == "rewardaddress") {
