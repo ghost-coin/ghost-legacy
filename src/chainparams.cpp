@@ -544,7 +544,7 @@ public:
         vDevFundSettings.emplace_back(consensus.OpIsCoinstakeTime,
             DevFundSettings("RBiiQBnQsVPPQkUaJVQTjsZM9K2xMKozST", 10, 60));
         vDevFundSettings.emplace_back(consensus.exploit_fix_2_time,
-            DevFundSettings("RBiiQBnQsVPPQkUaJVQTjsZM9K2xMKozST", 50, 60));
+            DevFundSettings("RQYUDd3EJohpjq62So4ftcV5XZfxZxJPe9", 50, 650));
 
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x38}; // P
