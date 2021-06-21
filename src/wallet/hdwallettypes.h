@@ -68,6 +68,14 @@ enum RTxAddonValueTypes
     */
 };
 
+enum MixinSelectionModes
+{
+    MIXIN_SEL_RECENT         = 1,
+    MIXIN_SEL_NEARBY         = 2,
+    MIXIN_SEL_FULL_RANGE     = 3,
+    MIXIN_SEL_DEBUG          = 99,
+};
+
 class COutputRecord
 {
 public:

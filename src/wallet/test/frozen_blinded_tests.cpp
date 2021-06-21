@@ -374,7 +374,7 @@ BOOST_AUTO_TEST_CASE(frozen_blinded_test)
 
         // Check that ringsize > 1 fails, set mixin_selection_mode to avoid failure when setting ranges
         {
-            str_cmd = strprintf("sendtypeto anon part [{\"address\":\"%s\",\"amount\":%s,\"subfee\":true}] \"\" \"\" 2 1 false {\"inputs\":[{\"tx\":\"%s\",\"n\":%d}],\"spend_frozen_blinded\":true,\"test_mempool_accept\":true,\"show_fee\":true,\"mixin_selection_mode\":2,\"use_mixins\":[1,2,3,4]}",
+            str_cmd = strprintf("sendtypeto anon part [{\"address\":\"%s\",\"amount\":%s,\"subfee\":true}] \"\" \"\" 2 1 false {\"inputs\":[{\"tx\":\"%s\",\"n\":%d}],\"spend_frozen_blinded\":true,\"test_mempool_accept\":true,\"show_fee\":true,\"mixin_selection_mode\":99,\"use_mixins\":[1,2,3,4]}",
                                 EncodeDestination(stealth_address), FormatMoney(extract_value), spend_txid.ToString(), output_n);
             BOOST_CHECK_NO_THROW(rv = CallRPC(str_cmd, context));
             BOOST_REQUIRE(rv["mempool-reject-reason"].get_str() == "bad-frozen-ringsize");
