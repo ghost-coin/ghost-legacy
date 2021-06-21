@@ -434,17 +434,17 @@ static RPCHelpMan setmocktime()
     };
 }
 
-static UniValue pushdevfundsetting(const JSONRPCRequest& request)
+static UniValue pushtreasuryfundsetting(const JSONRPCRequest& request)
 {
-    RPCHelpMan{"pushdevfundsetting",
-        "\nAdd a dev fund setting.\n",
+    RPCHelpMan{"pushtreasuryfundsetting",
+        "\nAdd a treasury fund setting.\n",
         {
-            {"setting", RPCArg::Type::OBJ, RPCArg::Optional::NO, "JSON with dev fund setting",
+            {"setting", RPCArg::Type::OBJ, RPCArg::Optional::NO, "JSON with treasury fund setting",
                 {
                     {"timefrom", RPCArg::Type::NUM, RPCArg::Optional::NO, "Block time setting will apply from"},
-                    {"fundaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "Address accumulated dev fund coin is paid out to"},
-                    {"minstakepercent", RPCArg::Type::NUM, RPCArg::Optional::NO, "Minimum percentage of the block reward allocated to dev fund"},
-                    {"outputperiod", RPCArg::Type::NUM, RPCArg::Optional::NO, "Blocks between dev fund outputs"},
+                    {"fundaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "Address accumulated treasury fund coin is paid out to"},
+                    {"minstakepercent", RPCArg::Type::NUM, RPCArg::Optional::NO, "Minimum percentage of the block reward allocated to treasury fund"},
+                    {"outputperiod", RPCArg::Type::NUM, RPCArg::Optional::NO, "Blocks between treasury fund outputs"},
                 },
             },
         },
@@ -453,7 +453,7 @@ static UniValue pushdevfundsetting(const JSONRPCRequest& request)
     }.Check(request);
 
     if (!Params().IsMockableChain()) {
-        throw std::runtime_error("pushdevfundsetting is for regression testing (-regtest mode) only");
+        throw std::runtime_error("pushtreasuryfundsetting is for regression testing (-regtest mode) only");
     }
 
     RPCTypeCheck(request.params, {UniValue::VOBJ});
@@ -468,10 +468,10 @@ static UniValue pushdevfundsetting(const JSONRPCRequest& request)
 
     LOCK(cs_main);
 
-    DevFundSettings settings(setting["fundaddress"].get_str(), setting["minstakepercent"].get_int(), setting["outputperiod"].get_int());
-    RegtestParams().PushDevFundSettings(setting["timefrom"].get_int(), settings);
+    TreasuryFundSettings settings(setting["fundaddress"].get_str(), setting["minstakepercent"].get_int(), setting["outputperiod"].get_int());
+    RegtestParams().PushTreasuryFundSettings(setting["timefrom"].get_int(), settings);
 
-    LogPrintf("Added dev fund setting from %d: (%s, %d, %d)\n",
+    LogPrintf("Added treasury fund setting from %d: (%s, %d, %d)\n",
         setting["timefrom"].get_int(), setting["fundaddress"].get_str(), setting["minstakepercent"].get_int(), setting["outputperiod"].get_int());
 
     return NullUniValue;
@@ -850,7 +850,7 @@ static const CRPCCommand commands[] =
     { "hidden",             "echo",                   &echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "echojson",               &echojson,               {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "runstrings",             &runstrings,             {"rg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
-    { "hidden",             "pushdevfundsetting",     &pushdevfundsetting,     {"setting"}},
+    { "hidden",             "pushtreasuryfundsetting",&pushtreasuryfundsetting,{"setting"}},
 };
 // clang-format on
     for (const auto& c : commands) {

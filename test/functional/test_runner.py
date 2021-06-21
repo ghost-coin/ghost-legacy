@@ -323,7 +323,7 @@ PARTICL_SCRIPTS = [
 PARTICL_SCRIPTS_EXT = [
     'feature_part_smsg_multiwallet.py',
     'feature_part_smsg_rollingcache.py',
-    'feature_part_dev_fund.py',
+    'feature_part_treasury_fund.py',
     'rpc_part_tracefrozenoutputs.py',
     'feature_part_vote_extra.py',
 ]

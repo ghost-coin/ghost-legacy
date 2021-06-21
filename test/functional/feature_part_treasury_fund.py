@@ -7,7 +7,7 @@ from test_framework.test_particl import ParticlTestFramework
 from test_framework.messages import COIN
 
 
-class DevFundTest(ParticlTestFramework):
+class TreasuryFundTest(ParticlTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
@@ -33,7 +33,7 @@ class DevFundTest(ParticlTestFramework):
 
         fund_addr = nodes[2].getnewaddress()
         for n in nodes:
-            n.pushdevfundsetting({'timefrom': 0, 'fundaddress': fund_addr, 'minstakepercent': 10, 'outputperiod': 10})
+            n.pushtreasuryfundsetting({'timefrom': 0, 'fundaddress': fund_addr, 'minstakepercent': 10, 'outputperiod': 10})
 
         staking_opts = {
             'stakecombinethreshold': 50,
@@ -122,4 +122,4 @@ class DevFundTest(ParticlTestFramework):
 
 
 if __name__ == '__main__':
-    DevFundTest().main()
+    TreasuryFundTest().main()

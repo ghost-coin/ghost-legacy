@@ -46,13 +46,13 @@ int64_t CChainParams::GetCoinYearReward(int64_t nTime) const
     return nCoinYearReward;
 };
 
-bool CChainParams::PushDevFundSettings(int64_t time_from, DevFundSettings &settings)
+bool CChainParams::PushTreasuryFundSettings(int64_t time_from, TreasuryFundSettings &settings)
 {
-    if (settings.nMinDevStakePercent < 0 or settings.nMinDevStakePercent > 100) {
+    if (settings.nMinTreasuryStakePercent < 0 or settings.nMinTreasuryStakePercent > 100) {
         throw std::runtime_error("minstakepercent must be in range [0, 100].");
     }
 
-    vDevFundSettings.emplace_back(time_from, settings);
+    vTreasuryFundSettings.emplace_back(time_from, settings);
 
     return true;
 };
@@ -87,9 +87,9 @@ bool CChainParams::CheckImportCoinbase(int nHeight, uint256 &hash) const
 };
 
 
-const DevFundSettings *CChainParams::GetDevFundSettings(int64_t nTime) const
+const TreasuryFundSettings *CChainParams::GetTreasuryFundSettings(int64_t nTime) const
 {
-    for (auto i = vDevFundSettings.rbegin(); i != vDevFundSettings.rend(); ++i) {
+    for (auto i = vTreasuryFundSettings.rbegin(); i != vTreasuryFundSettings.rend(); ++i) {
         if (nTime > i->first) {
             return &i->second;
         }
@@ -539,12 +539,12 @@ public:
         vSeeds.emplace_back("dnsseed.tecnovert.net");
 
 
-        vDevFundSettings.emplace_back(0,
-            DevFundSettings("RJAPhgckEgRGVPZa9WoGSWW24spskSfLTQ", 10, 60));
-        vDevFundSettings.emplace_back(consensus.OpIsCoinstakeTime,
-            DevFundSettings("RBiiQBnQsVPPQkUaJVQTjsZM9K2xMKozST", 10, 60));
-        vDevFundSettings.emplace_back(consensus.exploit_fix_2_time,
-            DevFundSettings("RQYUDd3EJohpjq62So4ftcV5XZfxZxJPe9", 50, 650));
+        vTreasuryFundSettings.emplace_back(0,
+            TreasuryFundSettings("RJAPhgckEgRGVPZa9WoGSWW24spskSfLTQ", 10, 60));
+        vTreasuryFundSettings.emplace_back(consensus.OpIsCoinstakeTime,
+            TreasuryFundSettings("RBiiQBnQsVPPQkUaJVQTjsZM9K2xMKozST", 10, 60));
+        vTreasuryFundSettings.emplace_back(consensus.exploit_fix_2_time,
+            TreasuryFundSettings("RQYUDd3EJohpjq62So4ftcV5XZfxZxJPe9", 50, 650));
 
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x38}; // P
@@ -720,7 +720,7 @@ public:
         vSeeds.emplace_back("dnsseed-testnet.particl.io");
         vSeeds.emplace_back("dnsseed-testnet.tecnovert.net");
 
-        vDevFundSettings.push_back(std::make_pair(0, DevFundSettings("rTvv9vsbu269mjYYEecPYinDG8Bt7D86qD", 10, 60)));
+        vTreasuryFundSettings.push_back(std::make_pair(0, TreasuryFundSettings("rTvv9vsbu269mjYYEecPYinDG8Bt7D86qD", 10, 60)));
 
         base58Prefixes[PUBKEY_ADDRESS]     = {0x76}; // p
         base58Prefixes[SCRIPT_ADDRESS]     = {0x7a};

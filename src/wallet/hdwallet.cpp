@@ -162,7 +162,7 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
     nStakeSplitThreshold = 2000 * COIN;
     m_min_stakeable_value = 1;
     nMaxStakeCombine = 3;
-    nWalletDevFundCedePercent = gArgs.GetArg("-treasurydonationpercent", 0);
+    nWalletTreasuryFundCedePercent = gArgs.GetArg("-treasurydonationpercent", 0);
     rewardAddress = CBitcoinAddress();
     m_smsg_fee_rate_target = 0;
     m_smsg_difficulty_target = 0;
@@ -202,7 +202,7 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
         }
 
         if (!json["treasurydonationpercent"].isNull()) {
-            try { nWalletDevFundCedePercent = json["treasurydonationpercent"].get_int();
+            try { nWalletTreasuryFundCedePercent = json["treasurydonationpercent"].get_int();
             } catch (std::exception &e) {
                 AppendError(sError, "\"treasurydonationpercent\" not an integer.");
             }
@@ -247,13 +247,13 @@ bool CHDWallet::ProcessStakingSettings(std::string &sError)
         nStakeSplitThreshold = nStakeCombineThreshold * 2;
     }
 
-    if (nWalletDevFundCedePercent < 0) {
-        WalletLogPrintf("%s: Warning \"treasurydonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 0);
-        nWalletDevFundCedePercent = 0;
+    if (nWalletTreasuryFundCedePercent < 0) {
+        WalletLogPrintf("%s: Warning \"treasurydonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletTreasuryFundCedePercent, 0);
+        nWalletTreasuryFundCedePercent = 0;
     } else
-    if (nWalletDevFundCedePercent > 100) {
-        WalletLogPrintf("%s: \"Warning treasurydonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletDevFundCedePercent, 100);
-        nWalletDevFundCedePercent = 100;
+    if (nWalletTreasuryFundCedePercent > 100) {
+        WalletLogPrintf("%s: \"Warning treasurydonationpercent\" out of range %d, clamped to %d\n", __func__, nWalletTreasuryFundCedePercent, 100);
+        nWalletTreasuryFundCedePercent = 100;
     }
 
     return true;
@@ -12966,55 +12966,55 @@ bool CHDWallet::CreateCoinStake(unsigned int nBits, int64_t nTime, int nBlockHei
     // Process development fund
     CTransactionRef txPrevCoinstake = nullptr;
     CAmount nRewardOut;
-    const DevFundSettings *pDevFundSettings = Params().GetDevFundSettings(nTime);
-    if (!pDevFundSettings || pDevFundSettings->nMinDevStakePercent <= 0) {
+    const TreasuryFundSettings *pTreasuryFundSettings = Params().GetTreasuryFundSettings(nTime);
+    if (!pTreasuryFundSettings || pTreasuryFundSettings->nMinTreasuryStakePercent <= 0) {
         nRewardOut = nReward;
     } else {
-        int64_t nStakeSplit = std::max(pDevFundSettings->nMinDevStakePercent, nWalletDevFundCedePercent);
+        int64_t nStakeSplit = std::max(pTreasuryFundSettings->nMinTreasuryStakePercent, nWalletTreasuryFundCedePercent);
 
-        CAmount nDevPart = (nReward * nStakeSplit) / 100;
-        nRewardOut = nReward - nDevPart;
+        CAmount nTreasuryPart = (nReward * nStakeSplit) / 100;
+        nRewardOut = nReward - nTreasuryPart;
 
-        CAmount nDevBfwd = 0;
+        CAmount nTreasuryBfwd = 0;
         if (nBlockHeight > 1) { // genesis block is pow
             LOCK(cs_main);
             if (!coinStakeCache.GetCoinStake(pindexPrev->GetBlockHash(), txPrevCoinstake)) {
                 return werror("%s: Failed to get previous coinstake: %s.", __func__, pindexPrev->GetBlockHash().ToString());
             }
 
-            if (!txPrevCoinstake->GetDevFundCfwd(nDevBfwd)) {
-                nDevBfwd = 0;
+            if (!txPrevCoinstake->GetTreasuryFundCfwd(nTreasuryBfwd)) {
+                nTreasuryBfwd = 0;
             }
         }
 
-        CAmount nDevCfwd = nDevBfwd + nDevPart;
-        if (nBlockHeight % pDevFundSettings->nDevOutputPeriod == 0) {
-            // Place dev fund output
-            OUTPUT_PTR<CTxOutStandard> outDevSplit = MAKE_OUTPUT<CTxOutStandard>();
-            outDevSplit->nValue = nDevCfwd;
+        CAmount nTreasuryCfwd = nTreasuryBfwd + nTreasuryPart;
+        if (nBlockHeight % pTreasuryFundSettings->nTreasuryOutputPeriod == 0) {
+            // Place treasury fund output
+            OUTPUT_PTR<CTxOutStandard> outTreasurySplit = MAKE_OUTPUT<CTxOutStandard>();
+            outTreasurySplit->nValue = nTreasuryCfwd;
 
-            CTxDestination dfDest = CBitcoinAddress(pDevFundSettings->sDevFundAddresses).Get();
+            CTxDestination dfDest = CBitcoinAddress(pTreasuryFundSettings->sTreasuryFundAddresses).Get();
             if (dfDest.type() == typeid(CNoDestination)) {
-                return werror("%s: Failed to get treasury fund destination: %s.", __func__, pDevFundSettings->sDevFundAddresses);
+                return werror("%s: Failed to get treasury fund destination: %s.", __func__, pTreasuryFundSettings->sTreasuryFundAddresses);
             }
-            outDevSplit->scriptPubKey = GetScriptForDestination(dfDest);
+            outTreasurySplit->scriptPubKey = GetScriptForDestination(dfDest);
 
-            txNew.vpout.insert(txNew.vpout.begin()+1, outDevSplit);
+            txNew.vpout.insert(txNew.vpout.begin() + 1, outTreasurySplit);
         } else {
             // Add to carried forward
             std::vector<uint8_t> vCfwd(1), &vData = *txNew.vpout[0]->GetPData();
-            vCfwd[0] = DO_DEV_FUND_CFWD;
-            if (0 != part::PutVarInt(vCfwd, nDevCfwd)) {
-                return werror("%s: PutVarInt failed: %d.", __func__, nDevCfwd);
+            vCfwd[0] = DO_TREASURY_FUND_CFWD;
+            if (0 != part::PutVarInt(vCfwd, nTreasuryCfwd)) {
+                return werror("%s: PutVarInt failed: %d.", __func__, nTreasuryCfwd);
             }
             vData.insert(vData.end(), vCfwd.begin(), vCfwd.end());
             CAmount test_cfwd = 0;
-            assert(ExtractCoinStakeInt64(vData, DO_DEV_FUND_CFWD, test_cfwd));
-            assert(test_cfwd == nDevCfwd);
+            assert(ExtractCoinStakeInt64(vData, DO_TREASURY_FUND_CFWD, test_cfwd));
+            assert(test_cfwd == nTreasuryCfwd);
         }
         if (LogAcceptCategory(BCLog::POS)) {
             WalletLogPrintf("%s: Coinstake reward split %d%%, treasury %s, reward %s.\n",
-                __func__, nStakeSplit, FormatMoney(nDevPart), FormatMoney(nRewardOut));
+                __func__, nStakeSplit, FormatMoney(nTreasuryPart), FormatMoney(nRewardOut));
         }
     }
 

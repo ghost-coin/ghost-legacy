@@ -28,7 +28,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
 {
     { "setmocktime", 0, "timestamp" },
     { "setmocktime", 1, "is_offset" },
-    { "pushdevfundsetting", 0, "setting" },
+    { "pushtreasuryfundsetting", 0, "setting" },
     { "mockscheduler", 0, "delta_time" },
     { "utxoupdatepsbt", 1, "descriptors" },
     { "generatetoaddress", 0, "nblocks" },

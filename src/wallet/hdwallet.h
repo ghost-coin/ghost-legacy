@@ -485,7 +485,7 @@ public:
     CAmount nStakeCombineThreshold;
     CAmount nStakeSplitThreshold;
     size_t nMaxStakeCombine = 3;
-    int nWalletDevFundCedePercent;
+    int nWalletTreasuryFundCedePercent;
     CBitcoinAddress rewardAddress;
     int nStakeLimitHeight = 0; // for regtest, don't stake above nStakeLimitHeight
 
