@@ -126,7 +126,7 @@ static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
     { "anon",               "anonoutput",             &anonoutput,             {"output"} },
-    { "checkkeyimage",      "checkkeyimage",          &checkkeyimage,          {"keyimage"} },
+    { "anon",               "checkkeyimage",          &checkkeyimage,          {"keyimage"} },
 };
 
 void RegisterAnonRPCCommands(CRPCTable &tableRPC)
