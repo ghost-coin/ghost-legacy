@@ -2642,6 +2642,9 @@ void PeerManager::ProcessMessage(CNode& pfrom, const std::string& msg_type, CDat
         if (nVersion < smsg::MIN_SMSG_PROTO_VERSION) {
             nServiceInt &= ~NODE_SMSG;
         }
+        if (nTime < 0) {
+            nTime = 0;
+        }
         nServices = ServiceFlags(nServiceInt);
         if (!pfrom.IsInboundConn())
         {

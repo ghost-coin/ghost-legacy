@@ -908,7 +908,7 @@ void BitcoinGUI::showColdStakingClicked()
 
 void BitcoinGUI::showHelpMessageClicked()
 {
-    helpMessageDialog->show();
+    GUIUtil::bringToFront(helpMessageDialog);
 }
 
 #ifdef ENABLE_WALLET

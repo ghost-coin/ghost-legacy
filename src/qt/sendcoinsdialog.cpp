@@ -608,7 +608,7 @@ void SendCoinsDialog::on_sendButton_clicked()
             if (filename.isEmpty()) {
                 return;
             }
-            std::ofstream out(filename.toLocal8Bit().data());
+            std::ofstream out(filename.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
             out << ssTx.str();
             out.close();
             Q_EMIT message(tr("PSBT saved"), "PSBT saved to disk", CClientUIInterface::MSG_INFORMATION);
@@ -1230,6 +1230,9 @@ SendConfirmationDialog::SendConfirmationDialog(const QString& title, const QStri
     setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     setDefaultButton(QMessageBox::Cancel);
     yesButton = button(QMessageBox::Yes);
+    if (confirmButtonText.isEmpty()) {
+        confirmButtonText = yesButton->text();
+    }
     updateYesButton();
     connect(&countDownTimer, &QTimer::timeout, this, &SendConfirmationDialog::countDown);
 }

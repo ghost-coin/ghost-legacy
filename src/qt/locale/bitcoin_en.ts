@@ -870,7 +870,7 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bitcoin.cpp" line="+424"/>
+        <location filename="../bitcoin.cpp" line="+425"/>
         <source>A fatal error occurred. %1 can no longer continue safely and will quit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1154,17 +1154,17 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+28"/>
+        <location line="+24"/>
         <source>Wallet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="-13"/>
         <source>Wallet Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+22"/>
         <source>Encrypt the wallet. The wallet will be encrypted with a passphrase of your choice.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1174,12 +1174,12 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+19"/>
-        <source>Advanced options</source>
+        <location line="+26"/>
+        <source>Advanced Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+9"/>
         <source>Disable private keys for this wallet. Wallets with private keys disabled will have no private keys and cannot have an HD seed or imported private keys. This is ideal for watch-only wallets.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1189,7 +1189,7 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+7"/>
         <source>Make a blank wallet. Blank wallets do not initially have private keys or scripts. Private keys and addresses can be imported, or an HD seed can be set, at a later time.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1199,7 +1199,7 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+7"/>
         <source>Use descriptors for scriptPubKey management</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2281,7 +2281,7 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../overviewpage.cpp" line="+166"/>
+        <location filename="../overviewpage.cpp" line="+191"/>
         <source>Privacy mode activated for the Overview tab. To unmask the values, uncheck Settings-&gt;Mask values.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2484,7 +2484,7 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
     </message>
     <message>
         <location line="-20"/>
-        <source>Invalid payment address %1</source>
+        <source>Invalid payment address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2654,7 +2654,7 @@ Signing is only possible with addresses of the type &apos;legacy&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bitcoin.cpp" line="+105"/>
+        <location filename="../bitcoin.cpp" line="+112"/>
         <source>Error: Specified data directory &quot;%1&quot; does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5122,7 +5122,7 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+131"/>
+        <location line="+135"/>
         <source>Pruning blockstore...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5132,7 +5132,7 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-217"/>
+        <location line="-221"/>
         <source>The %s developers</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5217,12 +5217,12 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+11"/>
         <source>-maxmempool must be at least %d MB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>Cannot resolve -%s address: &apos;%s&apos;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5232,7 +5232,7 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Config setting for %s only applied on %s network when in [%s] section.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5397,12 +5397,12 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>Upgrading txindex database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-67"/>
+        <location line="-68"/>
         <source>Loading P2P addresses...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5457,7 +5457,7 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>Unsupported logging category %s=%s.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5477,7 +5477,7 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-206"/>
+        <location line="-211"/>
         <source>Error: Listening for incoming connections failed (listen returned error %s)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5523,6 +5523,11 @@ Go to File &gt; Open Wallet to load a wallet.
     </message>
     <message>
         <location line="+17"/>
+        <source>You need to rebuild the database using -reindex to change -balancesindex</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
         <source>You need to rebuild the database using -reindex to change -timestampindex</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5548,6 +5553,11 @@ Go to File &gt; Open Wallet to load a wallet.
     </message>
     <message>
         <location line="+1"/>
+        <source>Blinding factor is null %s %d</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
         <source>Block %d casts vote for option %u of proposal %u.
 </source>
         <translation type="unfinished"></translation>
@@ -5558,7 +5568,12 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+3"/>
+        <source>Change too high for frozen blinded spend.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
         <source>Copyright (C)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5659,7 +5674,7 @@ Go to File &gt; Open Wallet to load a wallet.
     </message>
     <message>
         <location line="+1"/>
-        <source>Not anon output %s %d</source>
+        <source>Not an anon output %s %d</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5809,7 +5824,12 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+3"/>
+        <source>Unknown mixin selection mode: %d</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
         <source>Verifying wallet(s)...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5829,7 +5849,7 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-226"/>
+        <location line="-231"/>
         <source>-maxtxfee is set very high! Fees this large could be paid on a single transaction.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5844,12 +5864,12 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+27"/>
         <source>%s is set very high!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+92"/>
+        <location line="+94"/>
         <source>Starting network threads...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5884,17 +5904,17 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>Unknown network specified in -onlynet: &apos;%s&apos;</source>
         <translation>Unknown network specified in -onlynet: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="-76"/>
+        <location line="-77"/>
         <source>Insufficient funds</source>
         <translation>Insufficient funds</translation>
     </message>
     <message>
-        <location line="-119"/>
+        <location line="-123"/>
         <source>Fee estimation failed. Fallbackfee is disabled. Wait a few blocks or enable -fallbackfee.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5904,12 +5924,12 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+25"/>
         <source>Cannot write to data directory &apos;%s&apos;; check permissions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+47"/>
+        <location line="+48"/>
         <source>Loading block index...</source>
         <translation>Loading block index...</translation>
     </message>
@@ -5919,12 +5939,12 @@ Go to File &gt; Open Wallet to load a wallet.
         <translation>Loading wallet...</translation>
     </message>
     <message>
-        <location line="-51"/>
+        <location line="-52"/>
         <source>Cannot downgrade wallet</source>
         <translation>Cannot downgrade wallet</translation>
     </message>
     <message>
-        <location line="+70"/>
+        <location line="+71"/>
         <source>Rescanning...</source>
         <translation>Rescanning...</translation>
     </message>

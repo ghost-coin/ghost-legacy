@@ -63,7 +63,7 @@ static RPCHelpMan validateaddress()
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
     std::string s = request.params[0].get_str();
-    bool fBech32 = bech32::Decode(s).second.size() > 0;
+    bool fBech32 = bech32::Decode(s).data.size() > 0;
     CTxDestination dest = DecodeDestination(s);
     bool isValid = IsValidDestination(dest);
 
@@ -394,14 +394,14 @@ static RPCHelpMan signmessagewithprivkey()
 static RPCHelpMan setmocktime()
 {
     return RPCHelpMan{"setmocktime",
-                "\nSet the local time to given timestamp (-regtest only)\n",
-                {
-                    {"timestamp", RPCArg::Type::NUM, RPCArg::Optional::NO, UNIX_EPOCH_TIME + "\n"
-            "   Pass 0 to go back to using the system time."},
-                    {"is_offset", RPCArg::Type::BOOL, /* default */ "false", "Clock keeps moving if set to true."},
-                },
-                RPCResult{RPCResult::Type::NONE, "", ""},
-                RPCExamples{""},
+        "\nSet the local time to given timestamp (-regtest only)\n",
+        {
+            {"timestamp", RPCArg::Type::NUM, RPCArg::Optional::NO, UNIX_EPOCH_TIME + "\n"
+             "Pass 0 to go back to using the system time."},
+            {"is_offset", RPCArg::Type::BOOL, /* default */ "false", "Clock keeps moving if set to true."},
+        },
+        RPCResult{RPCResult::Type::NONE, "", ""},
+        RPCExamples{""},
         [&](const RPCHelpMan& self, const JSONRPCRequest& request) -> UniValue
 {
     if (!Params().IsMockableChain()) {
@@ -419,9 +419,13 @@ static RPCHelpMan setmocktime()
     bool isOffset = request.params.size() > 1 ? GetBool(request.params[1]) : false;
     int64_t time = request.params[0].get_int64();
     if (isOffset) {
-        SetMockTimeOffset(request.params[0].get_int64());
+        SetMockTimeOffset(time);
     } else {
-        SetMockTime(request.params[0].get_int64());
+
+        if (time < 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Mocktime can not be negative: %s.", time));
+        }
+        SetMockTime(time);
     }
     if (request.context.Has<NodeContext>()) {
         for (const auto& chain_client : request.context.Get<NodeContext>().chain_clients) {

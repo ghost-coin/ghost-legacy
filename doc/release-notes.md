@@ -1,9 +1,9 @@
-0.21.1 Release Notes
+0.21.x Release Notes
 ====================
 
-Bitcoin Core version 0.21.1 is now available from:
+Bitcoin Core version 0.21.x is now available from:
 
-  <https://bitcoincore.org/bin/bitcoin-core-0.21.1/>
+  <https://bitcoincore.org/bin/bitcoin-core-0.21.x/>
 
 This minor release includes various bug fixes and performance
 improvements, as well as updated translations.
@@ -48,7 +48,7 @@ RPC
 ---
 
 
-0.21.1 change log
+0.21.x change log
 =================
 
 

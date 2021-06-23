@@ -37,7 +37,7 @@ public:
             std::vector<unsigned char> data;
             data.reserve(32);
             ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, id.begin(), id.end());
-            return bech32::Encode(sHrp, data);
+            return bech32::Encode(bech32::Encoding::BECH32, sHrp, data);
         }
         std::vector<unsigned char> data = m_params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);
         data.insert(data.end(), id.begin(), id.end());
@@ -51,7 +51,7 @@ public:
             std::string sHrp(vchVersion.begin(), vchVersion.end());
             std::vector<unsigned char> data;
             ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, id.begin(), id.end());
-            return bech32::Encode(sHrp, data);
+            return bech32::Encode(bech32::Encoding::BECH32, sHrp, data);
         }
         std::vector<unsigned char> data = m_params.Base58Prefix(CChainParams::SCRIPT_ADDRESS);
         data.insert(data.end(), id.begin(), id.end());
@@ -63,7 +63,7 @@ public:
         std::vector<unsigned char> data = {0};
         data.reserve(33);
         ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, id.begin(), id.end());
-        return bech32::Encode(m_params.Bech32HRP(), data);
+        return bech32::Encode(bech32::Encoding::BECH32, m_params.Bech32HRP(), data);
     }
 
     std::string operator()(const WitnessV0ScriptHash& id) const
@@ -71,7 +71,7 @@ public:
         std::vector<unsigned char> data = {0};
         data.reserve(53);
         ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, id.begin(), id.end());
-        return bech32::Encode(m_params.Bech32HRP(), data);
+        return bech32::Encode(bech32::Encoding::BECH32, m_params.Bech32HRP(), data);
     }
 
     std::string operator()(const WitnessUnknown& id) const
@@ -82,7 +82,7 @@ public:
         std::vector<unsigned char> data = {(unsigned char)id.version};
         data.reserve(1 + (id.length * 8 + 4) / 5);
         ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, id.program, id.program + id.length);
-        return bech32::Encode(m_params.Bech32HRP(), data);
+        return bech32::Encode(bech32::Encoding::BECH32M, m_params.Bech32HRP(), data);
     }
 
     std::string operator()(const CNoDestination& no) const { return {}; }
@@ -131,13 +131,19 @@ static CTxDestination DecodeDestination(const std::string& str, const CChainPara
         }
     }
     data.clear();
-    auto bech = bech32::Decode(str);
-    if (bech.second.size() > 0 && bech.first == params.Bech32HRP()) {
+    const auto dec = bech32::Decode(str);
+    if ((dec.encoding == bech32::Encoding::BECH32 || dec.encoding == bech32::Encoding::BECH32M) && dec.data.size() > 0 && dec.hrp == params.Bech32HRP()) {
         // Bech32 decoding
-        int version = bech.second[0]; // The first 5 bit symbol is the witness version (0-16)
+        int version = dec.data[0]; // The first 5 bit symbol is the witness version (0-16)
+        if (version == 0 && dec.encoding != bech32::Encoding::BECH32) {
+            return CNoDestination();
+        }
+        if (version != 0 && dec.encoding != bech32::Encoding::BECH32M) {
+            return CNoDestination();
+        }
         // The rest of the symbols are converted witness program bytes.
-        data.reserve(((bech.second.size() - 1) * 5) / 8);
-        if (ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, bech.second.begin() + 1, bech.second.end())) {
+        data.reserve(((dec.data.size() - 1) * 5) / 8);
+        if (ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, dec.data.begin() + 1, dec.data.end())) {
             if (version == 0) {
                 {
                     WitnessV0KeyHash keyid;
@@ -299,10 +305,10 @@ bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes)
         vchVersion = Params().Bech32Prefix(prefixType);
         std::string s(psz);
         auto ret = bech32::Decode(s);
-        if (ret.second.size() == 0)
+        if (ret.data.size() == 0)
             return false;
         std::vector<uint8_t> data;
-        if (!ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, ret.second.begin(), ret.second.end()))
+        if (!ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, ret.data.begin(), ret.data.end()))
             return false;
         vchData.assign(data.begin(), data.end());
         return true;
@@ -358,7 +364,7 @@ std::string CBase58Data::ToString() const
         std::vector<uint8_t> data;
         data.reserve(32);
         ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, vchData.begin(), vchData.end());
-        std::string rv = bech32::Encode(sHrp, data);
+        std::string rv = bech32::Encode(bech32::Encoding::BECH32, sHrp, data);
         if (rv.empty()) {
             return "bech32 encode failed.";
         }

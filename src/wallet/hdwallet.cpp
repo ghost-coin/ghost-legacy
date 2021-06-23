@@ -3819,7 +3819,7 @@ int CHDWallet::AddStandardInputs(CWalletTx &wtx, CTransactionRecord &rtx,
             bool bnb_used;
             if (pick_new_inputs) {
                 coin_selection_params.change_spend_size = 40; // TODO
-                coin_selection_params.effective_fee = nFeeRateNeeded;
+                coin_selection_params.m_effective_feerate = nFeeRateNeeded;
                 nValueIn = 0;
                 setCoins.clear();
                 if (!SelectCoins(vAvailableCoins, nValueToSelect, setCoins, nValueIn, *coinControl, coin_selection_params, bnb_used)) {
