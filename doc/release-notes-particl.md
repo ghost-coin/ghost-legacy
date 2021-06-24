@@ -1,14 +1,10 @@
 
-0.21.0.3
+0.21.1.2
 ==============
 
+- Merged Bitcoin 0.21.1.
 - New argument -checkpeerheight
   - Can disable peer height for initial-block-download status and staking.
-
-
-0.21.0.2
-==============
-
 - Wallet tracks anon watchonly transactions.
 - dumpprivkey: Dumps keys for stealth addresses.
 - getaddressinfo: Shows stealth address public keys.
@@ -18,6 +14,8 @@
   - Accepts data for candidate inputs
     - Anon inputs must exist in the chain as the pubkey index is required by the ringsig.
 - rewindrangeproof: Accepts nonce directly
+- Raised protocol version to 90034
+  - Must be greater than protocol version of 0.19
 
 
 0.21.0.1
