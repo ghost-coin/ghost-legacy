@@ -40,7 +40,7 @@ UniValue CallRPC(std::string args, const util::Ref& context, std::string wallet,
 
     std::vector<std::string> vArgs;
 
-    bool fInQuotes = false;
+    bool fInQuotes = false, escaped = false;
     std::string s;
     for (size_t i = 0; i < args.size(); ++i) {
         char c = args[i];
@@ -56,6 +56,12 @@ UniValue CallRPC(std::string args, const util::Ref& context, std::string wallet,
             fInQuotes = !fInQuotes;
         }
 
+        // Unescape
+        if (c == '\\' && !escaped) {
+            escaped = true;
+            continue;
+        }
+        escaped = false;
         s.push_back(c);
     }
     if (!s.empty()) {

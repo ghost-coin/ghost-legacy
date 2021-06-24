@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 The Particl Core developers
+// Copyright (c) 2017-2021 The Particl Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -95,7 +95,7 @@ void MnemonicDialog::on_btnImport_clicked()
         ? "extkeyimportmaster" : "extkeygenesisimport";
     sCommand += " \"" + ui->tbxMnemonic->toPlainText() + "\"";
 
-    QString sPassword = ui->edtPassword->text();
+    QString sPassword = GUIUtil::particl::escapeQString(ui->edtPassword->text());
     sCommand += " \"" + sPassword + "\" false \"Master Key\" \"Default Account\" -1";
 
     UniValue rv;

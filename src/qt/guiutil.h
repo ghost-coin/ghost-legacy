@@ -303,6 +303,11 @@ namespace GUIUtil
      * Call QMenu::popup() only on supported QT_QPA_PLATFORM.
      */
     void PopupMenu(QMenu* menu, const QPoint& point, QAction* at_action = nullptr);
+
+namespace particl
+{
+    QString escapeQString(const QString& si);
+}
 } // namespace GUIUtil
 
 #endif // BITCOIN_QT_GUIUTIL_H

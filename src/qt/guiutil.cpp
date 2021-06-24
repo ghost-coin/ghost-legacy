@@ -919,4 +919,18 @@ void PopupMenu(QMenu* menu, const QPoint& point, QAction* at_action)
     menu->popup(point, at_action);
 }
 
+namespace particl
+{
+    QString escapeQString(const QString& si)
+    {
+        QString sr;
+        for (const auto &c : si) {
+            if (c == '"' || c == '\\') {
+                sr += '\\';
+            }
+            sr += c;
+        }
+        return sr;
+    }
+}
 } // namespace GUIUtil

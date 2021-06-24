@@ -24,6 +24,8 @@ CreateWalletDialog::CreateWalletDialog(QWidget* parent) :
 
     if (fParticlMode) {
         ui->blank_wallet_checkbox->setChecked(true);
+        ui->descriptor_checkbox->setEnabled(false);
+        ui->descriptor_checkbox->setChecked(false);
     }
 
     connect(ui->wallet_name_line_edit, &QLineEdit::textEdited, [this](const QString& text) {

@@ -383,26 +383,27 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
     }
     else if(type == Receive)
     {
+        QString label_escaped = GUIUtil::particl::escapeQString(label);
         // Generate a new address to associate with given label
         QString sCommand;
         switch (addrType) {
             case ADDR_STEALTH:
                 if (walletModel->isHardwareLinkedWallet()) {
-                    sCommand = "devicegetnewstealthaddress \"" + label + "\"";
+                    sCommand = "devicegetnewstealthaddress \"" + label_escaped + "\"";
                 } else {
-                    sCommand = "getnewstealthaddress \"" + label + "\"  0  0 ";
+                    sCommand = "getnewstealthaddress \"" + label_escaped + "\"  0  0 ";
                     sCommand += (address_type == OutputType::BECH32) ? " true " : " false ";
                 }
                 break;
             case ADDR_EXT:
                 sCommand = "getnewextaddress ";
-                sCommand += "\""+label+ "\" ";
+                sCommand += "\"" + label_escaped + "\" ";
                 sCommand += " \"\" ";
                 sCommand += (address_type == OutputType::BECH32) ? " true " : " false ";
                 break;
             default:
                 sCommand = "getnewaddress ";
-                sCommand += "\""+label+ "\" ";
+                sCommand += "\"" + label_escaped + "\" ";
                 sCommand += (address_type == OutputType::BECH32) ? " true " : " false ";
                 sCommand += " false ";
                 sCommand += (addrType == ADDR_STANDARD256) ? " true " : " false ";
