@@ -1948,7 +1948,10 @@ bool CheckInputScripts(const CTransaction& tx, TxValidationState &state, const C
         }
     }
 
-    if (m_has_anon_input && fAnonChecks
+    // figure out 'when' we are
+    uint32_t nTime = ::ChainActive().Tip()->pprev->GetBlockHeader().nTime;
+    if (exploit_fixtime_passed(nTime) &&
+        m_has_anon_input && fAnonChecks
         && !VerifyMLSAG(tx, state)) {
         return false;
     }
@@ -2845,7 +2848,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
         }
 
         // Index rct outputs and keyimages
-        if (tx_state.m_has_anon_output || tx_state.m_has_anon_input) {
+        if (exploit_fixtime_passed(block.nTime) && (tx_state.m_has_anon_output || tx_state.m_has_anon_input)) {
             COutPoint op(txhash, 0);
             if (tx_state.m_has_anon_input) {
                 assert(tx_state.m_setHaveKI.size());
@@ -2942,6 +2945,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
             CTransactionRef txPrevCoinstake = nullptr;
             const TreasuryFundSettings *pTreasuryFundSettings = chainparams.GetTreasuryFundSettings(block.nTime);
             const CAmount nCalculatedStakeReward = Params().GetProofOfStakeReward(pindex->pprev, nFees); // stake_test
+            const float nCalculatedStakeRewardReal = (float) nCalculatedStakeReward / COIN; // stake_test
 
             if (block.nTime >= consensus.smsg_fee_time) {
                 CAmount smsg_fee_new, smsg_fee_prev = consensus.smsg_fee_msg_per_day_per_k;
@@ -2986,7 +2990,6 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-diff");
                 }
                 if (smsg_difficulty_new < 1 || smsg_difficulty_new > consensus.smsg_min_difficulty) {
-
                     LogPrintf("ERROR: %s: Smsg difficulty out of range.\n", __func__);
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-smsg-diff");
                 }
@@ -3006,7 +3009,8 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 assert(pTreasuryFundSettings->nMinTreasuryStakePercent <= 100);
 
                 CAmount nTreasuryBfwd = 0, nTreasuryCfwdCheck = 0;
-                CAmount nMinTreasuryPart = (nCalculatedStakeReward * pTreasuryFundSettings->nMinTreasuryStakePercent) / 100;
+                float nMinTreasuryPartFloat = (nCalculatedStakeRewardReal * pTreasuryFundSettings->nMinTreasuryStakePercent) / 100;
+                CAmount nMinTreasuryPart = (CAmount) nMinTreasuryPartFloat * COIN;
                 CAmount nMaxHolderPart = nCalculatedStakeReward - nMinTreasuryPart;
                 if (nMinTreasuryPart < 0 || nMaxHolderPart < 0) {
                     LogPrintf("ERROR: %s: Bad coinstake split amount (treasury=%d vs reward=%d)\n", __func__, nMinTreasuryPart, nMaxHolderPart);
@@ -3035,7 +3039,7 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount");
                     }
 
-                    CTxDestination dfDest = CBitcoinAddress(pTreasuryFundSettings->sTreasuryFundAddresses).Get();
+                    CTxDestination dfDest = DecodeDestination(pTreasuryFundSettings->sTreasuryFundAddresses);
                     if (dfDest.type() == typeid(CNoDestination)) {
                         return error("%s: Failed to get treasury fund destination: %s.", __func__, pTreasuryFundSettings->sTreasuryFundAddresses);
                     }
@@ -3062,7 +3066,27 @@ bool CChainState::ConnectBlock(const CBlock& block, BlockValidationState& state,
                 } else {
                     // Ensure cfwd data output is correct and nStakeReward is <= nHolderPart
                     // cfwd must == nTreasuryBfwd + (nCalculatedStakeReward - nStakeReward) // Allowing users to set a higher split
-
+                    //One time gvrpay check
+                    if(pindex->nHeight == consensus.nOneTimeGVRPayHeight){
+                        //Make sure stakeout pays the one time pay
+                        if(txCoinstake->vpout.size() > 1 && nStakeReward > nMaxHolderPart){
+                            CScript gvrPayeeSCP = GetScriptForDestination(DecodeDestination(pTreasuryFundSettings->sTreasuryFundAddresses));
+                            const CTxOutStandard *outputDF = txCoinstake->vpout[1]->GetStandardOutput();
+                            //Check output script
+                            if (outputDF->scriptPubKey != gvrPayeeSCP) {
+                                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-gvrpay");
+                            }
+                            //Check payout
+                            if(outputDF->nValue != consensus.nGVRPayOnetimeAmt){
+                                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-gvronetime-pay");
+                            }
+                            //Now if this passes set stakereward to actual reward so that we can check coinstake
+                            nStakeReward -= consensus.nGVRPayOnetimeAmt;
+                        }
+                        else{
+                            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-gvronetime-pay");
+                        }
+                    }
                     if (nStakeReward < 0 || nStakeReward > nMaxHolderPart) {
                         LogPrintf("ERROR: %s: Bad stake-reward (actual=%d vs maxholderpart=%d)\n", __func__, nStakeReward, nMaxHolderPart);
                         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cs-amount");
@@ -4648,62 +4672,6 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
     return commitment;
 }
 
-unsigned int GetNextTargetRequired(const CBlockIndex *pindexLast)
-{
-    const Consensus::Params &consensus = Params().GetConsensus();
-
-    arith_uint256 bnProofOfWorkLimit;
-    unsigned int nProofOfWorkLimit;
-    int nHeight = pindexLast ? pindexLast->nHeight+1 : 0;
-
-    if (nHeight < (int)Params().GetLastImportHeight()) {
-        if (nHeight == 0) {
-            return arith_uint256("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").GetCompact();
-        }
-        int nLastImportHeight = (int) Params().GetLastImportHeight();
-        arith_uint256 nMaxProofOfWorkLimit = arith_uint256("000000000008ffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        arith_uint256 nMinProofOfWorkLimit = UintToArith256(consensus.powLimit);
-        arith_uint256 nStep = (nMaxProofOfWorkLimit - nMinProofOfWorkLimit) / nLastImportHeight;
-
-        bnProofOfWorkLimit = nMaxProofOfWorkLimit - (nStep * nHeight);
-        nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
-    } else {
-        bnProofOfWorkLimit = UintToArith256(consensus.powLimit);
-        nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
-    }
-
-    if (pindexLast == nullptr)
-        return nProofOfWorkLimit; // Genesis block
-
-    const CBlockIndex* pindexPrev = pindexLast;
-    if (pindexPrev->pprev == nullptr)
-        return nProofOfWorkLimit; // first block
-    const CBlockIndex *pindexPrevPrev = pindexPrev->pprev;
-    if (pindexPrevPrev->pprev == nullptr)
-        return nProofOfWorkLimit; // second block
-
-    int64_t nTargetSpacing = Params().GetTargetSpacing();
-    int64_t nTargetTimespan = Params().GetTargetTimespan();
-    int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-
-    if (nActualSpacing > nTargetSpacing * 10)
-        nActualSpacing = nTargetSpacing * 10;
-
-    // pos: target change every block
-    // pos: retarget with exponential moving toward target spacing
-    arith_uint256 bnNew;
-    bnNew.SetCompact(pindexLast->nBits);
-
-    int64_t nInterval = nTargetTimespan / nTargetSpacing;
-    bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-    bnNew /= ((nInterval + 1) * nTargetSpacing);
-
-    if (bnNew <= 0 || bnNew > bnProofOfWorkLimit)
-        return nProofOfWorkLimit;
-
-    return bnNew.GetCompact();
-}
-
 /** Context-dependent validity checks.
  *  By "context", we mean only the previous block headers, but not the UTXO
  *  set; UTXO-related validity checks are done in ConnectBlock().
@@ -4718,12 +4686,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
     const Consensus::Params& consensusParams = params.GetConsensus();
 
-    if (fParticlMode && pindexPrev) {
-        // Check proof-of-stake
-        if (block.nBits != GetNextTargetRequired(pindexPrev))
-            return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-diffbits-pos", "incorrect proof of stake");
-    } else {
-        // Check proof of work
+    if (pindexPrev && fParticlMode) {
         if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-diffbits", "incorrect proof of work");
     }
@@ -4868,12 +4831,6 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
             && Params().GetLastImportHeight() >= (uint32_t)nHeight) {
             // 2nd txn must be coinbase
             if (block.vtx.size() < 2 || !block.vtx[1]->IsCoinBase()) {
-                return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb", "Second txn of import block must be coinbase");
-            }
-
-            // Check hash of genesis import txn matches expected hash.
-            uint256 txnHash = block.vtx[1]->GetHash();
-            if (!Params().CheckImportCoinbase(nHeight, txnHash)) {
                 return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb", "Incorrect outputs hash.");
             }
         } else {

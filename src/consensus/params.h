@@ -134,6 +134,16 @@ struct Params {
 
     /** Minimum depth a Particl Anon output is spendable at */
     int nMinRCTOutputDepth;
+    //increase blockreward to match expected supply inflation
+    int nBlockRewardIncreaseHeight;
+    //GVR Allocation one time payout params
+    int nOneTimeGVRPayHeight;
+    //GVR Devfund Adjustment to a GVR held address
+    int nGVRTreasuryFundAdjustment;
+    int64_t nGVRPayOnetimeAmt;
+    // Params for Zawy's LWMA difficulty adjustment algorithm.
+    int64_t nZawyLwmaAveragingWindow;
+    int nLWMADiffUpgradeHeight;
 
     /**
      * If true, witness commitments contain a payload equal to a Bitcoin Script solution

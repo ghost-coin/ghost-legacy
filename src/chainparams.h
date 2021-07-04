@@ -57,12 +57,12 @@ public:
 class TreasuryFundSettings
 {
 public:
-    TreasuryFundSettings(std::string sAddrTo, int nMinTreasuryStakePercent_, int nTreasuryOutputPeriod_)
+    TreasuryFundSettings(std::string sAddrTo, float nMinTreasuryStakePercent_, int nTreasuryOutputPeriod_)
         : sTreasuryFundAddresses(sAddrTo), nMinTreasuryStakePercent(nMinTreasuryStakePercent_), nTreasuryOutputPeriod(nTreasuryOutputPeriod_) {};
 
     std::string sTreasuryFundAddresses;
-    int nMinTreasuryStakePercent; // [0, 100]
-    int nTreasuryOutputPeriod; // treasury fund output is created every n blocks
+    float nMinTreasuryStakePercent; // [0, 100]
+    int nTreasuryOutputPeriod; // dev fund output is created every n blocks
 };
 
 /**
@@ -96,24 +96,24 @@ public:
     const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
     int GetDefaultPort() const { return nDefaultPort; }
 
-    int BIP44ID() const { return nBIP44ID; }
+    int BIP44ID(bool fLegacy = false) const { return fLegacy ? nBIP44IDLegacy : nBIP44IDCurrent; }
 
     uint32_t GetModifierInterval() const { return nModifierInterval; }
     uint32_t GetStakeMinConfirmations() const { return nStakeMinConfirmations; }
     uint32_t GetTargetSpacing() const { return nTargetSpacing; }
     uint32_t GetTargetTimespan() const { return nTargetTimespan; }
 
-    uint32_t GetStakeTimestampMask(int nHeight) const { return nStakeTimestampMask; }
-    int64_t GetCoinYearReward(int64_t nTime) const;
+    uint32_t GetStakeTimestampMask(int /*nHeight*/) const { return nStakeTimestampMask; }
+    int64_t GetBaseBlockReward() const;
+    int GetCoinYearPercent(int year) const;
+    const TreasuryFundSettings *GetTreasuryFundSettings(int nHeight) const;
+    const std::vector<std::pair<int64_t, TreasuryFundSettings> > &GetTreasuryFundSettings() const { return vTreasuryFundSettings; };
 
-    const TreasuryFundSettings *GetTreasuryFundSettings(int64_t nTime) const;
-    const std::vector<std::pair<int64_t, TreasuryFundSettings> > &GetTreasuryFundSettings() const {return vTreasuryFundSettings;};
-    bool PushTreasuryFundSettings(int64_t time_from, TreasuryFundSettings &settings);
-
-    int64_t GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
+    CAmount GetProofOfStakeReward(const CBlockIndex *pindexPrev, int64_t nFees) const;
+    CAmount GetProofOfStakeRewardAtYear(int year) const;
+    CAmount GetProofOfStakeRewardAtHeight(int nHeight) const;
     int64_t GetMaxSmsgFeeRateDelta(int64_t smsg_fee_prev) const;
 
-    bool CheckImportCoinbase(int nHeight, uint256 &hash) const;
     uint32_t GetLastImportHeight() const { return nLastImportHeight; }
 
     const CBlock& GenesisBlock() const { return genesis; }
@@ -154,34 +154,33 @@ public:
         assert(strNetworkID == "regtest");
         nCoinYearReward = nCoinYearReward_;
     }
-    Consensus::Params& GetConsensus_nc() { assert(strNetworkID == "regtest"); return consensus; }
+
+    void SetBlockReward(int64_t nBlockReward_)
+    {
+        assert(strNetworkID == "regtest");
+        nBlockReward = nBlockReward_;
+    }
 
 protected:
     CChainParams() {}
 
-    void SetLastImportHeight()
-    {
-        nLastImportHeight = 0;
-        for (auto cth : vImportedCoinbaseTxns) {
-            nLastImportHeight = std::max(nLastImportHeight, cth.nHeight);
-        }
-    }
-
     Consensus::Params consensus;
     CMessageHeader::MessageStartChars pchMessageStart;
     int nDefaultPort;
-    int nBIP44ID;
+    int nBIP44IDLegacy;
+    int nBIP44IDCurrent;
 
     uint32_t nModifierInterval;         // seconds to elapse before new modifier is computed
     uint32_t nStakeMinConfirmations;    // min depth in chain before staked output is spendable
     uint32_t nTargetSpacing;            // targeted number of seconds between blocks
     uint32_t nTargetTimespan;
-
+    CAmount nBlockReward;               // Block reward for PoS blocks,static
+    CAmount nBlockRewardIncrease;               // Block reward for PoS blocks,static
     uint32_t nStakeTimestampMask = (1 << 4) - 1; // 4 bits, every kernel stake hash will change every 16 seconds
     int64_t nCoinYearReward = 2 * CENT; // 2% per year, See GetCoinYearReward
 
-    std::vector<CImportedCoinbaseTxn> vImportedCoinbaseTxns;
-    uint32_t nLastImportHeight;       // set from vImportedCoinbaseTxns
+    std::array<int, 47> nBlockPerc; //reward percentage each year
+    uint32_t nLastImportHeight = 0;       // always 0 on ghost
 
     std::vector<std::pair<int64_t, TreasuryFundSettings> > vTreasuryFundSettings;
 

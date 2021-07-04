@@ -4264,7 +4264,7 @@ static UniValue getstakinginfo(const JSONRPCRequest &request)
     {
         LOCK(cs_main);
         nTipTime = ::ChainActive().Tip()->nTime;
-        rCoinYearReward = Params().GetCoinYearReward(nTipTime) / CENT;
+        rCoinYearReward = 0;
         nMoneySupply = ::ChainActive().Tip()->nMoneySupply;
     }
 

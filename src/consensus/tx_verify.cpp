@@ -426,11 +426,6 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
         if (spends_tainted_blinded && nPlainValueOut + txfee > state.m_consensus_params->m_max_tainted_value_out) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-frozen-blinded-too-large");
         }
-        /* TODO? Limit to spending one frozen output at a time
-        if (tx.vin.size() > 1 || nRCTPrevouts > 1) {
-            return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-frozen-multiple-inputs");
-        }
-        */
     }
 
     // Track blinded balances
@@ -454,7 +449,11 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, TxValidationState& state, 
         return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-txns-plain-in-mixed-out");
     }
 
-    if ((nCt > 0 || nRingCTOutputs > 0) && nRingCTInputs == 0) {
+    // figure out 'when' we are
+    uint32_t nTime = ::ChainActive().Tip()->pprev->GetBlockHeader().nTime;
+    if (exploit_fixtime_passed(nTime) &&
+        (nCt > 0 || nRingCTOutputs > 0) && nRingCTInputs == 0)
+    {
         bool default_accept_anon = state.m_exploit_fix_2 ? true : DEFAULT_ACCEPT_ANON_TX;
         bool default_accept_blind = state.m_exploit_fix_2 ? true : DEFAULT_ACCEPT_BLIND_TX;
         if (state.m_exploit_fix_1 &&

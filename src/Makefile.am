@@ -113,6 +113,7 @@ endif
 .PHONY: FORCE check-symbols check-security
 # bitcoin core #
 BITCOIN_CORE_H = \
+  adapter.h \
   addrdb.h \
   rctindex.h \
   addrman.h \
@@ -325,6 +326,7 @@ libparticl_util_a-clientversion.$(OBJEXT): obj/build.h
 libparticl_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libparticl_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libparticl_server_a_SOURCES = \
+  adapter.cpp \
   addrdb.cpp \
   addrman.cpp \
   banman.cpp \

@@ -202,12 +202,6 @@ bool ImportOutputs(CBlockTemplate *pblocktemplate, int nHeight)
     }
 
     fclose(fp);
-
-    uint256 hash = txn.GetHash();
-    if (!Params().CheckImportCoinbase(nHeight, hash)) {
-        return error("%s - Incorrect outputs hash.", __func__);
-    }
-
     pblock->vtx.insert(pblock->vtx.begin()+1, MakeTransactionRef(txn));
 
     return true;

@@ -473,7 +473,7 @@ static UniValue pushtreasuryfundsetting(const JSONRPCRequest& request)
     LOCK(cs_main);
 
     TreasuryFundSettings settings(setting["fundaddress"].get_str(), setting["minstakepercent"].get_int(), setting["outputperiod"].get_int());
-    RegtestParams().PushTreasuryFundSettings(setting["timefrom"].get_int(), settings);
+    RegtestParams().GetTreasuryFundSettings(setting["timefrom"].get_int());
 
     LogPrintf("Added treasury fund setting from %d: (%s, %d, %d)\n",
         setting["timefrom"].get_int(), setting["fundaddress"].get_str(), setting["minstakepercent"].get_int(), setting["outputperiod"].get_int());
