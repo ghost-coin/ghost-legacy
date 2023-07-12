@@ -11,7 +11,7 @@
   "dependencies": {
     "bitcoin-json-rpc": "^1.0.1",
     "bitcoind-rpc": "^0.8.1",
-    "bitcore-lib": "^8.20.3",
+    "bitcore-lib": "^8.25.47",
     "commander": "^5.1.0"
   }
 }
